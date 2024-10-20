@@ -51,6 +51,11 @@ export async function GET() {
     const pool = await connectToDatabase();
     const result = await pool.request().query("SELECT * FROM Support.Product");
 
+    // Check if no products are found
+    if (result.recordset.length === 0) {
+      return new NextResponse("No products found", { status: 404 });
+    }
+
     return NextResponse.json(result.recordset);
   } catch (error) {
     console.error("Error fetching products: ", error);

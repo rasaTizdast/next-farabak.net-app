@@ -69,6 +69,11 @@ export async function GET(
       .input("ProductId", params.productId) // Bind the productId parameter
       .query("SELECT * FROM Support.Product WHERE ProductId = @ProductId");
 
+    // Check if the product is found
+    if (result.recordset.length === 0) {
+      return new NextResponse("Product not found", { status: 404 });
+    }
+
     // Return the product data as a JSON response
     return NextResponse.json(result.recordset[0]); // Return the first object
   } catch (error) {

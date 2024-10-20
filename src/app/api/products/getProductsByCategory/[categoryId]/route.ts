@@ -68,6 +68,13 @@ export async function GET(
       .input("categoryId", categoryId)
       .query("SELECT * FROM Support.Product WHERE CategoryId = @categoryId");
 
+    // Check if no products are found in the category
+    if (result.recordset.length === 0) {
+      return new NextResponse("No products found for this category", {
+        status: 404,
+      });
+    }
+
     return NextResponse.json(result.recordset);
   } catch (error) {
     console.error("Error fetching products by category: ", error);

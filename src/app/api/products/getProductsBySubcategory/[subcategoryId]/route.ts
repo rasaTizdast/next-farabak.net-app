@@ -67,6 +67,13 @@ export async function GET(
       .query(`SELECT * FROM Support.Product 
               WHERE CategoryContentId LIKE '%' + @subcategoryId + '%'`);
 
+    // Check if no products are found in the subcategory
+    if (result.recordset.length === 0) {
+      return new NextResponse("No products found for this subcategory", {
+        status: 404,
+      });
+    }
+
     return NextResponse.json(result.recordset);
   } catch (error) {
     console.error("Error fetching products by subcategory: ", error);
