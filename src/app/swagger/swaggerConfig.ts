@@ -17,7 +17,7 @@ const swaggerDefinition = {
 
 const options: OAS3Options = {
   swaggerDefinition,
-  apis: ["./src/app/api/**/*.ts"], // Path to your API routes for automatic documentation
+  apis: ["./src/app/api/**/*.ts",], // Path to your API routes for automatic documentation
 };
 
 const swaggerSpec = swaggerJsdoc(options);
