@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "title": "Dou Poe",
+    "subTitle": "دوربین هوشمند PoE با وضوح 2K و دو لنز",
+    "img": "/pShowCaseImages/1.webp",
+    "link": "/products/30"
+  },
+  {
+    "id": 2,
+    "title": "Argus Eco",
+    "subTitle": "دوربین امنیتی بی‌سیم فضای باز با باتری داخلی یا انرژی خورشیدی",
+    "img": "/pShowCaseImages/2.webp",
+    "link": "/products/21"
+  },
+  {
+    "id": 3,
+    "title": "E1 Outdoor",
+    "subTitle": "دوربین هوشمند 5 مگاپیکسل PTZ WiFi با پروژکتورهای حساس به حرکت",
+    "img": "/pShowCaseImages/3.webp",
+    "link": "/products/32"
+  },
+  {
+    "id": 4,
+    "title": "Argus 3",
+    "subTitle": "دوربین امنیتی بی‌سیم با پروژکتور حرکتی",
+    "img": "/pShowCaseImages/4.webp",
+    "link": "/products/19"
+  },
+  {
+    "id": 5,
+    "title": "Argus 2E",
+    "subTitle": "دوربین IP کاملاً بی‌سیم با باتری داخلی یا انرژی خورشیدی",
+    "img": "/pShowCaseImages/5.webp",
+    "link": "/products/18"
+  },
+  {
+    "id": 6,
+    "title": "D800",
+    "subTitle": "دوربین امنیتی PoE با وضوح 4K فوق‌العاده",
+    "img": "/pShowCaseImages/6.webp",
+    "link": "/products/27"
+  }
+]
