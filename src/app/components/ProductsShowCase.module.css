@@ -1,0 +1,206 @@
+.container {
+  width: 100%;
+  padding: 3rem 10rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.container h2 {
+  margin-bottom: 3rem;
+  font-weight: 900;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  border-bottom: 3px solid var(--third-color);
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+  max-width: calc(1900px - 20rem);
+}
+
+.row {
+  display: flex;
+  width: 100%;
+  gap: 2rem;
+}
+
+.card {
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+  height: auto; /* Allow height to adjust based on content */
+}
+
+.card img {
+  width: 100%;
+  height: auto; /* Maintain aspect ratio */
+  max-height: 300px; /* Adjust to desired max height */
+  object-fit: cover; /* Ensure the image covers the area without distortion */
+}
+
+.details {
+  position: absolute;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  padding: 0.5rem;
+}
+
+.details h3 {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.details p {
+  font-weight: 200;
+  font-size: 0.9rem;
+}
+
+.oneThird {
+  flex: 1 1 45%;
+}
+
+.twoThirds {
+  flex: 2 1 55%;
+}
+
+.half {
+  flex: 1 1 50%;
+}
+
+.all_home_edition {
+  margin-top: 4rem;
+  padding: 1rem 2rem;
+  background-color: var(--third-color);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease-in-out;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s ease-in-out;
+}
+
+@media (min-width: 2000px) {
+  .container h2 {
+    font-size: 1.7rem;
+  }
+
+  .details h3 {
+    font-size: 1.3rem;
+  }
+
+  .details p {
+    font-size: 1.1rem;
+  }
+
+  .all_home_edition {
+    font-size: 1.2rem;
+  }
+}
+
+@media (min-width: 576px) {
+  .card:hover {
+    transform: scale(1.05);
+  }
+
+  .all_home_edition:hover {
+    background-color: var(--fourth-color);
+    transform: scale(1.05);
+  }
+
+  .all_home_edition::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 100%;
+    background-color: var(--fourth-color);
+    transition: left 0.5s ease-in-out, right 0.5s ease-in-out;
+    z-index: -1; /* Place the pseudo-element behind the content */
+  }
+
+  .all_home_edition:hover::after {
+    left: 0;
+    right: 0;
+  }
+
+  .all_home_edition:hover {
+    color: white !important; /* Change text color if needed when hovered */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Optional: Enhance the box shadow effect */
+    scale: 1.03;
+  }
+}
+
+@media (max-width: 1199px) {
+  .container {
+    padding-inline: 6rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .container {
+    padding-inline: 4rem;
+  }
+
+  .details h3 {
+    font-size: 0.9rem;
+  }
+
+  .details p {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding-inline: 3rem;
+  }
+
+  .row {
+    flex-direction: column;
+  }
+
+  .oneThird,
+  .twoThirds,
+  .half {
+    flex: 1 1 50%;
+  }
+}
+
+@media (max-width: 576px) {
+  .container {
+    padding-inline: 1.5rem;
+    padding-block: 1rem;
+  }
+
+  .oneThird,
+  .twoThirds,
+  .half {
+    flex: 1 1 100%;
+  }
+
+  .all_home_edition {
+    font-size: 0.8rem;
+    padding: 1rem;
+    width: 100%;
+    text-align: center;
+  }
+}
