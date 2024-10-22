@@ -1,0 +1,133 @@
+.nav_ul {
+  margin: 0 auto;
+  list-style-type: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-evenly;
+  align-self: flex-end;
+  width: 60%;
+  font-weight: 700;
+}
+
+.nav_item > a {
+  display: inline-block;
+  padding: 0.5rem 1rem 1rem 1rem;
+  transition: all 0.3s ease-in-out;
+  border-radius: 8px 8px 0 0;
+  color: #ddd;
+}
+
+/* Submenu codes */
+.hidden {
+  display: none;
+}
+
+.nav_item {
+  position: relative; /* Ensure the parent is positioned relative to contain the absolute positioned child */
+}
+
+.submenu {
+  display: flex;
+  flex-direction: column; /* Stack submenu items vertically */
+  position: absolute; /* Absolute positioning for the submenu */
+  top: 100%; /* Position below the parent */
+  left: -25%; /* Align left with the parent */
+  width: 150%;
+  background-color: #fcfcfc; /* Ensure background color for submenu */
+  z-index: 1000; /* Ensure it appears above other content */
+  padding: 0; /* Remove default padding */
+  margin: 0; /* Remove default margin */
+  border-radius: 0 0 10px 10px;
+  overflow-y: hidden;
+  box-shadow: 0 4px 10px 4px rgba(0, 0, 0, 0.1);
+}
+
+.submenu li {
+  list-style-type: none;
+  border-bottom: 1px solid #dddddd; /* Optional: Add border to separate items */
+  transition: all 0.2s ease-in-out;
+}
+
+.submenu li:last-child {
+  border-bottom: none; /* Remove border from last item */
+}
+
+.submenu li a {
+  padding: 15px 10px;
+  font-size: 0.9rem;
+  display: block;
+  color: #333; /* Adjust text color as needed */
+  text-decoration: none;
+  text-align: center; /* Center text horizontally */
+  line-height: 1.5; /* Set line height for vertical centering */
+}
+
+/* end of submenu codes */
+
+/* media queries */
+
+@media (min-width: 2000px) {
+  .nav_ul {
+    width: 50%;
+    font-size: 1.2rem;
+  }
+
+  .submenu li a {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 1199px) {
+  .nav_ul {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 1045px) {
+  .nav_ul {
+    font-size: 1.4vw;
+  }
+}
+
+@media (max-width: 992px) {
+  .nav_ul {
+    font-size: 0.9rem;
+    width: 85%;
+  }
+
+  .nav_item:hover > a {
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav_ul {
+    font-size: calc(0.5rem + 0.8vw);
+    width: 100%;
+  }
+
+  .nav_item > a {
+    padding: 0.5rem 0.5rem 1rem 0.5rem;
+  }
+
+  .nav_item:hover > a {
+    padding-inline: 1.2rem !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .nav_ul {
+    display: none;
+  }
+}
+
+@media (min-width: 576px) {
+  .nav_item:hover > a {
+    background-color: rgba(99, 99, 99, 0.3); /* Change background color */
+    padding-inline: 2rem; /* Add padding */
+  }
+
+  .submenu li:hover {
+    background-color: #caf2ff;
+  }
+}
