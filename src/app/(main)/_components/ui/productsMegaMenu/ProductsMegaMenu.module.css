@@ -1,0 +1,136 @@
+/* Basic styling for the navigation item */
+.nav_item {
+  position: relative;
+}
+
+.nav_item > a {
+  display: inline-block;
+  padding: 0.5rem 1rem 1rem 1rem;
+  transition: all 0.3s ease-in-out;
+  border-radius: 8px 8px 0 0;
+  color: #ddd;
+}
+
+/* MegaMenu Styling */
+.megaMenu {
+  overflow-y: auto;
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: -40%;
+  transform: translateX(-50%);
+  width: 80vw;
+  background-color: #ffffff;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 2rem 1rem;
+  border-radius: 0 0 8px 8px;
+  z-index: 3;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  gap: 1.5rem 2rem;
+  max-width: 1300px;
+  max-height: 90dvh;
+}
+
+/* Show the mega menu on hover */
+.megaMenuParent:hover .megaMenu {
+  display: flex;
+}
+
+/* Category columns with a fixed width */
+.categoryColumn {
+  flex: auto; /* Fixed width for each column */
+}
+
+/* Category titles with subcategories get a border-bottom */
+.categoryTitle {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 3px solid var(--dark-blue-color);
+}
+
+.categoryTitle a {
+  transition: all 0.3s ease-in-out;
+}
+
+.categoryTitle a:hover {
+  color: var(--third-color);
+}
+
+/* Subcategories styling */
+.categoryColumn ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.categoryColumn ul li {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.categoryColumn ul li a {
+  color: #252525;
+  text-decoration: none;
+  transition: all 0.3s ease-in-out;
+}
+
+.categoryColumn ul li a:hover {
+  padding-right: 1rem;
+  color: #007bff;
+}
+
+/* Media Query: Adjust mega menu for screens smaller than 1200px */
+@media (max-width: 1200px) {
+  .megaMenu {
+    width: 90vw;
+    left: -65%;
+    padding: 2rem 1rem;
+    border-radius: 0;
+  }
+
+  .categoryColumn {
+    flex: 0 0 200px; /* Adjust fixed width for smaller screens */
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 992px) {
+  .nav_item > a:hover {
+    padding-inline: 1.5rem;
+  }
+
+  .megaMenu {
+    left: -50%;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav_item > a {
+    padding: 0.5rem 0.5rem 1rem 0.5rem;
+  }
+
+  .nav_item:hover > a {
+    padding-inline: 1.2rem !important;
+  }
+
+  .megaMenu {
+    left: -60%;
+  }
+}
+
+@media (max-width: 650px) {
+  .megaMenu {
+    left: -40%;
+  }
+}
+
+@media (min-width: 576px) {
+  .nav_item > a:hover,
+  .nav_item:hover > a {
+    background-color: rgba(99, 99, 99, 0.3); /* Change background color */
+    padding-inline: 2rem;
+  }
+}
