@@ -1,5 +1,5 @@
 import Link from "next/link"; // Use Next.js Link for routing
-import supportData from "../constants/supportData.json";
+import supportData from "../../constants/supportData.json";
 import styles from "./SupportSection.module.css";
 
 const SupportSection = () => {

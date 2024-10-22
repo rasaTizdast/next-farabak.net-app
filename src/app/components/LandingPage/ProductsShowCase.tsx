@@ -1,7 +1,7 @@
 import Link from "next/link"; // Use Next.js Link for routing
 import Image from "next/image"; // Import Image from Next.js
 import styles from "./ProductsShowCase.module.css";
-import cardData from "../constants/cardData.json"; // Ensure cardData is imported correctly
+import cardData from "../../constants/cardData.json"; // Ensure cardData is imported correctly
 
 const ProductsShowCase = () => {
   const getRowClass = (index:number) => {
