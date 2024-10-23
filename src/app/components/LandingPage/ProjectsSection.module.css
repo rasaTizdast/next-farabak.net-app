@@ -16,6 +16,7 @@
 }
 
 .container h2 {
+  font-size: 1.7rem;
   margin-bottom: 3rem;
   font-weight: 900;
   text-align: center;
@@ -52,7 +53,7 @@
   gap: 0.5rem;
 }
 
-.details h4{
+.details h4 {
   font-weight: 700;
 }
 
