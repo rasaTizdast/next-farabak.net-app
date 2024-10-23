@@ -1,8 +1,7 @@
-import { useState } from "react";
-
 import styles from "./NavBar.module.css";
 import ProductsMegaMenu from "../productsMegaMenu/ProductsMegaMenu";
 import Link from "next/link";
+import HeaderSubMenu from "./HeaderSubMenu";
 
 interface SubMenuItem {
   id: number;
@@ -15,10 +14,6 @@ interface MenuItem {
   title: string;
   link: string;
   subMenu?: SubMenuItem[];
-}
-
-interface HeaderSubMenuProps {
-  data: MenuItem;
 }
 
 const NavBar = () => {
@@ -64,24 +59,3 @@ const NavBar = () => {
 };
 
 export default NavBar;
-
-const HeaderSubMenu = ({ data }: HeaderSubMenuProps) => {
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <li
-      className={styles.nav_item}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <Link href={data.link}>{data.title}</Link>
-      <ul className={hovered ? styles.submenu : styles.hidden}>
-        {data.subMenu?.map((item) => (
-          <li key={item.id}>
-            <Link href={item.link}>{item.title}</Link>
-          </li>
-        ))}
-      </ul>
-    </li>
-  );
-};
