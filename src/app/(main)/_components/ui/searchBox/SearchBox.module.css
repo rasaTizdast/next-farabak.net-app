@@ -11,6 +11,7 @@
   font-size: 2rem;
   height: 100%;
   position: relative;
+  margin-bottom: 0.5rem;
 }
 
 .search_box {
@@ -80,13 +81,13 @@
 .results {
   height: 100%;
   width: 100%;
-  max-width: calc(1200px - 20rem);
+  max-width: 1580px;
   text-align: center;
 
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 2rem 1.5rem;
+  gap: 1.2rem;
 
   margin-top: 2rem;
   font-weight: 400;
@@ -94,7 +95,7 @@
 
 .results a {
   width: 25%;
-
+  max-width: 300px;
   min-height: 150px;
   display: flex;
   flex-direction: column;

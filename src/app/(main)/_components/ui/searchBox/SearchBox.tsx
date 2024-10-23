@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useRef, useEffect, useCallback } from "react";
 import debounce from "lodash/debounce";
 import { escape } from "validator";
@@ -138,6 +140,7 @@ const SearchResults = ({
             <Image
               width={280}
               height={280}
+              quality={100}
               src={`/productImages/${product.img1}`}
               alt={product.name}
             />
@@ -168,12 +171,11 @@ const SearchBox = () => {
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false); // Track if the user has searched
+  const [hasSearched, setHasSearched] = useState(false);
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  // Handle search input changes
   const inputChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const result = e.target.value;
     setSearchValue(result);
@@ -185,30 +187,27 @@ const SearchBox = () => {
     }
 
     setIsLoading(true);
-    setHasSearched(true); // Mark that the user has searched
+    setHasSearched(true);
     debouncedSearchHandler(result.trim(), setSearchResults, setIsLoading);
   };
 
-  // Handle search button click
   const onSearchClick = () => {
     if (searchValue.trim().length > 0) {
       const sanitizedSearchValue = escape(searchValue.trim());
       const safeSearchValue = encodeURIComponent(sanitizedSearchValue);
       router.push(`/products/search?q=${safeSearchValue}`);
-      closeSearchBox(); // Close search box after clicking search
+      closeSearchBox();
     }
   };
 
-  // Handle "Enter" key press for search
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       onSearchClick();
     }
   };
 
-  // Toggle search box visibility
   const toggleSearchBox = (event: React.MouseEvent) => {
-    event.stopPropagation(); // Prevent event bubbling up
+    event.stopPropagation();
     if (searchVis) {
       closeSearchBox();
     } else {
@@ -220,16 +219,14 @@ const SearchBox = () => {
     }
   };
 
-  // Close search box and reset values
   const closeSearchBox = useCallback(() => {
     setSearchVis(false);
     setSearchValue("");
     setSearchResults([]);
     setIsLoading(false);
-    setHasSearched(false); // Reset search state when closing the search box
+    setHasSearched(false);
   }, []);
 
-  // Handle clicks outside the search box
   const handleClickOutside = useCallback(
     (event: MouseEvent) => {
       if (
@@ -242,14 +239,12 @@ const SearchBox = () => {
     [closeSearchBox]
   );
 
-  // Focus on the input when the search box opens
   useEffect(() => {
     if (searchVis && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [searchVis]); // Watch for changes in searchVis
+  }, [searchVis]);
 
-  // Add event listener for clicks outside the search box
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
@@ -262,7 +257,7 @@ const SearchBox = () => {
       <CgSearch
         className={styles.search_icon}
         strokeWidth={1}
-        onClick={(event) => toggleSearchBox(event)} // Pass event to toggleSearchBox
+        onClick={(event) => toggleSearchBox(event)}
       />
       {searchVis && (
         <div className={styles.search_box}>
