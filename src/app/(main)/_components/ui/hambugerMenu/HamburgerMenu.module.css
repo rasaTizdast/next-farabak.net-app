@@ -1,0 +1,109 @@
+/* Add this new class to prevent body scrolling */
+.noScroll {
+  overflow: hidden;
+}
+
+.container {
+  position: relative;
+}
+
+.menu {
+  background-color: #dddddd;
+  padding: 1rem 1.5rem 1rem 1rem;
+  width: 280px;
+  position: absolute;
+  top: 133%; /* Adjusted to align with the header */
+  right: -650%; /* Initially hidden */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: calc(100dvh - 80px);
+  transition: right 0.3s ease-in-out; /* Transition for the menu sliding in */
+  z-index: 4; /* Ensure the menu is above the overlay */
+}
+
+.menu.open {
+  right: -50%; /* Slide in from the right */
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  opacity: 0; /* Initially hidden */
+  transform: translateX(100%); /* Initially off the screen */
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out 0.3s; /* Delay to start after menu transition */
+}
+
+.items a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.items svg {
+  font-size: 1.4rem;
+}
+
+.items.show {
+  opacity: 1;
+  transform: translateX(0); /* Slide in from the right */
+}
+
+.user_icon,
+.signup {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem;
+  opacity: 0; /* Initially hidden */
+  transform: translateX(100%); /* Initially off the screen */
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out 0.3s; /* Delay to start after menu transition */
+}
+
+.signup button {
+  width: 100%;
+  display: inline-block;
+  padding-block: 0.4rem;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--secondary-color);
+  color: #fff;
+  font-weight: 500;
+}
+
+.user_icon svg {
+  font-size: 2rem;
+}
+
+.user_icon.show,
+.signup.show {
+  opacity: 1;
+  transform: translateX(0); /* Slide in from the right */
+}
+
+.overlay {
+  position: fixed;
+  top: 80px; /* Adjusted to start below the header */
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 80px);
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 3; /* Ensure the overlay is below the menu */
+}
+
+.overlay.show {
+  opacity: 1;
+}
+
+@media (min-width: 577px) {
+  .container {
+    display: none;
+  }
+}
+
+@media (max-width: 400px) {
+}
