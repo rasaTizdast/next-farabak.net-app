@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { UserProvider } from "@/context/UserContext";
 
 // Importing the custom Vazirmatn font
 const vazirmatnFont = localFont({
@@ -23,7 +24,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl">
-      <body className={`${vazirmatnFont.variable}`}>{children}</body>
+      <body className={`${vazirmatnFont.variable}`}>
+        <UserProvider>{children}</UserProvider>
+      </body>
     </html>
   );
 }
