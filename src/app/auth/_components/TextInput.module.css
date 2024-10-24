@@ -1,0 +1,58 @@
+/* TextInput.module.css */
+.form_group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.input {
+  width: 100%;
+  padding: 14px;
+  outline: none;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #c7c7c7; /* Neutral state */
+  border-radius: 8px;
+  transition: border 0.3s ease-in-out;
+  text-align: right;
+}
+
+.valid {
+  border: 2px solid #2ecc71; /* Green color for valid inputs */
+  color: #03af4b !important;
+}
+
+.not_valid {
+  border: 2px solid #e74c3c; /* Red color for invalid inputs */
+  color: #e74c3c !important;
+}
+
+.form_group input.not_valid::placeholder {
+  font-weight: 300;
+  color: #e74c3c !important;
+}
+
+.error {
+  color: #e74c3c;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.input_wrapper {
+  position: relative;
+}
+
+.password_toggle_icon {
+  position: absolute;
+  top: 60%;
+  left: 15px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 1.2rem;
+}
