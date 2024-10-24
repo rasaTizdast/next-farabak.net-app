@@ -9,13 +9,9 @@ import NavBar from "../navbar/Navbar";
 import UserStatusIcon from "./UserStatusIcon";
 import SearchBox from "../searchBox/SearchBox";
 
-// import { useAuth } from "../hooks/useAuth"; // Assuming this works in Next.js as well
-
 import styles from "./Header.module.css"; // CSS module remains unchanged
 
 const Header = () => {
-  //   const { user } = useAuth();
-
   return (
     <header className={styles.header}>
       <div className={styles.header_content}>
