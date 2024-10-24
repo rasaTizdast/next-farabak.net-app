@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
 import { connectToDatabase } from "../../../../../lib/db";
-import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import { SignJWT } from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
-
 const REFRESH_TOKEN_SECRET =
   process.env.REFRESH_TOKEN_SECRET || "your_refresh_token_secret";
 
@@ -39,12 +38,11 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     const pool = await connectToDatabase();
 
-    // Fetch user details and active password
     const result = await pool
       .request()
       .input("Username", username)
       .input("Active", true).query(`
-        SELECT c.userId, c.username, c.email, p.password1 
+        SELECT c.userId, c.username, c.email, c.role, p.password1 
         FROM info.client c 
         INNER JOIN info.password p 
         ON c.userId = p.userId 
@@ -68,30 +66,35 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
-    // Generate JWT tokens
-    const accessToken = jwt.sign({ userId: user.userId }, JWT_SECRET, {
-      expiresIn: "15m",
-    });
-    const refreshToken = jwt.sign(
-      { userId: user.userId },
-      REFRESH_TOKEN_SECRET,
-      {
-        expiresIn: "7d",
-      }
-    );
+    // Generate access and refresh tokens using jose
+    const accessToken = await new SignJWT({
+      userId: user.userId,
+      username: user.username,
+      role: user.role,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("15m")
+      .sign(new TextEncoder().encode(JWT_SECRET));
 
-    // Set cookies with the tokens
+    const refreshToken = await new SignJWT({
+      userId: user.userId,
+      username: user.username,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("7d")
+      .sign(new TextEncoder().encode(REFRESH_TOKEN_SECRET));
+
     const response = NextResponse.json({ message: "Login successful" });
     response.cookies.set("accessToken", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Only set secure in production
-      maxAge: 15 * 60, // 15 minutes
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 15 * 60,
       path: "/",
     });
     response.cookies.set("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Only set secure in production
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60,
       path: "/",
     });
 

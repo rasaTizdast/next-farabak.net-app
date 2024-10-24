@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { connectToDatabase } from "../../../../../lib/db";
+import { jwtVerify } from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+
+async function verifyToken(token: string) {
+  const secret = new TextEncoder().encode(JWT_SECRET);
+  const { payload } = await jwtVerify(token, secret);
+  return payload;
+}
 
 /**
  * @swagger
@@ -84,11 +90,12 @@ export async function GET(): Promise<NextResponse> {
       );
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET!) as { userId: string };
+    // Verify the token
+    const decoded = await verifyToken(token);
 
     const pool = await connectToDatabase();
     const result = await pool.request().input("UserId", decoded.userId).query(`
-        SELECT userId, firstName, lastName, email, phoneNumber 
+        SELECT userId, firstName, lastName, email, phoneNumber, role 
         FROM info.client 
         WHERE userId = @UserId
       `);
@@ -97,7 +104,14 @@ export async function GET(): Promise<NextResponse> {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json(result.recordset[0]);
+    return NextResponse.json({
+      userId: result.recordset[0].userId,
+      firstName: result.recordset[0].firstName,
+      lastName: result.recordset[0].lastName,
+      email: result.recordset[0].email,
+      phoneNumber: result.recordset[0].phoneNumber,
+      role: result.recordset[0].role,
+    });
   } catch (error) {
     console.error("Error retrieving user profile:", error);
     return NextResponse.json(
@@ -119,7 +133,8 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       );
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET!) as { userId: string };
+    // Use jose to verify the token
+    const decoded = await verifyToken(token);
 
     const updates: {
       firstName?: string;

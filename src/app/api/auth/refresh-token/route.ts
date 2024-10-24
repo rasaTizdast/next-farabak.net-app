@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import { jwtVerify, SignJWT } from "jose"; // Using jose for JWT handling
 
 /**
  * Interface for the decoded token payload.
- * Extends JwtPayload to include userId and username.
  */
-interface DecodedToken extends JwtPayload {
+interface DecodedToken {
   userId: string;
   username: string;
 }
@@ -15,29 +14,38 @@ const REFRESH_TOKEN_SECRET =
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
 /**
- * Function to verify a JWT and return the decoded token.
+ * Verifies a JWT using jose and returns the decoded payload.
  *
  * @param {string} token - The JWT token to verify.
- * @param {string} secret - The secret key to verify the token.
+ * @param {Uint8Array} secret - The secret key to verify the token.
  * @returns {Promise<DecodedToken>} - A promise that resolves with the decoded token or rejects with an error.
  */
-function verifyToken(token: string, secret: string): Promise<DecodedToken> {
-  return new Promise((resolve, reject) => {
-    jwt.verify(token, secret, (err, decoded) => {
-      if (err || !decoded) {
-        reject(new Error("Invalid or expired refresh token"));
-      } else {
-        resolve(decoded as DecodedToken);
-      }
-    });
-  });
+async function verifyToken(
+  token: string,
+  secret: Uint8Array
+): Promise<DecodedToken> {
+  try {
+    const { payload } = await jwtVerify(token, secret);
+
+    // Ensure the required fields (userId and username) exist in the payload
+    if (
+      typeof payload.userId === "string" &&
+      typeof payload.username === "string"
+    ) {
+      return payload as unknown as DecodedToken;
+    } else {
+      throw new Error("Invalid token payload: Missing required fields");
+    }
+  } catch (err) {
+    throw new Error("Invalid or expired refresh token");
+  }
 }
 
 /**
  * @swagger
  * /api/auth/refresh-token:
  *   post:
- *     summary: Refresh the access token using a valid refresh token.
+ *     summary: Refresh the access token using a refresh token
  *     tags: [auth]
  *     requestBody:
  *       required: true
@@ -48,10 +56,12 @@ function verifyToken(token: string, secret: string): Promise<DecodedToken> {
  *             properties:
  *               refreshToken:
  *                 type: string
- *                 description: The refresh token provided during login.
+ *                 description: The refresh token used to generate a new access token
+ *             required:
+ *               - refreshToken
  *     responses:
  *       200:
- *         description: Successfully refreshed the access token.
+ *         description: Successfully generated a new access token
  *         content:
  *           application/json:
  *             schema:
@@ -59,11 +69,37 @@ function verifyToken(token: string, secret: string): Promise<DecodedToken> {
  *               properties:
  *                 accessToken:
  *                   type: string
- *                   description: The new access token.
+ *                   description: The new access token
+ *       400:
+ *         description: Bad request, refresh token missing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Refresh token is required
  *       401:
- *         description: Invalid or expired refresh token.
+ *         description: Unauthorized, invalid or expired refresh token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Invalid or expired refresh token
  *       500:
- *         description: Internal server error.
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Internal Server Error
  */
 
 /**
@@ -74,11 +110,9 @@ function verifyToken(token: string, secret: string): Promise<DecodedToken> {
  */
 export async function POST(request: Request): Promise<NextResponse> {
   try {
-    // Parse request body to extract the refresh token
     const body = await request.json();
     const refreshToken: string = body.refreshToken;
 
-    // Check if refresh token is provided
     if (!refreshToken) {
       return NextResponse.json(
         { message: "Refresh token is required" },
@@ -86,10 +120,13 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
-    // Verify the refresh token and decode it
+    // Decode the refresh token using jose
     let decodedToken: DecodedToken;
     try {
-      decodedToken = await verifyToken(refreshToken, REFRESH_TOKEN_SECRET);
+      decodedToken = await verifyToken(
+        refreshToken,
+        new TextEncoder().encode(REFRESH_TOKEN_SECRET)
+      );
     } catch (error) {
       return NextResponse.json(
         { message: (error as Error).message },
@@ -98,13 +135,16 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     // Generate a new access token
-    const newAccessToken = jwt.sign(
-      { userId: decodedToken.userId, username: decodedToken.username },
-      JWT_SECRET,
-      { expiresIn: "15m" }
-    );
+    const newAccessToken = await new SignJWT({
+      userId: decodedToken.userId,
+      username: decodedToken.username,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime("15m")
+      .sign(new TextEncoder().encode(JWT_SECRET));
 
-    // Set the new access token in a cookie (if needed, you can include this)
+    // Set the new access token as an HTTP-only cookie
     const response = NextResponse.json({ accessToken: newAccessToken });
     response.cookies.set("accessToken", newAccessToken, {
       httpOnly: true,

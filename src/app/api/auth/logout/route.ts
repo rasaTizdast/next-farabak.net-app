@@ -31,6 +31,14 @@ export async function POST(): Promise<NextResponse> {
       expires: new Date(0), // Setting to a past date to invalidate the cookie
     });
 
+    // Clear the accesss token cookie
+    response.cookies.set("accessToken", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      expires: new Date(0), // Setting to a past date to invalidate the cookie
+    });
+
     return response;
   } catch (error) {
     console.error("Error during logout:", error);

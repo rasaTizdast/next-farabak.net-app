@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "../../../../../lib/db";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { SignJWT } from "jose"; // Importing from jose for JWT handling
 
-// Define constants for JWT secrets
+// Define constants for JWT secrets (using them directly as strings)
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 const REFRESH_TOKEN_SECRET =
   process.env.REFRESH_TOKEN_SECRET || "your_refresh_token_secret";
@@ -165,13 +165,19 @@ export async function POST(request: Request) {
         VALUES (@Password, @UserId, 1)
       `);
 
-    // Generate JWT tokens
-    const accessToken = jwt.sign({ userId, username }, JWT_SECRET, {
-      expiresIn: "15m",
-    });
-    const refreshToken = jwt.sign({ userId, username }, REFRESH_TOKEN_SECRET, {
-      expiresIn: "7d",
-    });
+    // Generate Access Token using jose
+    const accessToken = await new SignJWT({ userId, username, role: "user" })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime("15m")
+      .sign(new TextEncoder().encode(JWT_SECRET));
+
+    // Generate Refresh Token using jose
+    const refreshToken = await new SignJWT({ userId, username })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime("7d")
+      .sign(new TextEncoder().encode(REFRESH_TOKEN_SECRET));
 
     // Set cookies
     const response = NextResponse.json({

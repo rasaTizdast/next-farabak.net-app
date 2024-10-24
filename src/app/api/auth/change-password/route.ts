@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { connectToDatabase } from "../../../../../lib/db";
-import jwt from "jsonwebtoken";
+import { jwtVerify } from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 const SALT_ROUNDS = 10;
@@ -46,7 +46,12 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       );
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET!) as { userId: string };
+    const { payload } = await jwtVerify(
+      token,
+      new TextEncoder().encode(JWT_SECRET)
+    );
+
+    const { userId } = payload as { userId: string };
     const { currentPassword, newPassword } = await request.json();
 
     const pool = await connectToDatabase();
@@ -54,7 +59,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     // Fetch the user's current active password
     const result = await pool
       .request()
-      .input("UserId", decoded.userId)
+      .input("UserId", userId)
       .input("Active", true)
       .query(
         "SELECT password1 FROM info.password WHERE userId = @UserId AND active = @Active"
@@ -81,22 +86,22 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       );
     }
 
-    // Deactivate all previous passwords
+    // Hash the new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+    // Deactivate old passwords
     await pool
       .request()
-      .input("UserId", decoded.userId)
+      .input("UserId", userId)
       .input("Active", false)
       .query(
         "UPDATE info.password SET active = @Active WHERE userId = @UserId"
       );
 
-    // Hash the new password
-    const hashedNewPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
-
-    // Insert the new password and mark it as active
+    // Insert new password
     await pool
       .request()
-      .input("UserId", decoded.userId)
+      .input("UserId", userId)
       .input("Password", hashedNewPassword)
       .input("Active", true).query(`
         INSERT INTO info.password (userId, password1, active) 
