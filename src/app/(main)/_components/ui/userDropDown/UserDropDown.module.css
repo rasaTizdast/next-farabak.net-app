@@ -1,0 +1,78 @@
+.userIcon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.userIcon svg {
+  color: #fff;
+}
+
+.subMenu {
+  position: absolute;
+  top: 150%; /* Position below the parent */
+  right: -150%; /* Align left with the parent */
+  width: 150px;
+  background-color: #f8f8f8;
+  box-shadow: 0 4px 12px 1px rgba(0, 0, 0, 0.3);
+  list-style-type: none;
+  border-radius: 6px;
+  overflow-x: hidden;
+  cursor: pointer;
+}
+
+.subMenu * {
+  transition: all 0.2s ease-in-out;
+  font-size: 0.9rem;
+}
+
+.subMenu a,
+.subMenu li:last-child {
+  display: inline-block;
+  padding: 0.8rem 1rem;
+  width: 100%;
+}
+
+.subMenu li:last-child {
+  color: red;
+}
+
+.subMenu li {
+  list-style-type: none;
+  border-bottom: 1px solid #dddddd; /* Optional: Add border to separate items */
+  transition: all 0.2s ease-in-out;
+}
+
+.subMenu li:last-child {
+  border-bottom: none; /* Remove border from last item */
+}
+
+.userIcon svg {
+  font-size: 2.3rem;
+  cursor: pointer;
+}
+
+@media (max-width: 992px) {
+  .userIcon svg {
+    font-size: 1.9rem;
+  }
+}
+
+@media (min-width: 2000px) {
+  .userIcon ul * {
+    font-size: 1.1rem;
+  }
+}
+
+@media (min-width: 576px) {
+  .subMenu a:hover {
+    background-color: #aceaff;
+    padding-right: 1.5rem;
+  }
+
+  .subMenu li:last-child:hover {
+    padding-right: 1.5rem;
+    color: #fff;
+    background-color: rgb(255, 110, 110);
+  }
+}
