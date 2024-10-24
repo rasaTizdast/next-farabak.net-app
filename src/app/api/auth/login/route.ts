@@ -5,6 +5,9 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
+const REFRESH_TOKEN_SECRET =
+  process.env.REFRESH_TOKEN_SECRET || "your_refresh_token_secret";
+
 /**
  * @swagger
  * /api/auth/login:
@@ -69,20 +72,28 @@ export async function POST(request: Request): Promise<NextResponse> {
     const accessToken = jwt.sign({ userId: user.userId }, JWT_SECRET, {
       expiresIn: "15m",
     });
-    const refreshToken = jwt.sign({ userId: user.userId }, JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const refreshToken = jwt.sign(
+      { userId: user.userId },
+      REFRESH_TOKEN_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
 
     // Set cookies with the tokens
     const response = NextResponse.json({ message: "Login successful" });
     response.cookies.set("accessToken", accessToken, {
       httpOnly: true,
-      maxAge: 900,
-    }); // 15 minutes
+      secure: process.env.NODE_ENV === "production", // Only set secure in production
+      maxAge: 15 * 60, // 15 minutes
+      path: "/",
+    });
     response.cookies.set("refreshToken", refreshToken, {
       httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60,
-    }); // 7 days
+      secure: process.env.NODE_ENV === "production", // Only set secure in production
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: "/",
+    });
 
     return response;
   } catch (error) {

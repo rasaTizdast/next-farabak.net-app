@@ -23,15 +23,69 @@ const REFRESH_TOKEN_SECRET =
  *             properties:
  *               username:
  *                 type: string
+ *                 description: Unique username for the user
+ *               firstName:
+ *                 type: string
+ *                 description: User's first name
+ *               lastName:
+ *                 type: string
+ *                 description: User's last name
+ *               phoneNumber:
+ *                 type: string
+ *                 description: User's phone number
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: User's email address
+ *               city:
+ *                 type: string
+ *                 description: User's city of residence
+ *               job:
+ *                 type: string
+ *                 description: User's job title
  *               password:
  *                 type: string
+ *                 description: User's password (8 to 50 characters)
+ *             required:
+ *               - username
+ *               - firstName
+ *               - lastName
+ *               - phoneNumber
+ *               - email
+ *               - city
+ *               - job
+ *               - password
  *     responses:
  *       201:
  *         description: User created successfully and tokens returned
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User registered successfully
  *       400:
  *         description: Invalid input or user already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User already exists
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Internal Server Error
  */
 export async function POST(request: Request) {
   try {
