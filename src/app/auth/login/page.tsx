@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, FormProvider } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Skeleton from "react-loading-skeleton";
+
+import { useForm, FormProvider } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import axios from "axios";
 
 import { signInSchema } from "@/helpers/validationSchema";
 import TextInput from "../_components/TextInput";
@@ -13,8 +15,6 @@ import styles from "../FormStyles.module.css";
 
 import signInImage from "/public/signIn_image.svg";
 import farabakLogo from "/public/Farabak_Logo.webp";
-import Image from "next/image";
-import axios from "axios";
 
 const SignIn = () => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -40,7 +40,7 @@ const SignIn = () => {
     setErrorMessage(""); // Clear previous errors
 
     try {
-      const response = await axios.post("/api/auth/login", { data });
+      const response = await axios.post("/api/auth/login", data);
       if (response.data.message === "Login successful") {
         // Redirect to the dashboard on success
         router.push("/dashboard");
