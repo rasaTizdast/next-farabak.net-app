@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { jwtVerify, SignJWT } from "jose";
 
-// Define your JWT secret (ensure it's stored securely)
+// Define your JWT secrets (ensure they're stored securely)
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 const REFRESH_TOKEN_SECRET =
   process.env.REFRESH_TOKEN_SECRET || "your_refresh_jwt_secret";
@@ -48,6 +48,12 @@ export async function middleware(req: ExtendedNextRequest) {
   );
   console.log("Is protected route:", isProtectedRoute);
 
+  // If the user is trying to access a protected route without any token, redirect to login
+  if (isProtectedRoute && !accessToken && !refreshToken) {
+    console.log("No tokens found, redirecting to login...");
+    return NextResponse.redirect(new URL("/auth/login", req.url));
+  }
+
   // If the access token is missing but refresh token is available, refresh the access token
   if (!accessToken && refreshToken) {
     console.log("No access token found, attempting to refresh...");
@@ -93,7 +99,7 @@ export async function middleware(req: ExtendedNextRequest) {
       return response; // Proceed to the route
     } catch (error) {
       console.error("Refresh token verification error:", error);
-      return NextResponse.redirect(new URL("/auth/signup", req.url)); // Redirect to signup if refresh token is invalid
+      return NextResponse.redirect(new URL("/auth/login", req.url)); // Redirect to login if refresh token is invalid
     }
   }
 
