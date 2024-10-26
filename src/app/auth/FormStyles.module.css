@@ -52,10 +52,12 @@
 
 .col_group h3 {
   font-size: 1.1rem;
+  font-weight: 500;
 }
 
 .col_group div {
   font-size: 1rem;
+  font-weight: 300;
 }
 
 .step {
@@ -265,6 +267,7 @@
 .view h3 {
   width: 70%;
   font-size: 1.3rem;
+  font-weight: 600;
 }
 
 @media (min-width: 900px) {
