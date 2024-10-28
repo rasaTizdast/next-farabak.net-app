@@ -257,21 +257,16 @@ const SignUp = () => {
             </div>
             <div className={styles.user}>
               حساب کاربری دارید؟
-              <div
-                className={styles.switch_form}
-                onClick={() => {
-                  /* Handle switch to login */
-                }}
-              >
+              <Link href="/auth/login" className={styles.switch_form}>
                 ورود به حساب کاربری
-              </div>
+              </Link>
             </div>
           </div>
         </form>
         <div className={styles.view}>
           <Image
             src={signUpImage.src}
-            alt=""
+            alt="farabak-signUp-Image"
             width={552}
             height={412}
             quality={100}
