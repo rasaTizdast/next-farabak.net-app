@@ -1,6 +1,6 @@
 import Link from "next/link"; // Use Next.js Link for routing
 import Image from "next/image"; // Import Image from Next.js
-import projects from "../../constants/projects.json"; // Ensure projects is imported correctly
+import projects from "../../../constants/projects.json"; // Ensure projects is imported correctly
 import styles from "./ProjectsSection.module.css";
 
 const ProjectsSection = () => {
