@@ -148,7 +148,7 @@ const SearchResults = ({
           </Link>
         ))
       ) : hasSearched ? (
-        <p>No results found</p>
+        <p>نتیجه ای یافت نشد</p>
       ) : null}
     </div>
   );
