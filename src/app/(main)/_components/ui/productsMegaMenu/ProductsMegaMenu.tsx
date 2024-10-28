@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import styles from "./ProductsMegaMenu.module.css";
-import categoryData from "@/app/constants/categoryData.json";
+import categoryData from "@/constants/categoryData.json";
 
 const ProductsMegaMenu = () => {
   // State to control the visibility of the menu
