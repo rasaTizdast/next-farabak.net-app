@@ -5,12 +5,14 @@ interface PaginationProps {
   currentPage: number;
   totalPages: number;
   basePath: string;
+  categorySlug?: string; // optional category slug for product category pages
 }
 
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
   basePath,
+  categorySlug,
 }) => {
   const getPageNumbers = () => {
     const pages = [];
@@ -50,7 +52,7 @@ const Pagination: React.FC<PaginationProps> = ({
   };
 
   return (
-    <div className="flex flex-wrap justify-center items-center mt-8 gap-2">
+    <div className="flex flex-wrap justify-center items-center mt-16 gap-2">
       {/* First Button */}
       <Link href={`${basePath}?page=1`} passHref>
         <button
@@ -67,7 +69,12 @@ const Pagination: React.FC<PaginationProps> = ({
       </Link>
 
       {/* Previous Button */}
-      <Link href={`${basePath}?page=${currentPage - 1}`} passHref>
+      <Link
+        href={`${basePath}${categorySlug ? `/${categorySlug}` : ""}?page=${
+          currentPage + 1
+        }`}
+        passHref
+      >
         <button
           className={`px-2 py-1 sm:px-3 sm:py-2 rounded transition duration-200 text-xs sm:text-base 
             ${
@@ -108,7 +115,12 @@ const Pagination: React.FC<PaginationProps> = ({
       )}
 
       {/* Next Button */}
-      <Link href={`${basePath}?page=${currentPage + 1}`} passHref>
+      <Link
+        href={`${basePath}${categorySlug ? `/${categorySlug}` : ""}?page=${
+          currentPage + 1
+        }`}
+        passHref
+      >
         <button
           className={`px-2 py-1 sm:px-3 sm:py-2 rounded transition duration-200 text-xs sm:text-base 
             ${
