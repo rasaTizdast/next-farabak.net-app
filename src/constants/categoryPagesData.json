@@ -1,0 +1,42 @@
+[
+  {
+    "categoryId": 1003,
+    "category": "دوربین های هوم ادیشن",
+    "slug": "home-edition"
+  },
+  {
+    "categoryId": 1004,
+    "category": "سالن کنفرانس و همایش",
+    "slug": "conference-hall"
+  },
+  {
+    "categoryId": 1005,
+    "category": "دوربین‌های مداربسته تحت شبکه",
+    "slug": "cctv-cameras"
+  },
+  {
+    "categoryId": 1006,
+    "category": "محصولات BlackMagic",
+    "slug": "blackmagic"
+  },
+  {
+    "categoryId": 1007,
+    "category": "دستگاه X-RAY",
+    "slug": "x-ray"
+  },
+  {
+    "categoryId": 1008,
+    "category": "ضبط کننده‌ها (NVR)",
+    "slug": "nvr"
+  },
+  {
+    "categoryId": 1009,
+    "category": "لوازم جانبی",
+    "slug": "accessories"
+  },
+  {
+    "categoryId": 1010,
+    "category": "گیت و درب",
+    "slug": "gate-door"
+  }
+]
