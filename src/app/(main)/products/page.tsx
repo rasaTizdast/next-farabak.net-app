@@ -1,6 +1,7 @@
 // src/app/products/page.tsx
 
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
+import Breadcrumb from "@/app/_components/Breadcrumb";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -39,8 +40,15 @@ const ProductsPage = async ({ searchParams }: ProductsPageProps) => {
   const { data: products, pagination } = await response.json();
   const totalPages = pagination.totalPages;
 
+  // Pass paths instead of Persian names
+  const breadcrumbs = [
+    { path: "/", href: "/" },
+    { path: "/products", href: "/products" },
+  ];
+
   return (
     <div>
+      <Breadcrumb breadcrumbs={breadcrumbs} />
       <ProductGrid
         title="تمامی محصولات"
         products={products}
