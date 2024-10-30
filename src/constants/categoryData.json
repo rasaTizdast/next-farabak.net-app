@@ -2,169 +2,169 @@
   {
     "categoryId": 1003,
     "category": "دوربین های هوم ادیشن",
-    "link": "/products/category/home-edition",
+    "link": "/products/home-edition",
     "subCategories": [
       {
         "id": 1003,
         "subCategory": "دوربین PTZ",
-        "link": "/products/category/home-edition?q=ptz"
+        "link": "/products/home-edition/ptz"
       },
       {
         "id": 1004,
         "subCategory": "دوربین دام",
-        "link": "/products/category/home-edition?q=dome"
+        "link": "/products/home-edition/dome"
       },
       {
         "id": 1005,
         "subCategory": "دوربین بولت",
-        "link": "/products/category/home-edition?q=bullet"
+        "link": "/products/home-edition/bullet"
       },
       {
         "id": 1006,
         "subCategory": "دوربین باطری دار",
-        "link": "/products/category/home-edition?q=battery"
+        "link": "/products/home-edition/battery"
       },
       {
         "id": 1007,
         "subCategory": "دوربین IP",
-        "link": "/products/category/home-edition?q=ip"
+        "link": "/products/home-edition/ip"
       },
       {
         "id": 1008,
         "subCategory": "دوربین WIFI",
-        "link": "/products/category/home-edition?q=wifi"
+        "link": "/products/home-edition/wifi"
       },
       {
         "id": 1009,
         "subCategory": "دوربین Dual-Lens",
-        "link": "/products/category/home-edition?q=dual-lens"
+        "link": "/products/home-edition/dual-lens"
       },
       {
         "id": 1010,
         "subCategory": "دوربین Pan-Tilt",
-        "link": "/products/category/home-edition?q=pan-tilt"
+        "link": "/products/home-edition/pan-tilt"
       },
       {
         "id": 1011,
         "subCategory": "دوربین 4G",
-        "link": "/products/category/home-edition?q=4G"
+        "link": "/products/home-edition/4G"
       }
     ]
   },
   {
     "categoryId": 1004,
     "category": "سالن کنفرانس و همایش",
-    "link": "/products/category/conference-hall",
+    "link": "/products/conference-hall",
     "subCategories": [
       {
         "id": 1012,
         "subCategory": "سیستم کنفرانس",
-        "link": "/products/category/conference-hall?q=conference-system"
+        "link": "/products/conference-hall/conference-system"
       },
       {
         "id": 1013,
         "subCategory": "ویدیو و TV WALL",
-        "link": "/products/category/conference-hall?q=tv-wall"
+        "link": "/products/conference-hall/tv-wall"
       },
       {
         "id": 1014,
         "subCategory": "کنترل روم",
-        "link": "/products/category/conference-hall?q=control-room"
+        "link": "/products/conference-hall/control-room"
       },
       {
         "id": 1015,
         "subCategory": "دوربین ویدیو کنفرانس",
-        "link": "/products/category/conference-hall?q=video-conference"
+        "link": "/products/conference-hall/video-conference"
       },
       {
         "id": 1016,
         "subCategory": "میکروفن کنفرانس",
-        "link": "/products/category/conference-hall?q=conference-microphone"
+        "link": "/products/conference-hall/conference-microphone"
       }
     ]
   },
   {
     "categoryId": 1005,
     "category": "دوربین‌های مداربسته تحت شبکه",
-    "link": "/products/category/network-cameras",
+    "link": "/products/network-cameras",
     "subCategories": [
       {
         "id": 1018,
         "subCategory": "دوربین‌های ضد انفجار",
-        "link": "/products/category/network-cameras?q=explosion-proof"
+        "link": "/products/network-cameras/explosion-proof"
       },
       {
         "id": 1019,
         "subCategory": "دوربین‌های حرارتی",
-        "link": "/products/category/network-cameras?q=thermal"
+        "link": "/products/network-cameras/thermal"
       },
       {
         "id": 1020,
         "subCategory": "دوربین پلاک‌خوان",
-        "link": "/products/category/network-cameras?q=license-plate"
+        "link": "/products/network-cameras/license-plate"
       }
     ]
   },
   {
     "categoryId": 1006,
     "category": "محصولات BlackMagic",
-    "link": "/products/category/blackmagic",
+    "link": "/products/blackmagic",
     "subCategories": [
       {
         "id": 1021,
         "subCategory": "دوربین تصویر برداری",
-        "link": "/products/category/blackmagic?q=camera"
+        "link": "/products/blackmagic/camera"
       },
       {
         "id": 1022,
         "subCategory": "مبدل های پخش مدیا",
-        "link": "/products/category/blackmagic?q=media-converter"
+        "link": "/products/blackmagic/media-converter"
       },
       {
         "id": 1023,
         "subCategory": "دستگاه‌های ضبط و پخش",
-        "link": "/products/category/blackmagic?q=recording-devices"
+        "link": "/products/blackmagic/recording-devices"
       },
       {
         "id": 1024,
         "subCategory": "دابلیکیتورها به همراه نمایشگر",
-        "link": "/products/category/blackmagic?q=duplicators"
+        "link": "/products/blackmagic/duplicators"
       }
     ]
   },
   {
     "categoryId": 1007,
     "category": "دستگاه X-RAY",
-    "link": "/products/category/x-ray",
+    "link": "/products/x-ray",
     "subCategories": [
       {
         "id": 1025,
         "subCategory": "فرودگاهی و چمدانی",
-        "link": "/products/category/x-ray?q=airport-luggage"
+        "link": "/products/x-ray/airport-luggage"
       },
       {
         "id": 1026,
         "subCategory": "خودروئی و کامیونی",
-        "link": "/products/category/x-ray?q=vehicle-truck"
+        "link": "/products/x-ray/vehicle-truck"
       }
     ]
   },
   {
     "categoryId": 1008,
     "category": "ضبط کننده‌ها (NVR)",
-    "link": "/products/category/nvr",
+    "link": "/products/nvr",
     "subCategories": []
   },
   {
     "categoryId": 1009,
     "category": "لوازم جانبی",
-    "link": "/products/category/accessories",
+    "link": "/products/accessories",
     "subCategories": []
   },
   {
     "categoryId": 1010,
     "category": "گیت و درب",
-    "link": "/products/category/gate-door",
+    "link": "/products/gate-door",
     "subCategories": []
   }
 ]
