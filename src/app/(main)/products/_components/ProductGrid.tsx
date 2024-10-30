@@ -1,5 +1,3 @@
-// src/app/(main)/products/_components/ProductGrid.tsx
-
 import Link from "next/link";
 import Image from "next/image";
 
@@ -17,6 +15,7 @@ interface ProductGridProps {
   products: Product[];
   currentPage: number;
   totalPages: number;
+  categorySlug?: string; // Make this optional
 }
 
 const ProductGrid: React.FC<ProductGridProps> = ({
@@ -24,8 +23,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   products,
   currentPage,
   totalPages,
+  categorySlug, // Destructure here
 }) => {
-  console.log(totalPages);
   return (
     <div className={styles.gridContainer}>
       <h1 className={styles.gridTitle}>{title}</h1>
@@ -33,7 +32,9 @@ const ProductGrid: React.FC<ProductGridProps> = ({
         {products.map((product) => (
           <Link
             key={product.ProductId}
-            href={`/products/${product.ProductId}`}
+            href={`/products/${categorySlug ? `${categorySlug}/` : ""}${
+              product.ProductId
+            }`}
             className={styles.productCard}
           >
             <Image
@@ -49,11 +50,11 @@ const ProductGrid: React.FC<ProductGridProps> = ({
       </div>
 
       {/* Pagination Controls */}
-
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
-        basePath="/products"
+        basePath="/products" // Always keep the base path consistent
+        categorySlug={categorySlug} // Pass categorySlug to Pagination
       />
     </div>
   );
