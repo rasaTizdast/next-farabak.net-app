@@ -26,7 +26,7 @@ export const generateMetadata = ({
   }
 
   const subCategoryData = categoryData.subCategories?.find(
-    (subCat) => subCat.slug === params.subcategory // Use 'params.subcategory'
+    (subCat) => subCat.slug === params.subcategory
   );
 
   if (!subCategoryData) {
@@ -56,8 +56,11 @@ const SubcategoryPage = async ({
   }
 
   // Find the subcategory within the selected category
-  const subCategoryData = categoryData.subCategories?.find((subCat) => {
-    return subCat.slug.toLowerCase() === subcategory.toLowerCase();
+  const subCategoryData = categoryData?.subCategories?.find((subCat) => {
+    const isMatch = subCat.slug.toLowerCase() === subcategory.toLowerCase();
+    if (!isMatch) {
+    }
+    return isMatch;
   });
 
   if (!subCategoryData) {
@@ -108,7 +111,7 @@ const SubcategoryPage = async ({
       </div>
     );
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching products:", error);
     notFound();
   }
 };
