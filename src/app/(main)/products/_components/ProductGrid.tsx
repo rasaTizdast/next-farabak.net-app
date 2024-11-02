@@ -1,3 +1,4 @@
+// src/app/(main)/products/_components/ProductGrid.tsx
 import Link from "next/link";
 import Image from "next/image";
 
@@ -15,7 +16,8 @@ interface ProductGridProps {
   products: Product[];
   currentPage: number;
   totalPages: number;
-  categorySlug?: string; // Make this optional
+  categorySlug?: string;
+  subcategorySlug?: string; // Add subcategorySlug here
 }
 
 const ProductGrid: React.FC<ProductGridProps> = ({
@@ -23,7 +25,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   products,
   currentPage,
   totalPages,
-  categorySlug, // Destructure here
+  categorySlug,
+  subcategorySlug, // Destructure subcategorySlug here
 }) => {
   return (
     <div className={styles.gridContainer}>
@@ -33,16 +36,17 @@ const ProductGrid: React.FC<ProductGridProps> = ({
           <Link
             key={product.ProductId}
             href={`/products/${categorySlug ? `${categorySlug}/` : ""}${
-              product.ProductId
-            }`}
+              subcategorySlug ? `${subcategorySlug}/` : ""
+            }${product.ProductId}`}
             className={styles.productCard}
           >
             <Image
               width={280}
               height={280}
+              quality={100}
               src={`/productImages/${product.img1}`}
               alt={product.Type}
-              loading="lazy"
+              loading="eager"
             />
             <h2>{product.Type}</h2>
           </Link>
@@ -53,8 +57,9 @@ const ProductGrid: React.FC<ProductGridProps> = ({
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
-        basePath="/products" // Always keep the base path consistent
-        categorySlug={categorySlug} // Pass categorySlug to Pagination
+        basePath="/products"
+        categorySlug={categorySlug}
+        subcategorySlug={subcategorySlug} // Pass subcategorySlug to Pagination
       />
     </div>
   );
