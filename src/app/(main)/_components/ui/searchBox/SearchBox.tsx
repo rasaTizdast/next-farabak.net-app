@@ -28,16 +28,8 @@ const normalizePersianText = (text: string) => {
 interface Product {
   productId: number;
   name: string;
-  type: string;
-  description: string;
-  img1: string;
-}
-
-interface ProductApiResponse {
-  ProductId: number;
-  Name: string;
   Type: string;
-  Description: string;
+  description: string;
   img1: string;
 }
 
@@ -54,26 +46,18 @@ const debouncedSearchHandler = debounce(
       const sanitizedSearchTerm = escape(searchTerm);
       const normalizedSearchTerm = normalizePersianText(sanitizedSearchTerm);
       const response = await fetch(
-        `/api/products/search?q=${normalizedSearchTerm}`
+        `/api/products/search?q=${normalizedSearchTerm}&limit=150`
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch search results");
+        throw new Error("مشکلی در دریافت محصولات به وجود آمده است.");
       }
 
-      const apiData: ProductApiResponse[] = await response.json();
+      // Extract the data from the response, assuming API returns { products, pagination }
+      const { products } = await response.json();
 
-      // Map the API response to the Product interface format
-      const mappedData: Product[] = apiData.map((item) => ({
-        productId: item.ProductId,
-        name: item.Name,
-        type: item.Type,
-        description: item.Description,
-        img1: item.img1,
-      }));
-
-      console.log("Mapped API Data:", mappedData); // Log the mapped data for debugging
-      setResults(mappedData); // Set the results using the mapped data
+      // Set the results to the products data from the API response
+      setResults(products);
     } catch (error) {
       console.error(error);
       setResults([]); // If there's an error, return no results
@@ -144,7 +128,7 @@ const SearchResults = ({
               src={`/productImages/${product.img1}`}
               alt={product.name}
             />
-            <p>{product.type}</p>
+            <p>{product.Type}</p>
           </Link>
         ))
       ) : hasSearched ? (
