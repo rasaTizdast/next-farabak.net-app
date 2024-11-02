@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "../../../../../lib/db";
-import { escape } from "validator"; // Sanitize user input
+import { escape } from "validator";
 
 /**
  * @swagger
@@ -8,8 +8,8 @@ import { escape } from "validator"; // Sanitize user input
  *   get:
  *     tags:
  *       - Products
- *     summary: Search for products by description keywords
- *     description: Returns a list of products that match the search input.
+ *     summary: Search for products by description keywords with pagination
+ *     description: Returns a paginated list of products that match the search input.
  *     parameters:
  *       - in: query
  *         name: q
@@ -17,38 +17,59 @@ import { escape } from "validator"; // Sanitize user input
  *         description: Search query containing keywords separated by spaces.
  *         schema:
  *           type: string
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         description: Page number for pagination.
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         description: Number of items per page.
+ *         schema:
+ *           type: integer
+ *           default: 30
  *     responses:
  *       200:
- *         description: A list of matching products
+ *         description: A list of matching products with pagination
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   ProductId:
- *                     type: integer
- *                   Name:
- *                     type: string
- *                   Type:
- *                     type: string
- *                   Price:
- *                     type: number
- *                   Discount:
- *                     type: number
- *                   CategoryContentId:
- *                     type: string
- *                   img1:
- *                     type: string
- *                   img2:
- *                     type: string
- *                   Available:
- *                     type: boolean
- *                   Description:
- *                     type: string
- *                   CategoryId:
- *                     type: integer
+ *               type: object
+ *               properties:
+ *                 products:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       ProductId:
+ *                         type: integer
+ *                       Name:
+ *                         type: string
+ *                       Type:
+ *                         type: string
+ *                       Price:
+ *                         type: number
+ *                       Discount:
+ *                         type: number
+ *                       CategoryContentId:
+ *                         type: string
+ *                       img1:
+ *                         type: string
+ *                       img2:
+ *                         type: string
+ *                       Available:
+ *                         type: boolean
+ *                       Description:
+ *                         type: string
+ *                       CategoryId:
+ *                         type: integer
+ *                 totalPages:
+ *                   type: integer
+ *                 currentPage:
+ *                   type: integer
  *       400:
  *         description: Invalid search query
  *       404:
@@ -59,8 +80,9 @@ import { escape } from "validator"; // Sanitize user input
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q");
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const limit = parseInt(searchParams.get("limit") || "30", 10);
 
-  // Check if query is empty
   if (!query || query.trim().length === 0) {
     return NextResponse.json(
       { error: "Invalid search query" },
@@ -68,21 +90,15 @@ export async function GET(request: Request) {
     );
   }
 
-  // Sanitize and split the query into individual keywords
   const keywords = escape(query.trim()).split(/\s+/);
 
   try {
     const pool = await connectToDatabase();
 
-    // Fetch all products from the database
     const result = await pool.request().query("SELECT * FROM Support.Product");
 
-    // Filter products that match any of the keywords in their description
     const matchingProducts = result.recordset.filter((product) => {
-      // Split the description into keywords (assuming they are space-separated)
       const descriptionKeywords = product.Description.split(/\s+/);
-
-      // Check if any of the search keywords match the description keywords
       return keywords.some((keyword) =>
         descriptionKeywords.some((descWord: string) =>
           descWord.toLowerCase().includes(keyword.toLowerCase())
@@ -90,13 +106,23 @@ export async function GET(request: Request) {
       );
     });
 
-    // If no products match, return a 404 response
     if (matchingProducts.length === 0) {
       return new NextResponse("No matching products found", { status: 404 });
     }
 
-    // Return the matching products
-    return NextResponse.json(matchingProducts);
+    const startIndex = (page - 1) * limit;
+    const paginatedProducts = matchingProducts.slice(
+      startIndex,
+      startIndex + limit
+    );
+
+    return NextResponse.json({
+      products: paginatedProducts,
+      pagination: {
+        totalPages: Math.ceil(matchingProducts.length / limit),
+        currentPage: page,
+      },
+    });
   } catch (error) {
     console.error("Error fetching products: ", error);
     return new NextResponse("Failed to search products", { status: 500 });
