@@ -1,22 +1,20 @@
 // src/utils/routeNames.ts
 
+import {
+  mainRoutes,
+  productCategoryRoutes,
+  productSubCategoryRoutes,
+} from "@/constants/routeNames";
+
 interface RouteNames {
   [key: string]: string;
 }
 
 const routeNames: RouteNames = {
-  "/": "صفحه اصلی",
-  "/products": "محصولات",
-  "/admin-panel": "پنل ادمین",
-  "/dashboard": "داشبورد",
-  "/products/home-edition": "دوربین های هوم ادیشن",
-  "/products/conference-hall": "سالن کنفرانس و همایش",
-  "/products/cctv-cameras": "دوربین‌های مداربسته تحت شبکه",
-  "/products/blackmagic": "محصولات BlackMagic",
-  "/products/x-ray": "دستگاه X-RAY",
-  "/products/nvr": "ضبط کننده‌ها (NVR)",
-  "/products/accessories": "لوازم جانبی",
-  "/products/gate-door": "گیت و درب",
+  ...mainRoutes,
+  ...productCategoryRoutes,
+  ...productSubCategoryRoutes,
+  "/products/search": "جستجو",
 };
 
 export const getRouteName = (path: string): string => {
@@ -25,16 +23,27 @@ export const getRouteName = (path: string): string => {
     return routeNames[path];
   }
 
-  // Handle product category pages dynamically
-  if (path.startsWith("/products/")) {
-    const parts = path.split("/");
-    const categorySlug = parts[parts.length - 1]; // Get the last part of the URL
+  // Split the path into parts for dynamic handling
+  const parts = path.split("/").filter(Boolean);
 
-    // Check for category names using a lowercased match
-    const categoryKey =
-      `/products/${categorySlug.toLowerCase()}` as keyof RouteNames;
+  // Check for category route (e.g., /products/category)
+  if (parts.length === 2 && parts[0] === "products") {
+    const categorySlug = parts[1].toLowerCase();
+    const categoryKey = `/products/${categorySlug}` as keyof RouteNames;
     if (routeNames[categoryKey]) {
-      return routeNames[categoryKey]; // Return the name if found
+      return routeNames[categoryKey]; // Return category name if found
+    }
+  }
+
+  // Check for subcategory route (e.g., /products/category/subcategory)
+  if (parts.length === 3 && parts[0] === "products") {
+    const categorySlug = parts[1].toLowerCase();
+    const subCategorySlug = parts[2].toLowerCase();
+    const subCategoryKey =
+      `/products/${categorySlug}/${subCategorySlug}` as keyof RouteNames;
+
+    if (routeNames[subCategoryKey]) {
+      return routeNames[subCategoryKey]; // Return subcategory name if found
     }
   }
 
