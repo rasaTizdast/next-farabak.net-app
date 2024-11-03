@@ -22,7 +22,7 @@ import { connectToDatabase } from "../../../../../lib/db";
  *         name: limit
  *         schema:
  *           type: integer
- *           default: 10
+ *           default: 30
  *         description: Number of products to return per page.
  *     responses:
  *       200:
@@ -82,7 +82,7 @@ export async function GET(request: Request) {
     // Extract query parameters for pagination
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1", 10);
-    const limit = parseInt(searchParams.get("limit") || "10", 10);
+    const limit = parseInt(searchParams.get("limit") || "30", 10);
 
     // Calculate the offset based on page and limit
     const offset = (page - 1) * limit;
