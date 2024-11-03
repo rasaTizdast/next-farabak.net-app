@@ -39,7 +39,7 @@ import { escape } from "validator";
  *             schema:
  *               type: object
  *               properties:
- *                 products:
+ *                 data:
  *                   type: array
  *                   items:
  *                     type: object
@@ -117,7 +117,7 @@ export async function GET(request: Request) {
     );
 
     return NextResponse.json({
-      products: paginatedProducts,
+      data: paginatedProducts,
       pagination: {
         totalPages: Math.ceil(matchingProducts.length / limit),
         currentPage: page,
