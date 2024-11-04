@@ -3,9 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import debounce from "lodash/debounce";
 import { escape } from "validator";
-import Skeleton from "react-loading-skeleton";
 import { CgSearch } from "react-icons/cg";
-import "react-loading-skeleton/dist/skeleton.css";
 import styles from "./SearchBox.module.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -54,7 +52,7 @@ const debouncedSearchHandler = debounce(
       }
 
       // Extract the data from the response, assuming API returns { products, pagination }
-      const { products } = await response.json();
+      const { data: products } = await response.json();
 
       // Set the results to the products data from the API response
       setResults(products);
@@ -132,7 +130,9 @@ const SearchResults = ({
           </Link>
         ))
       ) : hasSearched ? (
-        <p>نتیجه ای یافت نشد</p>
+        <p style={{ color: "#fff", fontWeight: 600 }}>
+          نتیجه ای یافت نشد، مجددا تلاش کنید.
+        </p>
       ) : null}
     </div>
   );
@@ -140,12 +140,20 @@ const SearchResults = ({
 
 // Component for rendering loading skeletons
 const LoadingSkeletons = () => (
-  <div className={styles.skeletons}>
-    <Skeleton direction="rtl" className={styles.first} />
-    <Skeleton direction="rtl" />
-    <Skeleton direction="rtl" />
-    <Skeleton direction="rtl" />
-    <Skeleton direction="rtl" className={styles.last} />
+  <div
+    className="w-full grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 mt-8"
+    style={{ maxWidth: "calc(1900px - 20rem)" }}
+  >
+    {Array.from({ length: 12 }).map((_, index) => (
+      <div
+        key={index}
+        className="flex flex-col items-center animate-pulse p-4 bg-gray-200 rounded-lg shadow-lg"
+      >
+        <div className="bg-gray-300 h-56 w-full rounded-lg mb-4"></div>
+        <div className="h-4 w-3/4 bg-gray-300 rounded mb-2"></div>
+        <div className="h-4 w-3/4 bg-gray-300 rounded"></div>
+      </div>
+    ))}
   </div>
 );
 
