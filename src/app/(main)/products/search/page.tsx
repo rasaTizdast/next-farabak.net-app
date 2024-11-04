@@ -1,8 +1,6 @@
 // src/app/products/search/page.tsx
 
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
-import axios from "axios";
 
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
 import Breadcrumb from "@/app/_components/Breadcrumb";
@@ -21,33 +19,12 @@ export async function generateMetadata({
   };
 }
 
-const fetchSearchResults = async (query: string, page: number) => {
-  try {
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/search`,
-      {
-        params: {
-          q: query,
-          page,
-          limit: 30, // Set the limit as needed
-        },
-      }
-    );
-
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching search results:", error);
-    notFound();
-  }
-};
-
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const query = searchParams.q || "";
   const currentPage = parseInt(searchParams.page || "1", 10);
 
-  const { products, pagination } = await fetchSearchResults(query, currentPage);
-
-  const totalPages = pagination.totalPages;
+  const limit = 30;
+  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/search?q=${query}&page=${currentPage}&limit=${limit}`;
 
   const breadcrumbs = [
     { path: "/", href: "/" },
@@ -63,9 +40,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       {/* Product Grid with Pagination */}
       <ProductGrid
         title={`نتایج جستجو برای: ${query}`}
-        products={products}
+        apiUrl={apiUrl}
         currentPage={currentPage}
-        totalPages={totalPages}
       />
     </div>
   );
