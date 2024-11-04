@@ -3,7 +3,6 @@
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
 import Breadcrumb from "@/app/_components/Breadcrumb";
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
 
 interface ProductsPageProps {
   searchParams: { page?: string };
@@ -28,17 +27,7 @@ const ProductsPage = async ({ searchParams }: ProductsPageProps) => {
   const currentPage = parseInt(searchParams.page || "1", 10);
   const limit = 30;
 
-  // Fetch products from API with pagination
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getAllProducts?page=${currentPage}&limit=${limit}`
-  );
-
-  if (!response.ok) {
-    notFound();
-  }
-
-  const { data: products, pagination } = await response.json();
-  const totalPages = pagination.totalPages;
+  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getAllProducts?page=${currentPage}&limit=${limit}`;
 
   // Pass paths instead of Persian names
   const breadcrumbs = [
@@ -51,9 +40,8 @@ const ProductsPage = async ({ searchParams }: ProductsPageProps) => {
       <Breadcrumb breadcrumbs={breadcrumbs} />
       <ProductGrid
         title="تمامی محصولات"
-        products={products}
+        apiUrl={apiUrl}
         currentPage={currentPage}
-        totalPages={totalPages}
       />
     </div>
   );

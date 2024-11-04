@@ -2,7 +2,6 @@ import { Metadata } from "next";
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
 import Breadcrumb from "@/app/_components/Breadcrumb";
 import categoryPagesData from "@/constants/categoryPagesData.json";
-import axios from "axios";
 import { notFound } from "next/navigation";
 
 interface SubcategoryPageProps {
@@ -70,50 +69,33 @@ const SubcategoryPage = async ({
   const currentPage = parseInt(searchParams.page || "1", 10);
   const limit = 30;
 
-  try {
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsBySubcategory/${subCategoryData.id}`,
-      {
-        params: {
-          page: currentPage,
-          limit,
-        },
-      }
-    );
+  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsBySubcategory/${subCategoryData.id}?page=${currentPage}&limit=${limit}`;
 
-    const { data: products, pagination } = response.data;
-    const totalPages = pagination.totalPages;
+  const breadcrumbs = [
+    { path: "/", href: "/" },
+    { path: "/products", href: "/products" },
+    {
+      path: `/products/${categoryData.slug}`,
+      href: `/products/${categoryData.slug}`,
+    },
+    {
+      path: `/products/${categoryData.slug}/${subCategoryData.slug}`,
+      href: `/products/${categoryData.slug}/${subCategoryData.slug}`,
+    },
+  ];
 
-    const breadcrumbs = [
-      { path: "/", href: "/" },
-      { path: "/products", href: "/products" },
-      {
-        path: `/products/${categoryData.slug}`,
-        href: `/products/${categoryData.slug}`,
-      },
-      {
-        path: `/products/${categoryData.slug}/${subCategoryData.slug}`,
-        href: `/products/${categoryData.slug}/${subCategoryData.slug}`,
-      },
-    ];
-
-    return (
-      <div>
-        <Breadcrumb breadcrumbs={breadcrumbs} />
-        <ProductGrid
-          title={subCategoryData.subCategory}
-          products={products}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          categorySlug={categoryData.slug}
-          subcategorySlug={subCategoryData.slug}
-        />
-      </div>
-    );
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    notFound();
-  }
+  return (
+    <div>
+      <Breadcrumb breadcrumbs={breadcrumbs} />
+      <ProductGrid
+        title={subCategoryData.subCategory}
+        apiUrl={apiUrl}
+        currentPage={currentPage}
+        categorySlug={categoryData.slug}
+        subcategorySlug={subCategoryData.slug}
+      />
+    </div>
+  );
 };
 
 export default SubcategoryPage;
