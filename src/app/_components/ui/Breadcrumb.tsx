@@ -15,7 +15,7 @@ interface BreadcrumbProps {
 
 const Breadcrumb: React.FC<BreadcrumbProps> = ({ breadcrumbs }) => {
   return (
-    <nav className="flex items-center text-sm mb-5 p-4 bg-gradient-to-l from-[#003262] via-[#0e6aff] to-[#1e90ff]  text-white rounded-lg shadow-lg">
+    <nav className="w-full flex items-center text-sm mb-5 p-4 bg-gradient-to-l from-[#003262] via-[#0e6aff] to-[#1e90ff]  text-white rounded-lg shadow-lg">
       <div className="flex flex-wrap items-center space-x-2">
         {breadcrumbs.map((crumb, idx) => {
           const name = getRouteName(crumb.path);
@@ -27,7 +27,10 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ breadcrumbs }) => {
                   <IoIosArrowBack />
                 </span>
               )}
-              <Link href={crumb.href} className="text-white">
+              <Link
+                href={crumb.href}
+                className="text-white hover:underline underline-offset-[6px]"
+              >
                 {name}
               </Link>
             </div>
