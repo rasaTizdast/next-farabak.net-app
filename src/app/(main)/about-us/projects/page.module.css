@@ -1,0 +1,122 @@
+.parent {
+  width: 100%;
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+  padding: 3rem 10rem;
+}
+
+.projectsParent {
+  max-width: calc(1900px - 20rem);
+  width: 100%;
+}
+
+.projects {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2rem;
+}
+
+.card {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  background-color: #fff;
+  max-width: 300px;
+  padding: 1rem;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative; /* Needed for the skeleton to overlay */
+}
+
+.card img {
+  height: 200px;
+  width: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 6px;
+}
+
+.card img.hidden {
+  display: none;
+}
+
+.card h2 {
+  font-size: 1.1rem;
+  margin-block: 1rem 0.5rem;
+}
+
+.card .date {
+  font-weight: 300;
+}
+
+.card .location {
+  font-weight: 300;
+}
+
+.card p {
+  margin-top: 0.5rem;
+}
+
+.card a {
+  margin-top: 1.5rem;
+  padding: 0.5rem 2rem;
+  width: 100%;
+  background-color: var(--third-color);
+  color: #fff;
+  border-radius: 8px;
+  transition: all 0.3s ease-in-out;
+  font-size: 0.9rem;
+  display: inline;
+  text-align: center;
+}
+
+@media (min-width: 576px) {
+  .card a:hover {
+    background-color: var(--fourth-color);
+  }
+}
+
+@media (max-width: 768px) {
+  .card h2 {
+    font-size: 1rem;
+  }
+
+  .card .date,
+  .card .location {
+    font-size: 0.8rem;
+  }
+
+  .card p {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 1199px) {
+  .parent {
+    padding-inline: 6rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .parent {
+    padding-inline: 4rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .parent {
+    padding-inline: 3rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .parent {
+    padding-inline: 1.5rem;
+    padding-block: 1rem;
+  }
+}
