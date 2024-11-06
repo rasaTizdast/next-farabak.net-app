@@ -1,4 +1,4 @@
-"use client"; // This makes the context a client component
+"use client"
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
@@ -8,14 +8,18 @@ interface User {
   userId: string;
   username: string;
   role: string;
+  firstName: string;
+  lastName: string;
 }
 
 interface UserContextType {
   user: User | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   logout: () => void;
-  isLoggedIn: boolean; // To check if the user is logged in
-  isAdmin: boolean; // To check if the user is an admin
+  isLoggedIn: boolean;
+  isAdmin: boolean;
+  userFullName: string;
+  loading: boolean; // New loading state
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -24,9 +28,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true); // Start with loading
   const router = useRouter();
 
-  // Fetch user data from the profile endpoint
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -34,39 +38,45 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         setUser(response.data);
       } catch (error) {
         console.error("Error fetching user data", error);
+      } finally {
+        setLoading(false); // End loading once data is fetched or on error
       }
     };
 
     fetchUserData();
   }, []);
 
-  // Logout logic using the logout endpoint
   const logout = async () => {
     try {
       await axios.post("/api/auth/logout");
-      setUser(null); // Clear user data in the context
-      router.push("/"); // Redirect user to landing page
+      setUser(null);
+      router.push("/");
     } catch (error) {
       console.error("Error during logout", error);
     }
   };
 
-  // Check if the user is logged in
   const isLoggedIn = !!user;
-
-  // Check if the user is an admin
-  const isAdmin = user?.role === "admin"; // Returns true if user role is 'admin'
+  const isAdmin = user?.role === "admin";
+  const userFullName = `${user?.firstName || ""} ${user?.lastName || ""}`;
 
   return (
     <UserContext.Provider
-      value={{ user, setUser, logout, isLoggedIn, isAdmin }}
+      value={{
+        user,
+        setUser,
+        logout,
+        isLoggedIn,
+        isAdmin,
+        userFullName,
+        loading,
+      }}
     >
       {children}
     </UserContext.Provider>
   );
 };
 
-// Hook to use the UserContext
 export const useUser = () => {
   const context = useContext(UserContext);
   if (!context) {
