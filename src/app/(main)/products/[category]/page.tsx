@@ -18,8 +18,8 @@ export const generateMetadata = ({ params }: CategoryPageProps): Metadata => {
 
   if (!categoryData) {
     return {
-      title: "Category Not Found",
-      description: "This category does not exist.",
+      title: "دسته بندی یافت نشد!",
+      description: "دسته بندی مورد نظر یافت نشد!",
     };
   }
 
