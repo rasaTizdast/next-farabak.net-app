@@ -1,0 +1,108 @@
+.pageTitle {
+  font-weight: 800;
+}
+
+.cardParent {
+  margin-top: 2rem;
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.cardParent .card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1.5rem 1rem;
+  min-width: 350px;
+  width: 30%;
+  max-width: 400px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.cardParent .card .title {
+  margin-bottom: 1rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.cardParent .card p {
+  font-weight: 300;
+  margin-block: 0.5rem 2rem;
+  font-size: 1rem;
+}
+
+.cardParent .card a {
+  display: inline-block;
+  padding: 0.5rem 1.5rem;
+  background-color: var(--dark-blue-color);
+  color: #fff;
+  border-radius: 6px;
+  margin-top: auto;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+@media (min-width: 1200px) {
+  .cardParent .card .title {
+    font-size: 1.2rem;
+  }
+
+  .cardParent .card p {
+    font-size: 1.1rem;
+  }
+
+  .cardParent .card a {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 576px) {
+  .cardParent .card a:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    background-color: #000814;
+  }
+}
+
+@media (max-width: 992px) {
+  .cardParent .card {
+    min-width: 250px;
+  }
+
+  .cardParent .card .title {
+    font-size: 1rem;
+  }
+
+  .cardParent .card p {
+    font-size: 0.8rem;
+  }
+
+  .cardParent .card a {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .cardParent {
+    justify-content: center;
+  }
+
+  .cardParent .card {
+    min-width: fit-content;
+    width: 100%;
+    max-width: 450px;
+  }
+}
+
+@media (max-width: 576px) {
+  .cardParent {
+    margin-top: 1rem;
+  }
+}
