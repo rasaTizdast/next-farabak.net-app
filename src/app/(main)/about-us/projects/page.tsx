@@ -19,15 +19,13 @@ const ProjectsPage = () => {
     { href: "/about-us/projects", path: "/about-us/projects" },
   ];
   return (
-    <div className={styles.parent}>
-      <div className={styles.projectsParent}>
-        <Breadcrumb breadcrumbs={breadCrumbs} />
-        <main className={styles.projects}>
-          {projects.map((item) => (
-            <Card key={item.id} data={item} />
-          ))}
-        </main>
-      </div>
+    <div className={styles.projectsParent}>
+      <Breadcrumb breadcrumbs={breadCrumbs} />
+      <main className={styles.projects}>
+        {projects.map((item) => (
+          <Card key={item.id} data={item} />
+        ))}
+      </main>
     </div>
   );
 };
