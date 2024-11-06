@@ -1,0 +1,106 @@
+.members {
+  display: flex;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+  align-items: center;
+  align-items: stretch;
+  gap: 2rem;
+
+  width: 100%;
+  max-width: calc(1900px - 20rem);
+}
+
+.card {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  background-color: #fff;
+  width: 20%;
+  min-width: 300px;
+  max-width: 300px;
+  padding: 1rem;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative; /* Needed for the skeleton to overlay */
+}
+
+.card * {
+  text-align: center;
+}
+
+.card img {
+  height: 200px;
+  width: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card img.hidden {
+  display: none;
+}
+
+.card h2 {
+  font-size: 1.1rem;
+  margin-block: 1rem 0.5rem;
+}
+
+.card p {
+  margin-top: 0.5rem;
+}
+
+.card a {
+  margin-top: 1.5rem;
+  padding: 0.5rem 2rem;
+  width: 100%;
+  background-color: var(--third-color);
+  color: #fff;
+  border-radius: 8px;
+  transition: all 0.3s ease-in-out;
+  font-size: 0.9rem;
+  display: inline;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s ease-in-out;
+}
+
+@media (min-width: 576px) {
+  .card a::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 100%;
+    background-color: var(--fourth-color);
+    transition: left 0.5s ease-in-out, right 0.5s ease-in-out;
+    z-index: -1; /* Place the pseudo-element behind the content */
+  }
+
+  .card a:hover::after {
+    left: 0;
+    right: 0;
+  }
+
+  .card a:hover {
+    color: white !important; /* Change text color if needed when hovered */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Optional: Enhance the box shadow effect */
+    scale: 1.03;
+  }
+}
+
+@media (max-width: 768px) {
+  .card {
+    min-width: 250px;
+  }
+
+  .card h2 {
+    font-size: 1rem;
+  }
+
+  .card p {
+    font-size: 0.9rem;
+  }
+}
