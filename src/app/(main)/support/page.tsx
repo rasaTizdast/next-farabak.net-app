@@ -1,0 +1,46 @@
+import Link from "next/link";
+
+import supportData from "@/constants/supportData.json";
+
+import styles from "./SupportPage.module.css";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "پشتیبانی | فرابک",
+  description: "مشاهده صفحه های پشتیبانی شرکت فرابک",
+};
+
+const SupportPage = () => {
+  return (
+    <section className={styles.section}>
+      <div className={styles.cards}>
+        {supportData.map((item) => (
+          <Card
+            key={item.id}
+            title={item.title}
+            desc={item.desc}
+            link={item.link}
+          />
+        ))}
+      </div>
+    </section>
+  );
+};
+
+export default SupportPage;
+
+type CardProps = {
+  title: string;
+  desc: string;
+  link: string;
+};
+
+const Card = ({ title, desc, link }: CardProps) => {
+  return (
+    <div className={styles.card}>
+      <h2>{title}</h2>
+      <p>{desc}</p>
+      <Link href={`/support/${link}`}>مشاهده</Link>
+    </div>
+  );
+};
