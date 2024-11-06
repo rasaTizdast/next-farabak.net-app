@@ -60,19 +60,17 @@ const ProjectPage = ({ params }: ParamsType) => {
     { path: "/about-us/projects", href: "/about-us/projects" },
   ];
   return (
-    <main className={styles.project}>
-      <section className={styles.content}>
-        <Breadcrumb breadcrumbs={breadcrumbs} />
-        <h1>{title}</h1>
-        <h3 aria-label="date of the project">{date}</h3>
-        <h4 aria-label="location of the project">{location}</h4>
-        <p>{largeDesc}</p>
+    <section className={styles.content}>
+      <Breadcrumb breadcrumbs={breadcrumbs} />
+      <h1>{title}</h1>
+      <h3 aria-label="date of the project">{date}</h3>
+      <h4 aria-label="location of the project">{location}</h4>
+      <p>{largeDesc}</p>
 
-        <ProjectSlider slides={images} />
+      <ProjectSlider slides={images} />
 
-        {video && <VideoPlayer url={video} />}
-      </section>
-    </main>
+      {video && <VideoPlayer url={video} />}
+    </section>
   );
 };
 
