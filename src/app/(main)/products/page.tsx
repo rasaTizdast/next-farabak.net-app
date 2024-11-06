@@ -1,7 +1,7 @@
 // src/app/products/page.tsx
 
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
-import Breadcrumb from "@/app/_components/Breadcrumb";
+import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import { Metadata } from "next";
 
 interface ProductsPageProps {
