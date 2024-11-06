@@ -24,8 +24,8 @@ export const generateMetadata = ({ params }: CategoryPageProps): Metadata => {
   }
 
   return {
-    title: `${categoryData.category} | فرابک`,
-    description: `Explore ${categoryData.category} products on فرابک.`,
+    title: `مشاهده محصولات دسته بندی ${categoryData.category} | فرابک`,
+    description: `با مرور در صفحه ${categoryData.category} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
   };
 };
 
