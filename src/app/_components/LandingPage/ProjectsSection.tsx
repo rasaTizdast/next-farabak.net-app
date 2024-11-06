@@ -4,13 +4,12 @@ import projects from "../../../constants/projects.json"; // Ensure projects is i
 import styles from "./ProjectsSection.module.css";
 
 const ProjectsSection = () => {
-  const result = [projects[0], projects[1], projects[2]];
   return (
     <div className={styles.container}>
       <h2>پروژه‌ها</h2>
       <div className={styles.project_parent}>
         <div className={styles.projects}>
-          {result.map((p) => (
+          {projects.map((p) => (
             <Link
               key={p.id}
               href={`/about-us/projects/${p.id}`}
