@@ -1,0 +1,194 @@
+.dashboard {
+  display: flex;
+  gap: 2rem;
+  position: relative;
+}
+
+.dashboard .overlay {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+.dashboard aside {
+  min-width: 150px;
+  width: 25%;
+  max-width: 200px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--dark-blue-color);
+  z-index: 3;
+}
+
+.dashboard aside.extended a {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dashboard aside ul {
+  position: sticky;
+  top: 61px;
+  max-height: max-content;
+  width: 100%;
+  list-style-type: none;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  font-size: 1rem;
+}
+
+.dashboard aside ul li a {
+  display: block;
+  padding: 1rem 1rem;
+  font-weight: 500;
+  color: inherit;
+  width: 100%;
+  transition: all 0.3s ease-in-out;
+}
+
+.dashboard aside ul li a .text {
+  flex-grow: 1;
+  display: block;
+}
+
+.dashboard aside ul li .icon {
+  font-size: 1rem;
+  margin-top: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.dashboard aside ul li a.active {
+  background-color: var(--secondary-color);
+}
+
+.dashboard aside ul li:last-child {
+  cursor: pointer;
+  margin-top: auto;
+  color: rgb(255, 110, 110);
+  transition: all 0.3s ease-in-out;
+  text-align: center;
+  padding: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dashboard .toggleButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--dark-blue-color);
+  margin-top: 2rem;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 0.6rem;
+  font-size: inherit;
+  z-index: 10;
+}
+
+.dashboardContent {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 1rem 0 1rem 1rem;
+  margin-bottom: 2.5rem;
+}
+
+@media (min-width: 1200px) {
+  .dashboard aside ul {
+    top: 65px;
+    min-height: 400px;
+    max-height: 750px;
+  }
+
+  .dashboardContent h3 {
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard aside {
+    min-width: 160px;
+    width: 25%;
+    max-width: 200px;
+  }
+
+  .dashboard aside ul {
+    top: 62px;
+  }
+}
+
+@media (max-width: 746px) {
+  .dashboard aside ul {
+    top: 61px;
+  }
+}
+
+@media (max-width: 646px) {
+  .dashboard aside ul {
+    top: 60px;
+  }
+}
+
+@media (max-width: 576px) {
+  .dashboard aside {
+    min-width: 56px;
+    width: 25%;
+    max-width: 56px;
+    position: absolute;
+    height: 100%;
+  }
+  .dashboard aside.extended {
+    min-width: 100%;
+  }
+
+  .dashboard .dashboardContent {
+    min-height: 400px;
+    padding-right: 70px;
+  }
+
+  .dashboard aside.extended ~ .dashboardContent {
+    border: 1px solid red;
+    overflow-x: hidden;
+  }
+
+  .dashboard aside ul li,
+  .dashboard aside ul li a,
+  .dashboard aside ul li a span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dashboard aside ul li .icon {
+    margin: 0rem;
+  }
+
+  .dashboard {
+    gap: 1rem;
+  }
+
+  .dashboardContent h3 {
+    text-align: center;
+  }
+}
+
+@media (min-width: 576px) {
+  .dashboard aside ul li:last-child:hover {
+    color: #fff;
+    background-color: rgb(255, 77, 77);
+  }
+
+  .dashboard aside ul li a:hover,
+  .dashboard aside ul li:last-child:hover {
+    padding-right: 1.5rem;
+  }
+}
