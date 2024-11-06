@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
-import Breadcrumb from "@/app/_components/Breadcrumb";
+import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import categoryPagesData from "@/constants/categoryPagesData.json";
 import { notFound } from "next/navigation";
 

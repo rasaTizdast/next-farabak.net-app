@@ -3,7 +3,7 @@
 import { Metadata } from "next";
 
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
-import Breadcrumb from "@/app/_components/Breadcrumb";
+import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 
 interface SearchPageProps {
   searchParams: { q: string; page?: string };
