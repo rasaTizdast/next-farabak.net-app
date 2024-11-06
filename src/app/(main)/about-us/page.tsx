@@ -1,0 +1,49 @@
+import Link from "next/link";
+import { Metadata } from "next";
+
+import aboutUsData from "@/constants/aboutUs.json";
+
+import styles from "./AboutUs.module.css";
+
+export const metadata: Metadata = {
+  title: "مشاهده اطلاعات بیشتر درباره‌ما | فرابک",
+  description:
+    "شما در این صفحه میتوانید اطلاعاتی درباره شرکت فرابک مشاهده کنید.",
+};
+
+const AboutUs = () => {
+  return (
+    <>
+      <div className={styles.main}>
+        <div className={styles.cards}>
+          {aboutUsData.map((item) => (
+            <Card
+              key={item.id}
+              title={item.title}
+              desc={item.desc}
+              link={`/about-us/${item.link}`}
+            />
+          ))}
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default AboutUs;
+
+type CardProps = {
+  title: string;
+  desc: string;
+  link: string;
+};
+
+const Card = ({ title, desc, link }: CardProps) => {
+  return (
+    <div className={styles.card}>
+      <h2>{title}</h2>
+      <p>{desc}</p>
+      <Link href={link}>مشاهده</Link>
+    </div>
+  );
+};
