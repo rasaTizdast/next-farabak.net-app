@@ -50,3 +50,9 @@ export const productSubCategoryRoutes = {
   "/products/x-ray/airport-luggage": "فرودگاهی و چمدانی",
   "/products/x-ray/vehicle-truck": "خودروئی و کامیونی",
 };
+
+export const aboutUsRoutes = {
+  "/about-us": "درباره ما",
+  "/about-us/projects": "گالری تصاویر پروژه‌ها",
+  "/about-us/members": "اعضای هیئت مدیره",
+};

@@ -1,6 +1,7 @@
 // src/utils/routeNames.ts
 
 import {
+  aboutUsRoutes,
   mainRoutes,
   productCategoryRoutes,
   productSubCategoryRoutes,
@@ -14,6 +15,7 @@ const routeNames: RouteNames = {
   ...mainRoutes,
   ...productCategoryRoutes,
   ...productSubCategoryRoutes,
+  ...aboutUsRoutes,
   "/products/search": "جستجو",
 };
 
