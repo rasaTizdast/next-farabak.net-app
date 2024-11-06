@@ -4,7 +4,7 @@ import { fetchProducts } from "../_utils/fetchProducts";
 import Link from "next/link";
 import Image from "next/image";
 import styles from "./ProductGrid.module.css";
-import Pagination from "@/app/_components/Pagination";
+import Pagination from "@/app/_components/ui/Pagination";
 
 interface Product {
   ProductId: number;
