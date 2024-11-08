@@ -3,6 +3,7 @@
 import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
 import { useEffect, useState } from "react";
+import LoadingSpinner from "../_components/ui/LoadingSpinner";
 
 interface SwaggerSpec {
   openapi: string;
@@ -35,7 +36,11 @@ export default function SwaggerPage() {
   }, []);
 
   if (!spec) {
-    return <div>Loading Swagger UI...</div>;
+    return (
+      <div className="mt-12">
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   return <SwaggerUI spec={spec} />;
