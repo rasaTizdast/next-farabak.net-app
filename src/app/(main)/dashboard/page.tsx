@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useUser } from "@/context/UserContext";
 
 import styles from "./MainDashboardPage.module.css";
+import LoadingSpinner from "@/app/_components/ui/LoadingSpinner";
 
 const MainDashboardPage = () => {
   const { userFullName, loading } = useUser();
@@ -47,16 +48,6 @@ const Card = ({ title, desc, link }: CardProps) => {
       <div className={styles.title}>{title}</div>
       <p>{desc}</p>
       <Link href={link}>رفتن به صفحه</Link>
-    </div>
-  );
-};
-
-const LoadingSpinner: React.FC = () => {
-  return (
-    <div className="flex items-center justify-center h-full">
-      <div className="bg-white rounded-lg shadow-md p-6 flex items-center justify-center w-24 h-24">
-        <div className="w-10 h-10 border-4 border-[#0e6aff] border-t-transparent rounded-full animate-spin"></div>
-      </div>
     </div>
   );
 };
