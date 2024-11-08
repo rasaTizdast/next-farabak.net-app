@@ -1,0 +1,112 @@
+.editUser {
+  align-self: center;
+  background-color: #fff;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 6px;
+  gap: 1.5rem;
+}
+
+.editUser .inputs {
+  gap: 2rem;
+  display: flex;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+}
+
+.editUser .inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.editUser .inputs label {
+  font-size: 1rem;
+}
+
+.editUser .inputs input {
+  width: 100%;
+  padding: 14px;
+  outline: none;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #c7c7c7; /* Neutral state */
+  border-radius: 8px;
+  transition: border 0.3s ease-in-out;
+  text-align: right;
+}
+
+.editUser button {
+  cursor: pointer;
+  display: inline-block;
+  padding: 0.5rem 1.5rem;
+  background-color: var(--dark-blue-color);
+  color: #fff;
+  border-radius: 6px;
+  margin-top: 1rem;
+  font-size: 1rem;
+  transition: all 0.3s ease-in-out;
+}
+
+.valid {
+  border: 2px solid #2ecc71; /* Green color for valid inputs */
+  color: #03af4b !important;
+}
+
+.not_valid {
+  border: 2px solid #e74c3c; /* Red color for invalid inputs */
+  color: #e74c3c !important;
+}
+
+.inputGroup input.not_valid::placeholder {
+  font-weight: 300;
+  color: #e74c3c !important;
+}
+
+.error {
+  color: #e74c3c;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+@media (min-width: 576px) {
+  .editUser button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    background-color: #000814;
+  }
+}
+
+@media (max-width: 992px) {
+  .editUser .inputGroup .error {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .editUser {
+    padding-inline: 0.5rem;
+  }
+
+  .editUser .inputs label {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .editUser .inputs input {
+    font-size: 2.8vw;
+  }
+
+  .editUser button {
+    font-size: 0.9rem;
+  }
+
+  .editUser .inputGroup .error {
+    font-size: 2.8vw;
+  }
+}
