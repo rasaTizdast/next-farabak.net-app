@@ -1,8 +1,9 @@
+// src/app/(main)/dashboard/layout.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-
+import { usePathname } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 
 import { ImExit } from "react-icons/im";
@@ -45,47 +46,27 @@ const asideData = [
   },
 ];
 
-// Define the metadata object for the dashboard routes
-// export const metadata: Metadata = {
-//   title: "داشبورد | فرابک",
-//   description: "پنل کاربری وبسایت فرابک",
-//   openGraph: {
-//     title: "داشبورد",
-//     description: "پنل کاربری وبسایت فرابک",
-//   },
-// };
-
-const DashboardLayout = ({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) => {
-  const [width, setWidth] = useState(window.innerWidth);
+const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+  const [width, setWidth] = useState<number | undefined>(undefined); // Initialize as undefined
   const [overlay, setOverlay] = useState(false);
-  const [textVis, setTextVis] = useState(window.innerWidth >= 576); // Set initial state
-  const { user, logout } = useUser();
+  const [textVis, setTextVis] = useState(false);
+  const { logout } = useUser();
+  const pathname = usePathname();
 
   useEffect(() => {
+    // Only runs on the client
     const handleResize = () => {
       const currentWidth = window.innerWidth;
       setWidth(currentWidth);
-
-      // Set textVis based on the width
-      if (currentWidth >= 576) {
-        setTextVis(true);
-        setOverlay(false);
-      } else {
-        setTextVis(false);
-        setOverlay(false);
-      }
+      setTextVis(currentWidth >= 576);
+      setOverlay(false);
     };
 
+    // Set initial width and text visibility on mount
+    handleResize();
     window.addEventListener("resize", handleResize);
 
-    // Cleanup on component unmount
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return (
@@ -98,49 +79,37 @@ const DashboardLayout = ({
               <Link
                 href={link}
                 className={
-                  location.pathname === link ? styles.active : styles.asideLinks
+                  pathname === link ? styles.active : styles.asideLinks
                 }
                 onClick={() => {
-                  {
-                    width <= 576 && setTextVis(false);
-                    width <= 576 && setOverlay(false);
+                  if (width && width <= 576) {
+                    setTextVis(false);
+                    setOverlay(false);
                   }
                 }}
               >
                 {textVis && <span className={styles.text}>{name}</span>}
-                {width <= 576 && <span className={styles.icon}>{icon}</span>}
+                {width && width <= 576 && (
+                  <span className={styles.icon}>{icon}</span>
+                )}
               </Link>
             </li>
           ))}
-
-          {width <= 576 && (
+          {width && width <= 576 && (
             <button
               className={styles.toggleButton}
-              style={
-                !textVis
-                  ? { justifyContent: "center" }
-                  : { paddingInline: "1rem" }
-              }
               onClick={() => {
                 setTextVis((v) => !v);
                 setOverlay((v) => !v);
               }}
             >
-              {textVis && <span>کوچک کردن منو</span>}
-              {!textVis ? <FaArrowLeft /> : <FaArrowRight />}
+              {textVis ? <FaArrowRight /> : <FaArrowLeft />}
             </button>
           )}
           <li>
-            {textVis && (
-              <span className={styles.text} onClick={() => logout()}>
-                خروج از حساب
-              </span>
-            )}
-            {width <= 576 && (
-              <span className={styles.icon} onClick={() => logout()}>
-                <ImExit />
-              </span>
-            )}
+            <span onClick={() => logout()}>
+              {textVis ? "خروج از حساب" : <ImExit />}
+            </span>
           </li>
         </ul>
       </aside>
