@@ -166,13 +166,20 @@ const editUserSchema = yup.object().shape({
 
 // !ChangePassword schema
 const changePasswordSchema = yup.object().shape({
-  password: yup
+  currentPassword: yup
     .string()
     .matches(
       passwordPattern,
       "کلمه عبور باید بین ۸ تا ۵۰ کاراکتر و شامل حروف انگلیسی و اعداد باشد"
     )
     .required("کلمه عبور الزامی است"),
+  newPassword: yup
+    .string()
+    .matches(
+      passwordPattern,
+      "کلمه عبور جدید باید با کلمه عبور قبلی تفاوت داشته باشد"
+    )
+    .required("کلمه عبور جدید الزامی است"),
 });
 
 export {
