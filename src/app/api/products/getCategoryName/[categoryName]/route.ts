@@ -5,20 +5,20 @@ import { connectToDatabase } from "../../../../../../lib/db";
  * @swagger
  * /api/products/getCategoryName/{categoryName}:
  *   get:
+ *     description: Fetch the category name based on the category slug
  *     tags:
  *       - Products
- *     summary: Get category name by category slug
- *     description: Returns the name of the selected category based on its slug.
+ *     summary: Get Category name by Category slug
  *     parameters:
- *       - in: path
- *         name: categoryName
+ *       - name: categoryName
+ *         in: path
  *         required: true
+ *         description: The slug of the category to retrieve the category name for
  *         schema:
  *           type: string
- *         description: The category slug to fetch the name for.
  *     responses:
  *       200:
- *         description: The name of the selected category
+ *         description: Successfully retrieved the category name
  *         content:
  *           application/json:
  *             schema:
@@ -26,16 +26,30 @@ import { connectToDatabase } from "../../../../../../lib/db";
  *               properties:
  *                 categoryName:
  *                   type: string
- *                   description: Name of the category
+ *                   example: "home-edition"
  *       404:
  *         description: Category not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Category not found"
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to fetch category name"
  */
-export async function GET(
-  req: Request,
-  { params }: { params: { categoryName: string } }
-) {
+
+export async function GET({ params }: { params: { categoryName: string } }) {
   const categoryNameSlug = params.categoryName;
 
   try {
