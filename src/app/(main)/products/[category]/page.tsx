@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import axios from "axios";
+import { notFound } from "next/navigation";
 
 interface CategoryPageProps {
   params: { category: string };
@@ -65,6 +66,7 @@ const CategoryPage = async ({ params, searchParams }: CategoryPageProps) => {
     categoryTitle = res.data.categoryName;
   } catch (error) {
     console.error("Error fetching category data:", error);
+    notFound();
   }
 
   const breadcrumbs = [
