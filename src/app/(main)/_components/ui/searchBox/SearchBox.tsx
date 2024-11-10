@@ -105,7 +105,6 @@ const SearchResults = ({
   hasSearched: boolean;
   closeSearchBox: () => void;
 }) => {
-  console.log(searchResults);
   return (
     <div className={styles.results}>
       {/* Display results only if there are search results */}
