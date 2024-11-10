@@ -72,8 +72,6 @@ const transporter = nodemailer.createTransport({
     user: process.env.WEBMAIL_USER,
     pass: process.env.WEBMAIL_PASS,
   },
-  debug: true, // Enable debug mode
-  logger: true, // Log to console
 });
 
 export async function POST(req: Request) {
