@@ -1,54 +1,78 @@
-// src/app/products/[category]/page.tsx
-
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
-import categoryPagesData from "@/constants/categoryPagesData.json";
+import axios from "axios";
 
 interface CategoryPageProps {
   params: { category: string };
   searchParams: { page?: string };
 }
 
-export const generateMetadata = ({ params }: CategoryPageProps): Metadata => {
-  const categoryData = categoryPagesData.find(
-    (cat) => cat.slug === params.category
-  );
+export const generateMetadata = async ({
+  params,
+}: CategoryPageProps): Promise<Metadata> => {
+  const categoryName = params.category;
 
-  if (!categoryData) {
+  try {
+    // Fetch category data from the API for metadata
+    const res = await axios.get(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getCategoryName/${categoryName}`
+    );
+
+    if (!res) {
+      return {
+        title: "دسته بندی یافت نشد!",
+        description: "دسته بندی مورد نظر یافت نشد!",
+      };
+    }
+
+    // If category does not exist or no category found
+    const category = res.data.categoryName;
+
+    return {
+      title: `مشاهده محصولات دسته بندی ${category} | فرابک`,
+      description: `با مرور در صفحه ${category} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
+    };
+  } catch (error) {
+    console.error("Error fetching category data:", error);
     return {
       title: "دسته بندی یافت نشد!",
       description: "دسته بندی مورد نظر یافت نشد!",
     };
   }
-
-  return {
-    title: `مشاهده محصولات دسته بندی ${categoryData.category} | فرابک`,
-    description: `با مرور در صفحه ${categoryData.category} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
-  };
 };
 
 const CategoryPage = async ({ params, searchParams }: CategoryPageProps) => {
-  const categoryData = categoryPagesData.find(
-    (cat) => cat.slug === params.category
-  );
-
-  if (!categoryData) {
-    notFound();
-  }
-
-  // Get the current page from searchParams, default to 1
+  const categoryName = params.category;
   const currentPage = parseInt(searchParams.page || "1", 10);
-  const limit = 30; // Hardcoded limit
-  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsByCategory/${categoryData.categoryId}?page=${currentPage}&limit=${limit}`;
+  const limit = 30;
+
+  // API URL for fetching products by category
+  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsByCategory/${categoryName}?page=${currentPage}&limit=${limit}`;
+
+  // Fetch category data for setting the title dynamically
+  let categoryTitle = categoryName;
+
+  try {
+    const res = await axios.get(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getCategoryName/${categoryName}`
+    );
+
+    if (!res) {
+      throw new Error("Failed to fetch category data");
+    }
+
+    categoryTitle = res.data.categoryName;
+  } catch (error) {
+    console.error("Error fetching category data:", error);
+  }
 
   const breadcrumbs = [
     { path: "/", href: "/" },
     { path: "/products", href: "/products" },
     {
-      path: `/products/${categoryData.slug}`,
-      href: `/products/${categoryData.slug}`,
+      path: `/products/${categoryName}`,
+      href: `/products/${categoryName}`,
     },
   ];
 
@@ -56,10 +80,10 @@ const CategoryPage = async ({ params, searchParams }: CategoryPageProps) => {
     <div>
       <Breadcrumb breadcrumbs={breadcrumbs} />
       <ProductGrid
-        title={categoryData.category}
-        apiUrl={apiUrl}
+        title={categoryTitle} // Passing dynamically fetched category title
+        apiUrl={apiUrl} // Passing API URL for product fetching
         currentPage={currentPage}
-        categorySlug={categoryData.slug} // Pass categorySlug here
+        categorySlug={categoryName} // Passing categorySlug
       />
     </div>
   );
