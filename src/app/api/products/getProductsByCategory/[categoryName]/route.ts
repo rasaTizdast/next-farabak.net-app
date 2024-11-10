@@ -1,23 +1,21 @@
-// app/api/products/getProductsByCategory/[categoryId]/route.ts
-
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "../../../../../../lib/db";
 
 /**
  * @swagger
- * /api/products/getProductsByCategory/{categoryId}:
+ * /api/products/getProductsByCategory/{categoryName}:
  *   get:
  *     tags:
  *       - Products
- *     summary: Get products by category with pagination
- *     description: Returns a paginated list of products filtered by category ID.
+ *     summary: Get products by category name with pagination
+ *     description: Returns a paginated list of products filtered by category name.
  *     parameters:
  *       - in: path
- *         name: categoryId
+ *         name: categoryName
  *         required: true
  *         schema:
- *           type: integer
- *         description: The category ID to filter products by
+ *           type: string
+ *         description: The category name (slug) to filter products by.
  *       - in: query
  *         name: page
  *         schema:
@@ -87,9 +85,9 @@ import { connectToDatabase } from "../../../../../../lib/db";
  */
 export async function GET(
   req: Request,
-  { params }: { params: { categoryId: string } }
+  { params }: { params: { categoryName: string } }
 ) {
-  const categoryId = params.categoryId;
+  const categoryName = params.categoryName;
 
   try {
     const { searchParams } = new URL(req.url);
@@ -98,6 +96,18 @@ export async function GET(
     const offset = (page - 1) * limit;
 
     const pool = await connectToDatabase();
+
+    // Retrieve CategoryId based on categoryName from the Support.Category table
+    const categoryIdResult = await pool
+      .request()
+      .input("slug", categoryName)
+      .query("SELECT CategoryId FROM Support.Category WHERE slug = @slug");
+
+    if (categoryIdResult.recordset.length === 0) {
+      return new NextResponse("Category not found", { status: 404 });
+    }
+
+    const categoryId = categoryIdResult.recordset[0].CategoryId;
 
     // Count total products in the category
     const totalCountResult = await pool
