@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
-import categoryPagesData from "@/constants/categoryPagesData.json";
+import axios from "axios";
 import { notFound } from "next/navigation";
 
 interface SubcategoryPageProps {
@@ -10,35 +10,38 @@ interface SubcategoryPageProps {
 }
 
 // Generate metadata for SEO
-export const generateMetadata = ({
+export const generateMetadata = async ({
   params,
-}: SubcategoryPageProps): Metadata => {
-  const categoryData = categoryPagesData.find(
-    (cat) => cat.slug === params.category
-  );
+}: SubcategoryPageProps): Promise<Metadata> => {
+  const subCategoryName = params.subcategory;
 
-  if (!categoryData) {
+  try {
+    // Fetch category data from the API for metadata
+    const res = await axios.get(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getSubCategoryName/${subCategoryName}`
+    );
+
+    if (!res) {
+      return {
+        title: "دسته بندی یافت نشد!",
+        description: "دسته بندی مورد نظر یافت نشد!",
+      };
+    }
+
+    // If category does not exist or no category found
+    const subCategory = res.data.subCategoryName;
+
     return {
-      title: "دسته بندی پیدا نشد",
-      description: "این دسته بندی وجود ندارد.",
+      title: `مشاهده محصولات دسته بندی ${subCategory} | فرابک`,
+      description: `با مرور در صفحه ${subCategory} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
+    };
+  } catch (error) {
+    console.error("Error fetching category data:", error);
+    return {
+      title: "دسته بندی یافت نشد!",
+      description: "دسته بندی مورد نظر یافت نشد!",
     };
   }
-
-  const subCategoryData = categoryData.subCategories?.find(
-    (subCat) => subCat.slug === params.subcategory
-  );
-
-  if (!subCategoryData) {
-    return {
-      title: "زیر دسته بندی پیدا نشد",
-      description: "زیر دسته بندی وجود ندارد.",
-    };
-  }
-
-  return {
-    title: `${subCategoryData.subCategory} | فرابک`,
-    description: `مشاهده محصولات در ${subCategoryData.subCategory} | فرابک`,
-  };
 };
 
 const SubcategoryPage = async ({
@@ -46,41 +49,38 @@ const SubcategoryPage = async ({
   searchParams,
 }: SubcategoryPageProps) => {
   const { category, subcategory } = params;
-
-  // Find the matching category
-  const categoryData = categoryPagesData.find((cat) => cat.slug === category);
-
-  if (!categoryData) {
-    notFound();
-  }
-
-  // Find the subcategory within the selected category
-  const subCategoryData = categoryData?.subCategories?.find((subCat) => {
-    const isMatch = subCat.slug.toLowerCase() === subcategory.toLowerCase();
-    if (!isMatch) {
-    }
-    return isMatch;
-  });
-
-  if (!subCategoryData) {
-    notFound();
-  }
-
   const currentPage = parseInt(searchParams.page || "1", 10);
   const limit = 30;
 
-  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsBySubcategory/${subCategoryData.id}?page=${currentPage}&limit=${limit}`;
+  let subCategoryTitle = subcategory;
+
+  try {
+    const res = await axios.get(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getSubCategoryName/${subcategory}`
+    );
+
+    if (!res) {
+      throw new Error("Failed to fetch subCategory data");
+    }
+
+    subCategoryTitle = res.data.subCategoryName;
+  } catch (error) {
+    console.error("Error fetching subCategory data:", error);
+    notFound();
+  }
+
+  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsBySubcategory/${subcategory}?page=${currentPage}&limit=${limit}`;
 
   const breadcrumbs = [
     { path: "/", href: "/" },
     { path: "/products", href: "/products" },
     {
-      path: `/products/${categoryData.slug}`,
-      href: `/products/${categoryData.slug}`,
+      path: `/products/${category}`,
+      href: `/products/${category}`,
     },
     {
-      path: `/products/${categoryData.slug}/${subCategoryData.slug}`,
-      href: `/products/${categoryData.slug}/${subCategoryData.slug}`,
+      path: `/products/${category}/${subcategory}`,
+      href: `/products/${category}/${subcategory}`,
     },
   ];
 
@@ -88,11 +88,11 @@ const SubcategoryPage = async ({
     <div>
       <Breadcrumb breadcrumbs={breadcrumbs} />
       <ProductGrid
-        title={subCategoryData.subCategory}
+        title={subCategoryTitle}
         apiUrl={apiUrl}
         currentPage={currentPage}
-        categorySlug={categoryData.slug}
-        subcategorySlug={subCategoryData.slug}
+        categorySlug={category}
+        subcategorySlug={subcategory}
       />
     </div>
   );
