@@ -1,23 +1,23 @@
-// app/api/products/getProductsBySubcategory/[subcategoryId]/route.ts
+// app/api/products/getProductsBySubcategory/[subCategoryName]/route.ts
 
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "../../../../../../lib/db";
 
 /**
  * @swagger
- * /api/products/getProductsBySubcategory/{subcategoryId}:
+ * /api/products/getProductsBySubcategory/{subCategoryName}:
  *   get:
  *     tags:
  *       - Products
- *     summary: Get products by subcategory with pagination
- *     description: Returns a paginated list of products filtered by subcategory ID (CategoryContentId).
+ *     summary: Get products by subcategory name with pagination
+ *     description: Returns a paginated list of products filtered by subcategory name.
  *     parameters:
  *       - in: path
- *         name: subcategoryId
+ *         name: subCategoryName
  *         required: true
  *         schema:
  *           type: string
- *         description: The subcategory ID to filter products by.
+ *         description: The subcategory name (slug) to filter products by.
  *       - in: query
  *         name: page
  *         schema:
@@ -42,74 +42,69 @@ import { connectToDatabase } from "../../../../../../lib/db";
  *                   type: array
  *                   items:
  *                     type: object
- *                     properties:
- *                       ProductId:
- *                         type: integer
- *                       Name:
- *                         type: string
- *                       Type:
- *                         type: string
- *                       Price:
- *                         type: number
- *                         nullable: true
- *                       Discount:
- *                         type: number
- *                         nullable: true
- *                       CategoryContentId:
- *                         type: string
- *                       img1:
- *                         type: string
- *                       img2:
- *                         type: string
- *                       Available:
- *                         type: boolean
- *                       Description:
- *                         type: string
- *                       CategoryId:
- *                         type: integer
- *                 pagination:
- *                   type: object
- *                   properties:
- *                     currentPage:
- *                       type: integer
- *                     totalPages:
- *                       type: integer
  *       404:
  *         description: No products found for this subcategory.
  *       500:
  *         description: Internal server error
  */
+
 export async function GET(
   req: Request,
-  { params }: { params: { subcategoryId: string } }
+  { params }: { params: { subCategoryName: string } }
 ) {
   const { searchParams } = new URL(req.url);
-  const subcategoryId = params.subcategoryId;
+  const subCategoryName = params.subCategoryName;
+
   const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = parseInt(searchParams.get("limit") || "30", 10);
   const offset = (page - 1) * limit;
 
   try {
+    // Attempting to connect to the database
     const pool = await connectToDatabase();
+
+    // Get the subcategory ID based on the provided subCategoryName
+    const subCategoryIdResult = await pool
+      .request()
+      .input("slug", subCategoryName)
+      .query(
+        "SELECT CategoryContentId FROM Support.CategoryContent WHERE Slug = @slug"
+      );
+
+    if (subCategoryIdResult.recordset.length === 0) {
+      return new NextResponse("Subcategory not found", { status: 404 });
+    }
+
+    const subCategoryId = subCategoryIdResult.recordset[0].CategoryContentId;
+
+    // Count total products for pagination
+    const totalResult = await pool
+      .request()
+      .input("subCategoryId", subCategoryId)
+      .query(
+        `SELECT COUNT(*) AS count FROM Support.Product 
+         WHERE EXISTS (
+           SELECT value FROM STRING_SPLIT(CategoryContentId, ',')
+           WHERE LTRIM(RTRIM(value)) = @subCategoryId
+         )`
+      );
+
+    const totalCount = totalResult.recordset[0].count;
+    const totalPages = Math.ceil(totalCount / limit);
+
+    // Fetch paginated products
     const result = await pool
       .request()
-      .input("subcategoryId", subcategoryId)
+      .input("subCategoryId", subCategoryId)
       .query(
         `SELECT * FROM Support.Product 
-         WHERE CategoryContentId LIKE '%' + @subcategoryId + '%' 
+         WHERE EXISTS (
+           SELECT value FROM STRING_SPLIT(CategoryContentId, ',')
+           WHERE LTRIM(RTRIM(value)) = @subCategoryId
+         )
          ORDER BY ProductId
          OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY`
       );
-
-    const totalResult = await pool
-      .request()
-      .input("subcategoryId", subcategoryId)
-      .query(
-        `SELECT COUNT(*) as count FROM Support.Product 
-         WHERE CategoryContentId LIKE '%' + @subcategoryId + '%'`
-      );
-    const totalCount = totalResult.recordset[0].count;
-    const totalPages = Math.ceil(totalCount / limit);
 
     if (result.recordset.length === 0) {
       return new NextResponse("No products found for this subcategory", {
