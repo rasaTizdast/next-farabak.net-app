@@ -49,8 +49,6 @@ const ProjectPage = ({ params }: ParamsType) => {
     notFound();
   }
 
-  console.log(projectData);
-
   const { title, date, images, largeDesc, location, video }: ProjectProps =
     projectData;
 
