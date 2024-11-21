@@ -5,19 +5,19 @@ import { connectToDatabase } from "../../../../../../lib/db";
 
 /**
  * @swagger
- * /api/products/getProductById/{productId}:
+ * /api/products/getProductBySlug/{productSlug}:
  *   get:
  *     tags:
  *       - Products
- *     summary: Get a product by ID
- *     description: Returns a specific product based on the product ID.
+ *     summary: Get a product by Slug
+ *     description: Returns a specific product based on the product Slug.
  *     parameters:
  *       - in: path
- *         name: productId
+ *         name: productSlug
  *         required: true
  *         schema:
- *           type: integer
- *         description: The ID of the product to fetch
+ *           type: string
+ *         description: The slug of the product to fetch
  *     responses:
  *       200:
  *         description: A specific product
@@ -57,7 +57,7 @@ import { connectToDatabase } from "../../../../../../lib/db";
  */
 export async function GET(
   request: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: { productSlug: string } }
 ) {
   try {
     // Connect to the database
@@ -66,8 +66,8 @@ export async function GET(
     // Query to get a product by ID
     const result = await pool
       .request()
-      .input("ProductId", params.productId) // Bind the productId parameter
-      .query("SELECT * FROM Support.Product WHERE ProductId = @ProductId");
+      .input("ProductSlug", params.productSlug) // Bind the productSlug parameter
+      .query("SELECT * FROM Support.Product WHERE Slug = @ProductSlug");
 
     // Check if the product is found
     if (result.recordset.length === 0) {
