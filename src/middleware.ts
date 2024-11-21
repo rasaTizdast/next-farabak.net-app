@@ -158,5 +158,6 @@ export const config = {
     "/dashboard/:path*", // Protect all subroutes of /dashboard
     "/admin-panel/:path*", // Protect all subroutes of /admin-panel
     "/auth/:path*", // Protect all auth routes
+    // "/:path*",
   ],
 };
