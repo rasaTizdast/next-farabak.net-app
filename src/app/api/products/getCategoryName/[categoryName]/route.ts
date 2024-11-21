@@ -49,7 +49,10 @@ import { connectToDatabase } from "../../../../../../lib/db";
  *                   example: "Failed to fetch category name"
  */
 
-export async function GET({ params }: { params: { categoryName: string } }) {
+export async function GET(
+  req: Request,
+  { params }: { params: { categoryName: string } }
+) {
   const categoryNameSlug = params.categoryName;
 
   try {
@@ -59,7 +62,7 @@ export async function GET({ params }: { params: { categoryName: string } }) {
     const categoryResult = await pool
       .request()
       .input("slug", categoryNameSlug)
-      .query("SELECT Name FROM Support.Category WHERE slug = @slug");
+      .query("SELECT Name FROM Support.Category WHERE Slug = @slug");
 
     // If no category is found, return a 404 error
     if (categoryResult.recordset.length === 0) {
