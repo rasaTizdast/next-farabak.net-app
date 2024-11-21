@@ -6,11 +6,10 @@ import { notFound } from "next/navigation";
 export const fetchProducts = async (url: string) => {
   try {
     const response = await axios.get(url);
-    if (!response) {
-      notFound();
-    }
+
     return response.data;
   } catch (error) {
     console.error(error);
+    notFound();
   }
 };
