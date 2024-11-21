@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
@@ -57,7 +57,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const isLoggedIn = !!user;
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role.toLowerCase() === "admin";
   const userFullName = `${user?.firstName || ""} ${user?.lastName || ""}`;
 
   return (
