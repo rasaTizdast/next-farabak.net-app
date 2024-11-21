@@ -23,13 +23,14 @@ const NavBar = () => {
       title: "پشتیبانی",
       link: "/support",
       subMenu: [
-        { id: 1, title: "بخش آموزش", link: "/support/training-section" },
+        { id: 1, title: "بلاگ", link: "/support/blog" },
+        { id: 2, title: "بخش آموزش", link: "/support/training-section" },
         {
-          id: 2,
+          id: 3,
           title: "نرم‌افزارها و آپدیت‌ها",
           link: "/support/download-center",
         },
-        { id: 3, title: "سوالات متداول", link: "/support/faq" },
+        { id: 4, title: "سوالات متداول", link: "/support/faq" },
       ],
     },
     {
