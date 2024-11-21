@@ -25,12 +25,6 @@ import { connectToDatabase } from "../../../../../../lib/db";
  *               items:
  *                 type: object
  *                 properties:
- *                   productOverviewId:
- *                     type: integer
- *                     description: Unique ID of the product overview
- *                   productName:
- *                     type: string
- *                     description: Name of the product
  *                   productId:
  *                     type: integer
  *                     description: ID of the product
@@ -62,7 +56,7 @@ export async function GET(
       .request()
       .input("ProductId", params.productId)
       .query(
-        "SELECT ProductOverviewId, ProductName, ProductId, Property1, Property2, Property3, Property4 FROM Support.ProductOverview WHERE ProductId = @ProductId"
+        "SELECT ProductId, Property1, Property2, Property3, Property4 FROM Support.ProductOverview WHERE ProductId = @ProductId"
       );
     // Adjust table and column names as needed
 
@@ -75,7 +69,7 @@ export async function GET(
     }
 
     // Return the product overview data as a JSON response
-    return NextResponse.json(result.recordset); // Return the array of product overviews
+    return NextResponse.json(result.recordset[0]); // Return the array of product overviews
   } catch (error) {
     console.error("Error fetching product overview: ", error);
 
