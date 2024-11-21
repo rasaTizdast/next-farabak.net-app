@@ -23,7 +23,7 @@ export const productSubCategoryRoutes = {
   "/products/home-edition/bullet": "دوربین بولت",
   "/products/home-edition/battery": "دوربین باطری دار",
   "/products/home-edition/ip": "دوربین IP",
-  "/products/home-edition/wifi": "دودوربین WIFI",
+  "/products/home-edition/wifi": "دوربین WIFI",
   "/products/home-edition/dual-lens": "دوربین Dual-Lens",
   "/products/home-edition/pan-tilt": "دوربین Pan-Tilt",
   "/products/home-edition/4g": "دوربین 4G",
