@@ -1,0 +1,372 @@
+.productPageContainer {
+  width: 100%;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  flex: 3 1;
+  gap: 2rem;
+}
+
+.head .desc {
+  background-color: #fafafa;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  flex: 1.2;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.descDetails h1 {
+  font-weight: 700;
+  font-size: 1.2rem;
+  text-align: justify;
+  margin-bottom: 2rem;
+}
+
+.descDetails p {
+  width: 100%;
+  font-weight: 600;
+  font-size: 1.4rem;
+}
+
+.details div {
+  font-size: 1.1rem;
+  font-weight: 300;
+  margin-bottom: 0.5rem;
+}
+
+.productFeatures {
+  font-weight: 300;
+  margin-right: 2rem;
+  list-style-type: circle;
+  font-size: 1rem;
+  margin-block: 1rem;
+}
+
+.productFeatures li {
+  padding-block: 0.25rem;
+}
+
+.invoiceParent {
+  width: 100%;
+}
+
+.addToInvoice {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+  color: #fff;
+  background-color: var(--dark-blue-color);
+  border-radius: 12px;
+  overflow-x: hidden;
+}
+
+.invoiceText {
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
+.invoiceText2 {
+  font-weight: 600;
+  margin-top: 1.5rem;
+}
+
+.invoiceText2 a {
+  text-decoration: underline;
+  text-underline-offset: 8px;
+  color: var(--fourth-color);
+  transition: color 0.3s ease-in-out;
+}
+
+.addToInvoice .actions {
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+  max-width: 132px;
+}
+
+.invoiceAmount {
+  align-self: center;
+}
+
+.addToInvoice button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  background-color: rgba(0, 0, 0, 0);
+  width: 100%;
+
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.addToInvoice .actions {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.addToInvoice .action {
+  font-size: 1.2rem;
+  height: 50px;
+  width: 50px;
+}
+
+.head img {
+  flex: 2.5;
+  width: 60%;
+  max-width: 1300px;
+  background-size: cover;
+  height: auto;
+  max-height: 400px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+.productTabs {
+  display: flex;
+  align-items: center;
+  margin: 0 auto;
+  width: 95%;
+  text-align: center;
+  justify-content: center;
+  margin-block: 2rem;
+  /* background-color: #e4e4e4; */
+  background-color: #2774c0;
+  border-radius: 5px;
+  position: sticky;
+  top: 75px;
+  box-shadow: 0 4px 10px 4px rgba(0, 0, 0, 0.2);
+}
+
+.productTabs ul {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  list-style-type: none;
+  width: 80%;
+}
+
+.productTabs li {
+  font-size: clamp(0.8rem, 1.7vw, 1rem);
+  padding-block: 0.8rem;
+  padding-inline: 0.5rem;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.productTabs * {
+  color: #fff;
+}
+
+.overviews {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+@media (min-width: 2000px) {
+  .productTabs {
+    top: 70px;
+  }
+
+  .head img {
+    flex: 3;
+    height: 378px;
+    max-height: max-content;
+  }
+}
+
+@media (min-width: 1200px) {
+  .head img {
+    height: auto;
+    max-height: none;
+  }
+
+  .head .desc {
+    max-width: 385px;
+  }
+}
+
+@media (min-width: 576px) {
+  .addToInvoice button:hover {
+    background-color: var(--fourth-color);
+  }
+
+  .invoiceText a:hover {
+    color: var(--dark-blue-color);
+  }
+}
+
+@media (max-width: 1200px) {
+  .productTabs {
+    top: 63px;
+  }
+}
+
+@media (max-width: 1010px) {
+  .productTabs {
+    top: 62px;
+  }
+}
+
+@media (max-width: 950px) {
+  .head {
+    flex-direction: column;
+  }
+
+  .head img {
+    width: 100%;
+    max-height: max-content;
+  }
+
+  .head .desc {
+    margin: 0;
+  }
+
+  .head .descDetails {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    width: 100%;
+    gap: 2rem;
+  }
+
+  .productFeatures {
+    width: 50%;
+  }
+
+  .productFeatures li {
+    width: fit-content;
+  }
+
+  .addToInvoice {
+    flex-direction: row;
+    gap: 1rem;
+    margin-top: 2rem;
+    align-items: center;
+  }
+
+  .addToInvoice .actions {
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 840px) {
+  .descDetails h1 {
+    margin-block: 1rem 0.5rem;
+  }
+
+  .descDetails p {
+    font-size: 1.2rem;
+  }
+
+  .productFeatures {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .productTabs {
+    top: 61px;
+  }
+}
+
+@media (max-width: 740px) {
+  .descDetails p {
+    font-size: 1.1rem;
+  }
+
+  .productFeatures {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 646px) {
+  .productTabs {
+    top: 60px;
+  }
+}
+
+@media (max-width: 640px) {
+  .descDetails p {
+    font-size: 1.1rem;
+  }
+
+  .productFeatures {
+    font-size: 0.9rem;
+    margin-right: 1.5rem;
+    gap: 1rem 2rem;
+  }
+
+  .addToInvoice {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .head .descDetails {
+    flex-direction: column;
+  }
+
+  .productFeatures {
+    margin-block: 0;
+    width: 100%;
+  }
+
+  .productTabs {
+    top: 80px;
+  }
+
+  .productTabs ul {
+    justify-content: space-evenly;
+    width: 100%;
+  }
+}
+
+@media (max-width: 550px) {
+  .descDetails p {
+    flex-direction: column;
+    margin-bottom: 2rem;
+  }
+
+  .productFeatures {
+    margin-right: 1rem;
+  }
+}
+
+.addToInvoice .actions {
+  max-width: 100%;
+}
+
+@media (max-width: 400px) {
+  .productTabs li,
+  .productTabs li.active-tab {
+    font-size: 0.7rem;
+  }
+
+  .productTabs ul {
+    width: 100%;
+  }
+}
+
+@media (max-width: 340px) {
+  .addToInvoice {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
