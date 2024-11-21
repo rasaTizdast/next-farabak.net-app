@@ -10,6 +10,7 @@ interface Product {
   ProductId: number;
   Type: string;
   img1: string;
+  Slug: string;
 }
 
 interface GridContentServerProps {
@@ -36,7 +37,7 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
             key={product.ProductId}
             href={`/products/${categorySlug ? `${categorySlug}/` : ""}${
               subcategorySlug ? `${subcategorySlug}/` : ""
-            }${product.ProductId}`}
+            }${product.Slug}`}
             className={styles.productCard}
           >
             <Image
@@ -51,7 +52,7 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
           </Link>
         ))}
       </div>
-      
+
       {/* Pagination Controls */}
       <Pagination
         currentPage={currentPage}
