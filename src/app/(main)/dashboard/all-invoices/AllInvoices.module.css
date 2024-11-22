@@ -1,0 +1,127 @@
+.tableContainer {
+  max-height: 620px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  margin-top: 20px;
+}
+
+.invoicesTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.invoicesTable tbody tr {
+  transition: all 0.3s ease-in-out;
+}
+
+.invoicesTable th,
+.invoicesTable td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #d3d3d3;
+  width: 15%;
+  transition: all 0.3s ease-in-out;
+}
+
+.invoicesTable th {
+  background-color: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.actionsParent button {
+  width: 100%;
+  max-width: 180px;
+}
+
+.actionsParent .show,
+.error button {
+  padding: 0.5rem 1.5rem;
+  background-color: var(--dark-blue-color);
+  color: #fff;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.actionsParent .confirm {
+  padding: 0.5rem 1.5rem;
+  background-color: var(--secondary-color);
+  color: #fff;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.actionsParent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100% !important;
+  gap: 1rem;
+}
+
+.error {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.errorContent {
+  padding: 1.5rem;
+  border-radius: 8px;
+  width: fit-content;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  background-color: #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.errorContent span {
+  font-weight: 700;
+}
+
+@media (min-width: 576px) {
+  .actionsParent .show:hover,
+  .error button:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    background-color: var(--fourth-color);
+  }
+
+  .invoicesTable tbody tr:hover,
+  .invoicesTable tbody tr:hover td {
+    background-color: #fff;
+  }
+
+  .actionsParent .confirm:hover {
+    padding: 0.5rem 1.5rem;
+    background-color: #00ce11;
+    color: #fff;
+    border-radius: 6px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+  }
+}
+
+@media (max-width: 768px) {
+  .invoicesTable th,
+  .invoicesTable td {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .actionsParent button {
+    padding: 0.5rem;
+    font-size: 0.6rem;
+  }
+}
