@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from "uuid";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import moment from "jalali-moment"; // Updated import
-import "moment-timezone";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
