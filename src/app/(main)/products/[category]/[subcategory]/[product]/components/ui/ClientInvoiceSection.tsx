@@ -44,7 +44,7 @@ const ClientInvoiceSection = ({ product }: { product: Product }) => {
         href="/auth/login"
         className="w-full bg-[#003262] p-2 flex justify-center text-white rounded-lg mt-6 sm:mt-0 text-sm md:text-base"
       >
-        شما وارد نشدید
+        برای ثبت فاکتور وارد شوید
       </Link>
     );
   }
