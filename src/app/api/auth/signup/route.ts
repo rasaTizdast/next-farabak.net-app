@@ -166,7 +166,7 @@ export async function POST(request: Request) {
       `);
 
     // Generate Access Token using jose
-    const accessToken = await new SignJWT({ userId, username, role: "user" })
+    const accessToken = await new SignJWT({ userId, username, role: "public" })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
       .setExpirationTime("15m")
