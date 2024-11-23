@@ -11,6 +11,7 @@ interface Product {
   Type: string;
   img1: string;
   Slug: string;
+  link: string;
 }
 
 interface GridContentServerProps {
@@ -35,9 +36,7 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
         {products.map((product: Product) => (
           <Link
             key={product.ProductId}
-            href={`/products/${categorySlug ? `${categorySlug}/` : ""}${
-              subcategorySlug ? `${subcategorySlug}/` : ""
-            }${product.Slug}`}
+            href={`/products/${product.link}`}
             className={styles.productCard}
           >
             <Image
