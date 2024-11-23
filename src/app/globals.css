@@ -45,3 +45,41 @@ a {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--secondary-color);
 }
+
+.glass-card {
+  @apply bg-white/20 backdrop-blur-md border border-white/30 p-6 rounded-2xl shadow-lg;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
+    background 0.3s ease-in-out;
+}
+
+.glass-card:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.4),
+    rgba(255, 255, 255, 0.1)
+  );
+  mix-blend-mode: overlay;
+  opacity: 0.6;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.glass-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
+}
+
+.glass-card:hover:before {
+  opacity: 0.9;
+}
+
+.glass-card:hover h3,
+.glass-card:hover span,
+.glass-card:hover a {
+  transition: color 0.3s ease-in-out;
+}
