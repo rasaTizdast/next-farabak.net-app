@@ -79,6 +79,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const refreshToken = await new SignJWT({
       userId: user.userId,
       username: user.username,
+      role: user.role,
     })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("7d")
