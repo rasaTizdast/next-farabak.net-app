@@ -14,6 +14,7 @@ import { notFound } from "next/navigation";
 import axios from "axios";
 import ClientInvoiceSection from "./components/ui/ClientInvoiceSection";
 import ProductTabs from "./components/ui/ProductTabs";
+import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 
 // Types
 interface ProductData {
@@ -22,6 +23,8 @@ interface ProductData {
   Type: string;
   img2: string;
   Description: string;
+  categorySlug: string;
+  subCategorySlug: string;
   // Add other fields as needed
 }
 
@@ -76,9 +79,21 @@ export default async function ProductPage({
   if (!productData) {
     notFound();
   }
-
+  const breadCrumbs = [
+    { href: "/", path: "/" },
+    { href: "/products", path: "/products" },
+    {
+      href: `/products/${productData.categorySlug}`,
+      path: `/products/${productData.categorySlug}`,
+    },
+    {
+      href: `/products/${productData.categorySlug}/${productData.subCategorySlug}`,
+      path: `/products/${productData.categorySlug}/${productData.subCategorySlug}`,
+    },
+  ];
   return (
     <>
+      <Breadcrumb breadcrumbs={breadCrumbs} />
       {/* Main Product Section */}
       <section className={styles.head}>
         <Image
@@ -106,10 +121,8 @@ export default async function ProductPage({
           <ClientInvoiceSection product={{ type: productData.Type }} />
         </div>
       </section>
-
       {/* Navigation */}
       <ProductTabs />
-
       {/* Content Sections */}
       <section id="overview" className={styles.section}>
         <Suspense
@@ -122,7 +135,6 @@ export default async function ProductPage({
           <ProductOverview productId={productData.ProductId} />
         </Suspense>
       </section>
-
       <section id="specs" className={`${styles.section} mt-16`}>
         <Suspense
           fallback={
@@ -134,7 +146,6 @@ export default async function ProductPage({
           <ProductSpecs productId={productData.ProductId} />
         </Suspense>
       </section>
-
       <section id="faq" className={`${styles.section} mt-16`}>
         <Suspense
           fallback={
