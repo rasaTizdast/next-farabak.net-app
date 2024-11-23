@@ -8,7 +8,7 @@ import { connectToDatabase } from "../../../../../../lib/db";
  *     tags:
  *       - Products
  *     summary: Get products by category name with pagination
- *     description: Returns a paginated list of products filtered by category name.
+ *     description: Returns a paginated list of products filtered by category name with category and subcategory slugs included in the product links.
  *     parameters:
  *       - in: path
  *         name: categoryName
@@ -30,7 +30,7 @@ import { connectToDatabase } from "../../../../../../lib/db";
  *         description: Number of products to return per page.
  *     responses:
  *       200:
- *         description: A paginated list of filtered products
+ *         description: A paginated list of filtered products with links
  *         content:
  *           application/json:
  *             schema:
@@ -65,6 +65,15 @@ import { connectToDatabase } from "../../../../../../lib/db";
  *                         type: string
  *                       CategoryId:
  *                         type: integer
+ *                       productSlug:
+ *                         type: string
+ *                       categorySlug:
+ *                         type: string
+ *                       subCategorySlug:
+ *                         type: string
+ *                       link:
+ *                         type: string
+ *                         description: The full URL to the product.
  *                 pagination:
  *                   type: object
  *                   properties:
@@ -79,7 +88,7 @@ import { connectToDatabase } from "../../../../../../lib/db";
  *                     hasPrevPage:
  *                       type: boolean
  *       404:
- *         description: No products found
+ *         description: No products found for this category
  *       500:
  *         description: Internal server error
  */
@@ -119,17 +128,39 @@ export async function GET(
     const totalCount = totalCountResult.recordset[0].totalCount;
     const totalPages = Math.ceil(totalCount / limit);
 
-    // Fetch paginated products in the category
-    const result = await pool
-      .request()
-      .input("categoryId", categoryId)
-      .query(
-        `SELECT * FROM Support.Product 
-         WHERE CategoryId = @categoryId 
-         ORDER BY ProductId 
-         OFFSET ${offset} ROWS 
-         FETCH NEXT ${limit} ROWS ONLY`
-      );
+    // Fetch paginated products in the category with category and subcategory slugs
+    const result = await pool.request().input("categoryId", categoryId).query(`
+        SELECT 
+          p.ProductId,
+          p.Name,
+          p.Type,
+          p.Price,
+          p.Discount,
+          p.CategoryContentId,
+          p.img1,
+          p.img2,
+          p.Available,
+          p.Description,
+          p.CategoryId,
+          p.Slug AS productSlug,
+          c.Slug AS categorySlug,
+          cc.Slug AS subCategorySlug
+        FROM 
+          Support.Product p
+        JOIN 
+          Support.Category c ON c.CategoryId = p.CategoryId
+        OUTER APPLY (
+          SELECT TOP 1 cc.Slug 
+          FROM Support.CategoryContent cc
+          WHERE CHARINDEX(CAST(cc.CategoryContentId AS VARCHAR), p.CategoryContentId) > 0
+        ) AS cc
+        WHERE 
+          p.CategoryId = @categoryId
+        ORDER BY 
+          p.ProductId
+        OFFSET ${offset} ROWS 
+        FETCH NEXT ${limit} ROWS ONLY
+      `);
 
     if (result.recordset.length === 0) {
       return new NextResponse("No products found for this category", {
@@ -137,8 +168,14 @@ export async function GET(
       });
     }
 
+    // Add link for each product
+    const data = result.recordset.map((product) => ({
+      ...product,
+      link: `${product.categorySlug}/${product.subCategorySlug}/${product.productSlug}`,
+    }));
+
     const response = {
-      data: result.recordset,
+      data,
       pagination: {
         totalCount,
         currentPage: page,

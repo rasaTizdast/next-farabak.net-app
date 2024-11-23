@@ -1,5 +1,3 @@
-// app/api/products/getProductsBySubcategory/[subCategoryName]/route.ts
-
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "../../../../../../lib/db";
 
@@ -10,7 +8,7 @@ import { connectToDatabase } from "../../../../../../lib/db";
  *     tags:
  *       - Products
  *     summary: Get products by subcategory name with pagination
- *     description: Returns a paginated list of products filtered by subcategory name.
+ *     description: Returns a paginated list of products filtered by subcategory name with category and subcategory slugs included in the product links.
  *     parameters:
  *       - in: path
  *         name: subCategoryName
@@ -92,18 +90,43 @@ export async function GET(
     const totalCount = totalResult.recordset[0].count;
     const totalPages = Math.ceil(totalCount / limit);
 
-    // Fetch paginated products
+    // Fetch paginated products with category and subcategory slugs
     const result = await pool
       .request()
       .input("subCategoryId", subCategoryId)
       .query(
-        `SELECT * FROM Support.Product 
-         WHERE EXISTS (
-           SELECT value FROM STRING_SPLIT(CategoryContentId, ',')
-           WHERE LTRIM(RTRIM(value)) = @subCategoryId
-         )
-         ORDER BY ProductId
-         OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY`
+        `SELECT 
+          p.ProductId,
+          p.Name,
+          p.Type,
+          p.Price,
+          p.Discount,
+          p.CategoryContentId,
+          p.img1,
+          p.img2,
+          p.Available,
+          p.Description,
+          p.CategoryId,
+          p.Slug AS productSlug,
+          c.Slug AS categorySlug,
+          cc.Slug AS subCategorySlug
+        FROM 
+          Support.Product p
+        JOIN 
+          Support.Category c ON c.CategoryId = p.CategoryId
+        OUTER APPLY (
+          SELECT TOP 1 cc.Slug 
+          FROM Support.CategoryContent cc
+          WHERE CHARINDEX(CAST(cc.CategoryContentId AS VARCHAR), p.CategoryContentId) > 0
+        ) AS cc
+        WHERE 
+          EXISTS (
+            SELECT value FROM STRING_SPLIT(p.CategoryContentId, ',')
+            WHERE LTRIM(RTRIM(value)) = @subCategoryId
+          )
+        ORDER BY 
+          p.ProductId
+        OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY`
       );
 
     if (result.recordset.length === 0) {
@@ -112,10 +135,24 @@ export async function GET(
       });
     }
 
-    return NextResponse.json({
-      data: result.recordset,
-      pagination: { currentPage: page, totalPages },
-    });
+    // Add link for each product
+    const data = result.recordset.map((product) => ({
+      ...product,
+      link: `${product.categorySlug}/${product.subCategorySlug}/${product.productSlug}`,
+    }));
+
+    const response = {
+      data,
+      pagination: {
+        totalCount,
+        currentPage: page,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    };
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Error fetching products by subcategory: ", error);
     return new NextResponse("Failed to fetch products by subcategory", {
