@@ -40,7 +40,7 @@ export async function middleware(req: ExtendedNextRequest) {
   console.log("Refresh token from cookies:", refreshToken);
 
   // Define protected routes
-  const protectedRoutes = ["/dashboard", "/admin-panel"];
+  const protectedRoutes = ["/dashboard", "/panel"];
 
   // Check if the request is for a protected route
   const isProtectedRoute = protectedRoutes.some((route) =>
@@ -125,8 +125,8 @@ export async function middleware(req: ExtendedNextRequest) {
 
       // Role-based access control
       if (
-        req.nextUrl.pathname.startsWith("/admin-panel") &&
-        user.role !== "admin"
+        req.nextUrl.pathname.startsWith("/admin") &&
+        user.role.toLowerCase() !== "admin"
       ) {
         console.log("Non-admin user trying to access admin panel");
         return NextResponse.redirect(new URL("/dashboard", req.url));
@@ -156,7 +156,7 @@ export async function middleware(req: ExtendedNextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*", // Protect all subroutes of /dashboard
-    "/admin-panel/:path*", // Protect all subroutes of /admin-panel
+    "/admin/:path*", // Protect all subroutes of /admin-panel
     "/auth/:path*", // Protect all auth routes
     // "/:path*",
   ],
