@@ -150,21 +150,25 @@
     ]
   },
   {
-    "categoryId": 1008,
-    "category": "ضبط کننده‌ها (NVR)",
-    "link": "/products/nvr",
-    "subCategories": []
-  },
-  {
-    "categoryId": 1009,
-    "category": "لوازم جانبی",
-    "link": "/products/accessories",
-    "subCategories": []
-  },
-  {
-    "categoryId": 1010,
-    "category": "گیت و درب",
-    "link": "/products/gate-door",
-    "subCategories": []
+    "categoryId": 1011,
+    "category": "دیگر محصولات",
+    "link": "/products/others",
+    "subCategories": [
+      {
+        "id": 1027,
+        "subCategory": "ضبط کننده‌ها (NVR)",
+        "link": "/products/others/nvr"
+      },
+      {
+        "id": 1028,
+        "subCategory": "لوازم جانبی",
+        "link": "/products/others/accessories"
+      },
+      {
+        "id": 1029,
+        "subCategory": "گیت و درب",
+        "link": "/products/others/gate-door"
+      }
+    ]
   }
 ]
