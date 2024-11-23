@@ -11,9 +11,7 @@ export const productCategoryRoutes = {
   "/products/network-cameras": "دوربین‌های مداربسته تحت شبکه",
   "/products/blackmagic": "محصولات BlackMagic",
   "/products/x-ray": "دستگاه X-RAY",
-  "/products/nvr": "ضبط کننده‌ها (NVR)",
-  "/products/accessories": "لوازم جانبی",
-  "/products/gate-door": "گیت و درب",
+  "/products/others": "دیگر محصولات",
 };
 
 export const productSubCategoryRoutes = {
@@ -49,6 +47,11 @@ export const productSubCategoryRoutes = {
   // X-ray
   "/products/x-ray/airport-luggage": "فرودگاهی و چمدانی",
   "/products/x-ray/vehicle-truck": "خودروئی و کامیونی",
+
+  // Others
+  "/products/others/nvr": "ضبط کننده‌ها (NVR)",
+  "/products/others/accessories": "لوازم جانبی",
+  "/products/others/gate-door": "گیت و درب",
 };
 
 export const aboutUsRoutes = {
