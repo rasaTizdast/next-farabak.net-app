@@ -5,6 +5,7 @@ import {
   mainRoutes,
   productCategoryRoutes,
   productSubCategoryRoutes,
+  supportRoutes,
 } from "@/constants/routeNames";
 
 interface RouteNames {
@@ -16,6 +17,7 @@ const routeNames: RouteNames = {
   ...productCategoryRoutes,
   ...productSubCategoryRoutes,
   ...aboutUsRoutes,
+  ...supportRoutes,
   "/products/search": "جستجو",
 };
 

@@ -59,3 +59,8 @@ export const aboutUsRoutes = {
   "/about-us/projects": "گالری تصاویر پروژه‌ها",
   "/about-us/members": "اعضای هیئت مدیره",
 };
+
+export const supportRoutes = {
+  "/support": "پشتیبانی",
+  "/support/blog": "بلاگ",
+};
