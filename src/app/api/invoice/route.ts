@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import moment from "jalali-moment"; // Updated import
 
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 async function verifyToken(token: string) {
   const secret = new TextEncoder().encode(JWT_SECRET);
