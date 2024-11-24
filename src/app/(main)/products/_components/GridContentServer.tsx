@@ -10,7 +10,7 @@ interface Product {
   ProductId: number;
   Type: string;
   img1: string;
-  Slug: string;
+  productSlug: string;
   link: string;
 }
 
@@ -43,7 +43,8 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
               width={280}
               height={280}
               quality={100}
-              src={`/productImages/${product.img1}`}
+              // src={`/productImages/${product.img1}`}
+              src={`/productImages/${product.productSlug}/${product.productSlug}-mini.webp`}
               alt={product.Type}
               loading="eager"
             />
