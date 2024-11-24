@@ -16,7 +16,7 @@ type ProjectProps = {
   id: number;
   title: string;
   date: string;
-  images: string[];
+  images: { id: number; img: string; alt: string }[];
   largeDesc: string;
   location: string;
   video?: string;
