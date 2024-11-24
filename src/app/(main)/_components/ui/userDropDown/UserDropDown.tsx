@@ -49,12 +49,14 @@ const UserDropDown = () => {
           ref={dropdownRef}
           onClick={() => setIsVis((v) => !v)}
         >
-          <li>
-            <Link href="/dashboard">پروفایل</Link>
-          </li>
           {isAdmin && (
             <li>
-              <Link href="/dashboard/all-users-invoices">فاکتورها</Link>
+              <Link href="/admin">پنل مدیریت</Link>
+            </li>
+          )}
+          {!isAdmin && (
+            <li>
+              <Link href="/dashboard">پروفایل</Link>
             </li>
           )}
           {!isAdmin && (
@@ -62,9 +64,11 @@ const UserDropDown = () => {
               <Link href="/dashboard/all-invoices">فاکتور‌ها</Link>
             </li>
           )}
-          <li>
-            <Link href="/dashboard/edit-user">ویرایش اطلاعات</Link>
-          </li>
+          {!isAdmin && (
+            <li>
+              <Link href="/dashboard/edit-user">ویرایش اطلاعات</Link>
+            </li>
+          )}
           <li onClick={() => logout()}>خروج از حساب</li>
         </ul>
       )}
