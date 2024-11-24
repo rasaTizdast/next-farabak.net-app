@@ -12,7 +12,7 @@ const ProjectsSection = () => {
           {projects.map((p) => (
             <Link
               key={p.id}
-              href={`/about-us/projects/${p.id}`}
+              href={`/about-us/projects/${p.slug}`}
               className={styles.project}
             >
               <Image
