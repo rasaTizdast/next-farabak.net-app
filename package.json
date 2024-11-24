@@ -36,7 +36,6 @@
     "string-similarity": "^4.0.4",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-react": "^5.17.14",
-    "swiper": "^11.1.14",
     "tailwind-merge": "^2.5.4",
     "uuid": "^11.0.3",
     "validator": "^13.12.0",
