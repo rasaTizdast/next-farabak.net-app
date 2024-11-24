@@ -1,4 +1,3 @@
-// src/app/(main)/products/_components/Pagination.tsx
 import Link from "next/link";
 
 interface PaginationProps {
@@ -6,7 +5,7 @@ interface PaginationProps {
   totalPages: number;
   basePath: string;
   categorySlug?: string;
-  subcategorySlug?: string; // Optional subcategory slug for subcategory pages
+  subcategorySlug?: string;
 }
 
 const Pagination: React.FC<PaginationProps> = ({
@@ -50,12 +49,12 @@ const Pagination: React.FC<PaginationProps> = ({
   // Construct dynamic path based on slugs
   const path = `${basePath}${categorySlug ? `/${categorySlug}` : ""}${
     subcategorySlug ? `/${subcategorySlug}` : ""
-  }`;
+  }/page`;
 
   return (
     <div className="flex flex-wrap justify-center items-center mt-16 gap-2">
       {/* First Button */}
-      <Link href={`${path}?page=1`} passHref>
+      <Link href={`${path}/1`} passHref>
         <button
           className={`px-2 py-1 sm:px-3 sm:py-2 rounded transition duration-200 text-xs sm:text-base 
             ${
@@ -70,7 +69,7 @@ const Pagination: React.FC<PaginationProps> = ({
       </Link>
 
       {/* Previous Button */}
-      <Link href={`${path}?page=${currentPage - 1}`} passHref>
+      <Link href={`${path}/${currentPage - 1}`} passHref>
         <button
           className={`px-2 py-1 sm:px-3 sm:py-2 rounded transition duration-200 text-xs sm:text-base 
             ${
@@ -88,7 +87,7 @@ const Pagination: React.FC<PaginationProps> = ({
       {/* Page Numbers */}
       {getPageNumbers().map((page, index) =>
         typeof page === "number" ? (
-          <Link key={index} href={`${path}?page=${page}`}>
+          <Link key={index} href={`${path}/${page}`}>
             <button
               className={`px-2 py-1 sm:px-3 sm:py-2 rounded transition duration-200 text-xs sm:text-base
                 ${
@@ -111,7 +110,7 @@ const Pagination: React.FC<PaginationProps> = ({
       )}
 
       {/* Next Button */}
-      <Link href={`${path}?page=${currentPage + 1}`} passHref>
+      <Link href={`${path}/${currentPage + 1}`} passHref>
         <button
           className={`px-2 py-1 sm:px-3 sm:py-2 rounded transition duration-200 text-xs sm:text-base 
             ${
@@ -127,7 +126,7 @@ const Pagination: React.FC<PaginationProps> = ({
       </Link>
 
       {/* Last Button */}
-      <Link href={`${path}?page=${totalPages}`} passHref>
+      <Link href={`${path}/${totalPages}`} passHref>
         <button
           className={`px-2 py-1 sm:px-3 sm:py-2 rounded transition duration-200 text-xs sm:text-base 
             ${
