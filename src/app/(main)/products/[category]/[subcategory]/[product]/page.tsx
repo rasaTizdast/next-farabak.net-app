@@ -1,4 +1,3 @@
-// app/products/[category]/[product]/page.tsx
 import { Metadata } from "next";
 import { Suspense } from "react";
 import Image from "next/image";
@@ -25,7 +24,7 @@ interface ProductData {
   Description: string;
   categorySlug: string;
   subCategorySlug: string;
-  // Add other fields as needed
+  productSlug: string;
 }
 
 // Metadata generation
@@ -97,7 +96,8 @@ export default async function ProductPage({
       {/* Main Product Section */}
       <section className={styles.head}>
         <Image
-          src={`/productImages/${productData.img2}`}
+          // src={`/productImages/${productData.img2}`}
+          src={`/productImages/${productData.productSlug}/${productData.productSlug}-banner.webp`}
           alt={productData.Type}
           width={1340}
           height={780}
