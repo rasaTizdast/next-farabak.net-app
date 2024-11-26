@@ -19,19 +19,39 @@ type Props = {
     guid: string;
     fullname: string;
     phonenumber: string;
-    totalAmount: string;
+    totalAmount: number;
     products: Product[];
+    date: string; // Ensure the date is included
   };
 };
 
 const InvoiceDetails = ({ invoice, onClose }: Props) => {
-  const componentRef = useRef();
+  const componentRef = useRef<HTMLDivElement>(null);
+
+  // Helper function to format the date and time
+  const formatDateTime = (isoString: string) => {
+    const date = new Date(isoString);
+
+    // Extract date components
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are zero-indexed
+    const day = String(date.getDate()).padStart(2, "0");
+
+    // Extract time components
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
+
+    // Combine the components
+    return `${year}/${month}/${day} | ${hours}:${minutes}:${seconds}`;
+  };
 
   const handleDownload = () => {
     const input = componentRef.current;
 
+    if (!input) return;
+
     html2canvas(input, { scale: 3 }).then((canvas) => {
-      // Increased scale for better quality
       const imgData = canvas.toDataURL("image/png");
 
       const pdf = new jsPDF({
@@ -90,7 +110,9 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
             </div>
             <div className={styles.date}>
               <h4>تاریخ ثبت فاکتور:</h4>
-              {invoice.date}
+              <span dir="ltr">
+                {formatDateTime(invoice.date)} {/* Use the helper function */}
+              </span>
             </div>
             <p>
               مجموع محصولات: <strong>{invoice.totalAmount}</strong>
