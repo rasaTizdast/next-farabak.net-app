@@ -5,7 +5,11 @@ import axios from "axios";
 
 interface OverviewDetail {
   productOverviewDetailsId: number;
-  [key: string]: any;
+  productName: string;
+  productId: number;
+  [key: `title${number}`]: string | undefined; // Dynamic keys for titles
+  [key: `description${number}`]: string | undefined; // Dynamic keys for descriptions
+  [key: `img${number}`]: string | undefined; // Dynamic keys for images
 }
 
 async function getProductOverviewDetails(productId: number) {
@@ -92,7 +96,7 @@ export default async function ProductOverviewDetails({
 
   return (
     <div className={styles.overviews}>
-      {productDetails.map((detail) => (
+      {productDetails.map((detail: OverviewDetail) => (
         <div className={styles.overviews} key={detail.productOverviewDetailsId}>
           {renderOverviews(detail)}
         </div>
