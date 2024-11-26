@@ -30,6 +30,20 @@ interface Invoice {
   date: string;
 }
 
+type InvoiceApiData = {
+  ProductName: string;
+  Fullname: string;
+  Phonenumber: string;
+  Checked: boolean;
+  FactorGuid: string;
+  Quantity: string;
+  TotalAmount: number;
+  id: number;
+  Date: string;
+  UserId: number;
+  FactorId: number;
+};
+
 interface EmailDetails {
   to: string;
   text: string;
@@ -44,7 +58,8 @@ const AllInvoices = () => {
 
   const { user } = useUser();
 
-  const transformInvoiceData = (invoices: any[]): Invoice[] => {
+  const transformInvoiceData = (invoices: InvoiceApiData[]) => {
+    console.log("invoices: ", invoices);
     return invoices.map((invoice) => {
       const productNames = invoice.ProductName.replace(/[[\]]/g, "").split(",");
       const quantities = invoice.Quantity.split(",");
@@ -61,7 +76,7 @@ const AllInvoices = () => {
         checked: invoice.Checked,
         guid: invoice.FactorGuid,
         products,
-        totalAmount: parseInt(invoice.TotalAmount, 10),
+        totalAmount: +invoice.TotalAmount,
         id: invoice.FactorId,
         date: invoice.Date,
       };
@@ -73,12 +88,15 @@ const AllInvoices = () => {
     setError(null);
     try {
       const response = await getuserInvoices();
-      console.log("response", response);
       const transformedData = transformInvoiceData(response);
-      console.log("transformedData", transformedData);
       setInvoices(transformedData);
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      // Check if the error is an instance of Error before accessing properties
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unexpected error occurred.");
+      }
     } finally {
       setLoading(false);
     }
@@ -104,7 +122,11 @@ const AllInvoices = () => {
     }
   };
 
-  const handleCheckInvoice = async (guid: string, email: string) => {
+  const handleCheckInvoice = async (guid: string, email?: string) => {
+    if (!email) {
+      console.error("Email is required for this operation.");
+      return; // Return early if email is not available
+    }
     try {
       await checkUserInvoice(guid);
       setInvoices((prevInvoices) =>
