@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import { BsChevronCompactLeft, BsChevronCompactRight } from "react-icons/bs";
 import { RxDotFilled } from "react-icons/rx";
@@ -21,11 +21,11 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  const nextSlide = () => {
-    const isLastSlide = currentIndex === slides.length - 1;
-    const newIndex = isLastSlide ? 0 : currentIndex + 1;
-    setCurrentIndex(newIndex);
-  };
+  const nextSlide = useCallback(() => {
+    setCurrentIndex((prevIndex) =>
+      prevIndex === slides.length - 1 ? 0 : prevIndex + 1
+    );
+  }, [slides.length]);
 
   const prevSlide = () => {
     const isFirstSlide = currentIndex === 0;
@@ -37,12 +37,10 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
   useEffect(() => {
     if (isPaused) return; // Stop autoplay when paused
 
-    const autoplay = setInterval(() => {
-      nextSlide();
-    }, interval || 3000);
+    const autoplay = setInterval(nextSlide, interval || 3000);
 
     return () => clearInterval(autoplay); // Clear interval on cleanup
-  }, [currentIndex, isPaused, interval]);
+  }, [isPaused, interval, nextSlide]);
 
   return (
     <div
@@ -70,14 +68,14 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
       </div>
       {/* Left Arrow */}
       <div
-        onClick={nextSlide}
+        onClick={prevSlide}
         className="hidden group-hover:block absolute top-[45.5%] -translate-x-0 left-5 text-2xl rounded-full p-2 bg-black/30 text-white cursor-pointer"
       >
         <BsChevronCompactLeft size={30} />
       </div>
       {/* Right Arrow */}
       <div
-        onClick={prevSlide}
+        onClick={nextSlide}
         className="hidden group-hover:block absolute top-[45.5%] -translate-x-0 right-5 text-2xl rounded-full p-2 bg-black/30 text-white cursor-pointer"
       >
         <BsChevronCompactRight size={30} />
