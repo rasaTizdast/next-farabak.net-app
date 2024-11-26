@@ -94,10 +94,19 @@ export async function POST(req: Request) {
   try {
     await transporter.sendMail(mailOptions);
     return NextResponse.json({ message: "Email sent successfully" });
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to send email", details: error.message },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    // Check if the error is an instance of the Error class
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: "Failed to send email", details: error.message },
+        { status: 500 }
+      );
+    } else {
+      // Fallback in case error is not an instance of Error
+      return NextResponse.json(
+        { error: "Failed to send email", details: "Unknown error" },
+        { status: 500 }
+      );
+    }
   }
 }

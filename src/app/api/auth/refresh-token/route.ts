@@ -36,8 +36,14 @@ async function verifyToken(
     } else {
       throw new Error("Invalid token payload: Missing required fields");
     }
-  } catch (err) {
-    throw new Error("Invalid or expired refresh token");
+  } catch (err: unknown) {
+    // Ensure 'err' is of type 'Error' before accessing 'message'
+    if (err instanceof Error) {
+      throw new Error("Invalid or expired refresh token: " + err.message);
+    } else {
+      // Handle unexpected error types
+      throw new Error("Invalid or expired refresh token: Unknown error");
+    }
   }
 }
 
