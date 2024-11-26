@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 
-import { getuserInvoices, checkUserInvoice } from "@/helpers/invoiceHandlers";
+import { getUserInvoices, checkUserInvoice } from "@/helpers/invoiceHandlers";
 
 import InvoiceDetails from "./components/ui/InvoiceDetails";
 import SkeletonTable from "./components/ui/SkeletonTable";
@@ -87,7 +87,7 @@ const AllInvoices = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await getuserInvoices();
+      const response = await getUserInvoices();
       const transformedData = transformInvoiceData(response);
       setInvoices(transformedData);
     } catch (error: unknown) {

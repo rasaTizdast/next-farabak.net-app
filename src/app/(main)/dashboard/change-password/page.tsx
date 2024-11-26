@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -10,17 +12,18 @@ import {
 import toast, { Toaster } from "react-hot-toast";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { changePasswordSchema } from "@/helpers/validationSchema";
-
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
-
-import { changePasswordHandler } from "@/helpers/changePasswordHandler"; // Import the handler
+import { changePasswordHandler } from "@/helpers/changePasswordHandler";
 
 import styles from "./ChangePassword.module.css";
 
-const ChangePassword = () => {
-  const [isFormDirty, setIsFormDirty] = useState(false);
+interface FormData {
+  currentPassword: string;
+  newPassword: string;
+}
 
-  const methods = useForm({
+const ChangePassword = () => {
+  const methods = useForm<FormData>({
     resolver: yupResolver(changePasswordSchema),
     mode: "onChange",
     defaultValues: {
@@ -32,32 +35,26 @@ const ChangePassword = () => {
   const {
     handleSubmit,
     formState: { errors, isDirty },
-    watch,
   } = methods;
 
-  useEffect(() => {
-    const subscription = watch(() => {
-      setIsFormDirty(isDirty);
-    });
-    return () => subscription.unsubscribe();
-  }, [watch, isDirty]);
-
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: FormData) => {
     try {
-      // Call the forgotPasswordHandler to send the password to the API
       await changePasswordHandler(data);
       toast.success("کلمه عبور شما با موفقیت تغییر پیدا کرد!");
-    } catch (error) {
-      toast.error("خطایی رخ داد. لطفا دوباره امتحان کنید.");
-      console.error("Error changing password", error.message);
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message ||
+        "خطایی رخ داد. لطفا دوباره امتحان کنید.";
+      toast.error(errorMessage);
+      console.error("Error changing password:", error.message);
     }
   };
 
   useEffect(() => {
-    const handleBeforeUnload = (event) => {
-      if (isFormDirty) {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (isDirty) {
         event.preventDefault();
-        event.returnValue = ""; // For Chrome, the returnValue needs to be set to trigger the dialog.
+        event.returnValue = ""; // For modern browsers, this triggers the dialog.
       }
     };
 
@@ -66,7 +63,7 @@ const ChangePassword = () => {
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [isFormDirty]);
+  }, [isDirty]);
 
   return (
     <>
@@ -81,7 +78,7 @@ const ChangePassword = () => {
               control={methods.control}
               errors={errors}
               type="password"
-              autoComplete="password"
+              autoComplete="current-password"
             />
             <InputGroup
               name="newPassword"
@@ -90,7 +87,7 @@ const ChangePassword = () => {
               control={methods.control}
               errors={errors}
               type="password"
-              autoComplete="password"
+              autoComplete="new-password"
             />
           </div>
 
@@ -102,11 +99,6 @@ const ChangePassword = () => {
 };
 
 export default ChangePassword;
-
-interface FormData {
-  currentPassword: string;
-  newPassword: string;
-}
 
 interface InputGroupProps {
   name: keyof FormData;
@@ -126,14 +118,13 @@ const InputGroup = ({
   errors,
   autoComplete,
   type = "text",
-  ...rest
 }: InputGroupProps) => {
-  const { watch } = useFormContext();
+  const { watch } = useFormContext<FormData>();
   const value = watch(name);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleTogglePassword = () => {
-    setShowPassword((prevShowPassword) => !prevShowPassword);
+    setShowPassword((prev) => !prev);
   };
 
   return (
@@ -154,17 +145,18 @@ const InputGroup = ({
               className={
                 errors[name] ? styles.not_valid : value ? styles.valid : ""
               }
-              {...rest}
             />
           )}
         />
         {type === "password" && (
-          <span
+          <button
+            type="button"
             className={styles.password_toggle_icon}
             onClick={handleTogglePassword}
+            aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? <FaRegEye /> : <FaRegEyeSlash />}
-          </span>
+          </button>
         )}
       </div>
       {errors[name] && <p className={styles.error}>{errors[name].message}</p>}
