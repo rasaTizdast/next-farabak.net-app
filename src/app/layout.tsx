@@ -15,7 +15,6 @@ const vazirmatnFont = localFont({
 export const metadata: Metadata = {
   title: "پیشرو در تکنولوژی | فرابک",
   description: "پیشرو در تکنولوژی و نوآوری های فرابک با محصولات و خدمات متنوع.",
-  icons: "/Farabak_FavIcon.webp",
 };
 
 export default function RootLayout({
