@@ -18,7 +18,8 @@ const Header = () => {
         <HamburgerMenu />
         <Link href="/" passHref>
           <Image
-            loading="lazy"
+            loading="eager"
+            priority
             className={styles.header_logo}
             src={farabakLogo}
             alt="Farabak logo"
