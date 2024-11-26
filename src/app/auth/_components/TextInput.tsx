@@ -4,23 +4,25 @@ import {
   useFormContext,
   FieldValues,
   Control,
+  FieldErrors,
+  Path,
 } from "react-hook-form";
 import styles from "./TextInput.module.css";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
 // Define Prop types
-type Props = {
-  name: string;
+type Props<T extends FieldValues> = {
+  name: keyof T;
   label: string;
   placeholder: string;
-  control: Control<FieldValues>; // Correct type for control from react-hook-form
-  errors: { [key: string]: any }; // This can be typed better if you know the exact structure of errors
+  control: Control<T>; // Control is now typed with T, the form data type
+  errors: FieldErrors<T>; // FieldErrors is typed with T to correctly reference the structure of form errors
   rules?: object; // Optional rules, these can be made more strict based on your form schema
   autoComplete?: string; // Optional autocomplete value
-  type?: "text" | "password" | "email"; // Specify only allowed types
+  type?: "text" | "password" | "email" | "tel"; // Specify only allowed types
 };
 
-const TextInput = ({
+const TextInput = <T extends FieldValues>({
   name,
   label,
   placeholder,
@@ -30,9 +32,9 @@ const TextInput = ({
   autoComplete = "off", // Default value for autoComplete
   type = "text", // Default value for type
   ...rest
-}: Props) => {
+}: Props<T>) => {
   const { watch } = useFormContext();
-  const value = watch(name);
+  const value = watch(name as string); // Explicitly cast it to string
   const [showPassword, setShowPassword] = useState(false);
 
   const handleTogglePassword = () => {
@@ -41,12 +43,12 @@ const TextInput = ({
 
   return (
     <div className={styles.form_group}>
-      <label htmlFor={name} className={styles.label}>
+      <label htmlFor={String(name)} className={styles.label}>
         {label}
       </label>
       <div className={styles.input_wrapper}>
         <Controller
-          name={name}
+          name={name as Path<T>}
           control={control}
           rules={rules}
           render={({ field }) => (
@@ -54,7 +56,7 @@ const TextInput = ({
               autoComplete={autoComplete}
               {...field}
               type={type === "password" && showPassword ? "text" : type}
-              id={name}
+              id={String(name)}
               placeholder={placeholder}
               value={value ?? ""}
               className={`${
@@ -75,7 +77,9 @@ const TextInput = ({
           </span>
         )}
       </div>
-      {errors[name] && <p className={styles.error}>{errors[name].message}</p>}
+      {errors[name] && (
+        <p className={styles.error}>{errors[name]?.message as string}</p>
+      )}
     </div>
   );
 };
