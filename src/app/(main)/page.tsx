@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 
-import Slider from "../_components/slider/Slider";
 import ProductsShowCase from "../_components/LandingPage/ProductsShowCase";
 import ProjectsSection from "../_components/LandingPage/ProjectsSection";
 import SupportSection from "../_components/LandingPage/SupportSection";
+import ImageSlider from "../_components/imageSlider/ImageSlider";
 
 export const metadata: Metadata = {
   title: "پیشرو در تکنولوژی | فرابک",
@@ -14,31 +14,31 @@ const HomePage = () => {
   const sliderLinks = [
     {
       id: 1,
-      img: "/slider-imgs/1.webp",
+      img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/slider-home-edition-1.webp`,
       link: "/products/category/home-edition",
       alt: "",
     },
     {
       id: 2,
-      img: "/slider-imgs/2.webp",
-      link: "/products/category/home-edition?q=dome",
+      img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/slider-dome-cameras.webp`,
+      link: "/products/category/home-edition/dome",
       alt: "",
     },
     {
       id: 3,
-      img: "/slider-imgs/3.webp",
-      link: "/products/category/home-edition?q=ip",
+      img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/slider-ip-cameras.webp`,
+      link: "/products/category/home-edition/ip",
       alt: "",
     },
     {
       id: 4,
-      img: "/slider-imgs/4.webp",
-      link: "/products/category/home-edition?q=battery",
+      img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/slider-battery-cameras.webp`,
+      link: "/products/category/home-edition/battery",
       alt: "",
     },
     {
       id: 5,
-      img: "/slider-imgs/5.webp",
+      img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/slider-home-edition-2.webp`,
       link: "/products/category/home-edition",
       alt: "",
     },
@@ -46,7 +46,7 @@ const HomePage = () => {
 
   return (
     <div>
-      <Slider slides={sliderLinks} />
+      <ImageSlider slides={sliderLinks} />
       <ProductsShowCase />
       <ProjectsSection />
       <SupportSection />
