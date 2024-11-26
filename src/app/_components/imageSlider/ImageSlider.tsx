@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import { BsChevronCompactLeft, BsChevronCompactRight } from "react-icons/bs";
 import { RxDotFilled } from "react-icons/rx";
@@ -22,18 +22,32 @@ type ImageSliderProps = {
 const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState<boolean[]>([]);
 
-  const nextSlide = () => {
-    const isLastSlide = currentIndex === slides.length - 1;
-    const newIndex = isLastSlide ? 0 : currentIndex + 1;
-    setCurrentIndex(newIndex);
+  useEffect(() => {
+    // Initialize the loading state for each image
+    setImageLoaded(Array(slides.length).fill(false));
+  }, [slides]);
+
+  const handleImageLoad = (index: number) => {
+    setImageLoaded((prev) => {
+      const updated = [...prev];
+      updated[index] = true;
+      return updated;
+    });
   };
 
-  const prevSlide = () => {
-    const isFirstSlide = currentIndex === 0;
-    const newIndex = isFirstSlide ? slides.length - 1 : currentIndex - 1;
-    setCurrentIndex(newIndex);
-  };
+  const nextSlide = useCallback(() => {
+    setCurrentIndex((prevIndex) =>
+      prevIndex === slides.length - 1 ? 0 : prevIndex + 1
+    );
+  }, [slides.length]);
+
+  const prevSlide = useCallback(() => {
+    setCurrentIndex((prevIndex) =>
+      prevIndex === 0 ? slides.length - 1 : prevIndex - 1
+    );
+  }, [slides.length]);
 
   // Autoplay logic
   useEffect(() => {
@@ -44,32 +58,42 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
     }, interval || 3000);
 
     return () => clearInterval(autoplay); // Clear interval on cleanup
-  }, [currentIndex, isPaused, interval]);
+  }, [isPaused, interval, nextSlide]);
 
   return (
     <div
-      className="max-w-[1400px] h-auto max-h-[calc(100vh-65px)] w-full m-auto relative group overflow-hidden"
+      className="h-auto max-h-[calc(100vh-64px)] w-full m-auto relative group overflow-hidden"
       onMouseEnter={() => setIsPaused(true)} // Pause autoplay on hover
       onMouseLeave={() => setIsPaused(false)} // Resume autoplay on mouse leave
     >
       <div
-        className="flex transition-transform duration-700 ease-in-out"
+        className="flex transition-transform duration-700 ease-in-out w-full"
         style={{
           transform: `translateX(${currentIndex * 100}%)`,
         }}
       >
-        {slides.map((slide) => (
+        {slides.map((slide, index) => (
           <Link
             href={slide.link}
             key={slide.id}
-            className="w-full flex-shrink-0"
+            className="w-full flex-shrink-0 relative"
           >
+            {/* Skeleton Loader */}
+            {!imageLoaded[index] && (
+              <div className="absolute inset-0 bg-gray-400 animate-pulse"></div>
+            )}
+
+            {/* Image */}
             <Image
+              className={`w-full transition-all duration-500 ${
+                imageLoaded[index] ? "opacity-100" : "opacity-0"
+              }`}
               src={slide.img}
               alt={slide.alt}
               width={1920}
               height={900}
               quality={100}
+              onLoad={() => handleImageLoad(index)}
             />
           </Link>
         ))}
@@ -90,15 +114,14 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
       </div>
 
       {/* Slider Pagination */}
-      <div className="flex justify-center py-1 px-2 gap-1 absolute left-[50%] -translate-x-[50%] -translate-y-10 bg-[#f0f0f0] rounded-tl-2xl rounded-tr-2xl">
-        {slides.map((slide, slideIndex) => (
+      <div className="hidden sm:flex justify-center py-1 px-2 gap-1 absolute left-[50%] -translate-x-[50%] bottom-0 xl bg-[#f0f0f0] rounded-tl-2xl rounded-tr-2xl">
+        {slides.map((_, slideIndex) => (
           <div
-            className="text-2xl cursor-pointer"
+            className="text-xl md:text-2xl lg:text-3xl cursor-pointer"
             key={slideIndex}
             onClick={() => setCurrentIndex(slideIndex)}
           >
             <RxDotFilled
-              size={33}
               className={`transition-all ${
                 slideIndex === currentIndex
                   ? "text-[#000000]"
