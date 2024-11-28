@@ -6,7 +6,6 @@ import { notFound } from "next/navigation";
 
 interface CategoryPageProps {
   params: { category: string };
-  searchParams: { page?: string };
 }
 
 export const generateMetadata = async ({
@@ -27,12 +26,9 @@ export const generateMetadata = async ({
       };
     }
 
-    // If category does not exist or no category found
-    const category = res.data.categoryName;
-
     return {
-      title: `مشاهده محصولات دسته بندی ${category} | فرابک`,
-      description: `با مرور در صفحه ${category} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
+      title: res.data.SEO_Title,
+      description: res.data.SEO_Description,
     };
   } catch (error) {
     console.error("Error fetching category data:", error);
@@ -43,9 +39,9 @@ export const generateMetadata = async ({
   }
 };
 
-const CategoryPage = async ({ params, searchParams }: CategoryPageProps) => {
+const CategoryPage = async ({ params }: CategoryPageProps) => {
   const categoryName = params.category;
-  const currentPage = parseInt(searchParams.page || "1", 10);
+  const currentPage = parseInt("1", 10);
   const limit = 30;
 
   // API URL for fetching products by category

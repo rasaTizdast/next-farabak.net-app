@@ -5,8 +5,7 @@ import axios from "axios";
 import { notFound } from "next/navigation";
 
 interface CategoryPageProps {
-  params: { category: string };
-  searchParams: { page?: string };
+  params: { category: string; pageNumber: string };
 }
 
 // Dynamic Metadata
@@ -28,11 +27,15 @@ export const generateMetadata = async ({
       };
     }
 
-    const category = res.data.categoryName;
-
     return {
-      title: `مشاهده محصولات دسته بندی ${category} | فرابک`,
-      description: `با مرور در صفحه ${category} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
+      title: res.data.SEO_Title,
+      description: res.data.SEO_Description,
+      alternates: {
+        canonical:
+          params.pageNumber === "1"
+            ? `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}`
+            : `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/page/${params.pageNumber}`,
+      },
     };
   } catch (error) {
     console.error("Error fetching category data for metadata:", error);
@@ -43,9 +46,9 @@ export const generateMetadata = async ({
   }
 };
 
-const CategoryPage = async ({ params, searchParams }: CategoryPageProps) => {
+const CategoryPage = async ({ params }: CategoryPageProps) => {
   const categoryName = params.category;
-  const currentPage = parseInt(searchParams.page || "1", 10);
+  const currentPage = parseInt(params.pageNumber || "1", 10);
   const limit = 30;
 
   // API endpoint for fetching products by category
@@ -71,10 +74,15 @@ const CategoryPage = async ({ params, searchParams }: CategoryPageProps) => {
 
   // Breadcrumbs for navigation
   const breadcrumbs = [
-    { path: "صفحه اصلی", href: "/" },
-    { path: "محصولات", href: "/products" },
-    { path: categoryTitle, href: `/products/${categoryName}` },
+    { path: "/", href: "/" },
+    { path: "/products", href: "/products" },
+    {
+      path: `/products/${categoryName}`,
+      href: `/products/${categoryName}`,
+    },
   ];
+
+  console.log(breadcrumbs);
 
   return (
     <div>
