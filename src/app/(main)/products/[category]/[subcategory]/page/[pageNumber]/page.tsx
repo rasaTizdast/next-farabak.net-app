@@ -5,8 +5,7 @@ import axios from "axios";
 import { notFound } from "next/navigation";
 
 interface SubcategoryPageProps {
-  params: { category: string; subcategory: string };
-  searchParams: { page?: string };
+  params: { category: string; subcategory: string; pageNumber: string };
 }
 
 // Generate metadata dynamically for the subcategory
@@ -28,11 +27,15 @@ export const generateMetadata = async ({
       };
     }
 
-    const subCategoryName = res.data.subCategoryName;
-
     return {
-      title: `مشاهده محصولات زیر دسته بندی ${subCategoryName} | فرابک`,
-      description: `با مرور در صفحه ${subCategoryName} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
+      title: res.data.SEO_Title,
+      description: res.data.SEO_Description,
+      alternates: {
+        canonical:
+          params.pageNumber === "1"
+            ? `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${params.subcategory}`
+            : `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${params.subcategory}/page/${params.pageNumber}`,
+      },
     };
   } catch (error) {
     console.error("Error fetching subcategory metadata:", error);
@@ -43,12 +46,9 @@ export const generateMetadata = async ({
   }
 };
 
-const SubcategoryPage = async ({
-  params,
-  searchParams,
-}: SubcategoryPageProps) => {
+const SubcategoryPage = async ({ params }: SubcategoryPageProps) => {
   const { category, subcategory } = params;
-  const currentPage = parseInt(searchParams.page || "1", 10);
+  const currentPage = parseInt(params.pageNumber || "1", 10);
   const limit = 30;
 
   let subCategoryTitle = subcategory;
@@ -74,10 +74,13 @@ const SubcategoryPage = async ({
 
   // Breadcrumbs for navigation
   const breadcrumbs = [
-    { path: "صفحه اصلی", href: "/" },
-    { path: "محصولات", href: "/products" },
-    { path: category, href: `/products/${category}` },
-    { path: subCategoryTitle, href: `/products/${category}/${subcategory}` },
+    { path: "/", href: "/" },
+    { path: "/products", href: "/products" },
+    { path: `/products/${category}`, href: `/products/${category}` },
+    {
+      path: `/products/${category}/${subcategory}`,
+      href: `/products/${category}/${subcategory}`,
+    },
   ];
 
   return (

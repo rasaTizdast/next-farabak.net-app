@@ -6,7 +6,6 @@ import { notFound } from "next/navigation";
 
 interface SubcategoryPageProps {
   params: { category: string; subcategory: string };
-  searchParams: { page?: string };
 }
 
 // Generate metadata for SEO
@@ -28,12 +27,9 @@ export const generateMetadata = async ({
       };
     }
 
-    // If category does not exist or no category found
-    const subCategory = res.data.subCategoryName;
-
     return {
-      title: `مشاهده محصولات دسته بندی ${subCategory} | فرابک`,
-      description: `با مرور در صفحه ${subCategory} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
+      title: res.data.SEO_Title,
+      description: res.data.SEO_Description,
     };
   } catch (error) {
     console.error("Error fetching category data:", error);
@@ -44,12 +40,9 @@ export const generateMetadata = async ({
   }
 };
 
-const SubcategoryPage = async ({
-  params,
-  searchParams,
-}: SubcategoryPageProps) => {
+const SubcategoryPage = async ({ params }: SubcategoryPageProps) => {
   const { category, subcategory } = params;
-  const currentPage = parseInt(searchParams.page || "1", 10);
+  const currentPage = parseInt("1", 10);
   const limit = 30;
 
   let subCategoryTitle = subcategory;
