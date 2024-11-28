@@ -16,6 +16,12 @@ export const generateMetadata = ({ params }: ProductsPageProps): Metadata => {
       title: `تمامی محصولات - صفحه ${currentPage} | فرابک`,
       description: `با مرور در صفحه ${currentPage} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
     },
+    alternates: {
+      canonical:
+        params.pageNumber === "1"
+          ? `${process.env.NEXT_PUBLIC_BASE_URL}/products`
+          : `${process.env.NEXT_PUBLIC_BASE_URL}/products/page/${params.pageNumber}`,
+    },
   };
 };
 
