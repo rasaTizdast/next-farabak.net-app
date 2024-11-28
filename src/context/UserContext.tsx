@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
@@ -21,7 +21,8 @@ interface UserContextType {
   isLoggedIn: boolean;
   isAdmin: boolean;
   userFullName: string;
-  loading: boolean; // New loading state
+  loading: boolean; // Loading state
+  updateUserContext: () => void; // Function to fetch and update context
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -33,20 +34,18 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true); // Start with loading
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await axios.get("/api/auth/profile");
-        setUser(response.data);
-      } catch (error) {
-        console.error("Error fetching user data", error);
-      } finally {
-        setLoading(false); // End loading once data is fetched or on error
-      }
-    };
-
-    fetchUserData();
-  }, []);
+  // Function to manually fetch user data and update context
+  const updateUserContext = async () => {
+    try {
+      setLoading(true); // Set loading to true while fetching data
+      const response = await axios.get("/api/auth/profile");
+      setUser(response.data); // Set the user data in context
+    } catch (error) {
+      console.error("Error fetching user data", error);
+    } finally {
+      setLoading(false); // Stop loading once the fetch is complete
+    }
+  };
 
   const logout = async () => {
     try {
@@ -62,6 +61,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   const isAdmin = user?.role.toLowerCase() === "admin";
   const userFullName = `${user?.firstName || ""} ${user?.lastName || ""}`;
 
+  // Try to fetch user data on mount (e.g., when the page is first loaded)
+  useEffect(() => {
+    updateUserContext(); // Fetch user data when the app is initialized
+  }, []);
+
   return (
     <UserContext.Provider
       value={{
@@ -72,6 +76,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         isAdmin,
         userFullName,
         loading,
+        updateUserContext, // Provide the function to manually update the user context
       }}
     >
       {children}
