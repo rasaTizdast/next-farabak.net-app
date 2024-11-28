@@ -74,6 +74,15 @@ import { connectToDatabase } from "../../../../../../lib/db";
  *                       link:
  *                         type: string
  *                         description: The full URL to the product.
+ *                       SEO_Title:
+ *                         type: string
+ *                         nullable: true
+ *                       SEO_Description:
+ *                         type: string
+ *                         nullable: true
+ *                       SEO_Keywords:
+ *                         type: string
+ *                         nullable: true
  *                 pagination:
  *                   type: object
  *                   properties:
@@ -128,7 +137,7 @@ export async function GET(
     const totalCount = totalCountResult.recordset[0].totalCount;
     const totalPages = Math.ceil(totalCount / limit);
 
-    // Fetch paginated products in the category with category and subcategory slugs
+    // Fetch paginated products in the category with category, subcategory slugs, and SEO data
     const result = await pool.request().input("categoryId", categoryId).query(`
         SELECT 
           p.ProductId,
@@ -144,7 +153,10 @@ export async function GET(
           p.CategoryId,
           p.Slug AS productSlug,
           c.Slug AS categorySlug,
-          cc.Slug AS subCategorySlug
+          cc.Slug AS subCategorySlug,
+          seo.SEO_Title,
+          seo.SEO_Description,
+          seo.SEO_Keywords
         FROM 
           Support.Product p
         JOIN 
@@ -154,6 +166,8 @@ export async function GET(
           FROM Support.CategoryContent cc
           WHERE CHARINDEX(CAST(cc.CategoryContentId AS VARCHAR), p.CategoryContentId) > 0
         ) AS cc
+        LEFT JOIN
+          Support.SEO_Category seo ON seo.CategoryID = p.CategoryId
         WHERE 
           p.CategoryId = @categoryId
         ORDER BY 

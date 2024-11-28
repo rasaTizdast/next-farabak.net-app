@@ -8,8 +8,8 @@ import { escape } from "validator";
  *   get:
  *     tags:
  *       - Products
- *     summary: Search for products by description keywords with pagination
- *     description: Returns a paginated list of products that match the search input.
+ *     summary: Search for products by description keywords with optional pagination
+ *     description: Returns a list of products that match the search input. If limit is null, all results are returned.
  *     parameters:
  *       - in: query
  *         name: q
@@ -27,13 +27,13 @@ import { escape } from "validator";
  *       - in: query
  *         name: limit
  *         required: false
- *         description: Number of items per page.
+ *         description: Number of items per page. If null, all results are returned.
  *         schema:
  *           type: integer
- *           default: 30
+ *           nullable: true
  *     responses:
  *       200:
- *         description: A list of matching products with pagination
+ *         description: A list of matching products with optional pagination
  *         content:
  *           application/json:
  *             schema:
@@ -66,10 +66,8 @@ import { escape } from "validator";
  *                         type: string
  *                       CategoryId:
  *                         type: integer
- *                 totalPages:
- *                   type: integer
- *                 currentPage:
- *                   type: integer
+ *                       productSlug:
+ *                         type: string
  *       400:
  *         description: Invalid search query
  *       404:
@@ -81,7 +79,9 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q");
   const page = parseInt(searchParams.get("page") || "1", 10);
-  const limit = parseInt(searchParams.get("limit") || "30", 10);
+  const limitParam = searchParams.get("limit");
+  const limit = limitParam !== null ? parseInt(limitParam, 10) : 0; // Default to 0 for no limit
+  const offset = (page - 1) * (limit > 0 ? limit : 0); // Offset is meaningful only if limit > 0
 
   if (!query || query.trim().length === 0) {
     return NextResponse.json(
@@ -95,32 +95,64 @@ export async function GET(request: Request) {
   try {
     const pool = await connectToDatabase();
 
-    const result = await pool.request().query("SELECT * FROM Support.Product");
+    // Build dynamic SQL query
+    const sqlQuery = `
+      SELECT 
+        p.ProductId,
+        p.Name,
+        p.Type,
+        p.Price,
+        p.Discount,
+        p.CategoryContentId,
+        p.img1,
+        p.img2,
+        p.Available,
+        p.Description,
+        p.CategoryId,
+        p.Slug AS productSlug
+      FROM Support.Product p
+      WHERE ${keywords
+        .map((_, index) => `p.Description LIKE @keyword${index}`)
+        .join(" OR ")}
+      ${
+        limit > 0
+          ? `ORDER BY p.ProductId OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY`
+          : ""
+      }
+    `;
 
-    const matchingProducts = result.recordset.filter((product) => {
-      const descriptionKeywords = product.Description.split(/\s+/);
-      return keywords.some((keyword) =>
-        descriptionKeywords.some((descWord: string) =>
-          descWord.toLowerCase().includes(keyword.toLowerCase())
-        )
-      );
+    const request = pool.request();
+    keywords.forEach((keyword, index) => {
+      request.input(`keyword${index}`, `%${keyword}%`);
     });
 
-    if (matchingProducts.length === 0) {
+    const result = await request.query(sqlQuery);
+
+    if (result.recordset.length === 0) {
       return new NextResponse("No matching products found", { status: 404 });
     }
 
-    const startIndex = (page - 1) * limit;
-    const paginatedProducts = matchingProducts.slice(
-      startIndex,
-      startIndex + limit
-    );
+    // Fetch total count for pagination, if limit is applied
+    let totalCount = null;
+    let totalPages = null;
+
+    if (limit > 0) {
+      const totalCountResult = await pool
+        .request()
+        .query(`SELECT COUNT(*) AS totalCount FROM Support.Product`);
+      totalCount = totalCountResult.recordset[0].totalCount;
+      totalPages = Math.ceil(totalCount / limit);
+    }
 
     return NextResponse.json({
-      data: paginatedProducts,
+      data: result.recordset,
       pagination: {
-        totalPages: Math.ceil(matchingProducts.length / limit),
+        totalCount: totalCount || result.recordset.length, // Use recordset length if totalCount is null
         currentPage: page,
+        totalPages: totalPages || 1, // Default to 1 page
+        hasNextPage:
+          limit > 0 && totalPages !== null ? page < totalPages : false, // False if no limit
+        hasPrevPage: limit > 0 && page > 1, // True only if limit > 0 and currentPage > 1
       },
     });
   } catch (error) {

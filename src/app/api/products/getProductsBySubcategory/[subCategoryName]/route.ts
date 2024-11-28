@@ -90,7 +90,7 @@ export async function GET(
     const totalCount = totalResult.recordset[0].count;
     const totalPages = Math.ceil(totalCount / limit);
 
-    // Fetch paginated products with category and subcategory slugs
+    // Fetch paginated products with category and subcategory slugs and SEO details
     const result = await pool
       .request()
       .input("subCategoryId", subCategoryId)
@@ -109,7 +109,10 @@ export async function GET(
           p.CategoryId,
           p.Slug AS productSlug,
           c.Slug AS categorySlug,
-          cc.Slug AS subCategorySlug
+          cc.Slug AS subCategorySlug,
+          seo.SEO_Title,
+          seo.SEO_Description,
+          seo.SEO_Keywords
         FROM 
           Support.Product p
         JOIN 
@@ -119,6 +122,8 @@ export async function GET(
           FROM Support.CategoryContent cc
           WHERE CHARINDEX(CAST(cc.CategoryContentId AS VARCHAR), p.CategoryContentId) > 0
         ) AS cc
+        LEFT JOIN
+          Support.SEO_CategoryContent seo ON seo.CategoryContentId = cc.CategoryContentId
         WHERE 
           EXISTS (
             SELECT value FROM STRING_SPLIT(p.CategoryContentId, ',')
