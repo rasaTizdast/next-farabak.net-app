@@ -16,6 +16,10 @@ export async function generateMetadata({
   return {
     title: `نتایج جستجو برای "${query}"`,
     description: `مشاهده ${query} در سایت فرابک`,
+    robots: {
+      index: false, // This sets the noindex directive
+      follow: true, // Allows crawling of links on the page if needed
+    },
   };
 }
 
@@ -23,7 +27,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const query = searchParams.q || "";
   const currentPage = parseInt(searchParams.page || "1", 10);
 
-  const limit = 30;
+  const limit = 0;
   const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/search?q=${query}&page=${currentPage}&limit=${limit}`;
 
   const breadcrumbs = [
