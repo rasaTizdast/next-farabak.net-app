@@ -29,6 +29,7 @@ interface Product {
   Type: string;
   description: string;
   img1: string;
+  Slug: string;
 }
 
 // Debounced search handler for API requests
@@ -122,7 +123,8 @@ const SearchResults = ({
               width={280}
               height={280}
               quality={100}
-              src={`/productImages/${product.img1}`}
+              // src={`/productImages/${product.img1}`}
+              src={`/productImages/${product.Slug}/${product.Slug}-mini.webp`}
               alt={product.name}
             />
             <p>{product.Type}</p>
