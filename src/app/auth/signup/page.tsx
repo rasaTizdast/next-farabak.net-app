@@ -11,10 +11,11 @@ import axios from "axios";
 import CitySelector from "@/app/auth/_components/CitySelector";
 import TextInput from "@/app/auth/_components/TextInput";
 
+import { signUpSchema } from "@/helpers/validationSchema"; // Import schema from helper
+import { useUser } from "@/context/UserContext";
+
 import signUpImage from "/public/signUp_image.svg"; // Adjust asset paths
 import farabakLogo from "/public/Farabak_Logo.webp"; // Logo path
-
-import { signUpSchema } from "@/helpers/validationSchema"; // Import schema from helper
 
 import styles from "../FormStyles.module.css"; // Adjust CSS import
 
@@ -36,6 +37,8 @@ const SignUp = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter(); // Next.js router
+
+  const { updateUserContext } = useUser();
 
   const methods = useForm<SignUpFormValues>({
     resolver: yupResolver(signUpSchema),
@@ -78,6 +81,7 @@ const SignUp = () => {
       // Call the signup API using axios
       const response = await axios.post("/api/auth/signup", signUpData);
       if (response.data.message === "User registered successfully") {
+        updateUserContext();
         // Redirect to the dashboard on success
         router.push("/dashboard");
       } else {

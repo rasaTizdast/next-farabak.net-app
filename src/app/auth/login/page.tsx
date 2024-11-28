@@ -13,6 +13,8 @@ import { signInSchema } from "@/helpers/validationSchema";
 import TextInput from "../_components/TextInput";
 import styles from "../FormStyles.module.css";
 
+import { useUser } from "@/context/UserContext";
+
 import signInImage from "/public/signIn_image.svg";
 import farabakLogo from "/public/Farabak_Logo.webp";
 
@@ -20,6 +22,8 @@ const SignIn = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+
+  const { updateUserContext } = useUser();
 
   const methods = useForm({
     resolver: yupResolver(signInSchema),
@@ -42,6 +46,7 @@ const SignIn = () => {
     try {
       const response = await axios.post("/api/auth/login", data);
       if (response.data.message === "Login successful") {
+        updateUserContext();
         // Redirect to the dashboard on success
         router.push("/dashboard");
       } else {
