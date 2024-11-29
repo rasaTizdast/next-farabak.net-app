@@ -3,22 +3,23 @@ import React, { createContext, useState, ReactNode, useContext } from "react";
 
 // Define types for the product and invoice state
 interface Product {
-  name: string;
-  amount: number;
+  ProductId: number;
+  Quantity: number;
+  Price?: number;
 }
 
 interface InvoiceState {
   products: Product[];
-  totalItems: number;
+  TotalAmount: number;
 }
 
 // Define the shape of the context value
 interface InvoiceContextType {
   invoice: InvoiceState;
-  addProductToInvoice: (productName: string, amount: number) => void;
-  removeProductFromInvoice: (productName: string) => void;
-  updateProductQuantity: (productName: string, newAmount: number) => void;
-  getProductQuantity: (productName: string) => number;
+  addProductToInvoice: (ProductId: number, Quantity: number) => void;
+  removeProductFromInvoice: (ProductId: number) => void;
+  updateProductQuantity: (ProductId: number, Quantity: number) => void;
+  getProductQuantity: (ProductId: number) => number;
   clearInvoice: () => void;
 }
 
@@ -38,71 +39,75 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({
 }) => {
   const [invoice, setInvoice] = useState<InvoiceState>({
     products: [],
-    totalItems: 0,
+    TotalAmount: 0,
   });
 
-  const addProductToInvoice = (productName: string, amount: number) => {
+  const addProductToInvoice = (ProductId: number, Quantity: number) => {
     setInvoice((prev) => {
-      const existingProduct = prev.products.find((p) => p.name === productName);
+      const existingProduct = prev.products.find(
+        (p) => p.ProductId === ProductId
+      );
 
       const updatedProducts = existingProduct
         ? prev.products.map((p) =>
-            p.name === productName ? { ...p, amount: p.amount + amount } : p
+            p.ProductId === ProductId
+              ? { ...p, Quantity: p.Quantity + Quantity }
+              : p
           )
-        : [...prev.products, { name: productName, amount }];
+        : [...prev.products, { ProductId, Quantity }];
 
       return {
         ...prev,
         products: updatedProducts,
-        totalItems: updatedProducts.reduce(
-          (sum, product) => sum + product.amount,
+        TotalAmount: updatedProducts.reduce(
+          (sum, product) => sum + product.Quantity,
           0
         ),
       };
     });
   };
 
-  const removeProductFromInvoice = (productName: string) => {
+  const removeProductFromInvoice = (ProductId: number) => {
     setInvoice((prev) => {
       const updatedProducts = prev.products.filter(
-        (p) => p.name !== productName
+        (p) => p.ProductId !== ProductId
       );
       return {
         ...prev,
         products: updatedProducts,
-        totalItems: updatedProducts.reduce(
-          (sum, product) => sum + product.amount,
+        TotalAmount: updatedProducts.reduce(
+          (sum, product) => sum + product.Quantity,
           0
         ),
       };
     });
   };
 
-  const updateProductQuantity = (productName: string, newAmount: number) => {
+  const updateProductQuantity = (ProductId: number, newAmount: number) => {
     setInvoice((prev) => {
       const updatedProducts = prev.products.map((p) =>
-        p.name === productName ? { ...p, amount: newAmount } : p
+        p.ProductId === ProductId ? { ...p, Quantity: newAmount } : p
       );
       return {
         ...prev,
         products: updatedProducts,
-        totalItems: updatedProducts.reduce(
-          (sum, product) => sum + product.amount,
+        TotalAmount: updatedProducts.reduce(
+          (sum, product) => sum + product.Quantity,
           0
         ),
       };
     });
   };
 
-  const getProductQuantity = (productName: string): number => {
-    const product = invoice.products.find((p) => p.name === productName);
-    return product ? product.amount : 0;
+  const getProductQuantity = (ProductId: number) => {
+    const product = invoice.products.find((p) => p.ProductId === ProductId);
+    return product ? product.Quantity : 0;
   };
 
   const clearInvoice = () => {
     setInvoice({
       products: [],
-      totalItems: 0,
+      TotalAmount: 0,
     });
   };
 
