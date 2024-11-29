@@ -1,8 +1,8 @@
 import axios from "axios";
 
 interface Invoice {
-  products: { name: string; amount: number }[];
-  totalItems: number;
+  products: { ProductId: number; Quantity: number; Price?: number }[];
+  TotalAmount: number;
 }
 
 type UserType = {
@@ -17,15 +17,12 @@ export const addNewInvoice = async (
   invoice: Invoice,
   user: UserType | null
 ) => {
-  const productNames = invoice.products.map((p) => p.name);
-  const productAmounts = invoice.products.map((p) => p.amount);
   try {
     const res = await axios.post("/api/invoice", {
       Fullname: `${user?.firstName} ${user?.lastName}`,
       Phonenumber: user?.phoneNumber,
-      TotalAmount: invoice.totalItems,
-      ProductName: productNames.toString(),
-      Quantity: productAmounts.toString(),
+      TotalAmount: invoice.TotalAmount,
+      Products: invoice.products,
       UserId: user?.userId,
     });
     return res.data; // Return the data instead of the whole response
