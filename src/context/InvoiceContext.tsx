@@ -4,6 +4,7 @@ import React, { createContext, useState, ReactNode, useContext } from "react";
 // Define types for the product and invoice state
 interface Product {
   ProductId: number;
+  ProductName: string;
   Quantity: number;
   Price?: number;
 }
@@ -16,7 +17,11 @@ interface InvoiceState {
 // Define the shape of the context value
 interface InvoiceContextType {
   invoice: InvoiceState;
-  addProductToInvoice: (ProductId: number, Quantity: number) => void;
+  addProductToInvoice: (
+    ProductId: number,
+    Quantity: number,
+    ProductName: string
+  ) => void;
   removeProductFromInvoice: (ProductId: number) => void;
   updateProductQuantity: (ProductId: number, Quantity: number) => void;
   getProductQuantity: (ProductId: number) => number;
@@ -42,7 +47,11 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({
     TotalAmount: 0,
   });
 
-  const addProductToInvoice = (ProductId: number, Quantity: number) => {
+  const addProductToInvoice = (
+    ProductId: number,
+    Quantity: number,
+    ProductName: string
+  ) => {
     setInvoice((prev) => {
       const existingProduct = prev.products.find(
         (p) => p.ProductId === ProductId
@@ -54,7 +63,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({
               ? { ...p, Quantity: p.Quantity + Quantity }
               : p
           )
-        : [...prev.products, { ProductId, Quantity }];
+        : [...prev.products, { ProductId, Quantity, ProductName, Price: 2000 }];
 
       return {
         ...prev,
