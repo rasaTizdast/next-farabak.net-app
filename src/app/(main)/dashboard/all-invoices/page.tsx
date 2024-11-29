@@ -11,37 +11,25 @@ import SkeletonTable from "./components/ui/SkeletonTable";
 import { useUser } from "@/context/UserContext";
 
 import styles from "./AllInvoices.module.css";
+import toast, { Toaster } from "react-hot-toast";
 
 // Types
-interface Product {
-  id: number;
-  name: string;
-  amount: number;
-}
-
-interface Invoice {
-  fullname: string;
-  phonenumber: string;
-  checked: boolean;
-  guid: string;
-  products: Product[];
-  totalAmount: number;
-  id: number;
-  date: string;
-}
-
-type InvoiceApiData = {
-  ProductName: string;
+type Invoice = {
   Fullname: string;
   Phonenumber: string;
   Checked: boolean;
   FactorGuid: string;
   Quantity: string;
   TotalAmount: number;
-  id: number;
   Date: string;
-  UserId: number;
-  FactorId: number;
+  Invoiceid: number;
+  Products: {
+    Invoiceid: string;
+    Price: number;
+    ProductId: number;
+    Quantity: number;
+    Total_Price: number;
+  }[];
 };
 
 interface EmailDetails {
@@ -58,38 +46,38 @@ const AllInvoices = () => {
 
   const { user } = useUser();
 
-  const transformInvoiceData = (invoices: InvoiceApiData[]) => {
-    console.log("invoices: ", invoices);
-    return invoices.map((invoice) => {
-      const productNames = invoice.ProductName.replace(/[[\]]/g, "").split(",");
-      const quantities = invoice.Quantity.split(",");
+  // const transformInvoiceData = (invoices: InvoiceApiData[]) => {
+  //   console.log("invoices: ", invoices);
+  //   return invoices.map((invoice) => {
+  //     const productNames = invoice.ProductName.replace(/[[\]]/g, "").split(",");
+  //     const quantities = invoice.Quantity.split(",");
 
-      const products: Product[] = productNames.map((name, index) => ({
-        id: index + 1,
-        name: name.trim(),
-        amount: parseInt(quantities[index].trim(), 10),
-      }));
+  //     const products: Product[] = productNames.map((name, index) => ({
+  //       id: index + 1,
+  //       name: name.trim(),
+  //       amount: parseInt(quantities[index].trim(), 10),
+  //     }));
 
-      return {
-        fullname: invoice.Fullname,
-        phonenumber: invoice.Phonenumber,
-        checked: invoice.Checked,
-        guid: invoice.FactorGuid,
-        products,
-        totalAmount: +invoice.TotalAmount,
-        id: invoice.FactorId,
-        date: invoice.Date,
-      };
-    });
-  };
+  //     return {
+  //       fullname: invoice.Fullname,
+  //       phonenumber: invoice.Phonenumber,
+  //       checked: invoice.Checked,
+  //       guid: invoice.FactorGuid,
+  //       products,
+  //       totalAmount: +invoice.TotalAmount,
+  //       id: invoice.FactorId,
+  //       date: invoice.Date,
+  //     };
+  //   });
+  // };
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const response = await getUserInvoices();
-      const transformedData = transformInvoiceData(response);
-      setInvoices(transformedData);
+      // const transformedData = transformInvoiceData(response);
+      setInvoices(response);
     } catch (error: unknown) {
       // Check if the error is an instance of Error before accessing properties
       if (error instanceof Error) {
@@ -122,27 +110,40 @@ const AllInvoices = () => {
     }
   };
 
+  const [updatingGuid, setUpdatingGuid] = useState<string | null>(null);
+
   const handleCheckInvoice = async (guid: string, email?: string) => {
     if (!email) {
-      console.error("Email is required for this operation.");
-      return; // Return early if email is not available
+      toast.error("برای انجام این عملیات نیاز به ایمیل شما داریم!", {
+        duration: 5000,
+      });
+      return;
     }
+    setUpdatingGuid(guid); // Show loader for this button
     try {
       await checkUserInvoice(guid);
       setInvoices((prevInvoices) =>
         prevInvoices.map((invoice) =>
-          invoice.guid === guid ? { ...invoice, checked: true } : invoice
+          invoice.FactorGuid === guid ? { ...invoice, Checked: true } : invoice
         )
       );
-
       const emailDetails: EmailDetails = {
         to: email,
         subject: `فاکتور ${guid}`,
         text: `فاکتور جدید ثبت شد. برای مشاهده به پنل کاربری خود مراجعه کنید.`,
       };
       await sendEmail(emailDetails);
+      toast.success(
+        "فاکتور شما ثبت شد، به زودی با شما برای نهایی سازی فاکتور تماس میگیریم!",
+        { duration: 5000 }
+      );
     } catch (error) {
+      toast.error("عملیات ثبت فاکتور با شکست مواجه شد، مجددا تلاش کنید!", {
+        duration: 5000,
+      });
       console.error("Failed to check invoice", error);
+    } finally {
+      setUpdatingGuid(null); // Reset loader
     }
   };
 
@@ -163,8 +164,10 @@ const AllInvoices = () => {
     );
   }
 
+  console.log(invoices);
   return (
     <>
+      <Toaster position="bottom-center" />
       <h3 className="font-bold">فاکتورها ثبت شده توسط شما</h3>
       <div className={styles.tableContainer}>
         <table className={styles.invoicesTable}>
@@ -184,9 +187,9 @@ const AllInvoices = () => {
               </tr>
             ) : (
               invoices.map((item) => (
-                <tr key={item.guid}>
-                  <td>{item.guid}</td>
-                  <td>{item.totalAmount}</td>
+                <tr key={item.FactorGuid}>
+                  <td>{item.FactorGuid}</td>
+                  <td>{item.TotalAmount}</td>
                   <td className={styles.actionsParent}>
                     <button
                       onClick={() => handleShowInvoice(item)}
@@ -194,14 +197,17 @@ const AllInvoices = () => {
                     >
                       مشاهده فاکتور
                     </button>
-                    {!item.checked && (
+                    {!item.Checked && (
                       <button
                         onClick={() =>
-                          handleCheckInvoice(item.guid, user?.email)
+                          handleCheckInvoice(item.FactorGuid, user?.email)
                         }
                         className={styles.confirm}
+                        disabled={updatingGuid === item.FactorGuid}
                       >
-                        تائید فاکتور
+                        {updatingGuid === item.FactorGuid
+                          ? "در حال تایید..."
+                          : "تائید فاکتور"}
                       </button>
                     )}
                   </td>
