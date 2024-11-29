@@ -118,20 +118,22 @@ export async function GET(
         JOIN 
           Support.Category c ON c.CategoryId = p.CategoryId
         OUTER APPLY (
-          SELECT TOP 1 cc.Slug 
+          SELECT TOP 1 cc.Slug, cc.CategoryContentId
           FROM Support.CategoryContent cc
           WHERE CHARINDEX(CAST(cc.CategoryContentId AS VARCHAR), p.CategoryContentId) > 0
         ) AS cc
         LEFT JOIN
           Support.SEO_CategoryContent seo ON seo.CategoryContentId = cc.CategoryContentId
         WHERE 
-          EXISTS (
-            SELECT value FROM STRING_SPLIT(p.CategoryContentId, ',')
-            WHERE LTRIM(RTRIM(value)) = @subCategoryId
-          )
+        EXISTS (
+        SELECT 1
+        FROM STRING_SPLIT(p.CategoryContentId, ',') AS splitValues
+        WHERE LTRIM(RTRIM(splitValues.value)) = @subCategoryId
+    )
         ORDER BY 
           p.ProductId
-        OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY`
+        OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY;
+`
       );
 
     if (result.recordset.length === 0) {
