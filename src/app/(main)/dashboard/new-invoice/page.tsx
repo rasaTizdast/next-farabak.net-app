@@ -15,11 +15,11 @@ const NewInvoicePage = () => {
   } = useInvoice();
   const { user } = useUser();
 
-  const handleQuantityChange = (productName: string, newQuantity: string) => {
-    const parsedQuantity = parseInt(newQuantity, 10) || 0; // Ensure it's a number
+  const handleQuantityChange = (ProductId: number, newQuantity: string) => {
+    const parsedQuantity = +newQuantity;
     if (parsedQuantity >= 0) {
       // Validate quantity is non-negative
-      updateProductQuantity(productName, parsedQuantity);
+      updateProductQuantity(ProductId, parsedQuantity);
     }
   };
 
@@ -59,15 +59,15 @@ const NewInvoicePage = () => {
               </tr>
             ) : (
               invoice.products.map((product) => (
-                <tr key={product.name}>
-                  <td>{product.name}</td>
+                <tr key={product.ProductId}>
+                  <td>{product.ProductName}</td>
                   <td>
                     <input
                       type="number"
                       min="0"
-                      value={product.amount}
+                      value={product.Quantity}
                       onChange={(e) =>
-                        handleQuantityChange(product.name, e.target.value)
+                        handleQuantityChange(product.ProductId, e.target.value)
                       }
                       className={styles.quantityInput}
                     />
@@ -75,7 +75,9 @@ const NewInvoicePage = () => {
                   <td>
                     <button
                       className={styles.clearButton}
-                      onClick={() => removeProductFromInvoice(product.name)}
+                      onClick={() =>
+                        removeProductFromInvoice(product.ProductId)
+                      }
                     >
                       حذف محصول
                     </button>
@@ -87,7 +89,9 @@ const NewInvoicePage = () => {
         </table>
 
         <div className={styles.actions}>
-          <p className={styles.total}>تعداد کل محصولات: {invoice.totalItems}</p>
+          <p className={styles.total}>
+            تعداد کل محصولات: {invoice.TotalAmount}
+          </p>
           <button
             className={styles.finalizeButton}
             onClick={addNewInvoiceHandler}
