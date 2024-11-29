@@ -3,7 +3,7 @@ import { connectToDatabase } from "../../../../lib/db";
 import { v4 as uuidv4 } from "uuid";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
-import moment from "jalali-moment"; // Updated import
+import moment from "jalali-moment";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -20,10 +20,10 @@ async function verifyToken(token: string) {
  *     tags:
  *       - invoice
  *     summary: Get all invoices for the authenticated user
- *     description: Returns all invoices for the user based on the userId from the HTTP-only cookie.
+ *     description: Returns all invoices along with their details for the user based on the userId from the HTTP-only cookie.
  *     responses:
  *       200:
- *         description: List of invoices for the authenticated user
+ *         description: List of invoices with details for the authenticated user
  *         content:
  *           application/json:
  *             schema:
@@ -31,6 +31,8 @@ async function verifyToken(token: string) {
  *               items:
  *                 type: object
  *                 properties:
+ *                   InvoiceId:
+ *                     type: string
  *                   FactorGuid:
  *                     type: string
  *                   Fullname:
@@ -39,16 +41,23 @@ async function verifyToken(token: string) {
  *                     type: string
  *                   TotalAmount:
  *                     type: number
- *                   ProductName:
- *                     type: string
  *                   Date:
- *                     type: string
- *                   UserId:
- *                     type: string
- *                   Quantity:
  *                     type: string
  *                   Checked:
  *                     type: boolean
+ *                   Products:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         ProductId:
+ *                           type: string
+ *                         Quantity:
+ *                           type: number
+ *                         Price:
+ *                           type: number
+ *                         TotalPrice:
+ *                           type: number
  *       401:
  *         description: Unauthorized - No valid userId found in the cookie
  *       500:
@@ -56,7 +65,6 @@ async function verifyToken(token: string) {
  */
 export async function GET(): Promise<NextResponse> {
   try {
-    // Get userId from the HTTP-only cookie
     const cookieStore = cookies();
     const token = cookieStore.get("accessToken")?.value;
 
@@ -68,25 +76,39 @@ export async function GET(): Promise<NextResponse> {
     }
 
     const decoded = await verifyToken(token);
-
     const userId = decoded.userId;
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // Connect to the database
     const pool = await connectToDatabase();
 
-    // Fetch user's invoices
-    const result = await pool
+    // Fetch invoices for the user
+    const invoices = await pool
       .request()
       .input("UserId", userId)
       .query(
-        "SELECT * FROM Info.Factor WHERE UserId = @UserId ORDER BY Date DESC"
+        `SELECT Invoiceid, FactorGuid, Fullname, Phonenumber, TotalAmount, Date, Checked 
+         FROM Info.Invoice WHERE UserId = @UserId ORDER BY Date DESC`
       );
 
-    return NextResponse.json(result.recordset);
+    const invoiceDetails = await pool
+      .request()
+      .input("UserId", userId)
+      .query(
+        `SELECT Invoiceid, ProductId, Quantity, Price, Total_Price 
+         FROM Info.Invoice_Details WHERE UserId = @UserId`
+      );
+
+    const invoicesWithDetails = invoices.recordset.map((invoice) => ({
+      ...invoice,
+      Products: invoiceDetails.recordset.filter(
+        (detail) => detail.Invoiceid === invoice.Invoiceid
+      ),
+    }));
+
+    return NextResponse.json(invoicesWithDetails);
   } catch (error) {
     console.error("Error fetching invoices: ", error);
     return new NextResponse("Failed to fetch invoices", { status: 500 });
@@ -100,7 +122,7 @@ export async function GET(): Promise<NextResponse> {
  *     tags:
  *       - invoice
  *     summary: Create a new invoice
- *     description: Creates a new invoice in the database with unique FactorGuid and other fields.
+ *     description: Creates a new invoice in the database with unique FactorGuid and adds product details to the invoice.
  *     requestBody:
  *       required: true
  *       content:
@@ -114,12 +136,17 @@ export async function GET(): Promise<NextResponse> {
  *                 type: string
  *               TotalAmount:
  *                 type: number
- *               ProductName:
- *                 type: string
- *               Quantity:
- *                 type: string
- *               UserId:
- *                 type: string
+ *               Products:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     ProductId:
+ *                       type: string
+ *                     Quantity:
+ *                       type: number
+ *                     Price:
+ *                       type: number
  *     responses:
  *       201:
  *         description: Invoice successfully created
@@ -130,50 +157,68 @@ export async function GET(): Promise<NextResponse> {
  */
 export async function POST(request: Request) {
   try {
-    const {
-      Fullname,
-      Phonenumber,
-      TotalAmount,
-      ProductName,
-      Quantity,
-      UserId,
-    } = await request.json();
+    const { Fullname, Phonenumber, TotalAmount, Products } =
+      await request.json();
+    const cookieStore = cookies();
+    const token = cookieStore.get("accessToken")?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        { message: "Authorization token required" },
+        { status: 401 }
+      );
+    }
+
+    const decoded = await verifyToken(token);
+    const userId = decoded.userId;
 
     if (
       !Fullname ||
       !Phonenumber ||
       !TotalAmount ||
-      !ProductName ||
-      !Quantity ||
-      !UserId
+      !Products ||
+      Products.length === 0
     ) {
       return new NextResponse("Invalid request data", { status: 400 });
     }
 
-    // Generate unique FactorGuid
     const FactorGuid = `FARABAK-${uuidv4()}`;
-
-    // Get the current date in Jalali format using jalali-moment
     const currentDate = moment().locale("fa").format("YYYY-MM-DDTHH:mm:ss");
 
-    // Connect to the database
     const pool = await connectToDatabase();
 
-    // Insert new invoice into the Info.Factor table
-    await pool
+    // Insert invoice
+    const invoiceResult = await pool
       .request()
       .input("FactorGuid", FactorGuid)
       .input("Fullname", Fullname)
       .input("Phonenumber", Phonenumber)
       .input("TotalAmount", TotalAmount)
-      .input("ProductName", ProductName)
       .input("Date", currentDate)
-      .input("UserId", UserId)
-      .input("Quantity", Quantity)
-      .input("Checked", false).query(`
-        INSERT INTO Info.Factor (FactorGuid, Fullname, Phonenumber, TotalAmount, ProductName, Date, UserId, Quantity, Checked)
-        VALUES (@FactorGuid, @Fullname, @Phonenumber, @TotalAmount, @ProductName, @Date, @UserId, @Quantity, @Checked)
-      `);
+      .input("UserId", userId)
+      .query(
+        `INSERT INTO Info.Invoice (FactorGuid, Fullname, Phonenumber, TotalAmount, Date, UserId)
+         OUTPUT Inserted.Invoiceid
+         VALUES (@FactorGuid, @Fullname, @Phonenumber, @TotalAmount, @Date, @UserId)`
+      );
+
+    const invoiceId = invoiceResult.recordset[0].Invoiceid;
+
+    // Insert product details
+    for (const product of Products) {
+      await pool
+        .request()
+        .input("Invoiceid", invoiceId)
+        .input("UserId", userId)
+        .input("ProductId", product.ProductId)
+        .input("Quantity", product.Quantity)
+        .input("Price", product.Price)
+        .input("Total_Price", product.Quantity * product.Price)
+        .query(
+          `INSERT INTO Info.Invoice_Details (Invoiceid, UserId, ProductId, Quantity, Price, Total_Price)
+           VALUES (@Invoiceid, @UserId, @ProductId, @Quantity, @Price, @Total_Price)`
+        );
+    }
 
     return new NextResponse("Invoice created successfully", { status: 201 });
   } catch (error) {
@@ -212,8 +257,6 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const { FactorGuid } = await request.json();
-
-    // Get userId from the HTTP-only cookie
     const cookieStore = cookies();
     const token = cookieStore.get("accessToken")?.value;
 
@@ -225,23 +268,20 @@ export async function PATCH(request: Request) {
     }
 
     const decoded = await verifyToken(token);
+    const userId = decoded.userId;
 
-    const UserId = decoded.userId;
-
-    if (!FactorGuid || !UserId) {
+    if (!FactorGuid || !userId) {
       return new NextResponse("Invalid request data", { status: 400 });
     }
 
-    // Connect to the database
     const pool = await connectToDatabase();
 
-    // Check if the invoice exists
     const invoiceCheck = await pool
       .request()
       .input("FactorGuid", FactorGuid)
-      .input("UserId", UserId)
+      .input("UserId", userId)
       .query(
-        "SELECT COUNT(*) AS count FROM Info.Factor WHERE FactorGuid = @FactorGuid AND UserId = @UserId"
+        `SELECT COUNT(*) AS count FROM Info.Invoice WHERE FactorGuid = @FactorGuid AND UserId = @UserId`
       );
 
     if (invoiceCheck.recordset[0].count === 0) {
@@ -250,13 +290,11 @@ export async function PATCH(request: Request) {
       });
     }
 
-    // Update the invoice checked status
     await pool
       .request()
       .input("FactorGuid", FactorGuid)
-      .input("Checked", true)
       .query(
-        "UPDATE Info.Factor SET Checked = @Checked WHERE FactorGuid = @FactorGuid"
+        `UPDATE Info.Invoice SET Checked = 1 WHERE FactorGuid = @FactorGuid`
       );
 
     return new NextResponse("Invoice checked status updated", { status: 200 });
