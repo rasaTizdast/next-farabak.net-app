@@ -7,7 +7,7 @@ import { join } from "path";
  * /api/uploads:
  *   post:
  *     tags:
- *         -image-upload
+ *       - Uploads
  *     summary: Upload an image file
  *     consumes:
  *       - multipart/form-data
