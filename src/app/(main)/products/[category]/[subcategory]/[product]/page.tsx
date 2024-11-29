@@ -25,6 +25,8 @@ interface ProductData {
   categorySlug: string;
   subCategorySlug: string;
   productSlug: string;
+  SEO_Title: string;
+  SEO_Description: string;
 }
 
 // Metadata generation
@@ -43,11 +45,11 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${product.Type} | فرابک`,
-    description: product.Description,
+    title: product.SEO_Title,
+    description: product.SEO_Description,
     openGraph: {
-      title: `${product.Type} | فرابک`,
-      description: product.Description,
+      title: product.SEO_Title,
+      description: product.SEO_Description,
       images: [`/productImages/${product.img2}`],
     },
   };
@@ -118,7 +120,10 @@ export default async function ProductPage({
             </Suspense>
           </div>
 
-          <ClientInvoiceSection product={{ type: productData.Type }} />
+          <ClientInvoiceSection
+            ProductId={productData.ProductId}
+            ProductName={productData.Type}
+          />
         </div>
       </section>
       {/* Navigation */}
