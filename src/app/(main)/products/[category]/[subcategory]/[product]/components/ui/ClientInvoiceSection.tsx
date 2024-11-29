@@ -6,25 +6,26 @@ import Link from "next/link";
 import { FaRegTrashAlt } from "react-icons/fa";
 import styles from "../../ProductPage.module.css";
 
-interface Product {
-  type: string; // Add additional properties here if required
+interface Props {
+  ProductId:number;
+  ProductName:string
 }
 
-const ClientInvoiceSection = ({ product }: { product: Product }) => {
+const ClientInvoiceSection = ({ ProductId, ProductName}:Props) => {
   const { addProductToInvoice, getProductQuantity, removeProductFromInvoice } =
     useInvoice();
   const { user, loading } = useUser();
 
   // Get the current quantity of the product in the invoice
-  const currentQuantity = getProductQuantity(product?.type);
+  const currentQuantity = getProductQuantity(ProductId);
 
   // Handlers for adding and removing products
-  const handleAddProduct = () => addProductToInvoice(product.type, 1);
+  const handleAddProduct = () => addProductToInvoice(ProductId, 1, ProductName);
   const handleRemoveProduct = () => {
     if (currentQuantity === 1) {
-      removeProductFromInvoice(product.type);
+      removeProductFromInvoice(ProductId);
     } else {
-      addProductToInvoice(product.type, -1);
+      addProductToInvoice(ProductId, -1, ProductName);
     }
   };
 
