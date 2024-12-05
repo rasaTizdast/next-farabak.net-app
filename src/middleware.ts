@@ -40,7 +40,7 @@ export async function middleware(req: ExtendedNextRequest) {
   console.log("Refresh token from cookies:", refreshToken);
 
   // Define protected routes
-  const protectedRoutes = ["/dashboard", "/panel"];
+  const protectedRoutes = ["/dashboard", "/admin"];
 
   // Check if the request is for a protected route
   const isProtectedRoute = protectedRoutes.some((route) =>
