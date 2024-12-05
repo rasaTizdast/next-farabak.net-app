@@ -68,6 +68,12 @@ import { escape } from "validator";
  *                         type: integer
  *                       productSlug:
  *                         type: string
+ *                       categorySlug:
+ *                         type: string
+ *                       subCategorySlug:
+ *                         type: string
+ *                       link:
+ *                         type: string
  *       400:
  *         description: Invalid search query
  *       404:
@@ -95,7 +101,7 @@ export async function GET(request: Request) {
   try {
     const pool = await connectToDatabase();
 
-    // Build dynamic SQL query
+    // Build dynamic SQL query with category and subcategory slugs
     const sqlQuery = `
       SELECT 
         p.ProductId,
@@ -109,8 +115,16 @@ export async function GET(request: Request) {
         p.Available,
         p.Description,
         p.CategoryId,
-        p.Slug AS productSlug
+        p.Slug AS productSlug,
+        c.Slug AS categorySlug,
+        cc.Slug AS subCategorySlug
       FROM Support.Product p
+      JOIN Support.Category c ON c.CategoryId = p.CategoryId
+      OUTER APPLY (
+        SELECT TOP 1 cc.Slug 
+        FROM Support.CategoryContent cc
+        WHERE CHARINDEX(CAST(cc.CategoryContentId AS VARCHAR), p.CategoryContentId) > 0
+      ) AS cc
       WHERE ${keywords
         .map((_, index) => `p.Description LIKE @keyword${index}`)
         .join(" OR ")}
@@ -144,8 +158,14 @@ export async function GET(request: Request) {
       totalPages = Math.ceil(totalCount / limit);
     }
 
+    // Add link for each product, including categorySlug and subCategorySlug
+    const data = result.recordset.map((product) => ({
+      ...product,
+      link: `${product.categorySlug}/${product.subCategorySlug}/${product.productSlug}`,
+    }));
+
     return NextResponse.json({
-      data: result.recordset,
+      data,
       pagination: {
         totalCount: totalCount || result.recordset.length, // Use recordset length if totalCount is null
         currentPage: page,
