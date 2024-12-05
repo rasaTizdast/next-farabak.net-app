@@ -37,7 +37,7 @@ const Sidebar = () => {
 
   return (
     <div
-      className={`flex flex-col h-screen bg-[#0074e0] text-gray-200 transition-all ${
+      className={`flex flex-col h-screen bg-[#0074e0] text-gray-200 transition-all sticky top-0 right-0 ${
         isCollapsed ? "w-16" : "w-64"
       }`}
       onMouseEnter={() => setIsCollapsed(false)}
@@ -46,7 +46,7 @@ const Sidebar = () => {
       {/* Logo */}
       <div className="flex items-center justify-center h-16">
         <h1
-          className={`text-xl font-bold transition-opacity ${
+          className={`text-xl font-bold transition-all ${
             isCollapsed ? "opacity-0" : "opacity-100"
           }`}
         >
