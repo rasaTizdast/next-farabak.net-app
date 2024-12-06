@@ -1,8 +1,8 @@
 type Props = {
   currentAction: {
-    id: number;
-    type: string;
-    name: string;
+    id: number | number[];
+    type: "availability" | "bulk-availability" | "delete" | "bulk-delete" | "";
+    name: string | string[];
   };
   handleModalConfirm: () => void;
   setIsModalOpen: (arg0: boolean) => void;
@@ -13,6 +13,11 @@ const Modal = ({
   handleModalConfirm,
   setIsModalOpen,
 }: Props) => {
+  // Handle the case when multiple products are selected
+  const productNames = Array.isArray(currentAction.name)
+    ? currentAction.name.join(" | ") // Join names with a comma if there are multiple
+    : currentAction.name;
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
       <div
@@ -21,21 +26,32 @@ const Modal = ({
         }`}
       >
         <p className="text-center text-lg">
-          {currentAction.type === "delete" ? (
+          {currentAction.type === "delete" && (
             <span>
-              آیا می‌خواهید محصول{" "}
-              <span className="font-bold text-red-600">
-                {currentAction.name}
-              </span>{" "}
-              را حذف کنید؟
+              آیا می‌خواهید محصولات{" "}
+              <span className="font-bold text-red-600">{productNames}</span> را
+              حذف کنید؟
             </span>
-          ) : (
+          )}
+          {currentAction.type === "availability" && (
             <span>
               آیا می‌خواهید وضعیت موجودی محصول{" "}
-              <span className="font-bold text-blue-600">
-                {currentAction.name}
-              </span>{" "}
-              را تغییر دهید؟
+              <span className="font-bold text-blue-600">{productNames}</span> را
+              تغییر دهید؟
+            </span>
+          )}
+          {currentAction.type === "bulk-availability" && (
+            <span>
+              آیا می‌خواهید وضعیت موجودی محصولات{" "}
+              <span className="font-bold text-blue-600">{productNames}</span> را
+              تغییر دهید؟
+            </span>
+          )}
+          {currentAction.type === "bulk-delete" && (
+            <span>
+              آیا می‌خواهید محصولات{" "}
+              <span className="font-bold text-blue-600">{productNames}</span> را
+              حذف کنید؟
             </span>
           )}
         </p>
