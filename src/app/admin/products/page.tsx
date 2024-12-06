@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { toast, Toaster } from "react-hot-toast";
 import axios from "axios";
 
@@ -9,6 +9,7 @@ import FilterModal from "./components/FilterModal";
 import Pagination from "./components/Pagination";
 import fetchProducts from "./helper/fetchProducts";
 import ProductsTable from "./components/ProductsTable";
+import { hasFilters } from "./helper/hasFilters";
 
 type Product = {
   ProductId: number;
@@ -25,71 +26,96 @@ const AdminProductsPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const [filteredProducts, setFilteredProducts] = useState(products);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState<string[]>([]); // Placeholder for active filters
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentAction, setCurrentAction] = useState({
+  const [tempSearchQuery, setTempSearchQuery] = useState("");
+
+  const [filters, setFilters] = useState<{
+    category: string;
+    subCategory: string;
+    available: boolean | null;
+  }>({
+    category: "",
+    subCategory: "",
+    available: null,
+  });
+
+  const [currentAction, setCurrentAction] = useState<{
+    id: number | number[];
+    type: "availability" | "bulk-availability" | "delete" | "bulk-delete" | "";
+    name: string | string[];
+  }>({
     id: 0,
     type: "",
     name: "",
   });
+
+  const [isLoading, setIsLoading] = useState(true);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
   });
 
-  const debounceTimeout = useRef<NodeJS.Timeout | null>(null); // Ref for debounce timeout
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
+  // Memoize refetchProducts to ensure a stable reference
+  const refetchProducts = useCallback(async () => {
     const props = {
       page: pagination.currentPage,
       setIsLoading,
       setProducts,
-      setFilteredProducts,
       setPagination,
+      filters,
+      searchQuery,
     };
+    await fetchProducts(props);
+  }, [pagination.currentPage, filters, searchQuery]);
 
-    fetchProducts(props);
-  }, [pagination.currentPage]);
+  useEffect(() => {
+    refetchProducts();
+  }, [refetchProducts]);
 
   const handleSearch = async (query: string) => {
-    setSearchQuery(query);
-
-    // If the query is empty, reset the filtered products and hide pagination
     if (!query) {
-      setFilteredProducts(products);
+      // Clear both search query states immediately
+      setSearchQuery("");
+      setTempSearchQuery(""); // Ensure both states are cleared
+
+      // Refetch products with an empty query (or no filters)
+      refetchProducts();
       return;
     }
 
-    // Set the search results with a debounce to avoid constant requests
+    // Set the temporary query to reflect input changes immediately
+    setTempSearchQuery(query);
+
+    // Clear previous debounce timeout if any
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }
 
-    debounceTimeout.current = setTimeout(async () => {
+    // Set a new debounce timeout to update searchQuery after the delay
+    debounceTimeout.current = setTimeout(() => {
       const lowerCaseQuery = query.toLowerCase();
-      try {
-        const result = await axios.get(
-          `/api/products/search?q=${lowerCaseQuery}&limit=0`
-        );
-        const { data } = result;
-        setFilteredProducts(data.data);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    }, 300); // Debounce for 300ms
+      setSearchQuery(lowerCaseQuery); // Set the debounced search query
+    }, 300); // Adjust debounce time as needed
   };
 
-  const toggleAvailability = (id: number, name: string) => {
-    const updatedProducts = products.map((product: Product) =>
-      product.ProductId === id
-        ? { ...product, Available: !product.Available }
-        : product
-    );
-    setProducts(updatedProducts);
-    setFilteredProducts(updatedProducts); // Reflect changes in the filtered list
-    toast.success(`وضعیت محصول ${name} تغییر کرد.`);
+  const toggleAvailability = async (id: number, name: string) => {
+    try {
+      await axios.patch("/api/admin/products/toggleAvailable", {
+        productId: id,
+      });
+      toast.success(`وضعیت محصول ${name} تغییر کرد.`);
+
+      // Re-fetch products after updating availability
+      await refetchProducts();
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(
+          error.response?.data.message || "خطا در فرآیند بروزرسانی"
+        );
+      }
+    }
   };
 
   const deleteProduct = (id: number, name: string) => {
@@ -97,35 +123,68 @@ const AdminProductsPage = () => {
       (product) => product.ProductId !== id
     );
     setProducts(updatedProducts);
-    setFilteredProducts(updatedProducts); // Reflect changes in the filtered list
     toast.success(`محصول "${name}" حذف شد.`);
   };
 
   const handleModalConfirm = () => {
     const { id, type, name } = currentAction;
 
-    if (type === "availability") {
-      toggleAvailability(id, name);
-    } else if (type === "delete") {
-      deleteProduct(id, name);
+    switch (type) {
+      case "bulk-availability":
+        // Check if id and name are arrays for bulk availability
+        if (Array.isArray(id) && Array.isArray(name)) {
+          id.forEach((productId, index) => {
+            toggleAvailability(+productId, name[index].toString());
+          });
+        }
+        break;
+
+      case "availability":
+        // Single availability toggle
+        toggleAvailability(+id, name.toString());
+        break;
+
+      case "bulk-delete":
+        // Check if id and name are arrays for bulk delete
+        if (Array.isArray(id) && Array.isArray(name)) {
+          id.forEach((productId, index) => {
+            deleteProduct(+productId, name[index].toString());
+          });
+        }
+        break;
+
+      case "delete":
+        // Single delete
+        deleteProduct(+id, name.toString());
+        break;
+
+      default:
+        break;
     }
 
     setIsModalOpen(false);
   };
 
-  const applyFilters = () => {
-    const newFilters = ["Example Filter"]; // Add a filter as a placeholder
+  const applyFilters = async (newFilters: {
+    category: string;
+    subCategory: string;
+    available: boolean | null;
+  }) => {
+    console.log(newFilters); // Debug: Check if new filters are being passed correctly
     setFilters(newFilters);
     toast.success("فیلتر اعمال شد.");
     setShowFilterModal(false);
   };
 
   const clearFilters = () => {
-    setFilters([]);
-    setFilteredProducts(products); // Reset filtered products
+    setFilters({
+      category: "",
+      subCategory: "",
+      available: null,
+    });
+    setProducts(products);
     toast.success("فیلترها حذف شدند.");
   };
-
   return (
     <>
       <Toaster position="bottom-center" />
@@ -138,7 +197,7 @@ const AdminProductsPage = () => {
               <input
                 type="text"
                 placeholder="جستجو"
-                value={searchQuery}
+                value={tempSearchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 className="p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -146,12 +205,12 @@ const AdminProductsPage = () => {
             <button
               onClick={() => setShowFilterModal(true)}
               className={`px-4 py-2 ${
-                filters.length > 0 ? "bg-orange-600" : "bg-blue-600"
+                hasFilters(filters) ? "bg-orange-600" : "bg-blue-600"
               } text-white rounded-lg hover:bg-blue-700`}
             >
-              {filters.length > 0 ? "فیلتر فعال" : "فیلتر"}
+              {hasFilters(filters) ? "فیلتر فعال" : "فیلتر"}
             </button>
-            {filters.length > 0 && (
+            {hasFilters(filters) && (
               <button
                 onClick={clearFilters}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
@@ -170,7 +229,7 @@ const AdminProductsPage = () => {
 
         {/* Table */}
         <ProductsTable
-          filteredProducts={filteredProducts}
+          products={products}
           isLoading={isLoading}
           setCurrentAction={setCurrentAction}
           setIsModalOpen={setIsModalOpen}
@@ -188,6 +247,7 @@ const AdminProductsPage = () => {
         {/* Filter Modal */}
         {showFilterModal && (
           <FilterModal
+            filters={filters}
             applyFilters={applyFilters}
             setShowFilterModal={setShowFilterModal}
           />
@@ -195,8 +255,7 @@ const AdminProductsPage = () => {
       </div>
 
       {/* Pagination */}
-      {/* Show pagination only if search query is empty */}
-      {!isLoading && !searchQuery && (
+      {!isLoading && (
         <Pagination pagination={pagination} setPagination={setPagination} />
       )}
     </>
