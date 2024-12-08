@@ -5,18 +5,23 @@ import { hasFilters } from "./hasFilters";
 type Product = {
   ProductId: number;
   Type: string;
-  categorySlug: string;
-  subCategorySlug: string;
+  categoryName: string;
+  subCategoryName: string;
   productSlug: string;
   Price: number;
   Available: boolean;
   link: string;
+  CategoryContentIds: {
+    CategoryContentId: number;
+    Name: string;
+  }[];
 };
 
 type Props = {
   page: number;
   setIsLoading: (isLoading: boolean) => void;
   setProducts: (products: Product[]) => void;
+  setNotFound: (arg0: boolean) => void;
   setPagination: (updater: { totalPages: number; currentPage: number }) => void;
   available?: "all" | "true" | "false";
   searchQuery?: string;
@@ -33,11 +38,13 @@ const fetchProducts = async ({
   setIsLoading,
   setProducts,
   setPagination,
+  setNotFound,
   searchQuery = "",
   filters,
 }: Props) => {
   try {
     setIsLoading(true);
+    setNotFound(false);
 
     // Base URL for the API
     let url = `/api/admin/products?page=${page}&limit=30`;
@@ -67,6 +74,7 @@ const fetchProducts = async ({
   } catch (error) {
     console.error("Error fetching products:", error);
     toast.error("خطا در بارگذاری محصولات.");
+    setNotFound(true);
   } finally {
     setIsLoading(false);
   }
