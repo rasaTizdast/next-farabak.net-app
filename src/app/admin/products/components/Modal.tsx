@@ -13,58 +13,91 @@ const Modal = ({
   handleModalConfirm,
   setIsModalOpen,
 }: Props) => {
-  // Handle the case when multiple products are selected
   const productNames = Array.isArray(currentAction.name)
-    ? currentAction.name.join(" | ") // Join names with a comma if there are multiple
-    : currentAction.name;
+    ? currentAction.name
+    : [currentAction.name];
+
+  const modalMessage = () => {
+    switch (currentAction.type) {
+      case "delete":
+        return "آیا از حذف محصول زیر مطمئن هستید؟";
+      case "availability":
+        return "تغییر وضعیت موجودی محصول زیر";
+      case "bulk-availability":
+        return "تغییر وضعیت موجودی محصولات زیر";
+      case "bulk-delete":
+        return "آیا از حذف محصولات زیر مطمئن هستید؟";
+      default:
+        return "عملیات انتخاب شده";
+    }
+  };
+
+  const modalStyles =
+    currentAction.type === "delete" || currentAction.type === "bulk-delete"
+      ? "bg-red-100 border-red-500"
+      : currentAction.type === "availability" ||
+        currentAction.type === "bulk-availability"
+      ? "bg-emerald-100 border-emerald-400"
+      : "bg-white";
+
+  const buttonStyles =
+    currentAction.type === "delete" || currentAction.type === "bulk-delete"
+      ? "bg-red-600 hover:bg-red-700 focus:ring-red-500"
+      : currentAction.type === "availability" ||
+        currentAction.type === "bulk-availability"
+      ? "bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500"
+      : "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500";
+
+  const cancelButtonStyles =
+    currentAction.type === "delete" || currentAction.type === "bulk-delete"
+      ? "bg-gray-600 hover:bg-gray-700 focus:ring-gray-400 text-white"
+      : currentAction.type === "availability" ||
+        currentAction.type === "bulk-availability"
+      ? "bg-gray-600 hover:bg-gray-700 focus:ring-gray-300 text-white"
+      : "bg-gray-600 hover:bg-gray-700 focus:ring-gray-400 text-white";
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-opacity">
       <div
-        className={`bg-white rounded-lg p-6 w-[300px] ${
-          currentAction.type === "delete" ? "border-red-600 border-2" : ""
-        }`}
+        className={`relative rounded-lg shadow-lg p-8 max-w-md w-full animate-fade-in ${modalStyles}`}
       >
-        <p className="text-center text-lg">
-          {currentAction.type === "delete" && (
-            <span>
-              آیا می‌خواهید محصولات{" "}
-              <span className="font-bold text-red-600">{productNames}</span> را
-              حذف کنید؟
-            </span>
-          )}
-          {currentAction.type === "availability" && (
-            <span>
-              آیا می‌خواهید وضعیت موجودی محصول{" "}
-              <span className="font-bold text-blue-600">{productNames}</span> را
-              تغییر دهید؟
-            </span>
-          )}
-          {currentAction.type === "bulk-availability" && (
-            <span>
-              آیا می‌خواهید وضعیت موجودی محصولات{" "}
-              <span className="font-bold text-blue-600">{productNames}</span> را
-              تغییر دهید؟
-            </span>
-          )}
-          {currentAction.type === "bulk-delete" && (
-            <span>
-              آیا می‌خواهید محصولات{" "}
-              <span className="font-bold text-blue-600">{productNames}</span> را
-              حذف کنید؟
-            </span>
-          )}
+        {/* Close Button */}
+        <button
+          onClick={() => setIsModalOpen(false)}
+          className="absolute top-4 right-4 font-bold text-gray-900 hover:text-gray-600 focus:outline-none"
+        >
+          ✕
+        </button>
+
+        {/* Modal Header */}
+        <p className="text-center text-lg font-medium text-gray-700 mb-4">
+          {modalMessage()}
         </p>
-        <div className="flex justify-between mt-4">
+
+        {/* Product List */}
+        <div className="max-h-56 overflow-y-auto border rounded-lg p-4 bg-gray-50">
+          {productNames.map((productName, index) => (
+            <p
+              key={index}
+              className="text-sm text-gray-800 truncate hover:text-clip hover:whitespace-normal"
+              title={typeof productName === "string" ? productName : ""}
+            >
+              {index + 1}. {productName}
+            </p>
+          ))}
+        </div>
+
+        {/* Actions */}
+        <div className="flex justify-center gap-4 mt-6">
           <button
             onClick={handleModalConfirm}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className={`px-6 py-2 text-white rounded-lg focus:outline-none transition-all ${buttonStyles}`}
           >
             تایید
           </button>
           <button
             onClick={() => setIsModalOpen(false)}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            className={`px-6 py-2 text-gray-800 rounded-lg focus:outline-none transition-all ${cancelButtonStyles}`}
           >
             لغو
           </button>

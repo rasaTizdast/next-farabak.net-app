@@ -12,17 +12,22 @@ import { formatPrice } from "../helper/formatPrice";
 type Product = {
   ProductId: number;
   Type: string;
-  categorySlug: string;
-  subCategorySlug: string;
+  categoryName: string;
+  subCategoryName: string;
   productSlug: string;
   Price: number;
   Available: boolean;
   link: string;
+  CategoryContentIds: {
+    CategoryContentId: number;
+    Name: string;
+  }[];
 };
 
 type Props = {
   isLoading: boolean;
   products: Product[];
+  notFound: boolean;
   setIsModalOpen: (arg0: boolean) => void;
   setCurrentAction: (updatedAction: {
     id: number | number[];
@@ -36,6 +41,7 @@ type SortKey = keyof Pick<Product, "Type" | "Price" | "Available">;
 const ProductsTable = ({
   isLoading,
   products,
+  notFound,
   setIsModalOpen,
   setCurrentAction,
 }: Props) => {
@@ -44,6 +50,10 @@ const ProductsTable = ({
     key: SortKey;
     direction: "ascending" | "descending";
   }>({ key: "Type", direction: "ascending" });
+  const [activeSubCategories, setActiveSubCategories] = useState<{
+    name: string;
+    subCategories: string[];
+  } | null>(null);
 
   // Sorting function
   const sortedProducts = useMemo(() => {
@@ -132,10 +142,18 @@ const ProductsTable = ({
     </th>
   );
 
+  if (notFound) {
+    return (
+      <div className="w-full text-center text-white p-5 rounded-lg bg-blue-600 shadow-lg animate-fade-in transition-all">
+        محصولی یافت نشد
+      </div>
+    );
+  }
+
   return (
     <div className="w-full overflow-x-auto rounded-xl max-w-[1800px]">
       {selectedProducts.length > 0 && (
-        <div className="flex justify-between items-center bg-slate-600 p-4 rounded-t-xl">
+        <div className="flex justify-between items-center bg-slate-600 p-4 rounded-t-xl text-xs lg:text-sm">
           <span className="text-white">
             {selectedProducts.length} محصول انتخاب شده
           </span>
@@ -155,17 +173,19 @@ const ProductsTable = ({
           </div>
         </div>
       )}
-      <table className="w-full text-sm text-center text-gray-300 table-auto border-spacing-0 border-separate">
-        <thead className="text-sm text-gray-100 uppercase bg-slate-800">
+      <table className="w-full text-xs lg:text-sm text-center text-gray-300 table-auto border-spacing-0 border-separate">
+        <thead className="text-gray-100 uppercase bg-slate-800">
           <tr>
             <th scope="col" className="px-6 py-3 w-12">
               <input
                 type="checkbox"
-                className="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
+                className="h-4 w-4 text-indigo-600 transition-all duration-150 ease-in-out"
                 checked={selectedProducts.length === sortedProducts.length}
                 onChange={handleSelectAll}
+                disabled={isLoading}
               />
             </th>
+
             <SortableHeader sortKey="Type">نام محصول</SortableHeader>
             <th scope="col" className="px-6 py-3">
               دسته‌بندی
@@ -185,7 +205,7 @@ const ProductsTable = ({
         </thead>
         <tbody>
           {isLoading
-            ? [...Array(10)].map((_, index: number) => (
+            ? [...Array(10)].map((_, index) => (
                 <ProductTableSkeleton key={index} />
               ))
             : sortedProducts.map((product, index) => (
@@ -204,8 +224,30 @@ const ProductsTable = ({
                     />
                   </td>
                   <td className="px-6 py-4">{product.Type}</td>
-                  <td className="px-6 py-4">{product.categorySlug}</td>
-                  <td className="px-6 py-4">{product.subCategorySlug}</td>
+                  <td className="px-6 py-4">{product.categoryName}</td>
+                  <td className="px-6 py-4">
+                    {product.CategoryContentIds?.length > 1 ? (
+                      <button
+                        onClick={() =>
+                          setActiveSubCategories({
+                            name: product.Type,
+                            subCategories: product.CategoryContentIds.map(
+                              (sub) => sub.Name
+                            ),
+                          })
+                        }
+                        className="text-white bg-blue-600 py-2 px-4 rounded-lg hover:bg-blue-700 transition-all"
+                      >
+                        مشاهده
+                      </button>
+                    ) : (
+                      <span>
+                        {product.CategoryContentIds?.[0]?.Name ||
+                          "No Subcategories"}
+                      </span>
+                    )}
+                  </td>
+
                   <td className="px-6 py-4">{product.productSlug}</td>
                   <td className="px-6 py-4">{formatPrice(product.Price)}</td>
                   <td className="px-6 py-4">
@@ -230,7 +272,7 @@ const ProductsTable = ({
                             name: product.Type,
                           });
                         }}
-                        className="px-2 py-1 bg-amber-600 text-white text-xs sm:text-sm rounded-lg hover:bg-amber-800 transition-all"
+                        className="px-2 py-1 bg-amber-600 text-white rounded-lg hover:bg-amber-800 transition-all"
                       >
                         {product.Available ? "غیرفعال‌سازی" : "فعال‌سازی"}
                       </button>
@@ -243,17 +285,17 @@ const ProductsTable = ({
                             name: product.Type,
                           });
                         }}
-                        className="px-2 py-1 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition-all"
+                        className="px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all"
                       >
                         حذف
                       </button>
                       <Link
                         href={`/products/${product.link}`}
                         target="_blank"
-                        className="flex gap-2 items-center px-2 py-1 bg-emerald-600 text-white text-xs sm:text-sm rounded-lg hover:bg-emerald-700 transition-all"
+                        className="flex gap-2 items-center px-2 py-1 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all"
                       >
-                        صفحه محصول‌
-                        <FaExternalLinkAlt />
+                        جزئیات
+                        <FaExternalLinkAlt size={12} />
                       </Link>
                     </div>
                   </td>
@@ -261,6 +303,31 @@ const ProductsTable = ({
               ))}
         </tbody>
       </table>
+      {activeSubCategories && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-11/12 max-w-lg">
+            <h3 className="text-xl font-semibold mb-4">
+              زیر دسته‌بندی‌های محصول: {activeSubCategories.name}
+            </h3>
+            <ul className="space-y-2">
+              {activeSubCategories.subCategories.map((subCategory, idx) => (
+                <li
+                  key={idx}
+                  className="text-gray-800 bg-gray-200 p-2 rounded-lg"
+                >
+                  {subCategory}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={() => setActiveSubCategories(null)}
+              className="mt-8 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-800 transition-all"
+            >
+              بستن
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
