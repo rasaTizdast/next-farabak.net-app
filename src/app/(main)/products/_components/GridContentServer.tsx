@@ -44,7 +44,7 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
               height={280}
               quality={100}
               // src={`/productImages/${product.img1}`}
-              src={`/productImages/${product.productSlug}/${product.productSlug}-mini.webp`}
+              src={`${process.env.LIARA_BUCKET_URL}/productImages/${product.productSlug}/${product.productSlug}-mini.webp`}
               alt={product.Type}
               loading="eager"
             />
