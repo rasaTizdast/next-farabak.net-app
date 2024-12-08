@@ -68,7 +68,9 @@ import { escape } from "validator";
  *                       Discount:
  *                         type: number
  *                       CategoryContentId:
- *                         type: string
+ *                         type: array
+ *                         items:
+ *                           type: string
  *                       img1:
  *                         type: string
  *                       img2:
@@ -84,6 +86,10 @@ import { escape } from "validator";
  *                       categorySlug:
  *                         type: string
  *                       subCategorySlug:
+ *                         type: string
+ *                       categoryName:
+ *                         type: string
+ *                       subCategoryName:
  *                         type: string
  *                       link:
  *                         type: string
@@ -112,7 +118,7 @@ export async function GET(request: Request) {
   const limit = parseInt(searchParams.get("limit") || "30", 10);
   const query = searchParams.get("q") || "";
   const category = parseInt(searchParams.get("category") || "0", 10);
-  const subcategory = searchParams.get("subcategory") || ""; // Now it's a string, to handle multiple IDs
+  const subcategory = searchParams.get("subcategory") || "";
   const available = searchParams.get("available");
   const offset = (page - 1) * limit;
 
@@ -120,10 +126,9 @@ export async function GET(request: Request) {
     const pool = await connectToDatabase();
 
     // Base SQL query
-    let sqlQuery = `
-        SELECT 
+    let sqlQuery = `SELECT 
           p.ProductId,
-          p.Name,
+          p.Name AS productName,
           p.Type,
           p.Price,
           p.Discount,
@@ -135,28 +140,26 @@ export async function GET(request: Request) {
           p.CategoryId,
           p.Slug AS productSlug,
           c.Slug AS categorySlug,
-          cc.Slug AS subCategorySlug
+          cc.Slug AS subCategorySlug,
+          c.Name AS categoryName,
+          cc.Name AS subCategoryName
         FROM Support.Product p
         JOIN Support.Category c ON c.CategoryId = p.CategoryId
         OUTER APPLY (
-          SELECT TOP 1 cc.Slug 
+          SELECT TOP 1 cc.Slug, cc.Name
           FROM Support.CategoryContent cc
           WHERE CHARINDEX(CAST(cc.CategoryContentId AS VARCHAR), p.CategoryContentId) > 0
-        ) AS cc
-      `;
+        ) AS cc`;
 
-    let countQuery = `
-        SELECT COUNT(*) AS totalCount
+    let countQuery = `SELECT COUNT(*) AS totalCount
         FROM Support.Product p
         JOIN Support.Category c ON c.CategoryId = p.CategoryId
         OUTER APPLY (
-          SELECT TOP 1 cc.Slug 
+          SELECT TOP 1 cc.Slug
           FROM Support.CategoryContent cc
           WHERE CHARINDEX(CAST(cc.CategoryContentId AS VARCHAR), p.CategoryContentId) > 0
-        ) AS cc
-      `;
+        ) AS cc`;
 
-    // Filters: Apply conditions
     const conditions: string[] = [];
 
     if (query.trim()) {
@@ -171,7 +174,7 @@ export async function GET(request: Request) {
     }
 
     if (subcategory) {
-      const subcategoryIds = subcategory.split(","); // Split by commas if there are multiple subcategories
+      const subcategoryIds = subcategory.split(",");
       subcategoryIds.forEach((id, index) => {
         conditions.push(
           `CHARINDEX(@subcategory${index}, p.CategoryContentId) > 0`
@@ -189,13 +192,9 @@ export async function GET(request: Request) {
       countQuery += whereClause;
     }
 
-    // Apply pagination
-    sqlQuery += `
-        ORDER BY p.ProductId
-        OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
-      `;
+    sqlQuery += ` ORDER BY p.ProductId
+        OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY`;
 
-    // Prepare SQL parameters
     const requestQuery = pool.request();
     const countQueryRequest = pool.request();
 
@@ -226,7 +225,6 @@ export async function GET(request: Request) {
       countQueryRequest.input("available", availability);
     }
 
-    // Execute the queries
     const result = await requestQuery.query(sqlQuery);
     const totalCountResult = await countQueryRequest.query(countQuery);
 
@@ -237,10 +235,48 @@ export async function GET(request: Request) {
       return new NextResponse("No products found", { status: 404 });
     }
 
-    const data = result.recordset.map((product) => ({
-      ...product,
-      link: `${product.categorySlug}/${product.subCategorySlug}/${product.productSlug}`,
-    }));
+    // Get the names of the category content items
+    const categoryContentIds = result.recordset.flatMap((product) =>
+      product.CategoryContentId.toString()
+        .split(",")
+        .map((id: string) => id.trim())
+    );
+    const uniqueCategoryContentIds = Array.from(new Set(categoryContentIds)); // No use of `set` here
+
+    // Fetch names for all unique CategoryContentIds
+    const categoryContentQuery = `
+      SELECT CategoryContentId, Name
+      FROM Support.CategoryContent
+      WHERE CategoryContentId IN (${uniqueCategoryContentIds.join(",")})
+    `;
+    const categoryContentResult = await pool
+      .request()
+      .query(categoryContentQuery);
+    const categoryContentMap = categoryContentResult.recordset.reduce(
+      (map, row) => {
+        map[row.CategoryContentId] = row.Name;
+        return map;
+      },
+      {}
+    );
+
+    const data = result.recordset.map((product) => {
+      const categoryContentIds = product.CategoryContentId.toString()
+        .split(",")
+        .map((id: string) => id.trim());
+
+      const categoryContentDetails = categoryContentIds.map((id: string) => ({
+        CategoryContentId: id,
+        Name: categoryContentMap[id] || "Unknown",
+      }));
+
+      return {
+        ...product,
+        CategoryContentId: categoryContentIds,
+        CategoryContentIds: categoryContentDetails,
+        link: `${product.categorySlug}/${product.subCategorySlug}/${product.productSlug}`,
+      };
+    });
 
     return NextResponse.json({
       data,
