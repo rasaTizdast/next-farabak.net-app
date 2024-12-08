@@ -14,12 +14,16 @@ import { hasFilters } from "./helper/hasFilters";
 type Product = {
   ProductId: number;
   Type: string;
-  categorySlug: string;
-  subCategorySlug: string;
+  categoryName: string;
+  subCategoryName: string;
   productSlug: string;
   Price: number;
   Available: boolean;
   link: string;
+  CategoryContentIds: {
+    CategoryContentId: number;
+    Name: string;
+  }[];
 };
 
 const AdminProductsPage = () => {
@@ -28,6 +32,10 @@ const AdminProductsPage = () => {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [tempSearchQuery, setTempSearchQuery] = useState("");
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const spanRef = useRef<HTMLSpanElement | null>(null);
+
+  const [notFound, setNotFound] = useState<boolean>(false);
 
   const [filters, setFilters] = useState<{
     category: string;
@@ -64,6 +72,7 @@ const AdminProductsPage = () => {
       setIsLoading,
       setProducts,
       setPagination,
+      setNotFound,
       filters,
       searchQuery,
     };
@@ -75,20 +84,17 @@ const AdminProductsPage = () => {
   }, [refetchProducts]);
 
   const handleSearch = async (query: string) => {
+    // If the query is cleared
     if (!query) {
-      // Clear both search query states immediately
-      setSearchQuery("");
-      setTempSearchQuery(""); // Ensure both states are cleared
-
-      // Refetch products with an empty query (or no filters)
-      refetchProducts();
+      setSearchQuery(""); // Clear the actual search query
+      setTempSearchQuery(""); // Clear the temporary query
       return;
     }
 
-    // Set the temporary query to reflect input changes immediately
+    // If there is a query, update the tempSearchQuery immediately
     setTempSearchQuery(query);
 
-    // Clear previous debounce timeout if any
+    // Clear the previous debounce timeout if any
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }
@@ -99,6 +105,13 @@ const AdminProductsPage = () => {
       setSearchQuery(lowerCaseQuery); // Set the debounced search query
     }, 300); // Adjust debounce time as needed
   };
+
+  useEffect(() => {
+    if (inputRef.current && spanRef.current) {
+      // Adjust input width based on the span's content
+      inputRef.current.style.width = `${spanRef.current.offsetWidth + 20}px`; // +20 for padding
+    }
+  }, [tempSearchQuery]);
 
   const toggleAvailability = async (id: number, name: string) => {
     try {
@@ -195,18 +208,29 @@ const AdminProductsPage = () => {
           <div className="flex gap-5">
             <div className="relative">
               <input
+                ref={inputRef}
                 type="text"
                 placeholder="جستجو"
                 value={tempSearchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="min-w-52 max-w-[350px] p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              {/* Hidden span to measure text width */}
+              <span
+                ref={spanRef}
+                className="absolute invisible whitespace-nowrap"
+                style={{ visibility: "hidden" }}
+              >
+                {tempSearchQuery}
+              </span>
             </div>
             <button
               onClick={() => setShowFilterModal(true)}
               className={`px-4 py-2 ${
-                hasFilters(filters) ? "bg-orange-600" : "bg-blue-600"
-              } text-white rounded-lg hover:bg-blue-700`}
+                hasFilters(filters)
+                  ? "bg-orange-600 hover:bg-orange-700"
+                  : "bg-blue-950 hover:bg-blue-600"
+              } text-white rounded-lg transition-all`}
             >
               {hasFilters(filters) ? "فیلتر فعال" : "فیلتر"}
             </button>
@@ -231,6 +255,7 @@ const AdminProductsPage = () => {
         <ProductsTable
           products={products}
           isLoading={isLoading}
+          notFound={notFound}
           setCurrentAction={setCurrentAction}
           setIsModalOpen={setIsModalOpen}
         />
@@ -255,7 +280,7 @@ const AdminProductsPage = () => {
       </div>
 
       {/* Pagination */}
-      {!isLoading && (
+      {!isLoading && !notFound && (
         <Pagination pagination={pagination} setPagination={setPagination} />
       )}
     </>
