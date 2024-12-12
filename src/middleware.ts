@@ -160,5 +160,10 @@ export async function middleware(req: ExtendedNextRequest) {
 
 // Specify the routes where this middleware should be applied
 export const config = {
-  matcher: ["/:path*"],
+  matcher: [
+    // "/dashboard/:path*", // Protect all subroutes of /dashboard
+    // "/admin/:path*", // Protect all subroutes of /admin-panel
+    // "/auth/:path*", // Protect all auth routes
+    "/:path*",
+  ],
 };
