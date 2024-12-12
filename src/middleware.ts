@@ -130,6 +130,12 @@ export async function middleware(req: ExtendedNextRequest) {
       ) {
         console.log("Non-admin user trying to access admin panel");
         return NextResponse.redirect(new URL("/dashboard", req.url));
+      } else if (
+        req.nextUrl.pathname.startsWith("/dashboard") &&
+        user.role.toLowerCase() === "admin"
+      ) {
+        console.log("admin user trying to access dashboard panel");
+        return NextResponse.redirect(new URL("/admin", req.url));
       }
 
       // If a logged-in user tries to access auth routes, redirect to the dashboard
@@ -154,10 +160,5 @@ export async function middleware(req: ExtendedNextRequest) {
 
 // Specify the routes where this middleware should be applied
 export const config = {
-  matcher: [
-    "/dashboard/:path*", // Protect all subroutes of /dashboard
-    "/admin/:path*", // Protect all subroutes of /admin-panel
-    "/auth/:path*", // Protect all auth routes
-    // "/:path*",
-  ],
+  matcher: ["/:path*"],
 };
