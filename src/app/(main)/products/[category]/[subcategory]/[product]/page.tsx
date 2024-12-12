@@ -54,7 +54,6 @@ export async function generateMetadata({
     },
   };
 }
-
 // Data fetching
 async function getProduct(slug: string): Promise<ProductData | null> {
   try {
@@ -62,8 +61,16 @@ async function getProduct(slug: string): Promise<ProductData | null> {
       `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductBySlug/${slug}`
     );
 
-    if (!res) return null;
-    return res.data;
+    if (!res || !res.data) return null;
+
+    const product = res.data;
+
+    // Check if the product is available
+    if (!product.Available) {
+      return null; // Treat unavailable products as non-existent
+    }
+
+    return product;
   } catch (error) {
     console.error("Error fetching product:", error);
     return null;
@@ -78,8 +85,9 @@ export default async function ProductPage({
   const productData = await getProduct(params.product);
 
   if (!productData) {
-    notFound();
+    notFound(); // Redirect to the 404 page if the product doesn't exist or is unavailable
   }
+
   const breadCrumbs = [
     { href: "/", path: "/" },
     { href: "/products", path: "/products" },
@@ -92,13 +100,13 @@ export default async function ProductPage({
       path: `/products/${productData.categorySlug}/${productData.subCategorySlug}`,
     },
   ];
+
   return (
     <>
       <Breadcrumb breadcrumbs={breadCrumbs} />
       {/* Main Product Section */}
       <section className={styles.head}>
         <Image
-          // src={`/productImages/${productData.img2}`}
           src={`${process.env.LIARA_BUCKET_URL}/productImages/${productData.productSlug}/${productData.productSlug}-banner.webp`}
           alt={productData.Type}
           width={1340}
