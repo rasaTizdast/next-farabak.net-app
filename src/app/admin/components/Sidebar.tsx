@@ -11,6 +11,8 @@ import {
   FiFile,
   FiBarChart2,
 } from "react-icons/fi";
+import { BiCategory } from "react-icons/bi";
+
 import { useUser } from "@/context/UserContext";
 
 const Sidebar = () => {
@@ -21,6 +23,11 @@ const Sidebar = () => {
   const sidebarItems = [
     { name: "داشبورد", href: "/admin", icon: <FiHome size={20} /> },
     { name: "محصولات", href: "/admin/products", icon: <FiBox size={20} /> },
+    {
+      name: "دسته‌بندی‌ها",
+      href: "/admin/products/categories",
+      icon: <BiCategory />,
+    },
     { name: "صفحات", href: "/admin/pages", icon: <FiFileText size={20} /> },
     {
       name: "گزارش‌ها",
