@@ -1,5 +1,3 @@
-// src/app/(main)/products/_components/GridContentServer.tsx
-
 import { fetchProducts } from "../_utils/fetchProducts";
 import Link from "next/link";
 import Image from "next/image";
@@ -12,6 +10,7 @@ interface Product {
   img1: string;
   productSlug: string;
   link: string;
+  Available: boolean;
 }
 
 interface GridContentServerProps {
@@ -30,10 +29,15 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
   const { data: products, pagination } = await fetchProducts(apiUrl);
   const totalPages = pagination.totalPages;
 
+  // Filter the products to only include those that are available
+  const availableProducts = products.filter(
+    (product: Product) => product.Available
+  );
+
   return (
     <>
       <div className={styles.productGrid}>
-        {products.map((product: Product) => (
+        {availableProducts.map((product: Product) => (
           <Link
             key={product.ProductId}
             href={`/products/${product.link}`}
@@ -43,7 +47,6 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
               width={280}
               height={280}
               quality={100}
-              // src={`/productImages/${product.img1}`}
               src={`${process.env.LIARA_BUCKET_URL}/productImages/${product.productSlug}/${product.productSlug}-mini.webp`}
               alt={product.Type}
               loading="eager"
