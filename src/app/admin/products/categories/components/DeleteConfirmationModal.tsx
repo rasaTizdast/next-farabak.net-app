@@ -6,6 +6,8 @@ type DeleteConfirmationModalProps = {
   item: Category | Subcategory | null;
   onDeleteConfirm: () => void;
   onClose: () => void;
+  confirmationText: string;
+  setConfirmationText: (text: string) => void;
 };
 
 const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
@@ -13,9 +15,9 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   item,
   onDeleteConfirm,
   onClose,
+  confirmationText,
+  setConfirmationText,
 }) => {
-  const [confirmationText, setConfirmationText] = useState("");
-
   if (!isOpen || !item) return null;
 
   return (
