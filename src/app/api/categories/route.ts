@@ -89,7 +89,7 @@ async function verifyToken(token: string) {
  *               CategoryID:
  *                 type: integer
  *               CategoryContentId:
- *                 type: integer
+ *                 type: string
  *               Name:
  *                 type: string
  *               Slug:
@@ -135,7 +135,7 @@ async function verifyToken(token: string) {
  *                       type: object
  *                       properties:
  *                         CategoryContentId:
- *                           type: integer
+ *                           type: string
  *                         Name:
  *                           type: string
  *                         CategoryID:
