@@ -130,7 +130,8 @@ const CategoryTable = ({
 
   const handleDeleteConfirm = async () => {
     if (!deleteItem) return;
-
+    console.log("confirmationText", confirmationText);
+    console.log("deleteItem.Name", deleteItem.Name);
     // Check if the user typed the correct name
     if (confirmationText !== deleteItem.Name) {
       toast.error("نام وارد شده صحیح نیست. لطفاً دوباره تلاش کنید.");
@@ -189,7 +190,7 @@ const CategoryTable = ({
 
   return (
     <>
-      <div className="flex flex-col items-center p-4 overflow-x-auto">
+      <div className="flex flex-col items-center mt-10 overflow-x-auto">
         <table className="w-full overflow-hidden rounded-xl text-xs lg:text-sm text-center text-gray-300 table-auto border-spacing-0 border-separate max-w-[1800px]">
           <thead className="text-gray-100 uppercase bg-slate-900">
             <tr>
@@ -253,7 +254,9 @@ const CategoryTable = ({
           isOpen={isDeleteModalOpen}
           item={deleteItem}
           onDeleteConfirm={handleDeleteConfirm}
-          onClose={() => setIsDeleteModalOpen(false)}
+          onClose={handleModalClose}
+          confirmationText={confirmationText}
+          setConfirmationText={setConfirmationText}
         />
       </div>
     </>
