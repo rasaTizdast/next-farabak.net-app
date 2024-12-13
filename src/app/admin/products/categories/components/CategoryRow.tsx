@@ -65,7 +65,7 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
         }`}
         disabled={!category.Subcategories.length}
       >
-        {expandedCategories.has(category.CategoryID) ? "بستن" : "نمایش"}
+        {expandedCategories.has(category.CategoryID) ? "بستن" : "مشاهده زیردسته‌بندی"}
       </button>
     </td>
   </tr>
