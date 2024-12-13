@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 
 import CategoryTable from "./components/CategoryTable";
 import { Toaster } from "react-hot-toast";
+import CreateNewItem from "./components/CreateNewItem";
 
 const ProductCategories = () => {
   // State to manage categories and loading state
@@ -33,6 +34,12 @@ const ProductCategories = () => {
   return (
     <>
       <Toaster position="bottom-center" />
+      <CreateNewItem
+        refetchCategories={fetchCategories}
+        isLoading={isLoading}
+        categories={categories}
+      />
+
       <CategoryTable
         categories={categories}
         isLoading={isLoading}
