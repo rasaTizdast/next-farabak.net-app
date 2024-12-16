@@ -6,6 +6,11 @@ export interface Subcategory {
   Slug: string;
   Available: boolean;
   Link: string;
+  SEO_Details: {
+    SEO_Title: string;
+    SEO_Description: string;
+    SEO_Keywords: string[];
+  };
 }
 
 // Category type
@@ -16,6 +21,11 @@ export interface Category {
   Slug: string;
   Link: string;
   Subcategories: Subcategory[];
+  SEO_Details: {
+    SEO_Title: string;
+    SEO_Description: string;
+    SEO_Keywords: string[];
+  };
 }
 
 export interface CategoryTableProps {
