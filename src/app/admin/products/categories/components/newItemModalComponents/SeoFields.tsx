@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 const SeoFields = ({
   seoTitle,
   seoDescription,
@@ -20,63 +22,117 @@ const SeoFields = ({
   addKeyword: (e: React.KeyboardEvent) => void;
   removeKeyword: (keyword: string) => void;
   editable?: boolean;
-}) => (
-  <div>
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700">
-        عنوان سئو
-      </label>
-      <input
-        type="text"
-        value={seoTitle}
-        onChange={(e) => setSeoTitle(e.target.value)}
-        disabled={!editable}
-        className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        placeholder="عنوان سئو"
-      />
-    </div>
+}) => {
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700">
-        توضیحات سئو
-      </label>
-      <textarea
-        value={seoDescription}
-        onChange={(e) => setSeoDescription(e.target.value)}
-        disabled={!editable}
-        className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        placeholder="توضیحات سئو"
-      />
-    </div>
+  // Regex patterns for validation
+  const regexPatterns = {
+    SEO_Title: /^.{0,50}$/, // Any character, up to 50 characters
+    SEO_Description: /^.{0,4000}$/, // Any character, up to 4000 characters
+    SEO_Keywords: /^.{0,4000}$/, // Any character, up to 4000 characters (no commas restriction)‌
+  };
 
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700">
-        کلمات کلیدی
-      </label>
-      <div className="flex items-center gap-2">
+  // Error messages
+  const errorMessages = {
+    SEO_Title: "عنوان سئو باید حداکثر ۵۰ کاراکتر باشد.",
+    SEO_Description: "توضیحات سئو باید حداکثر ۴۰۰۰ کاراکتر باشد.",
+    SEO_Keywords:
+      "کلمه کلیدی نمی‌تواند شامل کاما باشد و حداکثر ۴۰۰۰ کاراکتر باشد.",
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    // Validate input using regex patterns
+    const pattern = regexPatterns[field as keyof typeof regexPatterns];
+    if (pattern && !pattern.test(value)) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]:
+          errorMessages[field as keyof typeof errorMessages] || "خطای نامشخص",
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+
+    // Update the fields
+    if (field === "SEO_Title") {
+      setSeoTitle(value);
+    } else if (field === "SEO_Description") {
+      setSeoDescription(value);
+    }
+  };
+
+  return (
+    <div>
+      {/* SEO Title */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium">عنوان سئو</label>
         <input
           type="text"
-          value={keywordInput}
-          onChange={(e) => setKeywordInput(e.target.value)}
-          onKeyUp={addKeyword}
+          value={seoTitle}
+          onChange={(e) => handleInputChange("SEO_Title", e.target.value)}
           disabled={!editable}
-          className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="اضافه کردن کلمه کلیدی | بعد هر کلمه کلیدی دکمه Enter را بزنید"
+          className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 disabled:bg-gray-500"
+          placeholder="عنوان سئو"
         />
+        {errors.SEO_Title && (
+          <p className="text-red-500 text-sm">{errors.SEO_Title}</p>
+        )}
       </div>
-      <div className="mt-4 flex flex-wrap gap-2">
-        {seoKeywords.map((keyword, index) => (
-          <button
-            key={index}
-            className="bg-emerald-100 text-gray-700 px-4 py-1 rounded-lg flex items-center gap-2 hover:bg-red-500 hover:text-white animate-fade-in transition-all"
-            onClick={() => removeKeyword(keyword)}
-          >
-            {keyword}
-          </button>
-        ))}
+
+      {/* SEO Description */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium">توضیحات سئو</label>
+        <textarea
+          value={seoDescription}
+          onChange={(e) => handleInputChange("SEO_Description", e.target.value)}
+          disabled={!editable}
+          className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 disabled:bg-gray-500"
+          placeholder="توضیحات سئو"
+        />
+        {errors.SEO_Description && (
+          <p className="text-red-500 text-sm">{errors.SEO_Description}</p>
+        )}
+      </div>
+
+      {/* SEO Keywords */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium">کلمات کلیدی</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={keywordInput}
+            onChange={(e) => {
+              const newKeyword = e.target.value;
+              // Apply regex validation to restrict input size and invalid characters (e.g., commas)
+              if (regexPatterns.SEO_Keywords.test(newKeyword)) {
+                setKeywordInput(newKeyword); // Update the keyword input if valid
+              }
+            }}
+            onKeyUp={addKeyword}
+            disabled={!editable}
+            className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 disabled:bg-gray-500"
+            placeholder="اضافه کردن کلمه کلیدی | بعد هر کلمه کلیدی دکمه Enter را بزنید"
+          />
+        </div>
+        {errors.SEO_Keywords && (
+          <p className="text-red-500 text-sm">{errors.SEO_Keywords}</p>
+        )}
+
+        {/* Display keywords */}
+        <div className="mt-4 flex flex-wrap gap-2">
+          {seoKeywords.map((keyword, index) => (
+            <button
+              key={index}
+              className="bg-green-700 px-4 py-1 rounded-lg flex items-center gap-2 hover:bg-red-700 animate-fade-in transition-all"
+              onClick={() => removeKeyword(keyword)}
+            >
+              {keyword}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default SeoFields;

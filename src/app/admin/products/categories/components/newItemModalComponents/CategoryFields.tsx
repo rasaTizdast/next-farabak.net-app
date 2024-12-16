@@ -1,4 +1,5 @@
-// Reusable Category/Subcategory Form Fields
+import { useState } from "react";
+
 const CategoryFields = ({
   name,
   slug,
@@ -14,47 +15,93 @@ const CategoryFields = ({
   setName: React.Dispatch<React.SetStateAction<string>>;
   setSlug: React.Dispatch<React.SetStateAction<string>>;
   setAvailable: React.Dispatch<React.SetStateAction<boolean>>;
-  parentCategoryId: number | undefined;
   editable?: boolean;
-}) => (
-  <div>
-    <div className="mb-4">
-      <label className="block text-sm font-medium">نام دسته‌بندی</label>
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        disabled={!editable}
-        className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        placeholder="نام دسته‌بندی را وارد کنید"
-      />
-    </div>
+}) => {
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-    <div className="mb-4">
-      <label className="block text-sm font-medium">شناسه (Slug)</label>
-      <input
-        type="text"
-        value={slug}
-        onChange={(e) => setSlug(e.target.value)}
-        disabled={!editable}
-        className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        placeholder="شناسه دسته‌بندی"
-      />
-    </div>
+  // Regex patterns
+  const regexPatterns = {
+    Name: /^[a-zA-Z0-9\u0600-\u06FF\s_-]{0,1000}$/, // Persian, English, numbers, up to 1000 characters
+    Slug: /^[a-z0-9-]{0,200}$/, // Lowercase English, numbers, and dashes only, up to 200 characters
+  };
 
-    <div className="mb-4">
-      <label className="block text-sm font-medium">فعال (قابل نمایش)</label>
-      <select
-        value={available ? "true" : "false"}
-        onChange={(e) => setAvailable(e.target.value === "true")}
-        disabled={!editable}
-        className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <option value="true">بله</option>
-        <option value="false">خیر</option>
-      </select>
+  const errorMessages = {
+    Name: "نام باید حروف فارسی یا انگلیسی و حداکثر ۱۰۰۰ کاراکتر باشد.",
+    Slug: "شناسه فقط باید حروف انگلیسی کوچک، اعداد و خط تیره باشد و حداکثر ۲۰۰ کاراکتر باشد.",
+  };
+
+  // Handle input change with validation
+  const handleInputChange = (field: string, value: string) => {
+    const pattern = regexPatterns[field as keyof typeof regexPatterns];
+    if (pattern && !pattern.test(value)) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]:
+          errorMessages[field as keyof typeof errorMessages] || "خطای نامشخص",
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+
+    if (field === "Name") {
+      setName(value);
+    } else if (field === "Slug") {
+      setSlug(value);
+    }
+  };
+
+  // Handle slug input: convert spaces to dashes
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    value = value.replace(/\s+/g, "-").toLowerCase(); // Replace spaces with dashes
+    setSlug(value);
+  };
+
+  return (
+    <div>
+      {/* Category Name */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium">نام دسته‌بندی</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => handleInputChange("Name", e.target.value)}
+          disabled={!editable}
+          className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 disabled:bg-gray-500"
+          placeholder="نام دسته‌بندی را وارد کنید"
+        />
+        {errors.Name && <p className="text-red-500 text-sm">{errors.Name}</p>}
+      </div>
+
+      {/* Slug */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium">شناسه (Slug)</label>
+        <input
+          type="text"
+          value={slug}
+          onChange={handleSlugChange} // Use the space-to-dash handler
+          disabled={!editable}
+          className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 disabled:bg-gray-500"
+          placeholder="شناسه دسته‌بندی"
+        />
+        {errors.Slug && <p className="text-red-500 text-sm">{errors.Slug}</p>}
+      </div>
+
+      {/* Availability */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium">فعال (قابل نمایش)</label>
+        <select
+          value={available ? "true" : "false"}
+          onChange={(e) => setAvailable(e.target.value === "true")}
+          disabled={!editable}
+          className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 disabled:bg-gray-400 disabled:text-slate-300"
+        >
+          <option value="true">بله</option>
+          <option value="false">خیر</option>
+        </select>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default CategoryFields;
