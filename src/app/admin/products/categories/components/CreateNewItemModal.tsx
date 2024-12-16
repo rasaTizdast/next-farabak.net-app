@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import axios from "axios";
-
 import { Category } from "../types/types";
-
 import CategoryFields from "./newItemModalComponents/CategoryFields";
 import SeoFields from "./newItemModalComponents/SeoFields";
 
@@ -50,7 +48,9 @@ const CreateNewItemModal = ({
   const [seoKeywords, setSeoKeywords] = useState<string[]>([]);
   const [keywordInput, setKeywordInput] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false); // Loading state for submission
 
+  // Reset the form fields when the modal is opened (when `isOpen` changes)
   useEffect(() => {
     setName("");
     setSlug("");
@@ -60,7 +60,8 @@ const CreateNewItemModal = ({
     setSeoDescription("");
     setSeoKeywords([]);
     setKeywordInput("");
-  }, [activeTab]);
+    setError(null); // Clear any previous error messages
+  }, [isOpen, activeTab]); // Trigger the effect when `isOpen` changes
 
   const addKeyword = (e: React.KeyboardEvent) => {
     if (
@@ -108,43 +109,29 @@ const CreateNewItemModal = ({
       },
     };
 
+    setLoading(true); // Set loading to true when submitting
     try {
       if (activeTab === "Category") {
-        // Use the endpoint for "Category" type
         await axios.post("/api/categories/createCategory", result);
-
         toast.success("دسته‌بندی با موفقیت ایجاد شد!");
         onClose();
         refetchCategories();
-
-        // Clear the form fields
-        setName("");
-        setSlug("");
-        setAvailable(true);
-        setParentCategoryId(undefined);
-        setSeoTitle("");
-        setSeoDescription("");
-        setSeoKeywords([]);
-        setKeywordInput("");
       } else if (activeTab === "Subcategory") {
-        // Use the endpoint for "Category" type
-        console.log(result);
         await axios.post("/api/categories/createSubcategory", result);
-
         toast.success("زیردسته‌بندی با موفقیت ایجاد شد!");
         onClose();
         refetchCategories();
-
-        // Clear the form fields
-        setName("");
-        setSlug("");
-        setAvailable(true);
-        setParentCategoryId(undefined);
-        setSeoTitle("");
-        setSeoDescription("");
-        setSeoKeywords([]);
-        setKeywordInput("");
       }
+
+      // Clear the form fields after success
+      setName("");
+      setSlug("");
+      setAvailable(true);
+      setParentCategoryId(undefined);
+      setSeoTitle("");
+      setSeoDescription("");
+      setSeoKeywords([]);
+      setKeywordInput("");
     } catch (error) {
       console.error("Error creating category:", error);
 
@@ -156,10 +143,11 @@ const CreateNewItemModal = ({
       } else {
         setError("خطای ناشناخته‌ای رخ داده است. لطفاً دوباره تلاش کنید.");
       }
+    } finally {
+      setLoading(false); // Set loading to false after request is complete
     }
   };
 
-  // Check if all required fields for the current tab are filled
   const isSubmitDisabled = () => {
     if (activeTab === "Category") {
       return (
@@ -189,13 +177,12 @@ const CreateNewItemModal = ({
       }`}
     >
       <div className="w-full max-w-3xl animate-fade-in">
-        {/* Header Tabs */}
         <div className="flex justify-center gap-6 rtl">
           <button
             onClick={() => setActiveTab("Category")}
             className={`px-6 py-3 rounded-t-xl font-medium transition-all ${
               activeTab === "Category"
-                ? "bg-slate-300 text-gray-800"
+                ? "bg-gray-800 text-gray-200"
                 : "bg-blue-800 text-white hover:animate-pulse"
             }`}
           >
@@ -205,7 +192,7 @@ const CreateNewItemModal = ({
             onClick={() => setActiveTab("Subcategory")}
             className={`px-6 py-3 rounded-t-xl font-medium transition-all ${
               activeTab === "Subcategory"
-                ? "bg-slate-300 text-gray-800"
+                ? "bg-gray-800 text-gray-200"
                 : "bg-blue-800 text-white hover:animate-pulse"
             }`}
           >
@@ -213,33 +200,27 @@ const CreateNewItemModal = ({
           </button>
         </div>
 
-        {/* Form Content */}
-        <div className="p-6 pr-9 bg-slate-300 shadow-xl rounded-2xl text-gray-700 max-h-[90dvh] overflow-y-scroll">
+        <div className="p-6 pr-9 bg-gray-800 shadow-xl rounded-2xl text-white max-h-[90dvh] overflow-y-scroll">
           {activeTab === "Category" ? (
-            <div>
-              {/* Category Fields */}
-              <CategoryFields
-                name={name}
-                slug={slug}
-                available={available}
-                setName={setName}
-                setSlug={setSlug}
-                setAvailable={setAvailable}
-                parentCategoryId={parentCategoryId}
-                editable={true} // Editable for Category Tab
-              />
-            </div>
+            <CategoryFields
+              name={name}
+              slug={slug}
+              available={available}
+              setName={setName}
+              setSlug={setSlug}
+              setAvailable={setAvailable}
+              editable={true}
+            />
           ) : (
             <div>
-              {/* Subcategory Fields */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium">
                   دسته‌بندی اصلی
                 </label>
                 <select
                   value={parentCategoryId ?? ""}
                   onChange={(e) => setParentCategoryId(Number(e.target.value))}
-                  className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full bg-gray-700 p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="" disabled>
                     انتخاب دسته‌بندی
@@ -255,7 +236,6 @@ const CreateNewItemModal = ({
                 </select>
               </div>
 
-              {/* Subcategory Fields */}
               <CategoryFields
                 name={name}
                 slug={slug}
@@ -263,13 +243,11 @@ const CreateNewItemModal = ({
                 setName={setName}
                 setSlug={setSlug}
                 setAvailable={setAvailable}
-                parentCategoryId={parentCategoryId}
-                editable={parentCategoryId !== undefined} // Editable once parent category is selected
+                editable={parentCategoryId !== undefined}
               />
             </div>
           )}
 
-          {/* SEO Fields */}
           <SeoFields
             seoTitle={seoTitle}
             seoDescription={seoDescription}
@@ -285,7 +263,6 @@ const CreateNewItemModal = ({
             }
           />
 
-          {/* Error and Submit Button */}
           {error && <div className="text-red-500 text-sm mt-4">{error}</div>}
           <div className="flex justify-between items-center mt-5">
             <button
@@ -296,10 +273,14 @@ const CreateNewItemModal = ({
             </button>
             <button
               onClick={handleSubmit}
-              disabled={isSubmitDisabled()}
-              className="px-6 py-3 rounded-xl font-medium bg-blue-500 text-white disabled:bg-gray-400 disabled:cursor-not-allowed"
+              disabled={isSubmitDisabled() || loading} // Disable the button if loading
+              className={`px-6 py-3 rounded-xl font-medium bg-blue-500 text-white disabled:bg-gray-400 disabled:cursor-not-allowed ${
+                loading ? "cursor-not-allowed" : ""
+              }`}
             >
-              ثبت
+              {loading
+                ? "در حال ثبت" // Add a loading spinner or any other indicator
+                : "ثبت"}
             </button>
           </div>
         </div>
