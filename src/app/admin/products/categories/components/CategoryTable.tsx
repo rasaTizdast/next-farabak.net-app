@@ -99,7 +99,7 @@ const CategoryTable = ({
   const handleItemUpdate = async (updatedItem: Category | Subcategory) => {
     const isCategory =
       "CategoryID" in updatedItem && !("CategoryContentId" in updatedItem);
-    const endpoint = `/api/categories`;
+    const endpoint = `/api/categories/editCategory`;
     const payload = isCategory
       ? {
           Type: "category",
@@ -107,6 +107,11 @@ const CategoryTable = ({
           Name: updatedItem.Name,
           Slug: updatedItem.Slug,
           Available: updatedItem.Available,
+          SEO_Details: {
+            SEO_Title: updatedItem.SEO_Details.SEO_Title,
+            SEO_Description: updatedItem.SEO_Details.SEO_Description,
+            SEO_Keywords: updatedItem.SEO_Details.SEO_Keywords,
+          },
         }
       : {
           Type: "subcategory",
@@ -115,10 +120,17 @@ const CategoryTable = ({
           Name: updatedItem.Name,
           Slug: updatedItem.Slug,
           Available: updatedItem.Available,
+          SEO_Details: {
+            SEO_Title: updatedItem.SEO_Details.SEO_Title,
+            SEO_Description: updatedItem.SEO_Details.SEO_Description,
+            SEO_Keywords: updatedItem.SEO_Details.SEO_Keywords,
+          },
         };
 
     try {
       await axios.patch(endpoint, payload);
+      console.log("endpoint: ", endpoint);
+      console.log("payload: ", payload);
       toast.success("تغییرات با موفقیت اعمال شدند!");
       refetchCategories();
       setEditCategory(null);
@@ -149,7 +161,7 @@ const CategoryTable = ({
     };
 
     try {
-      await axios.delete("/api/categories", { data: requestBody });
+      await axios.delete("/api/categories/delete", { data: requestBody });
       toast.success(
         `${
           isCategoryItem ? "دسته‌بندی" : "زیرمجموعه"
