@@ -21,7 +21,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   if (!isOpen || !item) return null;
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 backdrop-blur-sm">
       <div className="bg-white p-6 rounded-xl w-96">
         <h2 className="text-lg font-semibold text-center">
           حذف {item.Name} را تأیید کنید
