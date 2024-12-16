@@ -183,7 +183,6 @@ const AdminProductsPage = () => {
     subCategory: string;
     available: boolean | null;
   }) => {
-    console.log(newFilters); // Debug: Check if new filters are being passed correctly
     setFilters(newFilters);
     toast.success("فیلتر اعمال شد.");
     setShowFilterModal(false);
