@@ -30,14 +30,9 @@ const createAccessToken = async (user: {
 
 // Middleware function to protect routes and handle token refresh
 export async function middleware(req: ExtendedNextRequest) {
-  console.log("Middleware execution started...");
-
   // Extract tokens from cookies
   const accessToken = req.cookies.get("accessToken")?.value;
   const refreshToken = req.cookies.get("refreshToken")?.value;
-
-  console.log("Access token from cookies:", accessToken);
-  console.log("Refresh token from cookies:", refreshToken);
 
   // Define protected routes
   const protectedRoutes = ["/dashboard", "/admin"];
@@ -46,18 +41,14 @@ export async function middleware(req: ExtendedNextRequest) {
   const isProtectedRoute = protectedRoutes.some((route) =>
     req.nextUrl.pathname.startsWith(route)
   );
-  console.log("Is protected route:", isProtectedRoute);
 
   // If the user is trying to access a protected route without any token, redirect to login
   if (isProtectedRoute && !accessToken && !refreshToken) {
-    console.log("No tokens found, redirecting to login...");
     return NextResponse.redirect(new URL("/auth/login", req.url));
   }
 
   // If the access token is missing but refresh token is available, refresh the access token
   if (!accessToken && refreshToken) {
-    console.log("No access token found, attempting to refresh...");
-
     try {
       // Verify the refresh token
       const { payload: refreshPayload } = await jwtVerify(
@@ -71,12 +62,8 @@ export async function middleware(req: ExtendedNextRequest) {
         role: string;
       };
 
-      console.log("Refresh token verified, creating new access token...");
-
       // Create a new access token
       const newAccessToken = await createAccessToken(user);
-
-      console.log("New access token created:", newAccessToken);
 
       // Add the new access token to the cookies
       const response = NextResponse.next();
@@ -86,13 +73,8 @@ export async function middleware(req: ExtendedNextRequest) {
         maxAge: ACCESS_TOKEN_EXPIRATION,
       });
 
-      console.log("New access token set in cookies");
-
       // Check if the user was navigating to an auth route, if so, redirect to the dashboard
       if (req.nextUrl.pathname.startsWith("/auth")) {
-        console.log(
-          "User tried to access auth route after refresh, redirecting to dashboard..."
-        );
         return NextResponse.redirect(new URL("/dashboard", req.url));
       }
 
@@ -118,8 +100,6 @@ export async function middleware(req: ExtendedNextRequest) {
         role: string;
       };
 
-      console.log("Access token verified:", user);
-
       // Attach user information to the request for later use in API routes
       req.user = user;
 
@@ -128,21 +108,16 @@ export async function middleware(req: ExtendedNextRequest) {
         req.nextUrl.pathname.startsWith("/admin") &&
         user.role.toLowerCase() !== "admin"
       ) {
-        console.log("Non-admin user trying to access admin panel");
         return NextResponse.redirect(new URL("/dashboard", req.url));
       } else if (
         req.nextUrl.pathname.startsWith("/dashboard") &&
         user.role.toLowerCase() === "admin"
       ) {
-        console.log("admin user trying to access dashboard panel");
         return NextResponse.redirect(new URL("/admin", req.url));
       }
 
       // If a logged-in user tries to access auth routes, redirect to the dashboard
       if (req.nextUrl.pathname.startsWith("/auth") && user) {
-        console.log(
-          "Logged-in user trying to access auth routes, redirecting to dashboard"
-        );
         return NextResponse.redirect(new URL("/dashboard", req.url));
       }
 
@@ -151,8 +126,6 @@ export async function middleware(req: ExtendedNextRequest) {
       console.error("Access token verification error:", error);
     }
   }
-
-  console.log("No access token needed, proceeding to next middleware or route");
 
   // Proceed if no token is needed and no refresh process is triggered
   return NextResponse.next();
