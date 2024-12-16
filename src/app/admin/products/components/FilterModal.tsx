@@ -29,7 +29,6 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
     const fetchCategoriesAndSubCategories = async () => {
       try {
         const { data } = await axios.get("/api/admin/products/filterData");
-        console.log("Categories data fetched:", data.categories); // Log the fetched data
         setCategories(data.categories); // API sends categories with subcategories
       } catch (error) {
         console.error("Error fetching categories and subcategories:", error);
@@ -56,19 +55,14 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
 
   // Get subcategories based on the selected category
   const getSubCategories = (categoryId: string) => {
-    console.log("Selected Category ID:", categoryId); // Log selected category ID
-    console.log("All Categories:", categories); // Log all categories to check their structure
     const selectedCategory = categories.find(
       (category) => +category.CategoryID === +categoryId
     );
-    console.log("Selected Category:", selectedCategory); // Log the selected category object
     return selectedCategory ? selectedCategory.subCategories : [];
   };
 
   // Get the current subcategories for the selected category
   const subCategories = getSubCategories(tempFilters.category);
-
-  console.log("Filtered SubCategories:", subCategories); // Log the filtered subCategories
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity">
