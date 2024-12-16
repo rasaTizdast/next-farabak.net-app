@@ -294,7 +294,7 @@ const ProductsTable = ({
                         target="_blank"
                         className="flex gap-2 items-center px-2 py-1 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all"
                       >
-                        جزئیات
+                        مشاهده
                         <FaExternalLinkAlt size={12} />
                       </Link>
                     </div>
