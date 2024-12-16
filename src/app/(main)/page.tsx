@@ -15,31 +15,31 @@ const HomePage = () => {
     {
       id: 1,
       img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/slider-home-edition-1.webp`,
-      link: "/products/category/home-edition",
+      link: "/products/home-edition",
       alt: "",
     },
     {
       id: 2,
       img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/slider-dome-cameras.webp`,
-      link: "/products/category/home-edition/dome",
+      link: "/products/home-edition/dome",
       alt: "",
     },
     {
       id: 3,
       img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/slider-ip-cameras.webp`,
-      link: "/products/category/home-edition/ip",
+      link: "/products/home-edition/ip",
       alt: "",
     },
     {
       id: 4,
       img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/slider-battery-cameras.webp`,
-      link: "/products/category/home-edition/battery",
+      link: "/products/home-edition/battery",
       alt: "",
     },
     {
       id: 5,
       img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/slider-home-edition-2.webp`,
-      link: "/products/category/home-edition",
+      link: "/products/home-edition",
       alt: "",
     },
   ];
