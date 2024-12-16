@@ -22,7 +22,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
 
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 backdrop-blur-sm">
-      <div className="bg-white p-6 rounded-xl w-96">
+      <div className="bg-gray-800 text-white p-6 rounded-xl w-96">
         <h2 className="text-lg font-semibold text-center">
           حذف {item.Name} را تأیید کنید
         </h2>
@@ -33,13 +33,13 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
           type="text"
           value={confirmationText}
           onChange={(e) => setConfirmationText(e.target.value)}
-          className="mt-4 w-full px-4 py-2 border border-gray-300 rounded"
+          className="mt-4 w-full px-4 py-2 border border-gray-900 rounded bg-gray-700"
           placeholder="نام را وارد کنید"
         />
         <div className="mt-6 flex justify-around">
           <button
             onClick={onDeleteConfirm}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-all"
+            className="bg-red-700 text-white px-4 py-2 rounded hover:bg-red-800 transition-all"
           >
             بله، حذف کن
           </button>
