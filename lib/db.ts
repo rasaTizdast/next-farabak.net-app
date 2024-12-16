@@ -25,11 +25,8 @@ function throwError(message: string): never {
 // Function to connect to the database
 export async function connectToDatabase() {
   try {
-    const pool = await sql.connect(config);
-    console.log("Connected to the MSSQL database");
-    return pool;
+    return await sql.connect(config);
   } catch (err) {
-    console.error("Database connection failed: ", err);
     throw err;
   }
 }
