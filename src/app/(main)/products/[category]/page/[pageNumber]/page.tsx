@@ -82,8 +82,6 @@ const CategoryPage = async ({ params }: CategoryPageProps) => {
     },
   ];
 
-  console.log(breadcrumbs);
-
   return (
     <div>
       <Breadcrumb breadcrumbs={breadcrumbs} />
