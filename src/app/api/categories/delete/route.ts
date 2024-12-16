@@ -81,7 +81,7 @@ async function verifyToken(token: string) {
  */
 
 // Helper function to delete a subcategory and related data
-async function deleteSubCategory(pool: ConnectionPool, subCategoryId: string) {
+async function deleteSubCategory(pool: ConnectionPool, subCategoryId: number) {
   // Delete related SEO details for subCategory
   await pool.request().input("subCategoryId", subCategoryId) // Bind parameter
     .query(`
@@ -89,7 +89,9 @@ async function deleteSubCategory(pool: ConnectionPool, subCategoryId: string) {
     `);
 
   // Delete products that are associated with the subCategory
-  const products = await pool.request().input("subCategoryId", subCategoryId) // Bind parameter
+  const products = await pool
+    .request()
+    .input("subCategoryId", subCategoryId.toString()) // Bind parameter
     .query(`
       SELECT ProductId, CategoryContentId FROM Support.Product WHERE CategoryContentId LIKE '%' + @subCategoryId + '%'
     `);
@@ -113,13 +115,11 @@ async function deleteSubCategory(pool: ConnectionPool, subCategoryId: string) {
         DELETE FROM Support.FAQs WHERE ProductId = @productId
       `);
   }
-
   // Delete products
-  await pool.request().input("subCategoryId", subCategoryId) // Bind parameter
+  await pool.request().input("subCategoryId", subCategoryId.toString()) // Bind parameter
     .query(`
       DELETE FROM Support.Product WHERE CategoryContentId LIKE '%' + @subCategoryId + '%'
     `);
-
   // Finally, delete the subCategory itself
   await pool.request().input("subCategoryId", subCategoryId) // Bind parameter
     .query(`
