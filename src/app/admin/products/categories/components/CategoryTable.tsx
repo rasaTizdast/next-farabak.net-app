@@ -129,8 +129,6 @@ const CategoryTable = ({
 
     try {
       await axios.patch(endpoint, payload);
-      console.log("endpoint: ", endpoint);
-      console.log("payload: ", payload);
       toast.success("تغییرات با موفقیت اعمال شدند!");
       refetchCategories();
       setEditCategory(null);
@@ -142,8 +140,6 @@ const CategoryTable = ({
 
   const handleDeleteConfirm = async () => {
     if (!deleteItem) return;
-    console.log("confirmationText", confirmationText);
-    console.log("deleteItem.Name", deleteItem.Name);
     // Check if the user typed the correct name
     if (confirmationText !== deleteItem.Name) {
       toast.error("نام وارد شده صحیح نیست. لطفاً دوباره تلاش کنید.");
