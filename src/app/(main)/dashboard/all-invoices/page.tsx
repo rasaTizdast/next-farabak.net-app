@@ -46,31 +46,6 @@ const AllInvoices = () => {
 
   const { user } = useUser();
 
-  // const transformInvoiceData = (invoices: InvoiceApiData[]) => {
-  //   console.log("invoices: ", invoices);
-  //   return invoices.map((invoice) => {
-  //     const productNames = invoice.ProductName.replace(/[[\]]/g, "").split(",");
-  //     const quantities = invoice.Quantity.split(",");
-
-  //     const products: Product[] = productNames.map((name, index) => ({
-  //       id: index + 1,
-  //       name: name.trim(),
-  //       amount: parseInt(quantities[index].trim(), 10),
-  //     }));
-
-  //     return {
-  //       fullname: invoice.Fullname,
-  //       phonenumber: invoice.Phonenumber,
-  //       checked: invoice.Checked,
-  //       guid: invoice.FactorGuid,
-  //       products,
-  //       totalAmount: +invoice.TotalAmount,
-  //       id: invoice.FactorId,
-  //       date: invoice.Date,
-  //     };
-  //   });
-  // };
-
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -164,7 +139,6 @@ const AllInvoices = () => {
     );
   }
 
-  console.log(invoices);
   return (
     <>
       <Toaster position="bottom-center" />
