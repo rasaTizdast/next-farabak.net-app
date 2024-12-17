@@ -10,6 +10,7 @@ import Pagination from "./components/Pagination";
 import fetchProducts from "./helper/fetchProducts";
 import ProductsTable from "./components/ProductsTable";
 import { hasFilters } from "./helper/hasFilters";
+import NewProductModal from "./components/NewProductModal";
 
 type Product = {
   ProductId: number;
@@ -26,10 +27,19 @@ type Product = {
   }[];
 };
 
+type Category = {
+  CategoryID: number;
+  Name: string;
+  Available: boolean;
+  Subcategories: { CategoryContentId: number; Name: string }[];
+};
+
 const AdminProductsPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showNewProductModal, setShowNewProductModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [tempSearchQuery, setTempSearchQuery] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -197,6 +207,15 @@ const AdminProductsPage = () => {
     setProducts(products);
     toast.success("فیلترها حذف شدند.");
   };
+
+  const fetchCategories = async () => {
+    const res = await axios.get("/api/categories/getAll");
+    setCategories(res.data);
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
   return (
     <>
       <Toaster position="bottom-center" />
@@ -243,7 +262,10 @@ const AdminProductsPage = () => {
             )}
           </div>
           {/* New Product Button */}
-          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+          <button
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            onClick={() => setShowNewProductModal(true)}
+          >
             محصول جدید
           </button>
         </div>
@@ -274,6 +296,14 @@ const AdminProductsPage = () => {
             filters={filters}
             applyFilters={applyFilters}
             setShowFilterModal={setShowFilterModal}
+          />
+        )}
+
+        {/* NewProduct Modal */}
+        {showNewProductModal && (
+          <NewProductModal
+            setShowNewProductModal={setShowNewProductModal}
+            categories={categories}
           />
         )}
       </div>
