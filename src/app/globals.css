@@ -83,3 +83,15 @@ a {
 .glass-card:hover a {
   transition: color 0.3s ease-in-out;
 }
+
+.input-field {
+  @apply border border-gray-300 rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900;
+}
+
+.textarea-field {
+  @apply border border-gray-300 rounded-md px-4 py-2 w-full h-24 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 resize-none;
+}
+
+.file-input {
+  @apply border border-gray-300 rounded-md px-4 py-2 w-full text-gray-900 file:cursor-pointer file:bg-blue-500 file:text-white file:rounded-md file:px-4 file:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+}
