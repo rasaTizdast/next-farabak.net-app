@@ -43,7 +43,7 @@ function Overview({
       </div>
       {img && (
         <Image
-          src={`/overview-details-images${img}`}
+          src={`${process.env.LIARA_BUCKET_URL}/overview-details-images${img}`}
           alt={title}
           width={1920}
           height={1080}
