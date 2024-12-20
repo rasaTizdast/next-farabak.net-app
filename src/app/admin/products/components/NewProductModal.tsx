@@ -72,8 +72,17 @@ type Props = {
   categories: Category[];
 };
 
+// Define the type for sections
+type Section =
+  | "baseDetails"
+  | "productOverview"
+  | "overviewDetails"
+  | "specs"
+  | "faq";
+
 const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
   const [state, dispatch] = useReducer(productReducer, initialState);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // Manage the collapse state for each section
   const [openSections, setOpenSections] = useState({
@@ -85,18 +94,44 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
   });
 
   // Handle the toggling of each section
-  const toggleSection = (section: string) => {
+  const toggleSection = (section: Section) => {
     setOpenSections((prevState) => ({
       ...prevState,
       [section]: !prevState[section],
     }));
   };
 
+  // Check if there are any errors
+  const hasErrors = Object.values(errors).some((error) => error !== "");
+
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check for empty fields
+    const newErrors: { [key: string]: string } = {};
+    if (!state.name) newErrors.name = "نام الزامی است";
+    if (!state.slug) newErrors.slug = "نامک الزامی است";
+    if (state.categoryID === null)
+      newErrors.categoryID = "دسته‌بندی الزامی است";
+    if (state.subCategoryID === null)
+      newErrors.subCategoryID = "زیر دسته‌بندی الزامی است";
+    if (!state.smallDesc) newErrors.smallDesc = "توضیح کوتاه الزامی است";
+    if (!state.bannerImage) newErrors.bannerImage = "تصویر بنر الزامی است";
+    if (!state.transparentImage)
+      newErrors.transparentImage = "تصویر شفاف الزامی است";
+    if (state.features.length === 0)
+      newErrors.features = "حداقل یک ویژگی الزامی است";
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      toast.error("لطفاً تمام خطاها را برطرف کنید.");
+      return;
+    }
+
     console.log(state); // For now, log the form data
-    toast.success("Product created successfully!");
+    toast.success("محصول با موفقیت ایجاد شد!");
   };
 
   return (
@@ -123,6 +158,7 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
                 state={state}
                 dispatch={dispatch}
                 categories={categories}
+                setErrors={setErrors} // Pass setErrors to child components
               />
             )}
           </div>
@@ -141,7 +177,11 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
               )}
             </div>
             {openSections.productOverview && (
-              <ProductOverview state={state} dispatch={dispatch} />
+              <ProductOverview
+                state={state}
+                dispatch={dispatch}
+                setErrors={setErrors}
+              />
             )}
           </div>
 
@@ -159,7 +199,11 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
               )}
             </div>
             {openSections.overviewDetails && (
-              <OverviewDetails state={state} dispatch={dispatch} />
+              <OverviewDetails
+                state={state}
+                dispatch={dispatch}
+                setErrors={setErrors}
+              />
             )}
           </div>
 
@@ -176,7 +220,9 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
                 <FiChevronDown size={20} />
               )}
             </div>
-            {openSections.specs && <Specs state={state} dispatch={dispatch} />}
+            {openSections.specs && (
+              <Specs state={state} dispatch={dispatch} setErrors={setErrors} />
+            )}
           </div>
 
           {/* FAQ Section */}
@@ -192,14 +238,33 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
                 <FiChevronDown size={20} />
               )}
             </div>
-            {openSections.faq && <FAQ state={state} dispatch={dispatch} />}
+            {openSections.faq && (
+              <FAQ state={state} dispatch={dispatch} setErrors={setErrors} />
+            )}
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-center mt-6">
+          <div className="flex flex-col items-center mt-6">
+            {hasErrors && (
+              <div className="flex flex-wrap justify-center gap-2 my-4">
+                {Object.values(errors).map((error, index) => (
+                  <div
+                    key={index}
+                    className="bg-red-500 rounded-lg text-center p-2"
+                  >
+                    {error}
+                  </div>
+                ))}
+              </div>
+            )}
             <button
               type="submit"
-              className="bg-blue-500 text-white py-2 px-6 rounded-lg"
+              className={`py-2 px-6 rounded-lg ${
+                hasErrors
+                  ? "bg-gray-500 cursor-not-allowed"
+                  : "bg-blue-500 hover:bg-blue-600"
+              } text-white`}
+              disabled={hasErrors}
             >
               ایجاد محصول
             </button>
