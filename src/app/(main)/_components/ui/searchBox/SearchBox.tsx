@@ -30,6 +30,8 @@ interface Product {
   description: string;
   img1: string;
   Slug: string;
+  link: string;
+  productSlug: string;
 }
 
 // Debounced search handler for API requests
@@ -63,7 +65,7 @@ const debouncedSearchHandler = debounce(
     } finally {
       setLoading(false);
     }
-  },
+},
   300
 );
 
@@ -106,6 +108,7 @@ const SearchResults = ({
   hasSearched: boolean;
   closeSearchBox: () => void;
 }) => {
+  console.log(process.env.LIARA_BUCKET_URL);
   return (
     <div className={styles.results}>
       {/* Display results only if there are search results */}
@@ -113,7 +116,7 @@ const SearchResults = ({
         searchResults.map((product) => (
           <Link
             key={product.productId}
-            href={`products/${product.productId}`}
+            href={`products/${product.link}`}
             className={styles.result}
             onClick={() => {
               closeSearchBox();
@@ -123,8 +126,7 @@ const SearchResults = ({
               width={280}
               height={280}
               quality={100}
-              // src={`/productImages/${product.img1}`}
-              src={`/productImages/${product.Slug}/${product.Slug}-mini.webp`}
+              src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/productImages/${product.productSlug}/${product.productSlug}-mini.webp`}
               alt={product.name}
             />
             <p>{product.Type}</p>
