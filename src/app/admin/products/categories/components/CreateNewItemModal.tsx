@@ -158,14 +158,7 @@ const CreateNewItemModal = ({
         seoKeywords.length === 0
       );
     } else if (activeTab === "Subcategory") {
-      return (
-        name.trim() === "" ||
-        slug.trim() === "" ||
-        seoTitle.trim() === "" ||
-        seoDescription.trim() === "" ||
-        seoKeywords.length === 0 ||
-        !parentCategoryId
-      );
+      return name.trim() === "" || slug.trim() === "" || !parentCategoryId;
     }
     return false;
   };
