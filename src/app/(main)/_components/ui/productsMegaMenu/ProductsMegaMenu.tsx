@@ -43,7 +43,8 @@ const ProductsMegaMenu = () => {
     try {
       setIsloading(true);
       const res = await axios.get("/api/categories/getAll");
-      setCategories(res.data);
+      const availableCategories = res.data.filter((category: Category) => category.Available);
+      setCategories(availableCategories);
       setIsloading(false);
     } catch (err) {
       console.error(err);
@@ -55,7 +56,7 @@ const ProductsMegaMenu = () => {
   }, []);
 
   const categoriesWithSubcategories = categories.filter(
-    (category: Category) => category.Subcategories.length > 0
+    (category: Category) => category.Subcategories.some(subCategory => subCategory.Available)
   );
   const categoriesWithoutSubcategories = categories.filter(
     (category: Category) => category.Subcategories.length === 0
@@ -109,7 +110,7 @@ const ProductsMegaMenu = () => {
                     </Link>
                   </h3>
                   <ul>
-                    {category.Subcategories.map((subCategory: Subcategory) => (
+                    {category.Subcategories.filter(subCategory => subCategory.Available).map((subCategory: Subcategory) => (
                       <li key={subCategory.CategoryContentId}>
                         <Link href={subCategory.Link} onClick={handleLinkClick}>
                           {subCategory.Name}
