@@ -21,7 +21,7 @@ const CategoryFields = ({
 
   // Regex patterns
   const regexPatterns = {
-    Name: /^[a-zA-Z0-9\u0600-\u06FF\s_-]{0,1000}$/, // Persian, English, numbers, up to 1000 characters
+    Name: /^[a-zA-Z0-9-\u0600-\u06FF\s_\u200C\u002D\u2013\u2014]{0,1000}$/, // Persian, English, numbers, up to 1000 characters
     Slug: /^[a-z0-9-]{0,200}$/, // Lowercase English, numbers, and dashes only, up to 200 characters
   };
 
