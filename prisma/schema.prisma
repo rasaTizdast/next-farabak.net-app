@@ -1,0 +1,384 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["Blog", "Info", "Member", "Project", "Support", "farabak_net_technomi"]
+}
+
+model BlogCategories {
+  id          Int        @id(map: "PK__BlogCate__3213E83F00BCAE91") @default(autoincrement())
+  blog_id     Int
+  category_id Int
+  Blogs       Blogs      @relation(fields: [blog_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK__BlogCateg__blog___270FB757")
+  Categories  Categories @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK__BlogCateg__categ__2803DB90")
+
+  @@schema("Blog")
+}
+
+model BlogTags {
+  id      Int   @id(map: "PK__BlogTags__3213E83F9FF48426") @default(autoincrement())
+  blog_id Int
+  tag_id  Int
+  Blogs   Blogs @relation(fields: [blog_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK__BlogTags__blog_i__2FA4FD58")
+  Tags    Tags  @relation(fields: [tag_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK__BlogTags__tag_id__30992191")
+
+  @@schema("Blog")
+}
+
+model Blogs {
+  id             Int              @id(map: "PK__Blogs__3213E83F77E508B6") @default(autoincrement())
+  title          String?          @db.VarChar(255)
+  SEO_Title      String?          @db.VarChar(255)
+  slug           String?          @unique(map: "UQ__Blogs__32DD1E4C6CC87B20") @db.VarChar(255)
+  file_url       String?          @db.VarChar(500)
+  media_type     String?          @db.VarChar(50)
+  created_at     String?          @db.VarChar(50)
+  updated_at     String?          @db.VarChar(50)
+  status         String?          @default("Draft") @db.VarChar(50)
+  views_count    Int?             @default(0)
+  BlogCategories BlogCategories[]
+  BlogTags       BlogTags[]
+  Comments       Blog_Comments[]
+  Content        Content[]
+  Likes          Likes[]
+
+  @@schema("Blog")
+}
+
+model Categories {
+  id             Int              @id(map: "PK__Categori__3213E83FF119B6A9") @default(autoincrement())
+  name           String?          @db.VarChar(100)
+  slug           String?          @unique(map: "UQ__Categori__32DD1E4C6F98CBB2") @db.VarChar(100)
+  BlogCategories BlogCategories[]
+
+  @@schema("Blog")
+}
+
+model Blog_Comments {
+  id         Int     @id(map: "PK__Comments__3213E83F1557248B") @default(autoincrement())
+  blog_id    Int
+  content    String
+  created_at String? @db.VarChar(50)
+  Blogs      Blogs   @relation(fields: [blog_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK__Comments__blog_i__2AE0483B")
+
+  @@map("Comments")
+  @@schema("Blog")
+}
+
+model Content {
+  id      Int    @id(map: "PK__Content__3213E83F772A2EF7") @default(autoincrement())
+  content String @db.VarChar(4000)
+  blog_id Int
+  Blogs   Blogs  @relation(fields: [blog_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK__Content__blog_id__3651FAE7")
+
+  @@schema("Blog")
+}
+
+model Likes {
+  id         Int     @id(map: "PK__Likes__3213E83F50D1E341") @default(autoincrement())
+  blog_id    Int
+  created_at String? @db.VarChar(50)
+  Blogs      Blogs   @relation(fields: [blog_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK__Likes__blog_id__33758E3C")
+
+  @@schema("Blog")
+}
+
+model Tags {
+  id       Int        @id(map: "PK__Tags__3213E83FCF9ADA1D") @default(autoincrement())
+  name     String?    @db.VarChar(100)
+  BlogTags BlogTags[]
+
+  @@schema("Blog")
+}
+
+model Client {
+  UserID            Int      @id(map: "PK__Client__1788CCAC14357FE4") @default(autoincrement())
+  Username          String?  @db.VarChar(30)
+  FirstName         String?  @db.VarChar(30)
+  LastName          String?  @db.VarChar(30)
+  PhoneNumber       String?  @db.VarChar(11)
+  Email             String?  @db.VarChar(50)
+  City              String?  @db.VarChar(20)
+  Job               String?  @db.VarChar(30)
+  Role              String?  @default("Public") @db.VarChar(50)
+  ActivePhoneNumber Boolean?
+  ActiveEmail       Boolean?
+
+  @@schema("Info")
+}
+
+model Factor {
+  FactorId    Int      @id(map: "PK__Factor__E733AADD27EF8FF1") @default(autoincrement())
+  FactorGuid  String?  @db.VarChar(50)
+  Fullname    String?  @db.VarChar(255)
+  Phonenumber String?  @db.VarChar(50)
+  TotalAmount BigInt?
+  ProductName String?  @db.VarChar(255)
+  Date        String?  @db.VarChar(100)
+  UserId      Int?
+  Quantity    String?  @db.VarChar(50)
+  Checked     Boolean?
+
+  @@schema("Info")
+}
+
+model FaqDetails {
+  FaqDetailsid Int       @id(map: "PK__FaqDetai__35A141347E7D7444") @default(autoincrement())
+  Title        String?   @db.VarChar(30)
+  Q            String?   @db.VarChar(100)
+  A            String?   @db.VarChar(100)
+  Available    Boolean?
+  InsertDate   DateTime? @default(now()) @db.Timestamp(6)
+  ModifyDate   DateTime? @default(now()) @db.Timestamp(6)
+
+  @@schema("Info")
+}
+
+model Invoice {
+  Invoiceid   BigInt   @id(map: "PK__Invoice__D7C667ED9E33565E") @default(autoincrement())
+  FactorGuid  String?  @db.VarChar(1000)
+  Fullname    String?  @db.VarChar(200)
+  Phonenumber String?  @db.VarChar(11)
+  UserId      BigInt?
+  TotalAmount Float?
+  Checked     Boolean?
+  Date        String?  @db.VarChar(50)
+
+  @@schema("Info")
+}
+
+model Invoice_Details {
+  Invoice_Details BigInt  @id(map: "PK__Invoice___4A16C8C534ABC2CC") @default(autoincrement())
+  Invoiceid       BigInt?
+  UserId          BigInt?
+  ProductId       Int?
+  quantity        Float?
+  price           Float?
+  total_price     Float?
+
+  @@schema("Info")
+}
+
+model Password {
+  PasswordId Int      @id(map: "PK__Password__EA7BF0C8D7AEEB79") @default(autoincrement())
+  Password1  String?  @db.VarChar(4000)
+  UserId     Int?
+  Active     Boolean?
+
+  @@schema("Info")
+}
+
+model SMS_Status {
+  SMSID        Int       @id(map: "PK__SMS_Stat__244A5CBB4CCA8300") @default(autoincrement())
+  From         String?   @db.VarChar(200)
+  TO           String?   @db.VarChar(200)
+  Text         String?   @db.VarChar(200)
+  Value        String?   @db.VarChar(200)
+  Retstatus    Int?
+  StrRetstatus String?   @db.VarChar(200)
+  InsertDate   DateTime? @default(now()) @db.Timestamp(6)
+  ModifyDate   DateTime? @default(now()) @db.Timestamp(6)
+
+  @@schema("Info")
+}
+
+model Members {
+  Membersid        Int     @id(map: "PK__Members__5456DC83F7FEAB42") @default(autoincrement()) @db.SmallInt
+  main_pic         String? @db.VarChar(200)
+  Name             String? @db.VarChar(20)
+  Role             String? @db.VarChar(20)
+  sec_pic          String? @db.VarChar(200)
+  main_description String? @db.VarChar(4000)
+  Slug             String? @db.VarChar(500)
+  insta            String? @db.VarChar(50)
+  whatsapp         String? @db.VarChar(50)
+  phonenumber      String? @db.VarChar(11)
+
+  @@schema("Member")
+}
+
+model Project_Comments {
+  CommentID   Int       @id(map: "PK__Comments__C3B4DFAA8AB2237C") @default(autoincrement())
+  ProjectID   Int
+  UserName    String    @db.VarChar(255)
+  CommentText String
+  CommentedAt DateTime? @default(now()) @db.Timestamp(6)
+  Projects    Projects  @relation(fields: [ProjectID], references: [ProjectID], onDelete: Cascade, onUpdate: NoAction, map: "FK__Comments__Projec__53E25DCE")
+
+  @@map("Comments")
+  @@schema("Project")
+}
+
+model ProjectMedia {
+  MediaID      Int      @id(map: "PK__ProjectM__B2C2B5AFD34F46E7") @default(autoincrement())
+  ProjectID    Int
+  MediaType    String?  @db.VarChar(20)
+  MediaURL     String
+  Main_img_URL String?  @db.VarChar(500)
+  Projects     Projects @relation(fields: [ProjectID], references: [ProjectID], onDelete: Cascade, onUpdate: NoAction, map: "FK__ProjectMe__Proje__4D35603F")
+
+  @@schema("Project")
+}
+
+model ProjectTags {
+  TagID   Int    @id(map: "PK__ProjectT__657CFA4C04A385F4") @default(autoincrement())
+  TagName String @unique(map: "UQ__ProjectT__BDE0FD1D653E4343") @db.VarChar(100)
+
+  @@schema("Project")
+}
+
+model Projects {
+  ProjectID    Int                @id(map: "PK__Projects__761ABED095EDE184") @default(autoincrement())
+  Title        String?            @db.VarChar(255)
+  Description  String?
+  Slug         String?            @db.VarChar(255)
+  IsActive     Boolean?
+  Comments     Project_Comments[]
+  ProjectMedia ProjectMedia[]
+
+  @@schema("Project")
+}
+
+model Category {
+  CategoryID       Int               @id(map: "PK__Category__19093A2B5BDCB8F5") @default(autoincrement())
+  Name             String?           @db.VarChar(1000)
+  Available        Boolean?
+  InsertDate       DateTime?         @default(now()) @db.Timestamp(6)
+  ModifyDate       DateTime?         @default(now()) @db.Timestamp(6)
+  Category_groupId Int?
+  Slug             String?           @db.VarChar(200)
+  CategoryContent  CategoryContent[]
+  SEO_Category     SEO_Category[]
+
+  @@schema("Support")
+}
+
+model CategoryContent {
+  CategoryContentId   Int                   @id(map: "PK_CategoryContent")
+  Name                String?               @db.VarChar(200)
+  CategoryID          Int?
+  Slug                String?               @db.VarChar(200)
+  Available           Boolean?
+  InsertDate          DateTime?             @default(now()) @db.Timestamp(6)
+  ModifyDate          DateTime?             @default(now()) @db.Timestamp(6)
+  Category            Category?             @relation(fields: [CategoryID], references: [CategoryID], onDelete: NoAction, onUpdate: NoAction, map: "FK_CategoryContent_Category_CategoryID")
+  SEO_CategoryContent SEO_CategoryContent[]
+
+  @@schema("Support")
+}
+
+model FAQs {
+  FAQsId       Int       @id(map: "PK__FAQs__6DDBE835DC17F6BB") @default(autoincrement())
+  Title        String?   @db.VarChar(50)
+  Description  String?   @db.VarChar(3000)
+  FilesAddress String?   @db.VarChar(500)
+  ProductId    Int?
+  Available    Boolean?
+  InsertDate   DateTime? @default(now()) @db.Timestamp(6)
+  ModifyDate   DateTime? @default(now()) @db.Timestamp(6)
+
+  @@schema("Support")
+}
+
+model Product {
+  ProductId         Int      @id(map: "PK__Product__B40CC6CDE69145E5") @default(autoincrement())
+  Name              String?  @db.VarChar(1000)
+  Type              String?  @db.VarChar(100)
+  Price             String?  @db.VarChar(20)
+  Discount          String?  @db.VarChar(20)
+  CategoryContentId String?  @db.VarChar(1000)
+  img1              String?  @db.VarChar(500)
+  img2              String?  @db.VarChar(500)
+  Available         Boolean?
+  Description       String?  @db.VarChar(1000)
+  CategoryId        Int?
+  Slug              String?  @db.VarChar(200)
+  SEO_Title         String?  @db.VarChar(50)
+  SEO_Description   String?  @db.VarChar(4000)
+
+  @@schema("Support")
+}
+
+model ProductOverview {
+  ProductOverviewId Int       @id(map: "PK__ProductO__2C6062D2C1D11FB4") @default(autoincrement())
+  ProductName       String?   @db.VarChar(100)
+  ProductId         Int?
+  Property1         String?   @db.VarChar(300)
+  Property2         String?   @db.VarChar(300)
+  Property3         String?   @db.VarChar(300)
+  Property4         String?   @db.VarChar(300)
+  Available         Boolean?
+  InsertDate        DateTime? @default(now()) @db.Timestamp(6)
+  ModifyDate        DateTime? @default(now()) @db.Timestamp(6)
+
+  @@schema("Support")
+}
+
+model ProductSpecs {
+  ProductSpecsId Int       @id(map: "PK__ProductS__AD8D1EF57B85BAB5") @default(autoincrement())
+  Name           String?   @db.VarChar(20)
+  Title          String?   @db.VarChar(100)
+  Description    String?   @db.VarChar(4000)
+  ProductId      Int?
+  Available      Boolean?
+  InsertDate     DateTime? @default(now()) @db.Timestamp(6)
+  ModifyDate     DateTime? @default(now()) @db.Timestamp(6)
+
+  @@schema("Support")
+}
+
+model SEO_Category {
+  SEO_CategoryId  Int      @id(map: "PK__SEO_Cate__D6289EBC542C7D1C") @default(autoincrement())
+  CategoryID      Int
+  SEO_Title       String?  @db.VarChar(50)
+  SEO_Description String?  @db.VarChar(4000)
+  SEO_Keywords    String?  @db.VarChar(2000)
+  Category        Category @relation(fields: [CategoryID], references: [CategoryID], onDelete: Cascade, onUpdate: NoAction, map: "FK__SEO_Categ__Categ__392E6792")
+
+  @@schema("Support")
+}
+
+model SEO_CategoryContent {
+  SEO_CategoryContentId Int             @id(map: "PK__SEO_Cate__7D930FEB48C5431C") @default(autoincrement())
+  CategoryContentId     Int
+  SEO_Title             String?         @db.VarChar(50)
+  SEO_Description       String?         @db.VarChar(4000)
+  SEO_Keywords          String?         @db.VarChar(2000)
+  CategoryContent       CategoryContent @relation(fields: [CategoryContentId], references: [CategoryContentId], onDelete: Cascade, onUpdate: NoAction, map: "FK__SEO_Categ__Categ__43ABF605")
+
+  @@schema("Support")
+}
+
+model Details_ProductOverviewDetails {
+  id                            Int                            @id(map: "PK__Details___3213E83F2815D6DC") @default(autoincrement())
+  ProductOverviewDetailsId      Int?
+  Title                         String?                        @db.VarChar(2000)
+  Description                   String?                        @db.VarChar(4000)
+  Img                           String?                        @db.VarChar(200)
+  Name                          String                         @default("") @db.VarChar(1000)
+  Master_ProductOverviewDetails Master_ProductOverviewDetails? @relation(fields: [ProductOverviewDetailsId], references: [ProductOverviewDetailsId], onDelete: Cascade, onUpdate: NoAction, map: "FK__Details_P__Produ__0D1ADB2A")
+
+  @@schema("farabak_net_technomi")
+}
+
+model Master_ProductOverviewDetails {
+  id                             Int                              @id(map: "PK__Master_P__3213E83FCDAEB8AB") @default(autoincrement())
+  ProductOverviewDetailsId       Int?                             @unique(map: "UQ__Master_P__63A8D0D3B59BD05C")
+  productid                      Int?
+  ProductName                    String?                          @db.VarChar(255)
+  Details_ProductOverviewDetails Details_ProductOverviewDetails[]
+
+  @@schema("farabak_net_technomi")
+}
+
+model EFMigrationsHistory {
+  MigrationId    String @id(map: "PK___EFMigrationsHistory") @db.VarChar(150)
+  ProductVersion String @db.VarChar(32)
+
+  @@map("__EFMigrationsHistory")
+  @@schema("farabak_net_technomi")
+}
