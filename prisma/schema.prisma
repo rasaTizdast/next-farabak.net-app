@@ -253,6 +253,7 @@ model Category {
   Slug             String?           @db.VarChar(200)
   CategoryContent  CategoryContent[]
   SEO_Category     SEO_Category[]
+  Product          Product[]
 
   @@schema("Support")
 }
@@ -271,6 +272,15 @@ model CategoryContent {
   @@schema("Support")
 }
 
+model Details_ProductOverviewDetails {
+  id                       Int     @id(map: "PK__Master_P__3213E83FCDAEB8AB") @default(autoincrement())
+  ProductOverviewDetailsId Int?    @unique(map: "UQ__Master_P__63A8D0D3B59BD05C")
+  productid                Int?
+  ProductName              String? @db.VarChar(255)
+
+  @@schema("Support")
+}
+
 model FAQs {
   FAQsId       Int       @id(map: "PK__FAQs__6DDBE835DC17F6BB") @default(autoincrement())
   Title        String?   @db.VarChar(50)
@@ -284,21 +294,33 @@ model FAQs {
   @@schema("Support")
 }
 
+model Master_ProductOverviewDetails {
+  id                       Int     @id(map: "PK__Details___3213E83F2815D6DC") @default(autoincrement())
+  ProductOverviewDetailsId Int?
+  Title                    String? @db.VarChar(2000)
+  Description              String? @db.VarChar(4000)
+  Img                      String? @db.VarChar(200)
+  Name                     String  @default("") @db.VarChar(1000)
+
+  @@schema("Support")
+}
+
 model Product {
-  ProductId         Int      @id(map: "PK__Product__B40CC6CDE69145E5") @default(autoincrement())
-  Name              String?  @db.VarChar(1000)
-  Type              String?  @db.VarChar(100)
-  Price             String?  @db.VarChar(20)
-  Discount          String?  @db.VarChar(20)
-  CategoryContentId String?  @db.VarChar(1000)
-  img1              String?  @db.VarChar(500)
-  img2              String?  @db.VarChar(500)
+  ProductId         Int       @id(map: "PK__Product__B40CC6CDE69145E5") @default(autoincrement())
+  Name              String?   @db.VarChar(1000)
+  Type              String?   @db.VarChar(100)
+  Price             String?   @db.VarChar(20)
+  Discount          String?   @db.VarChar(20)
+  CategoryContentId String?   @db.VarChar(1000)
+  img1              String?   @db.VarChar(500)
+  img2              String?   @db.VarChar(500)
   Available         Boolean?
-  Description       String?  @db.VarChar(1000)
+  Description       String?   @db.VarChar(1000)
   CategoryId        Int?
-  Slug              String?  @db.VarChar(200)
-  SEO_Title         String?  @db.VarChar(50)
-  SEO_Description   String?  @db.VarChar(4000)
+  Slug              String?   @db.VarChar(200)
+  SEO_Title         String?   @db.VarChar(50)
+  SEO_Description   String?   @db.VarChar(4000)
+  Category          Category? @relation(fields: [CategoryId], references: [CategoryID])
 
   @@schema("Support")
 }
@@ -315,6 +337,64 @@ model ProductOverview {
   InsertDate        DateTime? @default(now()) @db.Timestamp(6)
   ModifyDate        DateTime? @default(now()) @db.Timestamp(6)
 
+  @@schema("Support")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model ProductOverviewDetails {
+  ProductOverviewDetailsId Int?
+  ProductName              String? @db.VarChar(300)
+  Title1                   String? @db.VarChar(1000)
+  Description1             String? @db.VarChar(4000)
+  Img1                     String? @db.VarChar(300)
+  Title2                   String? @db.VarChar(1000)
+  Description2             String? @db.VarChar(4000)
+  Img2                     String? @db.VarChar(300)
+  Title3                   String? @db.VarChar(1000)
+  Description3             String? @db.VarChar(4000)
+  Img3                     String? @db.VarChar(300)
+  Title4                   String? @db.VarChar(1000)
+  Description4             String? @db.VarChar(4000)
+  Img4                     String? @db.VarChar(300)
+  Title5                   String? @db.VarChar(1000)
+  Description5             String? @db.VarChar(4000)
+  Img5                     String? @db.VarChar(300)
+  Title6                   String? @db.VarChar(1000)
+  Description6             String? @db.VarChar(4000)
+  Img6                     String? @db.VarChar(300)
+  Title7                   String? @db.VarChar(1000)
+  Description7             String? @db.VarChar(4000)
+  Img7                     String? @db.VarChar(300)
+  Title8                   String? @db.VarChar(1000)
+  Description8             String? @db.VarChar(4000)
+  Img8                     String? @db.VarChar(300)
+  Title9                   String? @db.VarChar(1000)
+  Description9             String? @db.VarChar(4000)
+  Img9                     String? @db.VarChar(300)
+  Title10                  String? @db.VarChar(1000)
+  Description10            String? @db.VarChar(4000)
+  Img10                    String? @db.VarChar(300)
+  Title11                  String? @db.VarChar(1000)
+  Description11            String? @db.VarChar(4000)
+  Img11                    String? @db.VarChar(300)
+  Title12                  String? @db.VarChar(1000)
+  Description12            String? @db.VarChar(4000)
+  Img12                    String? @db.VarChar(300)
+  Title13                  String? @db.VarChar(1000)
+  Description13            String? @db.VarChar(4000)
+  Img13                    String? @db.VarChar(300)
+  Title14                  String? @db.VarChar(1000)
+  Description14            String? @db.VarChar(4000)
+  Img14                    String? @db.VarChar(300)
+  Title15                  String? @db.VarChar(1000)
+  Description15            String? @db.VarChar(4000)
+  Img15                    String? @db.VarChar(300)
+  Title16                  String? @db.VarChar(1000)
+  Description16            String? @db.VarChar(4000)
+  Img16                    String? @db.VarChar(300)
+  ProductId                Int?
+
+  @@ignore
   @@schema("Support")
 }
 
@@ -351,28 +431,6 @@ model SEO_CategoryContent {
   CategoryContent       CategoryContent @relation(fields: [CategoryContentId], references: [CategoryContentId], onDelete: Cascade, onUpdate: NoAction, map: "FK__SEO_Categ__Categ__43ABF605")
 
   @@schema("Support")
-}
-
-model Details_ProductOverviewDetails {
-  id                            Int                            @id(map: "PK__Details___3213E83F2815D6DC") @default(autoincrement())
-  ProductOverviewDetailsId      Int?
-  Title                         String?                        @db.VarChar(2000)
-  Description                   String?                        @db.VarChar(4000)
-  Img                           String?                        @db.VarChar(200)
-  Name                          String                         @default("") @db.VarChar(1000)
-  Master_ProductOverviewDetails Master_ProductOverviewDetails? @relation(fields: [ProductOverviewDetailsId], references: [ProductOverviewDetailsId], onDelete: Cascade, onUpdate: NoAction, map: "FK__Details_P__Produ__0D1ADB2A")
-
-  @@schema("farabak_net_technomi")
-}
-
-model Master_ProductOverviewDetails {
-  id                             Int                              @id(map: "PK__Master_P__3213E83FCDAEB8AB") @default(autoincrement())
-  ProductOverviewDetailsId       Int?                             @unique(map: "UQ__Master_P__63A8D0D3B59BD05C")
-  productid                      Int?
-  ProductName                    String?                          @db.VarChar(255)
-  Details_ProductOverviewDetails Details_ProductOverviewDetails[]
-
-  @@schema("farabak_net_technomi")
 }
 
 model EFMigrationsHistory {
