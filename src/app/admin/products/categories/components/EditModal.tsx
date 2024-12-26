@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Category, Subcategory } from "../types/types";
 
 interface EditModalProps {
@@ -78,6 +78,11 @@ const EditModal: React.FC<EditModalProps> = ({
         onChange({ [field]: value });
       }
       return;
+    }
+
+    // Handle Available field separately
+    if (field === "Available") {
+      value = value === "true"; // Convert the string to a boolean
     }
 
     // Slug auto-correction: replace spaces with dashes and lowercase
@@ -196,6 +201,23 @@ const EditModal: React.FC<EditModalProps> = ({
           />
           {errors.Slug && <p className="text-red-500 text-sm">{errors.Slug}</p>}
         </div>
+
+        {/* Available Field */}
+        <div className="mb-4">
+          <label className="block text-sm mb-2">فعال</label>
+          <select
+            value={item.Available ? "true" : "false"} // Convert boolean to string for select value
+            onChange={(e) => handleInputChange("Available", e.target.value)}
+            className={`w-full p-2 border bg-gray-700 ${
+              errors.Slug ? "border-red-500" : "border-gray-900"
+            } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+          >
+            <option value="true">بله</option>
+            <option value="false">خیر</option>
+          </select>
+          {errors.Slug && <p className="text-red-500 text-sm">{errors.Slug}</p>}
+        </div>
+
         {/* SEO Title Field */}
         <div className="mb-4">
           <label className="block text-sm mb-2">عنوان سئو</label>
