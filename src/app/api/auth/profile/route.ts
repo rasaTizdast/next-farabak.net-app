@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { connectToDatabase } from "../../../../../lib/db";
 import { jwtVerify } from "jose";
+import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
@@ -93,24 +93,29 @@ export async function GET(): Promise<NextResponse> {
     // Verify the token
     const decoded = await verifyToken(token);
 
-    const pool = await connectToDatabase();
-    const result = await pool.request().input("UserId", decoded.userId).query(`
-        SELECT userId, firstName, lastName, email, phoneNumber, role 
-        FROM info.client 
-        WHERE userId = @UserId
-      `);
+    const user = await prisma.client.findUnique({
+      where: { UserID: decoded.userId as number },
+      select: {
+        UserID: true,
+        FirstName: true,
+        LastName: true,
+        Email: true,
+        PhoneNumber: true,
+        Role: true,
+      },
+    });
 
-    if (result.recordset.length === 0) {
+    if (!user) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
     return NextResponse.json({
-      userId: result.recordset[0].userId,
-      firstName: result.recordset[0].firstName,
-      lastName: result.recordset[0].lastName,
-      email: result.recordset[0].email,
-      phoneNumber: result.recordset[0].phoneNumber,
-      role: result.recordset[0].role,
+      userId: user.UserID,
+      firstName: user.FirstName,
+      lastName: user.LastName,
+      email: user.Email,
+      phoneNumber: user.PhoneNumber,
+      role: user.Role,
     });
   } catch (error) {
     console.error("Error retrieving user profile:", error);
@@ -152,55 +157,17 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       );
     }
 
-    let updateFields = "";
-    const updateParams: { [key: string]: string } = {};
-
-    if (updates.firstName) {
-      updateFields += "firstName = @FirstName, ";
-      updateParams.FirstName = updates.firstName;
-    }
-    if (updates.lastName) {
-      updateFields += "lastName = @LastName, ";
-      updateParams.LastName = updates.lastName;
-    }
-    if (updates.email) {
-      updateFields += "email = @Email, ";
-      updateParams.Email = updates.email;
-    }
-    if (updates.phoneNumber) {
-      updateFields += "phoneNumber = @PhoneNumber, ";
-      updateParams.PhoneNumber = updates.phoneNumber;
-    }
-    if (updates.city) {
-      updateFields += "city = @City, ";
-      updateParams.City = updates.city;
-    }
-    if (updates.job) {
-      updateFields += "job = @Job, ";
-      updateParams.Job = updates.job;
-    }
-
-    updateFields = updateFields.slice(0, -2); // Remove the trailing comma and space
-
-    if (!updateFields) {
-      return NextResponse.json(
-        { message: "No valid fields provided for update" },
-        { status: 400 }
-      );
-    }
-
-    const pool = await connectToDatabase();
-    const requestQuery = pool.request().input("UserId", decoded.userId);
-
-    for (const [key, value] of Object.entries(updateParams)) {
-      requestQuery.input(key, value);
-    }
-
-    await requestQuery.query(`
-      UPDATE info.client 
-      SET ${updateFields}
-      WHERE userId = @UserId;
-    `);
+    const updatedUser = await prisma.client.update({
+      where: { UserID: decoded.userId as number },
+      data: {
+        FirstName: updates.firstName,
+        LastName: updates.lastName,
+        Email: updates.email,
+        PhoneNumber: updates.phoneNumber,
+        City: updates.city,
+        Job: updates.job,
+      },
+    });
 
     return NextResponse.json({ message: "Profile updated successfully" });
   } catch (error) {

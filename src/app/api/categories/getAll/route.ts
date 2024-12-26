@@ -1,5 +1,5 @@
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../lib/db";
 
 /**
  * @swagger
@@ -68,100 +68,41 @@ import { connectToDatabase } from "../../../../../lib/db";
 
 export async function GET() {
   try {
-    const pool = await connectToDatabase();
-
     // Fetch categories
-    const categoriesResult = await pool.request().query(`
-      SELECT 
-        CategoryID, 
-        Name, 
-        Available, 
-        Slug
-      FROM 
-        Support.Category
-    `);
-    const categories = categoriesResult.recordset;
-
-    // Fetch subcategories
-    const subcategoriesResult = await pool.request().query(`
-      SELECT 
-        CategoryContentId, 
-        Name, 
-        CategoryID, 
-        Slug, 
-        Available
-      FROM 
-        Support.CategoryContent
-    `);
-    const subcategories = subcategoriesResult.recordset;
-
-    // Fetch category SEO details
-    const seoCategoriesResult = await pool.request().query(`
-      SELECT 
-        CategoryID, 
-        SEO_Title, 
-        SEO_Description, 
-        SEO_Keywords
-      FROM 
-        Support.SEO_Category
-    `);
-    const seoCategories = seoCategoriesResult.recordset;
-
-    // Fetch subcategory SEO details
-    const seoSubcategoriesResult = await pool.request().query(`
-      SELECT 
-        CategoryContentId, 
-        SEO_Title, 
-        SEO_Description, 
-        SEO_Keywords
-      FROM 
-        Support.SEO_CategoryContent
-    `);
-    const seoSubcategories = seoSubcategoriesResult.recordset;
-
-    // Map subcategories with SEO and parent category slug
-    const subcategoriesWithSEO = subcategories.map((sub) => {
-      const seoDetails = seoSubcategories.find(
-        (seo) => seo.CategoryContentId === sub.CategoryContentId
-      );
-
-      // Find parent category slug for the subcategory
-      const parentCategory = categories.find(
-        (category) => category.CategoryID === sub.CategoryID
-      );
-
-      return {
-        ...sub,
-        Link: parentCategory
-          ? `/products/${parentCategory.Slug}/${sub.Slug}`
-          : `/products/${sub.Slug}`, // Fallback if parent category not found
-        SEO_Details: seoDetails || {
-          SEO_Title: null,
-          SEO_Description: null,
-          SEO_Keywords: null,
+    const categories = await prisma.category.findMany({
+      include: {
+        SEO_Category: true,
+        CategoryContent: {
+          include: {
+            SEO_CategoryContent: true,
+          },
         },
-      };
+      },
     });
 
-    // Map subcategories and SEO data to categories
+    // Map subcategories with SEO and parent category slug
     const categoriesWithSubcategoriesAndSEO = categories.map((category) => {
-      const relatedSubcategories = subcategoriesWithSEO.filter(
-        (sub) => sub.CategoryID === category.CategoryID
-      );
-
-      const seoDetails = seoCategories.find(
-        (seo) => seo.CategoryID === category.CategoryID
-      );
+      const subcategoriesWithSEO = category.CategoryContent.map((sub) => {
+        return {
+          ...sub,
+          Link: `/products/${category.Slug}/${sub.Slug}`,
+          SEO_Details: sub.SEO_CategoryContent[0] || {
+            SEO_Title: null,
+            SEO_Description: null,
+            SEO_Keywords: null,
+          },
+        };
+      });
 
       return {
         ...category,
         Link: `/products/${category.Slug}`,
-        SEO_Details: seoDetails || {
+        SEO_Details: category.SEO_Category[0] || {
           SEO_Title: null,
           SEO_Description: null,
           SEO_Keywords: null,
         },
-        Subcategories: relatedSubcategories,
+        Subcategories: subcategoriesWithSEO,
       };
     });
 

@@ -1,6 +1,8 @@
 // app/api/productOverview/getProductOverview/[productId]/route.ts
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../../lib/db";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 /**
  * @swagger
@@ -48,20 +50,13 @@ export async function GET(
   { params }: { params: { productId: string } }
 ) {
   try {
-    // Connect to the database
-    const pool = await connectToDatabase();
-
     // Query to get product overview by product ID
-    const result = await pool
-      .request()
-      .input("ProductId", params.productId)
-      .query(
-        "SELECT ProductId, Property1, Property2, Property3, Property4 FROM Support.ProductOverview WHERE ProductId = @ProductId"
-      );
-    // Adjust table and column names as needed
+    const result = await prisma.productOverview.findUnique({
+      where: { ProductOverviewId: +params.productId },
+    });
 
     // If no matching product overviews found, return a "No product found" message
-    if (result.recordset.length === 0) {
+    if (!result) {
       return NextResponse.json(
         { message: "No product found for the given ID" },
         { status: 404 }
@@ -69,7 +64,7 @@ export async function GET(
     }
 
     // Return the product overview data as a JSON response
-    return NextResponse.json(result.recordset[0]); // Return the array of product overviews
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Error fetching product overview: ", error);
 

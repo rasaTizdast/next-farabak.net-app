@@ -1,5 +1,5 @@
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../lib/db";
 
 /**
  * @swagger
@@ -84,6 +84,7 @@ import { connectToDatabase } from "../../../../../lib/db";
  *       500:
  *         description: Internal server error
  */
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -91,56 +92,53 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get("limit") || "30", 10);
     const offset = (page - 1) * limit;
 
-    const pool = await connectToDatabase();
-
     // Count total products
-    const totalCountResult = await pool
-      .request()
-      .query("SELECT COUNT(*) AS totalCount FROM Support.Product");
-    const totalCount = totalCountResult.recordset[0].totalCount;
+    const totalCount = await prisma.product.count();
     const totalPages = Math.ceil(totalCount / limit);
 
     // Fetch products with category and subcategory slugs
-    const result = await pool.request().query(`
-        SELECT 
-          p.ProductId,
-          p.Name,
-          p.Type,
-          p.Price,
-          p.Discount,
-          p.CategoryContentId,
-          p.img1,
-          p.img2,
-          p.Available,
-          p.Description,
-          p.CategoryId,
-          p.Slug AS productSlug,
-          c.Slug AS categorySlug,
-          cc.Slug AS subCategorySlug
-        FROM 
-          Support.Product p
-        JOIN 
-          Support.Category c ON c.CategoryId = p.CategoryId
-        OUTER APPLY (
-          SELECT TOP 1 cc.Slug 
-          FROM Support.CategoryContent cc
-          WHERE CHARINDEX(CAST(cc.CategoryContentId AS VARCHAR), p.CategoryContentId) > 0
-        ) AS cc
-        ORDER BY 
-          p.ProductId
-        OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
-      `);
+    const products = await prisma.product.findMany({
+      skip: offset,
+      take: limit,
+      include: {
+        Category: true, // Include related category
+      },
+    });
 
-    if (result.recordset.length === 0) {
+    if (products.length === 0) {
       return new NextResponse("No products found", { status: 404 });
     }
 
-    // Add link for each product
-    const data = result.recordset.map((product) => ({
-      ...product,
-      link: `${product.categorySlug}/${product.subCategorySlug}/${product.productSlug}`,
-    }));
+    // Map the products to include category and subcategory slugs
+    const data = await Promise.all(
+      products.map(async (product) => {
+        const categorySlug = product.Category?.Slug || null;
 
+        // Parse CategoryContentId string
+        const categoryContentIds = product.CategoryContentId
+          ? product.CategoryContentId.split(",").map((id) =>
+              parseInt(id.trim(), 10)
+            )
+          : [];
+
+        // Fetch first matching subcategory
+        const subCategory = await prisma.categoryContent.findFirst({
+          where: {
+            CategoryContentId: { in: categoryContentIds },
+          },
+        });
+
+        return {
+          ...product,
+          productSlug: product.Slug,
+          categorySlug,
+          subCategorySlug: subCategory?.Slug || null,
+          link: `${categorySlug}/${subCategory?.Slug || ""}/${product.Slug}`,
+        };
+      })
+    );
+
+    // Construct the response
     const response = {
       data,
       pagination: {

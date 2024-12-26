@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../../lib/db";
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -56,24 +56,19 @@ export async function GET(
   const categoryNameSlug = params.categoryName;
 
   try {
-    const pool = await connectToDatabase();
-
     // Retrieve the category name based on the slug from the Support.Category table
-    const categoryResult = await pool
-      .request()
-      .input("slug", categoryNameSlug)
-      .query("SELECT Name FROM Support.Category WHERE Slug = @slug");
+    const category = await prisma.category.findUnique({
+      where: { Slug: categoryNameSlug },
+      select: { Name: true },
+    });
 
     // If no category is found, return a 404 error
-    if (categoryResult.recordset.length === 0) {
+    if (!category) {
       return new NextResponse("Category not found", { status: 404 });
     }
 
-    // Extract category name from the result
-    const categoryName = categoryResult.recordset[0].Name;
-
     // Return the category name in the response
-    return NextResponse.json({ categoryName });
+    return NextResponse.json({ categoryName: category.Name });
   } catch (error) {
     console.error("Error fetching category name: ", error);
     return new NextResponse("Failed to fetch category name", {
