@@ -9,6 +9,7 @@ interface Product {
   Type: string;
   img1: string;
   productSlug: string;
+  Slug?: string;
   link: string;
   Available: boolean;
 }
@@ -47,7 +48,9 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
               width={280}
               height={280}
               quality={100}
-              src={`${process.env.LIARA_BUCKET_URL}/productImages/${product.productSlug}/${product.productSlug}-mini.webp`}
+              src={`${process.env.LIARA_BUCKET_URL}/productImages/${
+                product.productSlug || product.Slug
+              }/${product.productSlug || product.Slug}-mini.webp`}
               alt={product.Type}
               loading="eager"
             />
