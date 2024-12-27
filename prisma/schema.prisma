@@ -9,6 +9,9 @@ datasource db {
   schemas  = ["Blog", "Info", "Member", "Project", "Support", "farabak_net_technomi"]
 }
 
+// Updated product model
+// Updated Password model
+
 model BlogCategories {
   id          Int        @id(map: "PK__BlogCate__3213E83F00BCAE91") @default(autoincrement())
   blog_id     Int
@@ -96,17 +99,18 @@ model Tags {
 }
 
 model Client {
-  UserID            Int      @id(map: "PK__Client__1788CCAC14357FE4") @default(autoincrement())
-  Username          String?  @db.VarChar(30)
-  FirstName         String?  @db.VarChar(30)
-  LastName          String?  @db.VarChar(30)
-  PhoneNumber       String?  @db.VarChar(11)
-  Email             String?  @db.VarChar(50)
-  City              String?  @db.VarChar(20)
-  Job               String?  @db.VarChar(30)
-  Role              String?  @default("Public") @db.VarChar(50)
+  UserID            Int        @id(map: "PK__Client__1788CCAC14357FE4") @default(autoincrement())
+  Username          String?    @db.VarChar(30)
+  FirstName         String?    @db.VarChar(30)
+  LastName          String?    @db.VarChar(30)
+  PhoneNumber       String?    @db.VarChar(11)
+  Email             String?    @db.VarChar(50)
+  City              String?    @db.VarChar(20)
+  Job               String?    @db.VarChar(30)
+  Role              String?    @default("Public") @db.VarChar(50)
   ActivePhoneNumber Boolean?
   ActiveEmail       Boolean?
+  Password          Password[]
 
   @@schema("Info")
 }
@@ -168,6 +172,9 @@ model Password {
   Password1  String?  @db.VarChar(4000)
   UserId     Int?
   Active     Boolean?
+
+  // new added field
+  Client Client? @relation(fields: [UserId], references: [UserID])
 
   @@schema("Info")
 }
@@ -306,21 +313,23 @@ model Master_ProductOverviewDetails {
 }
 
 model Product {
-  ProductId         Int       @id(map: "PK__Product__B40CC6CDE69145E5") @default(autoincrement())
-  Name              String?   @db.VarChar(1000)
-  Type              String?   @db.VarChar(100)
-  Price             String?   @db.VarChar(20)
-  Discount          String?   @db.VarChar(20)
-  CategoryContentId String?   @db.VarChar(1000)
-  img1              String?   @db.VarChar(500)
-  img2              String?   @db.VarChar(500)
+  ProductId         Int      @id(map: "PK__Product__B40CC6CDE69145E5") @default(autoincrement())
+  Name              String?  @db.VarChar(1000)
+  Type              String?  @db.VarChar(100)
+  Price             String?  @db.VarChar(20)
+  Discount          String?  @db.VarChar(20)
+  CategoryContentId String?  @db.VarChar(1000)
+  img1              String?  @db.VarChar(500)
+  img2              String?  @db.VarChar(500)
   Available         Boolean?
-  Description       String?   @db.VarChar(1000)
+  Description       String?  @db.VarChar(1000)
   CategoryId        Int?
-  Slug              String?   @db.VarChar(200)
-  SEO_Title         String?   @db.VarChar(50)
-  SEO_Description   String?   @db.VarChar(4000)
-  Category          Category? @relation(fields: [CategoryId], references: [CategoryID])
+  Slug              String?  @db.VarChar(200)
+  SEO_Title         String?  @db.VarChar(50)
+  SEO_Description   String?  @db.VarChar(4000)
+
+  // new added field
+  Category Category? @relation(fields: [CategoryId], references: [CategoryID])
 
   @@schema("Support")
 }
