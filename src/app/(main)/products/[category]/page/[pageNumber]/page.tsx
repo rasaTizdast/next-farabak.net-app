@@ -17,19 +17,22 @@ export const generateMetadata = async ({
   try {
     // Fetch category name from the API
     const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getCategoryName/${categoryName}`
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsByCategory/${categoryName}?page=1&limit=1`
     );
 
-    if (!res.data || !res.data.categoryName) {
+    if (!res || !res.data || !res.data.seoDetails) {
       return {
         title: "دسته بندی یافت نشد!",
         description: "دسته بندی مورد نظر یافت نشد!",
       };
     }
 
+    const { seoDetails } = res.data;
+
     return {
-      title: res.data.SEO_Title,
-      description: res.data.SEO_Description,
+      title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${categoryName}`,
+      description:
+        seoDetails.SEO_Description || `محصولات دسته‌بندی ${categoryName}`,
       alternates: {
         canonical:
           params.pageNumber === "1"

@@ -8,6 +8,8 @@ interface CategoryPageProps {
   params: { category: string };
 }
 
+
+
 export const generateMetadata = async ({
   params,
 }: CategoryPageProps): Promise<Metadata> => {
@@ -16,25 +18,28 @@ export const generateMetadata = async ({
   try {
     // Fetch category data from the API for metadata
     const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getCategoryName/${categoryName}`
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsByCategory/${categoryName}?page=1&limit=1`
     );
 
-    if (!res) {
+    if (!res || !res.data || !res.data.seoDetails) {
       return {
-        title: "دسته بندی یافت نشد!",
-        description: "دسته بندی مورد نظر یافت نشد!",
+        title: categoryName,
+        description: `محصولات دسته‌بندی ${categoryName}`,
       };
     }
 
+    const { seoDetails } = res.data;
+
     return {
-      title: res.data.SEO_Title,
-      description: res.data.SEO_Description,
+      title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${categoryName}`,
+      description:
+        seoDetails.SEO_Description || `محصولات دسته‌بندی ${categoryName}`,
     };
   } catch (error) {
-    console.error("Error fetching category data:", error);
+    console.error("خطا در دریافت متادیتا دسته‌بندی:", error);
     return {
-      title: "دسته بندی یافت نشد!",
-      description: "دسته بندی مورد نظر یافت نشد!",
+      title: "دسته‌بندی یافت نشد!",
+      description: "دسته‌بندی مورد نظر یافت نشد!",
     };
   }
 };
