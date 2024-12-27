@@ -37,6 +37,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const product = await getProduct(params.product);
 
+  console.log(product);
+
   if (!product) {
     return {
       title: "محصولی یافت نشد | فرابک",
@@ -45,8 +47,8 @@ export async function generateMetadata({
   }
 
   return {
-    title: product.SEO_Title,
-    description: product.SEO_Description,
+    title: product.SEO_Title || product.Type,
+    description: product.SEO_Description || product.Name,
     openGraph: {
       title: product.SEO_Title,
       description: product.SEO_Description,
@@ -83,6 +85,8 @@ export default async function ProductPage({
   params: { category: string; product: string };
 }) {
   const productData = await getProduct(params.product);
+
+  console.log(params.product);
 
   if (!productData) {
     notFound(); // Redirect to the 404 page if the product doesn't exist or is unavailable
@@ -137,7 +141,7 @@ export default async function ProductPage({
       {/* Navigation */}
       <ProductTabs />
       {/* Content Sections */}
-      <section id="overview" className={styles.section}>
+      {/* <section id="overview" className={styles.section}>
         <Suspense
           fallback={
             <div className="w-full py-4 bg-gray-200 animate-pulse flex justify-center text-slate-800 rounded-lg mt-6 sm:mt-0 text-sm md:text-base font-semibold">
@@ -147,7 +151,7 @@ export default async function ProductPage({
         >
           <ProductOverview productId={productData.ProductId} />
         </Suspense>
-      </section>
+      </section> */}
       <section id="specs" className={`${styles.section} mt-16`}>
         <Suspense
           fallback={
