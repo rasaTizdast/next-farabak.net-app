@@ -141,7 +141,7 @@ export default async function ProductPage({
       {/* Navigation */}
       <ProductTabs />
       {/* Content Sections */}
-      {/* <section id="overview" className={styles.section}>
+      <section id="overview" className={styles.section}>
         <Suspense
           fallback={
             <div className="w-full py-4 bg-gray-200 animate-pulse flex justify-center text-slate-800 rounded-lg mt-6 sm:mt-0 text-sm md:text-base font-semibold">
@@ -151,7 +151,7 @@ export default async function ProductPage({
         >
           <ProductOverview productId={productData.ProductId} />
         </Suspense>
-      </section> */}
+      </section>
       <section id="specs" className={`${styles.section} mt-16`}>
         <Suspense
           fallback={
