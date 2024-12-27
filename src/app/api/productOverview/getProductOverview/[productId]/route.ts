@@ -1,8 +1,6 @@
 // app/api/productOverview/getProductOverview/[productId]/route.ts
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
 
 /**
  * @swagger

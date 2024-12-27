@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../../lib/db";
+import { prisma } from "@/lib/prisma"; // Assuming you have a Prisma instance set up
 
 /**
  * @swagger
@@ -113,83 +113,77 @@ export async function GET(
     const limit = parseInt(searchParams.get("limit") || "10", 10);
     const offset = (page - 1) * limit;
 
-    const pool = await connectToDatabase();
+    // Fetch category and SEO data for the category using Prisma
+    const category = await prisma.category.findFirst({
+      where: { Slug: categoryName },
+      include: {
+        SEO_Category: true, // Include the SEO information for the category
+      },
+    });
 
-    // Retrieve CategoryId based on categoryName from the Support.Category table
-    const categoryIdResult = await pool
-      .request()
-      .input("slug", categoryName)
-      .query("SELECT CategoryId FROM Support.Category WHERE slug = @slug");
-
-    if (categoryIdResult.recordset.length === 0) {
+    if (!category) {
       return new NextResponse("Category not found", { status: 404 });
     }
 
-    const categoryId = categoryIdResult.recordset[0].CategoryId;
-
     // Count total products in the category
-    const totalCountResult = await pool
-      .request()
-      .input("categoryId", categoryId)
-      .query(
-        "SELECT COUNT(*) AS totalCount FROM Support.Product WHERE CategoryId = @categoryId"
-      );
-    const totalCount = totalCountResult.recordset[0].totalCount;
+    const totalCount = await prisma.product.count({
+      where: { CategoryId: category.CategoryID },
+    });
+
     const totalPages = Math.ceil(totalCount / limit);
 
-    // Fetch paginated products in the category with category, subcategory slugs, and SEO data
-    const result = await pool.request().input("categoryId", categoryId).query(`
-        SELECT 
-          p.ProductId,
-          p.Name,
-          p.Type,
-          p.Price,
-          p.Discount,
-          p.CategoryContentId,
-          p.img1,
-          p.img2,
-          p.Available,
-          p.Description,
-          p.CategoryId,
-          p.Slug AS productSlug,
-          c.Slug AS categorySlug,
-          cc.Slug AS subCategorySlug,
-          seo.SEO_Title,
-          seo.SEO_Description,
-          seo.SEO_Keywords
-        FROM 
-          Support.Product p
-        JOIN 
-          Support.Category c ON c.CategoryId = p.CategoryId
-        OUTER APPLY (
-          SELECT TOP 1 cc.Slug 
-          FROM Support.CategoryContent cc
-          WHERE CHARINDEX(CAST(cc.CategoryContentId AS VARCHAR), p.CategoryContentId) > 0
-        ) AS cc
-        LEFT JOIN
-          Support.SEO_Category seo ON seo.CategoryID = p.CategoryId
-        WHERE 
-          p.CategoryId = @categoryId
-        ORDER BY 
-          p.ProductId
-        OFFSET ${offset} ROWS 
-        FETCH NEXT ${limit} ROWS ONLY
-      `);
+    // Fetch paginated products
+    const products = await prisma.product.findMany({
+      where: { CategoryId: category.CategoryID },
+      skip: offset,
+      take: limit,
+      include: {
+        Category: true,
+      },
+    });
 
-    if (result.recordset.length === 0) {
+    if (products.length === 0) {
       return new NextResponse("No products found for this category", {
         status: 404,
       });
     }
 
     // Add link for each product
-    const data = result.recordset.map((product) => ({
-      ...product,
-      link: `${product.categorySlug}/${product.subCategorySlug}/${product.productSlug}`,
-    }));
+    const data = await Promise.all(
+      products.map(async (product) => {
+        const categorySlug = product.Category?.Slug || null;
+
+        // Parse CategoryContentId string
+        const categoryContentIds = product.CategoryContentId
+          ? product.CategoryContentId.split(",").map((id) =>
+              parseInt(id.trim(), 10)
+            )
+          : [];
+
+        // Fetch first matching subcategory
+        const subCategory = await prisma.categoryContent.findFirst({
+          where: {
+            CategoryContentId: { in: categoryContentIds },
+          },
+        });
+
+        return {
+          ...product,
+          productSlug: product.Slug,
+          categorySlug,
+          subCategorySlug: subCategory?.Slug || null,
+          link: `${categorySlug}/${subCategory?.Slug || ""}/${product.Slug}`,
+        };
+      })
+    );
+
+    // Prepare the SEO details for the category
+    const seoDetails =
+      category.SEO_Category.length > 0 ? category.SEO_Category[0] : null;
 
     const response = {
       data,
+      seoDetails, // Add SEO details to the response
       pagination: {
         totalCount,
         currentPage: page,

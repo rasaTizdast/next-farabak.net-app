@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../lib/db";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
+import { prisma } from "@/lib/prisma"; // Adjust the import path to your prisma client
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 const REFRESH_TOKEN_SECRET =
@@ -36,28 +36,43 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     const { username, password } = await request.json();
 
-    const pool = await connectToDatabase();
+    // Query the database with Prisma
+    const user = await prisma.client.findFirst({
+      where: {
+        Username: username,
+      },
+      select: {
+        UserID: true,
+        Username: true,
+        Email: true,
+        Role: true,
+        Password: {
+          where: {
+            Active: true,
+          },
+          select: {
+            Password1: true,
+          },
+        },
+      },
+    });
 
-    const result = await pool
-      .request()
-      .input("Username", username)
-      .input("Active", true).query(`
-        SELECT c.userId, c.username, c.email, c.role, p.password1 
-        FROM info.client c 
-        INNER JOIN info.password p 
-        ON c.userId = p.userId 
-        WHERE c.username = @Username AND p.active = @Active
-      `);
-
-    if (result.recordset.length === 0) {
+    if (!user || !user.Password || user.Password.length === 0) {
       return NextResponse.json(
         { message: "Invalid username or password" },
         { status: 401 }
       );
     }
 
-    const user = result.recordset[0];
-    const passwordMatch = await bcrypt.compare(password, user.password1);
+    const passwordHash = user.Password[0].Password1;
+    if (!passwordHash) {
+      return NextResponse.json(
+        { message: "Invalid username or password" },
+        { status: 401 }
+      );
+    }
+
+    const passwordMatch = await bcrypt.compare(password, passwordHash);
 
     if (!passwordMatch) {
       return NextResponse.json(
@@ -68,18 +83,18 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     // Generate access and refresh tokens using jose
     const accessToken = await new SignJWT({
-      userId: user.userId,
-      username: user.username,
-      role: user.role,
+      userId: user.UserID,
+      username: user.Username,
+      role: user.Role,
     })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("15m")
       .sign(new TextEncoder().encode(JWT_SECRET));
 
     const refreshToken = await new SignJWT({
-      userId: user.userId,
-      username: user.username,
-      role: user.role,
+      userId: user.UserID,
+      username: user.Username,
+      role: user.Role,
     })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("7d")

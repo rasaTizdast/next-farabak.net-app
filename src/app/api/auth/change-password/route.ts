@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
-import { connectToDatabase } from "../../../../../lib/db";
 import { jwtVerify } from "jose";
+import { prisma } from "@/lib/prisma"; // Import Prisma client
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 const SALT_ROUNDS = 10;
@@ -36,6 +36,7 @@ const SALT_ROUNDS = 10;
  */
 export async function PATCH(request: Request): Promise<NextResponse> {
   try {
+    // Retrieve the access token from cookies
     const cookieStore = cookies();
     const token = cookieStore.get("accessToken")?.value;
 
@@ -46,38 +47,42 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       );
     }
 
+    // Verify JWT and extract userId
     const { payload } = await jwtVerify(
       token,
       new TextEncoder().encode(JWT_SECRET)
     );
-
     const { userId } = payload as { userId: string };
+
+    // Parse the request body
     const { currentPassword, newPassword } = await request.json();
 
-    const pool = await connectToDatabase();
+    // Fetch the user's active password
+    const activePasswordRecord = await prisma.password.findFirst({
+      where: {
+        UserId: parseInt(userId, 10),
+        Active: true,
+      },
+    });
 
-    // Fetch the user's current active password
-    const result = await pool
-      .request()
-      .input("UserId", userId)
-      .input("Active", true)
-      .query(
-        "SELECT password1 FROM info.password WHERE userId = @UserId AND active = @Active"
-      );
-
-    if (result.recordset.length === 0) {
+    if (!activePasswordRecord) {
       return NextResponse.json(
         { message: "Current password not found" },
         { status: 401 }
       );
     }
 
-    const currentHashedPassword = result.recordset[0].password1;
+    // Validate the current password
+    if (!activePasswordRecord.Password1) {
+      return NextResponse.json(
+        { message: "Current password is invalid" },
+        { status: 401 }
+      );
+    }
 
-    // Check if the provided current password is correct
     const passwordMatch = await bcrypt.compare(
       currentPassword,
-      currentHashedPassword
+      activePasswordRecord.Password1
     );
     if (!passwordMatch) {
       return NextResponse.json(
@@ -90,23 +95,19 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     const hashedNewPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
 
     // Deactivate old passwords
-    await pool
-      .request()
-      .input("UserId", userId)
-      .input("Active", false)
-      .query(
-        "UPDATE info.password SET active = @Active WHERE userId = @UserId"
-      );
+    await prisma.password.updateMany({
+      where: { UserId: parseInt(userId, 10), Active: true },
+      data: { Active: false },
+    });
 
-    // Insert new password
-    await pool
-      .request()
-      .input("UserId", userId)
-      .input("Password", hashedNewPassword)
-      .input("Active", true).query(`
-        INSERT INTO info.password (userId, password1, active) 
-        VALUES (@UserId, @Password, @Active)
-      `);
+    // Save the new password
+    await prisma.password.create({
+      data: {
+        UserId: parseInt(userId, 10),
+        Password1: hashedNewPassword,
+        Active: true,
+      },
+    });
 
     return NextResponse.json({ message: "Password changed successfully" });
   } catch (error) {

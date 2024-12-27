@@ -57,7 +57,7 @@ export async function GET(
 
   try {
     // Retrieve the category name based on the slug from the Support.Category table
-    const category = await prisma.category.findUnique({
+    const category = await prisma.category.findFirst({
       where: { Slug: categoryNameSlug },
       select: { Name: true },
     });

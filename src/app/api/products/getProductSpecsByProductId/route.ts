@@ -1,7 +1,7 @@
 // app/api/products/getProductSpecsByProductId/route.ts
 
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../lib/db";
 
 /**
  * @swagger
@@ -60,17 +60,13 @@ export async function GET(request: Request) {
       return new NextResponse("Invalid ProductId", { status: 400 });
     }
 
-    // Connect to the database
-    const pool = await connectToDatabase();
-
     // Fetch the product specifications for the given ProductId
-    const result = await pool
-      .request()
-      .input("ProductId", productId)
-      .query(`SELECT * FROM Support.ProductSpecs WHERE ProductId = @ProductId`);
+    const specs = await prisma.productSpecs.findMany({
+      where: { ProductId: productId },
+    });
 
     // Return 404 if no product specifications found
-    if (result.recordset.length === 0) {
+    if (specs.length === 0) {
       return new NextResponse(
         "No specifications found for the given ProductId",
         { status: 404 }
@@ -78,7 +74,7 @@ export async function GET(request: Request) {
     }
 
     // Return the specifications
-    return NextResponse.json({ data: result.recordset });
+    return NextResponse.json({ data: specs });
   } catch (error) {
     console.error("Error fetching product specifications: ", error);
     return new NextResponse("Failed to fetch product specifications", {

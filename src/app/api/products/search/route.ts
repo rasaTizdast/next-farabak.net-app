@@ -1,5 +1,5 @@
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../lib/db";
 import { escape } from "validator";
 
 /**
@@ -99,50 +99,28 @@ export async function GET(request: Request) {
   const keywords = escape(query.trim()).split(/\s+/);
 
   try {
-    const pool = await connectToDatabase();
-
-    // Build dynamic SQL query with category and subcategory slugs
-    const sqlQuery = `
-      SELECT 
-        p.ProductId,
-        p.Name,
-        p.Type,
-        p.Price,
-        p.Discount,
-        p.CategoryContentId,
-        p.img1,
-        p.img2,
-        p.Available,
-        p.Description,
-        p.CategoryId,
-        p.Slug AS productSlug,
-        c.Slug AS categorySlug,
-        cc.Slug AS subCategorySlug
-      FROM Support.Product p
-      JOIN Support.Category c ON c.CategoryId = p.CategoryId
-      OUTER APPLY (
-        SELECT TOP 1 cc.Slug 
-        FROM Support.CategoryContent cc
-        WHERE CHARINDEX(CAST(cc.CategoryContentId AS VARCHAR), p.CategoryContentId) > 0
-      ) AS cc
-      WHERE ${keywords
-        .map((_, index) => `p.Description LIKE @keyword${index}`)
-        .join(" OR ")}
-      ${
-        limit > 0
-          ? `ORDER BY p.ProductId OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY`
-          : ""
-      }
-    `;
-
-    const request = pool.request();
-    keywords.forEach((keyword, index) => {
-      request.input(`keyword${index}`, `%${keyword}%`);
+    // Build dynamic Prisma query with category and subcategory slugs
+    const products = await prisma.product.findMany({
+      where: {
+        OR: keywords.map((keyword) => ({
+          Description: {
+            contains: keyword,
+            mode: "insensitive",
+          },
+        })),
+      },
+      include: {
+        Category: {
+          select: {
+            Slug: true,
+          },
+        },
+      },
+      skip: offset,
+      take: limit > 0 ? limit : undefined,
     });
 
-    const result = await request.query(sqlQuery);
-
-    if (result.recordset.length === 0) {
+    if (products.length === 0) {
       return new NextResponse("No matching products found", { status: 404 });
     }
 
@@ -151,23 +129,52 @@ export async function GET(request: Request) {
     let totalPages = null;
 
     if (limit > 0) {
-      const totalCountResult = await pool
-        .request()
-        .query(`SELECT COUNT(*) AS totalCount FROM Support.Product`);
-      totalCount = totalCountResult.recordset[0].totalCount;
+      totalCount = await prisma.product.count({
+        where: {
+          OR: keywords.map((keyword) => ({
+            Description: {
+              contains: keyword,
+              mode: "insensitive",
+            },
+          })),
+        },
+      });
       totalPages = Math.ceil(totalCount / limit);
     }
 
     // Add link for each product, including categorySlug and subCategorySlug
-    const data = result.recordset.map((product) => ({
-      ...product,
-      link: `${product.categorySlug}/${product.subCategorySlug}/${product.productSlug}`,
-    }));
+    const data = await Promise.all(
+      products.map(async (product) => {
+        const categorySlug = product.Category?.Slug || null;
+
+        // Parse CategoryContentId string
+        const categoryContentIds = product.CategoryContentId
+          ? product.CategoryContentId.split(",").map((id) =>
+              parseInt(id.trim(), 10)
+            )
+          : [];
+
+        // Fetch first matching subcategory
+        const subCategory = await prisma.categoryContent.findFirst({
+          where: {
+            CategoryContentId: { in: categoryContentIds },
+          },
+        });
+
+        return {
+          ...product,
+          productSlug: product.Slug,
+          categorySlug,
+          subCategorySlug: subCategory?.Slug || null,
+          link: `${categorySlug}/${subCategory?.Slug || ""}/${product.Slug}`,
+        };
+      })
+    );
 
     return NextResponse.json({
       data,
       pagination: {
-        totalCount: totalCount || result.recordset.length, // Use recordset length if totalCount is null
+        totalCount: totalCount || products.length, // Use products length if totalCount is null
         currentPage: page,
         totalPages: totalPages || 1, // Default to 1 page
         hasNextPage:

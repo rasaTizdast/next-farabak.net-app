@@ -1,5 +1,5 @@
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../lib/db";
 
 /**
  * @swagger
@@ -29,33 +29,42 @@ import { connectToDatabase } from "../../../../../lib/db";
  */
 export async function GET() {
   try {
-    const pool = await connectToDatabase();
-
     // Fetch products with category and subcategory slugs
-    const result = await pool.request().query(`
-      SELECT 
-        p.Slug AS productSlug,
-        c.Slug AS categorySlug,
-        cc.Slug AS subCategorySlug
-      FROM 
-        Support.Product p
-      JOIN 
-        Support.Category c ON c.CategoryId = p.CategoryId
-      OUTER APPLY (
-        SELECT TOP 1 cc.Slug 
-        FROM Support.CategoryContent cc
-        WHERE CHARINDEX(CAST(cc.CategoryContentId AS VARCHAR), p.CategoryContentId) > 0
-      ) AS cc
-    `);
+    const products = await prisma.product.findMany({
+      include: {
+        Category: {
+          select: {
+            Slug: true,
+          },
+        },
+      },
+    });
 
-    if (result.recordset.length === 0) {
+    if (products.length === 0) {
       return new NextResponse("No products found", { status: 404 });
     }
 
     // Map product data to URLs
-    const urls = result.recordset.map(
-      ({ productSlug, categorySlug, subCategorySlug }) =>
-        `https://farabak.net/products/${categorySlug}/${subCategorySlug}/${productSlug}`
+    const urls = await Promise.all(
+      products.map(async (product) => {
+        const categorySlug = product.Category?.Slug || null;
+
+        // Parse CategoryContentId string
+        const categoryContentIds = product.CategoryContentId
+          ? product.CategoryContentId.split(",").map((id) =>
+              parseInt(id.trim(), 10)
+            )
+          : [];
+
+        // Fetch first matching subcategory
+        const subCategory = await prisma.categoryContent.findFirst({
+          where: {
+            CategoryContentId: { in: categoryContentIds },
+          },
+        });
+
+        return `https://farabak.net/products/${categorySlug}/${subCategory?.Slug}/${product.Slug}`;
+      })
     );
 
     return NextResponse.json({ urls });

@@ -1,5 +1,5 @@
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../../lib/db";
 
 /**
  * @swagger
@@ -60,24 +60,19 @@ export async function GET(
   }
 
   try {
-    const pool = await connectToDatabase();
-
     // Retrieve the Type field based on the productId from the Support.Product table
-    const productResult = await pool
-      .request()
-      .input("productId", productId)
-      .query("SELECT Type FROM Support.Product WHERE ProductId = @productId");
+    const product = await prisma.product.findUnique({
+      where: { ProductId: productId },
+      select: { Type: true },
+    });
 
     // If no product is found, return a 404 error
-    if (productResult.recordset.length === 0) {
+    if (!product) {
       return new NextResponse("Product not found", { status: 404 });
     }
 
-    // Extract product type from the result
-    const productType = productResult.recordset[0].Type;
-
     // Return the product type in the response
-    return NextResponse.json({ productType });
+    return NextResponse.json({ productType: product.Type });
   } catch (error) {
     console.error("Error fetching product type: ", error);
     return new NextResponse("Failed to fetch product type", { status: 500 });

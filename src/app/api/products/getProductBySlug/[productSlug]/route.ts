@@ -1,7 +1,5 @@
-// app/api/products/getProductById/[productId]/route.ts
-
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../../lib/db";
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -64,53 +62,68 @@ export async function GET(
   { params }: { params: { productSlug: string } }
 ) {
   try {
-    // Connect to the database
-    const pool = await connectToDatabase();
+    const { productSlug } = params;
 
-    // Query to get a product by productSlug, including category and subcategory slugs
-    const result = await pool.request().input("ProductSlug", params.productSlug) // Bind the productSlug parameter
-      .query(`
-        SELECT 
-          p.ProductId,
-          p.Name,
-          p.Type,
-          p.Price,
-          p.Discount,
-          p.CategoryContentId,
-          p.img1,
-          p.img2,
-          p.Available,
-          p.Description,
-          p.CategoryId,
-          p.Slug AS productSlug,
-          c.Slug AS categorySlug,
-          cc.Slug AS subCategorySlug
-        FROM 
-          Support.Product p
-        JOIN 
-          Support.Category c ON c.CategoryId = p.CategoryId
-        OUTER APPLY (
-          SELECT TOP 1 cc.Slug 
-          FROM Support.CategoryContent cc
-          WHERE CHARINDEX(CAST(cc.CategoryContentId AS VARCHAR), p.CategoryContentId) > 0
-        ) AS cc
-        WHERE 
-          p.Slug = @ProductSlug
-      `);
+    // Convert the productSlug from the URL to lowercase
+    const lowerCaseProductSlug = productSlug.toLowerCase();
 
-    // Check if the product is found
-    if (result.recordset.length === 0) {
+    // Find the product using findFirst, comparing the slug in lowercase
+    const product = await prisma.product.findFirst({
+      where: {
+        Slug: {
+          equals: lowerCaseProductSlug, // Compare slugs in lowercase
+          mode: "insensitive", // Ensure case-insensitive comparison in Prisma
+        },
+      },
+      include: {
+        Category: {
+          select: {
+            Slug: true,
+          },
+        },
+      },
+    });
+
+    if (!product) {
       return new NextResponse("Product not found", { status: 404 });
     }
 
-    // Return the product data as a JSON response
-    const product = result.recordset[0];
+    // Split the CategoryContentId string and handle both cases (single ID or comma-separated IDs)
+    const categoryContentIds = product.CategoryContentId?.split(",") || [];
+    const firstCategoryContentId = categoryContentIds[0];
 
-    return NextResponse.json(product); // Return the first product object with slugs
+    // Fetch related CategoryContent data using the first CategoryContentId
+    const subCategorySlug = firstCategoryContentId
+      ? (
+          await prisma.categoryContent.findFirst({
+            where: { CategoryContentId: Number(firstCategoryContentId) }, // Use first ID as an integer
+            select: { Slug: true },
+          })
+        )?.Slug
+      : null;
+
+    const responseData = {
+      ProductId: product.ProductId,
+      Name: product.Name,
+      Type: product.Type,
+      Price: product.Price,
+      Discount: product.Discount,
+      CategoryContentId: product.CategoryContentId,
+      img1: product.img1,
+      img2: product.img2,
+      Available: product.Available,
+      Description: product.Description,
+      CategoryId: product.CategoryId,
+      productSlug: product.Slug,
+      categorySlug: product.Category?.Slug || null,
+      subCategorySlug: subCategorySlug || null,
+      SEO_Title: product.SEO_Title,
+      SEO_Description: product.SEO_Description,
+    };
+
+    return NextResponse.json(responseData);
   } catch (error) {
     console.error("Error fetching product by Slug: ", error);
-
-    // Return a server error response
     return new NextResponse("Failed to fetch product", { status: 500 });
   }
 }

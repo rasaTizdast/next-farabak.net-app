@@ -1,5 +1,5 @@
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../../lib/db";
 
 /**
  * @swagger
@@ -58,95 +58,79 @@ export async function GET(
   const offset = (page - 1) * limit;
 
   try {
-    // Attempting to connect to the database
-    const pool = await connectToDatabase();
-
     // Get the subcategory ID based on the provided subCategoryName
-    const subCategoryIdResult = await pool
-      .request()
-      .input("slug", subCategoryName)
-      .query(
-        "SELECT CategoryContentId FROM Support.CategoryContent WHERE Slug = @slug"
-      );
+    const subCategory = await prisma.categoryContent.findFirst({
+      where: { Slug: subCategoryName },
+    });
 
-    if (subCategoryIdResult.recordset.length === 0) {
+    if (!subCategory) {
       return new NextResponse("Subcategory not found", { status: 404 });
     }
 
-    const subCategoryId = subCategoryIdResult.recordset[0].CategoryContentId;
+    const subCategoryId = subCategory.CategoryContentId.toString();
 
     // Count total products for pagination
-    const totalResult = await pool
-      .request()
-      .input("subCategoryId", subCategoryId)
-      .query(
-        `SELECT COUNT(*) AS count FROM Support.Product 
-         WHERE EXISTS (
-           SELECT value FROM STRING_SPLIT(CategoryContentId, ',')
-           WHERE LTRIM(RTRIM(value)) = @subCategoryId
-         )`
-      );
+    const totalCount = await prisma.product.count({
+      where: {
+        CategoryContentId: {
+          contains: subCategoryId,
+        },
+      },
+    });
 
-    const totalCount = totalResult.recordset[0].count;
     const totalPages = Math.ceil(totalCount / limit);
 
-    // Fetch paginated products with category and subcategory slugs and SEO details
-    const result = await pool
-      .request()
-      .input("subCategoryId", subCategoryId)
-      .query(
-        `SELECT 
-          p.ProductId,
-          p.Name,
-          p.Type,
-          p.Price,
-          p.Discount,
-          p.CategoryContentId,
-          p.img1,
-          p.img2,
-          p.Available,
-          p.Description,
-          p.CategoryId,
-          p.Slug AS productSlug,
-          c.Slug AS categorySlug,
-          cc.Slug AS subCategorySlug,
-          seo.SEO_Title,
-          seo.SEO_Description,
-          seo.SEO_Keywords
-        FROM 
-          Support.Product p
-        JOIN 
-          Support.Category c ON c.CategoryId = p.CategoryId
-        OUTER APPLY (
-          SELECT TOP 1 cc.Slug, cc.CategoryContentId
-          FROM Support.CategoryContent cc
-          WHERE CHARINDEX(CAST(cc.CategoryContentId AS VARCHAR), p.CategoryContentId) > 0
-        ) AS cc
-        LEFT JOIN
-          Support.SEO_CategoryContent seo ON seo.CategoryContentId = cc.CategoryContentId
-        WHERE 
-        EXISTS (
-        SELECT 1
-        FROM STRING_SPLIT(p.CategoryContentId, ',') AS splitValues
-        WHERE LTRIM(RTRIM(splitValues.value)) = @subCategoryId
-    )
-        ORDER BY 
-          p.ProductId
-        OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY;
-`
-      );
+    // Fetch paginated products with category and subcategory slugs
+    const products = await prisma.product.findMany({
+      where: {
+        CategoryContentId: {
+          contains: subCategoryId,
+        },
+      },
+      include: {
+        Category: true,
+      },
+      skip: offset,
+      take: limit,
+      orderBy: {
+        ProductId: "asc",
+      },
+    });
 
-    if (result.recordset.length === 0) {
+    if (products.length === 0) {
       return new NextResponse("No products found for this subcategory", {
         status: 404,
       });
     }
 
     // Add link for each product
-    const data = result.recordset.map((product) => ({
-      ...product,
-      link: `${product.categorySlug}/${product.subCategorySlug}/${product.productSlug}`,
-    }));
+    const data = await Promise.all(
+      products.map(async (product) => {
+        const categorySlug = product.Category?.Slug || null;
+
+        // Parse CategoryContentId string
+        const categoryContentIds = product.CategoryContentId
+          ? product.CategoryContentId.split(",").map((id) =>
+              parseInt(id.trim(), 10)
+            )
+          : [];
+
+        // Fetch first matching subcategory
+        const subCategory = await prisma.categoryContent.findFirst({
+          where: {
+            CategoryContentId: { in: categoryContentIds },
+          },
+        });
+
+        return {
+          ...product,
+          productSlug: product.Slug,
+          categorySlug,
+          subCategorySlug: subCategory?.Slug || null,
+          link: `${categorySlug}/${subCategory?.Slug || ""}/${product.Slug}`,
+        };
+      })
+    );
 
     const response = {
       data,

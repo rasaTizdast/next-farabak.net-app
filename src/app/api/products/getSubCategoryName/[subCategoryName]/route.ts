@@ -1,5 +1,5 @@
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../../lib/db";
 
 /**
  * @swagger
@@ -55,21 +55,23 @@ export async function GET(
 ) {
   const subCategoryNameSlug = params.subCategoryName;
   try {
-    const pool = await connectToDatabase();
-
     // Retrieve the subCategory name based on the slug from the Support.CategoryContent table
-    const categoryResult = await pool
-      .request()
-      .input("slug", subCategoryNameSlug)
-      .query("SELECT Name FROM Support.CategoryContent WHERE slug = @slug");
+    const categoryContent = await prisma.categoryContent.findFirst({
+      where: {
+        Slug: subCategoryNameSlug,
+      },
+      select: {
+        Name: true,
+      },
+    });
 
     // If no subCategory is found, return a 404 error
-    if (categoryResult.recordset.length === 0) {
+    if (!categoryContent) {
       return new NextResponse("Category not found", { status: 404 });
     }
 
     // Extract subCategory name from the result
-    const subCategoryName = categoryResult.recordset[0].Name;
+    const subCategoryName = categoryContent.Name;
 
     // Return the subCategory name in the response
     return NextResponse.json({ subCategoryName });
