@@ -37,8 +37,6 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const product = await getProduct(params.product);
 
-  console.log(product);
-
   if (!product) {
     return {
       title: "محصولی یافت نشد | فرابک",
@@ -85,8 +83,6 @@ export default async function ProductPage({
   params: { category: string; product: string };
 }) {
   const productData = await getProduct(params.product);
-
-  console.log(params.product);
 
   if (!productData) {
     notFound(); // Redirect to the 404 page if the product doesn't exist or is unavailable
