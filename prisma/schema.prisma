@@ -11,6 +11,8 @@ datasource db {
 
 // Updated product model
 // Updated Password model
+// Updated Master_ProductOverviewDetails
+// Updated Details_ProductOverviewDetails
 
 model BlogCategories {
   id          Int        @id(map: "PK__BlogCate__3213E83F00BCAE91") @default(autoincrement())
@@ -280,10 +282,13 @@ model CategoryContent {
 }
 
 model Details_ProductOverviewDetails {
-  id                       Int     @id(map: "PK__Master_P__3213E83FCDAEB8AB") @default(autoincrement())
-  ProductOverviewDetailsId Int?    @unique(map: "UQ__Master_P__63A8D0D3B59BD05C")
+  id                       Int     @id(map: "PK__Master_P__3213E83FCDAEB8AB") @unique(map: "UQ_ProductOverviewDetails_table_id") @default(autoincrement())
+  ProductOverviewDetailsId Int?
   productid                Int?
   ProductName              String? @db.VarChar(255)
+
+  // Added item
+  Master_ProductOverviewDetails Master_ProductOverviewDetails? @relation(fields: [ProductOverviewDetailsId], references: [ProductOverviewDetailsId])
 
   @@schema("Support")
 }
@@ -302,12 +307,15 @@ model FAQs {
 }
 
 model Master_ProductOverviewDetails {
-  id                       Int     @id(map: "PK__Details___3213E83F2815D6DC") @default(autoincrement())
-  ProductOverviewDetailsId Int?
-  Title                    String? @db.VarChar(2000)
-  Description              String? @db.VarChar(4000)
-  Img                      String? @db.VarChar(200)
-  Name                     String  @default("") @db.VarChar(1000)
+  id                       Int     @id @default(autoincrement())
+  ProductOverviewDetailsId Int     @unique(map: "UQ_ProductOverviewDetailsId")
+  Title                    String  @db.VarChar(2000)
+  Description              String  @db.VarChar(4000)
+  Img                      String  @db.VarChar(1000)
+  Name                     String? @db.VarChar(1000)
+
+  // Added item
+  Details_ProductOverviewDetails Details_ProductOverviewDetails[]
 
   @@schema("Support")
 }
