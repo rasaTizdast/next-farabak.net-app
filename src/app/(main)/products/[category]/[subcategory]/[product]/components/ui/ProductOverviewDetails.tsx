@@ -4,12 +4,11 @@ import styles from "./ProductOverviewDetails.module.css";
 import axios from "axios";
 
 interface OverviewDetail {
-  productOverviewDetailsId: number;
-  productName: string;
-  productId: number;
-  [key: `title${number}`]: string | undefined; // Dynamic keys for titles
-  [key: `description${number}`]: string | undefined; // Dynamic keys for descriptions
-  [key: `img${number}`]: string | undefined; // Dynamic keys for images
+  ProductOverviewDetailsId: number;
+  ProductName: string;
+  Title: string | null;
+  Description: string | null;
+  Img: string | null;
 }
 
 async function getProductOverviewDetails(productId: number) {
@@ -19,6 +18,7 @@ async function getProductOverviewDetails(productId: number) {
     );
 
     if (!res) throw new Error("Failed to fetch overview details");
+    console.log(res.data);
     return res.data;
   } catch (error) {
     console.error("Error fetching product overview details:", error);
@@ -31,9 +31,9 @@ function Overview({
   description,
   img,
 }: {
-  title: string;
-  description: string;
-  img: string;
+  title: string | null;
+  description: string | null;
+  img: string | null;
 }) {
   return (
     <div className={styles.overview}>
@@ -44,7 +44,7 @@ function Overview({
       {img && (
         <Image
           src={`${process.env.LIARA_BUCKET_URL}/overview-details-images${img}`}
-          alt={title}
+          alt={title || "Product image"}
           width={1920}
           height={1080}
           quality={100}
@@ -71,34 +71,15 @@ export default async function ProductOverviewDetails({
     );
   }
 
-  const renderOverviews = (detail: OverviewDetail) => {
-    const overviews = [];
-
-    for (let i = 1; i <= 16; i++) {
-      const title = detail[`title${i}`];
-      const description = detail[`description${i}`];
-      const img = detail[`img${i}`];
-
-      if (title && description && img) {
-        overviews.push(
-          <Overview
-            key={`overview-${i}`}
-            title={title}
-            description={description}
-            img={img}
-          />
-        );
-      }
-    }
-
-    return overviews;
-  };
-
   return (
     <div className={styles.overviews}>
       {productDetails.map((detail: OverviewDetail) => (
-        <div className={styles.overviews} key={detail.productOverviewDetailsId}>
-          {renderOverviews(detail)}
+        <div className={styles.overview} key={detail.ProductOverviewDetailsId}>
+          <Overview
+            title={detail.Title}
+            description={detail.Description}
+            img={detail.Img}
+          />
         </div>
       ))}
     </div>
