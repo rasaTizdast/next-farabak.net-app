@@ -1,5 +1,5 @@
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../lib/db";
 import { escape } from "validator";
 
 /**
@@ -123,160 +123,75 @@ export async function GET(request: Request) {
   const offset = (page - 1) * limit;
 
   try {
-    const pool = await connectToDatabase();
-
-    // Base SQL query
-    let sqlQuery = `SELECT 
-          p.ProductId,
-          p.Name AS productName,
-          p.Type,
-          p.Price,
-          p.Discount,
-          p.CategoryContentId,
-          p.img1,
-          p.img2,
-          p.Available,
-          p.Description,
-          p.CategoryId,
-          p.Slug AS productSlug,
-          c.Slug AS categorySlug,
-          cc.Slug AS subCategorySlug,
-          c.Name AS categoryName,
-          cc.Name AS subCategoryName
-        FROM Support.Product p
-        JOIN Support.Category c ON c.CategoryId = p.CategoryId
-        OUTER APPLY (
-          SELECT TOP 1 cc.Slug, cc.Name
-          FROM Support.CategoryContent cc
-          WHERE CHARINDEX(CAST(cc.CategoryContentId AS VARCHAR), p.CategoryContentId) > 0
-        ) AS cc`;
-
-    let countQuery = `SELECT COUNT(*) AS totalCount
-        FROM Support.Product p
-        JOIN Support.Category c ON c.CategoryId = p.CategoryId
-        OUTER APPLY (
-          SELECT TOP 1 cc.Slug
-          FROM Support.CategoryContent cc
-          WHERE CHARINDEX(CAST(cc.CategoryContentId AS VARCHAR), p.CategoryContentId) > 0
-        ) AS cc`;
-
-    const conditions: string[] = [];
+    const conditions: any = {};
 
     if (query.trim()) {
-      const keywords = escape(query.trim()).split(/\s+/);
-      keywords.forEach((keyword, index) => {
-        conditions.push(`p.Description LIKE @keyword${index}`);
-      });
+      conditions.Description = {
+        contains: escape(query.trim()),
+      };
     }
 
     if (category > 0) {
-      conditions.push(`p.CategoryId = @category`);
+      conditions.CategoryId = category;
     }
 
     if (subcategory) {
-      const subcategoryIds = subcategory.split(",");
-      subcategoryIds.forEach((id, index) => {
-        conditions.push(
-          `CHARINDEX(@subcategory${index}, p.CategoryContentId) > 0`
-        );
-      });
+      conditions.CategoryContentId = {
+        hasSome: subcategory.split(","),
+      };
     }
 
     if (available && available !== "all") {
-      conditions.push(`p.Available = @available`);
+      conditions.Available = available === "true";
     }
 
-    if (conditions.length > 0) {
-      const whereClause = ` WHERE ${conditions.join(" AND ")}`;
-      sqlQuery += whereClause;
-      countQuery += whereClause;
-    }
+    const [products, totalCount] = await prisma.$transaction([
+      prisma.product.findMany({
+        where: conditions,
+        skip: offset,
+        take: limit,
+        include: {
+          Category: true,
+        },
+      }),
+      prisma.product.count({
+        where: conditions,
+      }),
+    ]);
 
-    sqlQuery += ` ORDER BY p.ProductId
-        OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY`;
-
-    const requestQuery = pool.request();
-    const countQueryRequest = pool.request();
-
-    if (query.trim()) {
-      const keywords = escape(query.trim()).split(/\s+/);
-      keywords.forEach((keyword, index) => {
-        requestQuery.input(`keyword${index}`, `%${keyword}%`);
-        countQueryRequest.input(`keyword${index}`, `%${keyword}%`);
-      });
-    }
-
-    if (category > 0) {
-      requestQuery.input("category", category);
-      countQueryRequest.input("category", category);
-    }
-
-    if (subcategory) {
-      const subcategoryIds = subcategory.split(",");
-      subcategoryIds.forEach((id, index) => {
-        requestQuery.input(`subcategory${index}`, id);
-        countQueryRequest.input(`subcategory${index}`, id);
-      });
-    }
-
-    if (available && available !== "all") {
-      const availability = available === "true";
-      requestQuery.input("available", availability);
-      countQueryRequest.input("available", availability);
-    }
-
-    const result = await requestQuery.query(sqlQuery);
-    const totalCountResult = await countQueryRequest.query(countQuery);
-
-    const totalCount = totalCountResult.recordset[0].totalCount;
     const totalPages = Math.ceil(totalCount / limit);
 
-    if (result.recordset.length === 0) {
+    if (products.length === 0) {
       return new NextResponse("No products found", { status: 404 });
     }
 
-    // Get the names of the category content items
-    const categoryContentIds = result.recordset.flatMap((product) =>
-      product.CategoryContentId.toString()
-        .split(",")
-        .map((id: string) => id.trim())
+    const data = await Promise.all(
+      products.map(async (product) => {
+        const categorySlug = product.Category?.Slug || null;
+
+        // Parse CategoryContentId string
+        const categoryContentIds = product.CategoryContentId
+          ? product.CategoryContentId.split(",").map((id) =>
+              parseInt(id.trim(), 10)
+            )
+          : [];
+
+        // Fetch first matching subcategory
+        const subCategory = await prisma.categoryContent.findFirst({
+          where: {
+            CategoryContentId: { in: categoryContentIds },
+          },
+        });
+
+        return {
+          ...product,
+          productSlug: product.Slug,
+          categorySlug,
+          subCategorySlug: subCategory?.Slug || null,
+          link: `${categorySlug}/${subCategory?.Slug || ""}/${product.Slug}`,
+        };
+      })
     );
-    const uniqueCategoryContentIds = Array.from(new Set(categoryContentIds)); // No use of `set` here
-
-    // Fetch names for all unique CategoryContentIds
-    const categoryContentQuery = `
-      SELECT CategoryContentId, Name
-      FROM Support.CategoryContent
-      WHERE CategoryContentId IN (${uniqueCategoryContentIds.join(",")})
-    `;
-    const categoryContentResult = await pool
-      .request()
-      .query(categoryContentQuery);
-    const categoryContentMap = categoryContentResult.recordset.reduce(
-      (map, row) => {
-        map[row.CategoryContentId] = row.Name;
-        return map;
-      },
-      {}
-    );
-
-    const data = result.recordset.map((product) => {
-      const categoryContentIds = product.CategoryContentId.toString()
-        .split(",")
-        .map((id: string) => id.trim());
-
-      const categoryContentDetails = categoryContentIds.map((id: string) => ({
-        CategoryContentId: id,
-        Name: categoryContentMap[id] || "Unknown",
-      }));
-
-      return {
-        ...product,
-        CategoryContentId: categoryContentIds,
-        CategoryContentIds: categoryContentDetails,
-        link: `${product.categorySlug}/${product.subCategorySlug}/${product.productSlug}`,
-      };
-    });
 
     return NextResponse.json({
       data,

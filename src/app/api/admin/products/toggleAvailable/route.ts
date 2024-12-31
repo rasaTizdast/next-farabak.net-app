@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../../lib/db";
+import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
@@ -83,37 +83,31 @@ export async function PATCH(req: Request): Promise<NextResponse> {
       );
     }
 
-    const pool = await connectToDatabase();
-    const request = pool.request();
-    request.input("id", productId);
-
     // Fetch current availability status
-    const result = await request.query(
-      "SELECT available FROM Support.Product WHERE ProductId = @id"
-    );
+    const product = await prisma.product.findUnique({
+      where: { ProductId: productId },
+    });
 
-    if (!result.recordset || result.recordset.length === 0) {
+    if (!product) {
       return NextResponse.json(
         { message: "Product not found" },
         { status: 404 }
       );
     }
 
-    const currentStatus = result.recordset[0].available;
-    const newStatus = !currentStatus;
+    const newStatus = !product.Available;
 
     // Update the availability status
-    await request
-      .input("available", newStatus) // Bind new status
-      .query(
-        "UPDATE Support.Product SET available = @available WHERE ProductId = @id"
-      );
+    const updatedProduct = await prisma.product.update({
+      where: { ProductId: productId },
+      data: { Available: newStatus },
+    });
 
     return NextResponse.json(
       {
         message: "Product availability updated successfully",
-        productId,
-        available: newStatus,
+        productId: updatedProduct.ProductId,
+        available: updatedProduct.Available,
       },
       { status: 200 }
     );

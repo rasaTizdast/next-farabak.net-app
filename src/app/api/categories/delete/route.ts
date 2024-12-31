@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../lib/db";
+import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
-import { ConnectionPool } from "mssql"; // Assuming you're using mssql library
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -81,77 +80,74 @@ async function verifyToken(token: string) {
  */
 
 // Helper function to delete a subcategory and related data
-async function deleteSubCategory(pool: ConnectionPool, subCategoryId: number) {
+async function deleteSubCategory(subCategoryId: number) {
   // Delete related SEO details for subCategory
-  await pool.request().input("subCategoryId", subCategoryId) // Bind parameter
-    .query(`
-      DELETE FROM Support.SEO_CategoryContent WHERE CategoryContentId = @subCategoryId
-    `);
+  await prisma.sEO_CategoryContent.deleteMany({
+    where: { CategoryContentId: subCategoryId },
+  });
 
   // Delete products that are associated with the subCategory
-  const products = await pool
-    .request()
-    .input("subCategoryId", subCategoryId.toString()) // Bind parameter
-    .query(`
-      SELECT ProductId, CategoryContentId FROM Support.Product WHERE CategoryContentId LIKE '%' + @subCategoryId + '%'
-    `);
+  const products = await prisma.product.findMany({
+    where: {
+      CategoryContentId: {
+        contains: subCategoryId.toString(),
+      },
+    },
+  });
 
-  for (const product of products.recordset) {
+  for (const product of products) {
     // Delete product overview
-    await pool.request().input("productId", product.ProductId) // Bind parameter
-      .query(`
-        DELETE FROM Support.ProductOverview WHERE ProductId = @productId
-      `);
-    await pool.request().input("productId", product.ProductId) // Bind parameter
-      .query(`
-        DELETE FROM Support.ProductOverviewDetails WHERE ProductId = @productId
-      `);
-    await pool.request().input("productId", product.ProductId) // Bind parameter
-      .query(`
-        DELETE FROM Support.ProductSpecs WHERE ProductId = @productId
-      `);
-    await pool.request().input("productId", product.ProductId) // Bind parameter
-      .query(`
-        DELETE FROM Support.FAQs WHERE ProductId = @productId
-      `);
+    await prisma.productOverview.deleteMany({
+      where: { ProductId: product.ProductId },
+    });
+    await prisma.details_ProductOverviewDetails.deleteMany({
+      where: { productid: product.ProductId },
+    });
+    await prisma.productSpecs.deleteMany({
+      where: { ProductId: product.ProductId },
+    });
+    await prisma.fAQs.deleteMany({
+      where: { ProductId: product.ProductId },
+    });
   }
+
   // Delete products
-  await pool.request().input("subCategoryId", subCategoryId.toString()) // Bind parameter
-    .query(`
-      DELETE FROM Support.Product WHERE CategoryContentId LIKE '%' + @subCategoryId + '%'
-    `);
+  await prisma.product.deleteMany({
+    where: {
+      CategoryContentId: {
+        contains: subCategoryId.toString(),
+      },
+    },
+  });
+
   // Finally, delete the subCategory itself
-  await pool.request().input("subCategoryId", subCategoryId) // Bind parameter
-    .query(`
-      DELETE FROM Support.CategoryContent WHERE CategoryContentId = @subCategoryId
-    `);
+  await prisma.categoryContent.delete({
+    where: { CategoryContentId: subCategoryId },
+  });
 }
 
 // Helper function to delete a category and its subcategories and products
-async function deleteCategory(pool: ConnectionPool, categoryId: string) {
+async function deleteCategory(categoryId: number) {
   try {
     // Delete SEO details for the category
-    await pool.request().input("categoryId", categoryId) // Bind parameter
-      .query(`
-        DELETE FROM Support.SEO_Category WHERE CategoryID = @categoryId
-      `);
+    await prisma.sEO_Category.deleteMany({
+      where: { CategoryID: categoryId },
+    });
 
     // Fetch all subcategories for the category
-    const subCategories = await pool.request().input("categoryId", categoryId) // Bind parameter
-      .query(`
-        SELECT CategoryContentId FROM Support.CategoryContent WHERE CategoryID = @categoryId
-      `);
+    const subCategories = await prisma.categoryContent.findMany({
+      where: { CategoryID: categoryId },
+    });
 
     // Loop through each subcategory and delete it and its related data
-    for (const subCategory of subCategories.recordset) {
-      await deleteSubCategory(pool, subCategory.CategoryContentId);
+    for (const subCategory of subCategories) {
+      await deleteSubCategory(subCategory.CategoryContentId);
     }
 
     // Delete the category itself
-    await pool.request().input("categoryId", categoryId) // Bind parameter
-      .query(`
-        DELETE FROM Support.Category WHERE CategoryID = @categoryId
-      `);
+    await prisma.category.delete({
+      where: { CategoryID: categoryId },
+    });
   } catch (error) {
     console.error("Error during category deletion:", error);
     throw new Error("Failed to delete category.");
@@ -179,14 +175,12 @@ export async function DELETE(request: Request) {
   try {
     const { categoryId, subCategoryId } = await request.json();
 
-    const pool = await connectToDatabase();
-
     if (categoryId) {
       // If a categoryId is provided, delete the category and its subcategories
-      await deleteCategory(pool, categoryId);
+      await deleteCategory(parseInt(categoryId, 10));
     } else if (subCategoryId) {
       // If a subCategoryId is provided, delete the subCategory and related products
-      await deleteSubCategory(pool, subCategoryId);
+      await deleteSubCategory(parseInt(subCategoryId, 10));
     } else {
       return NextResponse.json(
         { message: "Invalid request, no category or subcategory ID provided." },

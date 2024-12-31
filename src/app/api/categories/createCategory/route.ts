@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../lib/db";
+import { prisma } from "@/lib/prisma";
 import { jwtVerify } from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -78,9 +78,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const pool = await connectToDatabase();
     const body = await req.json();
-
     const { type, data } = body;
     const {
       name,
@@ -96,43 +94,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Invalid data" }, { status: 400 });
     }
 
-    // Insert into Support.Category
-    const insertCategoryResult = await pool
-      .request()
-      .input("Name", name)
-      .input("Slug", slug)
-      .input("Available", available)
-      .input("ParentCategoryId", parentCategoryId).query(`
-        INSERT INTO Support.Category (Name, Slug, Available, Category_groupId, InsertDate, ModifyDate)
-        OUTPUT INSERTED.CategoryID
-        VALUES (@Name, @Slug, @Available, @ParentCategoryId, GETDATE(), GETDATE())
-      `);
-
-    if (
-      !insertCategoryResult.recordset ||
-      insertCategoryResult.recordset.length === 0
-    ) {
-      return NextResponse.json(
-        { message: "Failed to insert category" },
-        { status: 500 }
-      );
-    }
-
-    const categoryId = insertCategoryResult.recordset[0].CategoryID;
-
-    // Insert into Support.SEO_Category
-    await pool
-      .request()
-      .input("CategoryID", categoryId)
-      .input("SEO_Title", seoTitle)
-      .input("SEO_Description", seoDescription)
-      .input("SEO_Keywords", JSON.stringify(seoKeywords)).query(`
-        INSERT INTO Support.SEO_Category (CategoryID, SEO_Title, SEO_Description, SEO_Keywords)
-        VALUES (@CategoryID, @SEO_Title, @SEO_Description, @SEO_Keywords)
-      `);
+    // Insert into Support.Category and Support.SEO_Category
+    const category = await prisma.category.create({
+      data: {
+        Name: name,
+        Slug: slug,
+        Available: available,
+        Category_groupId: parentCategoryId,
+        SEO_Category: {
+          create: {
+            SEO_Title: seoTitle,
+            SEO_Description: seoDescription,
+            SEO_Keywords: seoKeywords.join(","),
+          },
+        },
+      },
+    });
 
     return NextResponse.json(
-      { message: "Category created successfully" },
+      { message: "Category created successfully", category },
       { status: 201 }
     );
   } catch (error) {

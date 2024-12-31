@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../../lib/db";
+import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
@@ -69,17 +69,12 @@ export async function DELETE(
       );
     }
 
-    const pool = await connectToDatabase(); // Make sure pool is initialized here
-    const request = pool.request();
-
     // Check if the product exists in the database
-    const productExists = await request
-      .input("id", productId)
-      .query(
-        "SELECT COUNT(*) AS count FROM Support.Product WHERE ProductId = @id"
-      );
+    const productExists = await prisma.product.findUnique({
+      where: { ProductId: parseInt(productId, 10) },
+    });
 
-    if (productExists.recordset[0].count === 0) {
+    if (!productExists) {
       return NextResponse.json(
         { message: "Product not found" },
         { status: 404 }
@@ -87,48 +82,31 @@ export async function DELETE(
     }
 
     // Start a transaction to delete from multiple tables
-    const transaction = pool.transaction();
-    await transaction.begin(); // Start the transaction
-
     try {
-      const transactionRequest = transaction.request();
-      transactionRequest.input("id", productId);
-
-      // 1. Delete from Support.Product
-      await transactionRequest.query(
-        "DELETE FROM Support.Product WHERE ProductId = @id"
-      );
-
-      // 2. Delete from Support.ProductOverview
-      await transactionRequest.query(
-        "DELETE FROM Support.ProductOverview WHERE ProductId = @id"
-      );
-
-      // 3. Delete from Support.ProductOverviewDetails (if exists)
-      await transactionRequest.query(
-        "DELETE FROM Support.ProductOverviewDetails WHERE ProductId = @id"
-      );
-
-      // 4. Delete from Support.ProductSpecs
-      await transactionRequest.query(
-        "DELETE FROM Support.ProductSpecs WHERE ProductId = @id"
-      );
-
-      // 5. Delete from Support.FAQs
-      await transactionRequest.query(
-        "DELETE FROM Support.FAQs WHERE ProductId = @id"
-      );
-
-      await transaction.commit(); // Commit the transaction
+      await prisma.$transaction([
+        prisma.product.delete({
+          where: { ProductId: parseInt(productId, 10) },
+        }),
+        prisma.productOverview.deleteMany({
+          where: { ProductId: parseInt(productId, 10) },
+        }),
+        prisma.details_ProductOverviewDetails.deleteMany({
+          where: { productid: parseInt(productId, 10) },
+        }),
+        prisma.productSpecs.deleteMany({
+          where: { ProductId: parseInt(productId, 10) },
+        }),
+        prisma.fAQs.deleteMany({
+          where: { ProductId: parseInt(productId, 10) },
+        }),
+      ]);
 
       return NextResponse.json(
         { message: "Product and related data removed successfully." },
         { status: 200 }
       );
     } catch (error) {
-      await transaction.rollback(); // Rollback if something goes wrong
       console.error("Error removing product and related data: ", error);
-
       return NextResponse.json(
         { message: "Failed to remove product and related data" },
         { status: 500 }

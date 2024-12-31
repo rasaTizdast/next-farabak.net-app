@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../../lib/db";
+import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
@@ -75,37 +75,19 @@ export async function GET(): Promise<NextResponse> {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // Connect to the database
-    const pool = await connectToDatabase();
-
     // Fetch the total count of invoices
-    const invoiceCountResult = await pool
-      .request()
-      .query("SELECT COUNT(*) AS InvoiceCount FROM Info.Factor");
-    const invoiceCount = invoiceCountResult.recordset[0]?.InvoiceCount || 0;
+    const invoiceCount = await prisma.invoice.count();
 
     // Fetch the count of available and unavailable products
-    const productCountResult = await pool.request().query(
-      `SELECT 
-          SUM(CASE WHEN Available = 1 THEN 1 ELSE 0 END) AS AvailableCount,
-          SUM(CASE WHEN Available = 0 THEN 1 ELSE 0 END) AS UnavailableCount
-         FROM Support.Product`
-    );
     const productCount = {
-      available: productCountResult.recordset[0]?.AvailableCount || 0,
-      unavailable: productCountResult.recordset[0]?.UnavailableCount || 0,
+      available: await prisma.product.count({ where: { Available: true } }),
+      unavailable: await prisma.product.count({ where: { Available: false } }),
     };
 
     // Fetch the total amount of invoices based on Checked status
-    const invoiceStatusCountResult = await pool.request().query(
-      `SELECT 
-          COUNT(CASE WHEN Checked = 1 THEN 1 END) AS CheckedCount,
-          COUNT(CASE WHEN Checked = 0 THEN 1 END) AS UncheckedCount
-       FROM Info.Factor`
-    );
     const invoiceStatusCount = {
-      checked: invoiceStatusCountResult.recordset[0]?.CheckedCount || 0,
-      unchecked: invoiceStatusCountResult.recordset[0]?.UncheckedCount || 0,
+      checked: await prisma.invoice.count({ where: { Checked: true } }),
+      unchecked: await prisma.invoice.count({ where: { Checked: false } }),
     };
 
     return NextResponse.json({
