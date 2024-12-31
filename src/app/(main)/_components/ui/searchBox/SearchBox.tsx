@@ -116,7 +116,7 @@ const SearchResults = ({
         searchResults.map((product) => (
           <Link
             key={product.productId}
-            href={`products/${product.link}`}
+            href={`/products/${product.link}`}
             className={styles.result}
             onClick={() => {
               closeSearchBox();
