@@ -1,13 +1,24 @@
 import { PrismaClient } from "@prisma/client";
 
 declare global {
-  // Prevent multiple PrismaClient instances in development
   var prisma: PrismaClient | undefined;
 }
 
-// Use a global variable to maintain a singleton in development
 export const prisma = global.prisma || new PrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
   global.prisma = prisma;
 }
+
+// Gracefully shut down Prisma connections on server shutdown
+process.on("SIGINT", async () => {
+  console.log("Closing Prisma connection on SIGINT...");
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+process.on("SIGTERM", async () => {
+  console.log("Closing Prisma connection on SIGTERM...");
+  await prisma.$disconnect();
+  process.exit(0);
+});
