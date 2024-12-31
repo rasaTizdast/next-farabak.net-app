@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../lib/db";
+import { prisma } from "@/lib/prisma";
 import { v4 as uuidv4 } from "uuid";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
@@ -79,39 +79,25 @@ export async function GET(): Promise<NextResponse> {
     const userId = decoded.userId;
 
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const pool = await connectToDatabase();
+    // Fetch invoices and their details
+    const invoices = await prisma.invoice.findMany({
+      where: { UserId: userId },
+      orderBy: { Date: "desc" },
+      include: {
+        Invoice_Details: true, // Include associated products
+      },
+    });
 
-    // Fetch invoices for the user
-    const invoices = await pool
-      .request()
-      .input("UserId", userId)
-      .query(
-        `SELECT Invoiceid, FactorGuid, Fullname, Phonenumber, TotalAmount, Date, Checked 
-         FROM Info.Invoice WHERE UserId = @UserId ORDER BY Date DESC`
-      );
-
-    const invoiceDetails = await pool
-      .request()
-      .input("UserId", userId)
-      .query(
-        `SELECT Invoiceid, ProductId, Quantity, Price, Total_Price 
-         FROM Info.Invoice_Details WHERE UserId = @UserId`
-      );
-
-    const invoicesWithDetails = invoices.recordset.map((invoice) => ({
-      ...invoice,
-      Products: invoiceDetails.recordset.filter(
-        (detail) => detail.Invoiceid === invoice.Invoiceid
-      ),
-    }));
-
-    return NextResponse.json(invoicesWithDetails);
+    return NextResponse.json(invoices, { status: 200 });
   } catch (error) {
     console.error("Error fetching invoices: ", error);
-    return new NextResponse("Failed to fetch invoices", { status: 500 });
+    return NextResponse.json(
+      { message: "Failed to fetch invoices" },
+      { status: 500 }
+    );
   }
 }
 
@@ -156,9 +142,25 @@ export async function GET(): Promise<NextResponse> {
  *         description: Internal server error
  */
 export async function POST(request: Request) {
+  interface Product {
+    ProductId: number; // Match your schema
+    Quantity: number;
+    Price: number;
+  }
+
   try {
-    const { Fullname, Phonenumber, TotalAmount, Products } =
-      await request.json();
+    const {
+      Fullname,
+      Phonenumber,
+      TotalAmount,
+      Products,
+    }: {
+      Fullname: string;
+      Phonenumber: string;
+      TotalAmount: number;
+      Products: Product[];
+    } = await request.json();
+
     const cookieStore = cookies();
     const token = cookieStore.get("accessToken")?.value;
 
@@ -170,7 +172,7 @@ export async function POST(request: Request) {
     }
 
     const decoded = await verifyToken(token);
-    const userId = decoded.userId;
+    const userId = BigInt(decoded.userId as string); // Convert to BigInt
 
     if (
       !Fullname ||
@@ -179,51 +181,43 @@ export async function POST(request: Request) {
       !Products ||
       Products.length === 0
     ) {
-      return new NextResponse("Invalid request data", { status: 400 });
+      return NextResponse.json(
+        { message: "Invalid request data" },
+        { status: 400 }
+      );
     }
 
     const FactorGuid = `FARABAK-${uuidv4()}`;
     const currentDate = moment().locale("fa").format("YYYY-MM-DDTHH:mm:ss");
 
-    const pool = await connectToDatabase();
+    // Create invoice and details transactionally
+    const createdInvoice = await prisma.invoice.create({
+      data: {
+        FactorGuid,
+        Fullname,
+        Phonenumber,
+        TotalAmount,
+        Date: currentDate,
+        UserId: userId,
+        Invoice_Details: {
+          create: Products.map((product) => ({
+            ProductId: product.ProductId,
+            quantity: product.Quantity,
+            price: product.Price,
+            total_price: product.Quantity * product.Price,
+            UserId: userId,
+          })),
+        },
+      },
+    });
 
-    // Insert invoice
-    const invoiceResult = await pool
-      .request()
-      .input("FactorGuid", FactorGuid)
-      .input("Fullname", Fullname)
-      .input("Phonenumber", Phonenumber)
-      .input("TotalAmount", TotalAmount)
-      .input("Date", currentDate)
-      .input("UserId", userId)
-      .query(
-        `INSERT INTO Info.Invoice (FactorGuid, Fullname, Phonenumber, TotalAmount, Date, UserId)
-         OUTPUT Inserted.Invoiceid
-         VALUES (@FactorGuid, @Fullname, @Phonenumber, @TotalAmount, @Date, @UserId)`
-      );
-
-    const invoiceId = invoiceResult.recordset[0].Invoiceid;
-
-    // Insert product details
-    for (const product of Products) {
-      await pool
-        .request()
-        .input("Invoiceid", invoiceId)
-        .input("UserId", userId)
-        .input("ProductId", product.ProductId)
-        .input("Quantity", product.Quantity)
-        .input("Price", product.Price)
-        .input("Total_Price", product.Quantity * product.Price)
-        .query(
-          `INSERT INTO Info.Invoice_Details (Invoiceid, UserId, ProductId, Quantity, Price, Total_Price)
-           VALUES (@Invoiceid, @UserId, @ProductId, @Quantity, @Price, @Total_Price)`
-        );
-    }
-
-    return new NextResponse("Invoice created successfully", { status: 201 });
+    return NextResponse.json(createdInvoice, { status: 201 });
   } catch (error) {
     console.error("Error creating invoice: ", error);
-    return new NextResponse("Failed to create invoice", { status: 500 });
+    return NextResponse.json(
+      { message: "Failed to create invoice" },
+      { status: 500 }
+    );
   }
 }
 
@@ -271,35 +265,39 @@ export async function PATCH(request: Request) {
     const userId = decoded.userId;
 
     if (!FactorGuid || !userId) {
-      return new NextResponse("Invalid request data", { status: 400 });
+      return NextResponse.json(
+        { message: "Invalid request data" },
+        { status: 400 }
+      );
     }
 
-    const pool = await connectToDatabase();
+    // Check if the invoice exists and belongs to the user
+    const invoice = await prisma.invoice.findFirst({
+      where: { FactorGuid, UserId: userId },
+    });
 
-    const invoiceCheck = await pool
-      .request()
-      .input("FactorGuid", FactorGuid)
-      .input("UserId", userId)
-      .query(
-        `SELECT COUNT(*) AS count FROM Info.Invoice WHERE FactorGuid = @FactorGuid AND UserId = @UserId`
+    if (!invoice) {
+      return NextResponse.json(
+        { message: "Invoice not found or unauthorized" },
+        { status: 404 }
       );
-
-    if (invoiceCheck.recordset[0].count === 0) {
-      return new NextResponse("Invoice not found or unauthorized", {
-        status: 404,
-      });
     }
 
-    await pool
-      .request()
-      .input("FactorGuid", FactorGuid)
-      .query(
-        `UPDATE Info.Invoice SET Checked = 1 WHERE FactorGuid = @FactorGuid`
-      );
+    // Update the checked status
+    await prisma.invoice.update({
+      where: { Invoiceid: invoice.Invoiceid },
+      data: { Checked: true },
+    });
 
-    return new NextResponse("Invoice checked status updated", { status: 200 });
+    return NextResponse.json(
+      { message: "Invoice checked status updated" },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error updating invoice: ", error);
-    return new NextResponse("Failed to update invoice", { status: 500 });
+    return NextResponse.json(
+      { message: "Failed to update invoice" },
+      { status: 500 }
+    );
   }
 }
