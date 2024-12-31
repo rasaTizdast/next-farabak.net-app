@@ -18,7 +18,6 @@ async function getProductOverviewDetails(productId: number) {
     );
 
     if (!res) throw new Error("Failed to fetch overview details");
-    console.log(res.data);
     return res.data;
   } catch (error) {
     console.error("Error fetching product overview details:", error);
