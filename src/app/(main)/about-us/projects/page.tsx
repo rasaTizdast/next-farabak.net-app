@@ -14,9 +14,9 @@ export const metadata: Metadata = {
 
 const ProjectsPage = () => {
   const breadCrumbs = [
-    { href: "/", path: "/" },
-    { href: "/about-us", path: "/about-us" },
-    { href: "/about-us/projects", path: "/about-us/projects" },
+    { path: "/" },
+    { path: "/about-us" },
+    { path: "/about-us/projects" },
   ];
   return (
     <div className={styles.projectsParent}>

@@ -6,7 +6,6 @@ import { IoIosArrowBack } from "react-icons/io";
 
 interface BreadcrumbItem {
   path: string;
-  href: string;
 }
 
 interface BreadcrumbProps {
@@ -28,7 +27,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ breadcrumbs }) => {
                 </span>
               )}
               <Link
-                href={crumb.href}
+                href={crumb.path}
                 className="text-white hover:underline underline-offset-[6px]"
               >
                 {name}

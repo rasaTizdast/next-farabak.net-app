@@ -32,10 +32,7 @@ const ProductsPage = async ({ params }: ProductsPageProps) => {
   const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getAllProducts?page=${currentPage}&limit=${limit}`;
 
   // Breadcrumb paths
-  const breadcrumbs = [
-    { path: "/", href: "/" },
-    { path: "/products", href: "/products" },
-  ];
+  const breadcrumbs = [{ path: "/" }, { path: "/products" }];
 
   return (
     <div>

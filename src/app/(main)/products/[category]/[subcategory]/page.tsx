@@ -68,15 +68,13 @@ const SubcategoryPage = async ({ params }: SubcategoryPageProps) => {
   const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsBySubcategory/${subcategory}?page=${currentPage}&limit=${limit}`;
 
   const breadcrumbs = [
-    { path: "/", href: "/" },
-    { path: "/products", href: "/products" },
+    { path: "/" },
+    { path: "/products" },
     {
       path: `/products/${category}`,
-      href: `/products/${category}`,
     },
     {
       path: `/products/${category}/${subcategory}`,
-      href: `/products/${category}/${subcategory}`,
     },
   ];
 

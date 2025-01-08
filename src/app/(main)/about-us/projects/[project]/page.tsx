@@ -53,9 +53,9 @@ const ProjectPage = ({ params }: ParamsType) => {
     projectData;
 
   const breadcrumbs = [
-    { path: "/", href: "/" },
-    { path: "/about-us", href: "/about-us" },
-    { path: "/about-us/projects", href: "/about-us/projects" },
+    { path: "/" },
+    { path: "/about-us" },
+    { path: "/about-us/projects" },
   ];
   return (
     <section className={styles.content}>

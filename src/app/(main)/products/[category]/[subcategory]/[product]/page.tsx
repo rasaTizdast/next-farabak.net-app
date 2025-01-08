@@ -89,14 +89,12 @@ export default async function ProductPage({
   }
 
   const breadCrumbs = [
-    { href: "/", path: "/" },
-    { href: "/products", path: "/products" },
+    { path: "/" },
+    { path: "/products" },
     {
-      href: `/products/${productData.categorySlug}`,
       path: `/products/${productData.categorySlug}`,
     },
     {
-      href: `/products/${productData.categorySlug}/${productData.subCategorySlug}`,
       path: `/products/${productData.categorySlug}/${productData.subCategorySlug}`,
     },
   ];

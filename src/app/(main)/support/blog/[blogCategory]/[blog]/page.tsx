@@ -109,9 +109,9 @@
 // };
 
 // const breadcrumbs = [
-//   { path: "/", href: "/" },
-//   { path: "/support", href: "/support" },
-//   { path: "/support/blog", href: "/support/blog" },
+//   { path: "/" },
+//   { path: "/support" },
+//   { path: "/support/blog" },
 // ];
 
 // const BlogPage = () => {
@@ -160,12 +160,10 @@
 
 // export default BlogPage;
 
-import React from 'react'
+import { notFound } from "next/navigation";
 
 const page = () => {
-  return (
-    <div>page</div>
-  )
-}
+  return notFound();
+};
 
-export default page
+export default page;

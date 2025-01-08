@@ -121,9 +121,9 @@ const BlogContent = async () => {
 
 const BlogLandingPage = () => {
   const breadCrumbs = [
-    { href: "/", path: "/" },
-    { href: "/support", path: "/support" },
-    { href: "/support/blog", path: "/support/blog" },
+    { path: "/" },
+    { path: "/support" },
+    { path: "/support/blog" },
   ];
 
   return (

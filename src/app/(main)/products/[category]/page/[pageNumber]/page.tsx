@@ -77,11 +77,10 @@ const CategoryPage = async ({ params }: CategoryPageProps) => {
 
   // Breadcrumbs for navigation
   const breadcrumbs = [
-    { path: "/", href: "/" },
-    { path: "/products", href: "/products" },
+    { path: "/" },
+    { path: "/products" },
     {
       path: `/products/${categoryName}`,
-      href: `/products/${categoryName}`,
     },
   ];
 

@@ -42,11 +42,10 @@ const BlogCategoryPage = async ({
 
   // Breadcrumb for navigation
   const breadCrumbs = [
-    { href: "/", path: "/" },
-    { href: "/support", path: "/support" },
-    { href: "/support/blog", path: "/support/blog" },
+    { path: "/" },
+    { path: "/support" },
+    { path: "/support/blog" },
     {
-      href: `/support/blog/${blogCategory}`,
       path: `/support/blog/${blogCategory}`,
     },
   ];

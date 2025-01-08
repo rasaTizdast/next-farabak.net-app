@@ -8,8 +8,6 @@ interface CategoryPageProps {
   params: { category: string };
 }
 
-
-
 export const generateMetadata = async ({
   params,
 }: CategoryPageProps): Promise<Metadata> => {
@@ -71,11 +69,10 @@ const CategoryPage = async ({ params }: CategoryPageProps) => {
   }
 
   const breadcrumbs = [
-    { path: "/", href: "/" },
-    { path: "/products", href: "/products" },
+    { path: "/" },
+    { path: "/products" },
     {
       path: `/products/${categoryName}`,
-      href: `/products/${categoryName}`,
     },
   ];
 

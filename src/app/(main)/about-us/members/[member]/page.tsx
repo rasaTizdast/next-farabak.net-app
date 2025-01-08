@@ -55,9 +55,9 @@ const MemberPage = ({ params }: Props) => {
   }: MemberData = memberData;
 
   const breadcrumbs = [
-    { path: "/", href: "/" },
-    { path: "/about-us", href: "/about-us" },
-    { path: "/about-us/members", href: "/about-us/members" },
+    { path: "/" },
+    { path: "/about-us" },
+    { path: "/about-us/members" },
   ];
 
   return (
