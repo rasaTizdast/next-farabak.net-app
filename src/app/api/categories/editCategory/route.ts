@@ -1,8 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../lib/db";
 import { jwtVerify } from "jose";
-import { ConnectionPool } from "mssql";
+import { prisma } from "@/lib/prisma"; // Assuming prisma is set up in this path
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -79,9 +78,7 @@ export async function PATCH(req: Request) {
   }
 
   try {
-    const pool = await connectToDatabase();
     const body = await req.json();
-
     const {
       Type,
       CategoryID,
@@ -106,33 +103,36 @@ export async function PATCH(req: Request) {
         );
       }
 
-      // Update category
-      const result = await pool
-        .request()
-        .input("CategoryID", CategoryID)
-        .input("Name", Name)
-        .input("Slug", Slug)
-        .input("Available", Available).query(`
-            UPDATE Support.Category
-            SET Name = @Name, Slug = @Slug, Available = @Available
-            WHERE CategoryID = @CategoryID
-          `);
-
-      if (result.rowsAffected[0] === 0) {
-        return NextResponse.json(
-          { message: "Category not found" },
-          { status: 404 }
-        );
-      }
-
-      // Upsert SEO details
-      await upsertSEO(pool, {
-        CategoryID,
-        CategoryContentId: null,
-        ...SEO_Details,
+      const updatedCategory = await prisma.category.update({
+        where: { CategoryID }, // Use the correct field name here
+        data: {
+          Name,
+          Slug,
+          Available,
+          ModifyDate: new Date(),
+          SEO_Category: {
+            upsert: {
+              where: { SEO_CategoryId: CategoryID }, // Use the correct unique identifier field
+              create: {
+                SEO_Title: SEO_Details.SEO_Title,
+                SEO_Description: SEO_Details.SEO_Description,
+                SEO_Keywords: JSON.stringify(SEO_Details.SEO_Keywords),
+              },
+              update: {
+                SEO_Title: SEO_Details.SEO_Title,
+                SEO_Description: SEO_Details.SEO_Description,
+                SEO_Keywords: JSON.stringify(SEO_Details.SEO_Keywords),
+              },
+            },
+          },
+        },
+        include: { SEO_Category: true },
       });
 
-      return NextResponse.json({ message: "Category updated successfully" });
+      return NextResponse.json({
+        message: "Category updated successfully",
+        data: updatedCategory,
+      });
     } else if (Type === "subcategory") {
       if (
         !CategoryContentId ||
@@ -148,135 +148,46 @@ export async function PATCH(req: Request) {
         );
       }
 
-      // Update subcategory
-      const result = await pool
-        .request()
-        .input("CategoryContentId", CategoryContentId)
-        .input("CategoryID", CategoryID)
-        .input("Name", Name)
-        .input("Slug", Slug)
-        .input("Available", Available).query(`
-            UPDATE Support.CategoryContent
-            SET Name = @Name, Slug = @Slug, Available = @Available
-            WHERE CategoryContentId = @CategoryContentId AND CategoryID = @CategoryID
-          `);
-
-      if (result.rowsAffected[0] === 0) {
-        return NextResponse.json(
-          { message: "Subcategory not found" },
-          { status: 404 }
-        );
-      }
-
-      // Upsert SEO details
-      await upsertSEO(pool, {
-        CategoryID,
-        CategoryContentId,
-        ...SEO_Details,
+      const updatedSubcategory = await prisma.categoryContent.update({
+        where: { CategoryContentId }, // Use the correct field name here
+        data: {
+          Name,
+          Slug,
+          Available,
+          ModifyDate: new Date(),
+          SEO_CategoryContent: {
+            upsert: {
+              where: { SEO_CategoryContentId: CategoryContentId }, // Use the correct unique identifier field
+              create: {
+                SEO_Title: SEO_Details.SEO_Title,
+                SEO_Description: SEO_Details.SEO_Description,
+                SEO_Keywords: JSON.stringify(SEO_Details.SEO_Keywords),
+              },
+              update: {
+                SEO_Title: SEO_Details.SEO_Title,
+                SEO_Description: SEO_Details.SEO_Description,
+                SEO_Keywords: JSON.stringify(SEO_Details.SEO_Keywords),
+              },
+            },
+          },
+        },
+        include: { SEO_CategoryContent: true },
       });
 
-      return NextResponse.json({ message: "Subcategory updated successfully" });
+      return NextResponse.json({
+        message: "Subcategory updated successfully",
+        data: updatedSubcategory,
+      });
     } else {
       return NextResponse.json({ message: "Invalid Type" }, { status: 400 });
     }
-  } catch (error) {
-    console.error("Error updating category or subcategory:", error);
-    return new NextResponse("Failed to update", { status: 500 });
-  }
-}
-
-async function upsertSEO(
-  pool: ConnectionPool,
-  {
-    CategoryID,
-    CategoryContentId,
-    SEO_Title,
-    SEO_Description,
-    SEO_Keywords,
-  }: {
-    CategoryID: number;
-    CategoryContentId: number | null;
-    SEO_Title: string;
-    SEO_Description: string;
-    SEO_Keywords: string[];
-  }
-) {
-  const transaction = pool.transaction(); // Start a transaction
-
-  try {
-    // Begin transaction
-    await transaction.begin();
-
-    let existingSEO: any;
-
-    if (CategoryContentId) {
-      // Subcategory SEO details
-      existingSEO = await transaction
-        .request()
-        .input("CategoryContentId", CategoryContentId).query(`
-          SELECT [SEO_CategoryContentId], [CategoryContentId], [SEO_Title], [SEO_Description], [SEO_Keywords]
-          FROM [Support].[SEO_CategoryContent]
-          WHERE CategoryContentId = @CategoryContentId
-        `);
-    } else {
-      // Category SEO details
-      existingSEO = await transaction.request().input("CategoryID", CategoryID)
-        .query(`
-          SELECT [SEO_CategoryId], [CategoryID], [SEO_Title], [SEO_Description], [SEO_Keywords]
-          FROM [Support].[SEO_Category]
-          WHERE CategoryID = @CategoryID
-        `);
-    }
-
-    if (existingSEO.recordset.length > 0) {
-      // Update existing SEO details
-      await transaction
-        .request()
-        .input("SEO_Title", SEO_Title)
-        .input("SEO_Description", SEO_Description)
-        .input("SEO_Keywords", JSON.stringify(SEO_Keywords))
-        .input("CategoryContentId", CategoryContentId)
-        .input("CategoryID", CategoryID).query(`
-          UPDATE ${
-            CategoryContentId
-              ? "Support.SEO_CategoryContent"
-              : "Support.SEO_Category"
-          }
-          SET SEO_Title = @SEO_Title, SEO_Description = @SEO_Description, SEO_Keywords = @SEO_Keywords
-          WHERE ${CategoryContentId ? "CategoryContentId" : "CategoryID"} = 
-          ${CategoryContentId ? "@CategoryContentId" : "@CategoryID"}
-        `);
-    } else {
-      // Insert new SEO details if they don't exist
-      await transaction
-        .request()
-        .input("SEO_Title", SEO_Title)
-        .input("SEO_Description", SEO_Description)
-        .input("SEO_Keywords", JSON.stringify(SEO_Keywords))
-        .input("CategoryContentId", CategoryContentId)
-        .input("CategoryID", CategoryID).query(`
-          INSERT INTO ${
-            CategoryContentId
-              ? "Support.SEO_CategoryContent"
-              : "Support.SEO_Category"
-          }
-          (SEO_Title, SEO_Description, SEO_Keywords, ${
-            CategoryContentId ? "CategoryContentId" : "CategoryID"
-          })
-          VALUES (@SEO_Title, @SEO_Description, @SEO_Keywords, 
-          ${CategoryContentId ? "@CategoryContentId" : "@CategoryID"})
-        `);
-    }
-
-    // Commit the transaction
-    await transaction.commit();
-    return { message: "SEO details updated/created successfully" };
-  } catch (error) {
-    // Rollback if there's an error
-    await transaction.rollback();
-    console.error("Error updating or inserting SEO details:", error);
-    throw new Error(
-      "Failed to update SEO details. All changes have been rolled back."
+  } catch (error: unknown) {
+    // Explicitly type the error
+    const errorMessage = (error as Error).message || "Unknown error occurred";
+    console.error("Error updating category or subcategory:", errorMessage);
+    return NextResponse.json(
+      { message: "Internal server error", error: errorMessage },
+      { status: 500 }
     );
   }
 }

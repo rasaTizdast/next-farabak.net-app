@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "../../../../../lib/db";
 import { jwtVerify } from "jose";
+import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -112,42 +112,38 @@ export async function POST(req: Request) {
       );
     }
 
-    const pool = await connectToDatabase();
+    const lastIdResult = await prisma.categoryContent.findFirst({
+      orderBy: {
+        CategoryContentId: "desc",
+      },
+      select: {
+        CategoryContentId: true,
+      },
+    });
 
-    // Fetch the last CategoryContentId (or calculate the next ID based on the max value)
-    const lastIdResult = await pool
-      .request()
-      .query(
-        `SELECT MAX(CategoryContentId) AS LastId FROM Support.CategoryContent`
-      );
+    const nextCategoryContentId = (lastIdResult?.CategoryContentId || 0) + 1;
 
-    const lastCategoryContentId = lastIdResult.recordset[0]?.LastId || 0;
-    const nextCategoryContentId = lastCategoryContentId + 1;
+    const subcategory = await prisma.categoryContent.create({
+      data: {
+        CategoryContentId: nextCategoryContentId,
+        Name: name,
+        Slug: slug,
+        Available: available,
+        CategoryID: parentCategoryId,
+        SEO_CategoryContent: {
+          create: {
+            SEO_Title: seoTitle,
+            SEO_Description: seoDescription,
+            SEO_Keywords: JSON.stringify(seoKeywords),
+          },
+        },
+      },
+    });
 
-    // Insert into the Subcategory table with the manually incremented ID
-    await pool
-      .request()
-      .input("CategoryContentId", nextCategoryContentId) // Use the incremented ID
-      .input("Name", name)
-      .input("Slug", slug)
-      .input("Available", available)
-      .input("CategoryID", parentCategoryId).query(`
-          INSERT INTO Support.CategoryContent (CategoryContentId, Name, Slug, Available, CategoryID, InsertDate)
-          VALUES (@CategoryContentId, @Name, @Slug, @Available, @CategoryID, GETDATE())
-        `);
-
-    // Insert SEO details for the subcategory
-    await pool
-      .request()
-      .input("CategoryContentId", nextCategoryContentId) // Use the same ID for SEO details
-      .input("SEO_Title", seoTitle)
-      .input("SEO_Description", seoDescription)
-      .input("SEO_Keywords", JSON.stringify(seoKeywords)).query(`
-          INSERT INTO Support.SEO_CategoryContent (CategoryContentId, SEO_Title, SEO_Description, SEO_Keywords)
-          VALUES (@CategoryContentId, @SEO_Title, @SEO_Description, @SEO_Keywords)
-        `);
-
-    return NextResponse.json({ message: "Subcategory created successfully" });
+    return NextResponse.json({
+      message: "Subcategory created successfully",
+      subcategory,
+    });
   } catch (error) {
     console.error("Error creating subcategory:", error);
     return NextResponse.json(
