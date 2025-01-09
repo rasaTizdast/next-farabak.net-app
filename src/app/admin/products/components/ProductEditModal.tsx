@@ -1,0 +1,445 @@
+import { useEffect, useState } from "react";
+import { Product } from "../types";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { FiPlusSquare } from "react-icons/fi";
+import { FaTrash } from "react-icons/fa";
+
+type Category = {
+  CategoryID: number;
+  Name: string;
+  Subcategories: {
+    CategoryContentId: number;
+    Name: string;
+  }[];
+};
+
+type ProductEditModalProps = {
+  isOpen: boolean;
+  product: Product | null;
+  onClose: () => void;
+  onSave: (updatedProduct: Product) => void;
+};
+
+const ProductEditModal: React.FC<ProductEditModalProps> = ({
+  isOpen,
+  product,
+  onClose,
+  onSave,
+}) => {
+  const [formState, setFormState] = useState<Product | null>(product);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      axios
+        .get("/api/categories/getAll")
+        .then((response) => setCategories(response.data))
+        .catch((error) => console.error("Error fetching categories:", error));
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setFormState(product);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    setFormState(product);
+  }, [product]);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setFormState((prevState) =>
+      prevState
+        ? {
+            ...prevState,
+            [name]: name === "productSlug" ? value.replace(/\s+/g, "-") : value,
+          }
+        : null
+    );
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const categoryId = Number(e.target.value);
+    const selectedCategory = categories.find(
+      (category) => category.CategoryID === categoryId
+    );
+
+    if (selectedCategory) {
+      setFormState((prevState) =>
+        prevState
+          ? {
+              ...prevState,
+              categoryName: selectedCategory.Name,
+              CategoryId: selectedCategory.CategoryID,
+              subCategoryName: "",
+              CategoryContentIds: [],
+            }
+          : null
+      );
+    }
+  };
+
+  const handleSubcategoryChange = (index: number, subcategoryId: number) => {
+    setFormState((prevState) =>
+      prevState
+        ? {
+            ...prevState,
+            subCategoryName:
+              categories
+                .find((cat) => cat.CategoryID === prevState.CategoryId)
+                ?.Subcategories.find(
+                  (sub) => sub.CategoryContentId === subcategoryId
+                )?.Name || "",
+            CategoryContentIds: prevState.CategoryContentIds.map((item, i) =>
+              i === index ? { ...item, CategoryContentId: subcategoryId } : item
+            ),
+          }
+        : null
+    );
+  };
+
+  const handleAvailableChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = e.target;
+    setFormState((prevState) =>
+      prevState
+        ? {
+            ...prevState,
+            Available: value === "true",
+          }
+        : null
+    );
+  };
+
+  const handleAddCategoryContent = () => {
+    setFormState((prevState) =>
+      prevState
+        ? {
+            ...prevState,
+            CategoryContentIds: [
+              ...prevState.CategoryContentIds,
+              { CategoryContentId: 0, Name: "" }, // Add a new placeholder subcategory
+            ],
+          }
+        : null
+    );
+  };
+
+  const handleRemoveCategoryContent = (index: number) => {
+    setFormState((prevState) =>
+      prevState
+        ? {
+            ...prevState,
+            CategoryContentIds: prevState.CategoryContentIds.filter(
+              (_, i) => i !== index
+            ),
+          }
+        : null
+    );
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formState) return;
+
+    if (formState.CategoryContentIds.length === 0) {
+      toast.error("محصول باید حداقل یک زیر دسته‌بندی داشته باشد.");
+      return;
+    }
+
+    const isValidSubcategories = formState.CategoryContentIds.every(
+      (subcategory) => subcategory.CategoryContentId !== 0
+    );
+
+    if (!isValidSubcategories) {
+      toast.error("یک یا چند زیر دسته‌بندی معتبر انتخاب نشده است.");
+      return;
+    }
+
+    // Convert CategoryContentIds to a string format for CategoryContentId
+    const formattedCategoryContentId = formState.CategoryContentIds.map(
+      (subcategory) => subcategory.CategoryContentId
+    ).join(",");
+
+    const updatedFormState = {
+      ...formState,
+      CategoryContentId: formattedCategoryContentId, // Update the singular field
+    };
+
+    onSave(updatedFormState); // Save updated product
+  };
+
+  if (!isOpen || !formState) return null;
+
+  const selectedCategory = categories.find(
+    (category) => category.Name === formState.categoryName
+  );
+
+  const canAddSubcategory =
+    selectedCategory &&
+    formState.CategoryContentIds.length < selectedCategory.Subcategories.length;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm shadow-lg">
+      <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg w-full max-w-4xl max-h-[95dvh] overflow-auto">
+        <h2 className="text-xl font-bold mb-10 text-center">ویرایش محصول</h2>
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+        >
+          <InputField
+            label="نام محصول"
+            name="Type"
+            value={formState.Type}
+            onChange={handleInputChange}
+          />
+          <InputField
+            label="تعریف محصول"
+            name="Name"
+            value={formState.Name}
+            onChange={handleInputChange}
+          />
+          <div className="block col-span-1 sm:col-span-2">
+            <InputField
+              label="Slug"
+              name="productSlug"
+              value={formState.productSlug}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div className="block col-span-1 sm:col-span-2">
+            <SelectField
+              label="دسته‌بندی"
+              name="categoryName"
+              value={formState.CategoryId?.toString() || ""}
+              onChange={handleCategoryChange}
+              options={categories.map((category) => ({
+                value: category.CategoryID.toString(),
+                label: category.Name,
+              }))}
+            />
+          </div>
+          <div className="block col-span-1 sm:col-span-2">
+            <div className="border border-gray-700 rounded p-4 shadow-lg">
+              <h3 className="font-bold mb-2">زیر دسته‌بندی‌ها</h3>
+              {formState.CategoryContentIds.map(
+                (selectedSubcategory, index) => (
+                  <div
+                    key={selectedSubcategory.CategoryContentId}
+                    className="mb-2 flex gap-4"
+                  >
+                    <select
+                      value={selectedSubcategory.CategoryContentId || ""}
+                      onChange={(e) =>
+                        handleSubcategoryChange(index, Number(e.target.value))
+                      }
+                      className="bg-gray-700 border border-gray-800 rounded w-full p-2"
+                    >
+                      <option value="">انتخاب زیر دسته‌بندی</option>
+                      {selectedCategory?.Subcategories.map((subcat) => (
+                        <option
+                          key={subcat.CategoryContentId}
+                          value={subcat.CategoryContentId}
+                          disabled={formState.CategoryContentIds.some(
+                            (item) =>
+                              item.CategoryContentId ===
+                              subcat.CategoryContentId
+                          )}
+                        >
+                          {subcat.Name}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCategoryContent(index)}
+                      className="text-red-400 hover:text-red-600 transition-all rounded"
+                    >
+                      <FaTrash size={25} />
+                    </button>
+                  </div>
+                )
+              )}
+              {/* Disable or hide the Add Subcategory button if the limit is reached */}
+              <div className="w-full flex justify-center">
+                <button
+                  type="button"
+                  onClick={handleAddCategoryContent}
+                  className={`${
+                    !canAddSubcategory
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "text-green-300 hover:scale-125 hover:text-green-400"
+                  } text-white rounded p-2 mt-4 transition-all`}
+                  disabled={!canAddSubcategory}
+                >
+                  <FiPlusSquare size={30} />
+                </button>
+              </div>
+            </div>
+          </div>
+          <InputField
+            label="قیمت (ریال)"
+            name="Price"
+            value={formState.Price}
+            onChange={handleInputChange}
+            type="number"
+          />
+          <InputField
+            label="تخفیف (ریال)"
+            name="Discount"
+            value={formState.Discount}
+            onChange={handleInputChange}
+            type="number"
+          />
+          <div className="block col-span-1 sm:col-span-2">
+            <SelectField
+              label="وضعیت موجودی"
+              name="Available"
+              value={formState.Available ? "true" : "false"}
+              onChange={handleAvailableChange}
+              options={[
+                { value: "true", label: "موجود" },
+                { value: "false", label: "ناموجود" },
+              ]}
+            />
+          </div>
+          <TextAreaField
+            label="توضیحات"
+            name="Description"
+            value={formState.Description}
+            onChange={handleInputChange}
+          />
+          <div className="block col-span-1 sm:col-span-2">
+            <InputField
+              label="عنوان SEO"
+              name="SEO_Title"
+              value={formState.SEO_Title}
+              onChange={handleInputChange}
+            />
+          </div>
+          <TextAreaField
+            label="توضیحات SEO"
+            name="SEO_Description"
+            value={formState.SEO_Description}
+            onChange={handleInputChange}
+          />
+          <div className="col-span-1 sm:col-span-2 flex justify-end gap-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="bg-gray-500 hover:bg-gray-600 transition-all px-4 py-2 rounded"
+            >
+              لغو
+            </button>
+            <button
+              type="submit"
+              className="bg-blue-500 hover:bg-blue-600 transition-all text-white px-4 py-2 rounded"
+            >
+              ذخیره
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// Helper components for the form fields
+type InputFieldProps = {
+  label: string;
+  name: string;
+  value: string | number;
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
+  type?: string;
+  disabled?: boolean;
+};
+
+const InputField: React.FC<InputFieldProps> = ({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+  disabled = false,
+}) => (
+  <label className="block">
+    {label}
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      className="bg-gray-700 border border-gray-800 rounded w-full p-2 mt-2"
+      placeholder={`${label} را وارد کنید`}
+      disabled={disabled}
+    />
+  </label>
+);
+
+type TextAreaFieldProps = {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+};
+
+const TextAreaField: React.FC<TextAreaFieldProps> = ({
+  label,
+  name,
+  value,
+  onChange,
+}) => (
+  <label className="block col-span-1 sm:col-span-2">
+    {label}
+    <textarea
+      name={name}
+      value={value}
+      onChange={onChange}
+      className="bg-gray-700 border border-gray-800 rounded w-full p-2 mt-2"
+      placeholder={`${label} را وارد کنید`}
+    />
+  </label>
+);
+
+type SelectFieldProps = {
+  label: string;
+  name: string;
+  value: string | string[];
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  options: { value: string; label: string }[];
+};
+
+const SelectField: React.FC<SelectFieldProps> = ({
+  label,
+  name,
+  value,
+  onChange,
+  options,
+}) => (
+  <label className="block">
+    {label}
+    <select
+      name={name}
+      value={Array.isArray(value) ? value[0] : value}
+      onChange={onChange}
+      className="bg-gray-700 border border-gray-800 rounded w-full p-2 mt-2"
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  </label>
+);
+
+export default ProductEditModal;

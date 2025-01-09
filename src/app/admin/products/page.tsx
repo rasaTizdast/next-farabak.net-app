@@ -11,21 +11,7 @@ import fetchProducts from "./helper/fetchProducts";
 import ProductsTable from "./components/ProductsTable";
 import { hasFilters } from "./helper/hasFilters";
 import NewProductModal from "./components/NewProductModal";
-
-type Product = {
-  ProductId: number;
-  Type: string;
-  categoryName: string;
-  subCategoryName: string;
-  productSlug: string;
-  Price: number;
-  Available: boolean;
-  link: string;
-  CategoryContentIds: {
-    CategoryContentId: number;
-    Name: string;
-  }[];
-};
+import { Product } from "./types";
 
 type Category = {
   CategoryID: number;
@@ -193,6 +179,30 @@ const AdminProductsPage = () => {
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  const editModalSaveHandler = async (updatedProduct: Product) => {
+    console.log("sent Product: ", updatedProduct);
+    try {
+      await axios.patch(`/api/admin/products/${+updatedProduct.ProductId}`, {
+        Name: updatedProduct.Name,
+        Type: updatedProduct.Type,
+        Price: updatedProduct.Price.toString(),
+        Discount: updatedProduct.Discount.toString(),
+        CategoryContentId: updatedProduct.CategoryContentId,
+        img1: updatedProduct.img1,
+        img2: updatedProduct.img2,
+        Available: updatedProduct.Available,
+        Description: updatedProduct.Description,
+        CategoryId: updatedProduct.CategoryId,
+        Slug: updatedProduct.productSlug,
+        SEO_Title: updatedProduct.SEO_Title,
+        SEO_Description: updatedProduct.SEO_Description,
+      });
+      refetchProducts();
+    } catch (error) {
+      console.error(error);
+    }
+  };
   return (
     <>
       <Toaster position="bottom-center" />
@@ -256,6 +266,7 @@ const AdminProductsPage = () => {
           notFound={notFound}
           setCurrentAction={setCurrentAction}
           setIsModalOpen={setIsModalOpen}
+          editModalSaveHandler={editModalSaveHandler}
         />
 
         {/* Modal */}
