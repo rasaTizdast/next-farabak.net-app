@@ -123,30 +123,21 @@ const AdminProductsPage = () => {
     }
   }, [tempSearchQuery]);
 
-  const toggleAvailability = async (id: number, name: string) => {
+  const deleteProduct = async (id: number, name: string) => {
     try {
-      await axios.patch("/api/admin/products/toggleAvailable", {
-        productId: id,
-      });
-      toast.success(`وضعیت محصول ${name} تغییر کرد.`);
+      const response = await axios.delete(`/api/admin/products/${id}`);
 
-      // Re-fetch products after updating availability
-      await refetchProducts();
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(
-          error.response?.data.message || "خطا در فرآیند بروزرسانی"
-        );
+      if (response.status === 200) {
+        // If the product is deleted successfully, update the state
+        refetchProducts();
+        toast.success(`محصول "${name}" حذف شد.`);
+      } else {
+        toast.error("حذف محصول با خطا مواجه شد.");
       }
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      toast.error("حذف محصول با خطا مواجه شد.");
     }
-  };
-
-  const deleteProduct = (id: number, name: string) => {
-    const updatedProducts = products.filter(
-      (product) => product.ProductId !== id
-    );
-    setProducts(updatedProducts);
-    toast.success(`محصول "${name}" حذف شد.`);
   };
 
   const handleModalConfirm = () => {
