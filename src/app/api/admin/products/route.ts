@@ -126,9 +126,13 @@ export async function GET(request: Request) {
     const conditions: any = {};
 
     if (query.trim()) {
-      conditions.Description = {
-        contains: escape(query.trim()),
-      };
+      const keywords = query.trim().split(/\s+/); // Split query into individual words
+      conditions.OR = keywords.map((keyword) => ({
+        Description: {
+          contains: keyword,
+          mode: "insensitive", // Case-insensitive matching
+        },
+      }));
     }
 
     if (category > 0) {
@@ -136,9 +140,13 @@ export async function GET(request: Request) {
     }
 
     if (subcategory) {
-      conditions.CategoryContentId = {
-        hasSome: subcategory.split(","),
-      };
+      const subcategoryIds = subcategory.split(",").map((id) => id.trim());
+      conditions.OR = subcategoryIds.map((id) => ({
+        CategoryContentId: {
+          contains: id,
+          mode: "insensitive", // Optional, for case-insensitivity
+        },
+      }));
     }
 
     if (available && available !== "all") {
@@ -176,19 +184,35 @@ export async function GET(request: Request) {
             )
           : [];
 
-        // Fetch first matching subcategory
-        const subCategory = await prisma.categoryContent.findFirst({
+        // Fetch all subcategories for the product
+        const subCategories = await prisma.categoryContent.findMany({
           where: {
             CategoryContentId: { in: categoryContentIds },
           },
         });
 
+        const subCategoryName =
+          subCategories.length > 0
+            ? subCategories.map((sub) => sub.Name).join(", ")
+            : null;
+
+        const categoryContentDetails = subCategories.map((sub) => ({
+          CategoryContentId: sub.CategoryContentId,
+          Name: sub.Name || "",
+        }));
+
         return {
-          ...product,
-          productSlug: product.Slug,
-          categorySlug,
-          subCategorySlug: subCategory?.Slug || null,
-          link: `${categorySlug}/${subCategory?.Slug || ""}/${product.Slug}`,
+          ProductId: product.ProductId,
+          Type: product.Type || "",
+          categoryName: product.Category?.Name || "",
+          subCategoryName,
+          productSlug: product.Slug || "",
+          Price: parseFloat(product.Price || "0"),
+          Available: product.Available || false,
+          link: `${categorySlug}/${subCategories[0]?.Slug || ""}/${
+            product.Slug
+          }`,
+          CategoryContentIds: categoryContentDetails,
         };
       })
     );
