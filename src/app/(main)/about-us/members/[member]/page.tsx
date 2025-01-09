@@ -54,11 +54,7 @@ const MemberPage = ({ params }: Props) => {
     links: { insta, whatsapp, phone },
   }: MemberData = memberData;
 
-  const breadcrumbs = [
-    { path: "/" },
-    { path: "/about-us" },
-    { path: "/about-us/members" },
-  ];
+  const breadcrumbs = ["/", "/about-us", "/about-us/members"];
 
   return (
     <>

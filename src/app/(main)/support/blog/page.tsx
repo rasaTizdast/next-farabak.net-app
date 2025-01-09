@@ -120,11 +120,7 @@ const BlogContent = async () => {
 };
 
 const BlogLandingPage = () => {
-  const breadCrumbs = [
-    { path: "/" },
-    { path: "/support" },
-    { path: "/support/blog" },
-  ];
+  const breadCrumbs = ["/", "/support", "/support/blog"];
 
   return (
     <>

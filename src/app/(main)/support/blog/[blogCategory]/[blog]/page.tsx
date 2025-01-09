@@ -109,9 +109,9 @@
 // };
 
 // const breadcrumbs = [
-//   { path: "/" },
-//   { path: "/support" },
-//   { path: "/support/blog" },
+//   "/" ,
+//   "/support",
+//   "/support/blog",
 // ];
 
 // const BlogPage = () => {

@@ -13,11 +13,7 @@ export const metadata: Metadata = {
 };
 
 const ProjectsPage = () => {
-  const breadCrumbs = [
-    { path: "/" },
-    { path: "/about-us" },
-    { path: "/about-us/projects" },
-  ];
+  const breadCrumbs = ["/", "/about-us", "/about-us/projects"];
   return (
     <div className={styles.projectsParent}>
       <Breadcrumb breadcrumbs={breadCrumbs} />

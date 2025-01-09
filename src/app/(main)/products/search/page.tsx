@@ -30,11 +30,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const limit = 0;
   const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/search?q=${query}&page=${currentPage}&limit=${limit}`;
 
-  const breadcrumbs = [
-    { path: "/" },
-    { path: "/products" },
-    { path: "/products/search" },
-  ];
+  const breadcrumbs = ["/", "/products", "/products/search"];
 
   return (
     <div>

@@ -77,12 +77,10 @@ const SubcategoryPage = async ({ params }: SubcategoryPageProps) => {
 
   // Breadcrumbs for navigation
   const breadcrumbs = [
-    { path: "/" },
-    { path: "/products" },
-    { path: `/products/${category}` },
-    {
-      path: `/products/${category}/${subcategory}`,
-    },
+    "/",
+    "/products",
+    `/products/${category}`,
+    `/products/${category}/${subcategory}`,
   ];
 
   return (

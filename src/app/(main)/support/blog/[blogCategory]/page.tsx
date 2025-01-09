@@ -42,12 +42,10 @@ const BlogCategoryPage = async ({
 
   // Breadcrumb for navigation
   const breadCrumbs = [
-    { path: "/" },
-    { path: "/support" },
-    { path: "/support/blog" },
-    {
-      path: `/support/blog/${blogCategory}`,
-    },
+    "/",
+    "/support",
+    "/support/blog",
+    `/support/blog/${blogCategory}`,
   ];
 
   return (

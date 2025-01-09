@@ -30,7 +30,7 @@ const ProductsPage = async ({ searchParams }: ProductsPageProps) => {
   const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getAllProducts?page=${currentPage}&limit=${limit}`;
 
   // Pass paths instead of Persian names
-  const breadcrumbs = [{ path: "/" }, { path: "/products" }];
+  const breadcrumbs = ["/", "/products"];
 
   return (
     <div>

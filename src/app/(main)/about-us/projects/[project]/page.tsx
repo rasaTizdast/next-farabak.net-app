@@ -52,11 +52,7 @@ const ProjectPage = ({ params }: ParamsType) => {
   const { title, date, images, largeDesc, location, video }: ProjectProps =
     projectData;
 
-  const breadcrumbs = [
-    { path: "/" },
-    { path: "/about-us" },
-    { path: "/about-us/projects" },
-  ];
+  const breadcrumbs = ["/", "/about-us", "/about-us/projects"];
   return (
     <section className={styles.content}>
       <Breadcrumb breadcrumbs={breadcrumbs} />
