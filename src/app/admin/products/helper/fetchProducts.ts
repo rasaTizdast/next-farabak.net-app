@@ -1,21 +1,7 @@
 import axios from "axios";
 import toast from "react-hot-toast";
 import { hasFilters } from "./hasFilters";
-
-type Product = {
-  ProductId: number;
-  Type: string;
-  categoryName: string;
-  subCategoryName: string;
-  productSlug: string;
-  Price: number;
-  Available: boolean;
-  link: string;
-  CategoryContentIds: {
-    CategoryContentId: number;
-    Name: string;
-  }[];
-};
+import { Product } from "../types";
 
 type Props = {
   page: number;
