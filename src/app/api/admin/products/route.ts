@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { escape } from "validator";
 
 /**
  * @swagger
@@ -201,18 +200,30 @@ export async function GET(request: Request) {
           Name: sub.Name || "",
         }));
 
+        const {
+          ProductId,
+          Name,
+          Type,
+          Description,
+          Price,
+          Available,
+          Slug,
+          ...rest
+        } = product;
+
         return {
-          ProductId: product.ProductId,
-          Type: product.Type || "",
+          ProductId,
+          Name,
+          Type: Type || "",
+          Description,
           categoryName: product.Category?.Name || "",
           subCategoryName,
-          productSlug: product.Slug || "",
-          Price: parseFloat(product.Price || "0"),
-          Available: product.Available || false,
-          link: `${categorySlug}/${subCategories[0]?.Slug || ""}/${
-            product.Slug
-          }`,
+          productSlug: Slug || "",
+          Price: parseFloat(Price || "0"),
+          Available: Available || false,
+          link: `${categorySlug}/${subCategories[0]?.Slug || ""}/${Slug}`,
           CategoryContentIds: categoryContentDetails,
+          ...rest, // Include remaining untouched fields
         };
       })
     );
