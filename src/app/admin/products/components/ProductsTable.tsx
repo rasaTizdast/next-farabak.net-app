@@ -31,7 +31,7 @@ type Props = {
   setIsModalOpen: (arg0: boolean) => void;
   setCurrentAction: (updatedAction: {
     id: number | number[];
-    type: "availability" | "bulk-availability" | "delete" | "bulk-delete" | "";
+    type: "delete" | "bulk-delete" | "";
     name: string | string[];
   }) => void;
 };
@@ -101,7 +101,7 @@ const ProductsTable = ({
     );
   };
 
-  const handleBulkAction = (actionType: "availability" | "delete") => {
+  const handleBulkAction = (actionType: "delete") => {
     if (selectedProducts.length > 0) {
       setIsModalOpen(true);
       setCurrentAction({
@@ -158,12 +158,6 @@ const ProductsTable = ({
             {selectedProducts.length} محصول انتخاب شده
           </span>
           <div className="flex gap-2">
-            <button
-              onClick={() => handleBulkAction("availability")}
-              className="px-3 py-1 bg-amber-600 text-white text-xs rounded-lg hover:bg-amber-800 transition-all"
-            >
-              تغییر وضعیت موجودی
-            </button>
             <button
               onClick={() => handleBulkAction("delete")}
               className="px-3 py-1 bg-red-600 text-white text-xs rounded-lg hover:bg-red-700 transition-all"
@@ -263,18 +257,8 @@ const ProductsTable = ({
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2 justify-center">
-                      <button
-                        onClick={() => {
-                          setIsModalOpen(true);
-                          setCurrentAction({
-                            id: product.ProductId,
-                            type: "availability",
-                            name: product.Type,
-                          });
-                        }}
-                        className="px-2 py-1 bg-amber-600 text-white rounded-lg hover:bg-amber-800 transition-all"
-                      >
-                        {product.Available ? "غیرفعال‌سازی" : "فعال‌سازی"}
+                      <button className="px-2 py-1 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-all">
+                        ویرایش
                       </button>
                       <button
                         onClick={() => {

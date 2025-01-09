@@ -1,7 +1,7 @@
 type Props = {
   currentAction: {
     id: number | number[];
-    type: "availability" | "bulk-availability" | "delete" | "bulk-delete" | "";
+    type: "delete" | "bulk-delete" | "";
     name: string | string[];
   };
   handleModalConfirm: () => void;
@@ -21,10 +21,6 @@ const Modal = ({
     switch (currentAction.type) {
       case "delete":
         return "آیا از حذف محصول زیر مطمئن هستید؟";
-      case "availability":
-        return "تغییر وضعیت موجودی محصول زیر";
-      case "bulk-availability":
-        return "تغییر وضعیت موجودی محصولات زیر";
       case "bulk-delete":
         return "آیا از حذف محصولات زیر مطمئن هستید؟";
       default:
@@ -35,25 +31,16 @@ const Modal = ({
   const modalStyles =
     currentAction.type === "delete" || currentAction.type === "bulk-delete"
       ? "bg-red-100 border-red-500"
-      : currentAction.type === "availability" ||
-        currentAction.type === "bulk-availability"
-      ? "bg-emerald-100 border-emerald-400"
       : "bg-white";
 
   const buttonStyles =
     currentAction.type === "delete" || currentAction.type === "bulk-delete"
       ? "bg-red-600 hover:bg-red-700 focus:ring-red-500"
-      : currentAction.type === "availability" ||
-        currentAction.type === "bulk-availability"
-      ? "bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500"
       : "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500";
 
   const cancelButtonStyles =
     currentAction.type === "delete" || currentAction.type === "bulk-delete"
       ? "bg-gray-600 hover:bg-gray-700 focus:ring-gray-400 text-white"
-      : currentAction.type === "availability" ||
-        currentAction.type === "bulk-availability"
-      ? "bg-gray-600 hover:bg-gray-700 focus:ring-gray-300 text-white"
       : "bg-gray-600 hover:bg-gray-700 focus:ring-gray-400 text-white";
 
   return (

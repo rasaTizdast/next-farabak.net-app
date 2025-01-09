@@ -59,7 +59,7 @@ const AdminProductsPage = () => {
 
   const [currentAction, setCurrentAction] = useState<{
     id: number | number[];
-    type: "availability" | "bulk-availability" | "delete" | "bulk-delete" | "";
+    type: "delete" | "bulk-delete" | "";
     name: string | string[];
   }>({
     id: 0,
@@ -153,20 +153,6 @@ const AdminProductsPage = () => {
     const { id, type, name } = currentAction;
 
     switch (type) {
-      case "bulk-availability":
-        // Check if id and name are arrays for bulk availability
-        if (Array.isArray(id) && Array.isArray(name)) {
-          id.forEach((productId, index) => {
-            toggleAvailability(+productId, name[index].toString());
-          });
-        }
-        break;
-
-      case "availability":
-        // Single availability toggle
-        toggleAvailability(+id, name.toString());
-        break;
-
       case "bulk-delete":
         // Check if id and name are arrays for bulk delete
         if (Array.isArray(id) && Array.isArray(name)) {
