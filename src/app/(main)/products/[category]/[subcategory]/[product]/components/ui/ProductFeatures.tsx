@@ -6,7 +6,6 @@ async function getProductFeatures(productId: number) {
   try {
     const res = await axios.get(
       `${process.env.NEXT_PUBLIC_BASE_URL}/api/productOverview/getProductOverview/${productId}`
-      // ,{ next: { revalidate: 3600 } }
     );
 
     if (!res) throw new Error("Failed to fetch features");
@@ -25,7 +24,7 @@ export default async function ProductFeatures({
   const features = await getProductFeatures(productId);
 
   if (!features) {
-    return <p>No features available</p>;
+    return <p>ویژگی برای این محصول یافت نشد</p>;
   }
 
   return (

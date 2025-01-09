@@ -49,8 +49,8 @@ export async function GET(
 ) {
   try {
     // Query to get product overview by product ID
-    const result = await prisma.productOverview.findUnique({
-      where: { ProductOverviewId: +params.productId },
+    const result = await prisma.productOverview.findFirst({
+      where: { ProductId: +params.productId },
     });
 
     // If no matching product overviews found, return a "No product found" message
