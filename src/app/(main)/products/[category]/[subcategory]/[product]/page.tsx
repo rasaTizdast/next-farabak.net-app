@@ -101,7 +101,7 @@ export default async function ProductPage({
       {/* Main Product Section */}
       <section className={styles.head}>
         <Image
-          src={`${process.env.LIARA_BUCKET_URL}/productImages/${productData.productSlug}/${productData.productSlug}-banner.webp`}
+          src={`${process.env.LIARA_BUCKET_URL}/productImages/${productData.img2}`}
           alt={productData.Type}
           width={1340}
           height={780}

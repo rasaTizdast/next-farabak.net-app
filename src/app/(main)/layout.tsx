@@ -1,7 +1,8 @@
 import Header from "./_components/ui/header/Header";
 import Footer from "./_components/ui/footer/Footer";
+import BackToTop from "../_components/ui/BackToTop";
 
-const layout = ({
+const Layout = ({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -11,8 +12,10 @@ const layout = ({
       <Header />
       {children}
       <Footer />
+      {/* Include the client-side BackToTop component */}
+      <BackToTop />
     </>
   );
 };
 
-export default layout;
+export default Layout;
