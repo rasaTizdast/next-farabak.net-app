@@ -28,7 +28,13 @@ type State = {
   bannerImage: string;
   transparentImage: string;
   features: string[];
-  overviewDetails: { title: string; image: string; selected: boolean }[];
+  overviewDetails: {
+    ProductOverviewDetailsId: number;
+    Title: string;
+    Img: string;
+    Description: string;
+    selected: boolean; // For selection state
+  }[];
   specs: { title: string; description: string }[];
   faqs: { question: string; answer: string }[];
 };
@@ -132,7 +138,19 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
       return;
     }
 
-    console.log(state); // For now, log the form data
+    // Get the IDs of selected overview details
+    const selectedDetailsIds = state.overviewDetails
+      .filter((detail) => detail.selected)
+      .map((detail) => detail.ProductOverviewDetailsId);
+
+    // Prepare form data including selected details
+    const formData = {
+      ...state,
+      overviewDetails: selectedDetailsIds,
+      // Include other form fields if needed
+    };
+
+    console.log(formData); // For now, log the form data
     toast.success("محصول با موفقیت ایجاد شد!");
   };
 
