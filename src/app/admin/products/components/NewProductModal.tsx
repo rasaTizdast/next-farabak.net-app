@@ -88,9 +88,55 @@ type Section =
   | "specs"
   | "faq";
 
+const validateField = (field: keyof State, value: any): string => {
+  switch (field) {
+    case "name":
+      return value ? "" : "نام الزامی است";
+    case "slug":
+      return value ? "" : "نامک الزامی است";
+    case "categoryID":
+      return value !== null ? "" : "دسته‌بندی الزامی است";
+    case "subCategoryID":
+      return value !== null ? "" : "زیر دسته‌بندی الزامی است";
+    case "smallDesc":
+      return value ? "" : "توضیح کوتاه الزامی است";
+    case "bannerImage":
+      return value ? "" : "تصویر بنر الزامی است";
+    case "transparentImage":
+      return value ? "" : "تصویر شفاف الزامی است";
+    case "features":
+      return value.length > 0 ? "" : "حداقل یک ویژگی الزامی است";
+    default:
+      return ""; // No validation needed
+  }
+};
+
+const validateAllFields = (state: State): { [key: string]: string } => {
+  const errors: { [key: string]: string } = {};
+  Object.entries(state).forEach(([field, value]) => {
+    const error = validateField(field as keyof State, value);
+    if (error) errors[field] = error;
+  });
+  return errors;
+};
+
 const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
   const [state, dispatch] = useReducer(productReducer, initialState);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  // Custom dispatch function to validate on state update
+  const validatedDispatch = (action: any) => {
+    dispatch(action);
+
+    // Dynamically validate the updated field
+    if (action.type === "SET_FIELD") {
+      const fieldError = validateField(action.field, action.value);
+      setErrors((prev) => ({
+        ...prev,
+        [action.field]: fieldError,
+      }));
+    }
+  };
 
   // Manage the collapse state for each section
   const [openSections, setOpenSections] = useState({
@@ -116,21 +162,8 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check for empty fields
-    const newErrors: { [key: string]: string } = {};
-    if (!state.name) newErrors.name = "نام الزامی است";
-    if (!state.slug) newErrors.slug = "نامک الزامی است";
-    if (state.categoryID === null)
-      newErrors.categoryID = "دسته‌بندی الزامی است";
-    if (state.subCategoryID === null)
-      newErrors.subCategoryID = "زیر دسته‌بندی الزامی است";
-    if (!state.smallDesc) newErrors.smallDesc = "توضیح کوتاه الزامی است";
-    if (!state.bannerImage) newErrors.bannerImage = "تصویر بنر الزامی است";
-    if (!state.transparentImage)
-      newErrors.transparentImage = "تصویر شفاف الزامی است";
-    if (state.features.length === 0)
-      newErrors.features = "حداقل یک ویژگی الزامی است";
-
+    // Perform final validation before submission
+    const newErrors = validateAllFields(state);
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
@@ -147,7 +180,6 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
     const formData = {
       ...state,
       overviewDetails: selectedDetailsIds,
-      // Include other form fields if needed
     };
 
     console.log(formData); // For now, log the form data
@@ -176,7 +208,7 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
             {openSections.baseDetails && (
               <BaseDetails
                 state={state}
-                dispatch={dispatch}
+                dispatch={validatedDispatch}
                 categories={categories}
                 setErrors={setErrors} // Pass setErrors to child components
               />
@@ -199,7 +231,7 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
             {openSections.productOverview && (
               <ProductOverview
                 state={state}
-                dispatch={dispatch}
+                dispatch={validatedDispatch}
                 setErrors={setErrors}
               />
             )}
@@ -221,7 +253,7 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
             {openSections.overviewDetails && (
               <OverviewDetails
                 state={state}
-                dispatch={dispatch}
+                dispatch={validatedDispatch}
                 setErrors={setErrors}
               />
             )}
@@ -241,7 +273,11 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
               )}
             </div>
             {openSections.specs && (
-              <Specs state={state} dispatch={dispatch} setErrors={setErrors} />
+              <Specs
+                state={state}
+                dispatch={validatedDispatch}
+                setErrors={setErrors}
+              />
             )}
           </div>
 
@@ -259,7 +295,11 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
               )}
             </div>
             {openSections.faq && (
-              <FAQ state={state} dispatch={dispatch} setErrors={setErrors} />
+              <FAQ
+                state={state}
+                dispatch={validatedDispatch}
+                setErrors={setErrors}
+              />
             )}
           </div>
 
