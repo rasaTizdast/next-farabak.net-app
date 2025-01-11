@@ -281,7 +281,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
             dispatch({
               type: "SET_FIELD",
               field: "bannerImage",
-              value: e.target.files?.[0]?.name || "",
+              value: e.target.files?.[0] || null,
             })
           }
           className="w-full p-2 rounded bg-gray-700 text-white"
@@ -299,7 +299,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
             dispatch({
               type: "SET_FIELD",
               field: "transparentImage",
-              value: e.target.files?.[0]?.name || "",
+              value: e.target.files?.[0] || null,
             })
           }
           className="w-full p-2 rounded bg-gray-700 text-white"
