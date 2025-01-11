@@ -23,6 +23,7 @@ type State = {
   subCategoryID: number | null;
   available: boolean;
   price: number;
+  discount: number;
   smallDesc: string;
   bannerImage: string;
   transparentImage: string;
@@ -40,6 +41,7 @@ const initialState: State = {
   subCategoryID: null,
   available: true,
   price: 0,
+  discount: 0,
   smallDesc: "",
   bannerImage: "",
   transparentImage: "",

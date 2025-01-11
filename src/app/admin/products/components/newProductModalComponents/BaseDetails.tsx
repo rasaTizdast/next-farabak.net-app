@@ -20,6 +20,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
     slug: "",
     smallDesc: "",
     price: "",
+    discount: "",
   });
 
   useEffect(() => {
@@ -79,6 +80,28 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
       }));
     } else {
       setLocalErrors((prev) => ({ ...prev, price: "" }));
+    }
+  };
+
+  const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9]/g, "");
+    const numericValue = Number(value);
+
+    if (!isNaN(numericValue)) {
+      dispatch({
+        type: "SET_FIELD",
+        field: "discount",
+        value: numericValue,
+      });
+    }
+
+    if (!numericValue) {
+      setLocalErrors((prev) => ({
+        ...prev,
+        price: "تخفیف باید یک عدد معتبر باشد.",
+      }));
+    } else {
+      setLocalErrors((prev) => ({ ...prev, discount: "" }));
     }
   };
 
@@ -202,6 +225,24 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
           placeholder="قیمت محصول را به ریال وارد کنید."
         />
         {localErrors.price && (
+          <p className="text-red-500 mt-1">{localErrors.price}</p>
+        )}
+      </div>
+
+      {/* Discount */}
+      <div className="mb-4">
+        <label htmlFor="discount" className="block mb-2">
+          تخفیف
+        </label>
+        <input
+          id="discount"
+          type="text"
+          value={state.discount ? addCommas(state.discount) : ""}
+          onChange={handleDiscountChange}
+          className="w-full p-2 rounded bg-gray-700 text-white"
+          placeholder="تخفیف محصول را به ریال وارد کنید."
+        />
+        {localErrors.discount && (
           <p className="text-red-500 mt-1">{localErrors.price}</p>
         )}
       </div>
