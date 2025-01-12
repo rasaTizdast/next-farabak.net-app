@@ -1,4 +1,4 @@
-import React, { useReducer, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import { toast } from "react-hot-toast";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi"; // Import icons
 import BaseDetails from "./newProductModalComponents/BaseDetails";
@@ -121,6 +121,8 @@ const validateAllFields = (state: State): { [key: string]: string } => {
 };
 
 const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
+  // Add a new state to track if the user has tried to submit
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [state, dispatch] = useReducer(productReducer, initialState);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -131,12 +133,23 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
     // Dynamically validate the updated field
     if (action.type === "SET_FIELD") {
       const fieldError = validateField(action.field, action.value);
-      setErrors((prev) => ({
-        ...prev,
-        [action.field]: fieldError,
-      }));
+      console.log(
+        `Validating field: ${action.field} with value: ${action.value}`
+      );
+      setErrors((prev) => {
+        const updatedErrors = { ...prev, [action.field]: fieldError };
+        console.log("Updated errors:", updatedErrors);
+        return updatedErrors;
+      });
     }
   };
+
+  // Effect to clear error messages after correction
+  useEffect(() => {
+    const newErrors = validateAllFields(state);
+    setErrors(newErrors);
+    console.log("Updated errors after validation:", newErrors);
+  }, [state]);
 
   // Manage the collapse state for each section
   const [openSections, setOpenSections] = useState({
@@ -161,22 +174,23 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setHasSubmitted(true); // Mark that the user has attempted to submit
 
     // Perform final validation before submission
     const newErrors = validateAllFields(state);
     setErrors(newErrors);
+    console.log("Final errors on submit:", newErrors);
 
     if (Object.keys(newErrors).length > 0) {
       toast.error("لطفاً تمام خطاها را برطرف کنید.");
       return;
     }
 
-    // Get the IDs of selected overview details
+    // Prepare the form data
     const selectedDetailsIds = state.overviewDetails
       .filter((detail) => detail.selected)
       .map((detail) => detail.ProductOverviewDetailsId);
 
-    // Prepare form data including selected details
     const formData = {
       ...state,
       overviewDetails: selectedDetailsIds,
@@ -305,26 +319,29 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
 
           {/* Submit Button */}
           <div className="flex flex-col items-center mt-6">
-            {hasErrors && (
+            {hasSubmitted && (
               <div className="flex flex-wrap justify-center gap-2 my-4">
-                {Object.values(errors).map((error, index) => (
-                  <div
-                    key={index}
-                    className="bg-red-500 rounded-lg text-center p-2"
-                  >
-                    {error}
-                  </div>
-                ))}
+                {Object.values(errors).map((error, index) =>
+                  error ? (
+                    <div
+                      key={index}
+                      className="bg-red-500 rounded-lg text-center p-2"
+                    >
+                      {error}
+                    </div>
+                  ) : null
+                )}
               </div>
             )}
+            {/* Update the submit button to disable only if there are errors and submission hasn't been attempted */}
             <button
               type="submit"
               className={`py-2 px-6 rounded-lg ${
-                hasErrors
+                hasSubmitted && Object.keys(errors).length > 0
                   ? "bg-gray-500 cursor-not-allowed"
                   : "bg-blue-500 hover:bg-blue-600"
               } text-white`}
-              disabled={hasErrors}
+              disabled={hasSubmitted && Object.keys(errors).length > 0}
             >
               ایجاد محصول
             </button>
