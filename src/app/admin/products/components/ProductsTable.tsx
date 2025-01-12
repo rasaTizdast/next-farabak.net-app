@@ -146,10 +146,8 @@ const ProductsTable = ({
   const editModalSubmitHandler = (updatedProduct: Product) => {
     try {
       editModalSaveHandler(updatedProduct);
-      toast.success("محصول مورد نظر با موفقیت آپدیت شد!");
       setIsEditModalOpen(false);
     } catch (error) {
-      toast.error("آپدیت ثبت محصول مورد نظر با شکست مواجه شد، مجدد تلاش کنید");
       console.error("An error happend while Updating a product", error);
     }
   };

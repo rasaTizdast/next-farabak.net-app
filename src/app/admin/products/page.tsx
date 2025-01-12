@@ -181,28 +181,34 @@ const AdminProductsPage = () => {
   }, []);
 
   const editModalSaveHandler = async (updatedProduct: Product) => {
-    console.log("sent Product: ", updatedProduct);
     try {
+      console.log("sent Product: ", updatedProduct);
+
       await axios.patch(`/api/admin/products/${+updatedProduct.ProductId}`, {
-        Name: updatedProduct.Name,
-        Type: updatedProduct.Type,
-        Price: updatedProduct.Price.toString(),
-        Discount: updatedProduct.Discount.toString(),
-        CategoryContentId: updatedProduct.CategoryContentId,
-        img1: updatedProduct.img1,
-        img2: updatedProduct.img2,
-        Available: updatedProduct.Available,
-        Description: updatedProduct.Description,
-        CategoryId: updatedProduct.CategoryId,
-        Slug: updatedProduct.productSlug,
-        SEO_Title: updatedProduct.SEO_Title,
-        SEO_Description: updatedProduct.SEO_Description,
+        Name: updatedProduct.Name || "", // Fallback to empty string if null/undefined
+        Type: updatedProduct.Type || "",
+        Price: updatedProduct.Price?.toString() || "0", // Fallback to "0" if null/undefined
+        Discount: updatedProduct.Discount?.toString() || "0",
+        CategoryContentId: updatedProduct.CategoryContentId || "",
+        img1: updatedProduct.img1 || "",
+        img2: updatedProduct.img2 || "",
+        Available: updatedProduct.Available ?? false, // Use nullish coalescing for boolean
+        Description: updatedProduct.Description || "",
+        CategoryId: updatedProduct.CategoryId || 0, // Fallback to 0 for number fields
+        Slug: updatedProduct.productSlug || "",
+        SEO_Title: updatedProduct.SEO_Title || "",
+        SEO_Description: updatedProduct.SEO_Description || "",
       });
+
+      toast.success("محصول مورد نظر با موفقیت آپدیت شد!");
+      console.log("transaction done");
       refetchProducts();
     } catch (error) {
+      toast.error("آپدیت ثبت محصول مورد نظر با شکست مواجه شد، مجدد تلاش کنید");
       console.error(error);
     }
   };
+
   return (
     <>
       <Toaster position="bottom-center" />
