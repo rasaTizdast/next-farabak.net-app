@@ -139,7 +139,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
           type="text"
           value={state.slug}
           onChange={(e) => {
-            const value = e.target.value;
+            const value = e.target.value.replace(/\s+/g, "-");
             dispatch({ type: "SET_FIELD", field: "slug", value });
             handleValidation("slug", value);
           }}
