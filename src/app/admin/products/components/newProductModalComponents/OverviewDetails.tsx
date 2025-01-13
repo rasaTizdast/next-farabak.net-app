@@ -32,23 +32,36 @@ const OverviewDetails = ({ state, dispatch, setErrors }: Props) => {
 
   // Fetch overview details from the API
   useEffect(() => {
-    axios
-      .get("/api/productOverviewDetails/getAll")
-      .then((response) => {
-        const data = response.data.map((detail: any) => ({
-          ...detail,
-          selected: false,
-        }));
-        setOverviewDetails(data);
-        dispatch({ type: "SET_OVERVIEW_DETAILS", details: data });
-      })
-      .catch((error) => {
-        console.error(error);
-        setErrors({ apiError: "خطا در بارگذاری اطلاعات" });
-      })
-      .finally(() => {
-        setLoading(false); // Set loading to false after fetching is done
-      });
+    let isMounted = true; // Prevent state updates if the component unmounts
+    if (loading) {
+      // Only fetch data if not already loaded
+      axios
+        .get("/api/productOverviewDetails/getAll")
+        .then((response) => {
+          if (isMounted) {
+            const data = response.data.map((detail: any) => ({
+              ...detail,
+              selected: false,
+            }));
+            setOverviewDetails(data);
+            dispatch({ type: "SET_OVERVIEW_DETAILS", details: data });
+          }
+        })
+        .catch((error) => {
+          if (isMounted) {
+            console.error(error);
+            setErrors({ apiError: "خطا در بارگذاری اطلاعات" });
+          }
+        })
+        .finally(() => {
+          if (isMounted) {
+            setLoading(false);
+          }
+        });
+    }
+    return () => {
+      isMounted = false; // Cleanup flag
+    };
   }, [dispatch, setErrors]);
 
   // Toggle selection
