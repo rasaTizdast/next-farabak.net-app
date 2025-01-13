@@ -52,6 +52,10 @@ export async function generateMetadata({
       description: product.SEO_Description,
       images: [`/productImages/${product.img2}`],
     },
+    robots: {
+      index: false, // This sets the noindex directive
+      follow: true, // Allows crawling of links on the page if needed
+    },
   };
 }
 // Data fetching
