@@ -27,6 +27,8 @@ type State = {
   smallDesc: string;
   bannerImage: string;
   transparentImage: string;
+  SEO_Title: string;
+  SEO_Description: string;
   features: string[];
   overviewDetails: {
     ProductOverviewDetailsId: number;
@@ -51,6 +53,8 @@ const initialState: State = {
   smallDesc: "",
   bannerImage: "",
   transparentImage: "",
+  SEO_Title: "",
+  SEO_Description: "",
   features: [],
   overviewDetails: [], // Initially empty, no predefined items
   specs: [],
@@ -93,7 +97,7 @@ const validateField = (field: keyof State, value: any): string => {
     case "name":
       return value ? "" : "نام الزامی است";
     case "slug":
-      return value ? "" : "نامک الزامی است";
+      return value ? "" : "شناسه محصول الزامی است";
     case "categoryID":
       return value !== null ? "" : "دسته‌بندی الزامی است";
     case "subCategoryID":
@@ -106,6 +110,10 @@ const validateField = (field: keyof State, value: any): string => {
       return value ? "" : "تصویر شفاف الزامی است";
     case "features":
       return value.length > 0 ? "" : "حداقل یک ویژگی الزامی است";
+    case "SEO_Title":
+      return value.length > 0 ? "" : "تیتر سئو الزامی است";
+    case "SEO_Description":
+      return value.length > 0 ? "" : "توضیحات سئو الزامی است";
     default:
       return ""; // No validation needed
   }

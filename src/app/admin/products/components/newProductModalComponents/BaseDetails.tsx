@@ -19,6 +19,8 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
     name: "",
     slug: "",
     smallDesc: "",
+    SEO_Title: "",
+    SEO_Description: "",
     price: "",
     discount: "",
   });
@@ -52,11 +54,26 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
     return "";
   };
 
+  const validateSeoTitle = (value: string) => {
+    if (!value.trim()) return "تیتر سئو نمی‌تواند خالی باشد.";
+    if (value.length > 50)
+      return "تیتر سئو نمی‌تواند بیشتر از ۵۰ کاراکتر باشد.";
+    return "";
+  };
+  const validateSeoDesc = (value: string) => {
+    if (!value.trim()) return "توضیحات سئو نمی‌تواند خالی باشد.";
+    if (value.length > 4000)
+      return "توضیحات سئو نمی‌تواند بیشتر از ۴۰۰۰ کاراکتر باشد.";
+    return "";
+  };
+
   const handleValidation = (field: string, value: string) => {
     let error = "";
     if (field === "name") error = validateName(value);
     if (field === "slug") error = validateSlug(value);
     if (field === "smallDesc") error = validateSmallDesc(value);
+    if (field === "SEO_Title") error = validateSeoTitle(value);
+    if (field === "SEO_Description") error = validateSeoDesc(value);
 
     setLocalErrors((prev) => ({ ...prev, [field]: error }));
   };
@@ -311,6 +328,50 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
             const value = e.target.value;
             dispatch({ type: "SET_FIELD", field: "smallDesc", value });
             handleValidation("smallDesc", value);
+          }}
+          className="w-full p-2 rounded bg-gray-700 text-white"
+          placeholder="توضیحات کوتاه برای محصول را وارد کنید"
+        />
+        {localErrors.smallDesc && (
+          <p className="text-red-500 mt-1">{localErrors.smallDesc}</p>
+        )}
+      </div>
+
+      {/* SEO Title */}
+      <div className="mb-4">
+        <label htmlFor="smallDesc" className="block mb-2">
+          تیتر سئو
+        </label>
+        <input
+          id="SEO_Title"
+          type="text"
+          value={state.SEO_Title}
+          onChange={(e) => {
+            const value = e.target.value;
+            dispatch({ type: "SET_FIELD", field: "SEO_Title", value });
+            handleValidation("SEO_Title", value);
+          }}
+          className="w-full p-2 rounded bg-gray-700 text-white"
+          placeholder="توضیحات کوتاه برای محصول را وارد کنید"
+        />
+        {localErrors.smallDesc && (
+          <p className="text-red-500 mt-1">{localErrors.smallDesc}</p>
+        )}
+      </div>
+
+      {/* SEO Description */}
+      <div className="mb-4">
+        <label htmlFor="smallDesc" className="block mb-2">
+          توضیحات سئو
+        </label>
+        <input
+          id="SEO_Description"
+          type="text"
+          value={state.SEO_Description}
+          onChange={(e) => {
+            const value = e.target.value;
+            dispatch({ type: "SET_FIELD", field: "SEO_Description", value });
+            handleValidation("SEO_Description", value);
           }}
           className="w-full p-2 rounded bg-gray-700 text-white"
           placeholder="توضیحات کوتاه برای محصول را وارد کنید"
