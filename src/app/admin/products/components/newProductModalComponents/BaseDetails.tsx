@@ -159,13 +159,20 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         <select
           id="category"
           value={state.categoryID || ""}
-          onChange={(e) =>
+          onChange={(e) => {
+            const newCategoryID = Number(e.target.value);
             dispatch({
               type: "SET_FIELD",
               field: "categoryID",
-              value: Number(e.target.value),
-            })
-          }
+              value: newCategoryID,
+            });
+            // Clear subcategories when category changes
+            dispatch({
+              type: "SET_FIELD",
+              field: "subCategoryID",
+              value: "",
+            });
+          }}
           className="w-full p-2 rounded bg-gray-700 text-white"
         >
           <option value="">انتخاب دسته بندی</option>
@@ -179,36 +186,80 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
 
       {/* SubCategory */}
       <div className="mb-4">
-        <label htmlFor="subCategory" className="block mb-2">
+        <label htmlFor="subCategory" className="mb-2 flex gap-3 items-center">
           زیر دسته بندی
+          <div className="relative group">
+            <span className="text-gray-500 hover:text-blue-500 cursor-pointer">
+              ℹ️
+            </span>
+            <div className="absolute top-full right-0 w-64 mt-1 text-justify hidden group-hover:block bg-gray-700 text-white text-sm p-3 rounded shadow-2xl z-40">
+              شما می‌توانید چندین زیر دسته‌بندی را انتخاب کنید. اولین زیر
+              دسته‌بندی که انتخاب می‌شود به عنوان زیر دسته‌بندی اصلی محصول نشان
+              داده می‌شود.
+            </div>
+          </div>
         </label>
-        <select
-          id="subCategory"
-          value={state.subCategoryID || ""}
-          onChange={(e) =>
-            dispatch({
-              type: "SET_FIELD",
-              field: "subCategoryID",
-              value: Number(e.target.value),
-            })
-          }
-          className="w-full p-2 rounded bg-gray-700 text-white"
-          disabled={!state.categoryID}
-        >
-          <option value="">انتخاب زیر دسته بندی</option>
-          {categories
-            .find((category) => category.CategoryID === state.categoryID)
-            ?.Subcategories.map(
-              (subCategory: { CategoryContentId: number; Name: string }) => (
-                <option
-                  key={subCategory.CategoryContentId}
-                  value={subCategory.CategoryContentId}
-                >
-                  {subCategory.Name}
-                </option>
-              )
-            )}
-        </select>
+        {state.categoryID ? (
+          <div className="p-2 rounded bg-gray-700 text-white">
+            {/* Use CSS Grid for layout */}
+            <div
+              className="grid gap-2"
+              style={{
+                gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+              }}
+            >
+              {categories
+                .find((category) => category.CategoryID === state.categoryID)
+                ?.Subcategories.map((subCategory) => {
+                  const selectedIds = state.subCategoryID
+                    ? state.subCategoryID.split(",").map(Number)
+                    : [];
+                  const isSelected = selectedIds.includes(
+                    subCategory.CategoryContentId
+                  );
+                  const isFirstSelected =
+                    isSelected &&
+                    selectedIds[0] === subCategory.CategoryContentId;
+
+                  return (
+                    <SubCategoryButton
+                      key={subCategory.CategoryContentId}
+                      subCategory={subCategory}
+                      isSelected={isSelected}
+                      isFirstSelected={isFirstSelected}
+                      onClick={() => {
+                        let updatedIds: number[];
+                        if (isSelected) {
+                          updatedIds = selectedIds.filter(
+                            (id: number) => id !== subCategory.CategoryContentId
+                          );
+                        } else {
+                          updatedIds = [
+                            ...selectedIds,
+                            subCategory.CategoryContentId,
+                          ];
+                        }
+
+                        dispatch({
+                          type: "SET_FIELD",
+                          field: "subCategoryID",
+                          value: updatedIds.join(","),
+                        });
+                      }}
+                    />
+                  );
+                })}
+            </div>
+          </div>
+        ) : (
+          <select
+            id="subCategory"
+            disabled
+            className="w-full p-2 rounded bg-gray-700 text-white"
+          >
+            <option value="">انتخاب زیر دسته بندی</option>
+          </select>
+        )}
       </div>
 
       {/* Price */}
@@ -310,3 +361,34 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
 };
 
 export default BaseDetails;
+
+// SubCategoryButton.tsx
+interface SubCategoryButtonProps {
+  subCategory: { CategoryContentId: number; Name: string };
+  isSelected: boolean;
+  isFirstSelected: boolean;
+  onClick: () => void;
+}
+
+const SubCategoryButton: React.FC<SubCategoryButtonProps> = ({
+  subCategory,
+  isSelected,
+  isFirstSelected,
+  onClick,
+}) => {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-3 py-1 rounded border text-center ${
+        isSelected
+          ? isFirstSelected
+            ? "bg-green-600 text-white border-green-600" // Special style for the first selected
+            : "bg-blue-600 text-white border-blue-600" // Style for other selected
+          : "bg-gray-600 text-gray-200 border-gray-500 hover:bg-gray-500"
+      }`}
+    >
+      {subCategory.Name}
+    </button>
+  );
+};

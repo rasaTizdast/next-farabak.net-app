@@ -20,7 +20,7 @@ type State = {
   name: string;
   slug: string;
   categoryID: number | null;
-  subCategoryID: number | null;
+  subCategoryID: string | null;
   available: boolean;
   price: number;
   discount: number;
@@ -44,7 +44,7 @@ const initialState: State = {
   name: "",
   slug: "",
   categoryID: null,
-  subCategoryID: null,
+  subCategoryID: "",
   available: true,
   price: 0,
   discount: 0,
@@ -133,12 +133,8 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
     // Dynamically validate the updated field
     if (action.type === "SET_FIELD") {
       const fieldError = validateField(action.field, action.value);
-      console.log(
-        `Validating field: ${action.field} with value: ${action.value}`
-      );
       setErrors((prev) => {
         const updatedErrors = { ...prev, [action.field]: fieldError };
-        console.log("Updated errors:", updatedErrors);
         return updatedErrors;
       });
     }
@@ -148,7 +144,6 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
   useEffect(() => {
     const newErrors = validateAllFields(state);
     setErrors(newErrors);
-    console.log("Updated errors after validation:", newErrors);
   }, [state]);
 
   // Manage the collapse state for each section
@@ -168,9 +163,6 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
     }));
   };
 
-  // Check if there are any errors
-  const hasErrors = Object.values(errors).some((error) => error !== "");
-
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,7 +171,6 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
     // Perform final validation before submission
     const newErrors = validateAllFields(state);
     setErrors(newErrors);
-    console.log("Final errors on submit:", newErrors);
 
     if (Object.keys(newErrors).length > 0) {
       toast.error("لطفاً تمام خطاها را برطرف کنید.");
