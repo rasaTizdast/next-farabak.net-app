@@ -257,7 +257,6 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
             </div>
             {openSections.overviewDetails && (
               <OverviewDetails
-                state={state}
                 dispatch={validatedDispatch}
                 setErrors={setErrors}
               />

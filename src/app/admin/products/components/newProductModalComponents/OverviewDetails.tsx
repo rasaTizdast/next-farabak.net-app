@@ -12,7 +12,6 @@ type OverviewDetail = {
 };
 
 type Props = {
-  state: { overviewDetails: OverviewDetail[] };
   dispatch: React.Dispatch<{ type: string; details: OverviewDetail[] }>;
   setErrors: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
 };
@@ -21,7 +20,7 @@ type Props = {
 const truncateText = (text: string, maxLength: number): string =>
   text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
 
-const OverviewDetails = ({ state, dispatch, setErrors }: Props) => {
+const OverviewDetails = ({ dispatch, setErrors }: Props) => {
   const [overviewDetails, setOverviewDetails] = useState<OverviewDetail[]>([]);
   const [selectedDetail, setSelectedDetail] = useState<OverviewDetail | null>(
     null
