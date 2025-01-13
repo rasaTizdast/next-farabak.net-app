@@ -21,6 +21,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
     smallDesc: "",
     SEO_Title: "",
     SEO_Description: "",
+    keywords: "",
     price: "",
     discount: "",
   });
@@ -67,17 +68,6 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
     return "";
   };
 
-  const handleValidation = (field: string, value: string) => {
-    let error = "";
-    if (field === "name") error = validateName(value);
-    if (field === "slug") error = validateSlug(value);
-    if (field === "smallDesc") error = validateSmallDesc(value);
-    if (field === "SEO_Title") error = validateSeoTitle(value);
-    if (field === "SEO_Description") error = validateSeoDesc(value);
-
-    setLocalErrors((prev) => ({ ...prev, [field]: error }));
-  };
-
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9]/g, "");
     const numericValue = Number(value);
@@ -120,6 +110,25 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
     } else {
       setLocalErrors((prev) => ({ ...prev, discount: "" }));
     }
+  };
+
+  const handleValidation = (field: string, value: string) => {
+    let error = "";
+    if (field === "name") error = validateName(value);
+    if (field === "slug") error = validateSlug(value);
+    if (field === "smallDesc") error = validateSmallDesc(value);
+    if (field === "SEO_Title") error = validateSeoTitle(value);
+    if (field === "SEO_Description") error = validateSeoDesc(value);
+    if (field === "keywords") error = validateKeywords(value); // Added for keywords
+
+    setLocalErrors((prev) => ({ ...prev, [field]: error }));
+  };
+
+  const validateKeywords = (value: string) => {
+    if (!value.trim()) return "کلمات کلیدی نمی‌تواند خالی باشد.";
+    if (value.length > 500)
+      return "کلمات کلیدی نمی‌تواند بیشتر از ۵۰۰ کاراکتر باشد.";
+    return "";
   };
 
   return (
@@ -378,6 +387,71 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         />
         {localErrors.smallDesc && (
           <p className="text-red-500 mt-1">{localErrors.smallDesc}</p>
+        )}
+      </div>
+
+      {/* Keywords */}
+      <div className="mb-4">
+        <label htmlFor="keywords" className="block mb-2">
+          کلمات کلیدی
+        </label>
+        <input
+          id="keywords"
+          type="text"
+          onKeyDown={(e) => {
+            const input = e.target as HTMLInputElement; // Type assertion
+            if (e.key === "Enter" && input.value.trim()) {
+              e.preventDefault();
+
+              const newKeyword = input.value.trim();
+              const updatedKeywords = state.keywords
+                ? `${state.keywords} ${newKeyword}`
+                : newKeyword;
+
+              dispatch({
+                type: "SET_FIELD",
+                field: "keywords",
+                value: updatedKeywords,
+              });
+              handleValidation("keywords", updatedKeywords);
+
+              input.value = ""; // Clear input field
+            }
+          }}
+          className="w-full p-2 rounded bg-gray-700 text-white"
+          placeholder="کلمات کلیدی را تایپ کنید و Enter را فشار دهید"
+        />
+
+        {/* Display Keywords Below the Input */}
+        <div className="mt-2 flex flex-wrap gap-2">
+          {state.keywords &&
+            state.keywords.split(" ").map((keyword: string, index: number) => (
+              <button
+                type="button"
+                key={index}
+                className="bg-green-700 px-4 py-1 rounded-lg flex items-center gap-2 hover:bg-red-700 hover:text-white animate-fade-in transition-all"
+                onClick={() => {
+                  const updatedKeywords = state.keywords
+                    .split(" ")
+                    .filter((_: string, i: number) => i !== index)
+                    .join(" ");
+
+                  dispatch({
+                    type: "SET_FIELD",
+                    field: "keywords",
+                    value: updatedKeywords,
+                  });
+                  handleValidation("keywords", updatedKeywords);
+                }}
+              >
+                {keyword}
+              </button>
+            ))}
+        </div>
+
+        {/* Validation Error */}
+        {localErrors.keywords && (
+          <p className="text-red-500 mt-1">{localErrors.keywords}</p>
         )}
       </div>
 

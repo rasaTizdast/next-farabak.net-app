@@ -25,10 +25,11 @@ type State = {
   price: number;
   discount: number;
   smallDesc: string;
-  bannerImage: string;
-  transparentImage: string;
+  bannerImage: File | null;
+  transparentImage: File | null;
   SEO_Title: string;
   SEO_Description: string;
+  keywords: string;
   features: string[];
   overviewDetails: {
     ProductOverviewDetailsId: number;
@@ -51,10 +52,11 @@ const initialState: State = {
   price: 0,
   discount: 0,
   smallDesc: "",
-  bannerImage: "",
-  transparentImage: "",
+  bannerImage: null,
+  transparentImage: null,
   SEO_Title: "",
   SEO_Description: "",
+  keywords: "",
   features: [],
   overviewDetails: [], // Initially empty, no predefined items
   specs: [],
@@ -114,6 +116,8 @@ const validateField = (field: keyof State, value: any): string => {
       return value.length > 0 ? "" : "تیتر سئو الزامی است";
     case "SEO_Description":
       return value.length > 0 ? "" : "توضیحات سئو الزامی است";
+    case "keywords":
+      return value.length > 0 ? "" : "کلمات کلیدی الزامی است";
     default:
       return ""; // No validation needed
   }
