@@ -55,10 +55,6 @@ export async function POST(request: Request) {
         key = `${parentFolder}/${sanitizedFolderName}/${sanitizedFolderName}-mini.${
           contentType.split("/")[1]
         }`;
-      } else {
-        key = `${parentFolder}/${sanitizedFolderName}/${sanitizedFolderName}.${
-          contentType.split("/")[1]
-        }`;
       }
     } else if (type === "overviewDetails") {
       parentFolder = "overview-details-images";
@@ -79,11 +75,14 @@ export async function POST(request: Request) {
       ContentType: contentType,
     });
 
+    // Remove the parent folder part from the key for the response
+    const responseKey = key.substring(key.indexOf("/") + 1);
+
     logger.info("Generated presigned URL", { key });
 
     return NextResponse.json({
       uploadUrl,
-      key,
+      key: responseKey, // Only return the sanitized portion of the key
     });
   } catch (error) {
     logger.error("Failed to generate presigned URL", error);
