@@ -1,6 +1,72 @@
 import { S3 } from "aws-sdk";
 import { NextResponse } from "next/server";
 
+/**
+ * @swagger
+ * /api/s3/upload:
+ *   post:
+ *     summary: Generate a presigned URL for uploading files to S3.
+ *     description: This endpoint generates a presigned URL for uploading files to S3. It validates the required parameters and sanitizes the folder name.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - type
+ *               - folderName
+ *               - contentType
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 description: The type of the upload, e.g., "productImage" or "overviewDetails".
+ *                 enum: [productImage, overviewDetails]
+ *               folderName:
+ *                 type: string
+ *                 description: The name of the folder where the file will be uploaded.
+ *               contentType:
+ *                 type: string
+ *                 description: The MIME type of the file being uploaded.
+ *               imageType:
+ *                 type: string
+ *                 description: Specifies the type of image if `type` is "productImage". Possible values are "banner" or "mini".
+ *     responses:
+ *       200:
+ *         description: Successfully generated the presigned upload URL.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 uploadUrl:
+ *                   type: string
+ *                   description: The presigned URL for uploading the file.
+ *                 key:
+ *                   type: string
+ *                   description: The sanitized key of the uploaded file, excluding the parent folder.
+ *       400:
+ *         description: Bad request. Missing or invalid parameters.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: The error message.
+ *       500:
+ *         description: Internal server error. Failed to generate the upload URL.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: The error message.
+ */
+
 // Initialize S3 client
 const s3 = new S3({
   accessKeyId: process.env.LIARA_ACCESS_KEY,
@@ -8,20 +74,6 @@ const s3 = new S3({
   endpoint: process.env.LIARA_ENDPOINT,
 });
 
-// Logger utility
-const logger = {
-  info: (message: string, data?: any) => {
-    console.log(`[INFO] ${new Date().toISOString()} - ${message}`, data || "");
-  },
-  error: (message: string, error?: any) => {
-    console.error(`[ERROR] ${new Date().toISOString()} - ${message}`, error);
-  },
-};
-
-/**
- * POST handler for uploading a file
- * Route: /api/s3/upload
- */
 export async function POST(request: Request) {
   try {
     const { type, folderName, contentType, imageType } = await request.json();
@@ -78,14 +130,11 @@ export async function POST(request: Request) {
     // Remove the parent folder part from the key for the response
     const responseKey = key.substring(key.indexOf("/") + 1);
 
-    logger.info("Generated presigned URL", { key });
-
     return NextResponse.json({
       uploadUrl,
       key: responseKey, // Only return the sanitized portion of the key
     });
   } catch (error) {
-    logger.error("Failed to generate presigned URL", error);
     return NextResponse.json(
       { error: "Failed to generate upload URL" },
       { status: 500 }
