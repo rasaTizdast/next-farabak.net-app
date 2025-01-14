@@ -298,6 +298,7 @@ const AdminProductsPage = () => {
           <NewProductModal
             setShowNewProductModal={setShowNewProductModal}
             categories={categories}
+            refetchProducts={refetchProducts}
           />
         )}
       </div>

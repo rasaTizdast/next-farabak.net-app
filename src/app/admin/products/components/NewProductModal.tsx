@@ -8,6 +8,7 @@ import Specs from "./newProductModalComponents/Specs";
 import FAQ from "./newProductModalComponents/FAQ";
 import { IoIosClose } from "react-icons/io";
 import { createProduct } from "../utils/createProduct";
+import ProgressModal from "./newProductModalComponents/ProgressModal";
 
 // Types
 type Category = {
@@ -84,6 +85,7 @@ const productReducer = (state: State, action: any): State => {
 
 type Props = {
   setShowNewProductModal: (visible: boolean) => void;
+  refetchProducts: () => void;
   categories: Category[];
 };
 
@@ -133,10 +135,17 @@ const validateAllFields = (state: State): { [key: string]: string } => {
   return errors;
 };
 
-const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
+const NewProductModal = ({
+  setShowNewProductModal,
+  categories,
+  refetchProducts,
+}: Props) => {
   // Add a new state to track if the user has tried to submit
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [state, dispatch] = useReducer(productReducer, initialState);
+  const [progress, setProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isModalVisible, setModalVisible] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // Custom dispatch function to validate on state update
@@ -188,6 +197,8 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
     if (Object.keys(newErrors).length > 0) {
       toast.error("لطفاً تمام خطاها را برطرف کنید.");
       return;
+    } else {
+      setModalVisible(true);
     }
 
     // Prepare the form data
@@ -201,168 +212,181 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
     };
 
     try {
-      await createProduct(formData);
-      toast.success("محصول با موفقیت ایجاد شد!");
+      await createProduct(formData, setProgress, setCurrentStep);
+      setTimeout(() => {
+        setModalVisible(false);
+        setShowNewProductModal(false);
+        refetchProducts();
+        toast.success("محصول با موفقیت ایجاد شد!");
+      }, 1000);
     } catch (error: any) {
-      toast.error("خطا در ایجاد محصول. لطفاً دوباره تلاش کنید.");
+      setModalVisible(false);
+      toast.error(
+        "محصولی مشابه این محصول وجود دارد یا خطایی به وجود آمده لطفاً دوباره تلاش کنید"
+      );
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity">
-      <div className="bg-gray-800 text-white rounded-xl shadow-lg p-6 w-full max-w-2xl max-h-[90dvh] overflow-y-scroll relative animate-fade-in">
-        <h1 className="text-center font-bold mb-10 text-2xl">محصول جدید</h1>
+    <>
+      {isModalVisible && (
+        <ProgressModal progress={progress} currentStep={currentStep} />
+      )}
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity">
+        <div className="bg-gray-800 text-white rounded-xl shadow-lg p-6 w-full max-w-2xl max-h-[90dvh] overflow-y-scroll relative animate-fade-in">
+          <h1 className="text-center font-bold mb-10 text-2xl">محصول جدید</h1>
 
-        <form onSubmit={handleSubmit}>
-          {/* Base Details */}
-          <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
-            <div
-              onClick={() => toggleSection("baseDetails")}
-              className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
-            >
-              <span className="text-lg font-semibold">جزئیات پایه</span>
-              {openSections.baseDetails ? (
-                <FiChevronUp size={20} />
-              ) : (
-                <FiChevronDown size={20} />
-              )}
-            </div>
-            {openSections.baseDetails && (
-              <BaseDetails
-                state={state}
-                dispatch={validatedDispatch}
-                categories={categories}
-                setErrors={setErrors} // Pass setErrors to child components
-              />
-            )}
-          </div>
-
-          {/* Product Overview */}
-          <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
-            <div
-              onClick={() => toggleSection("productOverview")}
-              className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
-            >
-              <span className="text-lg font-semibold">بررسی محصول</span>
-              {openSections.productOverview ? (
-                <FiChevronUp size={20} />
-              ) : (
-                <FiChevronDown size={20} />
-              )}
-            </div>
-            {openSections.productOverview && (
-              <ProductOverview
-                state={state}
-                dispatch={validatedDispatch}
-                setErrors={setErrors}
-              />
-            )}
-          </div>
-
-          {/* Overview Details */}
-          <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
-            <div
-              onClick={() => toggleSection("overviewDetails")}
-              className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
-            >
-              <span className="text-lg font-semibold">جزئیات بررسی</span>
-              {openSections.overviewDetails ? (
-                <FiChevronUp size={20} />
-              ) : (
-                <FiChevronDown size={20} />
-              )}
-            </div>
-            {openSections.overviewDetails && (
-              <OverviewDetails
-                dispatch={validatedDispatch}
-                setErrors={setErrors}
-              />
-            )}
-          </div>
-
-          {/* Specs Section */}
-          <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
-            <div
-              onClick={() => toggleSection("specs")}
-              className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
-            >
-              <span className="text-lg font-semibold">مشخصات</span>
-              {openSections.specs ? (
-                <FiChevronUp size={20} />
-              ) : (
-                <FiChevronDown size={20} />
-              )}
-            </div>
-            {openSections.specs && (
-              <Specs
-                state={state}
-                dispatch={validatedDispatch}
-                setErrors={setErrors}
-              />
-            )}
-          </div>
-
-          {/* FAQ Section */}
-          <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
-            <div
-              onClick={() => toggleSection("faq")}
-              className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
-            >
-              <span className="text-lg font-semibold">سوالات متداول</span>
-              {openSections.faq ? (
-                <FiChevronUp size={20} />
-              ) : (
-                <FiChevronDown size={20} />
-              )}
-            </div>
-            {openSections.faq && (
-              <FAQ
-                state={state}
-                dispatch={validatedDispatch}
-                setErrors={setErrors}
-              />
-            )}
-          </div>
-
-          {/* Submit Button */}
-          <div className="flex flex-col items-center mt-6">
-            {hasSubmitted && (
-              <div className="flex flex-wrap justify-center gap-2 my-4">
-                {Object.values(errors).map((error, index) =>
-                  error ? (
-                    <div
-                      key={index}
-                      className="bg-red-500 rounded-lg text-center p-2"
-                    >
-                      {error}
-                    </div>
-                  ) : null
+          <form onSubmit={handleSubmit}>
+            {/* Base Details */}
+            <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
+              <div
+                onClick={() => toggleSection("baseDetails")}
+                className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
+              >
+                <span className="text-lg font-semibold">جزئیات پایه</span>
+                {openSections.baseDetails ? (
+                  <FiChevronUp size={20} />
+                ) : (
+                  <FiChevronDown size={20} />
                 )}
               </div>
-            )}
-            {/* Update the submit button to disable only if there are errors and submission hasn't been attempted */}
-            <button
-              type="submit"
-              className={`py-2 px-6 rounded-lg ${
-                hasSubmitted && Object.keys(errors).length > 0
-                  ? "bg-gray-500 cursor-not-allowed"
-                  : "bg-blue-500 hover:bg-blue-600"
-              } text-white`}
-              disabled={hasSubmitted && Object.keys(errors).length > 0}
-            >
-              ایجاد محصول
-            </button>
-          </div>
-        </form>
+              {openSections.baseDetails && (
+                <BaseDetails
+                  state={state}
+                  dispatch={validatedDispatch}
+                  categories={categories}
+                  setErrors={setErrors} // Pass setErrors to child components
+                />
+              )}
+            </div>
 
-        <div
-          className="absolute top-4 right-4 text-red-400 hover:text-red-500 transition-all cursor-pointer"
-          onClick={() => setShowNewProductModal(false)}
-        >
-          <IoIosClose size={50} />
+            {/* Product Overview */}
+            <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
+              <div
+                onClick={() => toggleSection("productOverview")}
+                className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
+              >
+                <span className="text-lg font-semibold">بررسی محصول</span>
+                {openSections.productOverview ? (
+                  <FiChevronUp size={20} />
+                ) : (
+                  <FiChevronDown size={20} />
+                )}
+              </div>
+              {openSections.productOverview && (
+                <ProductOverview
+                  state={state}
+                  dispatch={validatedDispatch}
+                  setErrors={setErrors}
+                />
+              )}
+            </div>
+
+            {/* Overview Details */}
+            <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
+              <div
+                onClick={() => toggleSection("overviewDetails")}
+                className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
+              >
+                <span className="text-lg font-semibold">جزئیات بررسی</span>
+                {openSections.overviewDetails ? (
+                  <FiChevronUp size={20} />
+                ) : (
+                  <FiChevronDown size={20} />
+                )}
+              </div>
+              {openSections.overviewDetails && (
+                <OverviewDetails
+                  dispatch={validatedDispatch}
+                  setErrors={setErrors}
+                />
+              )}
+            </div>
+
+            {/* Specs Section */}
+            <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
+              <div
+                onClick={() => toggleSection("specs")}
+                className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
+              >
+                <span className="text-lg font-semibold">مشخصات</span>
+                {openSections.specs ? (
+                  <FiChevronUp size={20} />
+                ) : (
+                  <FiChevronDown size={20} />
+                )}
+              </div>
+              {openSections.specs && (
+                <Specs
+                  state={state}
+                  dispatch={validatedDispatch}
+                  setErrors={setErrors}
+                />
+              )}
+            </div>
+
+            {/* FAQ Section */}
+            <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
+              <div
+                onClick={() => toggleSection("faq")}
+                className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
+              >
+                <span className="text-lg font-semibold">سوالات متداول</span>
+                {openSections.faq ? (
+                  <FiChevronUp size={20} />
+                ) : (
+                  <FiChevronDown size={20} />
+                )}
+              </div>
+              {openSections.faq && (
+                <FAQ
+                  state={state}
+                  dispatch={validatedDispatch}
+                  setErrors={setErrors}
+                />
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex flex-col items-center mt-6">
+              {hasSubmitted && (
+                <div className="flex flex-wrap justify-center gap-2 my-4">
+                  {Object.values(errors).map((error, index) =>
+                    error ? (
+                      <div
+                        key={index}
+                        className="bg-red-500 rounded-lg text-center p-2"
+                      >
+                        {error}
+                      </div>
+                    ) : null
+                  )}
+                </div>
+              )}
+              {/* Update the submit button to disable only if there are errors and submission hasn't been attempted */}
+              <button
+                type="submit"
+                className={`py-2 px-6 rounded-lg ${
+                  hasSubmitted && Object.keys(errors).length > 0
+                    ? "bg-gray-500 cursor-not-allowed"
+                    : "bg-blue-500 hover:bg-blue-600"
+                } text-white`}
+                disabled={hasSubmitted && Object.keys(errors).length > 0}
+              >
+                ایجاد محصول
+              </button>
+            </div>
+          </form>
+
+          <div
+            className="absolute top-4 right-4 text-red-400 hover:text-red-500 transition-all cursor-pointer"
+            onClick={() => setShowNewProductModal(false)}
+          >
+            <IoIosClose size={50} />
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

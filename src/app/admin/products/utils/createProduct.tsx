@@ -125,79 +125,75 @@ const sendFaqs = async (productId: number, faqs: State["faqs"]) => {
 };
 
 // Main function to create a product and send all associated details
-export const createProduct = async (state: State) => {
+export const createProduct = async (
+  state: State,
+  setProgress: (p: number) => void,
+  setCurrentStep: (s: number) => void
+) => {
   try {
-    const {
-      name,
-      slug,
-      categoryID,
-      subCategoryID,
-      available,
-      price,
-      discount,
-      smallDesc,
-      transparentImage,
-      bannerImage,
-      SEO_Title,
-      SEO_Description,
-      features,
-      overviewDetails,
-      specs,
-      faqs,
-      keywords,
-    } = state;
-
-    const productName = slug;
+    setCurrentStep(1);
+    setProgress(10);
 
     // Step 1: Create the product in the database
     const productPayload = {
-      Type: name,
-      Slug: slug,
-      Description: keywords,
-      CategoryId: categoryID,
-      CategoryContentId: subCategoryID,
-      Available: available,
-      Price: price.toString(),
-      Discount: discount.toString(),
-      Name: smallDesc,
-      SEO_Title: SEO_Title || name,
-      SEO_Description: SEO_Description || smallDesc,
+      Type: state.name,
+      Slug: state.slug,
+      Description: state.keywords,
+      CategoryId: state.categoryID,
+      CategoryContentId: state.subCategoryID,
+      Available: state.available,
+      Price: state.price.toString(),
+      Discount: state.discount.toString(),
+      Name: state.smallDesc,
+      SEO_Title: state.SEO_Title || state.name,
+      SEO_Description: state.SEO_Description || state.smallDesc,
     };
-
     const productResponse = await axios.post(
       "/api/admin/products/createNewProduct",
       productPayload
     );
-
-    const productId = productResponse.data.ProductId; // Retrieve the product ID
+    const productId = productResponse.data.ProductId;
 
     if (!productId) {
       throw new Error("Product creation failed: No product ID returned");
     }
+    setProgress(30);
 
     // Step 2: Upload images to S3
+    setCurrentStep(2);
     const [img1, img2] = await Promise.all([
-      ImageUploader(transparentImage, productName, "mini"),
-      ImageUploader(bannerImage, productName, "banner"),
+      ImageUploader(state.transparentImage, state.slug, "mini"),
+      ImageUploader(state.bannerImage, state.slug, "banner"),
     ]);
+    setProgress(50);
+
     // Step 3: Update the product with image keys
-    const imageUpdatePayload = {
+    await axios.patch(`/api/admin/products/${productId}/updateImages`, {
       img1,
       img2,
-    };
+    });
 
-    await axios.patch(
-      `/api/admin/products/${productId}/updateImages`,
-      imageUpdatePayload
-    );
-    // Step 4: Send additional details in parallel
-    await Promise.all([
-      sendOverviews(productId, name, features),
-      sendOverviewDetails(productId, name, overviewDetails),
-      sendSpecs(productId, name, specs),
-      sendFaqs(productId, faqs),
-    ]);
-    return productResponse.data; // Return the product response
+    // Step 4: Send additional details
+    setCurrentStep(3);
+    await sendOverviews(productId, state.name, state.features);
+    setProgress(60);
+
+    setCurrentStep(4);
+    await sendOverviewDetails(productId, state.name, state.overviewDetails);
+    setProgress(70);
+
+    setCurrentStep(5);
+    await sendSpecs(productId, state.name, state.specs);
+    setProgress(80);
+
+    setCurrentStep(6);
+    await sendFaqs(productId, state.faqs);
+    setProgress(90);
+
+    setCurrentStep(7);
+    setProgress(100);
+
+    return productResponse.data;
   } catch (error) {
     throw new Error("Product creation failed");
   }
