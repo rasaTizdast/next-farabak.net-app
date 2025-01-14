@@ -7,6 +7,7 @@ import OverviewDetails from "./newProductModalComponents/OverviewDetails";
 import Specs from "./newProductModalComponents/Specs";
 import FAQ from "./newProductModalComponents/FAQ";
 import { IoIosClose } from "react-icons/io";
+import { createProduct } from "../utils/createProduct";
 
 // Types
 type Category = {
@@ -176,9 +177,9 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
   };
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setHasSubmitted(true); // Mark that the user has attempted to submit
+    setHasSubmitted(true);
 
     // Perform final validation before submission
     const newErrors = validateAllFields(state);
@@ -199,8 +200,12 @@ const NewProductModal = ({ setShowNewProductModal, categories }: Props) => {
       overviewDetails: selectedDetailsIds,
     };
 
-    console.log(formData); // For now, log the form data
-    toast.success("محصول با موفقیت ایجاد شد!");
+    try {
+      await createProduct(formData);
+      toast.success("محصول با موفقیت ایجاد شد!");
+    } catch (error: any) {
+      toast.error("خطا در ایجاد محصول. لطفاً دوباره تلاش کنید.");
+    }
   };
 
   return (
