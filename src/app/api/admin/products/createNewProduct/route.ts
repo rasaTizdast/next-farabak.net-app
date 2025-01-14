@@ -173,34 +173,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+    const body = await request.json();
+
     const {
       Type,
       Slug,
-      keywords,
+      Description,
       CategoryId,
       CategoryContentId,
       Available,
       Price,
       Discount,
       Name,
-      img1,
-      img2,
+      img1 = "",
+      img2 = "",
       SEO_Title,
       SEO_Description,
-    } = await request.json();
+    } = body;
 
     if (
       !Type ||
       !Slug ||
-      !keywords ||
+      !Description ||
       !CategoryId ||
       !CategoryContentId ||
-      !Available ||
+      Available === undefined ||
       !Price ||
       !Discount ||
       !Name ||
-      !img1 ||
-      !img2 ||
       !SEO_Title ||
       !SEO_Description
     ) {
@@ -210,7 +210,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check for duplicate slug and type
     const existingProduct = await prisma.product.findFirst({
       where: { Slug, Type },
     });
@@ -226,15 +225,15 @@ export async function POST(request: Request) {
       data: {
         Type,
         Slug,
-        Description: keywords,
-        CategoryId: CategoryId,
-        CategoryContentId: CategoryContentId,
+        Description,
+        CategoryId,
+        CategoryContentId,
         Available: Available || true,
         Price: Price || "0",
         Discount: Discount || "0",
         Name,
-        img1: img1,
-        img2: img2,
+        img1,
+        img2,
         SEO_Title: SEO_Title || Type,
         SEO_Description: SEO_Description || Name,
       },
@@ -242,7 +241,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {
-    console.error("Error creating product:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
