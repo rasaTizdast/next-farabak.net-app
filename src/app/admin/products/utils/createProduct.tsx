@@ -11,25 +11,19 @@ type State = {
   price: number;
   discount: number;
   smallDesc: string;
-  bannerImage: File;
-  transparentImage: File;
+  bannerImage: File | null;
+  transparentImage: File | null;
   SEO_Title: string;
   SEO_Description: string;
   features: string[];
-  overviewDetails: {
-    ProductOverviewDetailsId: number;
-    Title: string;
-    Img: string;
-    Description: string;
-    selected: boolean; // Indicates if this overview detail is selected
-  }[];
+  overviewDetails: number[];
   specs: { title: string; description: string }[];
   faqs: { question: string; answer: string }[];
 };
 
 // Function to handle uploading images to S3
 const ImageUploader = async (
-  image: File,
+  image: File | null,
   productName: string,
   imageType: "banner" | "mini"
 ) => {
@@ -64,18 +58,17 @@ const ImageUploader = async (
 
 // Function to send features data to the API
 const sendOverviews = async (
-  productId: number,
-  productName: string,
-  features: string[]
+  ProductId: number,
+  ProductName: string,
+  Features: string[]
 ) => {
-  if (!features.length) return; // Skip if no features are provided
+  if (!Features.length) return; // Skip if no features are provided
 
-  const payload = features.map((feature, index) => ({
-    ProductName: productName,
-    ProductId: productId,
-    [`Property${index + 1}`]: feature, // Dynamically create property names
-    Available: true,
-  }));
+  const payload = {
+    ProductName,
+    ProductId,
+    Features, // Send the array of features
+  };
 
   await axios.post("/api/productOverview", payload);
 };
@@ -84,31 +77,32 @@ const sendOverviews = async (
 const sendOverviewDetails = async (
   productId: number,
   productName: string,
-  overviewDetails: State["overviewDetails"]
+  overviewDetailsIds: number[] // Adjusted to accept only selected IDs
 ) => {
-  if (!overviewDetails.length) return; // Skip if no overview details are provided
+  if (!overviewDetailsIds.length) return; // Skip if no overview details are selected
 
-  const payload = overviewDetails.map((detail) => ({
-    ProductOverviewDetailsId: detail.ProductOverviewDetailsId,
+  const payload = overviewDetailsIds.map((id) => ({
+    ProductOverviewDetailsId: id,
     ProductName: productName,
     ProductId: productId,
-    Title: detail.Title,
-    Img: detail.Img,
-    Description: detail.Description,
-    selected: detail.selected,
   }));
 
-  await axios.post("/api/overviewDetails", payload);
+  await axios.post("/api/productOverviewDetails", payload);
 };
 
 // Function to send specifications data to the API
-const sendSpecs = async (productId: number, specs: State["specs"]) => {
+const sendSpecs = async (
+  ProductId: number,
+  Name: string,
+  specs: State["specs"]
+) => {
   if (!specs.length) return; // Skip if no specs are provided
 
   const payload = specs.map((spec) => ({
-    Name: spec.title,
+    Name,
+    Title: spec.title, // Match the database model
     Description: spec.description,
-    ProductId: productId,
+    ProductId,
     Available: true,
   }));
 
@@ -120,10 +114,11 @@ const sendFaqs = async (productId: number, faqs: State["faqs"]) => {
   if (!faqs.length) return; // Skip if no FAQs are provided
 
   const payload = faqs.map((faq) => ({
-    Question: faq.question,
-    Answer: faq.answer,
+    Title: faq.question, // Map 'question' to 'Title'
+    Description: faq.answer, // Map 'answer' to 'Description'
     ProductId: productId,
     Available: true,
+    FilesAddress: "", // Set as empty since it's not part of incoming data
   }));
 
   await axios.post("/api/faqs", payload);
@@ -154,13 +149,7 @@ export const createProduct = async (state: State) => {
 
     const productName = slug;
 
-    // Step 1: Upload images to S3
-    const [img1, img2] = await Promise.all([
-      ImageUploader(transparentImage, productName, "mini"),
-      ImageUploader(bannerImage, productName, "banner"),
-    ]);
-
-    // Step 2: Prepare and send product creation payload
+    // Step 1: Create the product in the database
     const productPayload = {
       Type: name,
       Slug: slug,
@@ -168,11 +157,9 @@ export const createProduct = async (state: State) => {
       CategoryId: categoryID,
       CategoryContentId: subCategoryID,
       Available: available,
-      Price: price,
-      Discount: discount,
+      Price: price.toString(),
+      Discount: discount.toString(),
       Name: smallDesc,
-      img1,
-      img2,
       SEO_Title: SEO_Title || name,
       SEO_Description: SEO_Description || smallDesc,
     };
@@ -181,20 +168,37 @@ export const createProduct = async (state: State) => {
       "/api/admin/products/createNewProduct",
       productPayload
     );
-    const productId = productResponse.data.id; // Retrieve the product ID
 
-    // Step 3: Send additional details in parallel
+    const productId = productResponse.data.ProductId; // Retrieve the product ID
+
+    if (!productId) {
+      throw new Error("Product creation failed: No product ID returned");
+    }
+
+    // Step 2: Upload images to S3
+    const [img1, img2] = await Promise.all([
+      ImageUploader(transparentImage, productName, "mini"),
+      ImageUploader(bannerImage, productName, "banner"),
+    ]);
+    // Step 3: Update the product with image keys
+    const imageUpdatePayload = {
+      img1,
+      img2,
+    };
+
+    await axios.patch(
+      `/api/admin/products/${productId}/updateImages`,
+      imageUpdatePayload
+    );
+    // Step 4: Send additional details in parallel
     await Promise.all([
       sendOverviews(productId, name, features),
       sendOverviewDetails(productId, name, overviewDetails),
-      sendSpecs(productId, specs),
+      sendSpecs(productId, name, specs),
       sendFaqs(productId, faqs),
     ]);
-
-    console.log("Product created successfully with all details");
     return productResponse.data; // Return the product response
   } catch (error) {
-    console.error("Error creating product:", error);
     throw new Error("Product creation failed");
   }
 };
