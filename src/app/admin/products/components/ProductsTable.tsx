@@ -323,7 +323,7 @@ const ProductsTable = ({
         </table>
         {activeSubCategories && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
-            <div className="bg-white rounded-lg p-6 w-11/12 max-w-lg">
+            <div className="bg-gray-700 text-white rounded-lg p-6 w-11/12 max-w-lg">
               <h3 className="text-xl font-semibold mb-4">
                 زیر دسته‌بندی‌های محصول: {activeSubCategories.name}
               </h3>
@@ -331,7 +331,7 @@ const ProductsTable = ({
                 {activeSubCategories.subCategories.map((subCategory, idx) => (
                   <li
                     key={idx}
-                    className="text-gray-800 bg-gray-200 p-2 rounded-lg"
+                    className="text-white bg-gray-800 p-2 rounded-lg"
                   >
                     {subCategory}
                   </li>
