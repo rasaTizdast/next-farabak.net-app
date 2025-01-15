@@ -7,6 +7,8 @@ import { NextResponse } from "next/server";
  *   post:
  *     summary: Generate a presigned URL for uploading files to S3.
  *     description: This endpoint generates a presigned URL for uploading files to S3. It validates the required parameters and sanitizes the folder name.
+ *     tags:
+ *       - S3
  *     requestBody:
  *       required: true
  *       content:

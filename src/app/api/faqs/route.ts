@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma";
  *     summary: Create multiple FAQs for a product
  *     description: Accepts a list of FAQs and creates records in the database.
  *     tags:
- *       - FAQs
+ *       - NewProduct
  *     requestBody:
  *       required: true
  *       content:

@@ -18,7 +18,7 @@ async function verifyToken(token: string) {
  *     summary: Update product images
  *     description: Updates one or both images (`img1`, `img2`) of a specific product.
  *     tags:
- *       - Admin - Products
+ *       - Admin
  *     parameters:
  *       - in: path
  *         name: productId
