@@ -111,17 +111,29 @@ const AdminProductsPage = () => {
 
   const deleteProduct = async (id: number, name: string) => {
     try {
-      const response = await axios.delete(`/api/admin/products/${id}`);
+      // Step 1: Delete the image from S3 using productId
+      const s3Response = await axios.delete("/api/s3/delete", {
+        data: {
+          type: "productImages", // Indicates this is a product image
+          productId: id, // The ID of the product
+        },
+      });
 
-      if (response.status === 200) {
-        // If the product is deleted successfully, update the state
-        refetchProducts();
-        toast.success(`محصول "${name}" حذف شد.`);
+      if (s3Response.status === 200) {
+        // Step 2: Delete the product from the database
+        const response = await axios.delete(`/api/admin/products/${id}`);
+
+        if (response.status === 200) {
+          // If the product is deleted successfully, update the state
+          refetchProducts();
+          toast.success(`محصول "${name}" حذف شد.`);
+        } else {
+          toast.error("حذف محصول با خطا مواجه شد.");
+        }
       } else {
-        toast.error("حذف محصول با خطا مواجه شد.");
+        toast.error("حذف تصویر محصول با خطا مواجه شد.");
       }
     } catch (error) {
-      console.error("Error deleting product:", error);
       toast.error("حذف محصول با خطا مواجه شد.");
     }
   };
@@ -182,8 +194,6 @@ const AdminProductsPage = () => {
 
   const editModalSaveHandler = async (updatedProduct: Product) => {
     try {
-      console.log("sent Product: ", updatedProduct);
-
       await axios.patch(`/api/admin/products/${+updatedProduct.ProductId}`, {
         Name: updatedProduct.Name || "", // Fallback to empty string if null/undefined
         Type: updatedProduct.Type || "",
@@ -201,11 +211,9 @@ const AdminProductsPage = () => {
       });
 
       toast.success("محصول مورد نظر با موفقیت آپدیت شد!");
-      console.log("transaction done");
       refetchProducts();
     } catch (error) {
       toast.error("آپدیت ثبت محصول مورد نظر با شکست مواجه شد، مجدد تلاش کنید");
-      console.error(error);
     }
   };
 
