@@ -12,6 +12,7 @@ import {
   FiBarChart2,
 } from "react-icons/fi";
 import { BiCategory } from "react-icons/bi";
+import { IoReturnDownForward } from "react-icons/io5";
 
 import { useUser } from "@/context/UserContext";
 
@@ -46,7 +47,7 @@ const Sidebar = () => {
     <div
       className={`flex flex-col h-screen bg-[#0074e0] text-gray-200 transition-all sticky top-0 right-0 ${
         isCollapsed ? "w-16" : "w-64"
-      }`}
+      } animate-fade-in`}
       onMouseEnter={() => setIsCollapsed(false)}
       onMouseLeave={() => setIsCollapsed(true)}
     >
@@ -62,32 +63,45 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 mt-4">
+      <nav className="flex-1 mt-4 animate-fade-in">
         {sidebarItems.map((item, index) => (
           <Link
             key={index}
             href={item.href}
             className={`text-white flex items-center px-4 py-3 hover:bg-[#2797ff] transition-colors ${
               isCollapsed ? "justify-center" : "gap-4"
-            }`}
+            } animate-fade-in`}
           >
             {item.icon}
-            <span className={`${isCollapsed ? "hidden" : "block"}`}>
+            <span className={`${isCollapsed ? "hidden" : "block"} animate-fade-in`}>
               {item.name}
             </span>
           </Link>
         ))}
       </nav>
 
+      {/* Back to Main website Button */}
+      <Link
+        href="/"
+        className={`flex items-center px-4 py-2 mt-auto bg-blue-800 hover:bg-blue-900 text-white transition-colors ${
+          isCollapsed ? "justify-center" : "gap-4"
+        } animate-fade-in`}
+      >
+        <IoReturnDownForward size={20} />
+        <span className={`${isCollapsed ? "hidden" : "block"} animate-fade-in`}>
+          برگشت به سایت
+        </span>
+      </Link>
+
       {/* Logout Button */}
       <button
         onClick={logout}
         className={`flex items-center px-4 py-2 mt-auto bg-red-600 hover:bg-red-700 text-white transition-colors ${
           isCollapsed ? "justify-center" : "gap-4"
-        }`}
+        } animate-fade-in`}
       >
         <FiLogOut size={20} />
-        <span className={`${isCollapsed ? "hidden" : "block"}`}>خروج</span>
+        <span className={`${isCollapsed ? "hidden" : "block"} animate-fade-in`}>خروج</span>
       </button>
     </div>
   );
