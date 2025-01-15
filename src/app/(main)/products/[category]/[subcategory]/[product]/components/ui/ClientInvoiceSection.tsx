@@ -7,11 +7,18 @@ import { FaRegTrashAlt } from "react-icons/fa";
 import styles from "../../ProductPage.module.css";
 
 interface Props {
-  ProductId:number;
-  ProductName:string
+  ProductId: number;
+  ProductName: string;
+  productPrice: string | null; // Allow null for unavailable products
+  productDiscount: string | null; // Allow null for unavailable products
 }
 
-const ClientInvoiceSection = ({ ProductId, ProductName}:Props) => {
+const ClientInvoiceSection = ({
+  ProductId,
+  ProductName,
+  productPrice,
+  productDiscount,
+}: Props) => {
   const { addProductToInvoice, getProductQuantity, removeProductFromInvoice } =
     useInvoice();
   const { user, loading } = useUser();
@@ -28,6 +35,41 @@ const ClientInvoiceSection = ({ ProductId, ProductName}:Props) => {
       addProductToInvoice(ProductId, -1, ProductName);
     }
   };
+
+  // Convert English digits to Persian digits
+  const e2p = (s: string): string =>
+    s.replace(/\d/g, (d: string) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d)]);
+
+  // Handle unavailable product
+  if (!productPrice) {
+    return (
+      <div className="w-full flex flex-col items-center justify-center bg-blue-100 p-3 rounded-lg text-center gap-5 my-6">
+        <p className="text-lg text-blue-950 font-bold">
+          این محصول امکان ثبت فاکتور از طریق سایت ندارد، لطفا با بخش فروش تماس
+          بگیرید.
+        </p>
+        <Link
+          href="tel:02122089531"
+          className="bg-blue-600 text-white py-2 px-4 rounded-lg text-base md:text-lg hover:bg-blue-700 transition-all animate-fade-in"
+        >
+          تماس با بخش فروش
+        </Link>
+      </div>
+    );
+  }
+
+  // Convert price and discount to numbers for calculations
+  const price = parseFloat(productPrice.replace(/,/g, ""));
+  const discount = productDiscount
+    ? parseFloat(productDiscount.replace(/,/g, ""))
+    : 0;
+
+  // Calculate the discounted price
+  const discountedPrice = price - discount;
+
+  // Calculate the discount percentage
+  const discountPercentage =
+    discount > 0 ? ((discount / price) * 100).toFixed(0) : 0;
 
   // Render loading state
   if (loading) {
@@ -53,6 +95,33 @@ const ClientInvoiceSection = ({ ProductId, ProductName}:Props) => {
   // Render the invoice actions if the user is logged in
   return (
     <div className={styles.invoiceParent}>
+      {/* Minimal Price and Discount Section */}
+      <div
+        className={`flex ${styles.priceParent} flex-col gap-3 my-6 bg-blue-100 p-3 rounded-lg max-w-full animate-fade-in`}
+      >
+        <div className="flex items-center gap-2 content-center">
+          قیمت قبلی:{" "}
+          <span
+            className={`${styles.beforePrice} font-extralight text-gray-500 line-through`}
+          >
+            {e2p(price.toLocaleString())} ریال
+          </span>
+          {discount > 0 && (
+            <span
+              className={`${styles.discount} text-xs bg-[#003262] text-white py-1 px-2 rounded-lg lg:rounded-xl font-semibold`}
+            >
+              {discountPercentage}%
+            </span>
+          )}
+        </div>
+        <div className="flex items-center content-center gap-2">
+          قیمت جدید:{" "}
+          <span className="text-2xl font-black text-[#003262]">
+            {e2p(discountedPrice.toLocaleString())} ریال
+          </span>
+        </div>
+      </div>
+
       {currentQuantity > 0 && (
         <p className={styles.invoiceText}>تعداد این محصول در فاکتور</p>
       )}
@@ -78,7 +147,7 @@ const ClientInvoiceSection = ({ ProductId, ProductName}:Props) => {
           </div>
         ) : (
           <button
-            className="w-full bg-[#003262] p-2 flex justify-center text-white rounded-lg mt-6 sm:mt-0 text-sm md:text-base"
+            className="w-full bg-[#003262] p-2 flex justify-center text-white rounded-lg sm:mt-0 text-sm md:text-base"
             onClick={handleAddProduct}
           >
             اضافه کردن به فاکتور
