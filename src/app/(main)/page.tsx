@@ -11,31 +11,31 @@ const HomePage = () => {
       id: 1,
       img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/slider-home-edition-1.webp`,
       link: "/products/home-edition",
-      alt: "",
+      alt: "محصولات هوم ادیشن موجود در وبسایت فرابک",
     },
     {
       id: 2,
       img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/slider-dome-cameras.webp`,
       link: "/products/home-edition/dome",
-      alt: "",
+      alt: "دورین‌های دام هوم ادیشن موجود در وبسایت فرابک",
     },
     {
       id: 3,
       img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/slider-ip-cameras.webp`,
       link: "/products/home-edition/ip",
-      alt: "",
+      alt: "دورین‌های تحت شبکه هوم ادیشن موجود در وبسایت فرابک",
     },
     {
       id: 4,
       img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/slider-battery-cameras.webp`,
       link: "/products/home-edition/battery",
-      alt: "",
+      alt: "دورین‌های باطری‌دار هوم ادیشن موجود در وبسایت فرابک",
     },
     {
       id: 5,
       img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/slider-home-edition-2.webp`,
       link: "/products/home-edition",
-      alt: "",
+      alt: "مشاهده محصولات هوم ادیشن موجود در وبسایت فرابک",
     },
   ];
 
