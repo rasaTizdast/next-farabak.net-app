@@ -14,6 +14,7 @@ import axios from "axios";
 import ClientInvoiceSection from "./components/ui/ClientInvoiceSection";
 import ProductTabs from "./components/ui/ProductTabs";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import { formatTitle } from "@/helpers/formatTitle";
 
 // Types
 interface ProductData {
@@ -45,7 +46,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: product.SEO_Title || product.Type,
+    title: formatTitle(product.SEO_Title, 60) || product.Type,
     description: product.SEO_Description || product.Name,
     openGraph: {
       title: product.SEO_Title,
