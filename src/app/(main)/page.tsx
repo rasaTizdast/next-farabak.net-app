@@ -5,11 +5,6 @@ import ProjectsSection from "../_components/LandingPage/ProjectsSection";
 import SupportSection from "../_components/LandingPage/SupportSection";
 import ImageSlider from "../_components/imageSlider/ImageSlider";
 
-export const metadata: Metadata = {
-  title: "پیشرو در تکنولوژی | فرابک",
-  description: "پیشرو در تکنولوژی و نوآوری های فرابک با محصولات و خدمات متنوع.",
-};
-
 const HomePage = () => {
   const sliderLinks = [
     {
