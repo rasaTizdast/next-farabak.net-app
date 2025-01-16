@@ -10,8 +10,8 @@ import {
 import { formatPrice } from "../helper/formatPrice";
 import ProductEditModal from "./ProductEditModal";
 import { Product } from "../types";
-import axios from "axios";
-import toast from "react-hot-toast";
+import { IoQrCode } from "react-icons/io5";
+import QrCodeModal from "./QrCodeModal";
 
 type Props = {
   isLoading: boolean;
@@ -24,6 +24,7 @@ type Props = {
     name: string | string[];
   }) => void;
   editModalSaveHandler: (updatedProduct: Product) => void;
+  refetchProducts: () => void;
 };
 
 type SortKey = keyof Pick<Product, "Type" | "Price" | "Available">;
@@ -35,6 +36,7 @@ const ProductsTable = ({
   setIsModalOpen,
   setCurrentAction,
   editModalSaveHandler,
+  refetchProducts,
 }: Props) => {
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
 
@@ -50,6 +52,8 @@ const ProductsTable = ({
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
+  const [isQrCodeModalOpen, setIsQrCodeModalOpen] = useState(false);
+  const [qrCodeProduct, setQrCodeProduct] = useState<Product | null>(null);
 
   // Sorting function
   const sortedProducts = useMemo(() => {
@@ -150,6 +154,11 @@ const ProductsTable = ({
     } catch (error) {
       console.error("An error happend while Updating a product", error);
     }
+  };
+
+  const qrCodeModalHandler = (product: Product) => {
+    setIsQrCodeModalOpen(true);
+    setQrCodeProduct(product);
   };
 
   if (notFound) {
@@ -288,6 +297,13 @@ const ProductsTable = ({
                     <td className="px-6 py-4">
                       <div className="flex gap-2 justify-center">
                         <button
+                          onClick={() => qrCodeModalHandler(product)}
+                          className="bg-indigo-600 p-2 rounded-lg"
+                        >
+                          <IoQrCode size={20} />
+                        </button>
+
+                        <button
                           onClick={() => handleEditProduct(product)}
                           className="px-2 py-1 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-all"
                         >
@@ -307,6 +323,7 @@ const ProductsTable = ({
                         >
                           حذف
                         </button>
+
                         <Link
                           href={`/products/${product.link}`}
                           target="_blank"
@@ -353,6 +370,13 @@ const ProductsTable = ({
         onClose={() => setIsEditModalOpen(false)}
         onSave={editModalSubmitHandler}
       />
+      {isQrCodeModalOpen && (
+        <QrCodeModal
+          onClose={setIsQrCodeModalOpen}
+          product={qrCodeProduct}
+          refetchProducts={refetchProducts}
+        />
+      )}
     </>
   );
 };

@@ -281,6 +281,7 @@ const AdminProductsPage = () => {
           setCurrentAction={setCurrentAction}
           setIsModalOpen={setIsModalOpen}
           editModalSaveHandler={editModalSaveHandler}
+          refetchProducts={refetchProducts}
         />
 
         {/* Modal */}
