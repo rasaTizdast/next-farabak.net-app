@@ -301,7 +301,9 @@ const ProductsTable = ({
                           className={`${
                             product.QrCode_Key ? "bg-violet-800" : "bg-sky-600"
                           } ${
-                            product.QrCode_Key ? "hover:bg-violet-900" : "hover:bg-sky-700"
+                            product.QrCode_Key
+                              ? "hover:bg-violet-900"
+                              : "hover:bg-sky-700"
                           } p-2 rounded-lg transition-all`}
                         >
                           <IoQrCode size={20} />
