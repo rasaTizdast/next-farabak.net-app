@@ -19,7 +19,11 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
     name: "",
     slug: "",
     smallDesc: "",
+    SEO_Title: "",
+    SEO_Description: "",
+    keywords: "",
     price: "",
+    discount: "",
   });
 
   useEffect(() => {
@@ -51,13 +55,17 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
     return "";
   };
 
-  const handleValidation = (field: string, value: string) => {
-    let error = "";
-    if (field === "name") error = validateName(value);
-    if (field === "slug") error = validateSlug(value);
-    if (field === "smallDesc") error = validateSmallDesc(value);
-
-    setLocalErrors((prev) => ({ ...prev, [field]: error }));
+  const validateSeoTitle = (value: string) => {
+    if (!value.trim()) return "تیتر سئو نمی‌تواند خالی باشد.";
+    if (value.length > 50)
+      return "تیتر سئو نمی‌تواند بیشتر از ۵۰ کاراکتر باشد.";
+    return "";
+  };
+  const validateSeoDesc = (value: string) => {
+    if (!value.trim()) return "توضیحات سئو نمی‌تواند خالی باشد.";
+    if (value.length > 4000)
+      return "توضیحات سئو نمی‌تواند بیشتر از ۴۰۰۰ کاراکتر باشد.";
+    return "";
   };
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,6 +88,47 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
     } else {
       setLocalErrors((prev) => ({ ...prev, price: "" }));
     }
+  };
+
+  const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9]/g, "");
+    const numericValue = Number(value);
+
+    if (!isNaN(numericValue)) {
+      dispatch({
+        type: "SET_FIELD",
+        field: "discount",
+        value: numericValue,
+      });
+    }
+
+    if (!numericValue) {
+      setLocalErrors((prev) => ({
+        ...prev,
+        price: "تخفیف باید یک عدد معتبر باشد.",
+      }));
+    } else {
+      setLocalErrors((prev) => ({ ...prev, discount: "" }));
+    }
+  };
+
+  const handleValidation = (field: string, value: string) => {
+    let error = "";
+    if (field === "name") error = validateName(value);
+    if (field === "slug") error = validateSlug(value);
+    if (field === "smallDesc") error = validateSmallDesc(value);
+    if (field === "SEO_Title") error = validateSeoTitle(value);
+    if (field === "SEO_Description") error = validateSeoDesc(value);
+    if (field === "keywords") error = validateKeywords(value); // Added for keywords
+
+    setLocalErrors((prev) => ({ ...prev, [field]: error }));
+  };
+
+  const validateKeywords = (value: string) => {
+    if (!value.trim()) return "کلمات کلیدی نمی‌تواند خالی باشد.";
+    if (value.length > 500)
+      return "کلمات کلیدی نمی‌تواند بیشتر از ۵۰۰ کاراکتر باشد.";
+    return "";
   };
 
   return (
@@ -116,7 +165,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
           type="text"
           value={state.slug}
           onChange={(e) => {
-            const value = e.target.value;
+            const value = e.target.value.replace(/\s+/g, "-");
             dispatch({ type: "SET_FIELD", field: "slug", value });
             handleValidation("slug", value);
           }}
@@ -136,13 +185,20 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         <select
           id="category"
           value={state.categoryID || ""}
-          onChange={(e) =>
+          onChange={(e) => {
+            const newCategoryID = Number(e.target.value);
             dispatch({
               type: "SET_FIELD",
               field: "categoryID",
-              value: Number(e.target.value),
-            })
-          }
+              value: newCategoryID,
+            });
+            // Clear subcategories when category changes
+            dispatch({
+              type: "SET_FIELD",
+              field: "subCategoryID",
+              value: "",
+            });
+          }}
           className="w-full p-2 rounded bg-gray-700 text-white"
         >
           <option value="">انتخاب دسته بندی</option>
@@ -156,36 +212,80 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
 
       {/* SubCategory */}
       <div className="mb-4">
-        <label htmlFor="subCategory" className="block mb-2">
+        <label htmlFor="subCategory" className="mb-2 flex gap-3 items-center">
           زیر دسته بندی
+          <div className="relative group">
+            <span className="text-gray-500 hover:text-blue-500 cursor-pointer">
+              ℹ️
+            </span>
+            <div className="absolute top-full right-0 w-64 mt-1 text-justify hidden group-hover:block bg-gray-700 text-white text-sm p-3 rounded shadow-2xl z-40">
+              شما می‌توانید چندین زیر دسته‌بندی را انتخاب کنید. اولین زیر
+              دسته‌بندی که انتخاب می‌شود به عنوان زیر دسته‌بندی اصلی محصول نشان
+              داده می‌شود.
+            </div>
+          </div>
         </label>
-        <select
-          id="subCategory"
-          value={state.subCategoryID || ""}
-          onChange={(e) =>
-            dispatch({
-              type: "SET_FIELD",
-              field: "subCategoryID",
-              value: Number(e.target.value),
-            })
-          }
-          className="w-full p-2 rounded bg-gray-700 text-white"
-          disabled={!state.categoryID}
-        >
-          <option value="">انتخاب زیر دسته بندی</option>
-          {categories
-            .find((category) => category.CategoryID === state.categoryID)
-            ?.Subcategories.map(
-              (subCategory: { CategoryContentId: number; Name: string }) => (
-                <option
-                  key={subCategory.CategoryContentId}
-                  value={subCategory.CategoryContentId}
-                >
-                  {subCategory.Name}
-                </option>
-              )
-            )}
-        </select>
+        {state.categoryID ? (
+          <div className="p-2 rounded bg-gray-700 text-white">
+            {/* Use CSS Grid for layout */}
+            <div
+              className="grid gap-2"
+              style={{
+                gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+              }}
+            >
+              {categories
+                .find((category) => category.CategoryID === state.categoryID)
+                ?.Subcategories.map((subCategory) => {
+                  const selectedIds = state.subCategoryID
+                    ? state.subCategoryID.split(",").map(Number)
+                    : [];
+                  const isSelected = selectedIds.includes(
+                    subCategory.CategoryContentId
+                  );
+                  const isFirstSelected =
+                    isSelected &&
+                    selectedIds[0] === subCategory.CategoryContentId;
+
+                  return (
+                    <SubCategoryButton
+                      key={subCategory.CategoryContentId}
+                      subCategory={subCategory}
+                      isSelected={isSelected}
+                      isFirstSelected={isFirstSelected}
+                      onClick={() => {
+                        let updatedIds: number[];
+                        if (isSelected) {
+                          updatedIds = selectedIds.filter(
+                            (id: number) => id !== subCategory.CategoryContentId
+                          );
+                        } else {
+                          updatedIds = [
+                            ...selectedIds,
+                            subCategory.CategoryContentId,
+                          ];
+                        }
+
+                        dispatch({
+                          type: "SET_FIELD",
+                          field: "subCategoryID",
+                          value: updatedIds.join(","),
+                        });
+                      }}
+                    />
+                  );
+                })}
+            </div>
+          </div>
+        ) : (
+          <select
+            id="subCategory"
+            disabled
+            className="w-full p-2 rounded bg-gray-700 text-white"
+          >
+            <option value="">انتخاب زیر دسته بندی</option>
+          </select>
+        )}
       </div>
 
       {/* Price */}
@@ -202,6 +302,24 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
           placeholder="قیمت محصول را به ریال وارد کنید."
         />
         {localErrors.price && (
+          <p className="text-red-500 mt-1">{localErrors.price}</p>
+        )}
+      </div>
+
+      {/* Discount */}
+      <div className="mb-4">
+        <label htmlFor="discount" className="block mb-2">
+          تخفیف
+        </label>
+        <input
+          id="discount"
+          type="text"
+          value={state.discount ? addCommas(state.discount) : ""}
+          onChange={handleDiscountChange}
+          className="w-full p-2 rounded bg-gray-700 text-white"
+          placeholder="تخفیف محصول را به ریال وارد کنید."
+        />
+        {localErrors.discount && (
           <p className="text-red-500 mt-1">{localErrors.price}</p>
         )}
       </div>
@@ -228,6 +346,115 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         )}
       </div>
 
+      {/* SEO Title */}
+      <div className="mb-4">
+        <label htmlFor="smallDesc" className="block mb-2">
+          تیتر سئو
+        </label>
+        <input
+          id="SEO_Title"
+          type="text"
+          value={state.SEO_Title}
+          onChange={(e) => {
+            const value = e.target.value;
+            dispatch({ type: "SET_FIELD", field: "SEO_Title", value });
+            handleValidation("SEO_Title", value);
+          }}
+          className="w-full p-2 rounded bg-gray-700 text-white"
+          placeholder="توضیحات کوتاه برای محصول را وارد کنید"
+        />
+        {localErrors.smallDesc && (
+          <p className="text-red-500 mt-1">{localErrors.smallDesc}</p>
+        )}
+      </div>
+
+      {/* SEO Description */}
+      <div className="mb-4">
+        <label htmlFor="smallDesc" className="block mb-2">
+          توضیحات سئو
+        </label>
+        <input
+          id="SEO_Description"
+          type="text"
+          value={state.SEO_Description}
+          onChange={(e) => {
+            const value = e.target.value;
+            dispatch({ type: "SET_FIELD", field: "SEO_Description", value });
+            handleValidation("SEO_Description", value);
+          }}
+          className="w-full p-2 rounded bg-gray-700 text-white"
+          placeholder="توضیحات کوتاه برای محصول را وارد کنید"
+        />
+        {localErrors.smallDesc && (
+          <p className="text-red-500 mt-1">{localErrors.smallDesc}</p>
+        )}
+      </div>
+
+      {/* Keywords */}
+      <div className="mb-4">
+        <label htmlFor="keywords" className="block mb-2">
+          کلمات کلیدی
+        </label>
+        <input
+          id="keywords"
+          type="text"
+          onKeyDown={(e) => {
+            const input = e.target as HTMLInputElement; // Type assertion
+            if (e.key === "Enter" && input.value.trim()) {
+              e.preventDefault();
+
+              const newKeyword = input.value.trim();
+              const updatedKeywords = state.keywords
+                ? `${state.keywords} ${newKeyword}`
+                : newKeyword;
+
+              dispatch({
+                type: "SET_FIELD",
+                field: "keywords",
+                value: updatedKeywords,
+              });
+              handleValidation("keywords", updatedKeywords);
+
+              input.value = ""; // Clear input field
+            }
+          }}
+          className="w-full p-2 rounded bg-gray-700 text-white"
+          placeholder="کلمات کلیدی را تایپ کنید و Enter را فشار دهید"
+        />
+
+        {/* Display Keywords Below the Input */}
+        <div className="mt-2 flex flex-wrap gap-2">
+          {state.keywords &&
+            state.keywords.split(" ").map((keyword: string, index: number) => (
+              <button
+                type="button"
+                key={index}
+                className="bg-green-700 px-4 py-1 rounded-lg flex items-center gap-2 hover:bg-red-700 hover:text-white animate-fade-in transition-all"
+                onClick={() => {
+                  const updatedKeywords = state.keywords
+                    .split(" ")
+                    .filter((_: string, i: number) => i !== index)
+                    .join(" ");
+
+                  dispatch({
+                    type: "SET_FIELD",
+                    field: "keywords",
+                    value: updatedKeywords,
+                  });
+                  handleValidation("keywords", updatedKeywords);
+                }}
+              >
+                {keyword}
+              </button>
+            ))}
+        </div>
+
+        {/* Validation Error */}
+        {localErrors.keywords && (
+          <p className="text-red-500 mt-1">{localErrors.keywords}</p>
+        )}
+      </div>
+
       {/* Banner and Transparent Image */}
       <div className="mb-4">
         <label htmlFor="bannerImage" className="block mb-2">
@@ -240,7 +467,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
             dispatch({
               type: "SET_FIELD",
               field: "bannerImage",
-              value: e.target.files?.[0]?.name || "",
+              value: e.target.files?.[0] || null,
             })
           }
           className="w-full p-2 rounded bg-gray-700 text-white"
@@ -258,7 +485,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
             dispatch({
               type: "SET_FIELD",
               field: "transparentImage",
-              value: e.target.files?.[0]?.name || "",
+              value: e.target.files?.[0] || null,
             })
           }
           className="w-full p-2 rounded bg-gray-700 text-white"
@@ -269,3 +496,34 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
 };
 
 export default BaseDetails;
+
+// SubCategoryButton.tsx
+interface SubCategoryButtonProps {
+  subCategory: { CategoryContentId: number; Name: string };
+  isSelected: boolean;
+  isFirstSelected: boolean;
+  onClick: () => void;
+}
+
+const SubCategoryButton: React.FC<SubCategoryButtonProps> = ({
+  subCategory,
+  isSelected,
+  isFirstSelected,
+  onClick,
+}) => {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-3 py-1 rounded border text-center ${
+        isSelected
+          ? isFirstSelected
+            ? "bg-green-600 text-white border-green-600" // Special style for the first selected
+            : "bg-blue-600 text-white border-blue-600" // Style for other selected
+          : "bg-gray-600 text-gray-200 border-gray-500 hover:bg-gray-500"
+      }`}
+    >
+      {subCategory.Name}
+    </button>
+  );
+};

@@ -45,7 +45,7 @@ const ProductsShowCase = () => {
         ))}
       </div>
       <Link
-        href="/products/category/home-edition"
+        href="/products/home-edition"
         className={styles.all_home_edition}
       >
         مشاهده تمامی محصولات رئولینک

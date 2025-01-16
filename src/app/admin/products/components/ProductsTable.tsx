@@ -146,10 +146,8 @@ const ProductsTable = ({
   const editModalSubmitHandler = (updatedProduct: Product) => {
     try {
       editModalSaveHandler(updatedProduct);
-      toast.success("محصول مورد نظر با موفقیت آپدیت شد!");
       setIsEditModalOpen(false);
     } catch (error) {
-      toast.error("آپدیت ثبت محصول مورد نظر با شکست مواجه شد، مجدد تلاش کنید");
       console.error("An error happend while Updating a product", error);
     }
   };
@@ -256,7 +254,26 @@ const ProductsTable = ({
                     </td>
 
                     <td className="px-6 py-4">{product.productSlug}</td>
-                    <td className="px-6 py-4">{formatPrice(+product.Price)}</td>
+                    <td className="px-6 py-4">
+                      {product.Price === null ||
+                      product.Price === undefined ||
+                      +product.Price === 0 ? (
+                        <span className="text-gray-400 italic">بدون قیمت</span>
+                      ) : product.Discount && +product.Discount > 0 ? (
+                        <div className="flex flex-col items-center">
+                          <span className="text-red-400 line-through">
+                            {formatPrice(+product.Price)}
+                          </span>
+                          <span className="text-green-400 font-semibold">
+                            {formatPrice(+product.Price - +product.Discount)}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-white">
+                          {formatPrice(+product.Price)}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-6 py-4">
                       <span
                         className={`px-3 py-1 text-xs rounded-lg ${
@@ -306,7 +323,7 @@ const ProductsTable = ({
         </table>
         {activeSubCategories && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
-            <div className="bg-white rounded-lg p-6 w-11/12 max-w-lg">
+            <div className="bg-gray-700 text-white rounded-lg p-6 w-11/12 max-w-lg">
               <h3 className="text-xl font-semibold mb-4">
                 زیر دسته‌بندی‌های محصول: {activeSubCategories.name}
               </h3>
@@ -314,7 +331,7 @@ const ProductsTable = ({
                 {activeSubCategories.subCategories.map((subCategory, idx) => (
                   <li
                     key={idx}
-                    className="text-gray-800 bg-gray-200 p-2 rounded-lg"
+                    className="text-white bg-gray-800 p-2 rounded-lg"
                   >
                     {subCategory}
                   </li>

@@ -14,6 +14,7 @@ import axios from "axios";
 import ClientInvoiceSection from "./components/ui/ClientInvoiceSection";
 import ProductTabs from "./components/ui/ProductTabs";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import { formatTitle } from "@/helpers/formatTitle";
 
 // Types
 interface ProductData {
@@ -21,6 +22,8 @@ interface ProductData {
   Name: string;
   Type: string;
   img2: string;
+  Price: string;
+  Discount: string;
   Description: string;
   categorySlug: string;
   subCategorySlug: string;
@@ -45,12 +48,16 @@ export async function generateMetadata({
   }
 
   return {
-    title: product.SEO_Title || product.Type,
+    title: formatTitle(product.SEO_Title || product.Type, 60),
     description: product.SEO_Description || product.Name,
     openGraph: {
       title: product.SEO_Title,
       description: product.SEO_Description,
       images: [`/productImages/${product.img2}`],
+    },
+    robots: {
+      index: false, // This sets the noindex directive
+      follow: true, // Allows crawling of links on the page if needed
     },
   };
 }
@@ -123,6 +130,8 @@ export default async function ProductPage({
           </div>
 
           <ClientInvoiceSection
+            productPrice={productData.Price}
+            productDiscount={productData.Discount}
             ProductId={productData.ProductId}
             ProductName={productData.Type}
           />
@@ -142,7 +151,7 @@ export default async function ProductPage({
           <ProductOverview productId={productData.ProductId} />
         </Suspense>
       </section>
-      <section id="specs" className={`${styles.section} mt-16`}>
+      <section id="specs" className={`${styles.section} mt-8`}>
         <Suspense
           fallback={
             <div className="w-full py-4 bg-gray-200 animate-pulse flex justify-center text-slate-800 rounded-lg mt-6 sm:mt-0 text-sm md:text-base font-semibold">
@@ -153,7 +162,7 @@ export default async function ProductPage({
           <ProductSpecs productId={productData.ProductId} />
         </Suspense>
       </section>
-      <section id="faq" className={`${styles.section} mt-16`}>
+      <section id="faq" className={`${styles.section} mt-8`}>
         <Suspense
           fallback={
             <div className="w-full py-4 bg-gray-200 animate-pulse flex justify-center text-slate-800 rounded-lg mt-6 sm:mt-0 text-sm md:text-base font-semibold">

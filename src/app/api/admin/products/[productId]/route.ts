@@ -128,7 +128,7 @@ export async function DELETE(
  *     summary: Update a product partially by ID
  *     description: Updates one or more fields of an existing product by providing only the fields that need changes.
  *     tags:
- *       - Admin Products
+ *       - Admin
  *     parameters:
  *       - in: path
  *         name: productId

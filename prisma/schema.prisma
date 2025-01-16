@@ -316,12 +316,11 @@ model FAQs {
 }
 
 model Master_ProductOverviewDetails {
-  id                       Int     @id @default(autoincrement())
-  ProductOverviewDetailsId Int     @unique(map: "UQ_ProductOverviewDetailsId")
-  Title                    String  @db.VarChar(2000)
-  Description              String  @db.VarChar(4000)
-  Img                      String  @db.VarChar(1000)
-  Name                     String? @db.VarChar(1000)
+  id                       Int    @id @default(autoincrement())
+  ProductOverviewDetailsId Int    @unique(map: "UQ_ProductOverviewDetailsId")
+  Title                    String @db.VarChar(2000)
+  Description              String @db.VarChar(4000)
+  Img                      String @db.VarChar(1000)
 
   // Added item
   Details_ProductOverviewDetails Details_ProductOverviewDetails[]

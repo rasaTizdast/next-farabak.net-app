@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { IoIosArrowBack } from "react-icons/io";
-import { Suspense } from "react";
 
 type BreadcrumbItem = string;
 
@@ -19,6 +18,9 @@ async function fetchBreadcrumbNames(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ paths }),
+      // Force server-side fetch in App Router
+      cache: "no-store", // Use "force-cache" or "no-store" based on your needs
+      next: { revalidate: 0 }, // Prevent caching for dynamic data
     }
   );
 
@@ -29,9 +31,7 @@ async function fetchBreadcrumbNames(
   return response.json();
 }
 
-const BreadcrumbContent: React.FC<{ breadcrumbs: BreadcrumbItem[] }> = async ({
-  breadcrumbs,
-}) => {
+const Breadcrumb: React.FC<BreadcrumbProps> = async ({ breadcrumbs }) => {
   const names = await fetchBreadcrumbNames(breadcrumbs);
 
   return (
@@ -54,20 +54,6 @@ const BreadcrumbContent: React.FC<{ breadcrumbs: BreadcrumbItem[] }> = async ({
         ))}
       </div>
     </nav>
-  );
-};
-
-const Breadcrumb: React.FC<BreadcrumbProps> = ({ breadcrumbs }) => {
-  return (
-    <Suspense
-      fallback={
-        <nav className="w-full flex items-center text-sm mb-5 p-4 bg-gradient-to-l from-[#003262] via-[#0e6aff] to-[#1e90ff] text-white rounded-lg shadow-lg animate-pulse">
-          <div className="animate-pulse">در حال ساخت لینک‌ها</div>
-        </nav>
-      }
-    >
-      <BreadcrumbContent breadcrumbs={breadcrumbs} />
-    </Suspense>
   );
 };
 
