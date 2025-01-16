@@ -172,7 +172,7 @@ export async function POST(request: Request) {
     }
 
     const decoded = await verifyToken(token);
-    const userId = BigInt(decoded.userId as string); // Convert to BigInt
+    const userId = decoded.userId as number; // Convert to BigInt
 
     if (
       !Fullname ||
@@ -190,7 +190,7 @@ export async function POST(request: Request) {
     const FactorGuid = `FARABAK-${uuidv4()}`;
     const currentDate = moment().locale("fa").format("YYYY-MM-DDTHH:mm:ss");
 
-    // Create invoice and details transactionally
+    // Create invoice first
     const createdInvoice = await prisma.invoice.create({
       data: {
         FactorGuid,
@@ -199,19 +199,33 @@ export async function POST(request: Request) {
         TotalAmount,
         Date: currentDate,
         UserId: userId,
-        Invoice_Details: {
-          create: Products.map((product) => ({
-            ProductId: product.ProductId,
-            quantity: product.Quantity,
-            price: product.Price,
-            total_price: product.Quantity * product.Price,
-            UserId: userId,
-          })),
-        },
       },
     });
 
-    return NextResponse.json(createdInvoice, { status: 201 });
+    const invoiceId = createdInvoice.Invoiceid;
+
+    // Create invoice details for each product
+    const invoiceDetailsData = Products.map((product) => ({
+      Invoiceid: invoiceId,
+      ProductId: product.ProductId,
+      quantity: product.Quantity,
+      price: product.Price,
+      total_price: product.Quantity * product.Price,
+      UserId: userId,
+    }));
+
+    await prisma.invoice_Details.createMany({
+      data: invoiceDetailsData,
+    });
+
+    return NextResponse.json(
+      {
+        message: "Invoice successfully created",
+        invoice: createdInvoice,
+        details: invoiceDetailsData,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error creating invoice: ", error);
     return NextResponse.json(

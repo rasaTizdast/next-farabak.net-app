@@ -7,6 +7,7 @@ interface Product {
   ProductName: string;
   Quantity: number;
   Price?: number;
+  Discount?: number;
 }
 
 interface InvoiceState {
@@ -20,7 +21,9 @@ interface InvoiceContextType {
   addProductToInvoice: (
     ProductId: number,
     Quantity: number,
-    ProductName: string
+    ProductName: string,
+    Price?: number,
+    Discount?: number
   ) => void;
   removeProductFromInvoice: (ProductId: number) => void;
   updateProductQuantity: (ProductId: number, Quantity: number) => void;
@@ -50,7 +53,9 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({
   const addProductToInvoice = (
     ProductId: number,
     Quantity: number,
-    ProductName: string
+    ProductName: string,
+    Price?: number,
+    Discount?: number
   ) => {
     setInvoice((prev) => {
       const existingProduct = prev.products.find(
@@ -63,7 +68,10 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({
               ? { ...p, Quantity: p.Quantity + Quantity }
               : p
           )
-        : [...prev.products, { ProductId, Quantity, ProductName, Price: 2000 }];
+        : [
+            ...prev.products,
+            { ProductId, Quantity, ProductName, Price, Discount },
+          ];
 
       return {
         ...prev,

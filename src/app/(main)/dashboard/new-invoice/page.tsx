@@ -36,6 +36,8 @@ const NewInvoicePage = () => {
     }
   };
 
+  console.log(invoice);
+
   return (
     <>
       <Toaster position="bottom-center" reverseOrder={false} />
@@ -46,14 +48,18 @@ const NewInvoicePage = () => {
           <thead>
             <tr>
               <th>نام محصول</th>
+              <th>قیمت واحد</th>
               <th>تعداد</th>
+              <th>مجموع قیمت</th>
+              <th>تخفیف</th>
+              <th>قیمت نهایی</th>
               <th>عملیات‌ها</th>
             </tr>
           </thead>
           <tbody>
             {invoice.products.length === 0 ? (
               <tr>
-                <td colSpan={3} style={{ textAlign: "center" }}>
+                <td colSpan={7} style={{ textAlign: "center" }}>
                   فعلا محصولی داخل فاکتور شما نیست!
                 </td>
               </tr>
@@ -61,6 +67,7 @@ const NewInvoicePage = () => {
               invoice.products.map((product) => (
                 <tr key={product.ProductId}>
                   <td>{product.ProductName}</td>
+                  <td>{product.Price}</td>
                   <td>
                     <input
                       type="number"
@@ -72,6 +79,9 @@ const NewInvoicePage = () => {
                       className={styles.quantityInput}
                     />
                   </td>
+                  <td>{product.Price * product.Quantity}</td>
+                  <td>{product.Discount * product.Quantity}</td>
+                  <td>{product.Price * product.Quantity - product.Discount * product.Quantity}</td>
                   <td>
                     <button
                       className={styles.clearButton}
