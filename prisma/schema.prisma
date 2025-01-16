@@ -13,8 +13,6 @@ datasource db {
 // Updated Password model
 // Updated Master_ProductOverviewDetails
 // Updated Details_ProductOverviewDetails
-// Updated Invoice
-// Updated Invoice_Details
 
 model BlogCategories {
   id          Int        @id(map: "PK__BlogCate__3213E83F00BCAE91") @default(autoincrement())
@@ -147,33 +145,30 @@ model FaqDetails {
 }
 
 model Invoice {
-  Invoiceid   BigInt   @id(map: "PK__Invoice__D7C667ED9E33565E") @default(autoincrement())
-  FactorGuid  String?  @db.VarChar(1000)
-  Fullname    String?  @db.VarChar(200)
-  Phonenumber String?  @db.VarChar(11)
-  UserId      BigInt?
-  TotalAmount Float?
-  Checked     Boolean?
-  Date        String?  @db.VarChar(50)
-
-  // Added this
+  Invoiceid       Int               @id(map: "PK__Invoice__D7C667ED9E33565E") @default(autoincrement())
+  FactorGuid      String?           @db.VarChar(1000)
+  Fullname        String?           @db.VarChar(200)
+  Phonenumber     String?           @db.VarChar(11)
+  UserId          Int?
+  TotalAmount     Float?
+  Checked         Boolean?
+  Date            String?           @db.VarChar(50)
   Invoice_Details Invoice_Details[]
 
   @@schema("Info")
 }
 
 model Invoice_Details {
-  Invoice_Details  BigInt  @id(map: "PK__Invoice___4A16C8C534ABC2CC") @default(autoincrement())
-  Invoiceid        BigInt?
-  UserId           BigInt?
-  ProductId        Int?
-  quantity         Float?
-  price            Float?
-  total_price      Float?
-  invoiceInvoiceid BigInt?
+  Invoice_Details Int  @id(map: "PK__Invoice___4A16C8C534ABC2CC") @default(autoincrement())
+  Invoiceid       Int?
+  UserId          Int?
+  ProductId       Int?
+  quantity        Float?
+  price           Float?
+  total_price     Float?
 
   // Added this
-  Invoice Invoice? @relation(fields: [invoiceInvoiceid], references: [Invoiceid])
+  Invoice Invoice? @relation(fields: [Invoiceid], references: [Invoiceid])
 
   @@schema("Info")
 }

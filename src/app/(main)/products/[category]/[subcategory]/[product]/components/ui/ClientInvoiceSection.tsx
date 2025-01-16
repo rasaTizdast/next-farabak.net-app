@@ -10,7 +10,7 @@ interface Props {
   ProductId: number;
   ProductName: string;
   productPrice: string | null; // Allow null for unavailable products
-  productDiscount: string | null; // Allow null for unavailable products
+  productDiscount: string; // Allow null for unavailable products
 }
 
 const ClientInvoiceSection = ({
@@ -26,22 +26,8 @@ const ClientInvoiceSection = ({
   // Get the current quantity of the product in the invoice
   const currentQuantity = getProductQuantity(ProductId);
 
-  // Handlers for adding and removing products
-  const handleAddProduct = () => addProductToInvoice(ProductId, 1, ProductName);
-  const handleRemoveProduct = () => {
-    if (currentQuantity === 1) {
-      removeProductFromInvoice(ProductId);
-    } else {
-      addProductToInvoice(ProductId, -1, ProductName);
-    }
-  };
-
-  // Convert English digits to Persian digits
-  const e2p = (s: string): string =>
-    s.replace(/\d/g, (d: string) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d)]);
-
   // Handle unavailable product
-  if (!productPrice) {
+  if (!productPrice || +productPrice === 0) {
     return (
       <div className="w-full flex flex-col items-center justify-center bg-blue-100 p-3 rounded-lg text-center gap-5 my-6">
         <p className="text-lg text-blue-950 font-bold">
@@ -57,6 +43,33 @@ const ClientInvoiceSection = ({
       </div>
     );
   }
+
+  // Handlers for adding and removing products
+  const handleAddProduct = () =>
+    addProductToInvoice(
+      ProductId,
+      1,
+      ProductName,
+      +productPrice,
+      +productDiscount
+    );
+  const handleRemoveProduct = () => {
+    if (currentQuantity === 1) {
+      removeProductFromInvoice(ProductId);
+    } else {
+      addProductToInvoice(
+        ProductId,
+        -1,
+        ProductName,
+        +productPrice,
+        +productDiscount
+      );
+    }
+  };
+
+  // Convert English digits to Persian digits
+  const e2p = (s: string): string =>
+    s.replace(/\d/g, (d: string) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d)]);
 
   // Convert price and discount to numbers for calculations
   const price = parseFloat(productPrice.replace(/,/g, ""));
