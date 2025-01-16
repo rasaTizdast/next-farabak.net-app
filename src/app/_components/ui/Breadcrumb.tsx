@@ -19,7 +19,6 @@ async function fetchBreadcrumbNames(
       },
       body: JSON.stringify({ paths }),
       // Force server-side fetch in App Router
-      cache: "no-store", // Use "force-cache" or "no-store" based on your needs
       next: { revalidate: 0 }, // Prevent caching for dynamic data
     }
   );
