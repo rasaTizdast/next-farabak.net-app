@@ -298,7 +298,11 @@ const ProductsTable = ({
                       <div className="flex gap-2 justify-center">
                         <button
                           onClick={() => qrCodeModalHandler(product)}
-                          className="bg-indigo-600 p-2 rounded-lg"
+                          className={`${
+                            product.QrCode_Key ? "bg-violet-800" : "bg-sky-600"
+                          } ${
+                            product.QrCode_Key ? "hover:bg-violet-900" : "hover:bg-sky-700"
+                          } p-2 rounded-lg transition-all`}
                         >
                           <IoQrCode size={20} />
                         </button>
