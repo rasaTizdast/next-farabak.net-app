@@ -13,6 +13,15 @@ import { useUser } from "@/context/UserContext";
 import styles from "./AllInvoices.module.css";
 import toast, { Toaster } from "react-hot-toast";
 
+type Product = {
+  Invoiceid: string;
+  price: number;
+  discount: number;
+  ProductId: number;
+  quantity: number;
+  total_price: number;
+};
+
 // Types
 type Invoice = {
   Fullname: string;
@@ -23,13 +32,7 @@ type Invoice = {
   TotalAmount: number;
   Date: string;
   Invoiceid: number;
-  Products: {
-    Invoiceid: string;
-    Price: number;
-    ProductId: number;
-    Quantity: number;
-    Total_Price: number;
-  }[];
+  Invoice_Details: Product[];
 };
 
 interface EmailDetails {
