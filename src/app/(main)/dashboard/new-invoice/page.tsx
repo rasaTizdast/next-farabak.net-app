@@ -48,11 +48,11 @@ const NewInvoicePage = () => {
           <thead>
             <tr>
               <th>نام محصول</th>
-              <th>قیمت واحد</th>
+              <th>قیمت واحد - ریال</th>
               <th>تعداد</th>
-              <th>مجموع قیمت</th>
-              <th>تخفیف</th>
-              <th>قیمت نهایی</th>
+              <th>مجموع قیمت - ریال</th>
+              <th>تخفیف - ریال</th>
+              <th>قیمت نهایی - ریال</th>
               <th>عملیات‌ها</th>
             </tr>
           </thead>
@@ -64,36 +64,46 @@ const NewInvoicePage = () => {
                 </td>
               </tr>
             ) : (
-              invoice.products.map((product) => (
-                <tr key={product.ProductId}>
-                  <td>{product.ProductName}</td>
-                  <td>{product.Price}</td>
-                  <td>
-                    <input
-                      type="number"
-                      min="0"
-                      value={product.Quantity}
-                      onChange={(e) =>
-                        handleQuantityChange(product.ProductId, e.target.value)
-                      }
-                      className={styles.quantityInput}
-                    />
-                  </td>
-                  <td>{product.Price * product.Quantity}</td>
-                  <td>{product.Discount * product.Quantity}</td>
-                  <td>{product.Price * product.Quantity - product.Discount * product.Quantity}</td>
-                  <td>
-                    <button
-                      className={styles.clearButton}
-                      onClick={() =>
-                        removeProductFromInvoice(product.ProductId)
-                      }
-                    >
-                      حذف محصول
-                    </button>
-                  </td>
-                </tr>
-              ))
+              invoice.products.map((product) => {
+                // Safeguard for undefined properties
+                const price = product.Price ?? 0;
+                const discount = product.Discount ?? 0;
+                const quantity = product.Quantity ?? 0;
+
+                return (
+                  <tr key={product.ProductId}>
+                    <td>{product.ProductName}</td>
+                    <td>{price}</td>
+                    <td>
+                      <input
+                        type="number"
+                        min="0"
+                        value={quantity}
+                        onChange={(e) =>
+                          handleQuantityChange(
+                            product.ProductId,
+                            e.target.value
+                          )
+                        }
+                        className={styles.quantityInput}
+                      />
+                    </td>
+                    <td>{price * quantity}</td>
+                    <td>{discount * quantity}</td>
+                    <td>{price * quantity - discount * quantity}</td>
+                    <td>
+                      <button
+                        className={styles.clearButton}
+                        onClick={() =>
+                          removeProductFromInvoice(product.ProductId)
+                        }
+                      >
+                        حذف محصول
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
