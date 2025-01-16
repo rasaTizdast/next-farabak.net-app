@@ -99,10 +99,16 @@ type Section =
 
 const validateField = (field: keyof State, value: any): string => {
   switch (field) {
-    case "name":
-      return value ? "" : "نام الزامی است";
-    case "slug":
-      return value ? "" : "شناسه محصول الزامی است";
+    case "name": {
+      if (!value) return "نام الزامی است";
+      if (value.length > 100)
+        return "نام محصول نمیتواند بیشتر از ۱۰۰ کارکتر باشد.";
+    }
+    case "slug": {
+      if (!value) return "شناسه محصول الزامی است";
+      if (value.length > 200)
+        return "شناسه محصول نمیتواند بیشتر از ۲۰۰ کارکتر باشد.";
+    }
     case "categoryID":
       return value !== null ? "" : "دسته‌بندی الزامی است";
     case "subCategoryID":
@@ -115,12 +121,20 @@ const validateField = (field: keyof State, value: any): string => {
       return value ? "" : "تصویر شفاف الزامی است";
     case "features":
       return value.length > 0 ? "" : "حداقل یک ویژگی الزامی است";
-    case "SEO_Title":
-      return value.length > 0 ? "" : "تیتر سئو الزامی است";
-    case "SEO_Description":
-      return value.length > 0 ? "" : "توضیحات سئو الزامی است";
-    case "keywords":
-      return value.length > 0 ? "" : "کلمات کلیدی الزامی است";
+    case "SEO_Title": {
+      if (!value || value.length < 0) return "تیتر سئو الزامی است";
+      if (value.length > 60) return "تیتر سئو نباید بیشتر از ۶۰ کارکتر باشد.";
+    }
+    case "SEO_Description": {
+      if (!value || value.length < 0) return "توضیحات سئو الزامی است";
+      if (value.length > 4000)
+        return "توضیحات سئو نباید بیشتر از ۴۰۰۰ کارکتر باشد.";
+    }
+    case "keywords": {
+      if (!value || value.length < 0) return "کلمات کلیدی الزامی است";
+      if (value.length > 1000)
+        return "کلمات کلیدی نمی‌توانند بیشتر از ۱۰۰۰ کارکتر باشند.";
+    }
     default:
       return ""; // No validation needed
   }
@@ -197,8 +211,6 @@ const NewProductModal = ({
     if (Object.keys(newErrors).length > 0) {
       toast.error("لطفاً تمام خطاها را برطرف کنید.");
       return;
-    } else {
-      setModalVisible(true);
     }
 
     // Prepare the form data
@@ -211,7 +223,13 @@ const NewProductModal = ({
       overviewDetails: selectedDetailsIds,
     };
 
+    if (formData.price < formData.discount) {
+      toast.error("تخفیف نمیتواند بیشتر از قیمت باشد.");
+      return;
+    }
+
     try {
+      setModalVisible(true);
       await createProduct(formData, setProgress, setCurrentStep);
       setTimeout(() => {
         setModalVisible(false);
