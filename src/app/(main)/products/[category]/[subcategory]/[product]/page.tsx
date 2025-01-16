@@ -18,6 +18,7 @@ import { formatTitle } from "@/helpers/formatTitle";
 
 // Types
 interface ProductData {
+  Available: boolean;
   ProductId: number;
   Name: string;
   Type: string;
@@ -30,17 +31,36 @@ interface ProductData {
   productSlug: string;
   SEO_Title: string;
   SEO_Description: string;
+  QrCode_key: string;
+  QrCode_expiryDays: string;
 }
 
 // Metadata generation
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: { category: string; product: string };
+  searchParams: { key: string };
 }): Promise<Metadata> {
   const product = await getProduct(params.product);
 
   if (!product) {
+    return {
+      title: "محصولی یافت نشد | فرابک",
+      description: "محصول مورد نظر یافت نشد.",
+    };
+  }
+
+  if (product?.QrCode_key !== searchParams.key) {
+    return {
+      title: "محصولی یافت نشد | فرابک",
+      description: "محصول مورد نظر یافت نشد.",
+    };
+  }
+
+  const expiryDate = new Date(product?.QrCode_expiryDays);
+  if (new Date() > expiryDate) {
     return {
       title: "محصولی یافت نشد | فرابک",
       description: "محصول مورد نظر یافت نشد.",
@@ -72,11 +92,6 @@ async function getProduct(slug: string): Promise<ProductData | null> {
 
     const product = res.data;
 
-    // Check if the product is available
-    if (!product.Available) {
-      return null; // Treat unavailable products as non-existent
-    }
-
     return product;
   } catch (error) {
     console.error("Error fetching product:", error);
@@ -86,13 +101,24 @@ async function getProduct(slug: string): Promise<ProductData | null> {
 
 export default async function ProductPage({
   params,
+  searchParams,
 }: {
   params: { category: string; product: string };
+  searchParams: { key: string };
 }) {
   const productData = await getProduct(params.product);
 
   if (!productData) {
     notFound(); // Redirect to the 404 page if the product doesn't exist or is unavailable
+  }
+
+  if (productData?.QrCode_key !== searchParams.key) {
+    notFound();
+  }
+
+  const expiryDate = new Date(productData?.QrCode_expiryDays);
+  if (new Date() > expiryDate) {
+    notFound();
   }
 
   const breadCrumbs = [

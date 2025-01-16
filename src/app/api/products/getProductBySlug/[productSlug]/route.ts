@@ -52,6 +52,10 @@ import { prisma } from "@/lib/prisma";
  *                   type: string
  *                 subCategorySlug:
  *                   type: string
+ *                 QrCode_Keys:
+ *                   type: string
+ *                 QrCode_expiryDays:
+ *                   type: string
  *       404:
  *         description: Product not found
  *       500:
@@ -119,6 +123,8 @@ export async function GET(
       subCategorySlug: subCategorySlug || null,
       SEO_Title: product.SEO_Title,
       SEO_Description: product.SEO_Description,
+      QrCode_key: product.QrCode_Key,
+      QrCode_expiryDays: product.QrCode_expiryDays,
     };
 
     return NextResponse.json(responseData);
