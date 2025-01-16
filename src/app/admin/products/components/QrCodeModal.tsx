@@ -100,12 +100,11 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
         }),
       });
 
-      const result = await response.json();
       if (!response.ok) {
         toast.error("خطایی در ذخیره اطلاعات کد QR رخ داده است.");
         return;
       }
-
+      toast.success("کد Qr یکتا با موفقیت ساخته شد.");
       onClose(false);
       refetchProducts();
     } catch (error) {
@@ -253,13 +252,22 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
 
       {showConfirmModal && (
         <div className="fixed inset-0 z-60 flex items-center justify-center backdrop-blur-sm">
-          <div className="bg-gray-700 text-gray-200 rounded-xl shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-bold text-center mb-4">
+          <div className="bg-gray-700 text-gray-200 rounded-xl shadow-lg p-6 w-full max-w-md md:max-w-lg">
+            <h2 className="text-lg 2xl:text-2xl 2xl:mb-7 font-bold text-center mb-4">
               هشدار: ایجاد لینک یکتا
             </h2>
-            <p className="mb-6 text-center">
-              اگر این کد QR را تولید کنید، صفحه محصول فقط از طریق این لینک قابل
-              دسترسی خواهد بود. آیا مطمئن هستید؟
+            <p className="mb-6 2xl:text-lg text-center">
+              اگر این کد QR را تولید کنید، صفحه این محصول فقط از طریق این لینک
+              قابل دسترسی خواهد بود و اگر محدودیت زمانی به غیر از (هیچ‌وقت)
+              انتخاب کنید، بعد از پایان زمان اعتبار، محصول به حالت قبلی خود
+              برمی‌گردد{" "}
+              {
+                <span className="text-blue-400">
+                  (محصولی که ناموجود باشد با داشتن کد Qr می‌تواند برای بیننده
+                  قابل دیدن باشد)
+                </span>
+              }
+              . آیا مطمئن هستید؟
             </p>
             <div className="flex justify-center gap-4">
               <button
