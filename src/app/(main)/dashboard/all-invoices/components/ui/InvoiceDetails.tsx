@@ -8,10 +8,11 @@ import Image from "next/image";
 
 type Product = {
   Invoiceid: string;
-  Price: number;
+  price: number;
+  discount: number;
   ProductId: number;
-  Quantity: number;
-  Total_Price: number;
+  quantity: number;
+  total_price: number;
 };
 
 type Props = {
@@ -25,7 +26,7 @@ type Props = {
     TotalAmount: number;
     Date: string;
     Invoiceid: number;
-    Products: Product[];
+    Invoice_Details: Product[];
   };
 };
 
@@ -35,6 +36,8 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
     {}
   );
   const [loading, setLoading] = useState(true);
+
+  console.log(invoice.Invoice_Details);
 
   // Helper function to format the date and time
   const formatDateTime = (isoString: string) => {
@@ -55,7 +58,7 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
   useEffect(() => {
     const fetchProductNames = async () => {
       try {
-        const productNameRequests = invoice.Products.map((product) =>
+        const productNameRequests = invoice.Invoice_Details.map((product) =>
           axios
             .get(`/api/products/getProductType/${product.ProductId}`)
             .then((res) => ({
@@ -79,7 +82,7 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
     };
 
     fetchProductNames();
-  }, [invoice.Products]);
+  }, [invoice.Invoice_Details]);
 
   const handleDownload = () => {
     const input = componentRef.current;
@@ -168,18 +171,18 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
                   <th>محصول</th>
                   <th>قیمت واحد - تومان</th>
                   <th>تعداد</th>
-                  <th>جمع - تومان</th>
+                  <th>قیمت نهایی (با تخفیف) - تومان</th>
                 </tr>
               </thead>
               <tbody>
-                {invoice.Products.map((product) => (
+                {invoice.Invoice_Details.map((product) => (
                   <tr key={product.ProductId}>
                     <td>
                       {productNames[product.ProductId] || "در حال بارگذاری..."}
                     </td>
-                    <td>{product.Price}</td>
-                    <td>{product.Quantity}</td>
-                    <td>{product.Total_Price}</td>
+                    <td>{product.price}</td>
+                    <td>{product.quantity}</td>
+                    <td>{product.total_price}</td>
                   </tr>
                 ))}
               </tbody>
