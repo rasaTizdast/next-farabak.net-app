@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import activityData from "@/constants/activityData.json";
 import styles from "./ActivityPage.module.css";
 import { Metadata } from "next";

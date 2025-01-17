@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"; // To ensure this page isn't statically generated
+
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
