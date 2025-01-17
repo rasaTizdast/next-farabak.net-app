@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import Image from "next/image";
 import Link from "next/link";

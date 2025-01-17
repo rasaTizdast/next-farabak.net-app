@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import styles from "./DownloadCenterPage.module.css";
 import { Metadata } from "next";

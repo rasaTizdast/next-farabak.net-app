@@ -2,6 +2,7 @@
 
 import { Metadata } from "next";
 import styles from "./AuthLayout.module.css";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   robots: {
@@ -16,8 +17,13 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className={styles.parent}>
-      {children} {/* This renders SignUp or SignIn depending on the route */}
-    </div>
+    <>
+      {/* <Script
+        defer
+        src="https://cloud.umami.is/script.js"
+        data-website-id="b406fd7a-09ee-41dd-8d82-97c7184b61bf"
+      /> */}
+      <div className={styles.parent}>{children}</div>
+    </>
   );
 }

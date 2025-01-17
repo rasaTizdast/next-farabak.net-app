@@ -1,10 +1,9 @@
-"use client";
+// ProductsMegaMenu.tsx (Server + Client)
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./ProductsMegaMenu.module.css";
-import axios from "axios";
 
+// Category and Subcategory types
 export interface Subcategory {
   CategoryContentId: number;
   Name: string;
@@ -19,7 +18,6 @@ export interface Subcategory {
   };
 }
 
-// Category type
 export interface Category {
   CategoryID: number;
   Name: string;
@@ -34,114 +32,75 @@ export interface Category {
   };
 }
 
-const ProductsMegaMenu = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsloading] = useState(true);
-
-  const fetchCategories = async () => {
-    try {
-      setIsloading(true);
-      const res = await axios.get("/api/categories/getAll");
-      const availableCategories = res.data.filter((category: Category) => category.Available);
-      setCategories(availableCategories);
-      setIsloading(false);
-    } catch (err) {
-      console.error(err);
+// Fetch data on the server
+async function fetchCategories(): Promise<Category[]> {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/getAll`,
+    {
+      next: { revalidate: 0 },
     }
-  };
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const categoriesWithSubcategories = categories.filter(
-    (category: Category) => category.Subcategories.some(subCategory => subCategory.Available)
   );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch categories");
+  }
+
+  const categories: Category[] = await res.json();
+  return categories.filter((category) => category.Available);
+}
+
+const ProductsMegaMenu = async () => {
+  const categories = await fetchCategories();
+
+  // Separate categories into those with and without subcategories
+  const categoriesWithSubcategories = categories.filter((category) =>
+    category.Subcategories.some((subCategory) => subCategory.Available)
+  );
+
   const categoriesWithoutSubcategories = categories.filter(
-    (category: Category) => category.Subcategories.length === 0
+    (category) => category.Subcategories.length === 0
   );
-
-  const handleLinkClick = () => {
-    setIsMenuOpen(false);
-  };
 
   return (
-    <li
-      className={`${styles.nav_item} ${styles.megaMenuParent}`}
-      onMouseEnter={() => setIsMenuOpen(true)}
-      onMouseLeave={() => setIsMenuOpen(false)}
-    >
+    <li className={`${styles.nav_item} ${styles.megaMenuParent}`}>
       <Link href="/products">محصولات</Link>
 
-      {isMenuOpen && (
-        <div className={styles.megaMenu}>
-          {isLoading ? (
-            <div className="flex flex-wrap justify-evenly gap-4 w-full">
-              {/* Skeleton for categories */}
-              {Array.from({ length: 8 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="animate-pulse flex flex-col gap-3 w-72 p-4 bg-gray-100 rounded-md"
-                >
-                  <div className="h-5 bg-gray-300 rounded w-2/4"></div>
-                  <div className="space-y-2">
-                    {Array.from({ length: 4 }).map((__, subIndex) => (
-                      <div
-                        key={subIndex}
-                        className="h-4 bg-gray-300 rounded w-full"
-                      ></div>
-                    ))}
-                  </div>
-                </div>
+      <div className={styles.megaMenu}>
+        {/* Categories with subcategories */}
+        {categoriesWithSubcategories.map((category) => (
+          <div
+            key={category.CategoryID}
+            className={`${styles.categoryColumn} ${styles.hasSubcategories}`}
+          >
+            <h3 className={styles.categoryTitle}>
+              <Link href={category.Link}>{category.Name}</Link>
+            </h3>
+            <ul>
+              {category.Subcategories.filter(
+                (subCategory) => subCategory.Available
+              ).map((subCategory) => (
+                <li key={subCategory.CategoryContentId}>
+                  <Link href={subCategory.Link}>{subCategory.Name}</Link>
+                </li>
               ))}
-            </div>
-          ) : (
-            <>
-              {/* Categories with subcategories */}
-              {categoriesWithSubcategories.map((category: Category) => (
-                <div
-                  key={category.CategoryID}
-                  className={`${styles.categoryColumn} ${styles.hasSubcategories}`}
-                >
-                  <h3 className={styles.categoryTitle}>
-                    <Link href={category.Link} onClick={handleLinkClick}>
-                      {category.Name}
-                    </Link>
-                  </h3>
-                  <ul>
-                    {category.Subcategories.filter(subCategory => subCategory.Available).map((subCategory: Subcategory) => (
-                      <li key={subCategory.CategoryContentId}>
-                        <Link href={subCategory.Link} onClick={handleLinkClick}>
-                          {subCategory.Name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+            </ul>
+          </div>
+        ))}
 
-              {/* Categories without subcategories */}
-              {categoriesWithoutSubcategories.length > 0 && (
-                <div className={styles.categoryColumn}>
-                  <h3 className={styles.categoryTitle}>دیگر محصولات</h3>
-                  <ul>
-                    {categoriesWithoutSubcategories.map(
-                      (category: Category) => (
-                        <li key={category.CategoryID}>
-                          <Link href={category.Link} onClick={handleLinkClick}>
-                            {category.Name}
-                          </Link>
-                        </li>
-                      )
-                    )}
-                  </ul>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
+        {/* Categories without subcategories */}
+        {categoriesWithoutSubcategories.length > 0 && (
+          <div className={styles.categoryColumn}>
+            <h3 className={styles.categoryTitle}>دیگر محصولات</h3>
+            <ul>
+              {categoriesWithoutSubcategories.map((category) => (
+                <li key={category.CategoryID}>
+                  <Link href={category.Link}>{category.Name}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
     </li>
   );
 };

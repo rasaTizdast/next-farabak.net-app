@@ -159,7 +159,7 @@ model Invoice {
 }
 
 model Invoice_Details {
-  Invoice_Details Int  @id(map: "PK__Invoice___4A16C8C534ABC2CC") @default(autoincrement())
+  Invoice_Details Int    @id(map: "PK__Invoice___4A16C8C534ABC2CC") @default(autoincrement())
   Invoiceid       Int?
   UserId          Int?
   ProductId       Int?
@@ -338,6 +338,8 @@ model Product {
   Slug              String?  @db.VarChar(200)
   SEO_Title         String?  @db.VarChar(50)
   SEO_Description   String?  @db.VarChar(4000)
+  QrCode_Key        String?  @db.VarChar(100)
+  QrCode_expiryDays String?  @db.VarChar(50)
 
   // new added field
   Category Category? @relation(fields: [CategoryId], references: [CategoryID])

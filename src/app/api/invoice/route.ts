@@ -146,6 +146,7 @@ export async function POST(request: Request) {
     ProductId: number; // Match your schema
     Quantity: number;
     Price: number;
+    Discount: number;
   }
 
   try {
@@ -210,7 +211,8 @@ export async function POST(request: Request) {
       ProductId: product.ProductId,
       quantity: product.Quantity,
       price: product.Price,
-      total_price: product.Quantity * product.Price,
+      total_price:
+        product.Quantity * product.Price - product.Discount * product.Quantity,
       UserId: userId,
     }));
 

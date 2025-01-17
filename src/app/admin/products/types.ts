@@ -20,4 +20,6 @@ export type Product = {
     CategoryContentId: number;
     Name: string;
   }[];
+  QrCode_Key: string | null;
+  QrCode_expiryDays: string | null;
 };

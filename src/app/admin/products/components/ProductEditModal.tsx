@@ -50,9 +50,11 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   }, [product]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e:
+      | React.ChangeEvent<
+          HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+        >
+      | { target: { name: string; value: string } }
   ) => {
     const { name, value } = e.target;
     setFormState((prevState) =>
@@ -63,6 +65,12 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
           }
         : null
     );
+  };
+
+  const handleKeywordsChange = (name: string, value: string) => {
+    // Directly create an object mimicking the event's target structure
+    const customEvent = { target: { name, value } };
+    handleInputChange(customEvent); // Directly pass the custom object to handleInputChange
   };
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -157,6 +165,36 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
       (subcategory) => subcategory.CategoryContentId !== 0
     );
 
+    if (+formState.Price < +formState.Discount) {
+      toast.error("مقدار تخفیف نباید بیشتر از قیمت محصول باشد.");
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_-]+$/.test(formState.productSlug)) {
+      toast.error("شناسه محصول باید انگلیسی و بدون فاصله باشد.");
+      return;
+    }
+
+    if (formState.Name.length > 100) {
+      toast.error("نام مصحول نباید بیشتر از ۱۰۰ کارکتر باشد.");
+      return;
+    }
+
+    if (formState.Description.length > 100) {
+      toast.error("توضیح مصحول نباید بیشتر از ۱۰۰۰ کارکتر باشد.");
+      return;
+    }
+
+    if (formState.SEO_Title.length > 60) {
+      toast.error("تیتر سئو نباید بیشتر از ۶۰ کارکتر باشد.");
+      return;
+    }
+
+    if (formState.SEO_Description.length > 4000) {
+      toast.error("توضیحات سئو نباید بیشتر از ۴۰۰۰ کارکتر باشد.");
+      return;
+    }
+
     if (!isValidSubcategories) {
       toast.error("یک یا چند زیر دسته‌بندی معتبر انتخاب نشده است.");
       return;
@@ -200,7 +238,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
             onChange={handleInputChange}
           />
           <InputField
-            label="تعریف محصول"
+            label="توضیح محصول"
             name="Name"
             value={formState.Name}
             onChange={handleInputChange}
@@ -310,12 +348,63 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               ]}
             />
           </div>
-          <TextAreaField
+
+          {/* Keywords */}
+          <div className="mb-4 block w-full col-span-1 sm:col-span-2">
+            <label htmlFor="Description" className="block mb-2">
+              کلمات کلیدی
+            </label>
+            <input
+              id="Description"
+              type="text"
+              onKeyDown={(e) => {
+                const input = e.target as HTMLInputElement; // Type assertion
+                if (e.key === "Enter" && input.value.trim()) {
+                  e.preventDefault();
+
+                  const newKeyword = input.value.trim();
+                  const updatedKeywords = formState.Description
+                    ? `${formState.Description} ${newKeyword}`
+                    : newKeyword;
+
+                  handleKeywordsChange("Description", updatedKeywords);
+                  input.value = ""; // Clear input field
+                }
+              }}
+              className="w-full p-2 rounded bg-gray-700 text-white"
+              placeholder="کلمات کلیدی را تایپ کنید و Enter را فشار دهید"
+            />
+
+            {/* Display Keywords Below the Input */}
+            <div className="mt-2 flex flex-wrap gap-2">
+              {formState.Description &&
+                formState.Description.split(" ").map(
+                  (keyword: string, index: number) => (
+                    <button
+                      type="button"
+                      key={index}
+                      className="bg-green-700 px-4 py-1 rounded-lg flex items-center gap-2 hover:bg-red-700 hover:text-white animate-fade-in transition-all"
+                      onClick={() => {
+                        const updatedKeywords = formState.Description.split(" ")
+                          .filter((_: string, i: number) => i !== index)
+                          .join(" ");
+
+                        handleKeywordsChange("Description", updatedKeywords);
+                      }}
+                    >
+                      {keyword}
+                    </button>
+                  )
+                )}
+            </div>
+          </div>
+
+          {/* <TextAreaField
             label="توضیحات"
             name="Description"
             value={formState.Description}
             onChange={handleInputChange}
-          />
+          /> */}
           <div className="block col-span-1 sm:col-span-2">
             <InputField
               label="عنوان SEO"

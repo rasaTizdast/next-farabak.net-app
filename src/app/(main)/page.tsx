@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+export const dynamic = "force-dynamic";
 
 import ProductsShowCase from "../_components/LandingPage/ProductsShowCase";
 import ProjectsSection from "../_components/LandingPage/ProjectsSection";
