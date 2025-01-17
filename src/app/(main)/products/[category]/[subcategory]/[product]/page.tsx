@@ -45,6 +45,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const product = await getProduct(params.product);
 
+  // Check if the product data exists
   if (!product) {
     return {
       title: "محصولی یافت نشد | فرابک",
@@ -52,19 +53,34 @@ export async function generateMetadata({
     };
   }
 
-  if (product?.QrCode_key !== searchParams.key) {
+  // Check if the product is not available and does not have a QR code key
+  if (!product.Available && !product.QrCode_key) {
     return {
       title: "محصولی یافت نشد | فرابک",
       description: "محصول مورد نظر یافت نشد.",
     };
   }
 
-  const expiryDate = new Date(product?.QrCode_expiryDays);
-  if (new Date() > expiryDate) {
-    return {
-      title: "محصولی یافت نشد | فرابک",
-      description: "محصول مورد نظر یافت نشد.",
-    };
+  // Check QR code conditions
+  if (product.QrCode_key) {
+    const { key: urlKey } = searchParams;
+
+    // If there's no key in the URL or the key in the URL doesn't match the product's QR code key
+    if (!urlKey || urlKey !== product.QrCode_key) {
+      return {
+        title: "محصولی یافت نشد | فرابک",
+        description: "محصول مورد نظر یافت نشد.",
+      };
+    }
+
+    // Check if the QR code has expired
+    const expiryDate = new Date(product.QrCode_expiryDays);
+    if (new Date() > expiryDate) {
+      return {
+        title: "محصولی یافت نشد | فرابک",
+        description: "محصول مورد نظر یافت نشد.",
+      };
+    }
   }
 
   return {
@@ -108,17 +124,30 @@ export default async function ProductPage({
 }) {
   const productData = await getProduct(params.product);
 
+  // Check if the product data exists
   if (!productData) {
-    notFound(); // Redirect to the 404 page if the product doesn't exist or is unavailable
-  }
-
-  if (productData?.QrCode_key !== searchParams.key) {
     notFound();
   }
 
-  const expiryDate = new Date(productData?.QrCode_expiryDays);
-  if (new Date() > expiryDate) {
+  // Check if the product is not available and does not have a QR code key
+  if (!productData.Available && !productData.QrCode_key) {
     notFound();
+  }
+
+  // Check QR code conditions
+  if (productData.QrCode_key) {
+    const { key: urlKey } = searchParams;
+
+    // If there's no key in the URL or the key in the URL doesn't match the product's QR code key
+    if (!urlKey || urlKey !== productData.QrCode_key) {
+      notFound();
+    }
+
+    // Check if the QR code has expired
+    const expiryDate = new Date(productData.QrCode_expiryDays);
+    if (new Date() > expiryDate) {
+      notFound();
+    }
   }
 
   const breadCrumbs = [
