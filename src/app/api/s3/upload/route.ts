@@ -1,5 +1,15 @@
 import { S3 } from "aws-sdk";
+import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
+async function verifyToken(token: string) {
+  const secret = new TextEncoder().encode(JWT_SECRET);
+  const { payload } = await jwtVerify(token, secret);
+  return payload;
+}
 
 /**
  * @swagger
@@ -78,6 +88,23 @@ const s3 = new S3({
 
 export async function POST(request: Request) {
   try {
+    const cookieStore = cookies();
+    const token = cookieStore.get("accessToken")?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        { message: "Authorization token required" },
+        { status: 401 }
+      );
+    }
+
+    const decoded = await verifyToken(token);
+    const userRole = decoded.role;
+
+    if (!userRole || userRole !== "Admin") {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const { type, folderName, contentType, imageType } = await request.json();
 
     // Validate the required parameters

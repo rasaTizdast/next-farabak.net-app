@@ -7,7 +7,13 @@ import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
  * /api/s3/delete:
  *   delete:
  *     summary: Delete images from S3 bucket.
- *     description: This endpoint deletes images from the S3 bucket based on the provided productId (for product images) or overviewDetails name (for overview-details images).
+ *     description: |
+ *       This endpoint deletes images from the S3 bucket based on the provided parameters.
+ *       - If `type` is `productImages`, the endpoint can delete either:
+ *         - All images in the product's folder if `productImageType` is not provided.
+ *         - A specific image (`img1` or `img2`) if `productImageType` is provided.
+ *       - If `type` is `overview-details-image`, a specific image is deleted using the provided `imageKey`.
+ *     tags:
  *       - S3
  *     requestBody:
  *       required: true
@@ -17,6 +23,7 @@ import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
  *             type: object
  *             required:
  *               - type
+ *               - productId
  *             properties:
  *               type:
  *                 type: string
@@ -24,10 +31,17 @@ import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
  *                 enum: [productImages, overview-details-image]
  *               productId:
  *                 type: number
- *                 description: The product ID to identify the folder to delete from productImages.
- *               overviewName:
+ *                 description: The product ID to identify the folder for deletion.
+ *               imageKey:
  *                 type: string
- *                 description: The name of the overviewDetails image to delete.
+ *                 description: The key of the specific image to delete (required for `overview-details-image` type).
+ *               productImageType:
+ *                 type: string
+ *                 description: |
+ *                   Optional. The specific type of product image to delete, either "mini" or "banner".
+ *                   - If provided, only deletes the image specified in the `img1` or `img2` field of the product.
+ *                   - If not provided, deletes all images in the product's folder.
+ *                 enum: [mini, banner]
  *     responses:
  *       200:
  *         description: Successfully deleted the image(s).
@@ -39,6 +53,9 @@ import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
  *                 message:
  *                   type: string
  *                   description: Success message.
+ *                 deleteResponse:
+ *                   type: object
+ *                   description: Response from S3 about the deleted objects.
  *       400:
  *         description: Bad request. Missing or invalid parameters.
  *         content:
@@ -46,7 +63,7 @@ import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
  *             schema:
  *               type: object
  *               properties:
- *                 error:
+ *                 message:
  *                   type: string
  *                   description: Error message.
  *       404:
@@ -56,7 +73,7 @@ import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
  *             schema:
  *               type: object
  *               properties:
- *                 error:
+ *                 message:
  *                   type: string
  *                   description: Error message.
  *       500:
@@ -66,9 +83,12 @@ import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
  *             schema:
  *               type: object
  *               properties:
- *                 error:
+ *                 message:
  *                   type: string
  *                   description: Error message.
+ *                 error:
+ *                   type: object
+ *                   description: Details about the server error.
  */
 
 const s3 = new S3({
@@ -80,8 +100,7 @@ const s3 = new S3({
 export async function DELETE(req: Request): Promise<NextResponse> {
   try {
     const body = await req.json();
-
-    const { type, productId, imageKey } = body;
+    const { type, productId, imageKey, productImageType } = body;
 
     if (!type || !productId) {
       return NextResponse.json(
@@ -90,10 +109,10 @@ export async function DELETE(req: Request): Promise<NextResponse> {
       );
     }
 
-    // Fetch the product's slug from the database
+    // Fetch the product's slug and image fields from the database
     const product = await prisma.product.findUnique({
       where: { ProductId: parseInt(productId, 10) },
-      select: { Slug: true },
+      select: { Slug: true, img1: true, img2: true },
     });
 
     if (!product || !product.Slug) {
@@ -106,50 +125,98 @@ export async function DELETE(req: Request): Promise<NextResponse> {
     const slug = product.Slug;
 
     if (type === "productImages") {
-      // Delete all files in the folder (as explained previously)
-      const folderKey = `productImages/${slug}/`;
+      if (productImageType) {
+        let imageToDelete: string | null = null;
 
-      try {
-        const listResponse = await s3
-          .listObjectsV2({
-            Bucket: process.env.LIARA_BUCKET_NAME as string,
-            Prefix: folderKey,
-          })
-          .promise();
-
-        const objectsToDelete = listResponse.Contents;
-
-        if (!objectsToDelete || objectsToDelete.length === 0) {
+        if (productImageType === "mini") {
+          imageToDelete = product.img1;
+        } else if (productImageType === "banner") {
+          imageToDelete = product.img2;
+        } else {
           return NextResponse.json(
-            { message: "Folder is empty or does not exist." },
+            {
+              message: "Invalid productImageType. Must be 'mini' or 'banner'.",
+            },
+            { status: 400 }
+          );
+        }
+
+        if (!imageToDelete) {
+          return NextResponse.json(
+            { message: "No image found for the specified productImageType." },
             { status: 404 }
           );
         }
 
         const deleteParams = {
           Bucket: process.env.LIARA_BUCKET_NAME as string,
-          Delete: {
-            Objects: objectsToDelete.map((obj) => ({ Key: obj.Key! })),
-          },
+          Key: `productImages/${imageToDelete}`,
         };
 
-        const deleteResponse = await s3.deleteObjects(deleteParams).promise();
+        try {
+          const deleteResponse = await s3.deleteObject(deleteParams).promise();
 
-        return NextResponse.json(
-          {
-            message: "Folder and its contents deleted successfully.",
-            deleteResponse,
-          },
-          { status: 200 }
-        );
-      } catch (error) {
-        return NextResponse.json(
-          { message: "Failed to delete folder contents.", error },
-          { status: 500 }
-        );
+          return NextResponse.json(
+            {
+              message: "Image deleted successfully.",
+              deletedKey: `productImages/${imageToDelete}`,
+              deleteResponse,
+            },
+            { status: 200 }
+          );
+        } catch (error) {
+          console.error("Failed to delete image:", error);
+
+          return NextResponse.json(
+            { message: "Failed to delete image.", error },
+            { status: 500 }
+          );
+        }
+      } else {
+        const folderKey = `productImages/${slug}/`;
+
+        try {
+          const listResponse = await s3
+            .listObjectsV2({
+              Bucket: process.env.LIARA_BUCKET_NAME as string,
+              Prefix: folderKey,
+            })
+            .promise();
+
+          const objectsToDelete = listResponse.Contents;
+
+          if (!objectsToDelete || objectsToDelete.length === 0) {
+            return NextResponse.json(
+              { message: "Folder is empty or does not exist." },
+              { status: 404 }
+            );
+          }
+
+          const deleteParams = {
+            Bucket: process.env.LIARA_BUCKET_NAME as string,
+            Delete: {
+              Objects: objectsToDelete.map((obj) => ({ Key: obj.Key! })),
+            },
+          };
+
+          const deleteResponse = await s3.deleteObjects(deleteParams).promise();
+
+          return NextResponse.json(
+            {
+              message: "Folder and its contents deleted successfully.",
+              deleteResponse,
+            },
+            { status: 200 }
+          );
+        } catch (error) {
+          console.error("Failed to delete folder contents:", error);
+          return NextResponse.json(
+            { message: "Failed to delete folder contents.", error },
+            { status: 500 }
+          );
+        }
       }
     } else if (type === "overview-details-image") {
-      // Delete a specific image (imageKey must be provided)
       if (!imageKey) {
         return NextResponse.json(
           { message: "imageKey is required for deleting a specific image." },
@@ -160,7 +227,7 @@ export async function DELETE(req: Request): Promise<NextResponse> {
       try {
         const deleteParams = {
           Bucket: process.env.LIARA_BUCKET_NAME as string,
-          Key: imageKey, // Full key of the image
+          Key: imageKey,
         };
 
         const deleteResponse = await s3.deleteObject(deleteParams).promise();
@@ -177,19 +244,20 @@ export async function DELETE(req: Request): Promise<NextResponse> {
           );
         }
       } catch (error) {
+        console.error("Failed to delete image:", error);
         return NextResponse.json(
           { message: "Failed to delete image.", error },
           { status: 500 }
         );
       }
     } else {
-      // Handle invalid types
       return NextResponse.json(
         { message: "Invalid type provided." },
         { status: 400 }
       );
     }
   } catch (error) {
+    console.error("Unexpected error occurred:", error);
     return NextResponse.json(
       { message: "An unexpected error occurred.", error },
       { status: 500 }

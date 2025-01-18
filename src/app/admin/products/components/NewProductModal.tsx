@@ -118,7 +118,7 @@ const validateField = (field: keyof State, value: any): string => {
     case "bannerImage":
       return value ? "" : "تصویر بنر الزامی است";
     case "transparentImage":
-      return value ? "" : "تصویر شفاف الزامی است";
+      return value ? "" : "تصویر بدون پسزمینه الزامی است";
     case "features":
       return value.length > 0 ? "" : "حداقل یک ویژگی الزامی است";
     case "SEO_Title": {

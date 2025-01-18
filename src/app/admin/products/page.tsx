@@ -192,31 +192,6 @@ const AdminProductsPage = () => {
     fetchCategories();
   }, []);
 
-  const editModalSaveHandler = async (updatedProduct: Product) => {
-    try {
-      await axios.patch(`/api/admin/products/${+updatedProduct.ProductId}`, {
-        Name: updatedProduct.Name || "", // Fallback to empty string if null/undefined
-        Type: updatedProduct.Type || "",
-        Price: updatedProduct.Price?.toString() || "0", // Fallback to "0" if null/undefined
-        Discount: updatedProduct.Discount?.toString() || "0",
-        CategoryContentId: updatedProduct.CategoryContentId || "",
-        img1: updatedProduct.img1 || "",
-        img2: updatedProduct.img2 || "",
-        Available: updatedProduct.Available ?? false, // Use nullish coalescing for boolean
-        Description: updatedProduct.Description || "",
-        CategoryId: updatedProduct.CategoryId || 0, // Fallback to 0 for number fields
-        Slug: updatedProduct.productSlug || "",
-        SEO_Title: updatedProduct.SEO_Title || "",
-        SEO_Description: updatedProduct.SEO_Description || "",
-      });
-
-      toast.success("محصول مورد نظر با موفقیت آپدیت شد!");
-      refetchProducts();
-    } catch (error) {
-      toast.error("آپدیت ثبت محصول مورد نظر با شکست مواجه شد، مجدد تلاش کنید");
-    }
-  };
-
   return (
     <>
       <Toaster position="bottom-center" />
@@ -280,7 +255,7 @@ const AdminProductsPage = () => {
           notFound={notFound}
           setCurrentAction={setCurrentAction}
           setIsModalOpen={setIsModalOpen}
-          editModalSaveHandler={editModalSaveHandler}
+          // editModalSaveHandler={editModalSaveHandler}
           refetchProducts={refetchProducts}
         />
 
