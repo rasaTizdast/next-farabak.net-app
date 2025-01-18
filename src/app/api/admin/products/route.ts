@@ -190,14 +190,21 @@ export async function GET(request: Request) {
           },
         });
 
+        // Sort subcategories to match the order in categoryContentIds
+        const sortedSubCategories = categoryContentIds
+          .map((id) =>
+            subCategories.find((sub) => sub.CategoryContentId === id)
+          )
+          .filter(Boolean); // Filter out any undefined matches
+
         const subCategoryName =
-          subCategories.length > 0
-            ? subCategories.map((sub) => sub.Name).join(", ")
+          sortedSubCategories.length > 0
+            ? sortedSubCategories.map((sub) => sub!.Name).join(", ")
             : null;
 
-        const categoryContentDetails = subCategories.map((sub) => ({
-          CategoryContentId: sub.CategoryContentId,
-          Name: sub.Name || "",
+        const categoryContentDetails = sortedSubCategories.map((sub) => ({
+          CategoryContentId: sub!.CategoryContentId,
+          Name: sub!.Name || "",
         }));
 
         const {
@@ -221,7 +228,7 @@ export async function GET(request: Request) {
           productSlug: Slug || "",
           Price: parseFloat(Price || "0"),
           Available: Available || false,
-          link: `${categorySlug}/${subCategories[0]?.Slug || ""}/${Slug}`,
+          link: `${categorySlug}/${sortedSubCategories[0]?.Slug || ""}/${Slug}`,
           CategoryContentIds: categoryContentDetails,
           ...rest, // Include remaining untouched fields
         };

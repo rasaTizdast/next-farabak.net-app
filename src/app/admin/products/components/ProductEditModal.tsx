@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { Product } from "../types";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { FiPlusSquare } from "react-icons/fi";
-import { FaTrash } from "react-icons/fa";
 import ImageInput from "./ImageInput";
 import { CgSpinnerTwo } from "react-icons/cg";
 
@@ -44,7 +42,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
           "در دریافت دسته بندی ها مشکلی به وجود آمده است، دوباره تلاش کنید"
         )
       );
-
+    console.log("product: ", product);
     setFormState(product);
   }, []);
 
@@ -173,25 +171,6 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     }
   };
 
-  const handleSubcategoryChange = (index: number, subcategoryId: number) => {
-    setFormState((prevState) =>
-      prevState
-        ? {
-            ...prevState,
-            subCategoryName:
-              categories
-                .find((cat) => cat.CategoryID === prevState.CategoryId)
-                ?.Subcategories.find(
-                  (sub) => sub.CategoryContentId === subcategoryId
-                )?.Name || "",
-            CategoryContentIds: prevState.CategoryContentIds.map((item, i) =>
-              i === index ? { ...item, CategoryContentId: subcategoryId } : item
-            ),
-          }
-        : null
-    );
-  };
-
   const handleAvailableChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { value } = e.target;
     setFormState((prevState) =>
@@ -199,33 +178,6 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
         ? {
             ...prevState,
             Available: value === "true",
-          }
-        : null
-    );
-  };
-
-  const handleAddCategoryContent = () => {
-    setFormState((prevState) =>
-      prevState
-        ? {
-            ...prevState,
-            CategoryContentIds: [
-              ...prevState.CategoryContentIds,
-              { CategoryContentId: 0, Name: "" }, // Add a new placeholder subcategory
-            ],
-          }
-        : null
-    );
-  };
-
-  const handleRemoveCategoryContent = (index: number) => {
-    setFormState((prevState) =>
-      prevState
-        ? {
-            ...prevState,
-            CategoryContentIds: prevState.CategoryContentIds.filter(
-              (_, i) => i !== index
-            ),
           }
         : null
     );
@@ -338,10 +290,6 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     (category) => category.Name === formState.categoryName
   );
 
-  const canAddSubcategory =
-    selectedCategory &&
-    formState.CategoryContentIds.length < selectedCategory.Subcategories.length;
-
   return (
     <>
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm shadow-lg">
@@ -385,61 +333,104 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
             </div>
             <div className="block col-span-1 sm:col-span-2 border-b-4 pb-6 mb-4">
               <div className="border border-gray-700 rounded p-4 shadow-lg">
-                <h3 className="font-bold mb-2">زیر دسته‌بندی‌ها</h3>
-                {formState.CategoryContentIds.map(
-                  (selectedSubcategory, index) => (
-                    <div
-                      key={selectedSubcategory.CategoryContentId}
-                      className="mb-2 flex gap-4"
-                    >
-                      <select
-                        value={selectedSubcategory.CategoryContentId || ""}
-                        onChange={(e) =>
-                          handleSubcategoryChange(index, Number(e.target.value))
-                        }
-                        className="bg-gray-700 border border-gray-800 rounded w-full p-2"
-                      >
-                        <option value="">انتخاب زیر دسته‌بندی</option>
-                        {selectedCategory?.Subcategories.map((subcat) => (
-                          <option
-                            key={subcat.CategoryContentId}
-                            value={subcat.CategoryContentId}
-                            disabled={formState.CategoryContentIds.some(
-                              (item) =>
-                                item.CategoryContentId ===
-                                subcat.CategoryContentId
-                            )}
-                          >
-                            {subcat.Name}
-                          </option>
-                        ))}
-                      </select>
-
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveCategoryContent(index)}
-                        className="text-red-400 hover:text-red-600 transition-all rounded"
-                      >
-                        <FaTrash size={25} />
-                      </button>
+                <h3 className="font-bold mb-2 flex gap-2">
+                  زیر دسته‌بندی‌ها
+                  <div className="relative group">
+                    <span className="text-gray-500 hover:text-blue-500 cursor-pointer">
+                      ℹ️
+                    </span>
+                    <div className="absolute top-full right-0 w-64 mt-1 text-justify hidden group-hover:block bg-gray-700 text-white text-sm p-3 rounded shadow-2xl z-40">
+                      شما می‌توانید چندین زیر دسته‌بندی را انتخاب کنید. اولین
+                      زیر دسته‌بندی که انتخاب می‌شود به عنوان زیر دسته‌بندی اصلی
+                      محصول نشان داده می‌شود.
                     </div>
-                  )
-                )}
-                {/* Disable or hide the Add Subcategory button if the limit is reached */}
-                <div className="w-full flex justify-center">
-                  <button
-                    type="button"
-                    onClick={handleAddCategoryContent}
-                    className={`${
-                      !canAddSubcategory
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "text-green-300 hover:scale-125 hover:text-green-400"
-                    } text-white rounded p-2 mt-4 transition-all`}
-                    disabled={!canAddSubcategory}
+                  </div>
+                </h3>
+
+                {formState.CategoryId ? (
+                  <div className="p-2 rounded bg-gray-700 text-white">
+                    {/* CSS Grid for layout */}
+                    <div
+                      className="grid gap-2"
+                      style={{
+                        gridTemplateColumns:
+                          "repeat(auto-fill, minmax(250px, 1fr))",
+                      }}
+                    >
+                      {selectedCategory?.Subcategories.map((subCategory) => {
+                        // Parse selected IDs from formState
+                        const selectedIds = formState.CategoryContentIds.map(
+                          (item) => item.CategoryContentId
+                        );
+                        const isSelected = selectedIds.includes(
+                          subCategory.CategoryContentId
+                        );
+                        const isFirstSelected =
+                          isSelected &&
+                          selectedIds[0] === subCategory.CategoryContentId;
+
+                        return (
+                          <SubCategoryButton
+                            key={subCategory.CategoryContentId}
+                            subCategory={subCategory}
+                            isSelected={isSelected}
+                            isFirstSelected={isFirstSelected}
+                            onClick={() => {
+                              let updatedIds: number[];
+
+                              if (isSelected) {
+                                // Remove the subcategory if already selected
+                                updatedIds = selectedIds.filter(
+                                  (id) => id !== subCategory.CategoryContentId
+                                );
+                              } else {
+                                // Add the subcategory if not selected
+                                updatedIds = [
+                                  ...selectedIds,
+                                  subCategory.CategoryContentId,
+                                ];
+                              }
+
+                              setFormState((prevState) => {
+                                if (!prevState) {
+                                  // Handle the case where prevState is null
+                                  return null;
+                                }
+
+                                // Map updatedIds to include both CategoryContentId and Name
+                                const updatedCategoryContentIds =
+                                  updatedIds.map((id) => {
+                                    const subCategory =
+                                      selectedCategory?.Subcategories.find(
+                                        (sub) => sub.CategoryContentId === id
+                                      );
+
+                                    return {
+                                      CategoryContentId: id,
+                                      Name: subCategory?.Name || "Unknown", // Fallback to "Unknown" if Name is unavailable
+                                    };
+                                  });
+
+                                return {
+                                  ...prevState,
+                                  CategoryContentIds: updatedCategoryContentIds,
+                                };
+                              });
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <select
+                    id="subCategory"
+                    disabled
+                    className="w-full p-2 rounded bg-gray-700 text-white"
                   >
-                    <FiPlusSquare size={30} />
-                  </button>
-                </div>
+                    <option value="">انتخاب زیر دسته‌بندی</option>
+                  </select>
+                )}
               </div>
             </div>
 
@@ -535,12 +526,6 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               </div>
             </div>
 
-            {/* <TextAreaField
-            label="توضیحات"
-            name="Description"
-            value={formState.Description}
-            onChange={handleInputChange}
-          /> */}
             <div className="block col-span-1 sm:col-span-2">
               <InputField
                 label="عنوان SEO"
@@ -683,3 +668,34 @@ const Loading = () => {
 };
 
 export default ProductEditModal;
+
+// SubCategoryButton.tsx
+interface SubCategoryButtonProps {
+  subCategory: { CategoryContentId: number; Name: string };
+  isSelected: boolean;
+  isFirstSelected: boolean;
+  onClick: () => void;
+}
+
+const SubCategoryButton: React.FC<SubCategoryButtonProps> = ({
+  subCategory,
+  isSelected,
+  isFirstSelected,
+  onClick,
+}) => {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-3 py-1 rounded border text-center ${
+        isSelected
+          ? isFirstSelected
+            ? "bg-green-600 text-white border-green-600" // Special style for the first selected
+            : "bg-blue-600 text-white border-blue-600" // Style for other selected
+          : "bg-gray-600 text-gray-200 border-gray-500 hover:bg-gray-500"
+      }`}
+    >
+      {subCategory.Name}
+    </button>
+  );
+};

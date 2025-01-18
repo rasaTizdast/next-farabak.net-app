@@ -72,6 +72,9 @@ export async function GET() {
   try {
     // Fetch categories
     const categories = await prisma.category.findMany({
+      orderBy: {
+        CategoryID: "asc", // Ensures categories are ordered by CategoryID in ascending order
+      },
       include: {
         SEO_Category: true,
         CategoryContent: {
