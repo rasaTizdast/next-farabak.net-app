@@ -462,6 +462,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         </label>
         <input
           id="bannerImage"
+          accept="image/*"
           type="file"
           onChange={(e) =>
             dispatch({
@@ -476,11 +477,12 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
 
       <div className="mb-4">
         <label htmlFor="transparentImage" className="block mb-2">
-          تصویر شفاف
+          تصویر بدون پس‌زمینه
         </label>
         <input
           id="transparentImage"
           type="file"
+          accept="image/*"
           onChange={(e) =>
             dispatch({
               type: "SET_FIELD",
