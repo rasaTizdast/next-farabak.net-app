@@ -436,8 +436,8 @@ model ProductSpecs {
 model SEO_Category {
   SEO_CategoryId  Int      @id(map: "PK__SEO_Cate__D6289EBC542C7D1C") @default(autoincrement())
   CategoryID      Int
-  SEO_Title       String?  @db.VarChar(50)
-  SEO_Description String?  @db.VarChar(4000)
+  SEO_Title       String?  @db.VarChar(60)
+  SEO_Description String?  @db.VarChar(160)
   SEO_Keywords    String?  @db.VarChar(2000)
   Category        Category @relation(fields: [CategoryID], references: [CategoryID], onDelete: Cascade, onUpdate: NoAction, map: "FK__SEO_Categ__Categ__392E6792")
 
@@ -447,8 +447,8 @@ model SEO_Category {
 model SEO_CategoryContent {
   SEO_CategoryContentId Int             @id(map: "PK__SEO_Cate__7D930FEB48C5431C") @default(autoincrement())
   CategoryContentId     Int
-  SEO_Title             String?         @db.VarChar(50)
-  SEO_Description       String?         @db.VarChar(4000)
+  SEO_Title             String?         @db.VarChar(60)
+  SEO_Description       String?         @db.VarChar(160)
   SEO_Keywords          String?         @db.VarChar(2000)
   CategoryContent       CategoryContent @relation(fields: [CategoryContentId], references: [CategoryContentId], onDelete: Cascade, onUpdate: NoAction, map: "FK__SEO_Categ__Categ__43ABF605")
 
