@@ -124,14 +124,22 @@ export async function GET(request: Request) {
   try {
     const conditions: any = {};
 
+    // Query search logic
     if (query.trim()) {
-      const keywords = query.trim().split(/\s+/); // Split query into individual words
-      conditions.OR = keywords.map((keyword) => ({
+      conditions.OR = [
+        { Type: { equals: query.trim(), mode: "insensitive" } }, // Match Type exactly
+        { Slug: { equals: query.trim(), mode: "insensitive" } }, // Match Slug exactly
+      ];
+    }
+
+    // If no products match Type or Slug, include Description search
+    if (query.trim()) {
+      conditions.OR.push({
         Description: {
-          contains: keyword,
-          mode: "insensitive", // Case-insensitive matching
+          contains: query.trim(),
+          mode: "insensitive", // Case-insensitive matching for descriptions
         },
-      }));
+      });
     }
 
     if (category > 0) {
@@ -140,12 +148,15 @@ export async function GET(request: Request) {
 
     if (subcategory) {
       const subcategoryIds = subcategory.split(",").map((id) => id.trim());
-      conditions.OR = subcategoryIds.map((id) => ({
-        CategoryContentId: {
-          contains: id,
-          mode: "insensitive", // Optional, for case-insensitivity
-        },
-      }));
+      conditions.OR = [
+        ...(conditions.OR || []),
+        ...subcategoryIds.map((id) => ({
+          CategoryContentId: {
+            contains: id,
+            mode: "insensitive",
+          },
+        })),
+      ];
     }
 
     if (available && available !== "all") {
