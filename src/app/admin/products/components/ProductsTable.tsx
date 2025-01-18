@@ -23,7 +23,6 @@ type Props = {
     type: "delete" | "bulk-delete" | "";
     name: string | string[];
   }) => void;
-  editModalSaveHandler: (updatedProduct: Product) => void;
   refetchProducts: () => void;
 };
 
@@ -35,7 +34,6 @@ const ProductsTable = ({
   notFound,
   setIsModalOpen,
   setCurrentAction,
-  editModalSaveHandler,
   refetchProducts,
 }: Props) => {
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
@@ -145,15 +143,6 @@ const ProductsTable = ({
   const handleEditProduct = (product: Product) => {
     setIsEditModalOpen(true);
     setCurrentProduct(product);
-  };
-
-  const editModalSubmitHandler = (updatedProduct: Product) => {
-    try {
-      editModalSaveHandler(updatedProduct);
-      setIsEditModalOpen(false);
-    } catch (error) {
-      console.error("An error happend while Updating a product", error);
-    }
   };
 
   const qrCodeModalHandler = (product: Product) => {
@@ -306,7 +295,7 @@ const ProductsTable = ({
                               : "hover:bg-sky-700"
                           } p-2 rounded-lg transition-all`}
                         >
-                          <IoQrCode size={20} />
+                          <IoQrCode size={20} color="#fff" />
                         </button>
 
                         <button
@@ -370,12 +359,16 @@ const ProductsTable = ({
           </div>
         )}
       </div>
-      <ProductEditModal
-        isOpen={isEditModalOpen}
-        product={currentProduct}
-        onClose={() => setIsEditModalOpen(false)}
-        onSave={editModalSubmitHandler}
-      />
+
+      {isEditModalOpen && (
+        <ProductEditModal
+          product={currentProduct}
+          onClose={() => setIsEditModalOpen(false)}
+          refetchProducts={refetchProducts}
+          setIsEditModalOpen={setIsEditModalOpen}
+        />
+      )}
+
       {isQrCodeModalOpen && (
         <QrCodeModal
           onClose={setIsQrCodeModalOpen}
