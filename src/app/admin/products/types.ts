@@ -13,8 +13,8 @@ export type Product = {
   SEO_Title: string;
   SEO_Description: string;
   link: string;
-  img1: string;
-  img2: string;
+  img1: File | null;
+  img2: File | null;
   CategoryContentId: string;
   CategoryContentIds: {
     CategoryContentId: number;
