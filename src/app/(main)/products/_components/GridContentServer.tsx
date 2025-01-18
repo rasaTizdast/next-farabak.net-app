@@ -61,7 +61,7 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
               product.Price === undefined ||
               +product.Price === 0 ? (
                 <span className="text-gray-600">
-                  بدون قیمت - با بخش فروش تماس بگیرید
+                  برای ثبت سفارش با بخش فروش تماس بگیرید
                 </span>
               ) : product.Discount && +product.Discount > 0 ? (
                 <div className="flex flex-col gap-1 items-center text-lg">
