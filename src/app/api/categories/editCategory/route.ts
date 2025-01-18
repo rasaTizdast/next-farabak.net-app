@@ -104,7 +104,7 @@ export async function PATCH(req: Request) {
       }
 
       const updatedCategory = await prisma.category.update({
-        where: { CategoryID }, // Use the correct field name here
+        where: { CategoryID }, // Correct unique identifier for category
         data: {
           Name,
           Slug,
@@ -112,8 +112,9 @@ export async function PATCH(req: Request) {
           ModifyDate: new Date(),
           SEO_Category: {
             upsert: {
-              where: { SEO_CategoryId: CategoryID }, // Use the correct unique identifier field
+              where: { CategoryID }, // Use CategoryID for the SEO_Category upsert
               create: {
+                // The 'create' should contain the relation data, use the field that is related to the model
                 SEO_Title: SEO_Details.SEO_Title,
                 SEO_Description: SEO_Details.SEO_Description,
                 SEO_Keywords: JSON.stringify(SEO_Details.SEO_Keywords),
@@ -149,7 +150,7 @@ export async function PATCH(req: Request) {
       }
 
       const updatedSubcategory = await prisma.categoryContent.update({
-        where: { CategoryContentId }, // Use the correct field name here
+        where: { CategoryContentId }, // Correct unique identifier for subcategory
         data: {
           Name,
           Slug,
@@ -157,8 +158,9 @@ export async function PATCH(req: Request) {
           ModifyDate: new Date(),
           SEO_CategoryContent: {
             upsert: {
-              where: { SEO_CategoryContentId: CategoryContentId }, // Use the correct unique identifier field
+              where: { CategoryContentId }, // Use CategoryContentId here
               create: {
+                // The 'create' should contain the relation data, use the field that is related to the model
                 SEO_Title: SEO_Details.SEO_Title,
                 SEO_Description: SEO_Details.SEO_Description,
                 SEO_Keywords: JSON.stringify(SEO_Details.SEO_Keywords),

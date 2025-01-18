@@ -435,7 +435,7 @@ model ProductSpecs {
 
 model SEO_Category {
   SEO_CategoryId  Int      @id(map: "PK__SEO_Cate__D6289EBC542C7D1C") @default(autoincrement())
-  CategoryID      Int
+  CategoryID      Int      @unique(map: "unique_categoryID")
   SEO_Title       String?  @db.VarChar(60)
   SEO_Description String?  @db.VarChar(160)
   SEO_Keywords    String?  @db.VarChar(2000)
@@ -446,7 +446,7 @@ model SEO_Category {
 
 model SEO_CategoryContent {
   SEO_CategoryContentId Int             @id(map: "PK__SEO_Cate__7D930FEB48C5431C") @default(autoincrement())
-  CategoryContentId     Int
+  CategoryContentId     Int             @unique(map: "unique_CategoryContentID")
   SEO_Title             String?         @db.VarChar(60)
   SEO_Description       String?         @db.VarChar(160)
   SEO_Keywords          String?         @db.VarChar(2000)

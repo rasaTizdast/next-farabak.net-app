@@ -1,20 +1,28 @@
 import { useState, useEffect } from "react";
 import { Category, Subcategory } from "../types/types";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 interface EditModalProps {
   isOpen: boolean;
   item: Category | Subcategory | null;
   onClose: () => void;
-  onSave: (updatedItem: Category | Subcategory) => void;
+  // onSave: (updatedItem: Category | Subcategory) => void;
   onChange: (updatedFields: Partial<Category | Subcategory>) => void;
+  refetchCategories: () => void;
+  setIsEditModalOpen: (arg0: boolean) => void;
+  setEditCategory: (arg0: Category | Subcategory | null) => void;
 }
 
 const EditModal: React.FC<EditModalProps> = ({
   isOpen,
   item,
   onClose,
-  onSave,
+  // onSave,
   onChange,
+  refetchCategories,
+  setEditCategory,
+  setIsEditModalOpen,
 }) => {
   const [keywordInput, setKeywordInput] = useState("");
   const [seoKeywords, setSeoKeywords] = useState<string[]>([]);
@@ -49,8 +57,8 @@ const EditModal: React.FC<EditModalProps> = ({
   const regexPatterns = {
     Name: /^[a-zA-Z0-9-\u0600-\u06FF\s_-\u200C]{0,1000}$/, // Persian, English, numbers, up to 1000 characters
     Slug: /^[a-z0-9-]{0,200}$/, // Lowercase English, numbers, and dashes only, up to 200 characters
-    SEO_Title: /^.{0,50}$/, // Any character, up to 50 characters
-    SEO_Description: /^.{0,4000}$/, // Any character, up to 4000 characters
+    SEO_Title: /^.{0,60}$/, // Any character, up to 50 characters
+    SEO_Description: /^.{0,160}$/, // Any character, up to 4000 characters
     SEO_Keywords: /^.{0,4000}$/, // Any character, up to 4000 characters (no commas restriction)
   };
 
@@ -149,11 +157,53 @@ const EditModal: React.FC<EditModalProps> = ({
     return Object.keys(validationErrors).length === 0;
   };
 
+  const handleItemUpdate = async (updatedItem: Category | Subcategory) => {
+    const isCategory =
+      "CategoryID" in updatedItem && !("CategoryContentId" in updatedItem);
+    const endpoint = `/api/categories/editCategory`;
+    const payload = isCategory
+      ? {
+          Type: "category",
+          CategoryID: updatedItem.CategoryID,
+          Name: updatedItem.Name,
+          Slug: updatedItem.Slug,
+          Available: updatedItem.Available,
+          SEO_Details: {
+            SEO_Title: updatedItem.SEO_Details.SEO_Title,
+            SEO_Description: updatedItem.SEO_Details.SEO_Description,
+            SEO_Keywords: updatedItem.SEO_Details.SEO_Keywords,
+          },
+        }
+      : {
+          Type: "subcategory",
+          CategoryContentId: updatedItem.CategoryContentId,
+          CategoryID: updatedItem.CategoryID,
+          Name: updatedItem.Name,
+          Slug: updatedItem.Slug,
+          Available: updatedItem.Available,
+          SEO_Details: {
+            SEO_Title: updatedItem.SEO_Details.SEO_Title,
+            SEO_Description: updatedItem.SEO_Details.SEO_Description,
+            SEO_Keywords: updatedItem.SEO_Details.SEO_Keywords,
+          },
+        };
+
+    try {
+      await axios.patch(endpoint, payload);
+      toast.success("تغییرات با موفقیت اعمال شدند!");
+      refetchCategories();
+      setEditCategory(null);
+      setIsEditModalOpen(false);
+    } catch (error) {
+      toast.error("خطا در بروزرسانی، لطفا مجددا تلاش کنید.");
+    }
+  };
+
   // Handle save with validation
   const handleSave = () => {
     if (!validateAllFields()) return;
 
-    onSave({
+    handleItemUpdate({
       ...item,
       SEO_Details: {
         ...seoDetails,
