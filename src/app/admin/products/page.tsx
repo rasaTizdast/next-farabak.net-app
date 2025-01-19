@@ -255,7 +255,6 @@ const AdminProductsPage = () => {
           notFound={notFound}
           setCurrentAction={setCurrentAction}
           setIsModalOpen={setIsModalOpen}
-          // editModalSaveHandler={editModalSaveHandler}
           refetchProducts={refetchProducts}
         />
 
