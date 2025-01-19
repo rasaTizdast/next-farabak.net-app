@@ -5,7 +5,7 @@ import styles from "./ActivityPage.module.css";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "فعالیت‌های شرکت فرابک | فرابک",
+  title: "فعالیت های شرکت فرابک | فرابک",
   description:
     "شما در این صفحه میتوانید اطلاعاتی درباره فعالیت های شرکت فرابک مشاهده کنید.",
 };

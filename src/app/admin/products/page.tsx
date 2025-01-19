@@ -29,7 +29,6 @@ const AdminProductsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [tempSearchQuery, setTempSearchQuery] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const spanRef = useRef<HTMLSpanElement | null>(null);
 
   const [notFound, setNotFound] = useState<boolean>(false);
 
@@ -101,13 +100,6 @@ const AdminProductsPage = () => {
       setSearchQuery(lowerCaseQuery); // Set the debounced search query
     }, 300); // Adjust debounce time as needed
   };
-
-  useEffect(() => {
-    if (inputRef.current && spanRef.current) {
-      // Adjust input width based on the span's content
-      inputRef.current.style.width = `${spanRef.current.offsetWidth + 20}px`; // +20 for padding
-    }
-  }, [tempSearchQuery]);
 
   const deleteProduct = async (id: number, name: string) => {
     try {
@@ -197,30 +189,22 @@ const AdminProductsPage = () => {
       <Toaster position="bottom-center" />
       <div className="flex flex-col items-center p-4">
         {/* Top Bar */}
-        <div className="w-full flex justify-between items-center max-w-[1800px]">
+        <div className="w-full flex flex-col lg:flex-row justify-between items-center max-w-[1800px] space-y-4 lg:space-y-0">
           {/* Search and Filter */}
-          <div className="flex gap-5">
-            <div className="relative">
+          <div className="flex flex-col lg:flex-row gap-5 w-full lg:w-auto">
+            <div className="relative w-full lg:w-auto">
               <input
                 ref={inputRef}
                 type="text"
                 placeholder="جستجو"
                 value={tempSearchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="min-w-52 max-w-[350px] p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full lg:min-w-[200px] lg:max-w-[350px] p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              {/* Hidden span to measure text width */}
-              <span
-                ref={spanRef}
-                className="absolute invisible whitespace-nowrap"
-                style={{ visibility: "hidden" }}
-              >
-                {tempSearchQuery}
-              </span>
             </div>
             <button
               onClick={() => setShowFilterModal(true)}
-              className={`px-4 py-2 ${
+              className={`px-4 py-2 w-full lg:w-auto ${
                 hasFilters(filters)
                   ? "bg-orange-600 hover:bg-orange-700"
                   : "bg-blue-950 hover:bg-blue-600"
@@ -231,7 +215,7 @@ const AdminProductsPage = () => {
             {hasFilters(filters) && (
               <button
                 onClick={clearFilters}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                className="px-4 py-2 w-full lg:w-auto bg-red-600 text-white rounded-lg hover:bg-red-700"
               >
                 حذف فیلترها
               </button>
@@ -239,7 +223,7 @@ const AdminProductsPage = () => {
           </div>
           {/* New Product Button */}
           <button
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            className="px-4 py-2 w-full lg:w-auto bg-green-600 text-white rounded-lg hover:bg-green-700 mt-4 lg:mt-0"
             onClick={() => setShowNewProductModal(true)}
           >
             محصول جدید
@@ -255,7 +239,6 @@ const AdminProductsPage = () => {
           notFound={notFound}
           setCurrentAction={setCurrentAction}
           setIsModalOpen={setIsModalOpen}
-          // editModalSaveHandler={editModalSaveHandler}
           refetchProducts={refetchProducts}
         />
 

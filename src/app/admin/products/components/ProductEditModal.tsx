@@ -206,12 +206,12 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
       return;
     }
 
-    if (formState.Name.length > 100) {
-      toast.error("نام مصحول نباید بیشتر از ۱۰۰ کارکتر باشد.");
+    if (formState.Name.length > 1000) {
+      toast.error("نام محصول نباید بیشتر از ۱۰۰۰ کارکتر باشد.");
       return;
     }
 
-    if (formState.Description.length > 100) {
+    if (formState.Description.length > 1000) {
       toast.error("توضیح مصحول نباید بیشتر از ۱۰۰۰ کارکتر باشد.");
       return;
     }

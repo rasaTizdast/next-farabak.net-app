@@ -8,7 +8,7 @@ import styles from "./SupportPage.module.css";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "پشتیبانی | فرابک",
+  title: "بخش پشتیبانی شرکت فرابک | فرابک",
   description: "مشاهده صفحه های پشتیبانی شرکت فرابک",
 };
 

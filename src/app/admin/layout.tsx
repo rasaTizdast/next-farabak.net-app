@@ -12,12 +12,12 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen">
+    <div className="relative min-h-screen bg-gradient-to-l from-blue-800 to-blue-900">
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main Content */}
-      <main className="flex-1 p-6  bg-gradient-to-l from-blue-800 to-blue-900">
+      <main className="p-6 mr-[64px] max-w-full overflow-auto transition-all">
         {children}
       </main>
     </div>

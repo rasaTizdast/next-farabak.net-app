@@ -9,7 +9,7 @@ import styles from "./page.module.css";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 
 export const metadata: Metadata = {
-  title: "مشاهده پروژه های انجام شده توسط شرکت | فرابک",
+  title: "گالری تصاویر پروژه ها | فرابک",
   description:
     "شما در این صفحه میتوانید اطلاعاتی درباره پروژه های شرکت فرابک مشاهده کنید.",
 };

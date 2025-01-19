@@ -5,7 +5,7 @@ import styles from "./DownloadCenterPage.module.css";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "نرم‌افزارها و آپدیت‌ها",
+  title: "نرم افزار ها و آپدیت ها | فرابک",
   description: "دانلود نرم‌افزارهای محصولات، دفترچه راهنما و آپدیت‌ها",
 };
 
