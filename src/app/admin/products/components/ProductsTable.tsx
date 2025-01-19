@@ -162,11 +162,11 @@ const ProductsTable = ({
     <>
       <div className="w-full overflow-x-auto rounded-xl max-w-[1800px]">
         {selectedProducts.length > 0 && (
-          <div className="flex justify-between items-center bg-slate-600 p-4 rounded-t-xl text-xs lg:text-sm">
+          <div className="flex flex-wrap justify-between items-center bg-slate-600 p-4 rounded-t-xl text-xs lg:text-sm">
             <span className="text-white">
               {selectedProducts.length} محصول انتخاب شده
             </span>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap justify-end">
               <button
                 onClick={() => handleBulkAction("delete")}
                 className="px-3 py-1 bg-red-600 text-white text-xs rounded-lg hover:bg-red-700 transition-all"
@@ -176,7 +176,7 @@ const ProductsTable = ({
             </div>
           </div>
         )}
-        <table className="w-full text-xs lg:text-sm text-center text-gray-300 table-auto border-spacing-0 border-separate">
+        <table className="w-full text-xs lg:text-sm text-center text-gray-300 table-auto border-spacing-0 border-separate whitespace-nowrap">
           <thead className="text-gray-100 uppercase bg-slate-800">
             <tr>
               <th scope="col" className="px-6 py-3 w-12">
