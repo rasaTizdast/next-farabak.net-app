@@ -96,48 +96,6 @@ const CategoryTable = ({
     setConfirmationText(""); // Clear the confirmation text
   };
 
-  // const handleItemUpdate = async (updatedItem: Category | Subcategory) => {
-  //   const isCategory =
-  //     "CategoryID" in updatedItem && !("CategoryContentId" in updatedItem);
-  //   const endpoint = `/api/categories/editCategory`;
-  //   const payload = isCategory
-  //     ? {
-  //         Type: "category",
-  //         CategoryID: updatedItem.CategoryID,
-  //         Name: updatedItem.Name,
-  //         Slug: updatedItem.Slug,
-  //         Available: updatedItem.Available,
-  //         SEO_Details: {
-  //           SEO_Title: updatedItem.SEO_Details.SEO_Title,
-  //           SEO_Description: updatedItem.SEO_Details.SEO_Description,
-  //           SEO_Keywords: updatedItem.SEO_Details.SEO_Keywords,
-  //         },
-  //       }
-  //     : {
-  //         Type: "subcategory",
-  //         CategoryContentId: updatedItem.CategoryContentId,
-  //         CategoryID: updatedItem.CategoryID,
-  //         Name: updatedItem.Name,
-  //         Slug: updatedItem.Slug,
-  //         Available: updatedItem.Available,
-  //         SEO_Details: {
-  //           SEO_Title: updatedItem.SEO_Details.SEO_Title,
-  //           SEO_Description: updatedItem.SEO_Details.SEO_Description,
-  //           SEO_Keywords: updatedItem.SEO_Details.SEO_Keywords,
-  //         },
-  //       };
-
-  //   try {
-  //     await axios.patch(endpoint, payload);
-  //     toast.success("تغییرات با موفقیت اعمال شدند!");
-  //     refetchCategories();
-  //     setEditCategory(null);
-  //     setIsEditModalOpen(false);
-  //   } catch (error) {
-  //     toast.error("خطا در بروزرسانی، لطفا مجددا تلاش کنید.");
-  //   }
-  // };
-
   const handleDeleteConfirm = async () => {
     if (!deleteItem) return;
     // Check if the user typed the correct name
@@ -198,77 +156,79 @@ const CategoryTable = ({
 
   return (
     <>
-      <div className="flex flex-col items-center mt-10 overflow-x-auto">
-        <table className="w-full overflow-hidden rounded-xl text-xs lg:text-sm text-center text-gray-300 table-auto border-spacing-0 border-separate max-w-[1800px]">
-          <thead className="text-gray-100 uppercase bg-slate-900">
-            <tr>
-              <SortableHeader sortKey="Name">دسته بندی</SortableHeader>
-              <SortableHeader sortKey="Slug">شناسه</SortableHeader>
-              <SortableHeader sortKey="Available">وضعیت</SortableHeader>
-              <th scope="col" className="px-6 py-3">
-                عملیات
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading
-              ? [...Array(20)].map((_, index) => (
-                  <tr key={index} className="animate-pulse">
-                    <td className="px-6 py-4 bg-slate-700"></td>
-                    <td className="px-6 py-4 bg-slate-700"></td>
-                    <td className="px-6 py-4 bg-slate-700"></td>
-                    <td className="px-6 py-4 bg-slate-700"></td>
-                  </tr>
-                ))
-              : sortedCategories.map((category, index) => (
-                  <React.Fragment key={category.CategoryID}>
-                    <CategoryRow
-                      key={category.CategoryID}
-                      category={category}
-                      onDeleteClick={handleDeleteClick}
-                      onEditClick={handleEditClick}
-                      onToggleExpand={handleToggleExpand}
-                      expandedCategories={expandedCategories}
-                      index={index}
-                    />
-                    {expandedCategories.has(category.CategoryID) &&
-                      category.Subcategories.map((subcategory, subIndex) => (
-                        <SubcategoryRow
-                          key={subcategory.CategoryContentId}
-                          subcategory={subcategory}
-                          onDeleteClick={handleDeleteClick}
-                          onEditClick={handleEditClick}
-                          subIndex={subIndex}
-                        />
-                      ))}
-                  </React.Fragment>
-                ))}
-          </tbody>
-        </table>
+      <div className="flex flex-col items-center mt-10 p-4">
+        <div className="w-full max-w-[1800px] overflow-auto rounded-lg">
+          <table className="w-full table-auto overflow-hidden rounded-xl text-xs lg:text-sm text-center text-gray-100 border-spacing-0 border-collapse whitespace-nowrap">
+            <thead className="text-gray-100 uppercase bg-slate-900">
+              <tr>
+                <SortableHeader sortKey="Name">دسته بندی</SortableHeader>
+                <SortableHeader sortKey="Slug">شناسه</SortableHeader>
+                <SortableHeader sortKey="Available">وضعیت</SortableHeader>
+                <th scope="col" className="px-6 py-3">
+                  عملیات
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading
+                ? [...Array(20)].map((_, index) => (
+                    <tr key={index} className="animate-pulse">
+                      <td className="px-6 py-4 bg-slate-700"></td>
+                      <td className="px-6 py-4 bg-slate-700"></td>
+                      <td className="px-6 py-4 bg-slate-700"></td>
+                      <td className="px-6 py-4 bg-slate-700"></td>
+                    </tr>
+                  ))
+                : sortedCategories.map((category, index) => (
+                    <React.Fragment key={category.CategoryID}>
+                      <CategoryRow
+                        key={category.CategoryID}
+                        category={category}
+                        onDeleteClick={handleDeleteClick}
+                        onEditClick={handleEditClick}
+                        onToggleExpand={handleToggleExpand}
+                        expandedCategories={expandedCategories}
+                        index={index}
+                      />
+                      {expandedCategories.has(category.CategoryID) &&
+                        category.Subcategories.map((subcategory, subIndex) => (
+                          <SubcategoryRow
+                            key={subcategory.CategoryContentId}
+                            subcategory={subcategory}
+                            onDeleteClick={handleDeleteClick}
+                            onEditClick={handleEditClick}
+                            subIndex={subIndex}
+                          />
+                        ))}
+                    </React.Fragment>
+                  ))}
+            </tbody>
+          </table>
 
-        {/* Edit Modal */}
-        <EditModal
-          isOpen={isEditModalOpen}
-          item={editCategory}
-          onClose={handleModalClose}
-          // onSave={handleItemUpdate}
-          onChange={(updatedFields) =>
-            setEditCategory((prev) => ({ ...prev!, ...updatedFields }))
-          }
-          refetchCategories={refetchCategories}
-          setIsEditModalOpen={setIsEditModalOpen}
-          setEditCategory={setEditCategory}
-        />
+          {/* Edit Modal */}
+          <EditModal
+            isOpen={isEditModalOpen}
+            item={editCategory}
+            onClose={handleModalClose}
+            // onSave={handleItemUpdate}
+            onChange={(updatedFields) =>
+              setEditCategory((prev) => ({ ...prev!, ...updatedFields }))
+            }
+            refetchCategories={refetchCategories}
+            setIsEditModalOpen={setIsEditModalOpen}
+            setEditCategory={setEditCategory}
+          />
 
-        {/* Delete Modal */}
-        <DeleteConfirmationModal
-          isOpen={isDeleteModalOpen}
-          item={deleteItem}
-          onDeleteConfirm={handleDeleteConfirm}
-          onClose={handleModalClose}
-          confirmationText={confirmationText}
-          setConfirmationText={setConfirmationText}
-        />
+          {/* Delete Modal */}
+          <DeleteConfirmationModal
+            isOpen={isDeleteModalOpen}
+            item={deleteItem}
+            onDeleteConfirm={handleDeleteConfirm}
+            onClose={handleModalClose}
+            confirmationText={confirmationText}
+            setConfirmationText={setConfirmationText}
+          />
+        </div>
       </div>
     </>
   );
