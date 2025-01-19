@@ -8,7 +8,7 @@ import aboutUsData from "@/constants/aboutUs.json";
 import styles from "./AboutUs.module.css";
 
 export const metadata: Metadata = {
-  title: "مشاهده اطلاعات بیشتر درباره‌ما | فرابک",
+  title: "بخش درباره ما | فرابک",
   description:
     "شما در این صفحه میتوانید اطلاعاتی درباره شرکت فرابک مشاهده کنید.",
 };
