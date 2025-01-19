@@ -80,6 +80,7 @@ const Sidebar = () => {
               className={`text-white flex items-center px-4 py-3 hover:bg-[#2797ff] transition-colors ${
                 isCollapsed ? "justify-center" : "gap-4"
               }`}
+              onClick={() => setIsCollapsed(true)}
             >
               {item.icon}
               <span className={`${isCollapsed ? "hidden" : "block"}`}>
