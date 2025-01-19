@@ -125,8 +125,8 @@ const AnalyticsOverview = () => {
             آماده‌اید برای مشاهده دقیق‌تر تحلیل‌های وبسایت شما؟
           </h2>
           <p className="text-base text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            با دسترسی به داشبورد کامل تحلیلی Umami، بینش‌های جامع و گزارش‌های
-            دقیق عملکرد وبسایت خود را مشاهده کنید.
+            با دسترسی به پنل تحلیلی، آمار جامع و گزارش‌های دقیق عملکرد
+            وبسایت خود را مشاهده کنید.
           </p>
           <Link
             href="https://analytics.umami.is/share/your-id"
