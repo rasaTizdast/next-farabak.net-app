@@ -31,7 +31,7 @@ const Sidebar = () => {
     { name: "صفحات", href: "/admin/pages", icon: <FiFileText size={20} /> },
     {
       name: "گزارش‌ها",
-      href: "/admin/reports",
+      href: "/admin/analytics",
       icon: <FiBarChart2 size={20} />,
     },
     { name: "فاکتورها", href: "/admin/invoices", icon: <FiFile size={20} /> },
