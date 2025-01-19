@@ -1,21 +1,6 @@
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-
-type AdminInvoice = {
-  InvoiceId: string;
-  FactorGuid: string;
-  Fullname: string;
-  Phonenumber: string;
-  TotalAmount: number;
-  Date: string;
-  Checked: boolean;
-  Invoice_Details: {
-    ProductId: string;
-    quantity: number;
-    price: number;
-    total_price: number;
-  }[];
-};
+import { AdminInvoice } from "../../type";
 
 type Props = {
   invoice: AdminInvoice | null;

@@ -15,51 +15,24 @@ async function verifyToken(token: string) {
  * @swagger
  * /api/admin/invoices:
  *   get:
+ *     summary: Retrieve all invoices and their details
  *     tags:
- *       - Admin
- *     summary: Get all invoices with Admin access
- *     description: Returns all invoices along with their details with the admin role based on the userId from the HTTP-only cookie.
+ *      -Admin
+ *     security:
+ *       - cookieAuth: []
  *     responses:
  *       200:
- *         description: Lists all of the invoices with details
+ *         description: Successfully retrieved invoices.
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 type: object
- *                 properties:
- *                   InvoiceId:
- *                     type: string
- *                   FactorGuid:
- *                     type: string
- *                   Fullname:
- *                     type: string
- *                   Phonenumber:
- *                     type: string
- *                   TotalAmount:
- *                     type: number
- *                   Date:
- *                     type: string
- *                   Checked:
- *                     type: boolean
- *                   Invoice_Details:
- *                     type: array
- *                     items:
- *                       type: object
- *                       properties:
- *                         ProductId:
- *                           type: string
- *                         Quantity:
- *                           type: number
- *                         Price:
- *                           type: number
- *                         TotalPrice:
- *                           type: number
+ *                 $ref: '#/components/schemas/Invoice'
  *       401:
- *         description: Unauthorized - No valid userId found in the cookie
+ *         description: Unauthorized or missing token.
  *       500:
- *         description: Internal server error
+ *         description: Server error.
  */
 export async function GET(): Promise<NextResponse> {
   try {
@@ -80,12 +53,9 @@ export async function GET(): Promise<NextResponse> {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch invoices and their details
     const invoices = await prisma.invoice.findMany({
       orderBy: { Date: "desc" },
-      include: {
-        Invoice_Details: true, // Include associated products
-      },
+      include: { Invoice_Details: true },
     });
 
     return NextResponse.json(invoices, { status: 200 });
@@ -93,6 +63,149 @@ export async function GET(): Promise<NextResponse> {
     console.error("Error fetching invoices: ", error);
     return NextResponse.json(
       { message: "Failed to fetch invoices" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * @swagger
+ * /api/admin/invoices:
+ *   patch:
+ *     summary: Update the checked status of an invoice.
+ *     tags:
+ *      -Admin
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               invoiceId:
+ *                 type: integer
+ *               checked:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Successfully updated the invoice.
+ *       401:
+ *         description: Unauthorized or missing token.
+ *       500:
+ *         description: Server error.
+ */
+export async function PATCH(req: Request): Promise<NextResponse> {
+  try {
+    const cookieStore = cookies();
+    const token = cookieStore.get("accessToken")?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        { message: "Authorization token required" },
+        { status: 401 }
+      );
+    }
+
+    const decoded = await verifyToken(token);
+    const userRole = decoded.role;
+
+    if (!userRole || userRole !== "Admin") {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { Invoiceid, checked } = await req.json();
+    console.log("Received Payload:", { Invoiceid, checked });
+
+    if (typeof checked !== "boolean") {
+      return NextResponse.json(
+        { message: "Invalid data: 'checked' must be a boolean" },
+        { status: 400 }
+      );
+    }
+
+    const updatedInvoice = await prisma.invoice.update({
+      where: { Invoiceid: Invoiceid },
+      data: { Checked: checked },
+    });
+
+    return NextResponse.json(updatedInvoice, { status: 200 });
+  } catch (error) {
+    console.error("Error updating invoice: ", error);
+    return NextResponse.json(
+      { message: "Failed to update invoice" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * @swagger
+ * /api/admin/invoices:
+ *   delete:
+ *     summary: Delete an invoice and its details.
+ *     tags:
+ *      -Admin
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - name: invoiceId
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Successfully deleted the invoice.
+ *       401:
+ *         description: Unauthorized or missing token.
+ *       500:
+ *         description: Server error.
+ */
+export async function DELETE(req: Request): Promise<NextResponse> {
+  try {
+    const cookieStore = cookies();
+    const token = cookieStore.get("accessToken")?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        { message: "Authorization token required" },
+        { status: 401 }
+      );
+    }
+
+    const decoded = await verifyToken(token);
+    const userRole = decoded.role;
+
+    if (!userRole || userRole !== "Admin") {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const invoiceId = searchParams.get("invoiceId");
+
+    if (!invoiceId) {
+      return NextResponse.json(
+        { message: "Invoice ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Delete Invoice and associated details
+    await prisma.invoice_Details.deleteMany({
+      where: { Invoiceid: +invoiceId },
+    });
+    await prisma.invoice.delete({ where: { Invoiceid: +invoiceId } });
+
+    return NextResponse.json(
+      { message: "Invoice and its details successfully deleted" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting invoice: ", error);
+    return NextResponse.json(
+      { message: "Failed to delete invoice" },
       { status: 500 }
     );
   }

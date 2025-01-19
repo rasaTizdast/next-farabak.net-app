@@ -2,22 +2,12 @@
 
 import { useEffect, useState } from "react";
 import AdminInvoiceDetailsModal from "./components/ui/AdminInvoiceDetailsModal";
-
-type AdminInvoice = {
-  InvoiceId: string;
-  FactorGuid: string;
-  Fullname: string;
-  Phonenumber: string;
-  TotalAmount: number;
-  Date: string;
-  Checked: boolean;
-  Invoice_Details: {
-    ProductId: string;
-    quantity: number;
-    price: number;
-    total_price: number;
-  }[];
-};
+import AdminPhoneNumberModal from "./components/ui/AdminPhoneNumberModal";
+import ChangeStatusModal from "./components/ui/ChangeStatusModal";
+import DeleteInvoiceModal from "./components/ui/DeleteInvoiceModal";
+import axios from "axios";
+import { AdminInvoice } from "./type";
+import toast, { Toaster } from "react-hot-toast";
 
 const AdminInvoicesPage = () => {
   const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
@@ -26,25 +16,72 @@ const AdminInvoicesPage = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<AdminInvoice | null>(
     null
   );
+  const [showPhoneNumberModal, setShowPhoneNumberModal] =
+    useState<AdminInvoice | null>(null);
 
-  useEffect(() => {
-    const fetchInvoices = async () => {
-      try {
-        const response = await fetch("/api/admin/invoices");
-        if (!response.ok) {
-          throw new Error("Failed to fetch invoices.");
-        }
-        const data: AdminInvoice[] = await response.json();
-        setInvoices(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+  const [statusModalInvoice, setStatusModalInvoice] =
+    useState<AdminInvoice | null>(null);
+  const [deleteModalInvoice, setDeleteModalInvoice] =
+    useState<AdminInvoice | null>(null);
+
+  // Function to fetch invoices
+  const fetchInvoices = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/admin/invoices");
+      if (!response.ok) {
+        throw new Error("Failed to fetch invoices.");
       }
-    };
+      const data: AdminInvoice[] = await response.json();
+      setInvoices(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Initial data fetch
+  useEffect(() => {
     fetchInvoices();
   }, []);
+
+  // Handler to update invoice status
+  const handleStatusChange = async (Invoiceid: string, status: boolean) => {
+    const payload = { Invoiceid, checked: status };
+
+    try {
+      const response = await axios.patch(`/api/admin/invoices`, payload);
+
+      if (!response) {
+        throw new Error("Failed to update invoice status.");
+      }
+      await fetchInvoices(); // Refresh the invoice list
+      toast.success("وضعیت با موفقیت آپدیت شد");
+    } catch (error) {
+      toast.error("آپدیت فاکتور با شکست مواجه شد");
+    }
+  };
+
+  // Handler to delete an invoice
+  const handleDelete = async (Invoiceid: string) => {
+    try {
+      const response = await axios.delete(
+        `/api/admin/invoices?invoiceId=${Invoiceid}`
+      );
+      if (!response) {
+        throw new Error("Failed to delete invoice.");
+      }
+      await fetchInvoices(); // Refresh the invoice list
+      toast.success("فاکتور با موفقیت حذف شد");
+    } catch (error) {
+      toast.error("حذف فاکتور با شکست مواجه شد");
+    }
+  };
+
+  const handlePhoneNumberClick = (invoice: AdminInvoice) => {
+    setShowPhoneNumberModal(invoice);
+  };
 
   return (
     <div className="flex flex-col items-center p-4">
@@ -75,7 +112,7 @@ const AdminInvoicesPage = () => {
               <tbody className="bg-slate-900 text-center">
                 {invoices.map((invoice, index) => (
                   <tr
-                    key={invoice.InvoiceId}
+                    key={invoice.Invoiceid}
                     className={
                       index % 2 === 0 ? "bg-slate-700" : "bg-slate-800"
                     }
@@ -92,10 +129,22 @@ const AdminInvoicesPage = () => {
                       >
                         مشاهده فاکتور
                       </button>
-                      <button className="flex items-center justify-center w-fit gap-2 py-1 px-2 rounded-lg bg-green-200 hover:bg-green-300 transition-all text-gray-800">
-                        تماس با مشتری فاکتور
+                      <button
+                        className="flex items-center justify-center w-fit gap-2 py-1 px-2 rounded-lg bg-green-200 hover:bg-green-300 transition-all text-gray-800"
+                        onClick={() => handlePhoneNumberClick(invoice)} // Open phone number modal
+                      >
+                        تماس با مشتری
                       </button>
-                      <button className="flex items-center justify-center w-fit gap-2 py-1 px-2 rounded-lg bg-blue-200 hover:bg-blue-300 transition-all text-gray-800">
+                      <button
+                        className="flex items-center justify-center w-fit gap-2 py-1 px-2 rounded-lg bg-orange-200 hover:bg-orange-300 transition-all text-gray-800"
+                        onClick={() => setStatusModalInvoice(invoice)}
+                      >
+                        تغییر وضعیت
+                      </button>
+                      <button
+                        className="flex items-center justify-center w-fit gap-2 py-1 px-2 rounded-lg bg-blue-200 hover:bg-blue-300 transition-all text-gray-800"
+                        onClick={() => setDeleteModalInvoice(invoice)}
+                      >
                         حذف فاکتور
                       </button>
                     </td>
@@ -109,6 +158,27 @@ const AdminInvoicesPage = () => {
                 onClose={() => setSelectedInvoice(null)}
               />
             )}
+            {showPhoneNumberModal && (
+              <AdminPhoneNumberModal
+                invoice={showPhoneNumberModal}
+                onClose={() => setShowPhoneNumberModal(null)} // Close the modal
+              />
+            )}
+            {statusModalInvoice && (
+              <ChangeStatusModal
+                invoice={statusModalInvoice}
+                onClose={() => setStatusModalInvoice(null)}
+                onStatusChange={handleStatusChange}
+              />
+            )}
+            {deleteModalInvoice && (
+              <DeleteInvoiceModal
+                invoice={deleteModalInvoice}
+                onClose={() => setDeleteModalInvoice(null)}
+                onDelete={handleDelete}
+              />
+            )}
+            <Toaster position="bottom-center" />
           </>
         )}
       </div>
