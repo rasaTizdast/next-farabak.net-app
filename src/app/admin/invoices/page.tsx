@@ -87,7 +87,52 @@ const AdminInvoicesPage = () => {
     <div className="flex flex-col items-center p-4">
       <div className="w-full max-w-[1800px] overflow-auto rounded-lg">
         {loading ? (
-          <div className="text-gray-100">در حال بارگذاری...</div>
+          <table className="w-full table-auto border-collapse text-gray-100 whitespace-nowrap">
+            <thead className="uppercase bg-slate-900">
+              <tr>
+                <th scope="col" className="px-6 py-3">
+                  شناسه فاکتور
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  مشتری فاکتور
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  وضعیت
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  عملیات‌ها
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-slate-900 text-center">
+              {Array.from({ length: 15 }).map((_, index) => (
+                <tr
+                  key={index}
+                  className={`animate-pulse ${
+                    index % 2 === 0 ? "bg-slate-700" : "bg-slate-800"
+                  }`}
+                >
+                  <td className="w-full px-6 py-4">
+                    <div className="w-full h-4 bg-slate-600 rounded"></div>
+                  </td>
+                  <td className="w-full px-6 py-4">
+                    <div className="w-24 h-4 bg-slate-600 rounded"></div>
+                  </td>
+                  <td className="w-full px-6 py-4">
+                    <div className="w-20 h-4 bg-slate-600 rounded"></div>
+                  </td>
+                  <td className="w-full px-6 py-4 flex justify-center gap-3">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="w-20 h-8 bg-slate-600 rounded"
+                      ></div>
+                    ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         ) : error ? (
           <div className="text-red-500">خطا: {error}</div>
         ) : (
@@ -131,7 +176,7 @@ const AdminInvoicesPage = () => {
                       </button>
                       <button
                         className="flex items-center justify-center w-fit gap-2 py-1 px-2 rounded-lg bg-green-200 hover:bg-green-300 transition-all text-gray-800"
-                        onClick={() => handlePhoneNumberClick(invoice)} // Open phone number modal
+                        onClick={() => handlePhoneNumberClick(invoice)}
                       >
                         تماس با مشتری
                       </button>
@@ -161,7 +206,7 @@ const AdminInvoicesPage = () => {
             {showPhoneNumberModal && (
               <AdminPhoneNumberModal
                 invoice={showPhoneNumberModal}
-                onClose={() => setShowPhoneNumberModal(null)} // Close the modal
+                onClose={() => setShowPhoneNumberModal(null)}
               />
             )}
             {statusModalInvoice && (
