@@ -124,14 +124,22 @@ export async function GET(request: Request) {
   try {
     const conditions: any = {};
 
+    // Query search logic
     if (query.trim()) {
-      const keywords = query.trim().split(/\s+/); // Split query into individual words
-      conditions.OR = keywords.map((keyword) => ({
+      conditions.OR = [
+        { Type: { equals: query.trim(), mode: "insensitive" } }, // Match Type exactly
+        { Slug: { equals: query.trim(), mode: "insensitive" } }, // Match Slug exactly
+      ];
+    }
+
+    // If no products match Type or Slug, include Description search
+    if (query.trim()) {
+      conditions.OR.push({
         Description: {
-          contains: keyword,
-          mode: "insensitive", // Case-insensitive matching
+          contains: query.trim(),
+          mode: "insensitive", // Case-insensitive matching for descriptions
         },
-      }));
+      });
     }
 
     if (category > 0) {
@@ -140,12 +148,15 @@ export async function GET(request: Request) {
 
     if (subcategory) {
       const subcategoryIds = subcategory.split(",").map((id) => id.trim());
-      conditions.OR = subcategoryIds.map((id) => ({
-        CategoryContentId: {
-          contains: id,
-          mode: "insensitive", // Optional, for case-insensitivity
-        },
-      }));
+      conditions.OR = [
+        ...(conditions.OR || []),
+        ...subcategoryIds.map((id) => ({
+          CategoryContentId: {
+            contains: id,
+            mode: "insensitive",
+          },
+        })),
+      ];
     }
 
     if (available && available !== "all") {
@@ -190,14 +201,21 @@ export async function GET(request: Request) {
           },
         });
 
+        // Sort subcategories to match the order in categoryContentIds
+        const sortedSubCategories = categoryContentIds
+          .map((id) =>
+            subCategories.find((sub) => sub.CategoryContentId === id)
+          )
+          .filter(Boolean); // Filter out any undefined matches
+
         const subCategoryName =
-          subCategories.length > 0
-            ? subCategories.map((sub) => sub.Name).join(", ")
+          sortedSubCategories.length > 0
+            ? sortedSubCategories.map((sub) => sub!.Name).join(", ")
             : null;
 
-        const categoryContentDetails = subCategories.map((sub) => ({
-          CategoryContentId: sub.CategoryContentId,
-          Name: sub.Name || "",
+        const categoryContentDetails = sortedSubCategories.map((sub) => ({
+          CategoryContentId: sub!.CategoryContentId,
+          Name: sub!.Name || "",
         }));
 
         const {
@@ -221,7 +239,7 @@ export async function GET(request: Request) {
           productSlug: Slug || "",
           Price: parseFloat(Price || "0"),
           Available: Available || false,
-          link: `${categorySlug}/${subCategories[0]?.Slug || ""}/${Slug}`,
+          link: `${categorySlug}/${sortedSubCategories[0]?.Slug || ""}/${Slug}`,
           CategoryContentIds: categoryContentDetails,
           ...rest, // Include remaining untouched fields
         };

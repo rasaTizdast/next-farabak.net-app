@@ -126,7 +126,7 @@ const SearchResults = ({
               width={280}
               height={280}
               quality={100}
-              src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/productImages/${product.productSlug}/${product.productSlug}-mini.webp`}
+              src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/productImages/${product.img1}`}
               alt={product.name}
             />
             <p>{product.Type}</p>

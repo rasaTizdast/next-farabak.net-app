@@ -96,47 +96,47 @@ const CategoryTable = ({
     setConfirmationText(""); // Clear the confirmation text
   };
 
-  const handleItemUpdate = async (updatedItem: Category | Subcategory) => {
-    const isCategory =
-      "CategoryID" in updatedItem && !("CategoryContentId" in updatedItem);
-    const endpoint = `/api/categories/editCategory`;
-    const payload = isCategory
-      ? {
-          Type: "category",
-          CategoryID: updatedItem.CategoryID,
-          Name: updatedItem.Name,
-          Slug: updatedItem.Slug,
-          Available: updatedItem.Available,
-          SEO_Details: {
-            SEO_Title: updatedItem.SEO_Details.SEO_Title,
-            SEO_Description: updatedItem.SEO_Details.SEO_Description,
-            SEO_Keywords: updatedItem.SEO_Details.SEO_Keywords,
-          },
-        }
-      : {
-          Type: "subcategory",
-          CategoryContentId: updatedItem.CategoryContentId,
-          CategoryID: updatedItem.CategoryID,
-          Name: updatedItem.Name,
-          Slug: updatedItem.Slug,
-          Available: updatedItem.Available,
-          SEO_Details: {
-            SEO_Title: updatedItem.SEO_Details.SEO_Title,
-            SEO_Description: updatedItem.SEO_Details.SEO_Description,
-            SEO_Keywords: updatedItem.SEO_Details.SEO_Keywords,
-          },
-        };
+  // const handleItemUpdate = async (updatedItem: Category | Subcategory) => {
+  //   const isCategory =
+  //     "CategoryID" in updatedItem && !("CategoryContentId" in updatedItem);
+  //   const endpoint = `/api/categories/editCategory`;
+  //   const payload = isCategory
+  //     ? {
+  //         Type: "category",
+  //         CategoryID: updatedItem.CategoryID,
+  //         Name: updatedItem.Name,
+  //         Slug: updatedItem.Slug,
+  //         Available: updatedItem.Available,
+  //         SEO_Details: {
+  //           SEO_Title: updatedItem.SEO_Details.SEO_Title,
+  //           SEO_Description: updatedItem.SEO_Details.SEO_Description,
+  //           SEO_Keywords: updatedItem.SEO_Details.SEO_Keywords,
+  //         },
+  //       }
+  //     : {
+  //         Type: "subcategory",
+  //         CategoryContentId: updatedItem.CategoryContentId,
+  //         CategoryID: updatedItem.CategoryID,
+  //         Name: updatedItem.Name,
+  //         Slug: updatedItem.Slug,
+  //         Available: updatedItem.Available,
+  //         SEO_Details: {
+  //           SEO_Title: updatedItem.SEO_Details.SEO_Title,
+  //           SEO_Description: updatedItem.SEO_Details.SEO_Description,
+  //           SEO_Keywords: updatedItem.SEO_Details.SEO_Keywords,
+  //         },
+  //       };
 
-    try {
-      await axios.patch(endpoint, payload);
-      toast.success("تغییرات با موفقیت اعمال شدند!");
-      refetchCategories();
-      setEditCategory(null);
-      setIsEditModalOpen(false);
-    } catch (error) {
-      toast.error("خطا در بروزرسانی، لطفا مجددا تلاش کنید.");
-    }
-  };
+  //   try {
+  //     await axios.patch(endpoint, payload);
+  //     toast.success("تغییرات با موفقیت اعمال شدند!");
+  //     refetchCategories();
+  //     setEditCategory(null);
+  //     setIsEditModalOpen(false);
+  //   } catch (error) {
+  //     toast.error("خطا در بروزرسانی، لطفا مجددا تلاش کنید.");
+  //   }
+  // };
 
   const handleDeleteConfirm = async () => {
     if (!deleteItem) return;
@@ -251,10 +251,13 @@ const CategoryTable = ({
           isOpen={isEditModalOpen}
           item={editCategory}
           onClose={handleModalClose}
-          onSave={handleItemUpdate}
+          // onSave={handleItemUpdate}
           onChange={(updatedFields) =>
             setEditCategory((prev) => ({ ...prev!, ...updatedFields }))
           }
+          refetchCategories={refetchCategories}
+          setIsEditModalOpen={setIsEditModalOpen}
+          setEditCategory={setEditCategory}
         />
 
         {/* Delete Modal */}
