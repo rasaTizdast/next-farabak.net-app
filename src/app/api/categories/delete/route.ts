@@ -149,7 +149,6 @@ async function deleteCategory(categoryId: number) {
       where: { CategoryID: categoryId },
     });
   } catch (error) {
-    console.error("Error during category deletion:", error);
     throw new Error("Failed to delete category.");
   }
 }
@@ -191,10 +190,8 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ message: "Deletion successful." });
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error("Error during deletion:", error.message);
       return new NextResponse("Error during deletion", { status: 500 });
     } else {
-      console.error("Unexpected error:", error);
       return new NextResponse("Unexpected error during deletion", {
         status: 500,
       });

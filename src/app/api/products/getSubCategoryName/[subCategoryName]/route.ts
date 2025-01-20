@@ -76,7 +76,6 @@ export async function GET(
     // Return the subCategory name in the response
     return NextResponse.json({ subCategoryName });
   } catch (error) {
-    console.error("Error fetching category name: ", error);
     return new NextResponse("Failed to fetch category name", {
       status: 500,
     });

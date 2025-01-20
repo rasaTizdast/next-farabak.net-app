@@ -35,7 +35,6 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error updating QR Code details:", error);
     return NextResponse.json(
       { error: "An error occurred while updating QR Code details" },
       { status: 500 }
@@ -74,7 +73,6 @@ export async function DELETE(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error removing QR Code details:", error);
     return NextResponse.json(
       { error: "An error occurred while removing QR Code details" },
       { status: 500 }

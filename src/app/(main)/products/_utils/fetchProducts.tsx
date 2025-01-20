@@ -9,7 +9,6 @@ export const fetchProducts = async (url: string) => {
 
     return response.data;
   } catch (error) {
-    console.error(error);
     notFound();
   }
 };

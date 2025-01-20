@@ -165,7 +165,6 @@ export async function DELETE(req: Request): Promise<NextResponse> {
             { status: 200 }
           );
         } catch (error) {
-          console.error("Failed to delete image:", error);
 
           return NextResponse.json(
             { message: "Failed to delete image.", error },
@@ -209,7 +208,6 @@ export async function DELETE(req: Request): Promise<NextResponse> {
             { status: 200 }
           );
         } catch (error) {
-          console.error("Failed to delete folder contents:", error);
           return NextResponse.json(
             { message: "Failed to delete folder contents.", error },
             { status: 500 }
@@ -244,7 +242,6 @@ export async function DELETE(req: Request): Promise<NextResponse> {
           );
         }
       } catch (error) {
-        console.error("Failed to delete image:", error);
         return NextResponse.json(
           { message: "Failed to delete image.", error },
           { status: 500 }
@@ -257,7 +254,6 @@ export async function DELETE(req: Request): Promise<NextResponse> {
       );
     }
   } catch (error) {
-    console.error("Unexpected error occurred:", error);
     return NextResponse.json(
       { message: "An unexpected error occurred.", error },
       { status: 500 }

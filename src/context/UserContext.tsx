@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
@@ -41,7 +41,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await axios.get("/api/auth/profile");
       setUser(response.data); // Set the user data in context
     } catch (error) {
-      console.error("Error fetching user data", error);
+      throw new Error("Error fetching user data");
     } finally {
       setLoading(false); // Stop loading once the fetch is complete
     }

@@ -41,7 +41,6 @@ export const generateMetadata = async ({
       },
     };
   } catch (error) {
-    console.error("Error fetching category data for metadata:", error);
     return {
       title: "دسته بندی یافت نشد!",
       description: "دسته بندی مورد نظر یافت نشد!",
@@ -71,7 +70,6 @@ const CategoryPage = async ({ params }: CategoryPageProps) => {
 
     categoryTitle = res.data.categoryName;
   } catch (error) {
-    console.error("Error fetching category data:", error);
     notFound(); // Trigger 404 page if category not found
   }
 

@@ -17,7 +17,6 @@ async function getProductSpecs(productId: number) {
     if (!res) throw new Error("Failed to fetch specs");
     return res.data.data;
   } catch (error) {
-    console.error("Error fetching product specs:", error);
     return [];
   }
 }

@@ -139,7 +139,6 @@ export async function PUT(req: Request) {
       message: "Product overview details updated successfully",
     });
   } catch (error) {
-    console.error("Error updating product overview details:", error);
     return NextResponse.json(
       { error: "Internal server error. Please try again later." },
       { status: 500 }

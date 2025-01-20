@@ -48,7 +48,6 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
         })
         .catch((error) => {
           if (isMounted) {
-            console.error(error);
             setErrors({ apiError: "خطا در بارگذاری اطلاعات" });
           }
         })

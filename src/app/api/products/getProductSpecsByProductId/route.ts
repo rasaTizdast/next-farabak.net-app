@@ -78,7 +78,6 @@ export async function GET(request: Request) {
     // Return the specifications
     return NextResponse.json({ data: specs });
   } catch (error) {
-    console.error("Error fetching product specifications: ", error);
     return new NextResponse("Failed to fetch product specifications", {
       status: 500,
     });

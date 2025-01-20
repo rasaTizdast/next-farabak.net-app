@@ -48,7 +48,6 @@ const ChangePassword = () => {
         error.response?.data?.message ||
         "خطایی رخ داد. لطفا دوباره امتحان کنید.";
       toast.error(errorMessage);
-      console.error("Error changing password:", error.message);
     }
   };
 

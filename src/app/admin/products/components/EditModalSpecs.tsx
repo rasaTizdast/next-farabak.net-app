@@ -81,7 +81,7 @@ const EditModalSpecs = ({ productId, productName, specs, setSpecs }: Props) => {
 
   return (
     <div className="flex flex-col gap-5 col-span-1 sm:col-span-2 border-y-4 border-y-gray-200 my-5 py-5">
-      <div className="mb-3">جزئیات بررسی</div>
+      <div className="mb-3">مشخصات</div>
       {specs?.data.map((spec, index) => (
         <div
           key={spec.ProductSpecsId}

@@ -60,7 +60,6 @@ export async function GET() {
 
     return NextResponse.json({ categories: formattedCategories });
   } catch (error) {
-    console.error("Error fetching categories and subcategories:", error);
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 }

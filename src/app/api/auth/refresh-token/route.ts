@@ -161,7 +161,6 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     return response;
   } catch (error) {
-    console.error("Error during token refresh:", error);
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 }

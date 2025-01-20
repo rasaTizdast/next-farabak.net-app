@@ -113,7 +113,6 @@ export async function GET() {
 
     return NextResponse.json(categoriesWithSubcategoriesAndSEO);
   } catch (error) {
-    console.error("Error fetching categories and subcategories: ", error);
     return new NextResponse("Failed to fetch categories", { status: 500 });
   }
 }

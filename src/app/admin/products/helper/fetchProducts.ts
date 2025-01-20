@@ -58,7 +58,6 @@ const fetchProducts = async ({
       currentPage: pagination.currentPage,
     });
   } catch (error) {
-    console.error("Error fetching products:", error);
     toast.error("خطا در بارگذاری محصولات.");
     setNotFound(true);
   } finally {

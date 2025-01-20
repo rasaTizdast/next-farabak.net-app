@@ -257,7 +257,6 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error("Error fetching products:", error);
     return new NextResponse("Failed to fetch products", { status: 500 });
   }
 }

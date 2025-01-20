@@ -64,7 +64,6 @@ export async function POST(request: NextRequest) {
 
   // Construct the file URL
   const fileUrl = `/uploads/${file.name}`;
-  console.log(`File uploaded: ${fileUrl}`);
 
   return NextResponse.json({ success: 1, file: { url: fileUrl } });
 }

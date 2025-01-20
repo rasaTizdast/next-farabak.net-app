@@ -301,7 +301,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
           specs: specs?.data,
         });
       } catch (error) {
-        console.log(error);
+        toast.error("اپدیت بررسی ها به مشکل  برخورد، مجددا تلاش کنید");
       }
 
       try {
@@ -311,7 +311,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
           selectedDetails: overviewDetails,
         });
       } catch (error) {
-        console.error("Failed to update product overview details:");
+        toast.error("آپدیت جزئیات بررسی به مشکل خورده است.");
       }
 
       toast.success("محصول مورد نظر با موفقیت آپدیت شد!");

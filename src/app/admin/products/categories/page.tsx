@@ -22,7 +22,7 @@ const ProductCategories = () => {
       const data = await res.json();
       setCategories(data);
     } catch (error) {
-      console.error("Failed to fetch categories:", error);
+      throw new Error("Failed to fetch categories:");
     } finally {
       setIsLoading(false);
     }

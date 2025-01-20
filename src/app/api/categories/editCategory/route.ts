@@ -186,7 +186,6 @@ export async function PATCH(req: Request) {
   } catch (error: unknown) {
     // Explicitly type the error
     const errorMessage = (error as Error).message || "Unknown error occurred";
-    console.error("Error updating category or subcategory:", errorMessage);
     return NextResponse.json(
       { message: "Internal server error", error: errorMessage },
       { status: 500 }

@@ -35,7 +35,7 @@ const AdminPage = () => {
         const data = await response.json();
         setReportData(data);
       } else {
-        console.error("Failed to fetch report data");
+        throw new Error("Failed to fetch report data");
       }
     };
 

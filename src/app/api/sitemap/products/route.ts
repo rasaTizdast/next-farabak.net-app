@@ -69,7 +69,6 @@ export async function GET() {
 
     return NextResponse.json({ urls });
   } catch (error) {
-    console.error("Error generating sitemap: ", error);
     return new NextResponse("Failed to generate sitemap", { status: 500 });
   }
 }

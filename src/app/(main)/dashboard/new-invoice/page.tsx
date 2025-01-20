@@ -34,11 +34,8 @@ const NewInvoicePage = () => {
       }
     } catch (error) {
       toast.error("پروسه اضافه شدن فاکتور با شکست مواجه شد، دوباره تلاش کنید!");
-      console.error(error);
     }
   };
-
-  console.log(invoice);
 
   return (
     <>

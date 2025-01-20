@@ -41,7 +41,6 @@ export async function POST(): Promise<NextResponse> {
 
     return response;
   } catch (error) {
-    console.error("Error during logout:", error);
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 }

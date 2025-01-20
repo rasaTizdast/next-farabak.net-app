@@ -60,33 +60,23 @@ import { prisma } from "@/lib/prisma"; // Ensure your Prisma client is set up co
 
 export async function POST(req: NextRequest) {
   try {
-    console.log("Endpoint triggered: /api/products/submitProductSpecs");
-
     // Parse the request body
     const body = await req.json();
-    console.log("Request body:", body);
 
     const { productId, specs } = body;
 
     // Validate input
     if (!productId || !Array.isArray(specs)) {
-      console.error("Invalid input: productId or specs is missing.", {
-        productId,
-        specs,
-      });
       return NextResponse.json(
         { message: "Invalid input: productId or specs is missing." },
         { status: 400 }
       );
     }
 
-    console.log("Validated input:", { productId, specs });
-
     // Fetch existing specs for the product
     const existingSpecs = await prisma.productSpecs.findMany({
       where: { ProductId: productId },
     });
-    console.log("Existing specs in database:", existingSpecs);
 
     const existingSpecIds = existingSpecs.map((spec) => spec.ProductSpecsId);
     const incomingSpecIds = specs.map((spec) => spec.ProductSpecsId);
@@ -95,18 +85,16 @@ export async function POST(req: NextRequest) {
     const specsToDelete = existingSpecs.filter(
       (spec) => !incomingSpecIds.includes(spec.ProductSpecsId)
     );
-    console.log("Specs to delete:", specsToDelete);
 
     // Delete specs that are no longer in the incoming list
     if (specsToDelete.length > 0) {
-      const deleteResult = await prisma.productSpecs.deleteMany({
+      await prisma.productSpecs.deleteMany({
         where: {
           ProductSpecsId: {
             in: specsToDelete.map((spec) => spec.ProductSpecsId),
           },
         },
       });
-      console.log("Delete result:", deleteResult);
     }
 
     // Add or update incoming specs
@@ -115,9 +103,8 @@ export async function POST(req: NextRequest) {
         spec.ProductSpecsId &&
         existingSpecIds.includes(spec.ProductSpecsId)
       ) {
-        console.log("Updating spec:", spec);
         // Update existing spec
-        const updateResult = await prisma.productSpecs.update({
+        await prisma.productSpecs.update({
           where: { ProductSpecsId: spec.ProductSpecsId },
           data: {
             Name: spec.Name,
@@ -127,11 +114,9 @@ export async function POST(req: NextRequest) {
             ModifyDate: new Date(),
           },
         });
-        console.log("Update result:", updateResult);
       } else {
-        console.log("Creating new spec:", spec);
         // Create new spec
-        const createResult = await prisma.productSpecs.create({
+        await prisma.productSpecs.create({
           data: {
             ProductId: productId,
             Name: spec.Name,
@@ -141,17 +126,14 @@ export async function POST(req: NextRequest) {
             InsertDate: new Date(),
           },
         });
-        console.log("Create result:", createResult);
       }
     }
 
-    console.log("All specifications processed successfully.");
     return NextResponse.json(
       { message: "Specifications updated successfully." },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error handling product specs submission:", error);
     return NextResponse.json(
       { message: "Internal server error.", error },
       { status: 500 }

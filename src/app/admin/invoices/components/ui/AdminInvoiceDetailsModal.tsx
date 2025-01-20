@@ -53,7 +53,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose }: Props) => {
 
         setProductNames(names);
       } catch (error) {
-        console.error("Error fetching product names:", error);
+        throw new Error("Error fetching product names:");
       }
     };
 

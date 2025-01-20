@@ -31,7 +31,7 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
         const { data } = await axios.get("/api/admin/products/filterData");
         setCategories(data.categories); // API sends categories with subcategories
       } catch (error) {
-        console.error("Error fetching categories and subcategories:", error);
+        throw new Error("Error fetching categories and subcategories:");
       } finally {
         setIsLoading(false);
       }
