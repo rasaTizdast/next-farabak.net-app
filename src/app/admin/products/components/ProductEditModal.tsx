@@ -307,7 +307,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
       try {
         await axios.put("/api/productOverviewDetails/update", {
           productId: updatedFormState.ProductId,
-          ProductName: updatedFormState.Name,
+          ProductName: updatedFormState.Type,
           selectedDetails: overviewDetails,
         });
       } catch (error) {
