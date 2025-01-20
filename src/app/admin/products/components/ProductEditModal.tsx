@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Product } from "../types";
+import { Overview, Product } from "../types";
 import axios from "axios";
 import toast from "react-hot-toast";
 import ImageInput from "./ImageInput";
 import { CgSpinnerTwo } from "react-icons/cg";
+import EditModalOverview from "./EditModalOverview";
 
 type Category = {
   CategoryID: number;
@@ -33,6 +34,11 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const [newImg2, setNewImg2] = useState<File | null>(null);
   const [isLoading, setIsloading] = useState<boolean>(false);
 
+  const [overviews, setOverviews] = useState<Overview | null>(null);
+  const [overviewDetails, setOverviewDetails] = useState(null);
+  const [specs, setSpecs] = useState(null);
+  const [faq, setFaq] = useState(null);
+
   useEffect(() => {
     axios
       .get("/api/categories/getAll")
@@ -42,7 +48,6 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
           "در دریافت دسته بندی ها مشکلی به وجود آمده است، دوباره تلاش کنید"
         )
       );
-    console.log("product: ", product);
     setFormState(product);
   }, []);
 
@@ -274,6 +279,19 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
         );
       }
 
+      if (overviews?.isChanged) {
+        await axios.post("/api/productOverview", {
+          ProductId: formState.ProductId,
+          ProductName: formState.Name,
+          Features: [
+            overviews.Property1,
+            overviews.Property2,
+            overviews.Property3,
+            overviews.Property4,
+          ],
+        });
+      }
+
       toast.success("محصول مورد نظر با موفقیت آپدیت شد!");
       refetchProducts();
     } catch (error) {
@@ -445,6 +463,12 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               label="تصویر بنر"
               imageUrl={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/productImages/${formState.img2}`}
               onChange={setNewImg2}
+            />
+
+            <EditModalOverview
+              ProductId={formState.ProductId}
+              overviews={overviews}
+              SetOverviews={setOverviews}
             />
 
             <InputField
