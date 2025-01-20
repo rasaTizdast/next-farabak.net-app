@@ -15,8 +15,6 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
       .then((data) => SetOverviews(data.data));
   }, []);
 
-  console.log(overviews);
-
   const inputHandler = (
     e:
       | React.ChangeEvent<
