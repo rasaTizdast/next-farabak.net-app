@@ -1,6 +1,72 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma"; // Adjust path to your Prisma instance
 
+/**
+ * @swagger
+ * /api/productOverviewDetails/update:
+ *   put:
+ *     summary: Update product overview details.
+ *     description: Updates the product overview details by adding or removing associations with the provided details.
+ *     tags:
+ *       - productOverviewDetails
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               productId:
+ *                 type: integer
+ *                 description: ID of the product to update.
+ *                 example: 101
+ *               selectedDetails:
+ *                 type: array
+ *                 description: Array of details to associate with the product.
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     ProductOverviewDetailsId:
+ *                       type: integer
+ *                       description: ID of the product overview detail.
+ *                       example: 201
+ *               ProductName:
+ *                 type: string
+ *                 description: Name of the product.
+ *                 example: "Sample Product"
+ *     responses:
+ *       200:
+ *         description: Product overview details updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Product overview details updated successfully"
+ *       400:
+ *         description: Invalid input data.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Invalid input. 'productId' and 'selectedDetails' are required."
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal server error. Please try again later."
+ */
+
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
