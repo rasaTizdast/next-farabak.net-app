@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Overview, OverviewDetail, Product } from "../types";
+import { Overview, OverviewDetail, Product, Specs } from "../types";
 import axios from "axios";
 import toast from "react-hot-toast";
 import ImageInput from "./ImageInput";
 import { CgSpinnerTwo } from "react-icons/cg";
 import EditModalOverview from "./EditModalOverview";
 import EditModalOverviewDetails from "./EditModalOverviewDetails";
+import EditModalSpecs from "./EditModalSpecs";
 
 type Category = {
   CategoryID: number;
@@ -39,8 +40,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const [overviewDetails, setOverviewDetails] = useState<
     OverviewDetail[] | null
   >(null);
-  const [specs, setSpecs] = useState(null);
-  const [faq, setFaq] = useState(null);
+  const [specs, setSpecs] = useState<Specs | null>(null);
 
   useEffect(() => {
     axios
@@ -296,12 +296,20 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
       }
 
       try {
-        const response = await axios.put("/api/productOverviewDetails/update", {
+        await axios.post("/api/specs/update", {
+          productId: formState.ProductId,
+          specs: specs?.data,
+        });
+      } catch (error) {
+        console.log(error);
+      }
+
+      try {
+        await axios.put("/api/productOverviewDetails/update", {
           productId: updatedFormState.ProductId,
           ProductName: updatedFormState.Name,
           selectedDetails: overviewDetails,
         });
-        console.log(response.data.message);
       } catch (error) {
         console.error("Failed to update product overview details:");
       }
@@ -583,6 +591,14 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               value={formState.SEO_Description}
               onChange={handleInputChange}
             />
+
+            <EditModalSpecs
+              productId={formState.ProductId}
+              productName={formState.Name}
+              specs={specs}
+              setSpecs={setSpecs}
+            />
+
             <div className="col-span-1 sm:col-span-2 flex justify-end gap-6">
               <button
                 type="button"

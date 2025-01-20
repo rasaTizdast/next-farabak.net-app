@@ -43,3 +43,14 @@ export type OverviewDetail = {
   ProductName: string;
   selected: boolean;
 };
+
+export type Specs = {
+  data: {
+    ProductSpecsId: number;
+    Name: string;
+    Title: string;
+    Description: string;
+    ProductId: number;
+    Available: boolean;
+  }[];
+};
