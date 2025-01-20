@@ -34,3 +34,12 @@ export type Overview = {
   Property4: string;
   isChanged: true;
 };
+
+export type OverviewDetail = {
+  ProductOverviewDetailsId: number;
+  Title: string;
+  Description: string;
+  Img: string;
+  ProductName: string;
+  selected: boolean;
+};

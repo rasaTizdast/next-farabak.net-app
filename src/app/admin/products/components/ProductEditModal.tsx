@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Overview, Product } from "../types";
+import { Overview, OverviewDetail, Product } from "../types";
 import axios from "axios";
 import toast from "react-hot-toast";
 import ImageInput from "./ImageInput";
 import { CgSpinnerTwo } from "react-icons/cg";
 import EditModalOverview from "./EditModalOverview";
+import EditModalOverviewDetails from "./EditModalOverviewDetails";
 
 type Category = {
   CategoryID: number;
@@ -35,7 +36,9 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const [isLoading, setIsloading] = useState<boolean>(false);
 
   const [overviews, setOverviews] = useState<Overview | null>(null);
-  const [overviewDetails, setOverviewDetails] = useState(null);
+  const [overviewDetails, setOverviewDetails] = useState<
+    OverviewDetail[] | null
+  >(null);
   const [specs, setSpecs] = useState(null);
   const [faq, setFaq] = useState(null);
 
@@ -292,6 +295,17 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
         });
       }
 
+      try {
+        const response = await axios.put("/api/productOverviewDetails/update", {
+          productId: updatedFormState.ProductId,
+          ProductName: updatedFormState.Name,
+          selectedDetails: overviewDetails,
+        });
+        console.log(response.data.message);
+      } catch (error) {
+        console.error("Failed to update product overview details:");
+      }
+
       toast.success("محصول مورد نظر با موفقیت آپدیت شد!");
       refetchProducts();
     } catch (error) {
@@ -469,6 +483,12 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               ProductId={formState.ProductId}
               overviews={overviews}
               SetOverviews={setOverviews}
+            />
+
+            <EditModalOverviewDetails
+              productId={formState.ProductId}
+              productOverviewDetails={overviewDetails}
+              setProductOverviewDetails={setOverviewDetails}
             />
 
             <InputField

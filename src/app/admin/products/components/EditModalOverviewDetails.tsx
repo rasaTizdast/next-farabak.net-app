@@ -16,9 +16,9 @@ const EditModalOverviewDetails = ({
   productOverviewDetails,
   setProductOverviewDetails,
 }: Props) => {
-  const [allOverviewDetails, setAllOverviewDetails] = useState<OverviewDetail[]>(
-    []
-  );
+  const [allOverviewDetails, setAllOverviewDetails] = useState<
+    OverviewDetail[]
+  >([]);
   const [selectedDetail, setSelectedDetail] = useState<OverviewDetail | null>(
     null
   );
@@ -26,14 +26,19 @@ const EditModalOverviewDetails = ({
   const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
-    // Fetch all overview details
-    const fetchAllDetails = axios.get("/api/productOverviewDetails/getAll");
-    // Fetch product's selected overview details
-    const fetchProductDetails = axios.get(
-      `/api/productOverviewDetails/getProductOverviewDetails/${productId}`
-    );
+    const fetchAllDetailsPromise = axios
+      .get("/api/productOverviewDetails/getAll")
+      .catch((error) => {
+        return { data: [] }; // Return an empty array to avoid breaking the mapping logic
+      });
 
-    Promise.all([fetchAllDetails, fetchProductDetails])
+    const fetchProductDetailsPromise = axios
+      .get(`/api/productOverviewDetails/getProductOverviewDetails/${productId}`)
+      .catch((error) => {
+        return { data: [] }; // Return an empty array if it fails
+      });
+
+    Promise.all([fetchAllDetailsPromise, fetchProductDetailsPromise])
       .then(([allDetailsRes, productDetailsRes]) => {
         const productDetails = productDetailsRes.data;
         const allDetails = allDetailsRes.data;
@@ -50,10 +55,10 @@ const EditModalOverviewDetails = ({
         setAllOverviewDetails(updatedDetails);
         setProductOverviewDetails(productDetails); // Ensure parent state is updated
       })
-      .catch(() =>
-        toast.error("در دریافت اطلاعات مشکلی وجود دارد")
-      );
-  }, [productId, setProductOverviewDetails]);
+      .catch((error) => {
+        toast.error("در دریافت اطلاعات بررسی محصول مشکلی وجود دارد");
+      });
+  }, [productId]);
 
   const toggleSelection = (detailId: number) => {
     const updatedDetails = allOverviewDetails.map((detail) =>
