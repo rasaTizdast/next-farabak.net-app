@@ -487,7 +487,6 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
 
             <EditModalOverviewDetails
               productId={formState.ProductId}
-              productOverviewDetails={overviewDetails}
               setProductOverviewDetails={setOverviewDetails}
             />
 

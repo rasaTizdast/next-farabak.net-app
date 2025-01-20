@@ -7,13 +7,11 @@ import { OverviewDetail } from "../types";
 
 type Props = {
   productId: number;
-  productOverviewDetails: OverviewDetail[] | null;
   setProductOverviewDetails: (arg0: OverviewDetail[]) => void;
 };
 
 const EditModalOverviewDetails = ({
   productId,
-  productOverviewDetails,
   setProductOverviewDetails,
 }: Props) => {
   const [allOverviewDetails, setAllOverviewDetails] = useState<
