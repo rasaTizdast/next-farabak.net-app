@@ -11,7 +11,6 @@ async function getProductFeatures(productId: number) {
     if (!res) throw new Error("Failed to fetch features");
     return res.data;
   } catch (error) {
-    console.error("Error fetching product features:", error);
     return null;
   }
 }

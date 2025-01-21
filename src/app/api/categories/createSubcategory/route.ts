@@ -145,7 +145,6 @@ export async function POST(req: Request) {
       subcategory,
     });
   } catch (error) {
-    console.error("Error creating subcategory:", error);
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }

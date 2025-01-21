@@ -116,7 +116,6 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     return response;
   } catch (error) {
-    console.error("Error during login:", error);
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 }

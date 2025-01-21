@@ -98,7 +98,6 @@ export async function GET(): Promise<NextResponse> {
       invoiceStatusCount,
     });
   } catch (error) {
-    console.error("Error fetching landing report: ", error);
     return new NextResponse("Failed to fetch landing report", { status: 500 });
   }
 }

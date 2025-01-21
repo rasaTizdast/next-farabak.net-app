@@ -93,7 +93,6 @@ export async function GET(): Promise<NextResponse> {
 
     return NextResponse.json(invoices, { status: 200 });
   } catch (error) {
-    console.error("Error fetching invoices: ", error);
     return NextResponse.json(
       { message: "Failed to fetch invoices" },
       { status: 500 }
@@ -229,7 +228,6 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Error creating invoice: ", error);
     return NextResponse.json(
       { message: "Failed to create invoice" },
       { status: 500 }
@@ -310,7 +308,6 @@ export async function PATCH(request: Request) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error updating invoice: ", error);
     return NextResponse.json(
       { message: "Failed to update invoice" },
       { status: 500 }

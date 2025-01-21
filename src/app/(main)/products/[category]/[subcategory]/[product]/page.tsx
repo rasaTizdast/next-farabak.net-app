@@ -110,7 +110,6 @@ async function getProduct(slug: string): Promise<ProductData | null> {
 
     return product;
   } catch (error) {
-    console.error("Error fetching product:", error);
     return null;
   }
 }

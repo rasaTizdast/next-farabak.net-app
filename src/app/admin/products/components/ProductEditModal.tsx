@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
-import { Product } from "../types";
+import { Overview, OverviewDetail, Product, Specs } from "../types";
 import axios from "axios";
 import toast from "react-hot-toast";
 import ImageInput from "./ImageInput";
 import { CgSpinnerTwo } from "react-icons/cg";
+import EditModalOverview from "./EditModalOverview";
+import EditModalOverviewDetails from "./EditModalOverviewDetails";
+import EditModalSpecs from "./EditModalSpecs";
 
 type Category = {
   CategoryID: number;
@@ -33,6 +36,12 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const [newImg2, setNewImg2] = useState<File | null>(null);
   const [isLoading, setIsloading] = useState<boolean>(false);
 
+  const [overviews, setOverviews] = useState<Overview | null>(null);
+  const [overviewDetails, setOverviewDetails] = useState<
+    OverviewDetail[] | null
+  >(null);
+  const [specs, setSpecs] = useState<Specs | null>(null);
+
   useEffect(() => {
     axios
       .get("/api/categories/getAll")
@@ -42,7 +51,6 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
           "در دریافت دسته بندی ها مشکلی به وجود آمده است، دوباره تلاش کنید"
         )
       );
-    console.log("product: ", product);
     setFormState(product);
   }, []);
 
@@ -274,6 +282,38 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
         );
       }
 
+      if (overviews?.isChanged) {
+        await axios.post("/api/productOverview", {
+          ProductId: formState.ProductId,
+          ProductName: formState.Name,
+          Features: [
+            overviews.Property1,
+            overviews.Property2,
+            overviews.Property3,
+            overviews.Property4,
+          ],
+        });
+      }
+
+      try {
+        await axios.post("/api/specs/update", {
+          productId: formState.ProductId,
+          specs: specs?.data,
+        });
+      } catch (error) {
+        toast.error("اپدیت بررسی ها به مشکل  برخورد، مجددا تلاش کنید");
+      }
+
+      try {
+        await axios.put("/api/productOverviewDetails/update", {
+          productId: updatedFormState.ProductId,
+          ProductName: updatedFormState.Type,
+          selectedDetails: overviewDetails,
+        });
+      } catch (error) {
+        toast.error("آپدیت جزئیات بررسی به مشکل خورده است.");
+      }
+
       toast.success("محصول مورد نظر با موفقیت آپدیت شد!");
       refetchProducts();
     } catch (error) {
@@ -447,6 +487,17 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               onChange={setNewImg2}
             />
 
+            <EditModalOverview
+              ProductId={formState.ProductId}
+              overviews={overviews}
+              SetOverviews={setOverviews}
+            />
+
+            <EditModalOverviewDetails
+              productId={formState.ProductId}
+              setProductOverviewDetails={setOverviewDetails}
+            />
+
             <InputField
               label="قیمت (ریال)"
               name="Price"
@@ -540,6 +591,14 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               value={formState.SEO_Description}
               onChange={handleInputChange}
             />
+
+            <EditModalSpecs
+              productId={formState.ProductId}
+              productName={formState.Name}
+              specs={specs}
+              setSpecs={setSpecs}
+            />
+
             <div className="col-span-1 sm:col-span-2 flex justify-end gap-6">
               <button
                 type="button"

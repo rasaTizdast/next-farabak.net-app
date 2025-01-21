@@ -74,7 +74,6 @@ export async function GET(
     // Return the product type in the response
     return NextResponse.json({ productType: product.Type });
   } catch (error) {
-    console.error("Error fetching product type: ", error);
     return new NextResponse("Failed to fetch product type", { status: 500 });
   }
 }

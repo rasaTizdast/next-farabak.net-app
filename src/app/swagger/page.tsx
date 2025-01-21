@@ -4,7 +4,7 @@ import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
 import { useEffect, useState } from "react";
 import LoadingSpinner from "../_components/ui/LoadingSpinner";
-import { notFound } from "next/navigation";
+// import { notFound } from "next/navigation";
 
 interface SwaggerSpec {
   openapi: string;
@@ -29,17 +29,17 @@ export default function SwaggerPage() {
         const data = await response.json();
         setSpec(data);
       } catch (error) {
-        console.error("Error fetching Swagger spec:", error);
+        throw new Error("Error fetching Swagger spec:");
       }
     };
 
     fetchSwaggerSpec();
   }, []);
 
-  // Prevent SwaggerUI from rendering in production
-  if (process.env.NODE_ENV === "production") {
-    return notFound(); // or a placeholder component
-  }
+  // // Prevent SwaggerUI from rendering in production
+  // if (process.env.NODE_ENV === "production") {
+  //   return notFound(); // or a placeholder component
+  // }
 
   if (!spec) {
     return (

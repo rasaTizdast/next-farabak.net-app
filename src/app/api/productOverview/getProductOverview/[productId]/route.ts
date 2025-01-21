@@ -64,7 +64,6 @@ export async function GET(
     // Return the product overview data as a JSON response
     return NextResponse.json(result);
   } catch (error) {
-    console.error("Error fetching product overview: ", error);
 
     // Return a server error response
     return new NextResponse("Failed to fetch product overview", {

@@ -35,7 +35,6 @@ export const generateMetadata = async ({
         seoDetails.SEO_Description || `محصولات دسته‌بندی ${subCategoryName}`,
     };
   } catch (error) {
-    console.error("Error fetching category data:", error);
     return {
       title: "دسته بندی یافت نشد!",
       description: "دسته بندی مورد نظر یافت نشد!",
@@ -61,7 +60,6 @@ const SubcategoryPage = async ({ params }: SubcategoryPageProps) => {
 
     subCategoryTitle = res.data.subCategoryName;
   } catch (error) {
-    console.error("Error fetching subCategory data:", error);
     notFound();
   }
 

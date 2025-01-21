@@ -61,7 +61,6 @@ const EditUser: React.FC = () => {
       toast.success("اطلاعات شما با موفقیت تغییر پیدا کرد!");
     } catch (error) {
       toast.error("خطایی رخ داد. لطفا دوباره امتحان کنید.");
-      console.error("EditUser error:", error);
     }
   };
 

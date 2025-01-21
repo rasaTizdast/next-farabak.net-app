@@ -106,14 +106,12 @@ export async function DELETE(
         { status: 200 }
       );
     } catch (error) {
-      console.error("Error removing product and related data: ", error);
       return NextResponse.json(
         { message: "Failed to remove product and related data" },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error("Error in DELETE request:", error);
     return NextResponse.json(
       { message: "An unexpected error occurred." },
       { status: 500 }
@@ -339,7 +337,6 @@ export async function PATCH(
 
     return NextResponse.json(updatedProduct);
   } catch (error: any) {
-    console.error(error);
     return NextResponse.json(
       { error: "Failed to update product" },
       { status: 500 }

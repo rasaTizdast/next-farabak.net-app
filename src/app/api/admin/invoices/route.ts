@@ -60,7 +60,6 @@ export async function GET(): Promise<NextResponse> {
 
     return NextResponse.json(invoices, { status: 200 });
   } catch (error) {
-    console.error("Error fetching invoices: ", error);
     return NextResponse.json(
       { message: "Failed to fetch invoices" },
       { status: 500 }
@@ -116,7 +115,6 @@ export async function PATCH(req: Request): Promise<NextResponse> {
     }
 
     const { Invoiceid, checked } = await req.json();
-    console.log("Received Payload:", { Invoiceid, checked });
 
     if (typeof checked !== "boolean") {
       return NextResponse.json(
@@ -132,7 +130,6 @@ export async function PATCH(req: Request): Promise<NextResponse> {
 
     return NextResponse.json(updatedInvoice, { status: 200 });
   } catch (error) {
-    console.error("Error updating invoice: ", error);
     return NextResponse.json(
       { message: "Failed to update invoice" },
       { status: 500 }
@@ -203,7 +200,6 @@ export async function DELETE(req: Request): Promise<NextResponse> {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error deleting invoice: ", error);
     return NextResponse.json(
       { message: "Failed to delete invoice" },
       { status: 500 }

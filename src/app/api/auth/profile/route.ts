@@ -118,7 +118,6 @@ export async function GET(): Promise<NextResponse> {
       role: user.Role,
     });
   } catch (error) {
-    console.error("Error retrieving user profile:", error);
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 }
@@ -171,7 +170,6 @@ export async function PATCH(request: Request): Promise<NextResponse> {
 
     return NextResponse.json({ message: "Profile updated successfully" });
   } catch (error) {
-    console.error("Error updating user profile:", error);
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 }

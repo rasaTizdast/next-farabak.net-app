@@ -86,7 +86,7 @@ const AllInvoices = () => {
     try {
       await axios.post("/api/send-email", emailDetails);
     } catch (error) {
-      console.error("Failed to send email", error);
+      throw new Error("Failed to send email");
     }
   };
 
@@ -121,7 +121,6 @@ const AllInvoices = () => {
       toast.error("عملیات ثبت فاکتور با شکست مواجه شد، مجددا تلاش کنید!", {
         duration: 5000,
       });
-      console.error("Failed to check invoice", error);
     } finally {
       setUpdatingGuid(null); // Reset loader
     }

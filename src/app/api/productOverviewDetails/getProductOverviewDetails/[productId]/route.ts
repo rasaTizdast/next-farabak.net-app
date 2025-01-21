@@ -91,7 +91,6 @@ export async function GET(
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.error("Error fetching product overview details:", error);
     return NextResponse.json(
       { message: "Failed to fetch product overview details" },
       { status: 500 }

@@ -5,10 +5,10 @@ import { prisma } from "@/lib/prisma";
  * @swagger
  * /api/productOverview:
  *   post:
- *     summary: Add a new product overview.
- *     description: Accepts product details and an array of features, mapping the features to the database properties dynamically.
+ *     summary: Add or update a product overview.
+ *     description: Adds a new product overview or updates an existing one based on the ProductId.
  *     tags:
- *       - NewProduct
+ *       - ProductOverview
  *     requestBody:
  *       required: true
  *       content:
@@ -32,7 +32,7 @@ import { prisma } from "@/lib/prisma";
  *                 example: ["Fast charging", "Water-resistant", "AMOLED display", "Dual cameras"]
  *     responses:
  *       200:
- *         description: Successfully added the product overview.
+ *         description: Successfully processed the product overview.
  *       400:
  *         description: Invalid request payload.
  *       500:
@@ -44,7 +44,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { ProductId, ProductName, Features } = body;
 
-    // Validate the input
     if (!ProductId || !ProductName || !Array.isArray(Features)) {
       return NextResponse.json(
         {
@@ -55,23 +54,49 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Map features to properties
     const [Property1, Property2, Property3, Property4] = Features;
 
-    // Create a new product overview record
-    const newOverview = await prisma.productOverview.create({
-      data: {
-        ProductId,
-        ProductName,
-        Property1: Property1 || null,
-        Property2: Property2 || null,
-        Property3: Property3 || null,
-        Property4: Property4 || null,
-        Available: true, // Assuming all products are available by default
-      },
+    // Check if the overview already exists
+    const existingOverview = await prisma.productOverview.findFirst({
+      where: { ProductId },
     });
 
-    return NextResponse.json(newOverview, { status: 200 });
+    let response;
+    if (existingOverview) {
+      // Update the existing overview
+      response = await prisma.productOverview.updateMany({
+        where: { ProductId },
+        data: {
+          ProductName,
+          Property1: Property1 || null,
+          Property2: Property2 || null,
+          Property3: Property3 || null,
+          Property4: Property4 || null,
+        },
+      });
+
+      if (response.count === 0) {
+        return NextResponse.json(
+          { error: "No matching overview found to update." },
+          { status: 404 }
+        );
+      }
+    } else {
+      // Create a new overview
+      response = await prisma.productOverview.create({
+        data: {
+          ProductId,
+          ProductName,
+          Property1: Property1 || null,
+          Property2: Property2 || null,
+          Property3: Property3 || null,
+          Property4: Property4 || null,
+          Available: true,
+        },
+      });
+    }
+
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error. Please try again later." },

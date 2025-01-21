@@ -145,7 +145,6 @@ export async function GET(
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Error fetching products by subcategory: ", error);
     return new NextResponse("Failed to fetch products by subcategory", {
       status: 500,
     });

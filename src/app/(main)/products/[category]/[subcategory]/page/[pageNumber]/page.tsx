@@ -41,7 +41,6 @@ export const generateMetadata = async ({
       },
     };
   } catch (error) {
-    console.error("Error fetching subcategory metadata:", error);
     return {
       title: "زیر دسته بندی یافت نشد!",
       description: "زیر دسته بندی مورد نظر یافت نشد!",
@@ -68,7 +67,6 @@ const SubcategoryPage = async ({ params }: SubcategoryPageProps) => {
 
     subCategoryTitle = res.data.subCategoryName;
   } catch (error) {
-    console.error("Error fetching subcategory data:", error);
     notFound();
   }
 

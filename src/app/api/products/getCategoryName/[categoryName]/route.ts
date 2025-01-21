@@ -70,7 +70,6 @@ export async function GET(
     // Return the category name in the response
     return NextResponse.json({ categoryName: category.Name });
   } catch (error) {
-    console.error("Error fetching category name: ", error);
     return new NextResponse("Failed to fetch category name", {
       status: 500,
     });

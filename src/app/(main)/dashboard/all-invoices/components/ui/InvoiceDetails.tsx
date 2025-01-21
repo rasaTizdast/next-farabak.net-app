@@ -37,8 +37,6 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
   );
   const [loading, setLoading] = useState(true);
 
-  console.log(invoice.Invoice_Details);
-
   // Helper function to format the date and time
   const formatDateTime = (isoString: string) => {
     const date = new Date(isoString);
@@ -75,7 +73,7 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
 
         setProductNames(names);
       } catch (error) {
-        console.error("Error fetching product names:", error);
+        throw new Error("Error fetching product names:");
       } finally {
         setLoading(false); // Set loading to false after data is fetched
       }

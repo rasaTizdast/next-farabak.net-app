@@ -129,7 +129,6 @@ export async function GET(
 
     return NextResponse.json(responseData);
   } catch (error) {
-    console.error("Error fetching product by Slug: ", error);
     return new NextResponse("Failed to fetch product", { status: 500 });
   }
 }

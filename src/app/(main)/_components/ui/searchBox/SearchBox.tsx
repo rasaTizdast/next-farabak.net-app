@@ -60,12 +60,11 @@ const debouncedSearchHandler = debounce(
       // Set the results to the products data from the API response
       setResults(products);
     } catch (error) {
-      console.error(error);
       setResults([]); // If there's an error, return no results
     } finally {
       setLoading(false);
     }
-},
+  },
   300
 );
 
@@ -108,7 +107,6 @@ const SearchResults = ({
   hasSearched: boolean;
   closeSearchBox: () => void;
 }) => {
-  console.log(process.env.LIARA_BUCKET_URL);
   return (
     <div className={styles.results}>
       {/* Display results only if there are search results */}

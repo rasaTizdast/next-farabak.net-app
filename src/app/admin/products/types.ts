@@ -23,3 +23,34 @@ export type Product = {
   QrCode_Key: string | null;
   QrCode_expiryDays: string | null;
 };
+
+export type Overview = {
+  ProductOverviewId: number;
+  ProductName: string;
+  ProductId: number;
+  Property1: string;
+  Property2: string;
+  Property3: string;
+  Property4: string;
+  isChanged: true;
+};
+
+export type OverviewDetail = {
+  ProductOverviewDetailsId: number;
+  Title: string;
+  Description: string;
+  Img: string;
+  ProductName: string;
+  selected: boolean;
+};
+
+export type Specs = {
+  data: {
+    ProductSpecsId: number;
+    Name: string;
+    Title: string;
+    Description: string;
+    ProductId: number;
+    Available: boolean;
+  }[];
+};

@@ -65,7 +65,6 @@ export async function GET() {
     // Return the data as JSON
     return NextResponse.json(overviewDetails);
   } catch (error) {
-    console.error("Error fetching overview details:", error);
     return NextResponse.json(
       { error: "Failed to fetch overview details" },
       { status: 500 }

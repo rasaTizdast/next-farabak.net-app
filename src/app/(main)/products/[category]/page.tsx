@@ -34,7 +34,6 @@ export const generateMetadata = async ({
         seoDetails.SEO_Description || `محصولات دسته‌بندی ${categoryName}`,
     };
   } catch (error) {
-    console.error("خطا در دریافت متادیتا دسته‌بندی:", error);
     return {
       title: "دسته‌بندی یافت نشد!",
       description: "دسته‌بندی مورد نظر یافت نشد!",
@@ -64,7 +63,6 @@ const CategoryPage = async ({ params }: CategoryPageProps) => {
 
     categoryTitle = res.data.categoryName;
   } catch (error) {
-    console.error("Error fetching category data:", error);
     notFound();
   }
 

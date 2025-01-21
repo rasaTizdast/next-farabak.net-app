@@ -133,7 +133,6 @@ const CreateNewItemModal = ({
       setSeoKeywords([]);
       setKeywordInput("");
     } catch (error) {
-      console.error("Error creating category:", error);
 
       if (axios.isAxiosError(error)) {
         const errorMessage =
