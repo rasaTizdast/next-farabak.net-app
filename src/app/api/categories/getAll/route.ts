@@ -70,11 +70,8 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    // Fetch categories
     const categories = await prisma.category.findMany({
-      orderBy: {
-        CategoryID: "asc", // Ensures categories are ordered by CategoryID in ascending order
-      },
+      orderBy: { CategoryID: "asc" },
       include: {
         SEO_Category: true,
         CategoryContent: {
@@ -85,13 +82,12 @@ export async function GET() {
       },
     });
 
-    // Map subcategories with SEO and parent category slug
     const categoriesWithSubcategoriesAndSEO = categories.map((category) => {
       const subcategoriesWithSEO = category.CategoryContent.map((sub) => {
         return {
           ...sub,
           Link: `/products/${category.Slug}/${sub.Slug}`,
-          SEO_Details: sub.SEO_CategoryContent[0] || {
+          SEO_Details: sub.SEO_CategoryContent || {
             SEO_Title: null,
             SEO_Description: null,
             SEO_Keywords: null,
@@ -102,7 +98,7 @@ export async function GET() {
       return {
         ...category,
         Link: `/products/${category.Slug}`,
-        SEO_Details: category.SEO_Category[0] || {
+        SEO_Details: category.SEO_Category || {
           SEO_Title: null,
           SEO_Description: null,
           SEO_Keywords: null,
@@ -113,6 +109,7 @@ export async function GET() {
 
     return NextResponse.json(categoriesWithSubcategoriesAndSEO);
   } catch (error) {
+    console.error("Error fetching categories:", error); // Log the exact error
     return new NextResponse("Failed to fetch categories", { status: 500 });
   }
 }
