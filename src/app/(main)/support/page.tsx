@@ -10,6 +10,10 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "بخش پشتیبانی شرکت فرابک | فرابک",
   description: "مشاهده صفحه های پشتیبانی شرکت فرابک",
+  robots: {
+    index: false, // This sets the noindex directive
+    follow: false, // Allows crawling of links on the page if needed
+  },
 };
 
 const SupportPage = () => {

@@ -13,6 +13,7 @@ datasource db {
 // Updated Password model
 // Updated Master_ProductOverviewDetails
 // Updated Details_ProductOverviewDetails
+// Updated Invoice and InvoiveDetails
 
 model BlogCategories {
   id          Int        @id(map: "PK__BlogCate__3213E83F00BCAE91") @default(autoincrement())
@@ -24,32 +25,22 @@ model BlogCategories {
   @@schema("Blog")
 }
 
-model BlogTags {
-  id      Int   @id(map: "PK__BlogTags__3213E83F9FF48426") @default(autoincrement())
-  blog_id Int
-  tag_id  Int
-  Blogs   Blogs @relation(fields: [blog_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK__BlogTags__blog_i__2FA4FD58")
-  Tags    Tags  @relation(fields: [tag_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK__BlogTags__tag_id__30992191")
-
-  @@schema("Blog")
-}
-
 model Blogs {
-  id             Int              @id(map: "PK__Blogs__3213E83F77E508B6") @default(autoincrement())
-  title          String?          @db.VarChar(255)
-  SEO_Title      String?          @db.VarChar(255)
-  slug           String?          @unique(map: "UQ__Blogs__32DD1E4C6CC87B20") @db.VarChar(255)
-  file_url       String?          @db.VarChar(500)
-  media_type     String?          @db.VarChar(50)
-  created_at     String?          @db.VarChar(50)
-  updated_at     String?          @db.VarChar(50)
-  status         String?          @default("Draft") @db.VarChar(50)
-  views_count    Int?             @default(0)
-  BlogCategories BlogCategories[]
-  BlogTags       BlogTags[]
-  Comments       Blog_Comments[]
-  Content        Content[]
-  Likes          Likes[]
+  id              Int              @id(map: "PK__Blogs__3213E83F77E508B6") @default(autoincrement())
+  title           String           @db.VarChar(255)
+  SEO_Title       String           @db.VarChar(70)
+  slug            String           @unique(map: "UQ__Blogs__32DD1E4C6CC87B20") @db.VarChar(255)
+  created_at      String?          @db.VarChar(50)
+  status          String           @default("Draft") @db.VarChar(50)
+  views_count     Int              @default(0)
+  content         String
+  author          String?          @db.VarChar(100)
+  SEO_description String           @db.VarChar(165)
+  image_URL       String           @default("") @db.VarChar(2500)
+  image_alt       String           @default("") @db.VarChar(250)
+  BlogCategories  BlogCategories[]
+  Comments        Blog_Comments[]
+  Likes           Likes[]
 
   @@schema("Blog")
 }
@@ -74,28 +65,11 @@ model Blog_Comments {
   @@schema("Blog")
 }
 
-model Content {
-  id      Int    @id(map: "PK__Content__3213E83F772A2EF7") @default(autoincrement())
-  content String @db.VarChar(4000)
-  blog_id Int
-  Blogs   Blogs  @relation(fields: [blog_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK__Content__blog_id__3651FAE7")
-
-  @@schema("Blog")
-}
-
 model Likes {
   id         Int     @id(map: "PK__Likes__3213E83F50D1E341") @default(autoincrement())
   blog_id    Int
   created_at String? @db.VarChar(50)
   Blogs      Blogs   @relation(fields: [blog_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK__Likes__blog_id__33758E3C")
-
-  @@schema("Blog")
-}
-
-model Tags {
-  id       Int        @id(map: "PK__Tags__3213E83FCF9ADA1D") @default(autoincrement())
-  name     String?    @db.VarChar(100)
-  BlogTags BlogTags[]
 
   @@schema("Blog")
 }
@@ -145,14 +119,15 @@ model FaqDetails {
 }
 
 model Invoice {
-  Invoiceid       Int               @id(map: "PK__Invoice__D7C667ED9E33565E") @default(autoincrement())
-  FactorGuid      String?           @db.VarChar(1000)
-  Fullname        String?           @db.VarChar(200)
-  Phonenumber     String?           @db.VarChar(11)
-  UserId          Int?
-  TotalAmount     Float?
-  Checked         Boolean?
-  Date            String?           @db.VarChar(50)
+  Invoiceid   Int      @id(map: "PK__Invoice__D7C667ED9E33565E") @default(autoincrement())
+  FactorGuid  String?  @db.VarChar(1000)
+  Fullname    String?  @db.VarChar(200)
+  Phonenumber String?  @db.VarChar(11)
+  UserId      Int?
+  TotalAmount Float?
+  Checked     Boolean?
+  Date        String?  @db.VarChar(50)
+
   Invoice_Details Invoice_Details[]
 
   @@schema("Info")
@@ -167,8 +142,8 @@ model Invoice_Details {
   price           Float?
   total_price     Float?
 
-  // Added this
-  Invoice Invoice? @relation(fields: [Invoiceid], references: [Invoiceid])
+  Invoice          Invoice? @relation(fields: [invoiceInvoiceid], references: [Invoiceid])
+  invoiceInvoiceid Int?
 
   @@schema("Info")
 }
@@ -265,22 +240,22 @@ model Category {
   Category_groupId Int?
   Slug             String?           @db.VarChar(200)
   CategoryContent  CategoryContent[]
-  SEO_Category     SEO_Category[]
+  SEO_Category     SEO_Category?
   Product          Product[]
 
   @@schema("Support")
 }
 
 model CategoryContent {
-  CategoryContentId   Int                   @id(map: "PK_CategoryContent")
-  Name                String?               @db.VarChar(200)
+  CategoryContentId   Int                  @id(map: "PK_CategoryContent")
+  Name                String?              @db.VarChar(200)
   CategoryID          Int?
-  Slug                String?               @db.VarChar(200)
+  Slug                String?              @db.VarChar(200)
   Available           Boolean?
-  InsertDate          DateTime?             @default(now()) @db.Timestamp(6)
-  ModifyDate          DateTime?             @default(now()) @db.Timestamp(6)
-  Category            Category?             @relation(fields: [CategoryID], references: [CategoryID], onDelete: NoAction, onUpdate: NoAction, map: "FK_CategoryContent_Category_CategoryID")
-  SEO_CategoryContent SEO_CategoryContent[]
+  InsertDate          DateTime?            @default(now()) @db.Timestamp(6)
+  ModifyDate          DateTime?            @default(now()) @db.Timestamp(6)
+  Category            Category?            @relation(fields: [CategoryID], references: [CategoryID], onDelete: NoAction, onUpdate: NoAction, map: "FK_CategoryContent_Category_CategoryID")
+  SEO_CategoryContent SEO_CategoryContent?
 
   @@schema("Support")
 }
@@ -362,64 +337,6 @@ model ProductOverview {
   @@schema("Support")
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model ProductOverviewDetails {
-  ProductOverviewDetailsId Int?
-  ProductName              String? @db.VarChar(300)
-  Title1                   String? @db.VarChar(1000)
-  Description1             String? @db.VarChar(4000)
-  Img1                     String? @db.VarChar(300)
-  Title2                   String? @db.VarChar(1000)
-  Description2             String? @db.VarChar(4000)
-  Img2                     String? @db.VarChar(300)
-  Title3                   String? @db.VarChar(1000)
-  Description3             String? @db.VarChar(4000)
-  Img3                     String? @db.VarChar(300)
-  Title4                   String? @db.VarChar(1000)
-  Description4             String? @db.VarChar(4000)
-  Img4                     String? @db.VarChar(300)
-  Title5                   String? @db.VarChar(1000)
-  Description5             String? @db.VarChar(4000)
-  Img5                     String? @db.VarChar(300)
-  Title6                   String? @db.VarChar(1000)
-  Description6             String? @db.VarChar(4000)
-  Img6                     String? @db.VarChar(300)
-  Title7                   String? @db.VarChar(1000)
-  Description7             String? @db.VarChar(4000)
-  Img7                     String? @db.VarChar(300)
-  Title8                   String? @db.VarChar(1000)
-  Description8             String? @db.VarChar(4000)
-  Img8                     String? @db.VarChar(300)
-  Title9                   String? @db.VarChar(1000)
-  Description9             String? @db.VarChar(4000)
-  Img9                     String? @db.VarChar(300)
-  Title10                  String? @db.VarChar(1000)
-  Description10            String? @db.VarChar(4000)
-  Img10                    String? @db.VarChar(300)
-  Title11                  String? @db.VarChar(1000)
-  Description11            String? @db.VarChar(4000)
-  Img11                    String? @db.VarChar(300)
-  Title12                  String? @db.VarChar(1000)
-  Description12            String? @db.VarChar(4000)
-  Img12                    String? @db.VarChar(300)
-  Title13                  String? @db.VarChar(1000)
-  Description13            String? @db.VarChar(4000)
-  Img13                    String? @db.VarChar(300)
-  Title14                  String? @db.VarChar(1000)
-  Description14            String? @db.VarChar(4000)
-  Img14                    String? @db.VarChar(300)
-  Title15                  String? @db.VarChar(1000)
-  Description15            String? @db.VarChar(4000)
-  Img15                    String? @db.VarChar(300)
-  Title16                  String? @db.VarChar(1000)
-  Description16            String? @db.VarChar(4000)
-  Img16                    String? @db.VarChar(300)
-  ProductId                Int?
-
-  @@ignore
-  @@schema("Support")
-}
-
 model ProductSpecs {
   ProductSpecsId Int       @id(map: "PK__ProductS__AD8D1EF57B85BAB5") @default(autoincrement())
   Name           String?   @db.VarChar(20)
@@ -461,4 +378,16 @@ model EFMigrationsHistory {
 
   @@map("__EFMigrationsHistory")
   @@schema("farabak_net_technomi")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Media {
+  id         Int     @id @default(autoincrement())
+  blog_id    Int
+  media_type String  @db.VarChar(50)
+  media_URL  String  @db.VarChar(2500)
+  media_alt  String? @db.VarChar(250)
+
+  @@schema("Blog")
 }

@@ -11,6 +11,10 @@ export const metadata: Metadata = {
   title: "بخش درباره ما | فرابک",
   description:
     "شما در این صفحه میتوانید اطلاعاتی درباره شرکت فرابک مشاهده کنید.",
+  robots: {
+    index: false, // This sets the noindex directive
+    follow: false, // Allows crawling of links on the page if needed
+  },
 };
 
 const AboutUs = () => {

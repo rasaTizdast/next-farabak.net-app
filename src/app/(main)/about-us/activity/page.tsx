@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   title: "فعالیت های شرکت فرابک | فرابک",
   description:
     "شما در این صفحه میتوانید اطلاعاتی درباره فعالیت های شرکت فرابک مشاهده کنید.",
+  robots: {
+    index: false, // This sets the noindex directive
+    follow: false, // Allows crawling of links on the page if needed
+  },
 };
 
 const ActivityPage = () => {

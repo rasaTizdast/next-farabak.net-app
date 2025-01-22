@@ -12,6 +12,10 @@ export const metadata: Metadata = {
   title: "اعضای هیئت مدیره | فرابک",
   description:
     "مشاهده اعضای هیئت مدیره به‌همراه تجربیات و نقش های کلیدی هر یک از اعضای هیئت مدیره",
+  robots: {
+    index: false, // This sets the noindex directive
+    follow: false, // Allows crawling of links on the page if needed
+  },
 };
 
 const Members = () => {
