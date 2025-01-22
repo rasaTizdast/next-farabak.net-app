@@ -17,7 +17,7 @@ async function verifyToken(token: string) {
  *   get:
  *     summary: Retrieve all invoices and their details
  *     tags:
- *      -Admin
+ *       - Admin
  *     security:
  *       - cookieAuth: []
  *     responses:
@@ -73,7 +73,7 @@ export async function GET(): Promise<NextResponse> {
  *   patch:
  *     summary: Update the checked status of an invoice.
  *     tags:
- *      -Admin
+ *       - Admin
  *     security:
  *       - cookieAuth: []
  *     requestBody:
@@ -143,7 +143,7 @@ export async function PATCH(req: Request): Promise<NextResponse> {
  *   delete:
  *     summary: Delete an invoice and its details.
  *     tags:
- *      -Admin
+ *       - Admin
  *     security:
  *       - cookieAuth: []
  *     parameters:
