@@ -6,6 +6,10 @@ import { notFound } from "next/navigation";
 export const metadata: Metadata = {
   title: "صفحه‌ای یافت نشد",
   description: "صفحه ای برای این آدرس یافت نشد، مجددا تلاش کنید.",
+  robots: {
+    index: false, // This sets the noindex directive
+    follow: false, // Allows crawling of links on the page if needed
+  },
 };
 
 const TrainingSectionPage = () => {
