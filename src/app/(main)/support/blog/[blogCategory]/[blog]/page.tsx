@@ -1,5 +1,3 @@
-import { promises as fs } from "fs";
-import path from "path";
 import { compileMDX } from "next-mdx-remote/rsc";
 import {
   H1,
@@ -19,6 +17,7 @@ import {
 
 import Script from "next/script";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import { notFound } from "next/navigation";
 
 // Define the frontmatter type
 interface Frontmatter {
@@ -30,6 +29,24 @@ interface Frontmatter {
   category: string;
   tags: string[];
   keywords: string[];
+}
+
+interface BlogResponse {
+  blog: {
+    title: string;
+    content: string;
+    author: string;
+    created_at: string;
+    description: string;
+    image_URL: string;
+    image_alt: string;
+    SEO_Title: string;
+    SEO_description: string;
+  };
+  categories: { name: string; slug: string }[];
+  comments: { content: string; created_at: string }[];
+  likes: number;
+  media: { media_URL: string; media_alt: string }[];
 }
 
 // Custom components mapping for MDX
@@ -49,31 +66,41 @@ const components = {
   Section,
 };
 
+const getBlog = async (slug: string): Promise<BlogResponse | null> => {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${slug}`
+    );
+
+    if (!res.ok) {
+      console.error(`Failed to fetch blog: ${res.statusText}`);
+      return null;
+    }
+
+    return (await res.json()) as BlogResponse;
+  } catch (error) {
+    console.error("Error fetching blog:", error);
+    return null;
+  }
+};
+
 export async function generateMetadata({
   params,
 }: {
   params: { blog: string };
 }) {
-  const content = await fs.readFile(
-    path.join(process.cwd(), "src/blogs", `${params.blog}.mdx`),
-    "utf-8"
-  );
+  const content = await getBlog(params.blog);
 
-  const { frontmatter } = await compileMDX<Frontmatter>({
-    source: content,
-    options: { parseFrontmatter: true },
-    components,
-  });
+  if (!content) {
+    return {
+      title: "مقاله‌ای یافت نشد",
+      description: "با این اطلاعات، مقاله یافت نشد!",
+    };
+  }
 
   return {
-    title: frontmatter.title,
-    description: frontmatter.description,
-    keywords: frontmatter.keywords,
-    openGraph: {
-      title: frontmatter.title,
-      description: frontmatter.description,
-      images: [frontmatter.image],
-    },
+    title: content.blog.SEO_Title,
+    description: content.blog.SEO_description,
   };
 }
 
@@ -82,18 +109,21 @@ export default async function BlogPage({
 }: {
   params: { blog: string };
 }) {
-  const content = await fs.readFile(
-    path.join(process.cwd(), "src/blogs", `${params.blog}.mdx`),
-    "utf-8"
-  );
+  const blogResponse = await getBlog(params.blog);
 
-  const { frontmatter, content: mdxContent } = await compileMDX<Frontmatter>({
-    source: content,
+  if (!blogResponse) {
+    notFound();
+  }
+
+  const { blog } = blogResponse;
+
+  const { content: mdxContent } = await compileMDX<Frontmatter>({
+    source: blog.content,
     options: { parseFrontmatter: true },
     components,
   });
 
-  const readingTime = calculateReadingTime(content);
+  const readingTime = calculateReadingTime(blog.content);
 
   return (
     <>
@@ -101,20 +131,20 @@ export default async function BlogPage({
 
       <article className="max-w-[1580px] mt-5 mx-auto bg-gray-200 p-5 sm:p-10 rounded-lg">
         <header className="mb-8">
-          <H1>{frontmatter.title}</H1>
+          <H1>{blog.title}</H1>
           <CustomImage
             width={1080}
             height={720}
-            src={frontmatter.image}
-            alt={frontmatter.title}
+            src={`${process.env.LIARA_BUCKET_URL}/blogImages/${blog.image_URL}`}
+            alt={blog.image_alt}
           />
           <div
             className="flex items-center gap-3 text-gray-600 mb-4 p-2 bg-gray-100 rounded-lg w-full mobile:w-fit justify-between text-xs mobile:text-sm md:text-base"
             aria-label="Blog metadata"
           >
-            <span>{frontmatter.author}</span>
+            <span>{blog.author}</span>
             <span>•</span>
-            <time>{new Date(frontmatter.date).toLocaleDateString("fa")}</time>
+            <time>{new Date(blog.created_at).toLocaleDateString("fa")}</time>
             <span>•</span>
             <div className="flex items-center gap-1">
               <span>{readingTime} دقیقه مطالعه</span>
@@ -129,12 +159,12 @@ export default async function BlogPage({
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "BlogPosting",
-            headline: frontmatter.title,
+            headline: blog.title,
             author: {
               "@type": "Person",
-              name: frontmatter.author,
+              name: blog.author,
             },
-            datePublished: frontmatter.date,
+            datePublished: blog.created_at,
             publisher: {
               "@type": "Organization",
               name: "Farabak",
@@ -143,9 +173,9 @@ export default async function BlogPage({
               "@type": "WebPage",
               "@id": "",
             },
-            description: frontmatter.description,
-            image: frontmatter.image,
-            articleBody: content,
+            description: blog.description,
+            image: blog.image_URL,
+            articleBody: blog.content,
           }),
         }}
       />

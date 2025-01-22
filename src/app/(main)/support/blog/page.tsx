@@ -1,39 +1,81 @@
-export const dynamic = "force-dynamic";
-
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import Image from "next/image";
 import Link from "next/link";
-import React, { Suspense } from "react";
-import blogs from "@/constants/blogData.json"; // Simulated JSON data
+import React from "react";
 import { Metadata } from "next";
-import BlogSkeleton from "@/app/_components/ui/BlogSkeleton";
 
 export const metadata: Metadata = {
   title: "مشاهده تمامی بلاگ‌‌ها | فرابک",
   description: "شما در این صفحه میتوانید تمامی بلاگ‌های فرابک را مشاهده کنید.",
 };
 
-// Mock API fetcher (replace with real API fetch later)
-const fetchBlogs = async () => {
-  return new Promise<typeof blogs>(
-    (resolve) => setTimeout(() => resolve(blogs), 1000) // Simulate 1 second delay
-  );
+type Blogs = {
+  blogs: {
+    id: number;
+    title: string;
+    SEO_Title: string;
+    slug: string;
+    created_at: string;
+    status: string;
+    views_count: number;
+    content: string;
+    author: string;
+    SEO_description: string;
+    image: string;
+    image_alt: string;
+    categories: {
+      name: string;
+      slug: string;
+    }[];
+    comments: number;
+    likes: number;
+  }[];
 };
 
-const BlogContent = async () => {
-  const blogData = await fetchBlogs();
-
-  // Sort blogs by date (most recent first)
-  const sortedBlogs = blogData.sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+// Server-side fetch function
+const fetchBlogs = async () => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs`,
+    {
+      next: { revalidate: 60 }, // Optional: revalidate every 60 seconds for ISR
+    }
   );
 
-  // Separate the latest blog
-  const [latestBlog, ...otherBlogs] = sortedBlogs;
+  if (!response.ok) {
+    throw new Error("Failed to fetch blogs");
+  }
 
-  // Extract unique categories from blogs
-  const categories = Array.from(new Set(blogData.map((blog) => blog.category)));
+  return response.json();
+};
 
+// Server-side fetch function
+const fetchCategories = async () => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/getCategories`,
+    {
+      next: { revalidate: 60 }, // Optional: revalidate every 60 seconds for ISR
+    }
+  );
+  console.log("response: ", response); // Check if categoryData is being populated correctly
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch Categories");
+  }
+
+  return response.json();
+};
+
+const BlogContent = ({
+  blogs,
+  categoryData,
+}: {
+  blogs: Blogs;
+  categoryData: {
+    id: number;
+    name: string;
+    slug: string;
+  }[];
+}) => {
   return (
     <div className="w-full">
       {/* Latest Blog */}
@@ -42,23 +84,25 @@ const BlogContent = async () => {
           جدیدترین بلاگ
         </h1>
         <Link
-          href={`/support/blog/${latestBlog.category}/${latestBlog.slug}`}
+          href={`/support/blog/${blogs.blogs[0].categories[0].slug}/${blogs.blogs[0].slug}`}
           className="block relative overflow-hidden rounded-lg shadow-lg hover:scale-[1.02] transition-transform"
         >
           <Image
-            src={latestBlog.img}
-            alt={latestBlog.title}
+            src={`${process.env.LIARA_BUCKET_URL}/blogImages/${blogs.blogs[0].image}`}
+            alt={blogs.blogs[0].image_alt}
             className="w-full h-96 object-cover rounded-lg"
             width={1920}
             height={1000}
             quality={100}
+            priority
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent flex flex-col justify-end p-6 text-white">
             <h2 className="text-2xl md:text-3xl font-bold mb-2">
-              {latestBlog.title}
+              {blogs.blogs[0].title}
             </h2>
             <p className="text-sm text-gray-300">
-              تاریخ: {new Date(latestBlog.date).toLocaleDateString("fa-IR")}
+              تاریخ:{" "}
+              {new Date(blogs.blogs[0].created_at).toLocaleDateString("fa-IR")}
             </p>
           </div>
         </Link>
@@ -70,15 +114,15 @@ const BlogContent = async () => {
           دسته‌بندی‌ها
         </h2>
         <div className="flex flex-wrap justify-start gap-7">
-          {categories.map((category) => (
+          {categoryData.map((category) => (
             <Link
-              key={category}
-              href={`/support/blog/${category}`}
+              key={category.id}
+              href={`/support/blog/${category.slug}`}
               className="group relative flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-l from-[#0e6aff] to-[#1e90ff] text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 px-10 py-2"
             >
               <span className="absolute inset-0 bg-white opacity-10 group-hover:opacity-20 transition duration-300 rounded-xl"></span>
               <span className="relative z-10 text-white font-medium text-lg flex items-center gap-2">
-                {category}
+                {category.name}
               </span>
             </Link>
           ))}
@@ -90,16 +134,16 @@ const BlogContent = async () => {
         سایر بلاگ‌ها
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {otherBlogs.map((blog) => (
+        {blogs.blogs.map((blog) => (
           <Link
             key={blog.id}
-            href={`/support/blog/${blog.category}/${blog.slug}`}
+            href={`/support/blog/${blog.categories[0].slug}/${blog.slug}`}
             className="block border border-gray-200 rounded-lg shadow-lg hover:shadow-2xl transition-all hover:scale-[1.02] bg-white"
           >
             <div className="overflow-hidden rounded-t-lg">
               <Image
-                src={blog.img}
-                alt={blog.title}
+                src={`${process.env.LIARA_BUCKET_URL}/blogImages/${blog.image}`}
+                alt={blog.image_alt}
                 className="w-full h-48 object-cover hover:scale-110 transition-transform"
                 width={1920}
                 height={1000}
@@ -111,7 +155,7 @@ const BlogContent = async () => {
                 {blog.title}
               </h3>
               <p className="text-sm text-gray-500">
-                تاریخ: {new Date(blog.date).toLocaleDateString("fa-IR")}
+                تاریخ: {new Date(blog.created_at).toLocaleDateString("fa")}
               </p>
             </div>
           </Link>
@@ -121,15 +165,33 @@ const BlogContent = async () => {
   );
 };
 
-const BlogLandingPage = () => {
+const BlogLandingPage = async () => {
+  let blogData: Blogs | null = null;
+  let categoryData: { id: number; name: string; slug: string }[] = [];
+
+  // Fetch blogs
+  try {
+    blogData = await fetchBlogs();
+  } catch (error) {
+    console.error("Error fetching blog data:", error);
+  }
+
+  // Fetch categories
+  try {
+    categoryData = await fetchCategories();
+  } catch (error) {
+    console.error("Error fetching category data:", error);
+  }
+
   const breadCrumbs = ["/", "/support", "/support/blog"];
 
   return (
     <>
       <Breadcrumb breadcrumbs={breadCrumbs} />
-      <Suspense fallback={<BlogSkeleton />}>
-        <BlogContent />
-      </Suspense>
+      <BlogContent
+        blogs={blogData || { blogs: [] }}
+        categoryData={categoryData}
+      />
     </>
   );
 };
