@@ -16,10 +16,10 @@ export const CustomImage: React.FC<ImageProps> = ({
   <Image
     src={src}
     alt={alt}
-    width={width || 500}
-    height={height || 400}
+    width={width || 1000}
+    height={height || 1000}
     quality={100}
-    className="rounded-md mx-auto my-10"
+    className="rounded-md mx-auto my-4 mobile:my-10"
     priority
   />
 );
