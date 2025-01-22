@@ -13,6 +13,7 @@ datasource db {
 // Updated Password model
 // Updated Master_ProductOverviewDetails
 // Updated Details_ProductOverviewDetails
+// Updated Invoice and InvoiveDetails
 
 model BlogCategories {
   id          Int        @id(map: "PK__BlogCate__3213E83F00BCAE91") @default(autoincrement())
@@ -125,6 +126,8 @@ model Invoice {
   Checked     Boolean?
   Date        String?  @db.VarChar(50)
 
+  Invoice_Details Invoice_Details[]
+
   @@schema("Info")
 }
 
@@ -136,6 +139,9 @@ model Invoice_Details {
   quantity        Float?
   price           Float?
   total_price     Float?
+
+  Invoice          Invoice? @relation(fields: [invoiceInvoiceid], references: [Invoiceid])
+  invoiceInvoiceid Int?
 
   @@schema("Info")
 }
