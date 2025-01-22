@@ -10,6 +10,8 @@ const prisma = new PrismaClient();
  *     summary: Get blog details by slug
  *     description: Fetch detailed information about a blog, including categories, comments, likes, and media, by its slug.
  *     parameters:
+ *     tags:
+ *       - Blogs
  *       - name: slug
  *         in: path
  *         required: true
@@ -133,6 +135,8 @@ export async function GET(
         content: blog.content,
         author: blog.author,
         SEO_description: blog.SEO_description,
+        image_URL: blog.image_URL,
+        image_alt: blog.image_alt,
       },
       categories: blog.BlogCategories.map((category) => ({
         id: category.Categories.id,

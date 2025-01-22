@@ -33,11 +33,7 @@ import { prisma } from "@/lib/prisma";
  */
 export async function GET() {
   try {
-    const categories = await prisma.categories.findMany({
-      include: {
-        BlogCategories: true, // Include related BlogCategories if needed
-      },
-    });
+    const categories = await prisma.categories.findMany();
 
     return NextResponse.json(categories, { status: 200 });
   } catch (error) {
