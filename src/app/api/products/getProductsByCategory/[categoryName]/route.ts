@@ -178,8 +178,13 @@ export async function GET(
     );
 
     // Prepare the SEO details for the category
-    const seoDetails =
-      category.SEO_Category.length > 0 ? category.SEO_Category[0] : null;
+    const seoDetails = category.SEO_Category
+      ? {
+          SEO_Title: category.SEO_Category.SEO_Title,
+          SEO_Description: category.SEO_Category.SEO_Description,
+          SEO_Keywords: category.SEO_Category.SEO_Keywords,
+        }
+      : null;
 
     const response = {
       data,
@@ -195,6 +200,7 @@ export async function GET(
 
     return NextResponse.json(response);
   } catch (error) {
+    console.error(error); // Log the error for debugging
     return new NextResponse("Failed to fetch products by category", {
       status: 500,
     });
