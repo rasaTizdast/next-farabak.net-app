@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 // src/app/products/page.tsx
 
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";

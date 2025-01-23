@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import Image from "next/image";
 import Link from "next/link";
@@ -56,7 +58,6 @@ const fetchCategories = async () => {
       next: { revalidate: 60 }, // Optional: revalidate every 60 seconds for ISR
     }
   );
-  console.log("response: ", response); // Check if categoryData is being populated correctly
 
   if (!response.ok) {
     throw new Error("Failed to fetch Categories");
