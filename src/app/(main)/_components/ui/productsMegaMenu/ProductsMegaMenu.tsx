@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import styles from "./ProductsMegaMenu.module.css";
+import axios from "axios";
 
 // Category and Subcategory types
 export interface Subcategory {
@@ -34,18 +35,16 @@ export interface Category {
 
 // Fetch data on the server
 async function fetchCategories(): Promise<Category[]> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/getAll`,
-    {
-      next: { revalidate: 0 },
-    }
+  const res = await axios.get(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/getAll`
   );
 
-  if (!res.ok) {
+  if (!res.status) {
+    console.error("Fetch failed with status");
     throw new Error("Failed to fetch categories");
   }
 
-  const categories: Category[] = await res.json();
+  const categories: Category[] = await res.data;
   return categories.filter((category) => category.Available);
 }
 
