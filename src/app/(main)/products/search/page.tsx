@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 // src/app/products/search/page.tsx
 
 import { Metadata } from "next";
