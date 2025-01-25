@@ -317,8 +317,7 @@ model Product {
   QrCode_expiryDays String?  @db.VarChar(50)
 
   // new added field
-  Category          Category?           @relation(fields: [CategoryId], references: [CategoryID])
-  showcase_products showcase_products[]
+  Category Category? @relation(fields: [CategoryId], references: [CategoryID])
 
   @@schema("Support")
 }
@@ -435,13 +434,12 @@ model phone_numbers {
 }
 
 model showcase_products {
-  id          Int     @id @default(autoincrement())
-  productId   Int
-  title       String  @db.VarChar(90)
-  description String  @db.VarChar(160)
-  order       Int     @unique
-  prefImage   String? @db.VarChar(500)
-  Product     Product @relation(fields: [productId], references: [ProductId], onDelete: NoAction, onUpdate: NoAction)
+  id          Int    @id @default(autoincrement())
+  title       String @db.VarChar(90)
+  description String @db.VarChar(160)
+  order       Int    @unique
+  image       String @db.VarChar(500)
+  link        String @db.VarChar(1500)
 
   @@schema("landing_page")
 }
@@ -450,6 +448,7 @@ model sliders {
   id        Int     @id @default(autoincrement())
   image_URL String  @db.VarChar(500)
   image_alt String? @db.VarChar(250)
+  link      String  @db.VarChar(1500)
 
   @@schema("landing_page")
 }
