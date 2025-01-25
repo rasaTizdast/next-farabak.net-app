@@ -6,7 +6,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["Blog", "Info", "Member", "Project", "Support", "farabak_net_technomi"]
+  schemas  = ["Blog", "Info", "Member", "Project", "Support", "farabak_net_technomi", "landing_page", "company_activity", "contact_us"]
 }
 
 // Updated product model
@@ -317,7 +317,8 @@ model Product {
   QrCode_expiryDays String?  @db.VarChar(50)
 
   // new added field
-  Category Category? @relation(fields: [CategoryId], references: [CategoryID])
+  Category          Category?           @relation(fields: [CategoryId], references: [CategoryID])
+  showcase_products showcase_products[]
 
   @@schema("Support")
 }
@@ -390,4 +391,65 @@ model Media {
   media_alt  String? @db.VarChar(250)
 
   @@schema("Blog")
+}
+
+model Details_activity {
+  id              Int             @id @default(autoincrement())
+  activityID      Int
+  description     String          @db.VarChar(400)
+  Master_activity Master_activity @relation(fields: [activityID], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("company_activity")
+}
+
+model Master_activity {
+  id               Int                @id(map: "master_activity_pkey") @default(autoincrement())
+  title            String             @db.VarChar(90)
+  Details_activity Details_activity[]
+
+  @@schema("company_activity")
+}
+
+model address {
+  id          Int    @id @default(autoincrement())
+  address     String @db.VarChar(1000)
+  postal_code Int
+  alt_text    String @db.VarChar(150)
+
+  @@schema("contact_us")
+}
+
+model emails {
+  id      Int    @id @default(autoincrement())
+  title   String @db.VarChar(50)
+  address String @db.VarChar(320)
+
+  @@schema("contact_us")
+}
+
+model phone_numbers {
+  id     Int    @id @default(autoincrement())
+  number String @db.VarChar(13)
+
+  @@schema("contact_us")
+}
+
+model showcase_products {
+  id          Int     @id @default(autoincrement())
+  productId   Int
+  title       String  @db.VarChar(90)
+  description String  @db.VarChar(160)
+  order       Int     @unique
+  prefImage   String? @db.VarChar(500)
+  Product     Product @relation(fields: [productId], references: [ProductId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("landing_page")
+}
+
+model sliders {
+  id        Int     @id @default(autoincrement())
+  image_URL String  @db.VarChar(500)
+  image_alt String? @db.VarChar(250)
+
+  @@schema("landing_page")
 }
