@@ -3,32 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 /**
  * @swagger
- * components:
- *   schemas:
- *     DetailsActivity:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *         activityID:
- *           type: integer
- *         description:
- *           type: string
- *     MasterActivity:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *         title:
- *           type: string
- *         details:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/DetailsActivity'
- */
-
-/**
- * @swagger
  * /api/activities:
  *   get:
  *     summary: Get all master activities with details
@@ -54,6 +28,18 @@ import { NextRequest, NextResponse } from "next/server";
  *         description: Master activity updated
  */
 
+type DetailsActivity = {
+  id: number;
+  activityID: number;
+  description: string;
+};
+
+type MasterActivity = {
+  id: number;
+  title: string;
+  Details_activity: DetailsActivity[]; // Use `Details_activity` instead of `details`
+};
+
 export async function GET() {
   const activities = await prisma.master_activity.findMany({
     include: { Details_activity: true },
@@ -63,7 +49,7 @@ export async function GET() {
 
 export async function PUT(req: NextRequest) {
   try {
-    const updatedActivities = await req.json(); // Get the data sent from the frontend
+    const updatedActivities: MasterActivity[] = await req.json(); // Get the data sent from the frontend
 
     if (!Array.isArray(updatedActivities)) {
       throw new Error("The data is not in the expected format.");
@@ -76,9 +62,10 @@ export async function PUT(req: NextRequest) {
 
     // Identify activities that have been deleted in the frontend
     const deletedActivities = existingActivities.filter(
-      (existingActivity) =>
+      (existingActivity: MasterActivity) =>
         !updatedActivities.some(
-          (updatedActivity) => updatedActivity.id === existingActivity.id
+          (updatedActivity: MasterActivity) =>
+            updatedActivity.id === existingActivity.id
         )
     );
 
@@ -115,7 +102,7 @@ export async function PUT(req: NextRequest) {
       }
 
       // Handle the Details_activity for the master activity
-      for (const detail of activity.details) {
+      for (const detail of activity.Details_activity) {
         if (detail.id) {
           // Update existing Details_activity
           await prisma.details_activity.update({
