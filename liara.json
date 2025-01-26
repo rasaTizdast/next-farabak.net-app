@@ -1,13 +1,13 @@
 {
-  "app": "farabak-next",
+  "app": "next-farabak",
   "port": 3000,
   "build": {
     "location": "iran"
   },
   "disks": [
     {
-      "name": "front-end",
-      "mountTo": "path/to/folder"
+      "name": "front-codes",
+      "mountTo": ".next/server/app"
     }
   ]
 }
