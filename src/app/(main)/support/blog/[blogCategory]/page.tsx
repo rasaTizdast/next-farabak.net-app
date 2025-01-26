@@ -49,23 +49,6 @@ const fetchBlogs = async (categorySlug: string) => {
   return response.json();
 };
 
-// Server-side fetch function
-const fetchCategories = async () => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/getCategories`,
-    {
-      next: { revalidate: 60 }, // Optional: revalidate every 60 seconds for ISR
-    }
-  );
-  console.log("response: ", response); // Check if categoryData is being populated correctly
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch Categories");
-  }
-
-  return response.json();
-};
-
 const BlogContent = ({ blogs }: { blogs: Blogs }) => {
   return (
     <div className="w-full">

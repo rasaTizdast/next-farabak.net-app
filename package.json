@@ -12,6 +12,7 @@
     "@editorjs/image": "^2.10.1",
     "@editorjs/link": "^2.6.2",
     "@hookform/resolvers": "^3.9.1",
+    "@mdxeditor/editor": "^3.20.0",
     "@persian-tools/persian-tools": "^3.6.0",
     "@prisma/client": "^6.1.0",
     "aws-sdk": "^2.1692.0",
