@@ -111,6 +111,45 @@ import { NextResponse } from "next/server";
  *       500:
  *         description: Internal server error
  */
+
+type ProductType = {
+  ProductId: number;
+  Name: string | null;
+  Type: string | null;
+  Price: string | null;
+  Discount: string | null;
+  CategoryContentId: string | null;
+  img1: string | null;
+  img2: string | null;
+  Available: boolean | null;
+  Description: string | null;
+  CategoryId: number | null;
+  Slug: string | null;
+  SEO_Title: string | null;
+  SEO_Description: string | null;
+  QrCode_Key: string | null;
+  QrCode_expiryDays: string | null;
+  Category?: {
+    CategoryID: number;
+    Name: string | null;
+    Slug: string | null;
+    Available: boolean | null;
+    InsertDate: Date | null;
+    ModifyDate: Date | null;
+    Category_groupId: number | null;
+  } | null;
+};
+
+type CategoryContentType = {
+  CategoryContentId: number;
+  Name: string | null;
+  CategoryID: number | null;
+  Slug: string | null;
+  Available: boolean | null;
+  InsertDate: Date | null;
+  ModifyDate: Date | null;
+};
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get("page") || "1", 10);
@@ -184,7 +223,7 @@ export async function GET(request: Request) {
     }
 
     const data = await Promise.all(
-      products.map(async (product) => {
+      products.map(async (product: ProductType) => {
         const categorySlug = product.Category?.Slug || null;
 
         // Parse CategoryContentId string
@@ -195,16 +234,19 @@ export async function GET(request: Request) {
           : [];
 
         // Fetch all subcategories for the product
-        const subCategories = await prisma.categoryContent.findMany({
-          where: {
-            CategoryContentId: { in: categoryContentIds },
-          },
-        });
+        const subCategories: CategoryContentType[] =
+          await prisma.categoryContent.findMany({
+            where: {
+              CategoryContentId: { in: categoryContentIds },
+            },
+          });
 
         // Sort subcategories to match the order in categoryContentIds
         const sortedSubCategories = categoryContentIds
           .map((id) =>
-            subCategories.find((sub) => sub.CategoryContentId === id)
+            subCategories.find(
+              (sub: CategoryContentType) => sub.CategoryContentId === id
+            )
           )
           .filter(Boolean); // Filter out any undefined matches
 
