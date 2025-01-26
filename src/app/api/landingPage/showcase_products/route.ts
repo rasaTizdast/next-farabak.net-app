@@ -29,9 +29,6 @@ export async function POST(request: Request) {
     const description = formData.get("description") as string;
     const order = parseInt(formData.get("order") as string);
     const link = formData.get("link") as string;
-    const productProductId = formData.get("productProductId")
-      ? parseInt(formData.get("productProductId") as string)
-      : null;
 
     if (!file || !title || !description || isNaN(order) || !link) {
       return NextResponse.json(
