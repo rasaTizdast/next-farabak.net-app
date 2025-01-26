@@ -4,5 +4,10 @@
   "build": {
     "location": "iran"
   },
-  "disks": []
+  "disks": [
+    {
+      "name": "front-end",
+      "mountTo": "path/to/folder"
+    }
+  ]
 }
