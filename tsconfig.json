@@ -20,8 +20,16 @@
     ],
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "noImplicitAny": false
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/helpers/validationSchema.js", "src/app/sitemap.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/helpers/validationSchema.js",
+    "src/app/sitemap.ts"
+  ],
   "exclude": ["node_modules"]
 }
