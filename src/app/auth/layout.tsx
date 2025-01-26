@@ -9,6 +9,9 @@ export const metadata: Metadata = {
     index: false, // This sets the noindex directive
     follow: false, // Allows crawling of links on the page if needed
   },
+  other: {
+    "google-site-verification": "ibG0VNoO2gB5dXMyvVgMR43MYU_D1jiM_fdtv3387ks",
+  },
 };
 
 export default function AuthLayout({
@@ -18,11 +21,11 @@ export default function AuthLayout({
 }) {
   return (
     <>
-      {/* <Script
+      <Script
         defer
         src="https://cloud.umami.is/script.js"
-        data-website-id="b406fd7a-09ee-41dd-8d82-97c7184b61bf"
-      /> */}
+        data-website-id="cbecfb4d-6b80-48d2-abac-13f7d8806239"
+      ></Script>
       <div className={styles.parent}>{children}</div>
     </>
   );
