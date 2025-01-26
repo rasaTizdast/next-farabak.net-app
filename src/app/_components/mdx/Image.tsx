@@ -14,7 +14,7 @@ export const CustomImage: React.FC<ImageProps> = ({
   alt,
 }) => (
   <Image
-    src={src}
+    src={`${process.env.LIARA_BUCKET_URL}/blogImages/${src}`}
     alt={alt}
     width={width || 1000}
     height={height || 1000}
