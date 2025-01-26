@@ -6,7 +6,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["Blog", "Info", "Member", "Project", "Support", "farabak_net_technomi", "landing_page", "company_activity", "contact_us"]
+  schemas  = ["Blog", "Info", "Member", "Project", "Support", "company_activity", "contact_us", "farabak_net_technomi", "landing_page"]
 }
 
 // Updated product model
@@ -119,29 +119,27 @@ model FaqDetails {
 }
 
 model Invoice {
-  Invoiceid   Int      @id(map: "PK__Invoice__D7C667ED9E33565E") @default(autoincrement())
-  FactorGuid  String?  @db.VarChar(1000)
-  Fullname    String?  @db.VarChar(200)
-  Phonenumber String?  @db.VarChar(11)
-  UserId      Int?
-  TotalAmount Float?
-  Checked     Boolean?
-  Date        String?  @db.VarChar(50)
-
+  Invoiceid       Int               @id(map: "PK__Invoice__D7C667ED9E33565E") @default(autoincrement())
+  FactorGuid      String?           @db.VarChar(1000)
+  Fullname        String?           @db.VarChar(200)
+  Phonenumber     String?           @db.VarChar(11)
+  UserId          Int?
+  TotalAmount     Float?
+  Checked         Boolean?
+  Date            String?           @db.VarChar(50)
   Invoice_Details Invoice_Details[]
 
   @@schema("Info")
 }
 
 model Invoice_Details {
-  Invoice_Details Int    @id(map: "PK__Invoice___4A16C8C534ABC2CC") @default(autoincrement())
-  Invoiceid       Int?
-  UserId          Int?
-  ProductId       Int?
-  quantity        Float?
-  price           Float?
-  total_price     Float?
-
+  Invoice_Details  Int      @id(map: "PK__Invoice___4A16C8C534ABC2CC") @default(autoincrement())
+  Invoiceid        Int?
+  UserId           Int?
+  ProductId        Int?
+  quantity         Float?
+  price            Float?
+  total_price      Float?
   Invoice          Invoice? @relation(fields: [invoiceInvoiceid], references: [Invoiceid])
   invoiceInvoiceid Int?
 
@@ -176,56 +174,35 @@ model SMS_Status {
 
 model Members {
   Membersid        Int     @id(map: "PK__Members__5456DC83F7FEAB42") @default(autoincrement()) @db.SmallInt
-  main_pic         String? @db.VarChar(200)
-  Name             String? @db.VarChar(20)
-  Role             String? @db.VarChar(20)
-  sec_pic          String? @db.VarChar(200)
-  main_description String? @db.VarChar(4000)
-  Slug             String? @db.VarChar(500)
-  insta            String? @db.VarChar(50)
-  whatsapp         String? @db.VarChar(50)
+  main_pic         String  @db.VarChar(200)
+  Name             String  @db.VarChar(20)
+  Role             String  @db.VarChar(20)
+  main_description String  @db.VarChar(4000)
+  Slug             String  @db.VarChar(500)
   phonenumber      String? @db.VarChar(11)
 
   @@schema("Member")
 }
 
-model Project_Comments {
-  CommentID   Int       @id(map: "PK__Comments__C3B4DFAA8AB2237C") @default(autoincrement())
-  ProjectID   Int
-  UserName    String    @db.VarChar(255)
-  CommentText String
-  CommentedAt DateTime? @default(now()) @db.Timestamp(6)
-  Projects    Projects  @relation(fields: [ProjectID], references: [ProjectID], onDelete: Cascade, onUpdate: NoAction, map: "FK__Comments__Projec__53E25DCE")
-
-  @@map("Comments")
-  @@schema("Project")
-}
-
 model ProjectMedia {
-  MediaID      Int      @id(map: "PK__ProjectM__B2C2B5AFD34F46E7") @default(autoincrement())
-  ProjectID    Int
-  MediaType    String?  @db.VarChar(20)
-  MediaURL     String
-  Main_img_URL String?  @db.VarChar(500)
-  Projects     Projects @relation(fields: [ProjectID], references: [ProjectID], onDelete: Cascade, onUpdate: NoAction, map: "FK__ProjectMe__Proje__4D35603F")
-
-  @@schema("Project")
-}
-
-model ProjectTags {
-  TagID   Int    @id(map: "PK__ProjectT__657CFA4C04A385F4") @default(autoincrement())
-  TagName String @unique(map: "UQ__ProjectT__BDE0FD1D653E4343") @db.VarChar(100)
+  MediaID   Int      @id(map: "PK__ProjectM__B2C2B5AFD34F46E7") @default(autoincrement())
+  ProjectID Int
+  MediaType String?  @db.VarChar(20)
+  MediaURL  String
+  Projects  Projects @relation(fields: [ProjectID], references: [ProjectID], onDelete: Cascade, onUpdate: NoAction, map: "FK__ProjectMe__Proje__4D35603F")
 
   @@schema("Project")
 }
 
 model Projects {
-  ProjectID    Int                @id(map: "PK__Projects__761ABED095EDE184") @default(autoincrement())
-  Title        String?            @db.VarChar(255)
-  Description  String?
-  Slug         String?            @db.VarChar(255)
-  IsActive     Boolean?
-  Comments     Project_Comments[]
+  ProjectID    Int            @id(map: "PK__Projects__761ABED095EDE184") @default(autoincrement())
+  Title        String         @db.VarChar(255)
+  Description  String
+  Slug         String         @db.VarChar(255)
+  IsActive     Boolean
+  Main_img_URL String         @db.VarChar(500)
+  date         String         @db.VarChar(100)
+  city         String         @db.VarChar(100)
   ProjectMedia ProjectMedia[]
 
   @@schema("Project")
@@ -373,7 +350,7 @@ model SEO_CategoryContent {
 }
 
 model EFMigrationsHistory {
-  MigrationId    String @id(map: "PK___EFMigrationsHistory") @db.VarChar(150)
+  MigrationId    String @id(map: "PK___EFMigrationsHistory1") @db.VarChar(150)
   ProductVersion String @db.VarChar(32)
 
   @@map("__EFMigrationsHistory")
@@ -451,4 +428,12 @@ model sliders {
   link      String  @db.VarChar(1500)
 
   @@schema("landing_page")
+}
+
+model efmigrationshistory {
+  MigrationId    String @id(map: "PK___EFMigrationsHistory") @db.VarChar(150)
+  ProductVersion String @db.VarChar(32)
+
+  @@map("__efmigrationshistory")
+  @@schema("farabak_net_technomi")
 }
