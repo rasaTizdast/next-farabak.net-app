@@ -5,11 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export async function GET() {
   try {
-    const products = await prisma.showcase_products.findMany({
-      include: {
-        Product: true, // Assuming you want to include related product details
-      },
-    });
+    const products = await prisma.showcase_products.findMany();
     return NextResponse.json(products);
   } catch (error) {
     return NextResponse.json(
@@ -67,7 +63,6 @@ export async function POST(request: Request) {
         order,
         image: imageUrl,
         link,
-        productProductId,
       },
     });
 
