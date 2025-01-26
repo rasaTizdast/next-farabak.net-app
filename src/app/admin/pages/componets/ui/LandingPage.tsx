@@ -65,7 +65,7 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
       const response = await axios.get("/api/landingPage/showcase_products");
       setShowcaseProducts(response.data);
     } catch (error) {
-      toast.error("خطا در دریافت محصولات نمایشی.");
+      toast.error("محصولات نمایشی یافت نشد");
     } finally {
       setIsLoading(false);
     }
