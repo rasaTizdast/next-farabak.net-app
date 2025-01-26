@@ -31,7 +31,7 @@ const EditModal: React.FC<EditModalProps> = ({
   useEffect(() => {
     if (item && item.SEO_Details) {
       const seoDetails = item.SEO_Details;
-      let parsedKeywords = [];
+      let parsedKeywords: string[] = [];
       if (Array.isArray(seoDetails.SEO_Keywords)) {
         parsedKeywords = seoDetails.SEO_Keywords;
       } else if (typeof seoDetails.SEO_Keywords === "string") {

@@ -38,6 +38,28 @@ import { prisma } from "@/lib/prisma";
  *       500:
  *         description: Internal server error
  */
+
+interface CategoryContent {
+  CategoryContentId: number;
+  Name: string | null;
+  CategoryID: number | null;
+  Slug: string | null;
+  Available: boolean | null;
+  InsertDate: Date | null;
+  ModifyDate: Date | null;
+}
+
+interface Category {
+  CategoryID: number;
+  Name: string | null;
+  Available: boolean | null;
+  InsertDate: Date | null;
+  ModifyDate: Date | null;
+  Category_groupId: number | null;
+  Slug: string | null;
+  CategoryContent: CategoryContent[];
+}
+
 export async function GET() {
   try {
     const categories = await prisma.category.findMany({
@@ -45,17 +67,19 @@ export async function GET() {
         CategoryContent: true,
       },
       orderBy: {
-        Name: 'asc',
+        Name: "asc",
       },
     });
 
-    const formattedCategories = categories.map((category) => ({
+    const formattedCategories = categories.map((category: Category) => ({
       CategoryID: category.CategoryID,
       Name: category.Name,
-      subCategories: category.CategoryContent.map((subCategory) => ({
-        CategoryContentID: subCategory.CategoryContentId,
-        Name: subCategory.Name,
-      })),
+      subCategories: category.CategoryContent.map(
+        (subCategory: CategoryContent) => ({
+          CategoryContentID: subCategory.CategoryContentId,
+          Name: subCategory.Name,
+        })
+      ),
     }));
 
     return NextResponse.json({ categories: formattedCategories });

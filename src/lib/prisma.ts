@@ -12,13 +12,11 @@ if (process.env.NODE_ENV !== "production") {
 
 // Gracefully shut down Prisma connections on server shutdown
 process.on("SIGINT", async () => {
-  console.log("Closing Prisma connection on SIGINT...");
   await prisma.$disconnect();
   process.exit(0);
 });
 
 process.on("SIGTERM", async () => {
-  console.log("Closing Prisma connection on SIGTERM...");
   await prisma.$disconnect();
   process.exit(0);
 });

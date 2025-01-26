@@ -125,8 +125,8 @@ export async function GET(request: Request) {
     }
 
     // Fetch total count for pagination, if limit is applied
-    let totalCount = null;
-    let totalPages = null;
+    let totalCount: number = 0;
+    let totalPages = 0;
 
     if (limit > 0) {
       totalCount = await prisma.product.count({
