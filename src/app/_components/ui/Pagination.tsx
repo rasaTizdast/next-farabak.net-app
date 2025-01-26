@@ -15,8 +15,9 @@ const Pagination: React.FC<PaginationProps> = ({
   categorySlug,
   subcategorySlug,
 }) => {
-  const getPageNumbers = () => {
-    const pages = [];
+  // Explicitly define the type of the `pages` array as (number | string)[]
+  const getPageNumbers = (): (number | string)[] => {
+    const pages: (number | string)[] = [];
 
     if (totalPages <= 5) {
       for (let i = 1; i <= totalPages; i++) {
@@ -50,7 +51,6 @@ const Pagination: React.FC<PaginationProps> = ({
   const path = `${basePath}${categorySlug ? `/${categorySlug}` : ""}${
     subcategorySlug ? `/${subcategorySlug}` : ""
   }/page`;
-
   return (
     <div className="flex flex-wrap justify-center items-center mt-16 gap-2">
       {/* First Button */}
