@@ -10,14 +10,14 @@ const swaggerDefinition = {
   },
   servers: [
     {
-      url: "http://localhost:3000", // Adjust this URL for production
+      url: process.env.NODE_ENV === "production" ? "https://farabak.net" : "http://localhost:3000", // Adjust this URL for production
     },
   ],
 };
 
 const options: OAS3Options = {
   swaggerDefinition,
-  apis: ["./src/app/api/**/*.ts",], // Path to your API routes for automatic documentation
+  apis: ["./src/app/api/**/*.ts"], // Path to your API routes for automatic documentation
 };
 
 const swaggerSpec = swaggerJsdoc(options);
