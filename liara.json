@@ -1,4 +1,7 @@
 {
+  "next": {
+    "modifyConfig": false
+  },
   "app": "next-farabak",
   "port": 3000,
   "build": {

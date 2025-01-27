@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",
   // reactStrictMode: false, // Disable React Strict Mode
   images: {
     remotePatterns: [
