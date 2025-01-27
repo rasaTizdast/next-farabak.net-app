@@ -17,7 +17,7 @@ const ProductCategories = () => {
     try {
       setIsLoading(true);
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/getAll`
+        `/api/categories/getAll`
       );
       const data = await res.json();
       setCategories(data);

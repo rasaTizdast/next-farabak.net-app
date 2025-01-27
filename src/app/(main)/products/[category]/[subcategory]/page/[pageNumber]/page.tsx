@@ -30,7 +30,7 @@ export const generateMetadata = async ({
     const { seoDetails } = res.data;
 
     return {
-      title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${subcategory}`,
+      title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${subcategory} | فرابک`,
       description:
         seoDetails.SEO_Description || `محصولات دسته‌بندی ${subcategory}`,
       alternates: {
