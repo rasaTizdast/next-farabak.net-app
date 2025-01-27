@@ -133,15 +133,14 @@ model Invoice {
 }
 
 model Invoice_Details {
-  Invoice_Details  Int      @id(map: "PK__Invoice___4A16C8C534ABC2CC") @default(autoincrement())
-  Invoiceid        Int?
-  UserId           Int?
-  ProductId        Int?
-  quantity         Float?
-  price            Float?
-  total_price      Float?
-  Invoice          Invoice? @relation(fields: [invoiceInvoiceid], references: [Invoiceid])
-  invoiceInvoiceid Int?
+  Invoice_Details Int      @id(map: "PK__Invoice___4A16C8C534ABC2CC") @default(autoincrement())
+  Invoiceid       Int?
+  UserId          Int?
+  ProductId       Int?
+  quantity        Float?
+  price           Float?
+  total_price     Float?
+  Invoice         Invoice? @relation(fields: [Invoiceid], references: [Invoiceid])
 
   @@schema("Info")
 }
