@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { BsFillSignpostSplitFill } from "react-icons/bs";
 import { FaInstagram, FaPhoneSquare, FaWhatsapp } from "react-icons/fa";
 import styles from "./Footer.module.css";
