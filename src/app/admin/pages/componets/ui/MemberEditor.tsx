@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 
 type MemberEditModalProps = {
   id: number | null;
@@ -120,12 +121,11 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
       if (!response.ok) {
         throw new Error("Failed to update member");
       }
-
-      const data = await response.json();
-      console.log("Member updated:", data);
+      toast.success("عضو با موفقیت آپدیت شد");
       onClose(); // Close the modal after successful update
     } catch (error) {
       console.error("Error updating member:", error);
+      toast.error("خطا در به‌روزرسانی عضو، مجددا تلاش کنید");
       setError("خطا در به‌روزرسانی عضو، مجددا تلاش کنید");
     } finally {
       setLoading(false); // Reset loading state
