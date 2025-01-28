@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     follow: false, // Allows crawling of links on the page if needed
   },
   other: {
-    "google-site-verification": "ibG0VNoO2gB5dXMyvVgMR43MYU_D1jiM_fdtv3387ks",
+    "google-site-verification": `${process.env.GOOGLE_SITE_VERIFICATION}`,
   },
 };
 
@@ -24,7 +24,7 @@ export default function AuthLayout({
       <Script
         defer
         src="https://cloud.umami.is/script.js"
-        data-website-id="cbecfb4d-6b80-48d2-abac-13f7d8806239"
+        data-website-id={process.env.UMAMI_WEBSITE_ID}
       ></Script>
       <div className={styles.parent}>{children}</div>
     </>
