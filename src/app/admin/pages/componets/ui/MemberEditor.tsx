@@ -135,8 +135,33 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
   if (loading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-        <div className="bg-gray-700 text-gray-200 p-6 rounded-lg shadow-lg">
-          <p>در حال بارگذاری...</p>
+        <div
+          className="bg-gray-700 text-gray-200 p-6 rounded-lg shadow-lg w-full max-w-7xl max-h-[95dvh] overflow-auto"
+          dir="rtl"
+        >
+          <h2 className="text-2xl font-bold mb-4">
+            <div className="h-8 bg-gray-600 rounded w-1/3 animate-pulse"></div>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[...Array(2)].map((_, index) => (
+              <div key={index}>
+                <div className="h-6 bg-gray-600 rounded w-1/4 mb-2 animate-pulse"></div>
+                <div className="h-10 bg-gray-600 rounded w-full animate-pulse"></div>
+              </div>
+            ))}
+            <div className="col-span-2">
+              <div className="h-6 bg-gray-600 rounded w-1/4 mb-2 animate-pulse"></div>
+              <div className="h-32 bg-gray-600 rounded w-full animate-pulse"></div>
+            </div>
+            <div className="col-span-2">
+              <div className="h-6 bg-gray-600 rounded w-1/4 mb-2 animate-pulse"></div>
+              <div className="h-48 bg-gray-600 rounded w-full animate-pulse"></div>
+            </div>
+          </div>
+          <div className="mt-6 flex justify-end gap-4">
+            <div className="h-10 bg-gray-600 rounded w-24 animate-pulse"></div>
+            <div className="h-10 bg-gray-600 rounded w-24 animate-pulse"></div>
+          </div>
         </div>
       </div>
     );
@@ -295,9 +320,14 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 transition-all text-gray-100 rounded-lg"
+              disabled={loading}
+              className={`px-4 py-2 ${
+                loading
+                  ? "bg-green-700 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700"
+              } transition-all text-gray-100 rounded-lg`}
             >
-              ذخیره تغییرات
+              {loading ? "در حال ذخیره کردن" : "ذخیره تغییرات"}
             </button>
           </div>
         </form>
