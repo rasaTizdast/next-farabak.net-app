@@ -1,6 +1,7 @@
 [
   {
     "id": 1,
+    "slug": "babak-makari-aghdam",
     "name": "بابک مکاری اقدم",
     "role": "مدیرعامل",
     "desc": "Lorem ipsum odor amet, consectetuer adipiscing elit. Proin vestibulum sapien augue euismod lobortis vehicula enim sed. Elit facilisi curabitur mus mauris in pellentesque suscipit cras quam! Proin sit himenaeos condimentum tempus aliquam viverra imperdiet. Nisi dis fames phasellus volutpat; ac facilisis. Lacus nunc habitant ullamcorper erat fringilla; parturient dis. Dis sit nec ad natoque netus. Integer gravida magna velit sit fusce vulputate metus nunc. Accumsan class augue a donec ornare viverra. Tristique habitant consectetur tortor dapibus tellus aliquet mi commodo. Nostra leo sed est congue viverra habitasse. Diam conubia curae phasellus cras egestas mi ipsum egestas. Justo ad elementum nunc imperdiet faucibus. Cras ipsum urna tristique nisl lectus mi. Elementum suspendisse id nunc orci urna sociosqu turpis. Massa aliquam imperdiet laoreet dapibus dapibus pretium tristique malesuada.",
@@ -13,6 +14,7 @@
   },
   {
     "id": 2,
+    "slug": "farhang-makari-aghdam",
     "name": "فرهنگ مکاری اقدم",
     "role": "رئیس هیئت مدیره",
     "desc": "Lorem ipsum odor amet, consectetuer adipiscing elit. Proin vestibulum sapien augue euismod lobortis vehicula enim sed. Elit facilisi curabitur mus mauris in pellentesque suscipit cras quam! Proin sit himenaeos condimentum tempus aliquam viverra imperdiet. Nisi dis fames phasellus volutpat; ac facilisis. Lacus nunc habitant ullamcorper erat fringilla; parturient dis. Dis sit nec ad natoque netus. Integer gravida magna velit sit fusce vulputate metus nunc. Accumsan class augue a donec ornare viverra. Tristique habitant consectetur tortor dapibus tellus aliquet mi commodo. Nostra leo sed est congue viverra habitasse. Diam conubia curae phasellus cras egestas mi ipsum egestas. Justo ad elementum nunc imperdiet faucibus. Cras ipsum urna tristique nisl lectus mi. Elementum suspendisse id nunc orci urna sociosqu turpis. Massa aliquam imperdiet laoreet dapibus dapibus pretium tristique malesuada.",
@@ -25,6 +27,7 @@
   },
   {
     "id": 3,
+    "slug": "kamran-makari-aghdam",
     "name": "کامران مکاری اقدم",
     "role": "نایب رئیس هیئت مدیره",
     "desc": "Lorem ipsum odor amet, consectetuer adipiscing elit. Proin vestibulum sapien augue euismod lobortis vehicula enim sed. Elit facilisi curabitur mus mauris in pellentesque suscipit cras quam! Proin sit himenaeos condimentum tempus aliquam viverra imperdiet. Nisi dis fames phasellus volutpat; ac facilisis. Lacus nunc habitant ullamcorper erat fringilla; parturient dis. Dis sit nec ad natoque netus. Integer gravida magna velit sit fusce vulputate metus nunc. Accumsan class augue a donec ornare viverra. Tristique habitant consectetur tortor dapibus tellus aliquet mi commodo. Nostra leo sed est congue viverra habitasse. Diam conubia curae phasellus cras egestas mi ipsum egestas. Justo ad elementum nunc imperdiet faucibus. Cras ipsum urna tristique nisl lectus mi. Elementum suspendisse id nunc orci urna sociosqu turpis. Massa aliquam imperdiet laoreet dapibus dapibus pretium tristique malesuada.",
