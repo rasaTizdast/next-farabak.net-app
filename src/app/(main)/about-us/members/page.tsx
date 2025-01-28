@@ -31,19 +31,20 @@ const Members = () => {
 type CardProps = {
   data: {
     id: number;
+    slug: string;
     name: string;
     role: string;
     img: string;
   };
 };
 
-const Card = ({ data: { id, name, role, img } }: CardProps) => {
+const Card = ({ data: { slug, name, role, img } }: CardProps) => {
   return (
     <div className={styles.card}>
       <Image src={img} alt={name} width={200} height={150} quality={100} />
       <h2>{name}</h2>
       <p>{role}</p>
-      <Link href={`/about-us/members/${id}`}>مشاهده</Link>
+      <Link href={`/about-us/members/${slug}`}>مشاهده</Link>
     </div>
   );
 };

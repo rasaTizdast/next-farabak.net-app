@@ -11,12 +11,12 @@ import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 
 type Props = {
   params: {
-    member: number;
+    member: string;
   };
 };
 
 export const generateMetadata = ({ params }: Props): Metadata => {
-  const memberData = members.find((mem) => params.member === mem.id);
+  const memberData = members.find((mem) => params.member === mem.slug);
 
   if (!memberData) {
     return {
@@ -40,7 +40,7 @@ type MemberData = {
 };
 
 const MemberPage = ({ params }: Props) => {
-  const memberData = members.find((member) => +params.member === member.id);
+  const memberData = members.find((member) => params.member === member.slug);
 
   if (!memberData) {
     notFound();
