@@ -7,7 +7,7 @@ const Footer = async () => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_URL}/api/contact-us`,
     {
-      cache: "force-cache", // Ensure the data is always fresh
+      next: { revalidate: 3600 },
     }
   );
   const { phone_numbers, address } = await response.json();
