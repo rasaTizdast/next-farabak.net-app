@@ -7,7 +7,7 @@ const Footer = async () => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_URL}/api/contact-us`,
     {
-      cache: "no-store", // Ensure the data is always fresh
+      cache: "force-cache", // Ensure the data is always fresh
     }
   );
   const { phone_numbers, address } = await response.json();
