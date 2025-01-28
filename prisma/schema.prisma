@@ -177,7 +177,7 @@ model Members {
   Name             String  @db.VarChar(20)
   Role             String  @db.VarChar(20)
   main_description String  @db.VarChar(4000)
-  Slug             String  @db.VarChar(500)
+  Slug             String  @unique @db.VarChar(500)
   phonenumber      String? @db.VarChar(11)
 
   @@schema("Member")
