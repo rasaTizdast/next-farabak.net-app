@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Image from "next/image";
+import { FiX, FiPlus, FiTrash2, FiZoomIn } from "react-icons/fi";
 
 type Slider = {
   id: number;
@@ -29,6 +30,11 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const [showcaseProducts, setShowcaseProducts] = useState<ShowcaseProduct[]>(
     []
   );
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{
+    type: "slider" | "product";
+    id: number;
+  } | null>(null);
   const [newSlider, setNewSlider] = useState<Partial<Slider>>({});
   const [newShowcaseProduct, setNewShowcaseProduct] = useState<
     Partial<ShowcaseProduct>
@@ -70,6 +76,41 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
       setIsLoading(false);
     }
   };
+
+  // Add this new function for image preview
+  const openImagePreview = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+  };
+
+  // Add this new confirmation dialog component
+  const ConfirmationDialog = () => (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm">
+      <div className="bg-gray-800 p-6 rounded-lg max-w-md">
+        <h3 className="text-lg font-semibold mb-4">آیا مطمئن هستید؟</h3>
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={() => setConfirmDelete(null)}
+            className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
+          >
+            لغو
+          </button>
+          <button
+            onClick={() => {
+              if (confirmDelete?.type === "slider") {
+                handleDeleteSlider(confirmDelete.id);
+              } else {
+                handleDeleteShowcaseProduct(confirmDelete?.id!);
+              }
+              setConfirmDelete(null);
+            }}
+            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition-colors"
+          >
+            حذف
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   const handleAddSlider = async () => {
     try {
@@ -167,221 +208,355 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
     }
   };
 
+  // Update the slider item JSX
+  const SliderItem = ({ slider }: { slider: Slider }) => (
+    <div className="group relative flex items-center justify-between p-4 bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all">
+      <div className="flex items-center gap-4 space-x-4 flex-1">
+        <div className="relative">
+          <Image
+            width={120}
+            height={80}
+            quality={100}
+            src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/slider-imgs/${slider.image_URL}`}
+            alt={slider.image_alt || "اسلایدر"}
+            className="w-32 h-20 object-cover rounded-lg cursor-zoom-in"
+            onClick={() =>
+              openImagePreview(
+                `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/slider-imgs/${slider.image_URL}`
+              )
+            }
+          />
+          <FiZoomIn
+            size={20}
+            className="absolute top-1 left-1 text-white bg-black/50 p-1 rounded"
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm truncate text-gray-300">{slider.link}</p>
+          {slider.image_alt && (
+            <p className="text-xs text-gray-400 mt-1">{slider.image_alt}</p>
+          )}
+        </div>
+      </div>
+      <button
+        onClick={() => setConfirmDelete({ type: "slider", id: slider.id })}
+        className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+        disabled={isDeletingSlider === slider.id}
+      >
+        {isDeletingSlider === slider.id ? (
+          <span className="loading-dots">حذف</span>
+        ) : (
+          <FiTrash2 className="w-5 h-5 text-red-500" />
+        )}
+      </button>
+    </div>
+  );
+
+  // Update the showcase product item JSX
+  const ShowcaseProductItem = ({ product }: { product: ShowcaseProduct }) => (
+    <div className="group relative flex items-center justify-between p-4 bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all">
+      <div className="flex items-center space-x-4 flex-1">
+        <div className="relative">
+          <Image
+            width={120}
+            height={80}
+            quality={100}
+            src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${product.image}`}
+            alt={product.title}
+            className="w-32 h-20 object-cover rounded-lg cursor-zoom-in"
+            onClick={() =>
+              openImagePreview(
+                `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${product.image}`
+              )
+            }
+          />
+          <FiZoomIn className="absolute top-1 left-1 text-white bg-black/50 p-1 rounded" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="font-medium truncate">{product.title}</h4>
+          <p className="text-sm text-gray-300 truncate">
+            {product.description}
+          </p>
+          <div className="flex items-center space-x-3 mt-1">
+            <span className="text-xs bg-gray-700 px-2 py-1 rounded">
+              ترتیب: {product.order}
+            </span>
+            <a
+              href={product.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-400 hover:text-blue-300 truncate"
+            >
+              {product.link}
+            </a>
+          </div>
+        </div>
+      </div>
+      <button
+        onClick={() => setConfirmDelete({ type: "product", id: product.id })}
+        className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+        disabled={isDeletingProduct === product.id}
+      >
+        {isDeletingProduct === product.id ? (
+          <span className="loading-dots">حذف</span>
+        ) : (
+          <FiTrash2 className="w-5 h-5 text-red-500" />
+        )}
+      </button>
+    </div>
+  );
+
   // Skeleton Loading Component
   const SkeletonLoader = () => (
     <div className="animate-pulse space-y-4">
-      {/* Slider Skeleton */}
-      <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
-        <div className="flex items-center space-x-4">
-          <div className="w-20 h-20 bg-gray-700 rounded-lg"></div>
-          <div className="flex-1 space-y-2">
-            <div className="h-4 bg-gray-700 rounded w-1/2"></div>
-            <div className="h-4 bg-gray-700 rounded w-1/4"></div>
+      {[...Array(2)].map((_, i) => (
+        <div key={i} className="bg-gray-800 p-4 rounded-lg">
+          <div className="flex justify-between items-center mb-4">
+            <div className="h-6 w-32 bg-gray-700 rounded" />
+            <div className="h-4 w-20 bg-gray-700 rounded" />
+          </div>
+          <div className="space-y-3">
+            {[...Array(2)].map((_, j) => (
+              <div
+                key={j}
+                className="flex items-center justify-between p-4 bg-gray-700 rounded-lg"
+              >
+                <div className="flex items-center gap-4 space-x-4 flex-1">
+                  <div className="w-32 h-20 bg-gray-600 rounded-lg" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-600 rounded w-3/4" />
+                    <div className="h-3 bg-gray-600 rounded w-1/2" />
+                  </div>
+                </div>
+                <div className="w-10 h-10 bg-gray-600 rounded-lg" />
+              </div>
+            ))}
           </div>
         </div>
-        <div className="h-10 w-20 bg-gray-700 rounded-lg"></div>
-      </div>
-      {/* Showcase Product Skeleton */}
-      <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
-        <div className="flex items-center space-x-4">
-          <div className="w-20 h-20 bg-gray-700 rounded-lg"></div>
-          <div className="flex-1 space-y-2">
-            <div className="h-4 bg-gray-700 rounded w-1/2"></div>
-            <div className="h-4 bg-gray-700 rounded w-1/4"></div>
-          </div>
-        </div>
-        <div className="h-10 w-20 bg-gray-700 rounded-lg"></div>
-      </div>
+      ))}
     </div>
   );
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm shadow-lg">
-      <div
-        className="bg-gray-900 text-gray-200 p-6 rounded-lg shadow-lg w-full max-w-7xl max-h-[95dvh] overflow-auto"
-        dir="rtl"
-      >
-        <h2 className="text-xl font-bold mb-4">ویرایش صفحه اصلی</h2>
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm">
+      {/* Image Preview Modal */}
+      {selectedImage && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="relative max-w-4xl max-h-[90vh]">
+            <img
+              src={selectedImage}
+              alt="Full size preview"
+              className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            />
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-4 left-4 text-white bg-black/50 p-2 rounded-full hover:bg-black/80 transition-colors"
+            >
+              <FiX className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+      )}
 
-        {/* Loading State */}
-        {isLoading && <SkeletonLoader />}
+      {/* Confirmation Dialog */}
+      {confirmDelete && <ConfirmationDialog />}
 
-        {/* Sliders Section */}
-        {!isLoading && (
-          <section className="mb-8">
-            <h3 className="text-lg font-semibold mb-4">اسلایدرها</h3>
-            <div className="space-y-4">
-              {sliders.map((slider) => (
-                <div
-                  key={slider.id}
-                  className="flex items-center justify-between p-4 bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow"
-                >
-                  <div className="flex items-center space-x-4">
-                    <Image
-                      width={1920}
-                      height={1080}
-                      quality={100}
-                      src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/slider-imgs/${slider.image_URL}`}
-                      alt={slider.image_alt || "اسلایدر"}
-                      className="w-20 h-20 object-cover rounded-lg"
+      <div className="bg-gray-900 text-gray-200 p-6 rounded-lg shadow-xl w-full max-w-4xl max-h-[95vh] overflow-auto relative">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">ویرایش صفحه اصلی</h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+          >
+            <FiX className="w-6 h-6 text-red-400 hover:text-red-500 transition-all" />
+          </button>
+        </div>
+
+        {isLoading ? (
+          <SkeletonLoader />
+        ) : (
+          <>
+            {/* Sliders Section */}
+            <section className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">اسلایدرها</h3>
+                <span className="text-sm text-gray-400">
+                  {sliders.length} آیتم
+                </span>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                {sliders.map((slider) => (
+                  <SliderItem key={slider.id} slider={slider} />
+                ))}
+              </div>
+
+              <div className="bg-gray-800 p-4 rounded-lg">
+                <h4 className="font-medium mb-3">اسلایدر جدید</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label className="space-y-1">
+                    <span className="text-sm text-gray-300">تصویر</span>
+                    <input
+                      type="file"
+                      onChange={(e) =>
+                        setSliderFile(e.target.files?.[0] || null)
+                      }
+                      className="w-full p-2 bg-gray-700 rounded-lg border border-gray-600 file:text-gray-300 file:bg-gray-600 file:border-0 file:mr-2 file:px-3 file:py-1"
                     />
-                    <div>
-                      <p className="text-sm text-gray-300">{slider.link}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleDeleteSlider(slider.id)}
-                    className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg hover:from-red-600 hover:to-red-700 transition-all"
-                    disabled={isDeletingSlider === slider.id}
-                  >
-                    {isDeletingSlider === slider.id ? "در حال حذف..." : "حذف"}
-                  </button>
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-sm text-gray-300">لینک</span>
+                    <input
+                      type="text"
+                      placeholder="https://example.com"
+                      value={newSlider.link || ""}
+                      onChange={(e) =>
+                        setNewSlider({ ...newSlider, link: e.target.value })
+                      }
+                      className="w-full p-2 bg-gray-700 rounded-lg border border-gray-600"
+                    />
+                  </label>
+                  <label className="space-y-1 md:col-span-2">
+                    <span className="text-sm text-gray-300">
+                      متن جایگزین (اختیاری)
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="توضیح تصویر"
+                      value={newSlider.image_alt || ""}
+                      onChange={(e) =>
+                        setNewSlider({
+                          ...newSlider,
+                          image_alt: e.target.value,
+                        })
+                      }
+                      className="w-full p-2 bg-gray-700 rounded-lg border border-gray-600"
+                    />
+                  </label>
                 </div>
-              ))}
-              <div className="flex flex-col space-y-2">
-                <input
-                  type="file"
-                  onChange={(e) => setSliderFile(e.target.files?.[0] || null)}
-                  className="p-2 bg-gray-800 rounded-lg border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
-                />
-                <input
-                  type="text"
-                  placeholder="متن جایگزین (اختیاری)"
-                  value={newSlider.image_alt || ""}
-                  onChange={(e) =>
-                    setNewSlider({ ...newSlider, image_alt: e.target.value })
-                  }
-                  className="p-2 bg-gray-800 rounded-lg border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
-                />
-                <input
-                  type="text"
-                  placeholder="لینک"
-                  value={newSlider.link || ""}
-                  onChange={(e) =>
-                    setNewSlider({ ...newSlider, link: e.target.value })
-                  }
-                  className="p-2 bg-gray-800 rounded-lg border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
-                />
                 <button
                   onClick={handleAddSlider}
-                  className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all"
+                  className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
                   disabled={isUploadingSlider}
                 >
-                  {isUploadingSlider ? "در حال آپلود..." : "افزودن اسلایدر"}
+                  {isUploadingSlider ? (
+                    <span className="loading-dots">در حال آپلود</span>
+                  ) : (
+                    <>
+                      <FiPlus className="w-5 h-5" />
+                      افزودن اسلایدر
+                    </>
+                  )}
                 </button>
               </div>
-            </div>
-          </section>
-        )}
+            </section>
 
-        {/* Showcase Products Section */}
-        {!isLoading && (
-          <section>
-            <h3 className="text-lg font-semibold mb-4">محصولات نمایشی</h3>
-            <div className="space-y-4">
-              {showcaseProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="flex items-center justify-between p-4 bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow"
-                >
-                  <div className="flex items-center space-x-4">
-                    <img
-                      src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${product.image}`}
-                      alt={product.title}
-                      className="w-20 h-20 object-cover rounded-lg"
+            {/* Showcase Products Section */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">محصولات نمایشی</h3>
+                <span className="text-sm text-gray-400">
+                  {showcaseProducts.length} آیتم
+                </span>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                {showcaseProducts.map((product) => (
+                  <ShowcaseProductItem key={product.id} product={product} />
+                ))}
+              </div>
+
+              <div className="bg-gray-800 p-4 rounded-lg">
+                <h4 className="font-medium mb-3">محصول نمایشی جدید</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label className="space-y-1">
+                    <span className="text-sm text-gray-300">تصویر</span>
+                    <input
+                      type="file"
+                      onChange={(e) =>
+                        setProductFile(e.target.files?.[0] || null)
+                      }
+                      className="w-full p-2 bg-gray-700 rounded-lg border border-gray-600 file:text-gray-300 file:bg-gray-600 file:border-0 file:mr-2 file:px-3 file:py-1"
                     />
-                    <div>
-                      <h4 className="font-medium">{product.title}</h4>
-                      <p className="text-sm text-gray-300">
-                        {product.description}
-                      </p>
-                      <p className="text-sm text-gray-300">{product.link}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleDeleteShowcaseProduct(product.id)}
-                    className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg hover:from-red-600 hover:to-red-700 transition-all"
-                    disabled={isDeletingProduct === product.id}
-                  >
-                    {isDeletingProduct === product.id ? "در حال حذف..." : "حذف"}
-                  </button>
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-sm text-gray-300">عنوان</span>
+                    <input
+                      type="text"
+                      placeholder="عنوان محصول"
+                      value={newShowcaseProduct.title || ""}
+                      onChange={(e) =>
+                        setNewShowcaseProduct({
+                          ...newShowcaseProduct,
+                          title: e.target.value,
+                        })
+                      }
+                      className="w-full p-2 bg-gray-700 rounded-lg border border-gray-600"
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-sm text-gray-300">ترتیب نمایش</span>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={newShowcaseProduct.order || ""}
+                      onChange={(e) =>
+                        setNewShowcaseProduct({
+                          ...newShowcaseProduct,
+                          order: parseInt(e.target.value),
+                        })
+                      }
+                      className="w-full p-2 bg-gray-700 rounded-lg border border-gray-600"
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-sm text-gray-300">لینک</span>
+                    <input
+                      type="text"
+                      placeholder="https://example.com"
+                      value={newShowcaseProduct.link || ""}
+                      onChange={(e) =>
+                        setNewShowcaseProduct({
+                          ...newShowcaseProduct,
+                          link: e.target.value,
+                        })
+                      }
+                      className="w-full p-2 bg-gray-700 rounded-lg border border-gray-600"
+                    />
+                  </label>
+                  <label className="space-y-1 md:col-span-2">
+                    <span className="text-sm text-gray-300">توضیحات</span>
+                    <textarea
+                      placeholder="توضیحات محصول"
+                      value={newShowcaseProduct.description || ""}
+                      onChange={(e) =>
+                        setNewShowcaseProduct({
+                          ...newShowcaseProduct,
+                          description: e.target.value,
+                        })
+                      }
+                      className="w-full p-2 bg-gray-700 rounded-lg border border-gray-600 resize-none h-24"
+                    />
+                  </label>
                 </div>
-              ))}
-              <div className="flex flex-col space-y-2">
-                <input
-                  type="file"
-                  onChange={(e) => setProductFile(e.target.files?.[0] || null)}
-                  className="p-2 bg-gray-800 rounded-lg border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
-                />
-                <input
-                  type="text"
-                  placeholder="عنوان"
-                  value={newShowcaseProduct.title || ""}
-                  onChange={(e) =>
-                    setNewShowcaseProduct({
-                      ...newShowcaseProduct,
-                      title: e.target.value,
-                    })
-                  }
-                  className="p-2 bg-gray-800 rounded-lg border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
-                />
-                <input
-                  type="text"
-                  placeholder="توضیحات"
-                  value={newShowcaseProduct.description || ""}
-                  onChange={(e) =>
-                    setNewShowcaseProduct({
-                      ...newShowcaseProduct,
-                      description: e.target.value,
-                    })
-                  }
-                  className="p-2 bg-gray-800 rounded-lg border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
-                />
-                <input
-                  type="number"
-                  placeholder="ترتیب"
-                  value={newShowcaseProduct.order || ""}
-                  onChange={(e) =>
-                    setNewShowcaseProduct({
-                      ...newShowcaseProduct,
-                      order: parseInt(e.target.value),
-                    })
-                  }
-                  className="p-2 bg-gray-800 rounded-lg border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
-                />
-                <input
-                  type="text"
-                  placeholder="لینک"
-                  value={newShowcaseProduct.link || ""}
-                  onChange={(e) =>
-                    setNewShowcaseProduct({
-                      ...newShowcaseProduct,
-                      link: e.target.value,
-                    })
-                  }
-                  className="p-2 bg-gray-800 rounded-lg border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
-                />
                 <button
                   onClick={handleAddShowcaseProduct}
-                  className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all"
+                  className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
                   disabled={isUploadingProduct}
                 >
-                  {isUploadingProduct
-                    ? "در حال آپلود..."
-                    : "افزودن محصول نمایشی"}
+                  {isUploadingProduct ? (
+                    <span className="loading-dots">در حال آپلود</span>
+                  ) : (
+                    <>
+                      <FiPlus className="w-5 h-5" />
+                      افزودن محصول نمایشی
+                    </>
+                  )}
                 </button>
               </div>
-            </div>
-          </section>
+            </section>
+          </>
         )}
-
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="mt-6 bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg hover:from-red-600 hover:to-red-700 transition-all"
-        >
-          بستن
-        </button>
       </div>
     </div>
   );
