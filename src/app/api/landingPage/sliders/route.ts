@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
     // Upload the file to S3
     const buffer = Buffer.from(await file.arrayBuffer());
-    const key = `slider-images/${uuidv4()}-${file.name}`;
+    const key = `slider-imgs/${uuidv4()}-${file.name}`;
 
     await s3
       .putObject({
