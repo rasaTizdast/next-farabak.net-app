@@ -129,7 +129,7 @@ const AnalyticsOverview = () => {
             خود را مشاهده کنید.
           </p>
           <Link
-            href={`${process.env.UMAMI_ANALYTICS_PAGE}`}
+            href={process.env.NEXT_PUBLIC_UMAMI_ANALYTICS_PAGE!}
             target="_blank"
             className="inline-flex items-center gap-3 px-8 py-4 bg-blue-600 hover:bg-blue-700 
             text-white text-xs sm:text-base font-medium rounded-xl transition-all duration-300
