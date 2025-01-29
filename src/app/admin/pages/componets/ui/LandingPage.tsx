@@ -221,7 +221,7 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                       width={1920}
                       height={1080}
                       quality={100}
-                      src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${slider.image_URL}`}
+                      src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/slider-imgs/${slider.image_URL}`}
                       alt={slider.image_alt || "اسلایدر"}
                       className="w-20 h-20 object-cover rounded-lg"
                     />
