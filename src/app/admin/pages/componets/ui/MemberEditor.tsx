@@ -87,6 +87,8 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
     if (!formData.name.trim()) newErrors.name = "نام الزامی است.";
     if (!formData.role.trim()) newErrors.role = "نقش الزامی است.";
     if (!formData.desc.trim()) newErrors.desc = "توضیحات الزامی است.";
+    if (formData.desc.trim().length > 4000)
+      newErrors.desc = "توضیحات باید زیر ۴۰۰۰ کاراکتر باشد";
     if (!formData.phone.trim()) newErrors.phone = "شماره تماس الزامی است.";
     if (!formData.slug.trim()) newErrors.slug = "اسلاگ الزامی است.";
     setErrors(newErrors);
