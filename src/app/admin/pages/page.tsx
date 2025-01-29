@@ -120,23 +120,43 @@ const AdminPageManager: React.FC = () => {
     }
   };
 
-  // const deleteItem = async (type: string, id: number) => {
-  //   try {
-  //     const response = await fetch(`/api/admin/${type}/${id}`, {
-  //       method: "DELETE",
-  //     });
+  const deleteItem = async (type: string, id: number) => {
+    try {
+      let endpoint = "";
 
-  //     if (response.ok) {
-  //       // Refresh the data after deletion
-  //       toast.success("عملیات حذف با موفقیت انجام شد");
-  //       fetchPageData();
-  //     } else {
-  //       console.error("Failed to delete item");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error deleting item:", error);
-  //   }
-  // };
+      // Determine endpoint based on type
+      switch (type) {
+        case "member":
+          endpoint = `/api/members/${id}`;
+          break;
+        // case "blog":
+        //   endpoint = `/api/admin/blog/${id}`;
+        //   break;
+        // case "project":
+        //   endpoint = `/api/admin/project/${id}`;
+        //   break;
+
+        // Add more cases as needed
+        default:
+          throw new Error("Invalid delete type");
+      }
+
+      const response = await fetch(endpoint, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        toast.success("عملیات حذف با موفقیت انجام شد");
+        fetchPageData();
+      } else {
+        const errorData = await response.json();
+        toast.error(`خطا در حذف: ${errorData.error || "خطای ناشناخته"}`);
+      }
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      toast.error("خطا در ارتباط با سرور");
+    }
+  };
 
   // Skeleton Loading Component
   const renderSkeleton = () => {
@@ -282,7 +302,7 @@ const AdminPageManager: React.FC = () => {
                           >
                             <FaEdit className="inline-block" /> ویرایش
                           </button>
-                          {/* <button
+                          <button
                             className="py-1 px-3 rounded bg-red-200 text-gray-800 hover:bg-red-300 transition"
                             onClick={() =>
                               deleteItem(row.editorType, subPage.id)
@@ -293,7 +313,7 @@ const AdminPageManager: React.FC = () => {
                               size={20}
                             />
                             حذف
-                          </button> */}
+                          </button>
                         </td>
                       </tr>
                     ))}
