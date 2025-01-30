@@ -121,6 +121,11 @@ export async function GET() {
       id: true,
       title: true,
       slug: true,
+      BlogCategories: {
+        select: {
+          Categories: true,
+        },
+      },
     },
   });
 
@@ -146,7 +151,7 @@ export async function GET() {
     "/support/blog": blogs.map((blog) => ({
       id: blog.id,
       name: blog.title,
-      link: `/support/blog/${blog.slug}`,
+      link: `/support/blog/${blog.BlogCategories[0].Categories.slug}/${blog.slug}`,
     })),
     "/about-us/members": members.map((member) => ({
       id: member.Membersid,
