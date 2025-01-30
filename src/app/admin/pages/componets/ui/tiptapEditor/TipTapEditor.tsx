@@ -33,11 +33,16 @@ import { Divider } from "./Divider";
 import { CustomImage } from "./Image";
 
 interface TipTapBlogEditorProps {
-  onSave?: (content: string) => void;
+  onSave?: (content: string, status: boolean) => void;
   blogData?: string; // Add prop for initial content
+  slug: string;
 }
 
-const TipTapBlogEditor = ({ onSave, blogData }: TipTapBlogEditorProps) => {
+const TipTapBlogEditor = ({
+  onSave,
+  blogData,
+  slug,
+}: TipTapBlogEditorProps) => {
   const [isLinkMenuOpen, setIsLinkMenuOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [isImageLoading, setIsImageLoading] = useState(false);
@@ -110,6 +115,7 @@ const TipTapBlogEditor = ({ onSave, blogData }: TipTapBlogEditorProps) => {
 
         const formData = new FormData();
         formData.append("file", file);
+        formData.append("slug", slug);
 
         const response = await fetch("/api/manageBlog/upload", {
           method: "POST",
@@ -135,6 +141,7 @@ const TipTapBlogEditor = ({ onSave, blogData }: TipTapBlogEditorProps) => {
                 title: file.name,
                 width,
                 height,
+                slug, // Add the slug here
               },
             })
             .run();
@@ -146,7 +153,7 @@ const TipTapBlogEditor = ({ onSave, blogData }: TipTapBlogEditorProps) => {
         setIsImageLoading(false);
       }
     },
-    [editor]
+    [editor, slug] // Add slug to dependencies
   );
 
   const handleDrop = useCallback(
@@ -184,22 +191,25 @@ const TipTapBlogEditor = ({ onSave, blogData }: TipTapBlogEditorProps) => {
     setIsLinkMenuOpen(false);
   }, [editor, linkUrl]);
 
-  const exportToMDX = useCallback(() => {
-    if (!editor) return;
+  const exportToMDX = useCallback(
+    (status: boolean) => {
+      if (!editor) return;
 
-    // Convert editor content to MDX
-    let mdxContent = editor
-      .getHTML()
-      // Convert img tags to Next.js Image components
-      .replace(
-        /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*>/g,
-        '<Image\n  src="$1"\n  alt="$2"\n  width={$3}\n  height={$4}\n  layout="responsive"\n/>'
-      );
+      // Convert editor content to MDX
+      let mdxContent = editor
+        .getHTML()
+        // Convert img tags to Next.js Image components
+        .replace(
+          /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*>/g,
+          '<Image\n  src="$1"\n  alt="$2"\n  width={$3}\n  height={$4}\n  layout="responsive"\n/>'
+        );
 
-    // Add Image import at the top
-    // mdxContent = `import Image from 'next/image';\n\n${mdxContent}`;
-    onSave?.(mdxContent);
-  }, [editor, onSave]);
+      // Add Image import at the top
+      // mdxContent = `import Image from 'next/image';\n\n${mdxContent}`;
+      onSave?.(mdxContent, status);
+    },
+    [editor, onSave]
+  );
 
   // Improved editor container styling
   const editorContainerClasses = `
@@ -400,7 +410,7 @@ const TipTapBlogEditor = ({ onSave, blogData }: TipTapBlogEditorProps) => {
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
                 className="px-3 py-1 bg-gray-700 border border-gray-600 rounded-md text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyPress={(e) => e.key === "Enter" && setLink()}
+                onKeyDown={(e) => e.key === "Enter" && setLink()}
               />
               <button
                 onClick={setLink}
@@ -422,12 +432,18 @@ const TipTapBlogEditor = ({ onSave, blogData }: TipTapBlogEditorProps) => {
       </div>
 
       {/* Save Button */}
-      <div className="sticky bottom-0 p-4 bg-gray-800 border-t border-gray-600 rounded-b-lg">
+      <div className="sticky bottom-0 flex gap-2 p-4 bg-gray-800 border-t border-gray-600 rounded-b-lg">
         <button
-          onClick={exportToMDX}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors"
+          onClick={() => exportToMDX(false)}
+          className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
         >
-          Save as MDX
+          ذخیره پیش‌نویس مقاله
+        </button>
+        <button
+          onClick={() => exportToMDX(true)}
+          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+        >
+          ذخیره و انتشار مقاله
         </button>
       </div>
 

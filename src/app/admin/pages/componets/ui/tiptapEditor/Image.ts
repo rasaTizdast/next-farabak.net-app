@@ -7,6 +7,7 @@ import ImageNode from "./ImageNode";
 export interface ImageOptions {
   inline: boolean;
   HTMLAttributes: Record<string, any>;
+  slug?: string;
 }
 
 export const CustomImage = Node.create<ImageOptions>({
@@ -23,6 +24,10 @@ export const CustomImage = Node.create<ImageOptions>({
       height: {
         default: 0,
       },
+      // Add slug to attributes
+      slug: {
+        default: null,
+      },
     };
   },
 
@@ -35,13 +40,15 @@ export const CustomImage = Node.create<ImageOptions>({
           alt: (dom as HTMLElement).getAttribute("alt"),
           width: parseInt((dom as HTMLElement).getAttribute("width") || "0"),
           height: parseInt((dom as HTMLElement).getAttribute("height") || "0"),
+          slug: (dom as HTMLElement).getAttribute("data-slug"), // Parse slug from HTML
         }),
       },
     ];
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ["img", HTMLAttributes];
+    const { slug, ...rest } = HTMLAttributes;
+    return ["img", { ...rest, "data-slug": slug }];
   },
 
   addNodeView() {

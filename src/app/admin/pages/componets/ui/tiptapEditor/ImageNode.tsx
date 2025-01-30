@@ -1,18 +1,22 @@
 // src/components/ImageNode.tsx
 
-import { NodeViewWrapper } from "@tiptap/react";
+import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import Image from "next/image";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 
-interface ImageNodeProps {
-  node: any;
-  editor: any;
-  getPos: () => number;
+interface ImageAttributes {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  slug: string;
 }
 
-const ImageNode = ({ node, editor, getPos }: ImageNodeProps) => {
+const ImageNode = ({ node, editor, getPos }: NodeViewProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const attrs = node.attrs as ImageAttributes;
 
   const handleDelete = async () => {
     const confirmed = window.confirm("آیا میخواهید این عکس حذف شود؟");
@@ -21,12 +25,10 @@ const ImageNode = ({ node, editor, getPos }: ImageNodeProps) => {
     setIsDeleting(true);
 
     try {
-      const src = node.attrs.src;
-      const url = new URL(src);
-      const key = url.pathname.slice(1);
+      const key = node.attrs.src;
 
       await fetch("/api/manageBlog/delete", {
-        method: "POST",
+        method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key }),
       });
@@ -40,7 +42,8 @@ const ImageNode = ({ node, editor, getPos }: ImageNodeProps) => {
       setIsDeleting(false);
     }
   };
-
+  console.log(attrs.src);
+  console.log(attrs.slug);
   return (
     <NodeViewWrapper>
       <div className="relative group" draggable>
@@ -49,7 +52,8 @@ const ImageNode = ({ node, editor, getPos }: ImageNodeProps) => {
           data-drag-handle // Add this attribute
         >
           <Image
-            src={node.attrs.src}
+            // src={node.attrs.src}
+            src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${node.attrs.src}`}
             alt={node.attrs.alt}
             width={node.attrs.width}
             height={node.attrs.height}
