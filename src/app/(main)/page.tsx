@@ -19,7 +19,7 @@ const HomePage = async () => {
 
     sliderLinks = sliders.map((slider: any) => ({
       id: slider.id,
-      img: `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/slider-imgs/${slider.image_URL}`,
+      img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/${slider.image_URL}`,
       link: slider.link,
       alt: slider.image_alt || "فرابک محصولات امنیتی و نظارت تصویری",
     }));
