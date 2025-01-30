@@ -178,13 +178,13 @@ const AdminPageManager: React.FC = () => {
                 {/* Main Row Skeleton */}
                 <tr className="bg-gray-800 hover:bg-gray-900">
                   <td className="p-3 border border-gray-700">
-                    <div className="h-4 bg-gray-700 rounded w-3/4 animate-pulse"></div>
+                    <div className="h-4 bg-gray-700 rounded w-full animate-pulse"></div>
                   </td>
                   <td className="p-3 border border-gray-700">
-                    <div className="h-4 bg-gray-700 rounded w-1/2 animate-pulse"></div>
+                    <div className="h-4 bg-gray-700 rounded w-full animate-pulse"></div>
                   </td>
                   <td className="p-3 border border-gray-700 text-center">
-                    <div className="h-4 bg-gray-700 rounded w-1/2 animate-pulse"></div>
+                    <div className="h-4 bg-gray-700 rounded w-full animate-pulse"></div>
                   </td>
                   <td className="p-3 border border-gray-700 flex gap-2">
                     <div className="h-8 bg-gray-700 rounded w-20 animate-pulse"></div>
