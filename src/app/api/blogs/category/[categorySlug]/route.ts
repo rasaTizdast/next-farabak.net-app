@@ -114,6 +114,7 @@ export async function GET(
 
     const blogs = await prisma.blogs.findMany({
       where: {
+        status: "Published", // Only return published blogs
         BlogCategories: {
           some: {
             Categories: {

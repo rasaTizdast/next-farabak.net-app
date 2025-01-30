@@ -101,7 +101,7 @@ export async function GET(
   try {
     // Find the blog by slug
     const blog = await prisma.blogs.findUnique({
-      where: { slug },
+      where: { slug, status: "Published" },
       include: {
         BlogCategories: {
           include: {

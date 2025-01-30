@@ -84,6 +84,7 @@ import { prisma } from "@/lib/prisma"; // Adjust based on your Prisma client loc
 export async function GET() {
   try {
     const blogs = await prisma.blogs.findMany({
+      where: { status: "Published" },
       include: {
         BlogCategories: {
           include: {
