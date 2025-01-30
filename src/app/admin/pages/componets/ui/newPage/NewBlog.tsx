@@ -1,8 +1,10 @@
 // src/components/NewBlog.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TipTapBlogEditor from "../tiptapEditor/TipTapEditor";
+import { BiTrash } from "react-icons/bi";
+import toast from "react-hot-toast";
 
 interface BlogFormData {
   title: string;
@@ -10,14 +12,32 @@ interface BlogFormData {
   slug: string;
   author: string;
   SEO_description: string;
-  image_URL: string;
   image_alt: string;
-  categories: string[];
+  categories: number[];
+  image_URL?: string; // Make optional since it will be added after upload
+}
+
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
 }
 
 const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [step, setStep] = useState(1);
   const [blogId, setBlogId] = useState<number | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryInput, setCategoryInput] = useState("");
+  const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
+
+  // Add these state variables at the top of the component
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState<string[]>([]);
+
   const [formData, setFormData] = useState<BlogFormData>({
     title: "",
     SEO_Title: "",
@@ -29,23 +49,180 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     categories: [],
   });
 
+  // Add image handler functions
+  // Update the handleImageUpload function
+  const handleImageUpload = async (file: File) => {
+    try {
+      const payload = new FormData();
+      payload.append("file", file);
+      payload.append("slug", formData.slug); // Send current slug
+
+      const response = await fetch("/api/manageBlog/upload", {
+        method: "POST",
+        body: payload,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to upload image");
+      }
+
+      const data = await response.json();
+      return data.url;
+    } catch (error) {
+      console.error("Upload error:", error);
+      throw error;
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check if slug is available
+    if (!formData.slug) {
+      setUploadError("لطفا ابتدا عنوان وبلاگ را وارد کنید");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setUploadError("حجم فایل نباید بیشتر از ۲ مگابایت باشد");
+      return;
+    }
+
+    setUploadError(null);
+    setSelectedImage(file);
+    setPreviewImage(URL.createObjectURL(file));
+  };
+
+  const validateForm = () => {
+    const errors: string[] = []; // Explicitly type as string array
+    const requiredFields = [
+      { field: formData.title, name: "عنوان وبلاگ" },
+      { field: formData.SEO_Title, name: "عنوان SEO" },
+      { field: formData.author, name: "نویسنده" },
+      { field: formData.slug, name: "اسلاگ" },
+      { field: formData.SEO_description, name: "توضیحات SEO" },
+      { field: formData.image_alt, name: "متن جایگزین تصویر" },
+    ];
+
+    requiredFields.forEach(({ field, name }) => {
+      if (!field.trim()) errors.push(`${name} الزامی است`);
+    });
+
+    if (formData.categories.length === 0) {
+      errors.push("حداقل یک دسته بندی انتخاب کنید");
+    }
+
+    if (uploadError) errors.push(uploadError);
+
+    setFormErrors(errors);
+    return errors.length === 0;
+  };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/blogs/categories");
+        const data = await response.json();
+        console.log("Fetched categories:", data); // Add this
+        setCategories(data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // And in the filtering useEffect:
+  useEffect(() => {
+    console.log("Current categories:", categories);
+    if (categoryInput) {
+      const filtered = categories.filter((category) =>
+        category.name?.toLowerCase().includes(categoryInput.toLowerCase())
+      );
+      console.log("Filtered categories:", filtered);
+      setFilteredCategories(filtered);
+    } else {
+      setFilteredCategories([]);
+    }
+  }, [categoryInput, categories]);
+
+  const handleAddCategory = async (category: Category | string) => {
+    if (typeof category === "string") {
+      try {
+        const response = await fetch("/api/blogs/categories", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: category }),
+        });
+
+        if (!response.ok) throw new Error("Failed to create category");
+
+        const newCategory = await response.json();
+        setCategories((prev) => [...prev, newCategory]);
+        setFormData((prev) => ({
+          ...prev,
+          categories: [...prev.categories, newCategory.id],
+        }));
+      } catch (error) {
+        console.error("Error creating category:", error);
+        toast.error("Error creating category. Please try again.");
+      }
+    } else {
+      if (!formData.categories.includes(category.id)) {
+        setFormData((prev) => ({
+          ...prev,
+          categories: [...prev.categories, category.id],
+        }));
+      }
+    }
+    setCategoryInput("");
+  };
+
+  // Update the handleInitialSubmit function
   const handleInitialSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setFormErrors([]);
+
+    if (!validateForm()) {
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
+      let imageUrl = "";
+      if (selectedImage) {
+        imageUrl = await handleImageUpload(selectedImage);
+      }
+
       const response = await fetch("/api/blogs/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          image_URL: imageUrl,
+        }),
       });
 
-      if (!response.ok) throw new Error("خطا در ایجاد وبلاگ");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "خطا در ایجاد وبلاگ");
+      }
 
       const data = await response.json();
       setBlogId(data.id);
       setStep(2);
     } catch (error) {
       console.error("Error:", error);
-      alert("خطا در ایجاد وبلاگ. لطفا دوباره تلاش کنید.");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "خطا در ایجاد وبلاگ. لطفا دوباره تلاش کنید."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -65,13 +242,13 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
       if (!response.ok) throw new Error("خطا در بروزرسانی وبلاگ");
 
-      alert(
+      toast.success(
         publish ? "وبلاگ با موفقیت منتشر شد" : "پیش‌نویس با موفقیت ذخیره شد"
       );
       onClose();
     } catch (error) {
       console.error("Error:", error);
-      alert("خطا در بروزرسانی وبلاگ. لطفا دوباره تلاش کنید.");
+      toast.error("خطا در بروزرسانی وبلاگ. لطفا دوباره تلاش کنید.");
     }
   };
 
@@ -89,14 +266,15 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold">ایجاد وبلاگ جدید</h2>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-200 transition-colors"
-              >
-                ✕
-              </button>
             </div>
             <form onSubmit={handleInitialSubmit} className="space-y-4">
+              {formErrors.length > 0 && (
+                <div className="bg-red-800/30 text-red-400 p-4 rounded-lg">
+                  {formErrors.map((error, index) => (
+                    <p key={index}>• {error}</p>
+                  ))}
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
@@ -123,7 +301,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                   <input
                     type="text"
                     required
-                    maxLength={70}
+                    maxLength={60}
                     value={formData.SEO_Title}
                     onChange={(e) =>
                       setFormData({ ...formData, SEO_Title: e.target.value })
@@ -131,7 +309,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                     className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   />
                   <span className="text-xs text-gray-400">
-                    {formData.SEO_Title.length}/70 کاراکتر
+                    {formData.SEO_Title.length}/60 کاراکتر
                   </span>
                 </div>
                 <div>
@@ -182,46 +360,181 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                     {formData.SEO_description.length}/165 کاراکتر
                   </span>
                 </div>
-                <div>
+                {/* Updated image section */}
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium mb-1">
-                    آدرس تصویر شاخص
+                    تصویر بلاگ
                   </label>
-                  <input
-                    type="url"
-                    value={formData.image_URL}
-                    onChange={(e) =>
-                      setFormData({ ...formData, image_URL: e.target.value })
-                    }
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    متن جایگزین تصویر
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.image_alt}
-                    onChange={(e) =>
-                      setFormData({ ...formData, image_alt: e.target.value })
-                    }
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <label className="relative cursor-pointer">
+                        <span className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors inline-block">
+                          انتخاب تصویر
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          className="hidden"
+                        />
+                      </label>
+
+                      {previewImage && (
+                        <div className="relative group">
+                          <img
+                            src={previewImage}
+                            alt="Preview"
+                            className="w-32 h-32 object-cover rounded-lg border-2 border-gray-600"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedImage(null);
+                              setPreviewImage(null);
+                              setFormData((prev) => ({
+                                ...prev,
+                                image_URL: "",
+                              }));
+                            }}
+                            className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 text-xs hover:bg-red-700 transition-colors"
+                          >
+                            <BiTrash size={16} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {uploadError && (
+                      <p className="text-red-400 text-sm mt-1">{uploadError}</p>
+                    )}
+
+                    <div className="w-full">
+                      <input
+                        type="text"
+                        required
+                        placeholder="متن جایگزین تصویر (الزامی)"
+                        value={formData.image_alt}
+                        disabled={!formData.slug}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            image_alt: e.target.value,
+                          })
+                        }
+                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+
+                    <p className="text-xs text-gray-400">
+                      حداکثر حجم فایل: ۲ مگابایت (فرمت‌های مجاز: JPEG, PNG,
+                      WEBP)
+                    </p>
+                  </div>
                 </div>
               </div>
+              <div className="mt-4">
+                <label className="block text-sm font-medium mb-2">
+                  دسته بندی‌ها
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={categoryInput}
+                    onChange={(e) => setCategoryInput(e.target.value)}
+                    placeholder="جستجو یا افزودن دسته بندی..."
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                  {filteredCategories.length > 0 && (
+                    <div className="absolute z-50 mt-1 w-full bg-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto border border-gray-600">
+                      {filteredCategories.map((category) => (
+                        <button
+                          key={category.id}
+                          type="button"
+                          onClick={() => handleAddCategory(category)}
+                          className="w-full px-4 py-2 text-right hover:bg-gray-600"
+                        >
+                          {category.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {categoryInput &&
+                    !filteredCategories.some(
+                      (c) => c.name === categoryInput
+                    ) && (
+                      <button
+                        type="button"
+                        onClick={() => handleAddCategory(categoryInput)}
+                        className="mt-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg w-full text-center"
+                      >
+                        اضافه کردن "{categoryInput}"
+                      </button>
+                    )}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {formData.categories.map((categoryId) => {
+                    const category = categories.find(
+                      (c) => c.id === categoryId
+                    );
+                    return (
+                      <span
+                        key={categoryId}
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            categories: prev.categories.filter(
+                              (id) => id !== categoryId
+                            ),
+                          }))
+                        }
+                        className="bg-green-700 hover:bg-red-600 hover:cursor-pointer px-3 py-1 rounded-lg text-base flex items-center gap-1 transition-all"
+                      >
+                        {category?.name}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="flex justify-end gap-3 mt-6">
                 <button
                   type="button"
                   onClick={onClose}
                   className="px-4 py-2 text-gray-400 hover:text-gray-200 transition-colors"
+                  disabled={isSubmitting}
                 >
                   انصراف
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed relative"
+                  disabled={isSubmitting}
                 >
-                  ادامه
+                  {isSubmitting && (
+                    <span className="absolute left-3 top-2.5">
+                      <svg
+                        className="animate-spin h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                    </span>
+                  )}
+                  {isSubmitting ? "در حال ارسال..." : "ادامه"}
                 </button>
               </div>
             </form>
@@ -239,7 +552,8 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             </div>
             <div className="flex-1">
               <TipTapBlogEditor
-                onSave={(content) => handleEditorSave(content)}
+                onSave={(content, status) => handleEditorSave(content, status)}
+                slug={formData.slug}
               />
             </div>
           </div>
