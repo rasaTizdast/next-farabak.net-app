@@ -95,3 +95,62 @@ a {
 .file-input {
   @apply border border-gray-300 rounded-md px-4 py-2 w-full text-gray-900 file:cursor-pointer file:bg-blue-500 file:text-white file:rounded-md file:px-4 file:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
 }
+
+/* TipTap In-Editor styles */
+
+.tiptap h1,
+.tiptap h2,
+.tiptap h3,
+.tiptap h4,
+.tiptap h5,
+.tiptap h6,
+.tiptap p {
+  @apply selection:bg-blue-500/30;
+}
+
+.tiptap {
+  h1 {
+    @apply text-4xl font-bold mb-4;
+  }
+  h2 {
+    @apply text-3xl font-bold mb-4;
+  }
+  h3 {
+    @apply text-2xl font-bold mb-4;
+  }
+  h4 {
+    @apply text-xl font-bold mb-4;
+  }
+  h5 {
+    @apply text-lg font-bold mb-4;
+  }
+  h6 {
+    @apply font-bold mb-4;
+  }
+
+  ul,
+  ol {
+    @apply pl-6 mb-4;
+    li {
+      @apply mb-2;
+    }
+  }
+
+  ul {
+    @apply list-disc;
+  }
+  ol {
+    @apply list-decimal;
+  }
+
+  code {
+    @apply bg-gray-700 px-2 py-1 rounded font-mono text-sm;
+  }
+
+  pre {
+    @apply bg-gray-700 p-4 rounded my-4 overflow-x-auto;
+    code {
+      @apply bg-transparent p-0;
+    }
+  }
+}
