@@ -202,6 +202,11 @@ const TipTapBlogEditor = ({
         .replace(
           /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*>/g,
           '<Image\n  src="$1"\n  alt="$2"\n  width={$3}\n  height={$4}\n  layout="responsive"\n/>'
+        )
+        // Convert a tags to Next.js Link components
+        .replace(
+          /<a\s+href="([^"]+)"[^>]*>(.*?)<\/a>/g,
+          '<Link href="$1">\n  $2\n</Link>'
         );
 
       // Add Image import at the top
