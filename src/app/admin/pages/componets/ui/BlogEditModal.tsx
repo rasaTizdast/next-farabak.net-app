@@ -521,7 +521,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
-      <div className="bg-gray-800 text-gray-200 p-6 rounded-lg shadow-xl w-full max-w-7xl max-h-[95vh] overflow-auto">
+      <div className="bg-gray-800 text-gray-200 p-6 pb-0 rounded-lg shadow-xl w-full max-w-7xl max-h-[95vh] overflow-auto">
         {step === 1 ? (
           <>
             <div className="flex justify-between items-center mb-6">
@@ -647,7 +647,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                             src={
                               previewImage?.startsWith("blob:")
                                 ? previewImage
-                                : `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/blogImages/${previewImage}`
+                                : `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${previewImage}`
                             }
                             alt="Preview"
                             className="h-36 object-cover rounded-lg border-2 border-gray-600"
