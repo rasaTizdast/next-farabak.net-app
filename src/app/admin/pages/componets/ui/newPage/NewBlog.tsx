@@ -401,15 +401,26 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   };
 
   const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, "")
-      .replace(/\s+/g, "-");
+    return (
+      title
+        // Convert to lowercase
+        .toLowerCase()
+        // Remove non-alphanumeric characters except spaces and hyphens
+        .replace(/[^a-z0-9\s-]/g, "")
+        // Replace multiple spaces with a single space
+        .replace(/\s+/g, " ")
+        // Replace spaces with hyphens
+        .replace(/\s/g, "-")
+        // Remove consecutive hyphens
+        .replace(/-+/g, "-")
+        // Trim leading and trailing spaces
+        .trim()
+    );
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
-      <div className="bg-gray-800 text-gray-200 p-6 rounded-lg shadow-xl w-full max-w-7xl max-h-[95vh] overflow-auto">
+      <div className="bg-gray-800 text-gray-200 p-6 pb-0 rounded-lg shadow-xl w-full max-w-7xl max-h-[95vh] overflow-auto">
         {step === 1 ? (
           <>
             <div className="flex justify-between items-center mb-6">
