@@ -201,3 +201,82 @@ export async function GET(
     );
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const projectId = parseInt(params.id);
+
+    // Validate existing project
+    const existingProject = await prisma.projects.findUnique({
+      where: { ProjectID: projectId },
+      include: { ProjectMedia: true },
+    });
+
+    if (!existingProject) {
+      return NextResponse.json({ error: "پروژه پیدا نشد" }, { status: 404 });
+    }
+
+    // Get project slug for directory structure
+    const projectSlug = existingProject.Slug;
+    const s3Prefix = `projects/${projectSlug}/`;
+
+    // Helper function to delete all files in a directory
+    const deleteDirectoryContents = async (folder: string) => {
+      let continuationToken: string | undefined;
+      const allObjects: S3.Object[] = [];
+
+      do {
+        const listParams: S3.ListObjectsV2Request = {
+          Bucket: process.env.LIARA_BUCKET_NAME!,
+          Prefix: `${s3Prefix}${folder}/`,
+          ContinuationToken: continuationToken,
+        };
+
+        const listResult = await s3.listObjectsV2(listParams).promise();
+        allObjects.push(...(listResult.Contents || []));
+        continuationToken = listResult.NextContinuationToken;
+      } while (continuationToken);
+
+      if (allObjects.length > 0) {
+        const deleteParams: S3.DeleteObjectsRequest = {
+          Bucket: process.env.LIARA_BUCKET_NAME!,
+          Delete: {
+            Objects: allObjects.map((obj) => ({ Key: obj.Key! })),
+          },
+        };
+
+        await s3.deleteObjects(deleteParams).promise();
+      }
+    };
+
+    // Delete files from all project directories
+    await Promise.allSettled([
+      deleteDirectoryContents("main"),
+      deleteDirectoryContents("details"),
+      deleteDirectoryContents("videos"),
+    ]);
+
+    // Delete database records
+    await prisma.projectMedia.deleteMany({
+      where: { ProjectID: projectId },
+    });
+
+    await prisma.projects.delete({
+      where: { ProjectID: projectId },
+    });
+
+    return NextResponse.json(
+      { message: "پروژه و تمام فایل های مرتبط با موفقیت حذف شدند" },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    console.error("Error deleting project:", error);
+    return NextResponse.json(
+      { error: error.message || "خطا در حذف پروژه" },
+      { status: 500 }
+    );
+  }
+}
