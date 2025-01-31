@@ -647,10 +647,10 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                             src={
                               previewImage?.startsWith("blob:")
                                 ? previewImage
-                                : `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${previewImage}`
+                                : `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/blogImages/${previewImage}`
                             }
                             alt="Preview"
-                            className="w-32 h-32 object-cover rounded-lg border-2 border-gray-600"
+                            className="h-36 object-cover rounded-lg border-2 border-gray-600"
                           />
                           <button
                             type="button"
