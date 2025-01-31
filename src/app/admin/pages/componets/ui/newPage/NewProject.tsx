@@ -29,7 +29,14 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "slug") {
+      // Mark as manually edited and sanitize input
+      const sanitized = generateSlug(value);
+      setFormData((prev) => ({ ...prev, slug: sanitized }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   // Handle checkbox change
@@ -49,7 +56,7 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
     // Validate required fields
     if (!formData.title) newErrors.title = "عنوان الزامی است";
     if (!formData.description) newErrors.description = "توضیحات الزامی است";
-    if (!formData.slug) newErrors.slug = "اسلاگ الزامی است";
+    if (!formData.slug) newErrors.slug = "شناسه الزامی است";
     if (!formData.date) newErrors.date = "تاریخ الزامی است";
     if (!formData.city) newErrors.city = "شهر الزامی است";
     if (!mainImage) newErrors.mainImage = "عکس اصلی الزامی است";
@@ -173,6 +180,24 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
     setter(newFiles);
   };
 
+  const generateSlug = (title: string) => {
+    return (
+      title
+        // Convert to lowercase
+        .toLowerCase()
+        // Remove non-alphanumeric characters except spaces and hyphens
+        .replace(/[^a-z0-9\s-]/g, "")
+        // Replace multiple spaces with a single space
+        .replace(/\s+/g, " ")
+        // Replace spaces with hyphens
+        .replace(/\s/g, "-")
+        // Remove consecutive hyphens
+        .replace(/-+/g, "-")
+        // Trim leading and trailing spaces
+        .trim()
+    );
+  };
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
       <div className="bg-gray-800 text-gray-100 p-6 rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-auto">
@@ -205,7 +230,7 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
             </div>
 
             <div>
-              <label className="block mb-2 font-medium">اسلاگ *</label>
+              <label className="block mb-2 font-medium">شناسه *</label>
               <input
                 name="slug"
                 value={formData.slug}
