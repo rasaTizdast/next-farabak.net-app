@@ -55,6 +55,13 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
     slug: "",
   });
 
+  // Add a new state for confirmation modal
+  const [confirmationModalData, setConfirmationModalData] = useState<{
+    categoryId: number;
+    categoryName: string;
+    blogs: Array<{ id: number; title: string }>;
+  } | null>(null);
+
   const [formData, setFormData] = useState<BlogFormData>({
     title: "",
     SEO_Title: "",
@@ -207,6 +214,49 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
     }
   }, [categoryInput, categories, isInputFocused]);
 
+  // Add a method to handle forced deletion
+  const handleForceCategoryDelete = async () => {
+    if (!confirmationModalData) return;
+
+    try {
+      const response = await fetch("/api/blogs/categories", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: confirmationModalData.categoryId,
+          force: true,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete category");
+      }
+
+      // Remove the category and associated blogs from state
+      setCategories((prev) =>
+        prev.filter((c) => c.id !== confirmationModalData.categoryId)
+      );
+      setFormData((prev) => ({
+        ...prev,
+        categories: prev.categories.filter(
+          (id) => id !== confirmationModalData.categoryId
+        ),
+      }));
+
+      toast.success(
+        `دسته بندی و ${confirmationModalData.blogs.length} بلاگ مرتبط با آن حذف شدند`
+      );
+      setConfirmationModalData(null);
+    } catch (error) {
+      console.error("Forced delete operation failed:", error);
+      toast.error(
+        error instanceof Error ? error.message : "خطا در حذف دسته بندی"
+      );
+    }
+  };
+
   // Add these handler functions
   const handleDeleteCategory = async (categoryId: number) => {
     console.log("Attempting to delete category ID:", categoryId);
@@ -217,17 +267,32 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
         body: JSON.stringify({ id: categoryId }),
       });
 
-      console.log("Delete response status:", response.status);
+      const result = await response.json();
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Delete error response:", errorData);
-        throw new Error(errorData.error || "Failed to delete category");
+        if (result.error === "Cannot delete category used in blog posts") {
+          // Fetch the blogs using this category
+          const blogsResponse = await fetch(
+            `/api/blogs/categories/${categoryId}/blogs`
+          );
+          const blogsUsingCategory = await blogsResponse.json();
+
+          // Open a confirmation modal with blog details
+          setConfirmationModalData({
+            categoryId,
+            categoryName:
+              categories.find((c) => c.id === categoryId)?.name || "Category",
+            blogs: blogsUsingCategory,
+          });
+          return;
+        }
+
+        // Handle other errors
+        console.error("Delete error response:", result);
+        throw new Error(result.error || "Failed to delete category");
       }
 
-      const result = await response.json();
-      console.log("Delete successful, response:", result);
-
+      // Successful deletion
       setCategories((prev) => prev.filter((c) => c.id !== categoryId));
       setFormData((prev) => ({
         ...prev,
@@ -844,6 +909,46 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                         ایجاد
                       </button>
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            {confirmationModalData && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+                <div className="bg-gray-800 p-6 rounded-lg w-96">
+                  <h3 className="text-lg font-bold mb-4">
+                    هشدار: دسته بندی در حال استفاده
+                  </h3>
+                  <p>
+                    دسته بندی "{confirmationModalData.categoryName}" در{" "}
+                    {confirmationModalData.blogs.length} بلاگ استفاده شده است.
+                  </p>
+                  <div className="mt-4">
+                    <h4 className="font-semibold mb-2">بلاگ‌های مرتبط:</h4>
+                    <ul className="max-h-40 overflow-y-auto bg-gray-700 p-2 rounded-lg">
+                      {confirmationModalData.blogs.map((blog) => (
+                        <li
+                          key={blog.id}
+                          className="py-1 border-b border-gray-600 last:border-b-0"
+                        >
+                          {blog.title}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="flex justify-end gap-2 mt-4">
+                    <button
+                      onClick={() => setConfirmationModalData(null)}
+                      className="px-4 py-2 text-gray-400 hover:text-gray-200"
+                    >
+                      انصراف
+                    </button>
+                    <button
+                      onClick={handleForceCategoryDelete}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg"
+                    >
+                      حذف دسته بندی و بلاگ‌های مرتبط
+                    </button>
                   </div>
                 </div>
               </div>

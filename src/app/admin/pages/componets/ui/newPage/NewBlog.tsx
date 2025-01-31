@@ -29,6 +29,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryInput, setCategoryInput] = useState("");
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   // Add these state variables at the top of the component
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -37,6 +38,22 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState<string[]>([]);
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(
+    null
+  );
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newCategory, setNewCategory] = useState({
+    name: "",
+    slug: "",
+  });
+
+  // Add a new state for confirmation modal
+  const [confirmationModalData, setConfirmationModalData] = useState<{
+    categoryId: number;
+    categoryName: string;
+    blogs: Array<{ id: number; title: string }>;
+  } | null>(null);
 
   const [formData, setFormData] = useState<BlogFormData>({
     title: "",
@@ -101,7 +118,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       { field: formData.title, name: "عنوان وبلاگ" },
       { field: formData.SEO_Title, name: "عنوان SEO" },
       { field: formData.author, name: "نویسنده" },
-      { field: formData.slug, name: "اسلاگ" },
+      { field: formData.slug, name: "شناسه" },
       { field: formData.SEO_description, name: "توضیحات SEO" },
       { field: formData.image_alt, name: "متن جایگزین تصویر" },
     ];
@@ -136,17 +153,148 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   // And in the filtering useEffect:
   useEffect(() => {
-    console.log("Current categories:", categories);
     if (categoryInput) {
+      // When there's input, filter based on the input
       const filtered = categories.filter((category) =>
         category.name?.toLowerCase().includes(categoryInput.toLowerCase())
       );
-      console.log("Filtered categories:", filtered);
       setFilteredCategories(filtered);
+    } else if (isInputFocused) {
+      // When input is empty but focused, show all categories
+      setFilteredCategories(categories);
     } else {
+      // When not focused and no input, clear the filtered list
       setFilteredCategories([]);
     }
-  }, [categoryInput, categories]);
+  }, [categoryInput, categories, isInputFocused]);
+
+  // Add a method to handle forced deletion
+  const handleForceCategoryDelete = async () => {
+    if (!confirmationModalData) return;
+
+    try {
+      const response = await fetch("/api/blogs/categories", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: confirmationModalData.categoryId,
+          force: true,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete category");
+      }
+
+      // Remove the category and associated blogs from state
+      setCategories((prev) =>
+        prev.filter((c) => c.id !== confirmationModalData.categoryId)
+      );
+      setFormData((prev) => ({
+        ...prev,
+        categories: prev.categories.filter(
+          (id) => id !== confirmationModalData.categoryId
+        ),
+      }));
+
+      toast.success(
+        `دسته بندی و ${confirmationModalData.blogs.length} بلاگ مرتبط با آن حذف شدند`
+      );
+      setConfirmationModalData(null);
+    } catch (error) {
+      console.error("Forced delete operation failed:", error);
+      toast.error(
+        error instanceof Error ? error.message : "خطا در حذف دسته بندی"
+      );
+    }
+  };
+
+  // Add these handler functions
+  const handleDeleteCategory = async (categoryId: number) => {
+    console.log("Attempting to delete category ID:", categoryId);
+    try {
+      const response = await fetch("/api/blogs/categories", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: categoryId }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        if (result.error === "Cannot delete category used in blog posts") {
+          // Fetch the blogs using this category
+          const blogsResponse = await fetch(
+            `/api/blogs/categories/${categoryId}/blogs`
+          );
+          const blogsUsingCategory = await blogsResponse.json();
+
+          // Open a confirmation modal with blog details
+          setConfirmationModalData({
+            categoryId,
+            categoryName:
+              categories.find((c) => c.id === categoryId)?.name || "Category",
+            blogs: blogsUsingCategory,
+          });
+          return;
+        }
+
+        // Handle other errors
+        console.error("Delete error response:", result);
+        throw new Error(result.error || "Failed to delete category");
+      }
+
+      // Successful deletion
+      setCategories((prev) => prev.filter((c) => c.id !== categoryId));
+      setFormData((prev) => ({
+        ...prev,
+        categories: prev.categories.filter((id) => id !== categoryId),
+      }));
+      toast.success("دسته بندی با موفقیت حذف شد");
+    } catch (error) {
+      console.error("Delete operation failed:", error);
+      toast.error(
+        error instanceof Error ? error.message : "خطا در حذف دسته بندی"
+      );
+    } finally {
+      setShowDeleteConfirm(null);
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    try {
+      if (!newCategory.name || !newCategory.slug) {
+        throw new Error("نام و شناسه الزامی هستند");
+      }
+
+      const response = await fetch("/api/blogs/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newCategory),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "خطا در ایجاد دسته بندی");
+      }
+
+      const createdCategory = await response.json();
+      setCategories((prev) => [...prev, createdCategory]);
+      setFormData((prev) => ({
+        ...prev,
+        categories: [...prev.categories, createdCategory.id],
+      }));
+      setShowCreateModal(false);
+      setNewCategory({ name: "", slug: "" });
+      toast.success("دسته بندی با موفقیت ایجاد شد");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "خطا در ایجاد دسته بندی"
+      );
+    }
+  };
 
   const handleAddCategory = async (category: Category | string) => {
     if (typeof category === "string") {
@@ -328,7 +476,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    اسلاگ
+                    شناسه
                   </label>
                   <input
                     type="text"
@@ -443,33 +591,59 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                     onChange={(e) => setCategoryInput(e.target.value)}
                     placeholder="جستجو یا افزودن دسته بندی..."
                     className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    onFocus={() => setIsInputFocused(true)}
+                    onBlur={() =>
+                      setTimeout(() => setIsInputFocused(false), 200)
+                    }
                   />
-                  {filteredCategories.length > 0 && (
-                    <div className="absolute z-50 mt-1 w-full bg-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto border border-gray-600">
+                  {(isInputFocused || categoryInput) && (
+                    <div className="absolute w-full mt-1 bg-gray-700 border border-gray-600 rounded-lg max-h-60 overflow-y-auto z-10">
                       {filteredCategories.map((category) => (
-                        <button
+                        <div
                           key={category.id}
-                          type="button"
-                          onClick={() => handleAddCategory(category)}
-                          className="w-full px-4 py-2 text-right hover:bg-gray-600"
+                          className="flex items-center justify-between group px-4 py-2 hover:bg-gray-600"
                         >
-                          {category.name}
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddCategory(category)}
+                            className="text-right flex-grow"
+                          >
+                            {category.name}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowDeleteConfirm(category.id);
+                            }}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <BiTrash
+                              size={20}
+                              className="text-red-400 hover:text-red-500 transition-all"
+                            />
+                          </button>
+                        </div>
                       ))}
+
+                      {categoryInput &&
+                        !categories.some((c) => c.name === categoryInput) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNewCategory({
+                                name: categoryInput,
+                                slug: generateSlug(categoryInput),
+                              });
+                              setShowCreateModal(true);
+                            }}
+                            className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-center"
+                          >
+                            ایجاد دسته بندی جدید
+                          </button>
+                        )}
                     </div>
                   )}
-                  {categoryInput &&
-                    !filteredCategories.some(
-                      (c) => c.name === categoryInput
-                    ) && (
-                      <button
-                        type="button"
-                        onClick={() => handleAddCategory(categoryInput)}
-                        className="mt-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg w-full text-center"
-                      >
-                        اضافه کردن "{categoryInput}"
-                      </button>
-                    )}
                 </div>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {formData.categories.map((categoryId) => {
@@ -538,6 +712,126 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 </button>
               </div>
             </form>
+            {showDeleteConfirm && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+                <div className="bg-gray-800 p-6 rounded-lg w-96">
+                  <h3 className="text-lg font-bold mb-4">حذف دسته بندی</h3>
+                  <p>آیا مطمئن هستید که می‌خواهید این دسته بندی را حذف کنید؟</p>
+                  <div className="flex justify-end gap-2 mt-4">
+                    <button
+                      onClick={() => setShowDeleteConfirm(null)}
+                      className="px-4 py-2 text-gray-400 hover:text-gray-200"
+                    >
+                      انصراف
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCategory(showDeleteConfirm)}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg"
+                    >
+                      حذف
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {showCreateModal && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+                <div className="bg-gray-800 p-6 rounded-lg w-96">
+                  <h3 className="text-lg font-bold mb-4">
+                    ایجاد دسته بندی جدید
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        نام
+                      </label>
+                      <input
+                        type="text"
+                        value={newCategory.name}
+                        onChange={(e) =>
+                          setNewCategory((prev) => ({
+                            ...prev,
+                            name: e.target.value,
+                            slug: prev.slug || generateSlug(e.target.value),
+                          }))
+                        }
+                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        شناسه
+                      </label>
+                      <input
+                        type="text"
+                        value={newCategory.slug}
+                        onChange={(e) =>
+                          setNewCategory((prev) => ({
+                            ...prev,
+                            slug: generateSlug(e.target.value),
+                          }))
+                        }
+                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg"
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => setShowCreateModal(false)}
+                        className="px-4 py-2 text-gray-400 hover:text-gray-200"
+                      >
+                        انصراف
+                      </button>
+                      <button
+                        onClick={handleCreateCategory}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
+                      >
+                        ایجاد
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            {confirmationModalData && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+                <div className="bg-gray-800 p-6 rounded-lg w-96">
+                  <h3 className="text-lg font-bold mb-4">
+                    هشدار: دسته بندی در حال استفاده
+                  </h3>
+                  <p>
+                    دسته بندی "{confirmationModalData.categoryName}" در{" "}
+                    {confirmationModalData.blogs.length} بلاگ استفاده شده است.
+                  </p>
+                  <div className="mt-4">
+                    <h4 className="font-semibold mb-2">بلاگ‌های مرتبط:</h4>
+                    <ul className="max-h-40 overflow-y-auto bg-gray-700 p-2 rounded-lg">
+                      {confirmationModalData.blogs.map((blog) => (
+                        <li
+                          key={blog.id}
+                          className="py-1 border-b border-gray-600 last:border-b-0"
+                        >
+                          {blog.title}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="flex justify-end gap-2 mt-4">
+                    <button
+                      onClick={() => setConfirmationModalData(null)}
+                      className="px-4 py-2 text-gray-400 hover:text-gray-200"
+                    >
+                      انصراف
+                    </button>
+                    <button
+                      onClick={handleForceCategoryDelete}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg"
+                    >
+                      حذف دسته بندی و بلاگ‌های مرتبط
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <div className="h-full flex flex-col">
