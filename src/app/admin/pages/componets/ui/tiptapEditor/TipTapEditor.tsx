@@ -99,7 +99,8 @@ const TipTapBlogEditor = ({
   // Update editor content when blogData changes
   useEffect(() => {
     if (editor && blogData) {
-      editor.commands.setContent(blogData);
+      const htmlContent = convertMDXToHTML(blogData);
+      editor.commands.setContent(htmlContent);
     }
   }, [editor, blogData]);
 
@@ -201,12 +202,13 @@ const TipTapBlogEditor = ({
         // Convert img tags to Next.js Image components
         .replace(
           /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*>/g,
-          '<Image\n  src="$1"\n  alt="$2"\n  width={$3}\n  height={$4}\n  layout="responsive"\n/>'
+          '<Image src="$1" alt="$2" width={1000} height={900} quality={100} layout="responsive" />'
         )
+
         // Convert a tags to Next.js Link components
         .replace(
-          /<a\s+href="([^"]+)"[^>]*>(.*?)<\/a>/g,
-          '<Link href="$1">\n  $2\n</Link>'
+          /<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g,
+          '<Link href="$1">$2</Link>'
         );
 
       // Add Image import at the top
@@ -215,6 +217,22 @@ const TipTapBlogEditor = ({
     },
     [editor, onSave]
   );
+
+  const convertMDXToHTML = (mdxContent: string) => {
+    return (
+      mdxContent
+        // Convert Next.js Image components to regular img tags
+        .replace(
+          /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*\/?>/g,
+          '<img src="$1" alt="$2" width="$3" height="$4" class="rounded-lg max-w-full my-4" />'
+        )
+        // Convert Next.js Link components to regular a tags
+        .replace(
+          /<Link\s+href="([^"]+)">\s*([\s\S]*?)\s*<\/Link>/g,
+          '<a href="$1">$2</a>'
+        )
+    );
+  };
 
   // Improved editor container styling
   const editorContainerClasses = `
