@@ -1,35 +1,7 @@
-import { compileMDX } from "next-mdx-remote/rsc";
-import {
-  H1,
-  H2,
-  H3,
-  H4,
-  H5,
-  H6,
-  CustomImage,
-  CustomLink,
-  UnorderedList,
-  OrderedList,
-  ListItem,
-  Paragraph,
-  Section,
-} from "@/app/_components/mdx/index";
-
 import Script from "next/script";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import { notFound } from "next/navigation";
-
-// Define the frontmatter type
-interface Frontmatter {
-  title: string;
-  date: string;
-  author: string;
-  description: string;
-  image: string;
-  category: string;
-  tags: string[];
-  keywords: string[];
-}
+import Image from "next/image";
 
 interface BlogResponse {
   blog: {
@@ -48,23 +20,6 @@ interface BlogResponse {
   likes: number;
   media: { media_URL: string; media_alt: string }[];
 }
-
-// Custom components mapping for MDX
-const components = {
-  H1,
-  H2,
-  H3,
-  H4,
-  H5,
-  H6,
-  Paragraph,
-  CustomImage,
-  CustomLink,
-  UnorderedList,
-  OrderedList,
-  ListItem,
-  Section,
-};
 
 const getBlog = async (slug: string): Promise<BlogResponse | null> => {
   try {
@@ -104,6 +59,7 @@ export async function generateMetadata({
   };
 }
 
+// BlogPage.tsx
 export default async function BlogPage({
   params,
 }: {
@@ -117,13 +73,23 @@ export default async function BlogPage({
 
   const { blog } = blogResponse;
 
-  const { content: mdxContent } = await compileMDX<Frontmatter>({
-    source: blog.content,
-    options: { parseFrontmatter: true },
-    components,
-  });
+  console.log(blog);
 
   const readingTime = calculateReadingTime(blog.content);
+
+  // Add this utility function above your component
+  const processContentWithImageUrls = (content: string) => {
+    const baseUrl = process.env.LIARA_BUCKET_URL || "";
+    // Add the base URL to all image src attributes
+    return content.replace(
+      /<Image([^>]*)src="([^"]*)"([^>]*)/g,
+      (match, before, src, after) => {
+        // Skip if already has base URL
+        if (src.startsWith(baseUrl)) return match;
+        return `<Image${before}src="${baseUrl}/${src}"${after}`;
+      }
+    );
+  };
 
   return (
     <>
@@ -131,28 +97,33 @@ export default async function BlogPage({
 
       <article className="max-w-[1580px] mt-5 mx-auto bg-gray-200 p-5 sm:p-10 rounded-lg">
         <header className="mb-8">
-          <H1>{blog.title}</H1>
-          <CustomImage
-            width={1080}
-            height={720}
+          <h1 className="text-4xl font-bold mb-8">{blog.title}</h1>
+          <Image
             src={`${process.env.LIARA_BUCKET_URL}/blogImages/${blog.image_URL}`}
             alt={blog.image_alt}
+            className="rounded-lg w-full object-cover mb-6"
+            width={1200}
+            height={630}
+            quality={100}
           />
-          <div
-            className="flex items-center gap-3 text-gray-600 mb-4 p-2 bg-gray-100 rounded-lg w-full mobile:w-fit justify-between text-xs mobile:text-sm md:text-base"
-            aria-label="Blog metadata"
-          >
+          <div className="flex items-center gap-3 text-gray-600 mb-4 p-2 bg-gray-100 rounded-lg">
             <span>{blog.author}</span>
             <span>•</span>
             <time>{new Date(blog.created_at).toLocaleDateString("fa")}</time>
             <span>•</span>
-            <div className="flex items-center gap-1">
-              <span>{readingTime} دقیقه مطالعه</span>
-            </div>
+            <span>{readingTime} دقیقه مطالعه</span>
           </div>
         </header>
-        {mdxContent}
+
+        {/* Render editor content directly */}
+        <div
+          className="prose-view max-w-none"
+          dangerouslySetInnerHTML={{
+            __html: processContentWithImageUrls(blog.content),
+          }}
+        />
       </article>
+
       <Script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -160,22 +131,12 @@ export default async function BlogPage({
             "@context": "https://schema.org",
             "@type": "BlogPosting",
             headline: blog.title,
-            author: {
-              "@type": "Person",
-              name: blog.author,
-            },
+            author: { "@type": "Person", name: blog.author },
             datePublished: blog.created_at,
-            publisher: {
-              "@type": "Organization",
-              name: "Farabak",
-            },
-            mainEntityOfPage: {
-              "@type": "WebPage",
-              "@id": "",
-            },
+            publisher: { "@type": "Organization", name: "Farabak" },
             description: blog.description,
             image: blog.image_URL,
-            articleBody: blog.content,
+            articleBody: processContentWithImageUrls(blog.content),
           }),
         }}
       />
@@ -184,21 +145,29 @@ export default async function BlogPage({
 }
 
 function calculateReadingTime(content: string): number {
-  // Remove HTML tags
-  const text = content.replace(/<[^>]*>/g, "");
+  // Remove HTML tags while preserving Persian/Arabic text
+  const text = content.replace(/<[^>]*>/g, " ");
 
-  // Remove special characters and extra spaces
-  const cleanText = text.replace(/[^\w\s]/g, "").trim();
+  // Improved cleaning for Persian/Arabic text
+  const cleanText = text
+    // Preserve Persian/Arabic characters and numbers
+    .replace(
+      /[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF0-9\s]/g,
+      " "
+    )
+    // Normalize whitespace and remove zero-width characters
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 
-  // Count words (including Persian/Arabic text)
-  const words = cleanText.split(/\s+/).length;
+  // More accurate word count for Persian/Arabic text
+  const words = cleanText.split(/\s+/).filter((word) => word.length > 0).length;
 
-  // Average reading speed (words per minute)
-  // Adjust this number based on your content (Persian/English mix)
-  const wordsPerMinute = 200;
+  // Adjusted reading speed for Persian text (studies show 150-200 wpm)
+  const wordsPerMinute = 250; // Average for Persian technical content
 
-  // Calculate reading time
-  const readingTime = Math.ceil(words / wordsPerMinute);
+  // Calculate reading time with minimum 1 minute
+  const readingTime = Math.max(1, Math.ceil(words / wordsPerMinute));
 
   return readingTime;
 }
