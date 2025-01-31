@@ -129,12 +129,12 @@ const AdminPageManager: React.FC = () => {
         case "member":
           endpoint = `/api/members/${id}`;
           break;
-        // case "blog":
-        //   endpoint = `/api/admin/blog/${id}`;
-        //   break;
-        // case "project":
-        //   endpoint = `/api/admin/project/${id}`;
-        //   break;
+        case "blog":
+          endpoint = `/api/blogs/delete/${id}`;
+          break;
+        case "project":
+          endpoint = `/api/projects/${id}`;
+          break;
 
         // Add more cases as needed
         default:
@@ -260,7 +260,7 @@ const AdminPageManager: React.FC = () => {
                           افزودن صفحه جدید
                         </button>
                       )}
-                      {row.multiPage && (
+                      {row.multiPage && row.pages > 0 && (
                         <button
                           onClick={() => toggleExpand(row.link)}
                           className="py-1 px-3 rounded bg-blue-200 text-gray-800 hover:bg-blue-300 transition"
