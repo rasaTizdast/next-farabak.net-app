@@ -1,6 +1,6 @@
+// app/activity/page.tsx
 export const dynamic = "force-dynamic";
 
-import activityData from "@/constants/activityData.json";
 import styles from "./ActivityPage.module.css";
 import { Metadata } from "next";
 
@@ -9,16 +9,30 @@ export const metadata: Metadata = {
   description:
     "شما در این صفحه میتوانید اطلاعاتی درباره فعالیت های شرکت فرابک مشاهده کنید.",
   robots: {
-    index: false, // This sets the noindex directive
-    follow: false, // Allows crawling of links on the page if needed
+    index: false,
+    follow: false,
   },
 };
 
-const ActivityPage = () => {
+const ActivityPage = async () => {
+  const response = await fetch(`${process.env.BASE_URL}/api/activities`, {
+    next: { revalidate: 0 },
+  });
+
+  const activities = await response.json();
+
   return (
     <div className={styles.parent}>
-      {activityData.map((item) => (
-        <Card key={item.id} data={item} />
+      {activities.map((activity: any) => (
+        <Card
+          key={activity.id}
+          data={{
+            title: activity.title,
+            items: activity.Details_activity.map(
+              (detail: any) => detail.description
+            ),
+          }}
+        />
       ))}
     </div>
   );
