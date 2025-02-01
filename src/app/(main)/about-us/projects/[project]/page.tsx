@@ -1,8 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import projects from "@/constants/projects.json";
-
 import styles from "./ProjectPage.module.css";
 import ProjectSlider from "./ProjectSlider";
 import VideoPlayer from "@/app/_components/ui/VideoPlayer";
@@ -22,10 +20,28 @@ type ProjectProps = {
   video?: string;
 };
 
-export const generateMetadata = ({ params }: ParamsType): Metadata => {
-  const projectData = projects.find(
-    (project) => project.slug === params.project
-  );
+// Fetch project data from the API
+async function getProjectData(slug: string) {
+  try {
+    const response = await fetch(
+      `${process.env.BASE_URL}/api/projects/getProjectData/${slug}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch project data");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching project data:", error);
+    return null;
+  }
+}
+
+export const generateMetadata = async ({
+  params,
+}: ParamsType): Promise<Metadata> => {
+  const projectData = await getProjectData(params.project);
 
   if (!projectData) {
     return {
@@ -40,10 +56,8 @@ export const generateMetadata = ({ params }: ParamsType): Metadata => {
   };
 };
 
-const ProjectPage = ({ params }: ParamsType) => {
-  const projectData = projects.find(
-    (project) => project.slug === params.project
-  );
+const ProjectPage = async ({ params }: ParamsType) => {
+  const projectData = await getProjectData(params.project);
 
   if (!projectData) {
     notFound();
@@ -57,7 +71,9 @@ const ProjectPage = ({ params }: ParamsType) => {
     <section className={styles.content}>
       <Breadcrumb breadcrumbs={breadcrumbs} />
       <h1>{title}</h1>
-      <h3 aria-label="date of the project">{date}</h3>
+      <h3 aria-label="date of the project">
+        {new Date(date).toLocaleDateString("fa")}
+      </h3>
       <h4 aria-label="location of the project">{location}</h4>
       <p>{largeDesc}</p>
 
