@@ -115,6 +115,7 @@ export async function GET(
     const blogs = await prisma.blogs.findMany({
       where: {
         status: "Published", // Only return published blogs
+        QrCode_key: null, // Only fetch blogs without a QR code key
         BlogCategories: {
           some: {
             Categories: {
