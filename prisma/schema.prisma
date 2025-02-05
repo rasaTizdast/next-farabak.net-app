@@ -26,21 +26,23 @@ model BlogCategories {
 }
 
 model Blogs {
-  id              Int              @id(map: "PK__Blogs__3213E83F77E508B6") @default(autoincrement())
-  title           String           @db.VarChar(255)
-  SEO_Title       String           @db.VarChar(70)
-  slug            String           @unique(map: "UQ__Blogs__32DD1E4C6CC87B20") @db.VarChar(255)
-  created_at      String?          @db.VarChar(50)
-  status          String           @default("Draft") @db.VarChar(50)
-  views_count     Int              @default(0)
-  content         String
-  author          String?          @db.VarChar(100)
-  SEO_description String           @db.VarChar(165)
-  image_URL       String           @default("") @db.VarChar(2500)
-  image_alt       String           @default("") @db.VarChar(250)
-  BlogCategories  BlogCategories[]
-  Comments        Blog_Comments[]
-  Likes           Likes[]
+  id                Int              @id(map: "PK__Blogs__3213E83F77E508B6") @default(autoincrement())
+  title             String           @db.VarChar(255)
+  SEO_Title         String           @db.VarChar(70)
+  slug              String           @unique(map: "UQ__Blogs__32DD1E4C6CC87B20") @db.VarChar(255)
+  created_at        String?          @db.VarChar(50)
+  status            String           @default("Draft") @db.VarChar(50)
+  views_count       Int              @default(0)
+  content           String
+  author            String?          @db.VarChar(100)
+  SEO_description   String           @db.VarChar(165)
+  image_URL         String           @default("") @db.VarChar(2500)
+  image_alt         String           @default("") @db.VarChar(250)
+  QrCode_key        String?          @db.VarChar(100)
+  QrCode_expiryDays String?          @db.VarChar(50)
+  BlogCategories    BlogCategories[]
+  Comments          Blog_Comments[]
+  Likes             Likes[]
 
   @@schema("Blog")
 }
