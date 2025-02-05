@@ -510,7 +510,9 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                     />
                   </label>
                   <label className="space-y-1">
-                    <span className="text-sm text-gray-300">لینک</span>
+                    <span className="text-sm text-gray-300" dir="ltr">
+                      لینک
+                    </span>
                     <input
                       type="text"
                       placeholder="https://example.com"
