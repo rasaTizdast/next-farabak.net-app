@@ -137,6 +137,8 @@ export async function GET(
         SEO_description: blog.SEO_description,
         image_URL: blog.image_URL,
         image_alt: blog.image_alt,
+        QrCode_key: blog.QrCode_key,
+        QrCode_expiryDays: blog.QrCode_expiryDays,
       },
       categories: blog.BlogCategories.map((category) => ({
         id: category.Categories.id,
