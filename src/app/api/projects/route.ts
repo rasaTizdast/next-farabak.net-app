@@ -9,6 +9,47 @@ const s3 = new S3({
   endpoint: process.env.LIARA_ENDPOINT,
 });
 
+export async function GET() {
+  try {
+    const projects = await prisma.projects.findMany({
+      where: { IsActive: true },
+      include: {
+        ProjectMedia: true,
+      },
+    });
+
+    if (!projects.length) {
+      return NextResponse.json(
+        { message: "No projects found" },
+        { status: 404 }
+      );
+    }
+
+    // Transform the data to match your frontend needs
+    const transformedProjects = projects.map((project) => ({
+      id: project.ProjectID,
+      title: project.Title,
+      smallDesc: project.Description,
+      mainImg: project.Main_img_URL,
+      date: project.date,
+      location: project.city,
+      slug: project.Slug,
+      media: project.ProjectMedia.map((media) => ({
+        type: media.MediaType,
+        url: media.MediaURL,
+      })),
+    }));
+
+    return NextResponse.json(transformedProjects);
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+    return NextResponse.json(
+      { message: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
