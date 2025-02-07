@@ -139,7 +139,7 @@
   display: flex;
   align-items: center;
   margin: 0 auto;
-  width: 95%;
+  width: 100%;
   text-align: center;
   justify-content: center;
   margin-block: 2rem;
@@ -149,6 +149,7 @@
   position: sticky;
   top: 75px;
   box-shadow: 0 4px 10px 4px rgba(0, 0, 0, 0.2);
+  z-index:5;
 }
 
 .productTabs ul {
