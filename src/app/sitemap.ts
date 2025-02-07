@@ -100,7 +100,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     { url: `https://farabak.net/support` },
     { url: `https://farabak.net/support/download-center` },
-    
+
     { url: `https://farabak.net/support/blog` },
     { url: `https://farabak.net/support/blog/reolink/` },
     { url: `https://farabak.net/support/blog/reolink/reolink-products` },
