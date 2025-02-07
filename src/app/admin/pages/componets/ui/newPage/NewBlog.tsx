@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import TipTapBlogEditor from "../tiptapEditor/TipTapEditor";
+import TipTapBlogEditor from "../blogEditor/TipTapEditor";
 import { BiTrash } from "react-icons/bi";
 import toast from "react-hot-toast";
 
@@ -142,7 +142,6 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       try {
         const response = await fetch("/api/blogs/categories");
         const data = await response.json();
-        console.log("Fetched categories:", data); // Add this
         setCategories(data);
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -213,7 +212,6 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   // Add these handler functions
   const handleDeleteCategory = async (categoryId: number) => {
-    console.log("Attempting to delete category ID:", categoryId);
     try {
       const response = await fetch("/api/blogs/categories", {
         method: "DELETE",
