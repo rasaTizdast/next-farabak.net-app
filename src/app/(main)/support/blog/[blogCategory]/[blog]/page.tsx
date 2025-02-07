@@ -14,6 +14,8 @@ interface BlogResponse {
     image_alt: string;
     SEO_Title: string;
     SEO_description: string;
+    QrCode_key?: string;
+    QrCode_expiryDays?: Date;
   };
   categories: { name: string; slug: string }[];
   comments: { content: string; created_at: string }[];
@@ -21,7 +23,11 @@ interface BlogResponse {
   media: { media_URL: string; media_alt: string }[];
 }
 
-const getBlog = async (slug: string): Promise<BlogResponse | null> => {
+const getBlog = async (
+  slug: string,
+  searchParams: { key?: string },
+  isAdmin: boolean = false
+): Promise<BlogResponse | null> => {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${slug}`
@@ -32,7 +38,40 @@ const getBlog = async (slug: string): Promise<BlogResponse | null> => {
       return null;
     }
 
-    return (await res.json()) as BlogResponse;
+    const blogResponse = (await res.json()) as BlogResponse;
+
+    // Admin users can bypass all checks
+    if (isAdmin) {
+      return blogResponse;
+    }
+
+    const { blog } = blogResponse;
+
+    // Check if the product data exists
+    if (!blog) {
+      notFound();
+    }
+
+    // Check QR code conditions
+    if (blog.QrCode_key) {
+      const { key: urlKey } = searchParams;
+
+      // If there's no key in the URL or the key in the URL doesn't match the product's QR code key
+      if (!urlKey || urlKey !== blog.QrCode_key) {
+        notFound();
+      }
+
+      if (blog.QrCode_expiryDays) {
+        // Check if the QR code has expired
+        const expiryDate = new Date(blog.QrCode_expiryDays);
+        if (new Date() > expiryDate) {
+          notFound();
+        }
+      }
+    }
+
+    // If the key matches and the QR code is not expired, allow access
+    return blogResponse;
   } catch (error) {
     console.error("Error fetching blog:", error);
     return null;
@@ -41,10 +80,12 @@ const getBlog = async (slug: string): Promise<BlogResponse | null> => {
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: { blog: string };
+  searchParams: { key?: string };
 }) {
-  const content = await getBlog(params.blog);
+  const content = await getBlog(params.blog, searchParams);
 
   if (!content) {
     return {
@@ -59,13 +100,14 @@ export async function generateMetadata({
   };
 }
 
-// BlogPage.tsx
 export default async function BlogPage({
   params,
+  searchParams,
 }: {
   params: { blog: string };
+  searchParams: { key?: string };
 }) {
-  const blogResponse = await getBlog(params.blog);
+  const blogResponse = await getBlog(params.blog, searchParams);
 
   if (!blogResponse) {
     notFound();
@@ -73,18 +115,13 @@ export default async function BlogPage({
 
   const { blog } = blogResponse;
 
-  console.log(blog);
-
   const readingTime = calculateReadingTime(blog.content);
 
-  // Add this utility function above your component
   const processContentWithImageUrls = (content: string) => {
     const baseUrl = process.env.LIARA_BUCKET_URL || "";
-    // Add the base URL to all image src attributes
     return content.replace(
       /<Image([^>]*)src="([^"]*)"([^>]*)/g,
       (match, before, src, after) => {
-        // Skip if already has base URL
         if (src.startsWith(baseUrl)) return match;
         return `<Image${before}src="${baseUrl}/${src}"${after}`;
       }
@@ -95,7 +132,7 @@ export default async function BlogPage({
     <>
       <Breadcrumb breadcrumbs={["/", "/support", "/support/blog"]} />
 
-      <article className="max-w-[1580px] mt-5 mx-auto bg-gray-200 p-5 sm:p-10 rounded-lg">
+      <article className="max-w-[1580px] w-full mt-5 mx-auto bg-gray-200 p-5 sm:p-10 rounded-lg">
         <header className="mb-8">
           <h1 className="text-4xl font-bold mb-8">{blog.title}</h1>
           <Image
@@ -106,7 +143,7 @@ export default async function BlogPage({
             height={630}
             quality={100}
           />
-          <div className="flex items-center gap-3 text-gray-600 mb-4 p-2 bg-gray-100 rounded-lg">
+          <div className="flex items-center justify-center mobile:justify-normal gap-3 text-gray-600 mb-4 p-2 bg-gray-100 rounded-lg text-xs mobile:text-base">
             <span>{blog.author}</span>
             <span>•</span>
             <time>{new Date(blog.created_at).toLocaleDateString("fa")}</time>
@@ -115,7 +152,6 @@ export default async function BlogPage({
           </div>
         </header>
 
-        {/* Render editor content directly */}
         <div
           className="prose-view max-w-none"
           dangerouslySetInnerHTML={{
@@ -145,29 +181,17 @@ export default async function BlogPage({
 }
 
 function calculateReadingTime(content: string): number {
-  // Remove HTML tags while preserving Persian/Arabic text
   const text = content.replace(/<[^>]*>/g, " ");
-
-  // Improved cleaning for Persian/Arabic text
   const cleanText = text
-    // Preserve Persian/Arabic characters and numbers
     .replace(
       /[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF0-9\s]/g,
       " "
     )
-    // Normalize whitespace and remove zero-width characters
     .replace(/[\u200B-\u200D\uFEFF]/g, "")
     .replace(/\s+/g, " ")
     .trim();
-
-  // More accurate word count for Persian/Arabic text
   const words = cleanText.split(/\s+/).filter((word) => word.length > 0).length;
-
-  // Adjusted reading speed for Persian text (studies show 150-200 wpm)
-  const wordsPerMinute = 250; // Average for Persian technical content
-
-  // Calculate reading time with minimum 1 minute
+  const wordsPerMinute = 250;
   const readingTime = Math.max(1, Math.ceil(words / wordsPerMinute));
-
   return readingTime;
 }
