@@ -9,6 +9,7 @@ import FAQ from "./newProductModalComponents/FAQ";
 import { IoIosClose } from "react-icons/io";
 import { createProduct } from "../utils/createProduct";
 import ProgressModal from "./newProductModalComponents/ProgressModal";
+import ProductBlog from "./newProductModalComponents/ProductBlog";
 
 // Types
 type Category = {
@@ -31,6 +32,7 @@ type State = {
   transparentImage: File | null;
   SEO_Title: string;
   SEO_Description: string;
+  productBlog: string;
   keywords: string;
   features: string[];
   overviewDetails: {
@@ -59,6 +61,7 @@ const initialState: State = {
   SEO_Title: "",
   SEO_Description: "",
   keywords: "",
+  productBlog: "",
   features: [],
   overviewDetails: [], // Initially empty, no predefined items
   specs: [],
@@ -74,6 +77,8 @@ const productReducer = (state: State, action: any): State => {
       return { ...state, features: action.features };
     case "SET_OVERVIEW_DETAILS":
       return { ...state, overviewDetails: action.details };
+    case "SET_PRODUCT_BLOG":
+      return { ...state, productBlog: action.productBlog };
     case "SET_SPECS":
       return { ...state, specs: action.specs };
     case "SET_FAQS":
@@ -94,6 +99,7 @@ type Section =
   | "baseDetails"
   | "productOverview"
   | "overviewDetails"
+  | "productBlog"
   | "specs"
   | "faq";
 
@@ -187,6 +193,7 @@ const NewProductModal = ({
     baseDetails: false,
     productOverview: false,
     overviewDetails: false,
+    productBlog: false,
     specs: false,
     faq: false,
   });
@@ -251,7 +258,7 @@ const NewProductModal = ({
         <ProgressModal progress={progress} currentStep={currentStep} />
       )}
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity">
-        <div className="bg-gray-800 text-white rounded-xl shadow-lg p-6 w-full max-w-2xl max-h-[90dvh] overflow-y-scroll relative animate-fade-in">
+        <div className="bg-gray-800 text-white rounded-xl shadow-lg p-6 w-full max-w-6xl max-h-[90dvh] overflow-y-scroll relative animate-fade-in">
           <h1 className="text-center font-bold mb-10 text-2xl">محصول جدید</h1>
 
           <form onSubmit={handleSubmit}>
@@ -306,7 +313,7 @@ const NewProductModal = ({
                 onClick={() => toggleSection("overviewDetails")}
                 className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
               >
-                <span className="text-lg font-semibold">جزئیات بررسی</span>
+                <span className="text-lg font-semibold">توضیحات محصول</span>
                 {openSections.overviewDetails ? (
                   <FiChevronUp size={20} />
                 ) : (
@@ -321,13 +328,32 @@ const NewProductModal = ({
               )}
             </div>
 
+            <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
+              <div
+                onClick={() => toggleSection("productBlog")}
+                className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
+              >
+                <span className="text-lg font-semibold">
+                  توضیحات تکمیلی (مقاله محصول)
+                </span>
+                {openSections.productBlog ? (
+                  <FiChevronUp size={20} />
+                ) : (
+                  <FiChevronDown size={20} />
+                )}
+              </div>
+              {openSections.productBlog && (
+                <ProductBlog dispatch={validatedDispatch} slug={state.slug} />
+              )}
+            </div>
+
             {/* Specs Section */}
             <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
               <div
                 onClick={() => toggleSection("specs")}
                 className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
               >
-                <span className="text-lg font-semibold">مشخصات</span>
+                <span className="text-lg font-semibold">مشخصات محصول</span>
                 {openSections.specs ? (
                   <FiChevronUp size={20} />
                 ) : (
