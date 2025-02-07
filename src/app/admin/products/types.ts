@@ -22,6 +22,7 @@ export type Product = {
   }[];
   QrCode_Key: string | null;
   QrCode_expiryDays: string | null;
+  productBlog: string;
 };
 
 export type Overview = {
