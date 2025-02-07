@@ -125,6 +125,7 @@ export async function GET(
       SEO_Description: product.SEO_Description,
       QrCode_key: product.QrCode_Key,
       QrCode_expiryDays: product.QrCode_expiryDays,
+      productBlog: product.productBlog,
     };
 
     return NextResponse.json(responseData);
