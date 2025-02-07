@@ -16,6 +16,8 @@ import NewMember from "./componets/ui/newPage/NewMember";
 import NewBlog from "./componets/ui/newPage/NewBlog";
 import NewProject from "./componets/ui/newPage/NewProject";
 import { MdDeleteForever } from "react-icons/md";
+import { IoQrCode } from "react-icons/io5";
+import BlogQrCodeModal from "./componets/ui/QrCodeModal";
 
 type PageRow = {
   name: string;
@@ -30,12 +32,22 @@ type SubPage = {
   id: number;
   name: string;
   link: string;
+  QrCode_key?: string;
+  QrCode_expiryDays?: string;
 };
 
 const AdminPageManager: React.FC = () => {
   const [rowNames, setRowNames] = useState<PageRow[]>([]);
   const [subPages, setSubPages] = useState<Record<string, SubPage[]>>({});
   const [loading, setLoading] = useState(true); // Loading state
+
+  const [isQrCodeModalOpen, setIsQrCodeModalOpen] = useState(false);
+  const [qrCodeBlog, setQrCodeBlog] = useState<{
+    id: number;
+    link: string;
+    QrCode_key?: string;
+    QrCode_expiryDays?: string;
+  } | null>(null);
 
   const fetchPageData = () => {
     fetch("/api/admin/pages")
@@ -158,43 +170,64 @@ const AdminPageManager: React.FC = () => {
     }
   };
 
+  // In AdminPageManager or wherever the modal is opened
+  const handleQrCodeModal = (blog: {
+    id: number;
+    link: string;
+    QrCode_key?: string;
+    QrCode_expiryDays?: string;
+  }) => {
+    setIsQrCodeModalOpen(true);
+    setQrCodeBlog(blog); // Ensure this contains QrCode_key and QrCode_expiryDays
+  };
+
   // Skeleton Loading Component
   const renderSkeleton = () => {
     return (
       <div className="flex flex-col items-center w-full max-w-[1800px] overflow-auto">
-        <h1 className="text-2xl font-bold text-gray-200 mb-6">مدیریت صفحات</h1>
-        <table className="w-full text-gray-200 text-sm border-collapse">
-          <thead className="bg-gray-800">
-            <tr>
-              <th className="p-3 border border-gray-700">نام صفحه</th>
-              <th className="p-3 border border-gray-700">تعداد صفحات</th>
-              <th className="p-3 border border-gray-700">نوع</th>
-              <th className="p-3 border border-gray-700">عملیات</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Array.from({ length: 6 }).map((_, index) => (
-              <React.Fragment key={index}>
-                {/* Main Row Skeleton */}
-                <tr className="bg-gray-800 hover:bg-gray-900">
-                  <td className="p-3 border border-gray-700">
-                    <div className="h-4 bg-gray-700 rounded w-full animate-pulse"></div>
-                  </td>
-                  <td className="p-3 border border-gray-700">
-                    <div className="h-4 bg-gray-700 rounded w-full animate-pulse"></div>
-                  </td>
-                  <td className="p-3 border border-gray-700 text-center">
-                    <div className="h-4 bg-gray-700 rounded w-full animate-pulse"></div>
-                  </td>
-                  <td className="p-3 border border-gray-700 flex gap-2">
-                    <div className="h-8 bg-gray-700 rounded w-20 animate-pulse"></div>
-                    <div className="h-8 bg-gray-700 rounded w-20 animate-pulse"></div>
-                  </td>
-                </tr>
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
+        <div className="h-8 w-48 bg-gray-700 rounded mb-6 animate-pulse" />{" "}
+        {/* Title skeleton */}
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="bg-gray-800 rounded-lg shadow-lg p-6">
+              {/* Title */}
+              <div className="h-6 bg-gray-700 rounded w-3/4 mb-4 animate-pulse" />
+
+              {/* Page count */}
+              <div className="h-4 bg-gray-700 rounded w-1/2 mb-2 animate-pulse" />
+
+              {/* Type */}
+              <div className="h-4 bg-gray-700 rounded w-2/3 mb-4 animate-pulse" />
+
+              {/* Action buttons */}
+              <div className="flex gap-2">
+                <div className="h-8 w-20 bg-gray-700 rounded animate-pulse" />
+                <div className="h-8 w-20 bg-gray-700 rounded animate-pulse" />
+                <div className="h-8 w-24 bg-gray-700 rounded animate-pulse" />
+              </div>
+
+              {/* Expanded content skeleton (show in some cards) */}
+              {index % 2 === 0 && (
+                <div className="mt-4">
+                  {Array.from({ length: 2 }).map((_, subIndex) => (
+                    <div
+                      key={subIndex}
+                      className="bg-gray-700 rounded-lg p-4 mt-2"
+                    >
+                      <div className="h-4 bg-gray-600 rounded w-2/3 mb-2 animate-pulse" />
+                      <div className="flex gap-2">
+                        <div className="h-8 w-20 bg-gray-600 rounded animate-pulse" />
+                        <div className="h-8 w-20 bg-gray-600 rounded animate-pulse" />
+                        <div className="h-8 w-20 bg-gray-600 rounded animate-pulse" />
+                        <div className="h-8 w-20 bg-gray-600 rounded animate-pulse" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
@@ -209,84 +242,62 @@ const AdminPageManager: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-200 mb-6">
             مدیریت صفحات
           </h1>
-          <table className="w-full text-gray-200 text-sm border-collapse">
-            <thead className="bg-gray-800">
-              <tr>
-                <th className="p-3 border border-gray-700">نام صفحه</th>
-                <th className="p-3 border border-gray-700">تعداد صفحات</th>
-                <th className="p-3 border border-gray-700">نوع</th>
-                <th className="p-3 border border-gray-700">عملیات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rowNames.map((row, index) => (
-                <React.Fragment key={index}>
-                  {/* Main Row */}
-                  <tr className="bg-gray-800 hover:bg-gray-900">
-                    <td className="p-3 border border-gray-700">{row.name}</td>
-                    <td className="p-3 border border-gray-700">{row.pages}</td>
-                    <td className="p-3 border border-gray-700 text-center">
-                      <span
-                        className={`px-3 py-1 rounded-full text-center ${
-                          row.multiPage
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-green-100 text-green-800"
-                        }`}
-                      >
-                        {row.multiPage ? "چند صفحه‌ای" : "تک صفحه‌ای"}
-                      </span>
-                    </td>
-                    <td className="p-3 border border-gray-700 flex gap-2">
-                      <Link
-                        href={row.link}
-                        target="_blank"
-                        className="py-1 px-3 rounded bg-yellow-200 text-gray-800 hover:bg-yellow-300 transition"
-                      >
-                        <FaLink className="inline-block" /> مشاهده
-                      </Link>
-                      {!row.multiPage && (
-                        <button
-                          className="py-1 px-3 rounded bg-blue-200 text-gray-800 hover:bg-blue-300 transition"
-                          onClick={() => openEditor(row.editorType)}
-                        >
-                          <FaEdit className="inline-block" /> ویرایش
-                        </button>
-                      )}
-                      {row.multiPage && (
-                        <button
-                          className="py-1 px-3 rounded bg-green-200 text-gray-800 hover:bg-green-300 transition"
-                          onClick={() => openNewPageBuilder(row.newType)}
-                        >
-                          افزودن صفحه جدید
-                        </button>
-                      )}
-                      {row.multiPage && row.pages > 0 && (
-                        <button
-                          onClick={() => toggleExpand(row.link)}
-                          className="py-1 px-3 rounded bg-blue-200 text-gray-800 hover:bg-blue-300 transition"
-                        >
-                          <HiArrowTurnLeftDown className="inline-block" /> صفحات
-                          فرعی
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                  {/* Subpages */}
-                  {row.multiPage &&
-                    expanded === row.link &&
-                    subPages[row.link]?.map((subPage) => (
-                      <tr
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {rowNames.map((row, index) => (
+              <div
+                key={index}
+                className="bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow"
+              >
+                <h2 className="text-xl font-semibold text-gray-200 mb-4">
+                  {row.name}
+                </h2>
+                <p className="text-gray-400 mb-2">تعداد صفحات: {row.pages}</p>
+                <p className="text-gray-400 mb-4">
+                  نوع: {row.multiPage ? "چند صفحه‌ای" : "تک صفحه‌ای"}
+                </p>
+                <div className="flex gap-2">
+                  <Link
+                    href={row.link}
+                    target="_blank"
+                    className="py-1 px-3 rounded bg-yellow-200 text-gray-800 hover:bg-yellow-300 transition"
+                  >
+                    <FaLink className="inline-block" /> مشاهده
+                  </Link>
+                  {!row.multiPage && (
+                    <button
+                      className="py-1 px-3 rounded bg-blue-200 text-gray-800 hover:bg-blue-300 transition"
+                      onClick={() => openEditor(row.editorType)}
+                    >
+                      <FaEdit className="inline-block" /> ویرایش
+                    </button>
+                  )}
+                  {row.multiPage && (
+                    <button
+                      className="py-1 px-3 rounded bg-green-200 text-gray-800 hover:bg-green-300 transition"
+                      onClick={() => openNewPageBuilder(row.newType)}
+                    >
+                      افزودن صفحه جدید
+                    </button>
+                  )}
+                  {row.multiPage && row.pages > 0 && (
+                    <button
+                      onClick={() => toggleExpand(row.link)}
+                      className="py-1 px-3 rounded bg-blue-200 text-gray-800 hover:bg-blue-300 transition"
+                    >
+                      <HiArrowTurnLeftDown className="inline-block" /> صفحات
+                      فرعی
+                    </button>
+                  )}
+                </div>
+                {row.multiPage && expanded === row.link && (
+                  <div className="mt-4">
+                    {subPages[row.link]?.map((subPage) => (
+                      <div
                         key={subPage.id}
-                        className="odd:bg-gray-600 hover:bg-gray-900 even:bg-gray-700"
+                        className="bg-gray-700 rounded-lg p-4 mt-2"
                       >
-                        <td className="p-3 border border-gray-700 pl-12">
-                          {subPage.name}
-                        </td>
-                        <td className="p-3 border border-gray-700">-</td>
-                        <td className="p-3 border border-gray-700 text-center">
-                          زیر صفحه
-                        </td>
-                        <td className="p-3 border border-gray-700 flex gap-2">
+                        <h3 className="text-gray-200">{subPage.name}</h3>
+                        <div className="flex gap-2 mt-2">
                           <Link
                             href={subPage.link}
                             target="_blank"
@@ -314,14 +325,42 @@ const AdminPageManager: React.FC = () => {
                             />
                             حذف
                           </button>
-                        </td>
-                      </tr>
+                          {/* Add condition to check if editorType is "blog" */}
+                          {row.editorType === "blog" && (
+                            <button
+                              className={`py-1 px-3 rounded ${
+                                subPage.QrCode_key
+                                  ? "bg-violet-400 hover:bg-violet-500"
+                                  : "bg-violet-200 hover:bg-violet-300"
+                              } text-gray-800  transition`}
+                              onClick={() =>
+                                handleQrCodeModal({
+                                  id: subPage.id,
+                                  link: subPage.link,
+                                  QrCode_key: subPage.QrCode_key,
+                                  QrCode_expiryDays: subPage.QrCode_expiryDays,
+                                })
+                              }
+                            >
+                              <IoQrCode className="inline-block" /> QR Code
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     ))}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
+      )}
+      {isQrCodeModalOpen && (
+        <BlogQrCodeModal
+          onClose={setIsQrCodeModalOpen}
+          blog={qrCodeBlog}
+          refetchBlogs={fetchPageData}
+        />
       )}
       {renderEditor()}
       {renderNewPageBuilder()}
