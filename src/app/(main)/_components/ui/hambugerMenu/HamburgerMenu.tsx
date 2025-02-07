@@ -1,19 +1,21 @@
-"use client"
+"use client";
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-
-// import { useAuth } from "../hooks/useAuth";
 
 import { Divide } from "hamburger-react";
 import { PiUserCircleDashedFill } from "react-icons/pi";
 import { IoIosArrowRoundBack } from "react-icons/io";
 
 import styles from "./HamburgerMenu.module.css";
+import { useUser } from "@/context/UserContext";
 
 const HamburgerMenu = () => {
   const [isOpen, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+
+  const { isLoggedIn, isAdmin } = useUser(); // Use the user context
+  const [userLoggedIn, setUserLoggedIn] = useState(isLoggedIn);
 
   const handleClickOutside = (event: MouseEvent) => {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -36,6 +38,11 @@ const HamburgerMenu = () => {
     };
   }, [isOpen]);
 
+  // Re-render when the isLoggedIn value changes in context
+  useEffect(() => {
+    setUserLoggedIn(isLoggedIn);
+  }, [isLoggedIn]);
+
   return (
     <div className={`${styles.container}`} ref={menuRef}>
       <Divide
@@ -48,8 +55,6 @@ const HamburgerMenu = () => {
         rounded
         hideOutline={true}
       />
-
-
 
       {isOpen && (
         <div
@@ -79,19 +84,30 @@ const HamburgerMenu = () => {
         </div>
 
         {/* sign-in or sign-up button */}
-        {false ? (
-          <Link
-            onClick={() => setOpen(false)}
-            href="/dashboard"
-            className={`${styles.user_icon} ${isOpen ? styles.show : ""}`}
-          >
-            <PiUserCircleDashedFill fill="#0e6aff" />
-            <p>ورود به پنل کاربری</p>
-          </Link>
+        {userLoggedIn ? (
+          isAdmin ? (
+            <Link
+              onClick={() => setOpen(false)}
+              href="/admin"
+              className={`${styles.user_icon} ${isOpen ? styles.show : ""}`}
+            >
+              <PiUserCircleDashedFill fill="#0e6aff" />
+              <p>ورود به پنل ادمین</p>
+            </Link>
+          ) : (
+            <Link
+              onClick={() => setOpen(false)}
+              href="/dashboard"
+              className={`${styles.user_icon} ${isOpen ? styles.show : ""}`}
+            >
+              <PiUserCircleDashedFill fill="#0e6aff" />
+              <p>ورود به پنل کاربری</p>
+            </Link>
+          )
         ) : (
           <Link
             onClick={() => setOpen(false)}
-            href="/auth"
+            href="/auth/signup"
             className={`${styles.signup} ${isOpen ? styles.show : ""}`}
           >
             <button>ورود / ثبت‌نام</button>
