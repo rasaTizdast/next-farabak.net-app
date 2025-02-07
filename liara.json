@@ -2,7 +2,7 @@
   "next": {
     "modifyConfig": false
   },
-  "app": "next-farabak",
+  "app": "farabak-next",
   "port": 3000,
   "build": {
     "location": "iran"
