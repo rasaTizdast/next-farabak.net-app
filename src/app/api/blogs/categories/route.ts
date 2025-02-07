@@ -47,15 +47,12 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { id, force } = await request.json();
-    console.log("[API] Delete category request for ID:", id);
 
     // Check if category is used in any blog post
     const blogsWithCategory = await prisma.blogCategories.findMany({
       where: { category_id: Number(id) },
       include: { Blogs: { select: { title: true, id: true } } },
     });
-
-    console.log("[API] Category usage check result:", blogsWithCategory);
 
     if (blogsWithCategory.length > 0) {
       // If not forced and category is in use
@@ -94,7 +91,6 @@ export async function DELETE(request: Request) {
         });
       });
 
-      console.log("[API] Successfully deleted category and associated blogs");
       return NextResponse.json({
         message: "Category and associated blogs deleted",
         deletedBlogs: blogsWithCategory.length,
@@ -106,7 +102,6 @@ export async function DELETE(request: Request) {
       where: { id: Number(id) },
     });
 
-    console.log("[API] Successfully deleted category:", deletedCategory);
     return NextResponse.json(deletedCategory);
   } catch (error) {
     console.error("[API] Delete category error:", error);
