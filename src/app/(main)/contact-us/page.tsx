@@ -6,82 +6,67 @@ import styles from "./ContactUsPage.module.css";
 export const metadata: Metadata = {
   title: "تماس با ما | فرابک",
   description:
-    "راه های تماس با شرکت فرابک را میتوانید از این صفحه مشاهده کنید..",
+    "راه های تماس با شرکت فرابک را میتوانید از این صفحه مشاهده کنید.",
   robots: {
     index: false, // This sets the noindex directive
     follow: false, // Allows crawling of links on the page if needed
   },
 };
 
-const ContactUsPage = () => {
+const ContactUsPage = async () => {
+  // Fetch data from the API
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/contact-us`,
+    {
+      cache: "no-store", // Ensure the data is always fresh
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("خطایی در دریافت اطلاعات رخ داد.");
+  }
+
+  const data = await response.json();
+
+  const { address, emails, phone_numbers } = data;
+
   return (
     <main className={styles.main}>
       <div className={styles.section}>
         <h1>آدرس</h1>
         <div className={styles.para}>
-          <div className={styles.bold}>آدرس:</div>
-          سعادت آباد، میدان کتاب، خیابان عسگری گراوندی، نبش آسمان هشتم، پلاک 6،
-          طبقه همکف
+          <div className={styles.bold}>آدرس: </div>
+          {address?.address}
         </div>
         <div className={styles.para}>
-          <div className={styles.bold}>کدپستی:</div>
-          1458745896
+          <div className={styles.bold}>کدپستی: </div>
+          {address?.postal_code}
         </div>
-        <p>
-          لطفا جهت مراجعه به دفتر شرکت فرابک، قبلا هماهنگی لازم را به عمل آورید.
-          ساعت مراجعه حضوری: (11 الی 13) و (14 الی 16)
-        </p>
+        <p>{address?.alt_text}</p>
       </div>
       <div className={styles.section}>
         <h1>شماره‌های تماس</h1>
         <ul>
-          <li>
-            <a href="tel:09121258556">09121258556</a>
-          </li>
-          <li>
-            <a href="tel:09121007066">09121007066</a>
-          </li>
-          <li>
-            <a href="tel:09101007066">09101007066</a>
-          </li>
-          <li>
-            <a href="tel:02122089531">021-22089531</a>
-          </li>
-          <li>
-            <a href="tel:02177500008">021-77500008</a>
-          </li>
-          <li>
-            <a href="tel:02122089531">021-22089531</a>
-          </li>
+          {phone_numbers.map((phone: { id: number; number: string }) => (
+            <li key={phone.id}>
+              <a href={`tel:${phone.number}`}>{phone.number}</a>
+            </li>
+          ))}
         </ul>
       </div>
       <div className={styles.section}>
         <h1>آدرس‌های ایمیل</h1>
         <ul>
-          <li>
-            <a href="mailto:sale@farabak.net">
-              <div className={styles.bold}>فروش:</div>
-              <span>Sale@farabak.net</span>
-            </a>
-          </li>
-          <li>
-            <a href="mailto:manager@farabak.net">
-              <div className={styles.bold}>مدیریت:</div>
-              <span>Manager@farabak.net</span>
-            </a>
-          </li>
-          <li>
-            <a href="mailto:support@farabak.net">
-              <div className={styles.bold}>پشتیبانی:</div>
-              <span>Support@farabak.net</span>
-            </a>
-          </li>
-          <li>
-            <a href="mailto:info@farabak.net">
-              <div className={styles.bold}>اطلاع‌رسانی:</div>
-              <span>Info@farabak.net</span>
-            </a>
-          </li>
+          {emails.map(
+            (email: { id: number; title: string; address: string }) => (
+              <li key={email.id}>
+                <a href={`mailto:${email.address}`}>
+                  <div className={styles.bold}>{email.title}:</div>
+                  <span>{email.address}</span>
+                </a>
+              </li>
+            )
+          )}
         </ul>
       </div>
     </main>

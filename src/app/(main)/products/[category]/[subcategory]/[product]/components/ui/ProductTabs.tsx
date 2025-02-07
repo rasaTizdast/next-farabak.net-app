@@ -35,6 +35,14 @@ const ProductTabs = () => {
         <li>
           <button
             className={styles.navButton}
+            onClick={() => scrollToSection("blog")}
+          >
+            توضیحات تکمیلی
+          </button>
+        </li>
+        <li>
+          <button
+            className={styles.navButton}
             onClick={() => scrollToSection("specs")}
           >
             مشخصات

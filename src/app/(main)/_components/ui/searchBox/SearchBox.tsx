@@ -8,6 +8,7 @@ import styles from "./SearchBox.module.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { formatPrice } from "@/app/admin/products/helper/formatPrice";
 
 // Utility function to normalize Persian text
 const normalizePersianText = (text: string) => {
@@ -27,11 +28,13 @@ interface Product {
   productId: number;
   name: string;
   Type: string;
-  description: string;
   img1: string;
-  Slug: string;
-  link: string;
   productSlug: string;
+  Slug?: string;
+  link: string;
+  Available: boolean;
+  Price: string;
+  Discount: string;
 }
 
 // Debounced search handler for API requests
@@ -57,8 +60,12 @@ const debouncedSearchHandler = debounce(
       // Extract the data from the response, assuming API returns { products, pagination }
       const { data: products } = await response.json();
 
+      const availableProducts = products.filter(
+        (product: Product) => product.Available
+      );
+
       // Set the results to the products data from the API response
-      setResults(products);
+      setResults(availableProducts);
     } catch (error) {
       setResults([]); // If there's an error, return no results
     } finally {
@@ -128,6 +135,28 @@ const SearchResults = ({
               alt={product.name}
             />
             <p>{product.Type}</p>
+            <div className="font-extralight mt-3">
+              {product.Price === null ||
+              product.Price === undefined ||
+              +product.Price === 0 ? (
+                <span className="text-gray-600">
+                  برای ثبت سفارش با بخش فروش تماس بگیرید
+                </span>
+              ) : product.Discount && +product.Discount > 0 ? (
+                <div className="flex flex-col gap-1 items-center text-lg">
+                  <span className="text-gray-500 font-light line-through">
+                    {formatPrice(+product.Price)}
+                  </span>
+                  <span className="font-semibold">
+                    {formatPrice(+product.Price - +product.Discount)}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-white text-lg font-semibold">
+                  {formatPrice(+product.Price)}
+                </span>
+              )}
+            </div>
           </Link>
         ))
       ) : hasSearched ? (

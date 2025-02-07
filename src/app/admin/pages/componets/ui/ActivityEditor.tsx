@@ -123,7 +123,6 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
         })),
       }));
 
-      console.log("modal: ", updatedActivities);
       await axios.put("/api/activities", updatedActivities);
       toast.success("فعالیت با موفقیت آپدیت شد!");
     } catch (error) {

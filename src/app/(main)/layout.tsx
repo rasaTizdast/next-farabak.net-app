@@ -6,7 +6,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   other: {
-    "google-site-verification": "ibG0VNoO2gB5dXMyvVgMR43MYU_D1jiM_fdtv3387ks",
+    "google-site-verification": `${process.env.GOOGLE_SITE_VERIFICATION}`,
   },
 };
 
@@ -20,7 +20,7 @@ const Layout = ({
       <Script
         defer
         src="https://cloud.umami.is/script.js"
-        data-website-id="cbecfb4d-6b80-48d2-abac-13f7d8806239"
+        data-website-id={process.env.UMAMI_WEBSITE_ID}
       ></Script>
       <Header />
       {children}

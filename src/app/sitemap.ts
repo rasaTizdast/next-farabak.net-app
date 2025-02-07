@@ -15,50 +15,53 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     { url: `https://farabak.net/products` },
 
-    // home-edition routes
+    // reolink-cctv-camera routes
     {
-      url: `https://farabak.net/products/home-edition`,
+      url: `https://farabak.net/products/reolink-cctv-camera`,
     },
     {
-      url: `https://farabak.net/products/home-edition/page/2`,
+      url: `https://farabak.net/products/reolink-cctv-camera/page/2`,
     },
     {
-      url: `https://farabak.net/products/home-edition/ptz`,
+      url: `https://farabak.net/products/reolink-cctv-camera/ptz`,
     },
     {
-      url: `https://farabak.net/products/home-edition/dome`,
+      url: `https://farabak.net/products/reolink-cctv-camera/dome`,
     },
     {
-      url: `https://farabak.net/products/home-edition/bullet`,
+      url: `https://farabak.net/products/reolink-cctv-camera/bullet`,
     },
     {
-      url: `https://farabak.net/products/home-edition/battery`,
+      url: `https://farabak.net/products/reolink-cctv-camera/battery`,
     },
     {
-      url: `https://farabak.net/products/home-edition/ip`,
+      url: `https://farabak.net/products/reolink-cctv-camera/ip`,
     },
     {
-      url: `https://farabak.net/products/home-edition/wifi`,
+      url: `https://farabak.net/products/reolink-cctv-camera/wifi`,
     },
     {
-      url: `https://farabak.net/products/home-edition/dual-lens`,
+      url: `https://farabak.net/products/reolink-cctv-camera/dual-lens`,
     },
     {
-      url: `https://farabak.net/products/home-edition/pan-tilt`,
+      url: `https://farabak.net/products/reolink-cctv-camera/pan-tilt`,
     },
     {
-      url: `https://farabak.net/products/home-edition/4g`,
+      url: `https://farabak.net/products/reolink-cctv-camera/4g`,
+    },
+    {
+      url: `https://farabak.net/products/reolink-cctv-camera/night-vision`,
     },
 
-    // network-cameras routes
+    // industrial-cctv-camera routes
     {
-      url: `https://farabak.net/products/network-cameras`,
+      url: `https://farabak.net/products/industrial-cctv-camera`,
     },
     {
-      url: `https://farabak.net/products/network-cameras/explosion-proof`,
+      url: `https://farabak.net/products/industrial-cctv-camera/explosion-proof-cctv-camera`,
     },
     {
-      url: `https://farabak.net/products/network-cameras/thermal`,
+      url: `https://farabak.net/products/industrial-cctv-camera/thermal-cctv-camera`,
     },
 
     // Blackmagic routes
@@ -94,12 +97,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
 
     ...productEntries,
-    { url: `https://farabak.net/support` },
-    { url: `https://farabak.net/support/blog` },
 
-    // { url: `https://farabak.net/support/training-section` },
+    { url: `https://farabak.net/support` },
     { url: `https://farabak.net/support/download-center` },
-    // { url: `https://farabak.net/support/faq` },
+
+    { url: `https://farabak.net/support/blog` },
+    { url: `https://farabak.net/support/blog/reolink/` },
+    { url: `https://farabak.net/support/blog/reolink/reolink-products` },
+
     { url: `https://farabak.net/about-us` },
     { url: `https://farabak.net/about-us/projects` },
     { url: `https://farabak.net/about-us/projects/charmshahr` },

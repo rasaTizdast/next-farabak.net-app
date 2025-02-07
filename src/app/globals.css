@@ -95,3 +95,114 @@ a {
 .file-input {
   @apply border border-gray-300 rounded-md px-4 py-2 w-full text-gray-900 file:cursor-pointer file:bg-blue-500 file:text-white file:rounded-md file:px-4 file:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
 }
+
+/* TipTap In-Editor styles */
+
+.tiptap h1,
+.tiptap h2,
+.tiptap h3,
+.tiptap h4,
+.tiptap h5,
+.tiptap h6,
+.tiptap p {
+  @apply selection:bg-blue-500/30;
+}
+
+.tiptap {
+  a {
+    @apply mb-4 text-blue-200 underline;
+  }
+  h1 {
+    @apply text-4xl font-bold mb-4;
+  }
+  h2 {
+    @apply text-3xl font-bold mb-4;
+  }
+  h3 {
+    @apply text-2xl font-bold mb-4;
+  }
+  h4 {
+    @apply text-xl font-bold mb-4;
+  }
+  h5 {
+    @apply text-lg font-bold mb-4;
+  }
+  h6 {
+    @apply font-bold mb-4;
+  }
+
+  ul,
+  ol {
+    @apply pl-6 mb-4;
+    li {
+      @apply mb-2;
+    }
+  }
+
+  ul {
+    @apply list-disc;
+  }
+  ol {
+    @apply list-decimal;
+  }
+
+  code {
+    @apply bg-gray-700 px-2 py-1 rounded font-mono text-sm;
+  }
+
+  pre {
+    @apply bg-gray-700 p-4 rounded my-4 overflow-x-auto;
+    code {
+      @apply bg-transparent p-0;
+    }
+  }
+}
+
+.prose-view img {
+  @apply rounded-md mx-auto my-4 mobile:my-10 w-full max-w-[1000px];
+}
+
+.prose-view a {
+  @apply relative inline-block my-3 px-2 rounded-lg text-blue-950 hover:text-[#000000] bg-blue-200 hover:bg-blue-300 transition-all;
+}
+
+.prose-view p {
+  @apply text-sm mobile:text-lg text-gray-700 leading-relaxed my-2;
+}
+.prose-view h1 {
+  @apply text-sm mobile:text-2xl sm:text-4xl font-bold text-gray-900 my-4 leading-normal;
+}
+.prose-view h2 {
+  @apply text-lg mobile:text-xl sm:text-3xl font-semibold text-gray-800 mt-6 mb-1 leading-normal;
+}
+.prose-view h3 {
+  @apply text-lg mobile:text-xl font-semibold text-gray-800 mt-6 mb-1 leading-normal;
+}
+.prose-view h4 {
+  @apply text-sm mobile:text-base sm:text-lg font-semibold text-gray-800 mt-6 mb-1 leading-normal;
+}
+.prose-view h5 {
+  @apply text-xs mobile:text-sm sm:text-base font-semibold text-gray-800 mt-6 mb-1 leading-normal;
+}
+.prose-view h6 {
+  @apply text-xs sm:text-sm font-semibold text-gray-800 mt-6 mb-1 leading-normal;
+}
+.prose-view ul {
+  @apply list-disc my-6 pl-4;
+}
+.prose-view ol {
+  @apply list-decimal my-6 pl-4;
+}
+.prose-view li {
+  @apply mb-2 mr-5;
+}
+
+.prose-view blockquote {
+  @apply border-l-4 border-gray-400 pl-4 my-4 italic;
+}
+.prose-view code {
+  @apply bg-gray-300 px-2 py-1 rounded;
+}
+.prose-view pre {
+  @apply bg-gray-800 text-white p-4 rounded overflow-x-auto;
+}

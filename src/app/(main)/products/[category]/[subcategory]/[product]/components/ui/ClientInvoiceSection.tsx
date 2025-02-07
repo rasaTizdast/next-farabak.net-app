@@ -35,7 +35,7 @@ const ClientInvoiceSection = ({
           بگیرید.
         </p>
         <Link
-          href="tel:02122089531"
+          href="tel:02177500008"
           className="bg-blue-600 text-white py-2 px-4 rounded-lg text-base md:text-lg hover:bg-blue-700 transition-all animate-fade-in"
         >
           تماس با بخش فروش

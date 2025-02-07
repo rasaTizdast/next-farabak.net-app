@@ -312,6 +312,7 @@ export async function PATCH(
       "Slug",
       "SEO_Title",
       "SEO_Description",
+      "productBlog",
     ];
 
     // Filter out only valid fields to update

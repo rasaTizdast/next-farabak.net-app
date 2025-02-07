@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "مشاهده تمامی بلاگ‌‌ها | فرابک",
@@ -185,6 +186,10 @@ const BlogLandingPage = async () => {
   }
 
   const breadCrumbs = ["/", "/support", "/support/blog"];
+
+  if (blogData?.blogs.length! < 0) {
+    notFound();
+  }
 
   return (
     <>

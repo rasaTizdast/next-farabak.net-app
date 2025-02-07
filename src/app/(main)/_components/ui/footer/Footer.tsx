@@ -1,17 +1,21 @@
 import Link from "next/link";
-
 import { BsFillSignpostSplitFill } from "react-icons/bs";
 import { FaInstagram, FaPhoneSquare, FaWhatsapp } from "react-icons/fa";
-
 import styles from "./Footer.module.css";
 
-const Footer = () => {
+const Footer = async () => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/contact-us`,
+    {
+      next: { revalidate: 3600 },
+    }
+  );
+  const { phone_numbers, address } = await response.json();
+
   return (
     <footer className={styles.footer}>
       <div className={styles.footerContent}>
-        {/* <div className={styles.mainC}> */}
         <div className={styles.footerRow}>
-          {/* <div className={styles.footerC}> */}
           <div className={styles.detailColumn}>
             <h4 className={styles.cTitle}>صفحات اصلی</h4>
             <div className={styles.cItems}>
@@ -77,44 +81,31 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* <div className={`${styles.footerC} ${styles.location}`}> */}
         <div className={styles.footerRow}>
           <div className={styles.addressParent}>
             <div className={styles.cTitle}>آدرس دفتر مرکزی</div>
-            <div className={`${styles.cItem} ${styles.address}`}>
-              سعادت آباد - میدان کتاب - خیابان عسگری گراوندی - نبش آسمان هشتم
-              پلاک 6 طبقه همکف
-            </div>
-            <div className={styles.details}>
-              <div className={`${styles.cItem} ${styles.addressItem}`}>
-                <BsFillSignpostSplitFill />
-                <span>1458745896</span>
-              </div>
-              <div className={`${styles.cItem} ${styles.addressItem}`}>
-                <FaPhoneSquare />
-                <Link href="tel:09121258556">09121258556</Link>
-              </div>
-              <div className={`${styles.cItem} ${styles.addressItem}`}>
-                <FaPhoneSquare />
-                <Link href="tel:09121007066">09121007066</Link>
-              </div>
-              <div className={`${styles.cItem} ${styles.addressItem}`}>
-                <FaPhoneSquare />
-                <Link href="tel:09101007066">09101007066</Link>
-              </div>
-              <div className={`${styles.cItem} ${styles.addressItem}`}>
-                <FaPhoneSquare />
-                <Link href="tel:02122089531">02122089531</Link>
-              </div>
-              <div className={`${styles.cItem} ${styles.addressItem}`}>
-                <FaPhoneSquare />
-                <Link href="tel:02177500008">02177500008</Link>
-              </div>
-              <div className={`${styles.cItem} ${styles.addressItem}`}>
-                <FaPhoneSquare />
-                <Link href="tel:02122358573">02122358573</Link>
-              </div>
-            </div>
+            {address && (
+              <>
+                <div className={`${styles.cItem} ${styles.address}`}>
+                  {address.address}
+                </div>
+                <div className={styles.details}>
+                  <div className={`${styles.cItem} ${styles.addressItem}`}>
+                    <BsFillSignpostSplitFill />
+                    <span>{address.postal_code}</span>
+                  </div>
+                  {phone_numbers.map((phone) => (
+                    <div
+                      key={phone.id}
+                      className={`${styles.cItem} ${styles.addressItem}`}
+                    >
+                      <FaPhoneSquare />
+                      <Link href={`tel:${phone.number}`}>{phone.number}</Link>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1360.8932132644327!2d51.35469992463351!3d35.78108017399431!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3f8e07b684c2b9d5%3A0x703fbc3293eb71d6!2sFARABAK%20Head%20Office%20Company!5e0!3m2!1sen!2s!4v1711904970824!5m2!1sen!2s"

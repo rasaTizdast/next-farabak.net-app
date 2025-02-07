@@ -121,7 +121,7 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
                   className="flex items-center justify-between gap-4 p-4 border rounded-lg bg-gray-800 border-gray-700"
                 >
                   {/* Truncated Title */}
-                  <span>{truncateText(detail.Title, 45)}</span>
+                  <span>{truncateText(detail.Title, 60)}</span>
                   <div className="flex gap-3">
                     <button
                       type="button"

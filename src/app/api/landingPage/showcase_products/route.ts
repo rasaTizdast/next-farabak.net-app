@@ -5,7 +5,11 @@ import { v4 as uuidv4 } from "uuid";
 
 export async function GET() {
   try {
-    const products = await prisma.showcase_products.findMany();
+    const products = await prisma.showcase_products.findMany({
+      orderBy: {
+        order: "asc",
+      },
+    });
     return NextResponse.json(products);
   } catch (error) {
     return NextResponse.json(

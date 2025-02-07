@@ -33,11 +33,6 @@ const UserDropDown = () => {
     };
   }, []);
 
-  //   const isAdmin =
-  //     user.user[
-  //       "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-  //     ] === "Admin";
-
   return (
     <div ref={iconRef} className={styles.userIcon}>
       <PiUserCircleDashedFill

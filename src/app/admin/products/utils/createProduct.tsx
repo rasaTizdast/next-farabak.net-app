@@ -15,6 +15,7 @@ type State = {
   transparentImage: File | null;
   SEO_Title: string;
   SEO_Description: string;
+  productBlog: string;
   features: string[];
   overviewDetails: number[];
   specs: { title: string; description: string }[];
@@ -147,6 +148,7 @@ export const createProduct = async (
       Name: state.smallDesc,
       SEO_Title: state.SEO_Title || state.name,
       SEO_Description: state.SEO_Description || state.smallDesc,
+      productBlog: state.productBlog,
     };
     const productResponse = await axios.post(
       "/api/admin/products/createNewProduct",

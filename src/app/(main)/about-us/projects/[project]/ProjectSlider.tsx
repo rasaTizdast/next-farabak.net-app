@@ -58,7 +58,7 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
           <Image
             key={slide.id}
             className="w-full flex-shrink-0 object-contain"
-            src={slide.img}
+            src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${slide.img}`}
             alt={slide.alt}
             width={1920}
             height={900}

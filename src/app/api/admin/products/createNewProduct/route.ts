@@ -189,6 +189,7 @@ export async function POST(request: Request) {
       img2 = "",
       SEO_Title,
       SEO_Description,
+      productBlog = "",
     } = body;
 
     if (
@@ -236,6 +237,7 @@ export async function POST(request: Request) {
         img2,
         SEO_Title: SEO_Title || Type,
         SEO_Description: SEO_Description || Name,
+        productBlog: productBlog,
       },
     });
 

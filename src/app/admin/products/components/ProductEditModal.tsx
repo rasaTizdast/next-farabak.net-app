@@ -7,6 +7,7 @@ import { CgSpinnerTwo } from "react-icons/cg";
 import EditModalOverview from "./EditModalOverview";
 import EditModalOverviewDetails from "./EditModalOverviewDetails";
 import EditModalSpecs from "./EditModalSpecs";
+import EditModalProductBlog from "./EditModalProductBlog";
 
 type Category = {
   CategoryID: number;
@@ -152,6 +153,12 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     );
   };
 
+  const handleBlogSave = (blog: string) => {
+    setFormState((prevState) =>
+      prevState ? { ...prevState, productBlog: blog } : null
+    );
+  };
+
   const handleKeywordsChange = (name: string, value: string) => {
     // Directly create an object mimicking the event's target structure
     const customEvent = { target: { name, value } };
@@ -265,6 +272,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
         Slug: updatedFormState.productSlug || "",
         SEO_Title: updatedFormState.SEO_Title || "",
         SEO_Description: updatedFormState.SEO_Description || "",
+        productBlog: updatedFormState.productBlog || "",
       });
 
       const { img1, img2 } = await handleImageUpdate(
@@ -333,7 +341,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   return (
     <>
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm shadow-lg">
-        <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg w-full max-w-4xl max-h-[95dvh] overflow-auto">
+        <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg w-full max-w-6xl max-h-[95dvh] overflow-auto">
           <h2 className="text-xl font-bold mb-10 text-center">ویرایش محصول</h2>
           <form
             onSubmit={handleSubmit}
@@ -492,6 +500,13 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               overviews={overviews}
               SetOverviews={setOverviews}
             />
+            <div className="col-span-1 sm:col-span-2">
+              <EditModalProductBlog
+                blog={formState.productBlog}
+                onSave={handleBlogSave}
+                slug={formState.productSlug}
+              />
+            </div>
 
             <EditModalOverviewDetails
               productId={formState.ProductId}

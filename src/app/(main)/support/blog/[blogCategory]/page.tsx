@@ -141,6 +141,10 @@ const BlogLandingPage = async ({
 
   const breadCrumbs = ["/", "/support", "/support/blog"];
 
+  if (blogData?.blogs.length! < 0) {
+    notFound();
+  }
+
   return (
     <>
       <Breadcrumb breadcrumbs={breadCrumbs} />

@@ -125,11 +125,12 @@ const AnalyticsOverview = () => {
             آماده‌اید برای مشاهده دقیق‌تر تحلیل‌های وبسایت شما؟
           </h2>
           <p className="text-base text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            با دسترسی به پنل تحلیلی، آمار جامع و گزارش‌های دقیق عملکرد
-            وبسایت خود را مشاهده کنید.
+            با دسترسی به پنل تحلیلی، آمار جامع و گزارش‌های دقیق عملکرد وبسایت
+            خود را مشاهده کنید.
           </p>
           <Link
-            href="https://analytics.umami.is/share/your-id"
+            href={process.env.NEXT_PUBLIC_UMAMI_ANALYTICS_PAGE as string}
+            passHref
             target="_blank"
             className="inline-flex items-center gap-3 px-8 py-4 bg-blue-600 hover:bg-blue-700 
             text-white text-xs sm:text-base font-medium rounded-xl transition-all duration-300

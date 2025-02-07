@@ -61,6 +61,9 @@ export async function GET(
     // Get the subcategory ID based on the provided subCategoryName
     const subCategory = await prisma.categoryContent.findFirst({
       where: { Slug: subCategoryName },
+      include: {
+        SEO_CategoryContent: true, // Include the SEO information for the category
+      },
     });
 
     if (!subCategory) {
@@ -132,8 +135,18 @@ export async function GET(
       })
     );
 
+    // Prepare the SEO details for the category
+    const seoDetails = subCategory.SEO_CategoryContent
+      ? {
+          SEO_Title: subCategory.SEO_CategoryContent.SEO_Title,
+          SEO_Description: subCategory.SEO_CategoryContent.SEO_Description,
+          SEO_Keywords: subCategory.SEO_CategoryContent.SEO_Keywords,
+        }
+      : null;
+
     const response = {
       data,
+      seoDetails,
       pagination: {
         totalCount,
         currentPage: page,

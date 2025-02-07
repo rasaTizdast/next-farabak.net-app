@@ -22,7 +22,7 @@ export const generateMetadata = async ({
 
     if (!res || !res.data || !res.data.seoDetails) {
       return {
-        title: "دسته بندی یافت نشد!",
+        title: subCategoryName,
         description: "دسته بندی مورد نظر یافت نشد!",
       };
     }
@@ -30,7 +30,7 @@ export const generateMetadata = async ({
     const { seoDetails } = res.data;
 
     return {
-      title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${subCategoryName}`,
+      title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${subCategoryName} | فرابک`,
       description:
         seoDetails.SEO_Description || `محصولات دسته‌بندی ${subCategoryName}`,
     };

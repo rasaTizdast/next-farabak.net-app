@@ -15,6 +15,7 @@ import ClientInvoiceSection from "./components/ui/ClientInvoiceSection";
 import ProductTabs from "./components/ui/ProductTabs";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import { formatTitle } from "@/helpers/formatTitle";
+import ProductBlog from "./components/ui/ProductBlog";
 
 // Types
 interface ProductData {
@@ -33,6 +34,7 @@ interface ProductData {
   SEO_Description: string;
   QrCode_key: string;
   QrCode_expiryDays: string;
+  productBlog: string;
 }
 
 // Metadata generation
@@ -107,7 +109,6 @@ async function getProduct(slug: string): Promise<ProductData | null> {
     if (!res || !res.data) return null;
 
     const product = res.data;
-
     return product;
   } catch (error) {
     return null;
@@ -205,6 +206,19 @@ export default async function ProductPage({
           <ProductOverview productId={productData.ProductId} />
         </Suspense>
       </section>
+
+      <section id="blog" className={styles.section}>
+        <Suspense
+          fallback={
+            <div className="w-full py-4 bg-gray-200 animate-pulse flex justify-center text-slate-800 rounded-lg mt-6 sm:mt-0 text-sm md:text-base font-semibold">
+              درحال بارگذاری توضیحات تکمیلی
+            </div>
+          }
+        >
+          <ProductBlog productBlog={productData.productBlog} />
+        </Suspense>
+      </section>
+
       <section id="specs" className={`${styles.section} mt-8`}>
         <Suspense
           fallback={
@@ -216,6 +230,7 @@ export default async function ProductPage({
           <ProductSpecs productId={productData.ProductId} />
         </Suspense>
       </section>
+
       <section id="faq" className={`${styles.section} mt-8`}>
         <Suspense
           fallback={
