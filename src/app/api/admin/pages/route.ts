@@ -121,6 +121,8 @@ export async function GET() {
       id: true,
       title: true,
       slug: true,
+      QrCode_key: true,
+      QrCode_expiryDays: true,
       BlogCategories: {
         select: {
           Categories: true,
@@ -152,6 +154,8 @@ export async function GET() {
       id: blog.id,
       name: blog.title,
       link: `/support/blog/${blog.BlogCategories[0].Categories.slug}/${blog.slug}`,
+      QrCode_key: blog.QrCode_key,
+      QrCode_expiryDays: blog.QrCode_expiryDays,
     })),
     "/about-us/members": members.map((member) => ({
       id: member.Membersid,
