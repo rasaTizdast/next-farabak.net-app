@@ -42,8 +42,7 @@ const ImageNode = ({ node, editor, getPos }: NodeViewProps) => {
       setIsDeleting(false);
     }
   };
-  console.log(attrs.src);
-  console.log(attrs.slug);
+
   return (
     <NodeViewWrapper>
       <div className="relative group" draggable>
