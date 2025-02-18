@@ -3,15 +3,6 @@ import Image from "next/image";
 import styles from "./ProductsShowCase.module.css";
 import { prisma } from "@/lib/prisma";
 
-interface ShowcaseProduct {
-  id: number;
-  title: string;
-  description: string;
-  order: number;
-  image: string;
-  link: string;
-}
-
 async function getProducts() {
   try {
     const products = await prisma.showcase_products.findMany({

@@ -5,7 +5,9 @@ import styles from "./ProjectsSection.module.css";
 // Function to fetch projects from the API
 async function getProjects() {
   try {
-    const response = await fetch(`${process.env.BASE_URL}/api/projects`);
+    const response = await fetch(`${process.env.BASE_URL}/api/projects`, {
+      next: { revalidate: 300 },
+    });
 
     if (!response.ok) {
       throw new Error("Failed to fetch projects");
