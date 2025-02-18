@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useCallback, useEffect, useState } from "react";
-import axios from "axios";
+// import axios from "axios";
 
 import { getUserInvoices, checkUserInvoice } from "@/helpers/invoiceHandlers";
 
@@ -37,11 +37,11 @@ type Invoice = {
   Invoice_Details: Product[];
 };
 
-interface EmailDetails {
-  to: string;
-  text: string;
-  subject: string;
-}
+// interface EmailDetails {
+//   to: string;
+//   text: string;
+//   subject: string;
+// }
 
 const AllInvoices = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
@@ -82,13 +82,13 @@ const AllInvoices = () => {
     setSelectedInvoice(null);
   };
 
-  const sendEmail = async (emailDetails: EmailDetails) => {
-    try {
-      await axios.post("/api/send-email", emailDetails);
-    } catch (error) {
-      throw new Error("Failed to send email");
-    }
-  };
+  // const sendEmail = async (emailDetails: EmailDetails) => {
+  //   try {
+  //     await axios.post("/api/send-email", emailDetails);
+  //   } catch (error) {
+  //     throw new Error("Failed to send email");
+  //   }
+  // };
 
   const [updatingGuid, setUpdatingGuid] = useState<string | null>(null);
 
@@ -107,12 +107,12 @@ const AllInvoices = () => {
           invoice.FactorGuid === guid ? { ...invoice, Checked: true } : invoice
         )
       );
-      const emailDetails: EmailDetails = {
-        to: email,
-        subject: `فاکتور ${guid}`,
-        text: `فاکتور جدید ثبت شد. برای مشاهده به پنل کاربری خود مراجعه کنید.`,
-      };
-      await sendEmail(emailDetails);
+      // const emailDetails: EmailDetails = {
+      //   to: email,
+      //   subject: `فاکتور ${guid}`,
+      //   text: `فاکتور جدید ثبت شد. برای مشاهده به پنل کاربری خود مراجعه کنید.`,
+      // };
+      // await sendEmail(emailDetails);
       toast.success(
         "فاکتور شما ثبت شد، به زودی با شما برای نهایی سازی فاکتور تماس میگیریم!",
         { duration: 5000 }
