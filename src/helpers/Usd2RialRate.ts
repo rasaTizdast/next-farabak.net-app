@@ -1,7 +1,12 @@
 export async function fetchUsdToRialRate() {
   try {
     const response = await fetch(
-      "https://brsapi.ir/FreeTsetmcBourseApi/Api_Free_Gold_Currency_v2.json"
+      "https://brsapi.ir/FreeTsetmcBourseApi/Api_Free_Gold_Currency_v2.json",
+      {
+        next: {
+          revalidate: 60,
+        },
+      }
     );
     if (!response.ok) {
       console.error("Failed to fetch exchange rate:", response.statusText);
