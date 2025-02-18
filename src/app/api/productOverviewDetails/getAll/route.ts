@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma"; // Adjust this path to where you initialize Prisma in your project
 
+export const dynamic = "force-dynamic";
+
 /**
  * @swagger
  * /api/productOverviewDetails/getAll:
