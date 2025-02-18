@@ -7,6 +7,11 @@ const allowedHostnames = [
 ].filter(Boolean);
 
 const nextConfig = {
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
+  },
   output: "standalone",
   // reactStrictMode: false, // Disable React Strict Mode
   images: {
