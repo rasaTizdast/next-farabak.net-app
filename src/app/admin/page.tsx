@@ -4,7 +4,13 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { FiFileText, FiBox, FiArrowRightCircle } from "react-icons/fi";
+import {
+  FiFileText,
+  FiBox,
+  FiArrowRightCircle,
+  FiDollarSign,
+} from "react-icons/fi";
+import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 
 type ReportData = {
   invoiceCount: number;
@@ -29,6 +35,7 @@ const SkeletonCard = () => (
 
 const AdminPage = () => {
   const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [usdToRialRate, setUsdToRialRate] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchReportData = async () => {
@@ -41,13 +48,21 @@ const AdminPage = () => {
       }
     };
 
+    const fetchExchangeRate = async () => {
+      const rate = await fetchUsdToRialRate();
+      setUsdToRialRate(rate);
+    };
+
     fetchReportData();
+    fetchExchangeRate();
   }, []);
 
   if (!reportData) {
     return (
       <div className="sm:p-3 sm:space-y-3 md:p-6 md:space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <SkeletonCard />
+          <SkeletonCard />
           <SkeletonCard />
           <SkeletonCard />
           <SkeletonCard />
@@ -62,6 +77,19 @@ const AdminPage = () => {
     <div className="sm:p-3 sm:space-y-3 md:p-6 md:space-y-6">
       {/* Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* USD to Rial Exchange Rate */}
+        <div className="glass-card p-6 rounded-lg shadow-md hover:shadow-lg flex flex-col justify-between transform hover:scale-105 transition-all duration-300">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-bold text-white">نرخ دلار به تومان</h3>
+            <FiDollarSign className="text-3xl text-green-300" />
+          </div>
+          <span className="text-4xl font-extrabold text-green-200 mt-4">
+            {usdToRialRate
+              ? `${usdToRialRate.toLocaleString()} تومان`
+              : "در حال دریافت..."}
+          </span>
+        </div>
+
         {/* Invoice Count */}
         <div className="glass-card p-6 rounded-lg bg-blue-700/90 shadow-md hover:shadow-lg transform flex flex-col justify-between hover:scale-105 transition-all duration-300">
           <div className="flex items-center justify-between">
