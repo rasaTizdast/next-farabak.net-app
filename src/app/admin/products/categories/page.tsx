@@ -16,9 +16,7 @@ const ProductCategories = () => {
   const fetchCategories = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch(
-        `/api/categories/getAll`
-      );
+      const res = await fetch(`/api/categories/getAll`);
       const data = await res.json();
       setCategories(data);
     } catch (error) {

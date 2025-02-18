@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import ProductTableSkeleton from "./ProductTableSkeleton";
 import {
@@ -12,6 +12,7 @@ import ProductEditModal from "./ProductEditModal";
 import { Product } from "../types";
 import { IoQrCode } from "react-icons/io5";
 import QrCodeModal from "./QrCodeModal";
+import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 
 type Props = {
   isLoading: boolean;
@@ -52,6 +53,29 @@ const ProductsTable = ({
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
   const [isQrCodeModalOpen, setIsQrCodeModalOpen] = useState(false);
   const [qrCodeProduct, setQrCodeProduct] = useState<Product | null>(null);
+
+  const [usdRate, setUsdRate] = useState<number | null>(null);
+  // Fetch the rate when the component mounts
+  useEffect(() => {
+    const fetchExchangeRate = async () => {
+      try {
+        const rate = await fetchUsdToRialRate();
+        setUsdRate(rate);
+      } catch (error) {
+        console.error("Failed to fetch USD rate:", error);
+        setUsdRate(1); // Fallback to 1 if API fails
+      }
+    };
+    fetchExchangeRate();
+  }, []);
+
+  const updatePrice = (price: number) => {
+    if (!price) return "بدون قیمت";
+    console.log(price);
+    console.log(usdRate);
+    const updatedPrice = price * usdRate!;
+    return updatedPrice.toLocaleString("fa-IR") + " تومان";
+  };
 
   // Sorting function
   const sortedProducts = useMemo(() => {
@@ -252,7 +276,14 @@ const ProductsTable = ({
                     </td>
 
                     <td className="px-6 py-4">{product.productSlug}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 relative group cursor-help">
+                      <span className="absolute left-1/2 -translate-x-1/2 bottom-full -mb-3 opacity-0 group-hover:opacity-100 transition-opacity bg-blue-900 text-white font-extralight text-xs rounded px-2 py-1 whitespace-nowrap">
+                        قیمت دلار:{" "}
+                        <span className="font-normal">
+                          {usdRate?.toLocaleString("fa-IR")}
+                        </span>{" "}
+                        تومان
+                      </span>
                       {product.Price === null ||
                       product.Price === undefined ||
                       +product.Price === 0 ? (
@@ -260,18 +291,19 @@ const ProductsTable = ({
                       ) : product.Discount && +product.Discount > 0 ? (
                         <div className="flex flex-col items-center">
                           <span className="text-red-400 line-through">
-                            {formatPrice(+product.Price)}
+                            {updatePrice(+product.Price)}
                           </span>
                           <span className="text-green-400 font-semibold">
-                            {formatPrice(+product.Price - +product.Discount)}
+                            {updatePrice(+product.Price - +product.Discount)}
                           </span>
                         </div>
                       ) : (
                         <span className="text-white">
-                          {formatPrice(+product.Price)}
+                          {updatePrice(+product.Price)}
                         </span>
                       )}
                     </td>
+
                     <td className="px-6 py-4">
                       <span
                         className={`px-3 py-1 text-xs rounded-lg ${
