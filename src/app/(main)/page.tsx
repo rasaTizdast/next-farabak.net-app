@@ -10,7 +10,10 @@ const HomePage = async () => {
 
   try {
     const response = await fetch(
-      `${process.env.BASE_URL}/api/landingPage/sliders`
+      `${process.env.BASE_URL}/api/landingPage/sliders`,
+      {
+        next: { revalidate: 300 },
+      }
     );
 
     if (!response.ok) throw new Error("Failed to fetch sliders");

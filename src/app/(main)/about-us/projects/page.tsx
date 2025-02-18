@@ -19,7 +19,9 @@ export const metadata: Metadata = {
 
 async function getProjects() {
   try {
-    const response = await fetch(`${process.env.BASE_URL}/api/projects`);
+    const response = await fetch(`${process.env.BASE_URL}/api/projects`, {
+      next: { revalidate: 3600 },
+    });
 
     if (!response.ok) {
       throw new Error("Failed to fetch projects");
