@@ -133,7 +133,6 @@ const CreateNewItemModal = ({
       setSeoKeywords([]);
       setKeywordInput("");
     } catch (error) {
-
       if (axios.isAxiosError(error)) {
         const errorMessage =
           error.response?.data?.message ||
@@ -153,8 +152,7 @@ const CreateNewItemModal = ({
         name.trim() === "" ||
         slug.trim() === "" ||
         seoTitle.trim() === "" ||
-        seoDescription.trim() === "" ||
-        seoKeywords.length === 0
+        seoDescription.trim() === ""
       );
     } else if (activeTab === "Subcategory") {
       return name.trim() === "" || slug.trim() === "" || !parentCategoryId;
