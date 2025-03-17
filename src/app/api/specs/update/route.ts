@@ -60,34 +60,40 @@ import { prisma } from "@/lib/prisma"; // Ensure your Prisma client is set up co
 
 export async function POST(req: NextRequest) {
   try {
-    // Parse the request body
+    console.log("[INFO] Received request to update product specifications");
     const body = await req.json();
+    console.log("[DEBUG] Request body:", body);
 
     const { productId, specs } = body;
 
-    // Validate input
     if (!productId || !Array.isArray(specs)) {
+      console.warn("[WARN] Invalid input: productId or specs is missing.");
       return NextResponse.json(
         { message: "Invalid input: productId or specs is missing." },
         { status: 400 }
       );
     }
 
-    // Fetch existing specs for the product
+    console.log(
+      `[INFO] Fetching existing specifications for product ID ${productId}`
+    );
     const existingSpecs = await prisma.productSpecs.findMany({
       where: { ProductId: productId },
     });
+    console.log("[DEBUG] Existing specs:", existingSpecs);
 
     const existingSpecIds = existingSpecs.map((spec) => spec.ProductSpecsId);
     const incomingSpecIds = specs.map((spec) => spec.ProductSpecsId);
 
-    // Find specs to delete
     const specsToDelete = existingSpecs.filter(
       (spec) => !incomingSpecIds.includes(spec.ProductSpecsId)
     );
 
-    // Delete specs that are no longer in the incoming list
     if (specsToDelete.length > 0) {
+      console.log(
+        "[INFO] Deleting specifications:",
+        specsToDelete.map((s) => s.ProductSpecsId)
+      );
       await prisma.productSpecs.deleteMany({
         where: {
           ProductSpecsId: {
@@ -97,13 +103,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Add or update incoming specs
     for (const spec of specs) {
       if (
         spec.ProductSpecsId &&
         existingSpecIds.includes(spec.ProductSpecsId)
       ) {
-        // Update existing spec
+        console.log(`[INFO] Updating spec ID ${spec.ProductSpecsId}`);
         await prisma.productSpecs.update({
           where: { ProductSpecsId: spec.ProductSpecsId },
           data: {
@@ -115,11 +120,10 @@ export async function POST(req: NextRequest) {
           },
         });
       } else {
-        // Create new spec
+        console.log(`[INFO] Creating new spec for product ID ${productId}`);
         await prisma.productSpecs.create({
           data: {
             ProductId: productId,
-            Name: spec.Name,
             Title: spec.Title,
             Description: spec.Description,
             Available: spec.Available ?? true,
@@ -129,13 +133,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    console.log("[INFO] Specifications updated successfully.");
     return NextResponse.json(
       { message: "Specifications updated successfully." },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (error: any) {
+    console.error("[ERROR] Internal server error:", error);
     return NextResponse.json(
-      { message: "Internal server error.", error },
+      {
+        message: "Internal server error.",
+        error: error.response?.data?.message,
+      },
       { status: 500 }
     );
   }
