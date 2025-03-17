@@ -514,14 +514,14 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
             />
 
             <InputField
-              label="قیمت (ریال)"
+              label="قیمت (دلار)"
               name="Price"
               value={formState.Price}
               onChange={handleInputChange}
               type="number"
             />
             <InputField
-              label="تخفیف (ریال)"
+              label="تخفیف (دلار)"
               name="Discount"
               value={formState.Discount}
               onChange={handleInputChange}

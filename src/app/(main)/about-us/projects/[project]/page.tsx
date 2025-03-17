@@ -24,7 +24,10 @@ type ProjectProps = {
 async function getProjectData(slug: string) {
   try {
     const response = await fetch(
-      `${process.env.BASE_URL}/api/projects/getProjectData/${slug}`
+      `${process.env.BASE_URL}/api/projects/getProjectData/${slug}`,
+      {
+        next: { revalidate: 3600 },
+      }
     );
 
     if (!response.ok) {

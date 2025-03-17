@@ -16,7 +16,10 @@ type Props = {
 
 const getMemberData = async (slug: string) => {
   const response = await fetch(
-    `${process.env.BASE_URL}/api/members/memberPage/${slug}`
+    `${process.env.BASE_URL}/api/members/memberPage/${slug}`,
+    {
+      next: { revalidate: 120 },
+    }
   );
 
   if (!response.ok) {

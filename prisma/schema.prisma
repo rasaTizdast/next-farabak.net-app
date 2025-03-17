@@ -6,7 +6,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["Blog", "Info", "Member", "Project", "Support", "company_activity", "contact_us", "farabak_net_technomi", "landing_page"]
+  schemas  = ["blog", "info", "member", "project", "support", "company_activity", "contact_us", "farabak_net_technomi", "landing_page"]
 }
 
 // Updated product model
@@ -22,7 +22,7 @@ model BlogCategories {
   Blogs       Blogs      @relation(fields: [blog_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK__BlogCateg__blog___270FB757")
   Categories  Categories @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK__BlogCateg__categ__2803DB90")
 
-  @@schema("Blog")
+  @@schema("blog")
 }
 
 model Blogs {
@@ -44,7 +44,7 @@ model Blogs {
   Comments          Blog_Comments[]
   Likes             Likes[]
 
-  @@schema("Blog")
+  @@schema("blog")
 }
 
 model Categories {
@@ -53,7 +53,7 @@ model Categories {
   slug           String?          @unique(map: "UQ__Categori__32DD1E4C6F98CBB2") @db.VarChar(100)
   BlogCategories BlogCategories[]
 
-  @@schema("Blog")
+  @@schema("blog")
 }
 
 model Blog_Comments {
@@ -64,7 +64,7 @@ model Blog_Comments {
   Blogs      Blogs   @relation(fields: [blog_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK__Comments__blog_i__2AE0483B")
 
   @@map("Comments")
-  @@schema("Blog")
+  @@schema("blog")
 }
 
 model Likes {
@@ -73,7 +73,7 @@ model Likes {
   created_at String? @db.VarChar(50)
   Blogs      Blogs   @relation(fields: [blog_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK__Likes__blog_id__33758E3C")
 
-  @@schema("Blog")
+  @@schema("blog")
 }
 
 model Client {
@@ -90,7 +90,7 @@ model Client {
   ActiveEmail       Boolean?
   Password          Password[]
 
-  @@schema("Info")
+  @@schema("info")
 }
 
 model Factor {
@@ -105,7 +105,7 @@ model Factor {
   Quantity    String?  @db.VarChar(50)
   Checked     Boolean?
 
-  @@schema("Info")
+  @@schema("info")
 }
 
 model FaqDetails {
@@ -117,7 +117,7 @@ model FaqDetails {
   InsertDate   DateTime? @default(now()) @db.Timestamp(6)
   ModifyDate   DateTime? @default(now()) @db.Timestamp(6)
 
-  @@schema("Info")
+  @@schema("info")
 }
 
 model Invoice {
@@ -131,7 +131,7 @@ model Invoice {
   Date            String?           @db.VarChar(50)
   Invoice_Details Invoice_Details[]
 
-  @@schema("Info")
+  @@schema("info")
 }
 
 model Invoice_Details {
@@ -144,7 +144,7 @@ model Invoice_Details {
   total_price     Float?
   Invoice         Invoice? @relation(fields: [Invoiceid], references: [Invoiceid])
 
-  @@schema("Info")
+  @@schema("info")
 }
 
 model Password {
@@ -156,7 +156,7 @@ model Password {
   // new added field
   Client Client? @relation(fields: [UserId], references: [UserID])
 
-  @@schema("Info")
+  @@schema("info")
 }
 
 model SMS_Status {
@@ -170,7 +170,7 @@ model SMS_Status {
   InsertDate   DateTime? @default(now()) @db.Timestamp(6)
   ModifyDate   DateTime? @default(now()) @db.Timestamp(6)
 
-  @@schema("Info")
+  @@schema("info")
 }
 
 model Members {
@@ -182,7 +182,7 @@ model Members {
   Slug             String  @unique @db.VarChar(500)
   phonenumber      String? @db.VarChar(11)
 
-  @@schema("Member")
+  @@schema("member")
 }
 
 model ProjectMedia {
@@ -192,7 +192,7 @@ model ProjectMedia {
   MediaURL  String
   Projects  Projects @relation(fields: [ProjectID], references: [ProjectID], onDelete: Cascade, onUpdate: NoAction, map: "FK__ProjectMe__Proje__4D35603F")
 
-  @@schema("Project")
+  @@schema("project")
 }
 
 model Projects {
@@ -206,7 +206,7 @@ model Projects {
   city         String         @db.VarChar(100)
   ProjectMedia ProjectMedia[]
 
-  @@schema("Project")
+  @@schema("project")
 }
 
 model Category {
@@ -221,7 +221,7 @@ model Category {
   SEO_Category     SEO_Category?
   Product          Product[]
 
-  @@schema("Support")
+  @@schema("support")
 }
 
 model CategoryContent {
@@ -235,7 +235,7 @@ model CategoryContent {
   Category            Category?            @relation(fields: [CategoryID], references: [CategoryID], onDelete: NoAction, onUpdate: NoAction, map: "FK_CategoryContent_Category_CategoryID")
   SEO_CategoryContent SEO_CategoryContent?
 
-  @@schema("Support")
+  @@schema("support")
 }
 
 model Details_ProductOverviewDetails {
@@ -247,7 +247,7 @@ model Details_ProductOverviewDetails {
   // Added item
   Master_ProductOverviewDetails Master_ProductOverviewDetails? @relation(fields: [ProductOverviewDetailsId], references: [ProductOverviewDetailsId])
 
-  @@schema("Support")
+  @@schema("support")
 }
 
 model FAQs {
@@ -260,7 +260,7 @@ model FAQs {
   InsertDate   DateTime? @default(now()) @db.Timestamp(6)
   ModifyDate   DateTime? @default(now()) @db.Timestamp(6)
 
-  @@schema("Support")
+  @@schema("support")
 }
 
 model Master_ProductOverviewDetails {
@@ -273,7 +273,7 @@ model Master_ProductOverviewDetails {
   // Added item
   Details_ProductOverviewDetails Details_ProductOverviewDetails[]
 
-  @@schema("Support")
+  @@schema("support")
 }
 
 model Product {
@@ -298,7 +298,7 @@ model Product {
   // new added field
   Category Category? @relation(fields: [CategoryId], references: [CategoryID])
 
-  @@schema("Support")
+  @@schema("support")
 }
 
 model ProductOverview {
@@ -313,7 +313,7 @@ model ProductOverview {
   InsertDate        DateTime? @default(now()) @db.Timestamp(6)
   ModifyDate        DateTime? @default(now()) @db.Timestamp(6)
 
-  @@schema("Support")
+  @@schema("support")
 }
 
 model ProductSpecs {
@@ -326,29 +326,29 @@ model ProductSpecs {
   InsertDate     DateTime? @default(now()) @db.Timestamp(6)
   ModifyDate     DateTime? @default(now()) @db.Timestamp(6)
 
-  @@schema("Support")
+  @@schema("support")
 }
 
 model SEO_Category {
   SEO_CategoryId  Int      @id(map: "PK__SEO_Cate__D6289EBC542C7D1C") @default(autoincrement())
   CategoryID      Int      @unique(map: "unique_categoryID")
   SEO_Title       String?  @db.VarChar(60)
-  SEO_Description String?  @db.VarChar(160)
+  SEO_Description String?
   SEO_Keywords    String?  @db.VarChar(2000)
   Category        Category @relation(fields: [CategoryID], references: [CategoryID], onDelete: Cascade, onUpdate: NoAction, map: "FK__SEO_Categ__Categ__392E6792")
 
-  @@schema("Support")
+  @@schema("support")
 }
 
 model SEO_CategoryContent {
   SEO_CategoryContentId Int             @id(map: "PK__SEO_Cate__7D930FEB48C5431C") @default(autoincrement())
   CategoryContentId     Int             @unique(map: "unique_CategoryContentID")
   SEO_Title             String?         @db.VarChar(60)
-  SEO_Description       String?         @db.VarChar(160)
+  SEO_Description       String?
   SEO_Keywords          String?         @db.VarChar(2000)
   CategoryContent       CategoryContent @relation(fields: [CategoryContentId], references: [CategoryContentId], onDelete: Cascade, onUpdate: NoAction, map: "FK__SEO_Categ__Categ__43ABF605")
 
-  @@schema("Support")
+  @@schema("support")
 }
 
 model EFMigrationsHistory {
@@ -368,7 +368,7 @@ model Media {
   media_URL  String  @db.VarChar(2500)
   media_alt  String? @db.VarChar(250)
 
-  @@schema("Blog")
+  @@schema("blog")
 }
 
 model Details_activity {

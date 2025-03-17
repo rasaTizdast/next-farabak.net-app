@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 const ActivityPage = async () => {
   const response = await fetch(`${process.env.BASE_URL}/api/activities`, {
-    next: { revalidate: 0 },
+    next: { revalidate: 3600 },
   });
 
   const activities = await response.json();

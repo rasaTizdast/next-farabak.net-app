@@ -28,14 +28,12 @@ const SeoFields = ({
   // Regex patterns for validation
   const regexPatterns = {
     SEO_Title: /^.{0,50}$/, // Any character, up to 50 characters
-    SEO_Description: /^.{0,4000}$/, // Any character, up to 4000 characters
     SEO_Keywords: /^.{0,4000}$/, // Any character, up to 4000 characters (no commas restriction)‌
   };
 
   // Error messages
   const errorMessages = {
     SEO_Title: "عنوان سئو باید حداکثر ۵۰ کاراکتر باشد.",
-    SEO_Description: "توضیحات سئو باید حداکثر ۴۰۰۰ کاراکتر باشد.",
     SEO_Keywords:
       "کلمه کلیدی نمی‌تواند شامل کاما باشد و حداکثر ۴۰۰۰ کاراکتر باشد.",
   };
@@ -87,7 +85,7 @@ const SeoFields = ({
           onChange={(e) => handleInputChange("SEO_Description", e.target.value)}
           disabled={!editable}
           className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 disabled:bg-gray-500"
-          placeholder="توضیحات سئو"
+          placeholder="توضیحات سئو | بهتر است برای سئو بهتر توضیحات سئو زیر ۱۶۰ کاراکتر باشد."
         />
         {errors.SEO_Description && (
           <p className="text-red-500 text-sm">{errors.SEO_Description}</p>

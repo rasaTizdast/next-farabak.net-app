@@ -4,6 +4,8 @@ import { useUser } from "@/context/UserContext";
 import React, { useState, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
+export const dynamic = "force-dynamic";
+
 type Client = {
   UserID: number;
   FirstName: string;

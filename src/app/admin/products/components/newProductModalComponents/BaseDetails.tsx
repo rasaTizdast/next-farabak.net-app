@@ -291,7 +291,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
       {/* Price */}
       <div className="mb-4">
         <label htmlFor="price" className="block mb-2">
-          قیمت
+          قیمت محصول به دلار
         </label>
         <input
           id="price"
@@ -299,7 +299,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
           value={state.price ? addCommas(state.price) : ""}
           onChange={handlePriceChange}
           className="w-full p-2 rounded bg-gray-700 text-white"
-          placeholder="قیمت محصول را به ریال وارد کنید."
+          placeholder="قیمت محصول را به دلار وارد کنید."
         />
         {localErrors.price && (
           <p className="text-red-500 mt-1">{localErrors.price}</p>
@@ -317,7 +317,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
           value={state.discount ? addCommas(state.discount) : ""}
           onChange={handleDiscountChange}
           className="w-full p-2 rounded bg-gray-700 text-white"
-          placeholder="تخفیف محصول را به ریال وارد کنید."
+          placeholder="تخفیف محصول را به تومان وارد کنید."
         />
         {localErrors.discount && (
           <p className="text-red-500 mt-1">{localErrors.price}</p>

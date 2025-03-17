@@ -27,7 +27,7 @@ type Member = {
 const fetchMembers = async () => {
   try {
     const response = await fetch(`${process.env.BASE_URL}/api/members`, {
-      next: { revalidate: 3600 }, // Revalidate every hour
+      next: { revalidate: 120 }, // Revalidate every hour
     });
 
     if (!response.ok) {

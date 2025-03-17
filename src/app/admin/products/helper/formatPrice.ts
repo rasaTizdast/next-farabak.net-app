@@ -1,5 +1,9 @@
+import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+
 // helpers/formatPrice.ts
-export const formatPrice = (price: number): string => {
+export const formatPrice = async (price: number) => {
   if (!price) return "بدون قیمت";
-  return price.toLocaleString("fa-IR") + " ریال";
+  const usdRate = await fetchUsdToRialRate();
+  const updatedPrice = price * usdRate;
+  return updatedPrice.toLocaleString("fa-IR") + " تومان";
 };
