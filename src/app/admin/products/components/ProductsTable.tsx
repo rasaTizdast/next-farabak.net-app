@@ -71,8 +71,6 @@ const ProductsTable = ({
 
   const updatePrice = (price: number) => {
     if (!price) return "بدون قیمت";
-    console.log(price);
-    console.log(usdRate);
     const updatedPrice = price * usdRate!;
     return updatedPrice.toLocaleString("fa-IR") + " تومان";
   };
