@@ -28,6 +28,10 @@ export const CustomImage = Node.create<ImageOptions>({
       slug: {
         default: null,
       },
+      // Add size preset attribute
+      size: {
+        default: "full",
+      },
     };
   },
 
@@ -41,14 +45,15 @@ export const CustomImage = Node.create<ImageOptions>({
           width: parseInt((dom as HTMLElement).getAttribute("width") || "0"),
           height: parseInt((dom as HTMLElement).getAttribute("height") || "0"),
           slug: (dom as HTMLElement).getAttribute("data-slug"), // Parse slug from HTML
+          size: (dom as HTMLElement).getAttribute("data-size") || "full", // Parse size from HTML
         }),
       },
     ];
   },
 
   renderHTML({ HTMLAttributes }) {
-    const { slug, ...rest } = HTMLAttributes;
-    return ["img", { ...rest, "data-slug": slug }];
+    const { slug, size, ...rest } = HTMLAttributes;
+    return ["img", { ...rest, "data-slug": slug, "data-size": size }];
   },
 
   addNodeView() {

@@ -176,6 +176,7 @@ const TipTapBlogEditor = ({
                 width,
                 height,
                 slug, // Add the slug here
+                size: "full", // Default size to full width
               },
             })
             .run();
@@ -265,10 +266,14 @@ const TipTapBlogEditor = ({
     // Convert editor content to MDX
     let mdxContent = editor
       .getHTML()
-      // Convert img tags to Next.js Image components
+      // Convert img tags to Next.js Image components with size attribute
       .replace(
-        /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*>/g,
-        '<Image src="$1" alt="$2" width={1000} height={900} quality={100} layout="responsive" />'
+        /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*(size="([^"]+)")?[^>]*>/g,
+        (match, src, alt, width, height, sizeAttr, size) => {
+          // Default size to "full" if not specified
+          const imgSize = size || "full";
+          return `<Image src="${src}" alt="${alt}" width={${width}} height={${height}} size="${imgSize}" quality={100} layout="responsive" />`;
+        }
       )
 
       // Convert a tags to Next.js Link components
@@ -298,10 +303,14 @@ const TipTapBlogEditor = ({
   const convertMDXToHTML = (mdxContent: string) => {
     return (
       mdxContent
-        // Convert Next.js Image components to regular img tags
+        // Convert Next.js Image components to regular img tags with size attribute
         .replace(
-          /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*\/?>/g,
-          '<img src="$1" alt="$2" width="$3" height="$4" class="rounded-lg max-w-full my-4" />'
+          /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*(size="([^"]+)")?[^>]*\/?>/g,
+          (match, src, alt, width, height, sizeAttr, size) => {
+            // Use the size if provided, otherwise default to "full"
+            const imgSize = size || "full";
+            return `<img src="${src}" alt="${alt}" width="${width}" height="${height}" size="${imgSize}" class="rounded-lg max-w-full my-4" />`;
+          }
         )
         // Convert Next.js Link components to regular a tags
         .replace(

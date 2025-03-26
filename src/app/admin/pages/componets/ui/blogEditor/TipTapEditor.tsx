@@ -232,10 +232,45 @@ const TipTapBlogEditor = ({
       // Convert editor content to MDX
       let mdxContent = editor
         .getHTML()
-        // Convert img tags to Next.js Image components
+        // Convert img tags to Next.js Image components with proper sizing
+        .replace(
+          /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*data-size="([^"]+)"[^>]*>/g,
+          (match, src, alt, width, height, size) => {
+            // Define different tailwind classes based on size
+            let tailwindClass = "";
+
+            switch (size) {
+              case "full":
+                tailwindClass = "w-full";
+                break;
+              case "half":
+                tailwindClass = "w-1/2 mx-auto";
+                break;
+              case "third":
+                tailwindClass = "w-1/3 mx-auto";
+                break;
+              case "custom":
+                // For custom sizes, we'll create an inline style
+                tailwindClass = `max-w-full`;
+                break;
+              default:
+                tailwindClass = "w-full";
+            }
+
+            // For custom sizes, add a style attribute as well
+            const styleAttr = size === "custom" ? `style="--img-width:${width}px"` : "";
+
+            return `<Image src="${src}" alt="${alt}" width={${width}} height={${height}} className="${tailwindClass}" quality={100} layout="responsive" ${styleAttr} />`;
+          }
+        )
+
+        // Also handle images that don't have data-size attribute
         .replace(
           /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*>/g,
-          '<Image src="$1" alt="$2" width={1000} height={900} quality={100} layout="responsive" />'
+          (match, src, alt, width, height) => {
+            // If this regex matches, it means our first replace didn't catch it (no data-size)
+            return `<Image src="${src}" alt="${alt}" width={${width}} height={${height}} className="w-full" quality={100} layout="responsive" />`;
+          }
         )
 
         // Convert a tags to Next.js Link components
@@ -267,10 +302,23 @@ const TipTapBlogEditor = ({
   const convertMDXToHTML = (mdxContent: string) => {
     return (
       mdxContent
-        // Convert Next.js Image components to regular img tags
+        // Convert Next.js Image components to regular img tags with size information
+        .replace(
+          /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*className="([^"]+)"[^>]*\/?>/g,
+          (match, src, alt, width, height, className) => {
+            // Determine size preset from className
+            let size = "full";
+            if (className.includes("w-1/2")) size = "half";
+            else if (className.includes("w-1/3")) size = "third";
+            else if (!className.includes("w-full")) size = "custom";
+
+            return `<img src="${src}" alt="${alt}" width="${width}" height="${height}" class="rounded-lg max-w-full my-4" data-size="${size}" />`;
+          }
+        )
+        // Handle older format without className
         .replace(
           /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*\/?>/g,
-          '<img src="$1" alt="$2" width="$3" height="$4" class="rounded-lg max-w-full my-4" />'
+          '<img src="$1" alt="$2" width="$3" height="$4" class="rounded-lg max-w-full my-4" data-size="full" />'
         )
         // Convert Next.js Link components to regular a tags
         .replace(
