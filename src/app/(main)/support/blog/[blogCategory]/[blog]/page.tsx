@@ -30,7 +30,10 @@ const getBlog = async (
 ): Promise<BlogResponse | null> => {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${slug}`
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${slug}`,
+      {
+        next: { revalidate: 60 }, // Optional: revalidate every 60 seconds for ISR
+      }
     );
 
     if (!res.ok) {
@@ -119,7 +122,7 @@ export default async function BlogPage({
 
   const processContentWithImageUrls = (content: string) => {
     const baseUrl = process.env.LIARA_BUCKET_URL || "";
-    
+
     // First, handle src attribute to make sure URLs are correct
     let processedContent = content.replace(
       /<Image([^>]*)src="([^"]*)"([^>]*)/g,
@@ -128,7 +131,7 @@ export default async function BlogPage({
         return `<Image${before}src="${baseUrl}/${src}"${after}`;
       }
     );
-    
+
     // Then handle the size classes. Make sure classes defined in the editor are preserved
     processedContent = processedContent.replace(
       /<Image([^>]*)className="([^"]*)"([^>]*)/g,
@@ -137,7 +140,7 @@ export default async function BlogPage({
         return `<Image${before}className="${className}"${after}`;
       }
     );
-    
+
     // Finally, handle images that don't have className but do have width/height
     // This ensures older content or images without explicit size classes still respect dimensions
     processedContent = processedContent.replace(
@@ -146,7 +149,7 @@ export default async function BlogPage({
         return `<Image${before}width={${width}}${middle}height={${height}}${after} className="max-w-full" style="--img-width:${width}px">`;
       }
     );
-    
+
     // Handle images that have inline style with width attribute
     processedContent = processedContent.replace(
       /<Image([^>]*)style="width:(\d+)px"([^>]*)/g,
@@ -154,7 +157,7 @@ export default async function BlogPage({
         return `<Image${before}style="--img-width:${width}px"${after}`;
       }
     );
-    
+
     return processedContent;
   };
 
