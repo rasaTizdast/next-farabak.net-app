@@ -438,7 +438,7 @@ model branch {
   branchid      Int             @id @default(autoincrement())
   UserID        Int
   name          String          @unique @db.VarChar(255)
-  location      String?         @db.VarChar(500)
+  location      String?         @db.VarChar(10)
   createdat     DateTime?       @default(now()) @db.Timestamp(6)
   Client        Client          @relation(fields: [UserID], references: [UserID], onDelete: Cascade, onUpdate: NoAction)
   branchproduct branchproduct[]
