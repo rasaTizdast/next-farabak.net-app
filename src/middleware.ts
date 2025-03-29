@@ -73,8 +73,13 @@ export async function middleware(req: ExtendedNextRequest) {
         maxAge: ACCESS_TOKEN_EXPIRATION,
       });
 
-      // Check if the user was navigating to an auth route, if so, redirect to the dashboard
+      // Check if the user was navigating to an auth route, if so, redirect to the appropriate dashboard
       if (req.nextUrl.pathname.startsWith("/auth")) {
+        // Redirect Branch users to their branch page
+        if (user.role === "Branch") {
+          return NextResponse.redirect(new URL("/admin/branches/my", req.url));
+        }
+        // Redirect other users to dashboard
         return NextResponse.redirect(new URL("/dashboard", req.url));
       }
 
@@ -108,16 +113,44 @@ export async function middleware(req: ExtendedNextRequest) {
         req.nextUrl.pathname.startsWith("/admin") &&
         user.role.toLowerCase() !== "admin"
       ) {
+        // Branch users should only access branch-related routes
+        if (user.role === "Branch") {
+          // Allow branch users only to access their specific branch page
+          if (req.nextUrl.pathname === "/admin/branches/my") {
+            return NextResponse.next();
+          } else if (
+            req.nextUrl.pathname === "/admin" ||
+            req.nextUrl.pathname === "/admin/"
+          ) {
+            // Redirect to their branch page if they try to access the admin home
+            return NextResponse.redirect(new URL("/admin/branches/my", req.url));
+          } else {
+            // Add an error message as a searchParam and redirect to their branch page
+            const redirectUrl = new URL("/admin/branches/my", req.url);
+            redirectUrl.searchParams.set("unauthorized", "true");
+            redirectUrl.searchParams.set("attempted", req.nextUrl.pathname);
+            return NextResponse.redirect(redirectUrl);
+          }
+        }
         return NextResponse.redirect(new URL("/dashboard", req.url));
       } else if (
         req.nextUrl.pathname.startsWith("/dashboard") &&
         user.role.toLowerCase() === "admin"
       ) {
         return NextResponse.redirect(new URL("/admin", req.url));
+      } else if (
+        req.nextUrl.pathname.startsWith("/dashboard") &&
+        user.role === "Branch"
+      ) {
+        // Redirect branch users from dashboard to their branch page
+        return NextResponse.redirect(new URL("/admin/branches/my", req.url));
       }
 
-      // If a logged-in user tries to access auth routes, redirect to the dashboard
+      // If a logged-in user tries to access auth routes, redirect to the appropriate page
       if (req.nextUrl.pathname.startsWith("/auth") && user) {
+        if (user.role === "Branch") {
+          return NextResponse.redirect(new URL("/admin/branches/my", req.url));
+        }
         return NextResponse.redirect(new URL("/dashboard", req.url));
       }
 
