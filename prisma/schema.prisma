@@ -89,6 +89,7 @@ model Client {
   ActivePhoneNumber Boolean?
   ActiveEmail       Boolean?
   Password          Password[]
+  branch            branch[]
 
   @@schema("info")
 }
@@ -296,7 +297,8 @@ model Product {
   productBlog       String?
 
   // new added field
-  Category Category? @relation(fields: [CategoryId], references: [CategoryID])
+  Category      Category?       @relation(fields: [CategoryId], references: [CategoryID])
+  branchproduct branchproduct[]
 
   @@schema("support")
 }
@@ -432,10 +434,25 @@ model sliders {
   @@schema("landing_page")
 }
 
-model efmigrationshistory {
-  MigrationId    String @id(map: "PK___EFMigrationsHistory") @db.VarChar(150)
-  ProductVersion String @db.VarChar(32)
+model branch {
+  branchid      Int             @id @default(autoincrement())
+  UserID        Int
+  name          String          @unique @db.VarChar(255)
+  location      String?         @db.VarChar(500)
+  createdat     DateTime?       @default(now()) @db.Timestamp(6)
+  Client        Client          @relation(fields: [UserID], references: [UserID], onDelete: Cascade, onUpdate: NoAction)
+  branchproduct branchproduct[]
 
-  @@map("__efmigrationshistory")
-  @@schema("farabak_net_technomi")
+  @@schema("support")
+}
+
+model branchproduct {
+  branchproductid Int     @id @default(autoincrement())
+  branchid        Int
+  ProductId       Int
+  quantity        Int?    @default(0)
+  Product         Product @relation(fields: [ProductId], references: [ProductId], onDelete: Cascade, onUpdate: NoAction)
+  branch          branch  @relation(fields: [branchid], references: [branchid], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("support")
 }
