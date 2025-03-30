@@ -1,6 +1,6 @@
 import React from 'react';
 import { Table, Button, Popconfirm, Empty } from 'antd';
-import { DeleteOutlined, EditOutlined, ShoppingOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, ShoppingOutlined, FileTextOutlined } from "@ant-design/icons";
 import { Branch } from './types';
 import StatusBadge from './StatusBadge';
 import { toPersianDate } from './types';
@@ -11,6 +11,7 @@ interface BranchTableProps {
   onEdit: (branch: Branch) => void;
   onDelete: (branchId: number) => void;
   onViewProducts: (branch: Branch) => void;
+  onCreateInvoice: (branch: Branch) => void;
 }
 
 const BranchTable: React.FC<BranchTableProps> = ({
@@ -18,7 +19,8 @@ const BranchTable: React.FC<BranchTableProps> = ({
   loading,
   onEdit,
   onDelete,
-  onViewProducts
+  onViewProducts,
+  onCreateInvoice
 }) => {
   const columns = [
     {
@@ -56,7 +58,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
       key: "actions",
       width: "25%",
       render: (_: any, branch: Branch) => (
-        <div className="flex space-x-2 rtl:space-x-reverse">
+        <div className="flex space-x-2 rtl:space-x-reverse flex-wrap gap-2">
           <Button
             icon={<EditOutlined />}
             onClick={() => onEdit(branch)}
@@ -74,6 +76,15 @@ const BranchTable: React.FC<BranchTableProps> = ({
             className="bg-gray-700 text-gray-100 border-gray-600 hover:bg-gray-600"
           >
             محصولات
+          </Button>
+          <Button
+            icon={<FileTextOutlined />}
+            onClick={() => onCreateInvoice(branch)}
+            type="default"
+            size="small"
+            className="bg-green-700 text-gray-100 border-green-600 hover:bg-green-600"
+          >
+            فاکتور
           </Button>
           <Popconfirm
             title="حذف شعبه"

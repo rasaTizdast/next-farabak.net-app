@@ -11,6 +11,7 @@ import EditBranchModal from "./components/EditBranchModal";
 import ProductDrawer from "./components/ProductDrawer";
 import LoadingSkeleton from "./components/LoadingSkeleton";
 import Styles from "./components/Styles";
+import InvoiceModal from "./components/invoice/InvoiceModal";
 
 export default function BranchesPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -23,6 +24,7 @@ export default function BranchesPage() {
   const [modalVisible, setModalVisible] = useState(false);
   const [productDrawerVisible, setProductDrawerVisible] = useState(false);
   const [editBranchModalVisible, setEditBranchModalVisible] = useState(false);
+  const [invoiceModalVisible, setInvoiceModalVisible] = useState(false);
   const [currentBranch, setCurrentBranch] = useState<Branch | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
   const [productQuantity, setProductQuantity] = useState<number>(1);
@@ -241,6 +243,11 @@ export default function BranchesPage() {
     setProductDrawerVisible(true);
   };
 
+  const handleCreateInvoice = (branch: Branch) => {
+    setCurrentBranch(branch);
+    setInvoiceModalVisible(true);
+  };
+
   const handleAddProduct = async () => {
     if (!currentBranch || !selectedProduct) return;
 
@@ -375,6 +382,7 @@ export default function BranchesPage() {
           onEdit={showEditBranchModal}
           onDelete={handleDeleteBranch}
           onViewProducts={handleViewProducts}
+          onCreateInvoice={handleCreateInvoice}
         />
       )}
 
@@ -410,6 +418,15 @@ export default function BranchesPage() {
         onUpdateQuantity={handleUpdateProductQuantity}
         onRemoveProduct={handleRemoveProduct}
       />
+
+      {/* Invoice Modal */}
+      {currentBranch && (
+        <InvoiceModal
+          visible={invoiceModalVisible}
+          onClose={() => setInvoiceModalVisible(false)}
+          branch={currentBranch}
+        />
+      )}
 
       {/* Global Styles */}
       <Styles />

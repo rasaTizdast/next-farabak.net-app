@@ -17,11 +17,13 @@ import {
   DeleteOutlined,
   ExclamationCircleOutlined,
   PlusOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import { Branch, Product } from "../components/types";
 import { toPersianDate } from "../components/types";
 import { useSearchParams, useRouter } from "next/navigation";
 import ProductDrawer from "../components/ProductDrawer";
+import InvoiceModal from "../components/invoice/InvoiceModal";
 import Styles from "../components/Styles";
 
 export default function MyBranchPage() {
@@ -36,6 +38,7 @@ export default function MyBranchPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [productDrawerVisible, setProductDrawerVisible] = useState(false);
+  const [invoiceModalVisible, setInvoiceModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
   const [productQuantity, setProductQuantity] = useState<number>(1);
   const [productForm] = Form.useForm();
@@ -300,6 +303,11 @@ export default function MyBranchPage() {
     }
   };
 
+  // Add function to handle invoice creation
+  const handleCreateInvoice = () => {
+    setInvoiceModalVisible(true);
+  };
+
   const productColumns = [
     {
       title: "نام محصول",
@@ -427,12 +435,23 @@ export default function MyBranchPage() {
 
       <div className="mb-6 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-100">مدیریت شعبه من</h1>
-        {refreshing && (
-          <div className="flex items-center text-blue-400">
-            <Spin size="small" className="mr-2" />
-            <span>در حال بروزرسانی...</span>
-          </div>
-        )}
+        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+          {refreshing && (
+            <div className="flex items-center text-blue-400 ml-4">
+              <Spin size="small" className="mr-2" />
+              <span>در حال بروزرسانی...</span>
+            </div>
+          )}
+          {/* Add invoice button */}
+          <Button
+            type="primary"
+            icon={<FileTextOutlined />}
+            onClick={handleCreateInvoice}
+            className="bg-green-600 hover:bg-green-700 mr-2"
+          >
+            ثبت فاکتور جدید
+          </Button>
+        </div>
       </div>
 
       {/* Branch details card */}
@@ -524,7 +543,15 @@ export default function MyBranchPage() {
         )}
       </Card>
 
-      {/* Products Drawer */}
+      {/* Add InvoiceModal */}
+      {branch && (
+        <InvoiceModal
+          visible={invoiceModalVisible}
+          onClose={() => setInvoiceModalVisible(false)}
+          branch={branch}
+        />
+      )}
+
       <ProductDrawer
         visible={productDrawerVisible}
         onClose={() => setProductDrawerVisible(false)}

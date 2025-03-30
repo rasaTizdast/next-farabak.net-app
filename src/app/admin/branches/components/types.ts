@@ -3,8 +3,9 @@ export interface Branch {
   name: string;
   location: string;
   productCount: number;
-  totalQuantity: number; 
+  totalQuantity: number;
   createdat: string;
+  UserID: number;
 }
 
 export interface User {
@@ -17,8 +18,46 @@ export interface User {
 
 export interface Product {
   ProductId: number;
+  Name?: string;
   Type: string;
+  Price?: string;
   quantity: number;
+}
+
+export interface Invoice {
+  Invoiceid: number;
+  FactorGuid: string;
+  Fullname: string;
+  Phonenumber: string;
+  UserId: number;
+  TotalAmount: number;
+  Checked: boolean;
+  Date: string;
+  details?: InvoiceDetails[];
+}
+
+export interface InvoiceDetails {
+  Invoice_Details: number;
+  Invoiceid: number;
+  UserId: number;
+  ProductId: number;
+  quantity: number;
+  price: number;
+  total_price: number;
+  product?: Product;
+  warranty?: Warranty;
+}
+
+export interface Warranty {
+  warrantyid: number;
+  userid: number;
+  invoicedetailid: number;
+  branchid: number;
+  warrantycode: string;
+  ProductId: number;
+  startdate: string;
+  expirydate: string;
+  status: string;
 }
 
 // Function to convert to Persian date
@@ -37,4 +76,4 @@ export const toPersianDate = (dateString: string) => {
   } catch (error) {
     return "تاریخ نامشخص";
   }
-}; 
+};
