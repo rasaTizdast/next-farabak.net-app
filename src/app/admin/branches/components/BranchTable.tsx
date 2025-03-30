@@ -22,7 +22,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
 }) => {
   const columns = [
     {
-      title: "کد مکان",
+      title: "کد شعبه",
       dataIndex: "location",
       key: "location",
       width: "15%",

@@ -1,8 +1,23 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, Empty, Spin, Button, Table, InputNumber, message, Popconfirm, Alert, Form } from "antd";
-import { DeleteOutlined, ExclamationCircleOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  Card,
+  Empty,
+  Spin,
+  Button,
+  Table,
+  InputNumber,
+  message,
+  Popconfirm,
+  Alert,
+  Form,
+} from "antd";
+import {
+  DeleteOutlined,
+  ExclamationCircleOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 import { Branch, Product } from "../components/types";
 import { toPersianDate } from "../components/types";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -24,13 +39,13 @@ export default function MyBranchPage() {
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
   const [productQuantity, setProductQuantity] = useState<number>(1);
   const [productForm] = Form.useForm();
-  
+
   const isUnauthorized = searchParams.get("unauthorized") === "true";
   const attemptedPath = searchParams.get("attempted");
 
   // Store the current branch ID in a ref to use in intervals
   const currentBranchIdRef = useRef<number | null>(null);
-  
+
   // Define all fetch functions first
   const fetchAllProducts = async () => {
     try {
@@ -78,19 +93,20 @@ export default function MyBranchPage() {
   // Refresh branch products when product drawer is open
   useEffect(() => {
     let productsIntervalId: NodeJS.Timeout | null = null;
-    
+
     if (productDrawerVisible && branch) {
       // Set up auto-refresh interval for products (30 seconds)
       productsIntervalId = setInterval(() => {
-        console.log(`Auto-refreshing products for open drawer (branch ${branch.name})...`);
+        console.log(
+          `Auto-refreshing products for open drawer (branch ${branch.name})...`
+        );
         setProductsLoading(true);
-        fetchBranchProductsRef.current(branch.branchid)
-          .finally(() => {
-            setTimeout(() => setProductsLoading(false), 500); // Show loading for at least 500ms for UX
-          });
+        fetchBranchProductsRef.current(branch.branchid).finally(() => {
+          setTimeout(() => setProductsLoading(false), 500); // Show loading for at least 500ms for UX
+        });
       }, 30000);
     }
-    
+
     // Clean up interval when drawer closes or component unmounts
     return () => {
       if (productsIntervalId) {
@@ -106,30 +122,32 @@ export default function MyBranchPage() {
       try {
         // Fetch the current user's branch
         const response = await fetch("/api/admin/branches/my");
-        
+
         if (!response.ok) {
           if (response.status === 404) {
-            setError("شما هنوز به عنوان شعبه تعریف نشده‌اید. لطفاً با مدیر سایت تماس بگیرید.");
+            setError(
+              "شما هنوز به عنوان شعبه تعریف نشده‌اید. لطفاً با مدیر سایت تماس بگیرید."
+            );
             setLoading(false);
             return;
           }
-          
+
           if (response.status === 401) {
             setAuthError(true);
             setError("دسترسی غیرمجاز - لطفا وارد حساب کاربری خود شوید.");
             setLoading(false);
             return;
           }
-          
+
           throw new Error("خطا در دریافت اطلاعات شعبه");
         }
-        
+
         const branchData = await response.json();
         setBranch(branchData);
-        
+
         // Fetch branch products
         await fetchBranchProducts(branchData.branchid);
-        
+
         // Fetch all products for the product drawer
         await fetchAllProducts();
       } catch (error) {
@@ -147,16 +165,18 @@ export default function MyBranchPage() {
       try {
         console.log("Auto-refreshing branch data...");
         setRefreshing(true);
-        
+
         // Fetch branch data
         const response = await fetch("/api/admin/branches/my");
         if (response.ok) {
           const branchData = await response.json();
           setBranch(branchData);
-          
+
           // Fetch products for the current branch
           if (branchData && branchData.branchid) {
-            console.log(`Auto-refreshing products for branch ${branchData.name}...`);
+            console.log(
+              `Auto-refreshing products for branch ${branchData.name}...`
+            );
             await fetchBranchProductsRef.current(branchData.branchid);
           }
         } else {
@@ -200,7 +220,7 @@ export default function MyBranchPage() {
 
       // Update branch products
       await fetchBranchProducts(branch.branchid);
-      
+
       // Refresh branch data to update product counts and totals
       const branchResponse = await fetch("/api/admin/branches/my");
       if (branchResponse.ok) {
@@ -213,7 +233,10 @@ export default function MyBranchPage() {
     }
   };
 
-  const handleUpdateProductQuantity = async (productId: number, quantity: number) => {
+  const handleUpdateProductQuantity = async (
+    productId: number,
+    quantity: number
+  ) => {
     if (!branch) return;
 
     try {
@@ -234,7 +257,7 @@ export default function MyBranchPage() {
 
       // Update branch products
       await fetchBranchProducts(branch.branchid);
-      
+
       // Refresh branch data to update product counts and totals
       const branchResponse = await fetch("/api/admin/branches/my");
       if (branchResponse.ok) {
@@ -264,7 +287,7 @@ export default function MyBranchPage() {
 
       // Update branch products
       await fetchBranchProducts(branch.branchid);
-      
+
       // Refresh branch data to update product counts and totals
       const branchResponse = await fetch("/api/admin/branches/my");
       if (branchResponse.ok) {
@@ -346,7 +369,9 @@ export default function MyBranchPage() {
       <div className="p-6">
         <Card className="bg-gray-800 rounded-lg shadow-md overflow-hidden text-white">
           <div className="flex flex-col items-center justify-center py-8">
-            <ExclamationCircleOutlined style={{ fontSize: 48, color: '#f5222d', marginBottom: 16 }} />
+            <ExclamationCircleOutlined
+              style={{ fontSize: 48, color: "#f5222d", marginBottom: 16 }}
+            />
             <h1 className="text-xl font-bold text-center">{error}</h1>
             {authError ? (
               <div className="mt-4 text-center">
@@ -355,7 +380,7 @@ export default function MyBranchPage() {
                 </p>
                 <Button
                   type="primary"
-                  onClick={() => router.push('/auth/login')}
+                  onClick={() => router.push("/auth/login")}
                   className="bg-blue-500 hover:bg-blue-600"
                 >
                   ورود مجدد
@@ -399,7 +424,7 @@ export default function MyBranchPage() {
           className="mb-6"
         />
       )}
-      
+
       <div className="mb-6 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-100">مدیریت شعبه من</h1>
         {refreshing && (
@@ -411,11 +436,15 @@ export default function MyBranchPage() {
       </div>
 
       {/* Branch details card */}
-      <Card 
-        title="اطلاعات شعبه" 
+      <Card
+        title="اطلاعات شعبه"
         className="bg-gray-800 mb-6 rounded-lg shadow-md overflow-hidden text-white"
-        headStyle={{ backgroundColor: '#1f2937', borderBottom: '1px solid #374151', color: '#f3f4f6' }}
-        bodyStyle={{ backgroundColor: '#1f2937' }}
+        headStyle={{
+          backgroundColor: "#1f2937",
+          borderBottom: "1px solid #374151",
+          color: "#f3f4f6",
+        }}
+        bodyStyle={{ backgroundColor: "#1f2937" }}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -423,17 +452,21 @@ export default function MyBranchPage() {
             <p className="text-xl font-medium">{branch.name}</p>
           </div>
           <div>
-            <p className="text-gray-400">کد مکان:</p>
+            <p className="text-gray-400">کد شعبه:</p>
             <p className="text-xl font-medium">{branch.location}</p>
           </div>
           <div>
             <p className="text-gray-400">تاریخ ایجاد:</p>
-            <p className="text-xl font-medium">{toPersianDate(branch.createdat)}</p>
+            <p className="text-xl font-medium">
+              {toPersianDate(branch.createdat)}
+            </p>
           </div>
           <div>
             <p className="text-gray-400">تعداد محصولات:</p>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-medium">{branch.productCount} نوع محصول</span>
+              <span className="text-xl font-medium">
+                {branch.productCount} نوع محصول
+              </span>
               <span className="bg-blue-800/70 text-blue-100 px-2 py-0.5 rounded-md text-sm">
                 {branch.totalQuantity} عدد
               </span>
@@ -443,7 +476,7 @@ export default function MyBranchPage() {
       </Card>
 
       {/* Products table */}
-      <Card 
+      <Card
         title={
           <div className="flex justify-between items-center">
             <span>محصولات شعبه</span>
@@ -458,8 +491,12 @@ export default function MyBranchPage() {
           </div>
         }
         className="bg-gray-800 rounded-lg shadow-md overflow-hidden text-white"
-        headStyle={{ backgroundColor: '#1f2937', borderBottom: '1px solid #374151', color: '#f3f4f6' }}
-        bodyStyle={{ backgroundColor: '#1f2937' }}
+        headStyle={{
+          backgroundColor: "#1f2937",
+          borderBottom: "1px solid #374151",
+          color: "#f3f4f6",
+        }}
+        bodyStyle={{ backgroundColor: "#1f2937" }}
       >
         {productsLoading ? (
           <div className="flex justify-center my-8">
@@ -498,7 +535,9 @@ export default function MyBranchPage() {
         form={productForm}
         selectedProduct={selectedProduct}
         onSelectProduct={setSelectedProduct}
-        onQuantityChange={(value) => value !== null && setProductQuantity(value)}
+        onQuantityChange={(value) =>
+          value !== null && setProductQuantity(value)
+        }
         onAddProduct={handleAddProduct}
         onUpdateQuantity={handleUpdateProductQuantity}
         onRemoveProduct={handleRemoveProduct}
@@ -508,4 +547,4 @@ export default function MyBranchPage() {
       <Styles />
     </div>
   );
-} 
+}

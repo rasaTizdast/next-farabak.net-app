@@ -66,9 +66,9 @@ const BranchForm: React.FC<BranchFormProps> = ({
 
       <Form.Item
         name="location"
-        label={<span className="text-gray-300">کد مکان</span>}
+        label={<span className="text-gray-300">کد شعبه</span>}
         rules={[
-          { required: true, message: "لطفاً کد مکان را وارد کنید" },
+          { required: true, message: "لطفاً کد شعبه را وارد کنید" },
           {
             pattern: /^[a-zA-Z0-9_-]+$/,
             message: "فقط حروف انگلیسی، اعداد و علامت‌های - و _ مجاز هستند",
@@ -76,7 +76,7 @@ const BranchForm: React.FC<BranchFormProps> = ({
         ]}
       >
         <Input
-          placeholder="کد مکان را وارد کنید"
+          placeholder="کد شعبه را وارد کنید"
           maxLength={10}
           className="text-right dark-input"
         />
