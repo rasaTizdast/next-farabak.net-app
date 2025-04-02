@@ -29,38 +29,46 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showAll, setShowAll] = useState(false); // State to toggle between showing limited or all details
 
-  // Fetch overview details from the API
+  // Function to fetch overview details
+  const fetchOverviewDetails = () => {
+    setLoading(true);
+    axios
+      .get("/api/productOverviewDetails/getAll")
+      .then((response) => {
+        const data = response.data.map((detail: any) => ({
+          ...detail,
+          selected: false,
+        }));
+        setOverviewDetails(data);
+        dispatch({ type: "SET_OVERVIEW_DETAILS", details: data });
+      })
+      .catch((error) => {
+        setErrors({ apiError: "خطا در بارگذاری اطلاعات" });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
+  // Fetch overview details from the API on mount
   useEffect(() => {
-    let isMounted = true; // Prevent state updates if the component unmounts
-    if (loading) {
-      // Only fetch data if not already loaded
-      axios
-        .get("/api/productOverviewDetails/getAll")
-        .then((response) => {
-          if (isMounted) {
-            const data = response.data.map((detail: any) => ({
-              ...detail,
-              selected: false,
-            }));
-            setOverviewDetails(data);
-            dispatch({ type: "SET_OVERVIEW_DETAILS", details: data });
-          }
-        })
-        .catch((error) => {
-          if (isMounted) {
-            setErrors({ apiError: "خطا در بارگذاری اطلاعات" });
-          }
-        })
-        .finally(() => {
-          if (isMounted) {
-            setLoading(false);
-          }
-        });
-    }
-    return () => {
-      isMounted = false; // Cleanup flag
+    fetchOverviewDetails();
+  }, []);
+
+  // Listen for the refresh event
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchOverviewDetails();
     };
-  }, [dispatch, setErrors]);
+
+    // Add event listener
+    document.addEventListener("refreshOverviewDetails", handleRefresh);
+
+    // Cleanup
+    return () => {
+      document.removeEventListener("refreshOverviewDetails", handleRefresh);
+    };
+  }, []);
 
   // Toggle selection
   const toggleSelection = (id: number) => {
@@ -203,7 +211,7 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
                 className={`w-full h-full object-cover transition-opacity duration-300 ${
                   imageLoaded ? "opacity-100" : "opacity-0"
                 }`}
-                onLoadingComplete={() => setImageLoaded(true)} // Update loading state when the image is loaded
+                onLoad={() => setImageLoaded(true)} // Update loading state when the image is loaded
               />
             </div>
 

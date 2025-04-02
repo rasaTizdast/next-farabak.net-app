@@ -60,9 +60,7 @@ import { prisma } from "@/lib/prisma"; // Ensure your Prisma client is set up co
 
 export async function POST(req: NextRequest) {
   try {
-    console.log("[INFO] Received request to update product specifications");
     const body = await req.json();
-    console.log("[DEBUG] Request body:", body);
 
     const { productId, specs } = body;
 
@@ -74,13 +72,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log(
-      `[INFO] Fetching existing specifications for product ID ${productId}`
-    );
     const existingSpecs = await prisma.productSpecs.findMany({
       where: { ProductId: productId },
     });
-    console.log("[DEBUG] Existing specs:", existingSpecs);
 
     const existingSpecIds = existingSpecs.map((spec) => spec.ProductSpecsId);
     const incomingSpecIds = specs.map((spec) => spec.ProductSpecsId);
@@ -90,10 +84,6 @@ export async function POST(req: NextRequest) {
     );
 
     if (specsToDelete.length > 0) {
-      console.log(
-        "[INFO] Deleting specifications:",
-        specsToDelete.map((s) => s.ProductSpecsId)
-      );
       await prisma.productSpecs.deleteMany({
         where: {
           ProductSpecsId: {
@@ -108,7 +98,6 @@ export async function POST(req: NextRequest) {
         spec.ProductSpecsId &&
         existingSpecIds.includes(spec.ProductSpecsId)
       ) {
-        console.log(`[INFO] Updating spec ID ${spec.ProductSpecsId}`);
         await prisma.productSpecs.update({
           where: { ProductSpecsId: spec.ProductSpecsId },
           data: {
@@ -120,7 +109,6 @@ export async function POST(req: NextRequest) {
           },
         });
       } else {
-        console.log(`[INFO] Creating new spec for product ID ${productId}`);
         await prisma.productSpecs.create({
           data: {
             ProductId: productId,
@@ -133,7 +121,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    console.log("[INFO] Specifications updated successfully.");
     return NextResponse.json(
       { message: "Specifications updated successfully." },
       { status: 200 }

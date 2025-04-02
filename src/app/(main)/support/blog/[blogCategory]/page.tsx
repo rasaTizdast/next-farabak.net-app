@@ -62,7 +62,7 @@ const BlogContent = ({ blogs }: { blogs: Blogs }) => {
           className="block relative overflow-hidden rounded-lg shadow-lg hover:scale-[1.02] transition-transform"
         >
           <Image
-            src={`${process.env.LIARA_BUCKET_URL}/blogImages/${blogs.blogs[0].image}`}
+            src={`${process.env.LIARA_BUCKET_URL}/${blogs.blogs[0].image}`}
             alt={blogs.blogs[0].image_alt}
             className="w-full h-96 object-cover rounded-lg"
             width={1920}
@@ -95,7 +95,7 @@ const BlogContent = ({ blogs }: { blogs: Blogs }) => {
           >
             <div className="overflow-hidden rounded-t-lg">
               <Image
-                src={`${process.env.LIARA_BUCKET_URL}/blogImages/${blog.image}`}
+                src={`${process.env.LIARA_BUCKET_URL}/${blog.image}`}
                 alt={blog.image_alt}
                 className="w-full h-48 object-cover hover:scale-110 transition-transform"
                 width={1920}

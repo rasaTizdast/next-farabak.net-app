@@ -30,7 +30,10 @@ const getBlog = async (
 ): Promise<BlogResponse | null> => {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${slug}`
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${slug}`,
+      {
+        next: { revalidate: 60 }, // Optional: revalidate every 60 seconds for ISR
+      }
     );
 
     if (!res.ok) {
@@ -119,13 +122,43 @@ export default async function BlogPage({
 
   const processContentWithImageUrls = (content: string) => {
     const baseUrl = process.env.LIARA_BUCKET_URL || "";
-    return content.replace(
+
+    // First, handle src attribute to make sure URLs are correct
+    let processedContent = content.replace(
       /<Image([^>]*)src="([^"]*)"([^>]*)/g,
       (match, before, src, after) => {
         if (src.startsWith(baseUrl)) return match;
         return `<Image${before}src="${baseUrl}/${src}"${after}`;
       }
     );
+
+    // Then handle the size classes. Make sure classes defined in the editor are preserved
+    processedContent = processedContent.replace(
+      /<Image([^>]*)className="([^"]*)"([^>]*)/g,
+      (match, before, className, after) => {
+        // Keep all existing classes and just make sure they're applied
+        return `<Image${before}className="${className}"${after}`;
+      }
+    );
+
+    // Finally, handle images that don't have className but do have width/height
+    // This ensures older content or images without explicit size classes still respect dimensions
+    processedContent = processedContent.replace(
+      /<Image([^>]*)width=\{(\d+)\}([^>]*)height=\{(\d+)\}([^>]*?)(?!className)>/g,
+      (match, before, width, middle, height, after) => {
+        return `<Image${before}width={${width}}${middle}height={${height}}${after} className="max-w-full" style="--img-width:${width}px">`;
+      }
+    );
+
+    // Handle images that have inline style with width attribute
+    processedContent = processedContent.replace(
+      /<Image([^>]*)style="width:(\d+)px"([^>]*)/g,
+      (match, before, width, after) => {
+        return `<Image${before}style="--img-width:${width}px"${after}`;
+      }
+    );
+
+    return processedContent;
   };
 
   return (
@@ -136,9 +169,9 @@ export default async function BlogPage({
         <header className="mb-8">
           <h1 className="text-4xl font-bold mb-8">{blog.title}</h1>
           <Image
-            src={`${process.env.LIARA_BUCKET_URL}/blogImages/${blog.image_URL}`}
+            src={`${process.env.LIARA_BUCKET_URL}/${blog.image_URL}`}
             alt={blog.image_alt}
-            className="rounded-lg w-full object-cover mb-6"
+            className="rounded-lg w-3/5 object-cover mb-6 mx-auto"
             width={1200}
             height={630}
             quality={100}
@@ -153,7 +186,7 @@ export default async function BlogPage({
         </header>
 
         <div
-          className="prose-view max-w-none"
+          className="prose-view max-w-none [&_img]:max-w-full [&_img]:h-auto [&_.w-full]:w-full [&_.w-1\/2]:w-1/2 [&_.w-1\/2]:mx-auto [&_.w-1\/3]:w-1/3 [&_.w-1\/3]:mx-auto"
           dangerouslySetInnerHTML={{
             __html: processContentWithImageUrls(blog.content),
           }}

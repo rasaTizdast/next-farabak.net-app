@@ -49,8 +49,14 @@ const AdminPage = () => {
     };
 
     const fetchExchangeRate = async () => {
-      const rate = await fetchUsdToRialRate();
-      setUsdToRialRate(rate);
+      try {
+        const rate = await fetchUsdToRialRate();
+        if (rate !== null) {
+          setUsdToRialRate(rate);
+        }
+      } catch (error) {
+        console.error("Error fetching exchange rate:", error);
+      }
     };
 
     fetchReportData();

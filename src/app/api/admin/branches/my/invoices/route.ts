@@ -1,0 +1,246 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
+
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+
+async function verifyToken(token: string) {
+  const secret = new TextEncoder().encode(JWT_SECRET);
+  const { payload } = await jwtVerify(token, secret);
+  return payload;
+}
+
+export const dynamic = 'force-dynamic';
+
+/**
+ * @swagger
+ * /api/admin/branches/my/invoices:
+ *   get:
+ *     summary: Get invoices created by the current branch
+ *     description: Retrieves all invoices and warranties that were created by the authenticated branch
+ *     tags:
+ *       - Branch
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: List of branch invoices with their details and warranties
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Branch not found
+ *       500:
+ *         description: Server error
+ */
+export async function GET(request: Request) {
+  try {
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const limit = parseInt(url.searchParams.get('limit') || '10');
+    const offset = (page - 1) * limit;
+    
+    // Get the access token from cookies
+    const cookieStore = cookies();
+    const token = cookieStore.get("accessToken")?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        { error: "Authorization token required" },
+        { status: 401 }
+      );
+    }
+
+    // Verify and decode the token
+    const decoded = await verifyToken(token);
+    const userId = decoded.userId;
+    const userRole = decoded.role;
+
+    if (!userId || userRole !== "Branch") {
+      return NextResponse.json(
+        { error: "Unauthorized: Only branch users can access this endpoint" },
+        { status: 401 }
+      );
+    }
+
+    // Find the branch associated with this user
+    const branchResult = await prisma.$queryRaw`
+      SELECT "branchid", "name", "location"
+      FROM "support"."branch"
+      WHERE "UserID" = ${Number(userId)}
+    `;
+
+    if (!branchResult || (branchResult as any[]).length === 0) {
+      return NextResponse.json(
+        { error: "Branch not found for this user" },
+        { status: 404 }
+      );
+    }
+
+    const branch = (branchResult as any[])[0];
+    const branchId = branch.branchid;
+
+    // Count total invoices for pagination
+    const countResult = await prisma.$queryRaw`
+      SELECT COUNT(DISTINCT i."Invoiceid") as total
+      FROM 
+        "info"."Invoice" i
+      JOIN
+        "info"."Invoice_Details" id ON i."Invoiceid" = id."Invoiceid"
+      JOIN
+        "info"."warranty" w ON id."Invoice_Details" = w."invoicedetailid"
+      WHERE 
+        w."branchid" = ${branchId}
+    `;
+    
+    const totalCount = Number((countResult as any[])[0].total);
+
+    // Find all invoices that have warranties created by this branch with pagination
+    const invoices = await prisma.$queryRaw`
+      SELECT DISTINCT
+        i."Invoiceid", i."FactorGuid", i."Fullname", i."Phonenumber",
+        i."UserId", i."TotalAmount", i."Checked", i."Date"
+      FROM 
+        "info"."Invoice" i
+      JOIN
+        "info"."Invoice_Details" id ON i."Invoiceid" = id."Invoiceid"
+      JOIN
+        "info"."warranty" w ON id."Invoice_Details" = w."invoicedetailid"
+      WHERE 
+        w."branchid" = ${branchId}
+      ORDER BY
+        i."Date" DESC
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `;
+
+    // For each invoice, get its details and warranties
+    const invoicesWithDetails = await Promise.all(
+      (invoices as any[]).map(async (invoice) => {
+        // Get invoice details
+        const details = await prisma.$queryRaw`
+          SELECT 
+            id."Invoice_Details", id."ProductId", id."quantity", 
+            id."price", id."total_price",
+            p."Name", p."Type"
+          FROM 
+            "info"."Invoice_Details" id
+          LEFT JOIN
+            "support"."Product" p ON id."ProductId" = p."ProductId"
+          WHERE 
+            id."Invoiceid" = ${invoice.Invoiceid}
+        `;
+
+        // Get warranties for this invoice's products
+        const warranties = await prisma.$queryRaw`
+          SELECT 
+            w."warrantyid", w."invoicedetailid", w."warrantycode", 
+            w."startdate", w."expirydate", w."status", w."ProductId"
+          FROM 
+            "info"."warranty" w
+          JOIN 
+            "info"."Invoice_Details" id ON w."invoicedetailid" = id."Invoice_Details"
+          WHERE 
+            id."Invoiceid" = ${invoice.Invoiceid}
+            AND w."branchid" = ${branchId}
+        `;
+
+        // Process warranty status
+        const processedWarranties = (warranties as any[]).map(warranty => {
+          const today = new Date();
+          const expiryDate = new Date(warranty.expirydate);
+          
+          // Add a display status without modifying the database
+          let displayStatus = warranty.status;
+          if (today > expiryDate) {
+            displayStatus = 'Expired';
+          } else {
+            displayStatus = 'Active';
+          }
+          
+          return {
+            ...warranty,
+            displayStatus
+          };
+        });
+          
+        // Map warranty data to invoice details
+        const detailsWithWarranty = (details as any[]).map((detail) => {
+          const warranty = processedWarranties.find(
+            (w) => w.invoicedetailid === detail.Invoice_Details
+          );
+          
+          return {
+            ...detail,
+            warranty: warranty || null
+          };
+        });
+
+        return {
+          ...invoice,
+          Invoice_Details: detailsWithWarranty
+        };
+      })
+    );
+
+    // Calculate summary of active and expired warranties (for all invoices, not just paginated ones)
+    // Get all warranties for this branch
+    const allWarranties = await prisma.$queryRaw`
+      SELECT 
+        w."warrantyid", w."startdate", w."expirydate", w."status"
+      FROM 
+        "info"."warranty" w
+      WHERE 
+        w."branchid" = ${branchId}
+    `;
+    
+    let active = 0;
+    let expired = 0;
+    
+    (allWarranties as any[]).forEach(warranty => {
+      const today = new Date();
+      const expiryDate = new Date(warranty.expirydate);
+      
+      if (today > expiryDate) {
+        expired++;
+      } else {
+        active++;
+      }
+    });
+
+    // Calculate pagination details
+    const totalPages = Math.ceil(totalCount / limit);
+    
+    return NextResponse.json({
+      branch,
+      invoices: invoicesWithDetails,
+      warrantySummary: { active, expired },
+      pagination: {
+        totalCount,
+        currentPage: page,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching branch invoices:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

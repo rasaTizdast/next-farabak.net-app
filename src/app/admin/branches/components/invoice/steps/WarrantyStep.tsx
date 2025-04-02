@@ -1,0 +1,984 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  Table,
+  Button,
+  Space,
+  Modal,
+  Switch,
+  message,
+  Form,
+  Spin,
+  Input,
+} from "antd";
+import { DatePicker } from "zaman";
+import { Branch } from "../../types";
+
+// Format a Date object to YYYY-MM-DD string
+const formatDateToISOString = (date: Date | null): string | null => {
+  if (!date) return null;
+  // Use a fixed timezone (Tehran) for consistency
+  const tehranDate = new Date(
+    date.toLocaleString("en-US", { timeZone: "Asia/Tehran" })
+  );
+  return tehranDate.toISOString().split("T")[0];
+};
+
+// Create a Date object from ISO string
+const parseISODate = (dateString: string | null): Date | null => {
+  if (!dateString) return null;
+  // Create date with Tehran timezone
+  const date = new Date(dateString);
+  return date;
+};
+
+// Parse Persian digits to English digits
+const persianToEnglishDigits = (str: string): string => {
+  let result = "";
+  for (let i = 0; i < str.length; i++) {
+    const charCode = str.charCodeAt(i);
+    if (charCode >= 1776 && charCode <= 1785) {
+      // Persian digits range
+      result += String.fromCharCode(charCode - 1728); // Convert to English digits
+    } else {
+      result += str.charAt(i);
+    }
+  }
+  return result;
+};
+
+// Define props interface for DatePicker to resolve type issues
+interface WarrantyStepProps {
+  selectedProducts: any[];
+  branch: Branch;
+  productsWithWarranty: any[];
+  setProductsWithWarranty: React.Dispatch<React.SetStateAction<any[]>>;
+}
+
+const WarrantyStep: React.FC<WarrantyStepProps> = ({
+  selectedProducts,
+  branch,
+  productsWithWarranty,
+  setProductsWithWarranty,
+}) => {
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [form] = Form.useForm();
+  const [durationText, setDurationText] = useState<string | null>(null);
+  const [isGeneratingCodes, setIsGeneratingCodes] = useState(false);
+  const [isDatePickerLoading, setIsDatePickerLoading] = useState(false);
+
+  // Generate warranty codes in a batch to reduce API calls
+  const generateBatchWarrantyCodes = async (
+    branchCode: string,
+    yearMonth: string,
+    count: number
+  ): Promise<string[]> => {
+    try {
+      const response = await fetch("/api/admin/warranty/generate-batch", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ branchCode, yearMonth, count }),
+      });
+
+      if (!response.ok) {
+        throw new Error("خطا در تولید کدهای گارانتی");
+      }
+
+      const data = await response.json();
+      return data.warrantyCodes;
+    } catch (error) {
+      console.error("Error generating batch warranty codes:", error);
+      // Fallback to local generation if API fails
+      return Array(count).fill(null).map(() => {
+        const randomCode = Math.random()
+          .toString(36)
+          .substring(2, 8)
+          .toUpperCase();
+        return `${branchCode}-${yearMonth}-${randomCode}`;
+      });
+    }
+  };
+
+  // Use effect to update expanded items list when products change
+  useEffect(() => {
+    // Only transform the products if needed
+    if (selectedProducts.length > 0 && !isGeneratingCodes) {
+      try {
+        // First, let's add individual warranty codes to each product
+        updateWarranties();
+      } catch (error) {
+        console.error("Error processing individual items:", error);
+      }
+    }
+  }, [selectedProducts]);
+
+  const updateWarranties = async () => {
+    if (selectedProducts.length > 0 && !isGeneratingCodes) {
+      try {
+        setIsGeneratingCodes(true);
+
+        // Generate warranty code values
+        const branchCode = branch.location || "HQ";
+        const date = new Date();
+
+        // Get Persian year in English digits
+        const persianYear = new Intl.DateTimeFormat("fa-IR", {
+          year: "numeric",
+        }).format(date);
+
+        // Convert Persian digits to English digits and get last 3 digits of year (404 from 1404)
+        const yearStr = persianToEnglishDigits(persianYear);
+        const yearNum = yearStr.slice(-3); // Get last 3 digits, e.g., 404 from 1404
+
+        // Get Persian month with leading zero
+        const persianMonth = new Intl.DateTimeFormat("fa-IR", {
+          month: "2-digit",
+        }).format(date);
+
+        // Convert Persian digits to English digits
+        const monthNum = persianToEnglishDigits(persianMonth);
+
+        // Combine to get the format 404 (for year 1404) + 01 (for month 1) = 40401
+        const yearMonth = yearNum + monthNum.padStart(2, "0");
+
+        // Default dates
+        const currentDate = new Date();
+        const startDate = currentDate.toISOString().split("T")[0];
+        const endDate = new Date(
+          currentDate.getFullYear() + 2,
+          currentDate.getMonth(),
+          currentDate.getDate()
+        )
+          .toISOString()
+          .split("T")[0];
+
+        // Calculate total codes needed across all products
+        let totalCodesNeeded = 0;
+        const productCodeNeeds: { productId: number; existingCodes: string[]; codesNeeded: number }[] = [];
+
+        for (const product of selectedProducts) {
+          // Find existing product warranty if available
+          const existingProduct = productsWithWarranty.find(
+            (p) => p.ProductId === product.ProductId
+          );
+
+          // Get existing warranty codes
+          const existingCodes = existingProduct?.warranty?.warrantycodes || [];
+
+          // Calculate codes needed for this product
+          const codesNeeded = Math.max(0, product.quantity - existingCodes.length);
+          
+          totalCodesNeeded += codesNeeded;
+          
+          productCodeNeeds.push({
+            productId: product.ProductId,
+            existingCodes,
+            codesNeeded
+          });
+        }
+
+        // Generate all needed codes in a single request
+        let allNewCodes: string[] = [];
+        if (totalCodesNeeded > 0) {
+          allNewCodes = await generateBatchWarrantyCodes(branchCode, yearMonth, totalCodesNeeded);
+        }
+
+        // Create expanded items with individual warranties
+        const expandedItems: any[] = [];
+        let usedCodesCount = 0;
+
+        for (let i = 0; i < productCodeNeeds.length; i++) {
+          const product = selectedProducts[i];
+          const { existingCodes, codesNeeded } = productCodeNeeds[i];
+          
+          // Get the slice of new codes for this product
+          const productNewCodes = allNewCodes.slice(usedCodesCount, usedCodesCount + codesNeeded);
+          usedCodesCount += codesNeeded;
+          
+          // Combine existing and new codes
+          let warrantyCodes = [...existingCodes];
+          
+          if (codesNeeded > 0) {
+            warrantyCodes = [...warrantyCodes, ...productNewCodes];
+          } else if (product.quantity < existingCodes.length) {
+            // Remove excess codes if quantity decreased
+            warrantyCodes = warrantyCodes.slice(0, product.quantity);
+          }
+
+          // Find existing product warranty if available
+          const existingProduct = productsWithWarranty.find(
+            (p) => p.ProductId === product.ProductId
+          );
+
+          // Create individual items for this product
+          for (let j = 0; j < product.quantity; j++) {
+            expandedItems.push({
+              ...product,
+              itemIndex: j,
+              itemNumber: j + 1,
+              singleItemId: `${product.ProductId}-${j}`,
+              warranty: {
+                ProductId: product.ProductId,
+                startdate: existingProduct?.warranty?.startdate || startDate,
+                expirydate: existingProduct?.warranty?.expirydate || endDate,
+                warrantycode: warrantyCodes[j] || "",
+                hasWarranty: existingProduct?.warranty?.hasWarranty !== false,
+              },
+            });
+          }
+        }
+
+        // Update state with expanded items
+        setProductsWithWarranty(expandedItems);
+      } catch (error) {
+        console.error("Error updating warranty codes:", error);
+        message.error("خطا در به‌روزرسانی کدهای گارانتی");
+      } finally {
+        setIsGeneratingCodes(false);
+      }
+    }
+  };
+
+  const handleEdit = (item: any) => {
+    setEditingProduct(item);
+    setIsDatePickerLoading(true);
+
+    // Set default values based on the item's warranty
+    const hasWarranty = item.warranty?.hasWarranty !== false;
+    let startDate = item.warranty?.startdate;
+    let expiryDate = item.warranty?.expirydate;
+
+    // If no dates are set or creating new warranty, set defaults
+    if (!startDate || !expiryDate) {
+      const today = new Date();
+      startDate = formatDateToISOString(today);
+
+      // Default end date (2 years)
+      const twoYearsLater = new Date(today);
+      twoYearsLater.setFullYear(twoYearsLater.getFullYear() + 2);
+      expiryDate = formatDateToISOString(twoYearsLater);
+    }
+
+    // For the form, use the Date objects - Zaman requires Date objects for defaultValue
+    form.setFieldsValue({
+      hasWarranty,
+      startdate: hasWarranty ? parseISODate(startDate) : null,
+      expirydate: hasWarranty ? parseISODate(expiryDate) : null,
+      warrantycode: item.warranty?.warrantycode || "",
+    });
+
+    // Calculate duration if both dates are present
+    if (hasWarranty && startDate && expiryDate) {
+      const startDateObj = parseISODate(startDate);
+      const expiryDateObj = parseISODate(expiryDate);
+      const duration = calculateDuration(startDateObj, expiryDateObj);
+      setDurationText(duration);
+    } else {
+      setDurationText(null);
+    }
+
+    setModalVisible(true);
+
+    // Small delay to ensure DatePicker renders properly
+    setTimeout(() => {
+      setIsDatePickerLoading(false);
+    }, 300);
+  };
+
+  const handleSaveWarranty = () => {
+    form
+      .validateFields()
+      .then((values) => {
+        if (!editingProduct) return;
+
+        // Extract form values
+        const { hasWarranty } = values;
+
+        // Get the dates from the form values
+        let startdate = values.startdate;
+        let expirydate = values.expirydate;
+
+        // Process the start date - Zaman DatePicker returns an object with a value property
+        if (startdate && typeof startdate === "object") {
+          if ("value" in startdate) {
+            startdate = formatDateToISOString(new Date(startdate.value));
+          } else if (startdate instanceof Date) {
+            startdate = formatDateToISOString(startdate);
+          }
+        }
+
+        // Process the expiry date similarly
+        if (expirydate && typeof expirydate === "object") {
+          if ("value" in expirydate) {
+            expirydate = formatDateToISOString(new Date(expirydate.value));
+          } else if (expirydate instanceof Date) {
+            expirydate = formatDateToISOString(expirydate);
+          }
+        }
+
+        // Find the item in the current list and update it
+        const updatedItems = productsWithWarranty.map((item) => {
+          if (item.singleItemId === editingProduct.singleItemId) {
+            return {
+              ...item,
+              warranty: {
+                ...item.warranty,
+                startdate,
+                expirydate,
+                warrantycode: editingProduct.warranty?.warrantycode, // Always preserve the original code
+                hasWarranty,
+              },
+            };
+          }
+          return item;
+        });
+
+        setProductsWithWarranty(updatedItems);
+        setModalVisible(false);
+        message.success("اطلاعات گارانتی با موفقیت ذخیره شد");
+      })
+      .catch((err) => {
+        console.error("Form validation error:", err);
+        message.error("لطفا فرم را به درستی تکمیل کنید");
+      });
+  };
+
+  const calculateDuration = (
+    startDate: Date | string | null,
+    endDate: Date | string | null
+  ) => {
+    if (!startDate || !endDate) return null;
+
+    try {
+      // Convert to Date objects if they are strings
+      const start = startDate instanceof Date ? startDate : new Date(startDate);
+      const end = endDate instanceof Date ? endDate : new Date(endDate);
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        console.error("Invalid date in calculateDuration:", {
+          start,
+          end,
+          startTime: start.getTime(),
+          endTime: end.getTime(),
+        });
+        return "تاریخ نامعتبر";
+      }
+
+      if (start >= end) return "تاریخ پایان باید پس از تاریخ شروع باشد";
+
+      const diffTime = Math.abs(end.getTime() - start.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const totalMonths = Math.floor(diffDays / 30);
+
+      if (diffDays < 30) {
+        return `${diffDays} روز`;
+      } else if (totalMonths < 12) {
+        return `${totalMonths} ماه`;
+      } else {
+        // First calculate exact years and months for more accuracy
+        const years = Math.floor(totalMonths / 12);
+        const remainingMonths = totalMonths % 12;
+
+        // Special case: if months is exactly a multiple of 12, show just years
+        if (remainingMonths === 0) {
+          return `${years} سال`;
+        } else {
+          return `${years} سال و ${remainingMonths} ماه`;
+        }
+      }
+    } catch (error) {
+      console.error("Error calculating duration:", error);
+      return "خطا در محاسبه مدت گارانتی";
+    }
+  };
+
+  const handleDateChange = () => {
+    try {
+      const hasWarranty = form.getFieldValue("hasWarranty");
+      let startDate = form.getFieldValue("startdate");
+      let endDate = form.getFieldValue("expirydate");
+
+      // Process the start date - Zaman DatePicker returns an object with a value property
+      if (startDate && typeof startDate === "object" && "value" in startDate) {
+        startDate = new Date(startDate.value);
+      }
+
+      // Process the expiry date similarly
+      if (endDate && typeof endDate === "object" && "value" in endDate) {
+        endDate = new Date(endDate.value);
+      }
+
+      if (hasWarranty && startDate && endDate) {
+        const duration = calculateDuration(startDate, endDate);
+        setDurationText(duration);
+      } else {
+        setDurationText(null);
+      }
+    } catch (error) {
+      console.error("Error in date change:", error);
+      setDurationText("خطا در محاسبه مدت گارانتی");
+    }
+  };
+
+  const handleWarrantyToggle = (checked: boolean) => {
+    // When toggling warranty on/off, update form fields accordingly
+    if (checked) {
+      // Set default dates if warranty is enabled
+      const today = new Date();
+
+      // Default end date (2 years)
+      const twoYearsLater = new Date(today);
+      twoYearsLater.setFullYear(twoYearsLater.getFullYear() + 2);
+
+      // For Zaman DatePicker, use Date objects directly
+      form.setFieldsValue({
+        startdate: today,
+        expirydate: twoYearsLater,
+      });
+
+      // Calculate duration
+      const duration = calculateDuration(today, twoYearsLater);
+      setDurationText(duration);
+    } else {
+      // Clear date fields if warranty is disabled
+      form.setFieldsValue({
+        startdate: null,
+        expirydate: null,
+      });
+      setDurationText(null);
+    }
+  };
+
+  const columns = [
+    {
+      title: "نام محصول",
+      dataIndex: "Name",
+      key: "name",
+      render: (text: any, record: any) => {
+        // Find all items with the same product ID
+        const sameProductItems = productsWithWarranty.filter(
+          (item) => item.ProductId === record.ProductId
+        );
+
+        // Only show product name for the first occurrence
+        const isFirstOccurrence =
+          sameProductItems.findIndex(
+            (item) => item.singleItemId === record.singleItemId
+          ) === 0;
+
+        if (isFirstOccurrence) {
+          // Get color based on ProductId
+          const colorClass = getProductColor(record.ProductId);
+
+          return (
+            <div className="flex items-start gap-2">
+              <span>{text}</span>
+              <span
+                className={`${colorClass} text-xs text-white px-2 py-0.5 rounded-full`}
+              >
+                {sameProductItems.length}×
+              </span>
+            </div>
+          );
+        }
+        return null;
+      },
+    },
+    {
+      title: "کد گارانتی",
+      key: "warrantyCode",
+      render: (_, record) => {
+        // Find all items with same product ID
+        const sameProductItems = productsWithWarranty.filter(
+          (item) => item.ProductId === record.ProductId
+        );
+
+        // Find index of current item
+        const currentIndex = sameProductItems.findIndex(
+          (item) => item.singleItemId === record.singleItemId
+        );
+
+        // Generate item indicator
+        const itemIndicator =
+          sameProductItems.length > 1
+            ? `محصول ${currentIndex + 1} از ${sameProductItems.length}: `
+            : "";
+
+        return record.warranty?.hasWarranty !== false ? (
+          <div className="flex flex-col">
+            <span>
+              {itemIndicator}
+              {record.warranty?.warrantycode || "بدون کد"}
+            </span>
+          </div>
+        ) : (
+          "بدون گارانتی"
+        );
+      },
+    },
+    {
+      title: "مدت گارانتی",
+      key: "warrantyDuration",
+      render: (_, record) => {
+        if (record.warranty?.hasWarranty === false) return "بدون گارانتی";
+        if (!record.warranty?.startdate || !record.warranty?.expirydate)
+          return "-";
+
+        const startDate = record.warranty.startdate;
+        const expiryDate = record.warranty.expirydate;
+
+        return calculateDuration(startDate, expiryDate);
+      },
+    },
+    {
+      title: "عملیات",
+      key: "action",
+      render: (_, record) => (
+        <Space size="middle">
+          <Button
+            type="primary"
+            size="small"
+            onClick={() => handleEdit(record)}
+          >
+            تنظیم گارانتی
+          </Button>
+        </Space>
+      ),
+    },
+  ];
+
+  return (
+    <Card className="bg-gray-900 border-0 shadow-md">
+      <h3 className="text-lg font-medium text-white mb-4">
+        تنظیم گارانتی برای محصولات
+      </h3>
+
+      {isGeneratingCodes ? (
+        <div className="flex justify-center items-center p-8">
+          <div className="text-white">
+            در حال ایجاد کدهای گارانتی برای محصولات...
+          </div>
+        </div>
+      ) : (
+        <Table
+          dataSource={productsWithWarranty}
+          columns={columns}
+          rowKey="singleItemId"
+          pagination={false}
+          className="custom-dark-table"
+          rowClassName={(record, index) => {
+            // Find all items with same product ID
+            const sameProductItems = productsWithWarranty.filter(
+              (item) => item.ProductId === record.ProductId
+            );
+
+            // Find index of current item
+            const currentIndex = sameProductItems.findIndex(
+              (item) => item.singleItemId === record.singleItemId
+            );
+
+            // Add a class based on position
+            let className = "dark-table-row";
+
+            // First item of a group
+            if (currentIndex === 0) {
+              className += " first-group-item";
+            }
+            // Last item of a group
+            else if (currentIndex === sameProductItems.length - 1) {
+              className += " last-group-item";
+            }
+            // Middle items
+            else {
+              className += " middle-group-item";
+            }
+
+            // Add product-specific color class
+            const colorIndex = getProductColorIndex(record.ProductId);
+            className += ` product-color-${getColorNameByIndex(colorIndex)}`;
+
+            return className;
+          }}
+        />
+      )}
+
+      <Modal
+        title="تنظیم گارانتی"
+        open={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        onOk={handleSaveWarranty}
+        okText="ذخیره"
+        cancelText="انصراف"
+        className="warranty-modal"
+        zIndex={1000}
+      >
+        {isDatePickerLoading ? (
+          <div className="flex justify-center my-10">
+            <Spin size="large" />
+          </div>
+        ) : (
+          <Form
+            form={form}
+            layout="vertical"
+            onValuesChange={(changedValues) => {
+              // Call date change handler only when date fields change
+              if (changedValues.startdate || changedValues.expirydate) {
+                handleDateChange();
+              }
+              // Call warranty toggle handler when hasWarranty changes
+              if ("hasWarranty" in changedValues) {
+                handleWarrantyToggle(changedValues.hasWarranty);
+              }
+            }}
+            className="warranty-form"
+          >
+            <Form.Item
+              name="hasWarranty"
+              label={<span className="text-white">فعال کردن گارانتی</span>}
+              valuePropName="checked"
+            >
+              <Switch />
+            </Form.Item>
+
+            <Form.Item
+              noStyle
+              shouldUpdate={(prevValues, currentValues) =>
+                prevValues.hasWarranty !== currentValues.hasWarranty
+              }
+            >
+              {({ getFieldValue }) => {
+                const hasWarranty = getFieldValue("hasWarranty");
+                return (
+                  <div
+                    className={
+                      hasWarranty
+                        ? "opacity-100"
+                        : "opacity-50 pointer-events-none"
+                    }
+                  >
+                    <Form.Item
+                      name="warrantycode"
+                      label={<span className="text-white">کد گارانتی</span>}
+                    >
+                      <Input
+                        className="w-full p-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-white"
+                        placeholder="کد گارانتی"
+                        readOnly
+                        disabled
+                      />
+                    </Form.Item>
+
+                    <Form.Item
+                      name="startdate"
+                      label={
+                        <span className="text-white">تاریخ شروع گارانتی</span>
+                      }
+                      rules={
+                        hasWarranty
+                          ? [
+                              {
+                                required: true,
+                                message: "لطفا تاریخ شروع گارانتی را وارد کنید",
+                              },
+                            ]
+                          : []
+                      }
+                    >
+                      <DatePicker
+                        defaultValue={
+                          form.getFieldValue("startdate") || new Date()
+                        }
+                        weekends={[5, 6]}
+                        round="x2"
+                        accentColor="#226bff"
+                        inputClass="w-full p-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-white"
+                        className="z-[1000]"
+                        direction="rtl"
+                        position="left"
+                        onChange={(value) => {
+                          form.setFieldsValue({ startdate: value });
+                          handleDateChange();
+                        }}
+                      />
+                    </Form.Item>
+
+                    <Form.Item
+                      name="expirydate"
+                      label={
+                        <span className="text-white">تاریخ پایان گارانتی</span>
+                      }
+                      rules={
+                        hasWarranty
+                          ? [
+                              {
+                                required: true,
+                                message:
+                                  "لطفا تاریخ پایان گارانتی را وارد کنید",
+                              },
+                            ]
+                          : []
+                      }
+                    >
+                      <DatePicker
+                        defaultValue={
+                          form.getFieldValue("expirydate") ||
+                          (() => {
+                            const date = new Date();
+                            date.setFullYear(date.getFullYear() + 2);
+                            return date;
+                          })()
+                        }
+                        weekends={[5, 6]}
+                        round="x3"
+                        accentColor="#226bff"
+                        inputClass="w-full p-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-white"
+                        className="z-[1000]"
+                        direction="rtl"
+                        position="left"
+                        onChange={(value) => {
+                          form.setFieldsValue({ expirydate: value });
+                          handleDateChange();
+                        }}
+                      />
+                    </Form.Item>
+                  </div>
+                );
+              }}
+            </Form.Item>
+
+            {durationText && (
+              <div
+                className={`text-center p-2 rounded mb-4 mt-4 ${
+                  durationText.includes("باید") || durationText.includes("خطا")
+                    ? "bg-red-900 text-red-200"
+                    : "bg-blue-900 text-blue-200"
+                }`}
+              >
+                <p>مدت گارانتی: {durationText}</p>
+              </div>
+            )}
+          </Form>
+        )}
+      </Modal>
+
+      <style jsx global>{`
+        .custom-dark-table .ant-table {
+          background-color: #111827;
+          color: white;
+        }
+
+        .custom-dark-table .ant-table-thead > tr > th {
+          background-color: #1f2937;
+          color: white;
+          border-bottom: 1px solid #374151;
+          position: sticky;
+          top: 0;
+          z-index: 2;
+        }
+
+        .custom-dark-table .ant-table-tbody > tr > td {
+          border-bottom: 1px solid #374151;
+          color: white;
+        }
+
+        .custom-dark-table .ant-table-tbody > tr.dark-table-row:hover > td {
+          background-color: #2d3748;
+        }
+
+        .dark-table-row {
+          background-color: #111827;
+        }
+
+        /* Clean group styling */
+        .first-group-item td {
+          border-bottom-width: 0 !important;
+          padding-bottom: 8px !important;
+        }
+
+        .middle-group-item td {
+          border-top-width: 0 !important;
+          border-bottom-width: 0 !important;
+          padding-top: 8px !important;
+          padding-bottom: 8px !important;
+        }
+
+        .last-group-item td {
+          border-top-width: 0 !important;
+          padding-top: 8px !important;
+        }
+
+        /* Group row backgrounds */
+        .dark-table-row:nth-child(odd) {
+          background-color: #111827 !important;
+        }
+
+        .dark-table-row:nth-child(even) {
+          background-color: #1a202c !important;
+        }
+
+        /* Product color indicators */
+        .product-color-blue td:first-child {
+          border-left: 3px solid #3b82f6 !important;
+        }
+
+        .product-color-green td:first-child {
+          border-left: 3px solid #10b981 !important;
+        }
+
+        .product-color-purple td:first-child {
+          border-left: 3px solid #8b5cf6 !important;
+        }
+
+        .product-color-orange td:first-child {
+          border-left: 3px solid #f59e0b !important;
+        }
+
+        .product-color-pink td:first-child {
+          border-left: 3px solid #ec4899 !important;
+        }
+
+        .product-color-cyan td:first-child {
+          border-left: 3px solid #06b6d4 !important;
+        }
+
+        .product-color-red td:first-child {
+          border-left: 3px solid #ef4444 !important;
+        }
+
+        .product-color-lime td:first-child {
+          border-left: 3px solid #84cc16 !important;
+        }
+
+        /* Badge colors for quantity */
+        .bg-color-blue {
+          background-color: #3b82f6 !important;
+        }
+
+        .bg-color-green {
+          background-color: #10b981 !important;
+        }
+
+        .bg-color-purple {
+          background-color: #8b5cf6 !important;
+        }
+
+        .bg-color-orange {
+          background-color: #f59e0b !important;
+        }
+
+        .bg-color-pink {
+          background-color: #ec4899 !important;
+        }
+
+        .bg-color-cyan {
+          background-color: #06b6d4 !important;
+        }
+
+        .bg-color-red {
+          background-color: #ef4444 !important;
+        }
+
+        .bg-color-lime {
+          background-color: #84cc16 !important;
+        }
+
+        /* Round corners for first and last items */
+        .first-group-item td:first-child {
+          border-top-left-radius: 3px;
+        }
+
+        .last-group-item td:first-child {
+          border-bottom-left-radius: 3px;
+        }
+
+        .warranty-modal .ant-modal-content {
+          background-color: #1f2937;
+          color: white;
+        }
+
+        .warranty-modal .ant-modal-header {
+          background-color: #1f2937;
+          border-bottom: 1px solid #374151;
+          padding-bottom: 10px;
+          margin-bottom: 20px;
+        }
+
+        .warranty-modal .ant-modal-title {
+          color: white;
+        }
+
+        /* Style form elements */
+        .warranty-form .ant-form-item-label > label {
+          color: #e5e7eb;
+        }
+
+        .warranty-form .ant-form-item {
+          margin-bottom: 24px;
+        }
+
+        /* Make modals have lower z-index than DatePicker popover */
+        .ant-modal-mask,
+        .ant-modal-wrap {
+          z-index: 1000;
+        }
+
+        /* Override any other styles that might interfere */
+        .ant-picker-dropdown {
+          z-index: 3000 !important;
+        }
+      `}</style>
+    </Card>
+  );
+};
+
+// Function to get color index for product ID
+const getProductColorIndex = (productId: string | number): number => {
+  // Ensure productId is a string
+  const productIdStr = String(productId);
+
+  // Extract numbers from the productId if possible
+  const numbers = productIdStr.match(/\d+/g);
+  let numValue = 0;
+
+  if (numbers && numbers.length > 0) {
+    // Use the first number found in the ID
+    numValue = parseInt(numbers[0], 10);
+  } else {
+    // If no numbers, use the sum of char codes
+    numValue = productIdStr
+      .split("")
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  }
+
+  // Return color index (0-7)
+  return numValue % 8;
+};
+
+// Function to deterministically assign a color class based on product ID
+const getProductColor = (productId: string | number): string => {
+  const colorIndex = getProductColorIndex(productId);
+  return `bg-color-${getColorNameByIndex(colorIndex)}`;
+};
+
+// Get color name by index
+const getColorNameByIndex = (index: number): string => {
+  const colorNames = [
+    "blue",
+    "green",
+    "purple",
+    "orange",
+    "pink",
+    "cyan",
+    "red",
+    "lime",
+  ];
+
+  return colorNames[index];
+};
+
+export default WarrantyStep;

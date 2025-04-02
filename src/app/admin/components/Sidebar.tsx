@@ -14,13 +14,14 @@ import { BiCategory } from "react-icons/bi";
 import { IoReturnDownForward } from "react-icons/io5";
 import { useUser } from "@/context/UserContext";
 import { useState } from "react";
+import { MdOutlineStorefront } from "react-icons/md";
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const { logout } = useUser();
+  const { logout, user } = useUser();
 
-  // Define sidebar items
-  const sidebarItems = [
+  // Define sidebar items for each role
+  const adminSidebarItems = [
     { name: "داشبورد", href: "/admin", icon: <FiHome size={20} /> },
     { name: "محصولات", href: "/admin/products", icon: <FiBox size={20} /> },
     {
@@ -34,6 +35,11 @@ const Sidebar = () => {
       href: "/admin/analytics",
       icon: <FiBarChart2 size={20} />,
     },
+    {
+      name: "شعبه‌ها",
+      href: "/admin/branches",
+      icon: <MdOutlineStorefront size={20} />,
+    },
     { name: "فاکتورها", href: "/admin/invoices", icon: <FiFile size={20} /> },
     {
       name: "تنظیمات",
@@ -41,6 +47,14 @@ const Sidebar = () => {
       icon: <FiSettings size={20} />,
     },
   ];
+
+  const branchSidebarItems = [
+    { name: "شعبه من", href: "/admin/branches/my", icon: <MdOutlineStorefront size={20} /> },
+  ];
+
+  // Select the sidebar items based on user role
+  const isBranch = user?.role === "Branch";
+  const sidebarItems = isBranch ? branchSidebarItems : adminSidebarItems;
 
   return (
     <>
@@ -67,7 +81,7 @@ const Sidebar = () => {
               isCollapsed ? "opacity-0" : "opacity-100"
             }`}
           >
-            مدیریت
+            {isBranch ? "پنل شعبه" : "مدیریت"}
           </h1>
         </div>
 
