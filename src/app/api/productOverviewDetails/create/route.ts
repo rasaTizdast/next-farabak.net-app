@@ -175,9 +175,6 @@ export async function POST(req: Request) {
           }
         );
 
-        // Log the upload result for debugging
-        console.log(`File uploaded successfully: ${uploadResult.Location}`);
-
         // Get and increment the ProductOverviewDetailsId for this record
         const productOverviewDetailsId = currentProductOverviewDetailsId++;
 
