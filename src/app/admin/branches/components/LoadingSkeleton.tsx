@@ -2,18 +2,22 @@ import React from 'react';
 
 const LoadingSkeleton: React.FC = () => {
   return (
-    <div className="p-6" dir="rtl">
+    <div className="bg-gray-950 rounded-lg text-white p-4 sm:p-6 space-y-6" dir="rtl">
       {/* Header section */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-100">
-          <div className="w-40 h-8 bg-gray-700 rounded-md animate-pulse"></div>
-        </h1>
-        <div className="w-40 h-10 bg-blue-600 rounded-md animate-pulse"></div>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <div className="w-48 h-8 bg-gray-800 rounded-md animate-pulse mb-2"></div>
+          <div className="w-64 h-4 bg-gray-800 rounded-md animate-pulse"></div>
+        </div>
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <div className="w-full sm:w-72 h-10 bg-gray-800 rounded-md animate-pulse"></div>
+          <div className="w-full sm:w-32 h-10 bg-blue-800/60 rounded-md animate-pulse"></div>
+        </div>
       </div>
       
-      <div className="bg-gray-800 rounded-lg shadow-md overflow-hidden">
+      <div className="bg-gray-900 rounded-lg shadow-md overflow-hidden">
         {/* Table header skeleton */}
-        <div className="p-4 flex bg-gray-900 border-b border-gray-700">
+        <div className="p-4 flex bg-gray-800 border-b border-gray-700">
           <div className="w-[15%] px-2">
             <div className="w-full h-6 bg-gray-700 rounded-md animate-pulse"></div>
           </div>
@@ -66,7 +70,7 @@ const LoadingSkeleton: React.FC = () => {
         ))}
 
         {/* Pagination skeleton */}
-        <div className="flex justify-end p-4 bg-gray-900 border-t border-gray-700">
+        <div className="flex justify-end p-4 bg-gray-800 border-t border-gray-700">
           <div className="flex space-x-1 rtl:space-x-reverse">
             {[1, 2, 3].map((item) => (
               <div key={item} className="w-8 h-8 rounded-md bg-gray-700 animate-pulse mx-1"></div>

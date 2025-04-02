@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
+export const dynamic = "force-dynamic";
+
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
 /**
@@ -52,8 +54,6 @@ export async function GET() {
         );
       }
 
-      console.log(`Fetching branch for user ID: ${userId}, role: ${payload.role}`);
-
       // Get branch for this user
       const branch = await prisma.$queryRaw`
         SELECT * FROM "support"."branch"
@@ -61,14 +61,11 @@ export async function GET() {
       `;
 
       if (!branch || (branch as any[]).length === 0) {
-        console.log(`No branch found for user ID: ${userId}`);
         return NextResponse.json(
           { error: "هیچ شعبه‌ای برای این کاربر یافت نشد" },
           { status: 404 }
         );
       }
-
-      console.log(`Found ${(branch as any[]).length} branches for user ID: ${userId}`);
 
       // For each branch, count their products and calculate total quantity
       const branchesWithProductCount = await Promise.all(
@@ -83,7 +80,7 @@ export async function GET() {
           `;
 
           const stats = (productStatsResult as any[])[0];
-          
+
           return {
             ...b,
             productCount: parseInt(String(stats.productCount), 10),
@@ -97,9 +94,9 @@ export async function GET() {
     } catch (tokenError) {
       console.error("Token verification failed:", tokenError);
       return NextResponse.json(
-        { 
+        {
           error: "دسترسی غیرمجاز - توکن نامعتبر است",
-          details: String(tokenError)
+          details: String(tokenError),
         },
         { status: 401 }
       );

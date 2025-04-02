@@ -4,6 +4,7 @@ export interface Branch {
   location: string;
   productCount: number;
   totalQuantity: number;
+  specificProductQuantity?: number;
   createdat: string;
   UserID: number;
 }
@@ -21,6 +22,7 @@ export interface Product {
   Name?: string;
   Type: string;
   Price?: string;
+  Discount?: string;
   quantity: number;
 }
 

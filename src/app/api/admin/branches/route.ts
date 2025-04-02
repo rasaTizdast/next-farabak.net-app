@@ -6,31 +6,109 @@ import { prisma } from '@/lib/prisma';
  * /api/admin/branches:
  *   get:
  *     summary: Get all branches with product counts and total quantities
+ *     parameters:
+ *       - in: query
+ *         name: productId
+ *         schema:
+ *           type: integer
+ *         description: Optional product ID to filter branches that have this product
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
  *     responses:
  *       200:
  *         description: List of all branches with product counts and total quantities
  *       500:
  *         description: Server error
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // Get branches with product counts and total quantities in a single query
-    const branchesWithCounts = await prisma.$queryRaw`
-      SELECT 
-        b."branchid",
-        b."UserID",
-        b."name",
-        b."location",
-        b."createdat",
-        COUNT(DISTINCT bp."ProductId") as "productCount",
-        COALESCE(SUM(bp."quantity"), 0)::integer as "totalQuantity"
-      FROM 
-        "support"."branch" b
-      LEFT JOIN 
-        "support"."branchproduct" bp ON b."branchid" = bp."branchid"
-      GROUP BY 
-        b."branchid", b."UserID", b."name", b."location", b."createdat"
-    `;
+    const url = new URL(request.url);
+    const productId = url.searchParams.get('productId');
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const limit = parseInt(url.searchParams.get('limit') || '10');
+    const offset = (page - 1) * limit;
+    
+    let branchesWithCounts;
+    let totalCount;
+    
+    if (productId) {
+      // First get total count of branches that have this product
+      const countResult = await prisma.$queryRaw`
+        SELECT COUNT(*) as total
+        FROM "support"."branch" b
+        WHERE EXISTS (
+          SELECT 1 FROM "support"."branchproduct" bp2 
+          WHERE bp2."branchid" = b."branchid" AND bp2."ProductId" = ${parseInt(productId)}
+        )
+      `;
+      
+      totalCount = Number((countResult as any[])[0].total);
+      
+      // If productId is provided, filter branches that have this product with pagination
+      branchesWithCounts = await prisma.$queryRaw`
+        SELECT 
+          b."branchid",
+          b."UserID",
+          b."name",
+          b."location",
+          b."createdat",
+          COUNT(DISTINCT bp."ProductId") as "productCount",
+          COALESCE(SUM(bp."quantity"), 0)::integer as "totalQuantity",
+          COALESCE(MAX(CASE WHEN bp."ProductId" = ${parseInt(productId)} THEN bp."quantity" ELSE 0 END), 0)::integer as "specificProductQuantity"
+        FROM 
+          "support"."branch" b
+        LEFT JOIN 
+          "support"."branchproduct" bp ON b."branchid" = bp."branchid"
+        WHERE 
+          EXISTS (
+            SELECT 1 FROM "support"."branchproduct" bp2 
+            WHERE bp2."branchid" = b."branchid" AND bp2."ProductId" = ${parseInt(productId)}
+          )
+        GROUP BY 
+          b."branchid", b."UserID", b."name", b."location", b."createdat"
+        ORDER BY
+          "specificProductQuantity" DESC
+        LIMIT ${limit}
+        OFFSET ${offset}
+      `;
+    } else {
+      // Get total count of branches
+      const countResult = await prisma.$queryRaw`
+        SELECT COUNT(*) as total FROM "support"."branch"
+      `;
+      
+      totalCount = Number((countResult as any[])[0].total);
+      
+      // Get all branches with product counts and total quantities with pagination
+      branchesWithCounts = await prisma.$queryRaw`
+        SELECT 
+          b."branchid",
+          b."UserID",
+          b."name",
+          b."location",
+          b."createdat",
+          COUNT(DISTINCT bp."ProductId") as "productCount",
+          COALESCE(SUM(bp."quantity"), 0)::integer as "totalQuantity"
+        FROM 
+          "support"."branch" b
+        LEFT JOIN 
+          "support"."branchproduct" bp ON b."branchid" = bp."branchid"
+        GROUP BY 
+          b."branchid", b."UserID", b."name", b."location", b."createdat"
+        LIMIT ${limit}
+        OFFSET ${offset}
+      `;
+    }
     
     // Convert any BigInt values to regular Numbers
     const sanitizedData = (branchesWithCounts as any[]).map(branch => {
@@ -48,7 +126,19 @@ export async function GET() {
       return sanitizedBranch;
     });
     
-    return NextResponse.json(sanitizedData);
+    // Calculate pagination details
+    const totalPages = Math.ceil(totalCount / limit);
+    
+    return NextResponse.json({
+      data: sanitizedData,
+      pagination: {
+        totalCount,
+        currentPage: page,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      }
+    });
   } catch (error) {
     console.error('Error fetching branches:', error);
     return NextResponse.json(

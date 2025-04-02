@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Table, Button, Popconfirm, InputNumber, Empty, Spin } from 'antd';
 import { DeleteOutlined } from "@ant-design/icons";
 import { Product } from './types';
@@ -16,6 +16,45 @@ const ProductTable: React.FC<ProductTableProps> = ({
   onUpdateQuantity,
   onRemove
 }) => {
+  // Keep track of debounced values per product
+  const [debouncedValues, setDebouncedValues] = useState<{[key: number]: number}>({});
+  const timersRef = useRef<{[key: number]: NodeJS.Timeout}>({});
+
+  // Populate initial values when products change
+  useEffect(() => {
+    const initialValues: {[key: number]: number} = {};
+    products.forEach(product => {
+      initialValues[product.ProductId] = product.quantity;
+    });
+    setDebouncedValues(initialValues);
+  }, [products]);
+
+  // Handle quantity change with debounce
+  const handleQuantityChange = (productId: number, value: number) => {
+    // Clear existing timer for this product
+    if (timersRef.current[productId]) {
+      clearTimeout(timersRef.current[productId]);
+    }
+
+    // Update local state immediately for UI
+    setDebouncedValues(prev => ({
+      ...prev,
+      [productId]: value
+    }));
+
+    // Set a new timer for this product
+    timersRef.current[productId] = setTimeout(() => {
+      onUpdateQuantity(productId, value);
+    }, 2000); // 2 second delay
+  };
+
+  // Clean up timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(timersRef.current).forEach(timer => clearTimeout(timer));
+    };
+  }, []);
+
   const columns = [
     {
       title: "نام محصول",
@@ -28,13 +67,20 @@ const ProductTable: React.FC<ProductTableProps> = ({
       dataIndex: "quantity",
       key: "quantity",
       width: "20%",
-      render: (quantity: number, record: Product) => (
+      render: (_: number, record: Product) => (
         <InputNumber
           min={0}
-          defaultValue={quantity}
+          value={debouncedValues[record.ProductId] ?? record.quantity}
           onChange={(value) => {
             if (value !== null) {
-              onUpdateQuantity(record.ProductId, value);
+              handleQuantityChange(record.ProductId, value);
+            }
+          }}
+          onBlur={() => {
+            // Update immediately on blur
+            if (timersRef.current[record.ProductId]) {
+              clearTimeout(timersRef.current[record.ProductId]);
+              onUpdateQuantity(record.ProductId, debouncedValues[record.ProductId]);
             }
           }}
           className="w-20 dark-input-number"

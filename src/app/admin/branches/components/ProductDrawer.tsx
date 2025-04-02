@@ -8,13 +8,13 @@ import ProductTable from './ProductTable';
 interface ProductDrawerProps {
   visible: boolean;
   onClose: () => void;
-  branch: Branch | null;
+  branch: Branch;
   products: Product[];
   allProducts: Product[];
-  productsLoading: boolean;
-  form: any;
+  loading: boolean;
+  productForm: any;
   selectedProduct: number | null;
-  onSelectProduct: (value: number) => void;
+  onSelectProduct: (productId: number | null) => void;
   onQuantityChange: (value: number | null) => void;
   onAddProduct: () => void;
   onUpdateQuantity: (productId: number, quantity: number) => void;
@@ -27,8 +27,8 @@ const ProductDrawer: React.FC<ProductDrawerProps> = ({
   branch,
   products,
   allProducts,
-  productsLoading,
-  form,
+  loading,
+  productForm,
   selectedProduct,
   onSelectProduct,
   onQuantityChange,
@@ -51,8 +51,13 @@ const ProductDrawer: React.FC<ProductDrawerProps> = ({
           color: "#f3f4f6",
           borderBottom: "1px solid #374151",
           padding: "16px 24px",
+          fontFamily: "inherit",
         },
-        body: { background: "#111827", padding: "16px" },
+        body: { 
+          background: "#111827", 
+          padding: "16px",
+          fontFamily: "inherit",
+        },
         mask: { background: "rgba(0, 0, 0, 0.7)" },
         wrapper: { boxShadow: "0 0 15px rgba(0, 0, 0, 0.5)" },
         content: { backgroundColor: "#111827" },
@@ -65,7 +70,7 @@ const ProductDrawer: React.FC<ProductDrawerProps> = ({
       {branch && <ProductSummary products={products} />}
 
       <ProductForm
-        form={form}
+        form={productForm}
         allProducts={allProducts}
         onFinish={onAddProduct}
         onSelectProduct={onSelectProduct}
@@ -78,7 +83,7 @@ const ProductDrawer: React.FC<ProductDrawerProps> = ({
         </h3>
         <ProductTable
           products={products}
-          loading={productsLoading}
+          loading={loading}
           onUpdateQuantity={onUpdateQuantity}
           onRemove={onRemoveProduct}
         />

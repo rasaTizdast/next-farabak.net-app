@@ -13,6 +13,18 @@ import { prisma } from '@/lib/prisma';
  *         schema:
  *           type: integer
  *         description: ID of the branch
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
  *     responses:
  *       200:
  *         description: List of products for the branch
@@ -26,6 +38,11 @@ export async function GET(
   { params }: { params: { branchId: string } }
 ) {
   try {
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const limit = parseInt(url.searchParams.get('limit') || '10');
+    const offset = (page - 1) * limit;
+    
     const branchId = parseInt(params.branchId);
     
     // Check if branch exists
@@ -43,7 +60,16 @@ export async function GET(
       );
     }
     
-    // Get branch products with product details
+    // Get total count of branch products
+    const countResult = await prisma.$queryRaw`
+      SELECT COUNT(*) as total 
+      FROM "support"."branchproduct" 
+      WHERE "branchid" = ${branchId}
+    `;
+    
+    const totalCount = Number((countResult as any[])[0].total);
+    
+    // Get branch products with product details with pagination
     const branchProducts = await prisma.$queryRaw`
       SELECT 
         bp."branchproductid",
@@ -52,13 +78,29 @@ export async function GET(
         bp."quantity",
         p."Type",
         p."img1" as "Image",
-        p."Price"
+        p."Price",
+        p."Discount"
       FROM "support"."branchproduct" bp
       JOIN "support"."Product" p ON bp."ProductId" = p."ProductId"
       WHERE bp."branchid" = ${branchId}
+      ORDER BY p."Type"
+      LIMIT ${limit}
+      OFFSET ${offset}
     `;
     
-    return NextResponse.json(branchProducts);
+    // Calculate pagination details
+    const totalPages = Math.ceil(totalCount / limit);
+    
+    return NextResponse.json({
+      data: branchProducts,
+      pagination: {
+        totalCount,
+        currentPage: page,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      }
+    });
   } catch (error) {
     console.error('Error fetching branch products:', error);
     return NextResponse.json(

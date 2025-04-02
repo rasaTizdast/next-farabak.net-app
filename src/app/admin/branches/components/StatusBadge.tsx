@@ -13,6 +13,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ productCount, totalQuantity }
           ? "bg-blue-900/30 text-blue-400 border border-blue-700"
           : "bg-yellow-900/30 text-yellow-400 border border-yellow-700"
       }`}
+      style={{ direction: 'rtl' }}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="text-sm whitespace-nowrap">{productCount} نوع محصول</div>

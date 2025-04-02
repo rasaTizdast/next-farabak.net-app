@@ -1,26 +1,26 @@
-import React from 'react';
-import { Modal, Form } from 'antd';
-import BranchForm from './BranchForm';
-import { User } from './types';
+import React from "react";
+import { Modal } from "antd";
+import BranchForm from "./BranchForm";
+import { User } from "./types";
 
 interface CreateBranchModalProps {
   visible: boolean;
-  onCancel: () => void;
+  onClose: () => void;
   onFinish: (values: any) => void;
+  form: any;
   users: User[];
 }
 
 const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
   visible,
-  onCancel,
+  onClose,
   onFinish,
-  users
+  form,
+  users,
 }) => {
-  const [form] = Form.useForm();
-
   const handleCancel = () => {
     form.resetFields();
-    onCancel();
+    onClose();
   };
 
   return (
@@ -56,4 +56,4 @@ const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
   );
 };
 
-export default CreateBranchModal; 
+export default CreateBranchModal;

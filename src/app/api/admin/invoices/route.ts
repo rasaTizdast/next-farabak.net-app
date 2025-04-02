@@ -2,7 +2,7 @@ import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -27,6 +27,7 @@ async function verifyToken(token: string) {
  */
 export async function GET() {
   try {
+    // First, fetch all invoices with basic information
     const invoices = await prisma.$queryRaw`
       SELECT 
         i."Invoiceid", i."FactorGuid", i."Fullname", i."Phonenumber",
@@ -36,12 +37,100 @@ export async function GET() {
       ORDER BY
         i."Invoiceid" DESC
     `;
-    
-    return NextResponse.json(invoices);
+
+    // For each invoice, get its details and warranties
+    const invoicesWithDetails = await Promise.all(
+      (invoices as any[]).map(async (invoice) => {
+        // Get invoice details
+        const details = await prisma.$queryRaw`
+          SELECT 
+            id."Invoice_Details", id."ProductId", id."quantity", 
+            id."price", id."total_price"
+          FROM 
+            "info"."Invoice_Details" id
+          WHERE 
+            id."Invoiceid" = ${invoice.Invoiceid}
+        `;
+
+        // Get warranties for this invoice's products
+        const warranties = await prisma.$queryRaw`
+          SELECT 
+            w."warrantyid", w."invoicedetailid", w."warrantycode", 
+            w."startdate", w."expirydate", w."status", w."ProductId"
+          FROM 
+            "info"."warranty" w
+          JOIN 
+            "info"."Invoice_Details" id ON w."invoicedetailid" = id."Invoice_Details"
+          WHERE 
+            id."Invoiceid" = ${invoice.Invoiceid}
+        `;
+
+        // Process warranty status
+        const processedWarranties = (warranties as any[]).map(warranty => {
+          const today = new Date();
+          const expiryDate = new Date(warranty.expirydate);
+          
+          // Add a display status without modifying the database
+          let displayStatus = warranty.status;
+          if (today > expiryDate) {
+            displayStatus = 'Expired';
+          } else {
+            displayStatus = 'Active';
+          }
+          
+          return {
+            ...warranty,
+            displayStatus
+          };
+        });
+
+        // Group warranties by invoice detail and product
+        const warrantiesByDetail = processedWarranties.reduce((acc, warranty) => {
+          const key = warranty.invoicedetailid;
+          if (!acc[key]) {
+            acc[key] = {
+              ...warranty,
+              warrantycodes: [{
+                code: warranty.warrantycode,
+                startdate: warranty.startdate,
+                expirydate: warranty.expirydate,
+                status: warranty.status
+              }]
+            };
+          } else {
+            // Add this warranty code to the existing entry
+            acc[key].warrantycodes.push({
+              code: warranty.warrantycode,
+              startdate: warranty.startdate,
+              expirydate: warranty.expirydate,
+              status: warranty.status
+            });
+          }
+          return acc;
+        }, {});
+          
+        // Map warranty data to invoice details
+        const detailsWithWarranty = (details as any[]).map((detail) => {
+          const warranty = warrantiesByDetail[detail.Invoice_Details];
+          
+          return {
+            ...detail,
+            warranty: warranty || null
+          };
+        });
+
+        return {
+          ...invoice,
+          Invoice_Details: detailsWithWarranty,
+        };
+      })
+    );
+
+    return NextResponse.json(invoicesWithDetails);
   } catch (error) {
-    console.error('Error fetching invoices:', error);
+    console.error("Error fetching invoices:", error);
     return NextResponse.json(
-      { error: 'خطا در بارگذاری فاکتورها' },
+      { error: "خطا در بارگذاری فاکتورها" },
       { status: 500 }
     );
   }
@@ -78,40 +167,36 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { branchId, invoiceData } = body;
-    
-    if (!branchId || !invoiceData) {
+    const { branchId, invoiceData } = await request.json();
+
+    // Validation
+    if (
+      !branchId ||
+      !invoiceData ||
+      !invoiceData.Fullname ||
+      !invoiceData.Phonenumber
+    ) {
       return NextResponse.json(
-        { error: 'اطلاعات ارسالی ناقص است' },
+        { error: "Invalid request data" },
         { status: 400 }
       );
     }
-    
-    // Generate unique invoice GUID
-    const factorGuid = uuidv4();
-    
-    // Create invoice in the database
-    const newInvoice = await prisma.$queryRaw`
-      INSERT INTO "info"."Invoice" (
-        "FactorGuid", "Fullname", "Phonenumber", "UserId", 
-        "TotalAmount", "Checked", "Date"
-      )
-      VALUES (
-        ${factorGuid}, 
-        ${invoiceData.Fullname}, 
-        ${invoiceData.Phonenumber}, 
-        ${invoiceData.UserId},
-        ${invoiceData.TotalAmount}, 
-        ${!!invoiceData.Checked}, 
-        ${invoiceData.Date || new Date().toISOString()}
-      )
-      RETURNING *
-    `;
-    
-    const createdInvoice = (newInvoice as any[])[0];
+
+    // Create the invoice with Checked: true for branch users
+    const createdInvoice = await prisma.invoice.create({
+      data: {
+        FactorGuid: `FARABAK-${uuidv4()}`,
+        Fullname: invoiceData.Fullname,
+        Phonenumber: invoiceData.Phonenumber,
+        TotalAmount: invoiceData.TotalAmount,
+        Date: invoiceData.Date,
+        UserId: invoiceData.UserId,
+        Checked: true, // Always set to true for branch-created invoices
+      },
+    });
+
     const invoiceId = createdInvoice.Invoiceid;
-    
+
     // Create invoice details and warranties
     for (const product of invoiceData.products) {
       // Create invoice detail
@@ -129,9 +214,9 @@ export async function POST(request: Request) {
         )
         RETURNING *
       `;
-      
+
       const createdDetail = (invoiceDetail as any[])[0];
-      
+
       // If product has warranty, create it
       if (product.warranty && product.warranty.hasWarranty) {
         await prisma.$queryRaw`
@@ -151,7 +236,7 @@ export async function POST(request: Request) {
           )
         `;
       }
-      
+
       // Update branch product quantity
       await prisma.$queryRaw`
         UPDATE "support"."branchproduct"
@@ -159,20 +244,17 @@ export async function POST(request: Request) {
         WHERE "branchid" = ${branchId} AND "ProductId" = ${product.ProductId}
       `;
     }
-    
+
     return NextResponse.json(
-      { 
-        message: 'فاکتور با موفقیت ثبت شد',
-        invoice: createdInvoice 
-      }, 
+      {
+        message: "فاکتور با موفقیت ثبت شد",
+        invoice: createdInvoice,
+      },
       { status: 201 }
     );
   } catch (error) {
-    console.error('Error creating invoice:', error);
-    return NextResponse.json(
-      { error: 'خطا در ثبت فاکتور' },
-      { status: 500 }
-    );
+    console.error("Error creating invoice:", error);
+    return NextResponse.json({ error: "خطا در ثبت فاکتور" }, { status: 500 });
   }
 }
 
@@ -183,6 +265,7 @@ export async function POST(request: Request) {
  *     summary: Update the checked status of an invoice.
  *     tags:
  *       - Admin
+ *       - Branch
  *     security:
  *       - cookieAuth: []
  *     requestBody:
@@ -192,10 +275,14 @@ export async function POST(request: Request) {
  *           schema:
  *             type: object
  *             properties:
- *               invoiceId:
- *                 type: integer
  *               checked:
  *                 type: boolean
+ *     parameters:
+ *       - name: id
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: integer
  *     responses:
  *       200:
  *         description: Successfully updated the invoice.
@@ -219,11 +306,23 @@ export async function PATCH(req: Request): Promise<NextResponse> {
     const decoded = await verifyToken(token);
     const userRole = decoded.role;
 
-    if (!userRole || userRole !== "Admin") {
+    // Allow both Admin and Branch users to update invoice status
+    if (!userRole || (userRole !== "Admin" && userRole !== "Branch")) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { Invoiceid, checked } = await req.json();
+    // Get invoice ID from query parameters
+    const { searchParams } = new URL(req.url);
+    const invoiceId = searchParams.get("id");
+
+    if (!invoiceId) {
+      return NextResponse.json(
+        { message: "Invoice ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const { checked } = await req.json();
 
     if (typeof checked !== "boolean") {
       return NextResponse.json(
@@ -232,13 +331,49 @@ export async function PATCH(req: Request): Promise<NextResponse> {
       );
     }
 
+    // For branch users, check if they're allowed to update this invoice
+    if (userRole === "Branch") {
+      // Get branch ID for the user
+      const userId = decoded.userId || decoded.id || decoded.sub;
+      const branch = await prisma.$queryRaw`
+        SELECT "branchid" FROM "support"."branch"
+        WHERE "UserID" = ${Number(userId)}
+      `;
+
+      if (!branch || (branch as any[]).length === 0) {
+        return NextResponse.json(
+          { message: "No branch found for this user" },
+          { status: 403 }
+        );
+      }
+
+      // Check if the invoice is associated with this branch through warranties
+      const branchInvoices = await prisma.$queryRaw`
+        SELECT DISTINCT i."Invoiceid"
+        FROM "info"."Invoice" i
+        JOIN "info"."Invoice_Details" id ON i."Invoiceid" = id."Invoiceid"
+        JOIN "info"."warranty" w ON id."Invoice_Details" = w."invoicedetailid"
+        WHERE i."Invoiceid" = ${parseInt(invoiceId)}
+        AND w."branchid" = ${(branch as any[])[0].branchid}
+      `;
+
+      if (!branchInvoices || (branchInvoices as any[]).length === 0) {
+        return NextResponse.json(
+          { message: "You are not authorized to update this invoice" },
+          { status: 403 }
+        );
+      }
+    }
+
+    // Update the invoice
     const updatedInvoice = await prisma.invoice.update({
-      where: { Invoiceid: Invoiceid },
+      where: { Invoiceid: parseInt(invoiceId) },
       data: { Checked: checked },
     });
 
     return NextResponse.json(updatedInvoice, { status: 200 });
   } catch (error) {
+    console.error("Error updating invoice:", error);
     return NextResponse.json(
       { message: "Failed to update invoice" },
       { status: 500 }

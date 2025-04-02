@@ -1,23 +1,25 @@
 import React, { useEffect } from 'react';
 import { Modal, Form } from 'antd';
 import BranchForm from './BranchForm';
-import { Branch } from './types';
+import { Branch, User } from './types';
 
 interface EditBranchModalProps {
   visible: boolean;
-  onCancel: () => void;
+  onClose: () => void;
   onFinish: (values: any) => void;
-  branch: Branch | null;
+  form: any;
+  branch: Branch;
+  users: User[];
 }
 
 const EditBranchModal: React.FC<EditBranchModalProps> = ({
   visible,
-  onCancel,
+  onClose,
   onFinish,
-  branch
+  form,
+  branch,
+  users
 }) => {
-  const [form] = Form.useForm();
-
   useEffect(() => {
     if (branch && visible) {
       form.setFieldsValue({
@@ -29,7 +31,7 @@ const EditBranchModal: React.FC<EditBranchModalProps> = ({
 
   const handleCancel = () => {
     form.resetFields();
-    onCancel();
+    onClose();
   };
 
   return (
@@ -59,6 +61,7 @@ const EditBranchModal: React.FC<EditBranchModalProps> = ({
         onCancel={handleCancel}
         isEdit={true}
         submitButtonText="بروزرسانی شعبه"
+        users={users}
       />
     </Modal>
   );
