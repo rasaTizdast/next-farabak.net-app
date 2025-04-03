@@ -112,6 +112,16 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
       return;
     }
 
+    if (formData.Q.length > 500) {
+      toast.error("سوال نمی‌تواند بیش از 500 کاراکتر باشد");
+      return;
+    }
+
+    if (formData.A.length > 1000) {
+      toast.error("پاسخ نمی‌تواند بیش از 1000 کاراکتر باشد");
+      return;
+    }
+
     try {
       let response;
       if (editingFaq) {
@@ -158,6 +168,12 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
     }
   };
 
+  // Function to truncate text
+  const truncateText = (text: string | null, maxLength: number) => {
+    if (!text) return "";
+    return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+  };
+
   // Count FAQs
   const totalFaqsCount = faqs.length;
 
@@ -170,7 +186,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
       ellipsis: true,
       render: (text: string) => (
         <Tooltip title={text}>
-          <span className="text-gray-200">{text}</span>
+          <span className="text-gray-200">{truncateText(text, 35)}</span>
         </Tooltip>
       ),
     },
@@ -181,7 +197,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
       ellipsis: true,
       render: (text: string) => (
         <Tooltip title={text}>
-          <span className="text-gray-300">{text}</span>
+          <span className="text-gray-300">{truncateText(text, 40)}</span>
         </Tooltip>
       ),
     },
@@ -210,7 +226,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col border border-gray-700">
+      <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col border border-gray-700">
         <div className="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-900">
           <div>
             <h2 className="text-xl font-bold text-gray-100">
@@ -304,6 +320,8 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
                 value={formData.Q}
                 onChange={handleInputChange}
                 placeholder="سوال را وارد کنید"
+                maxLength={500}
+                showCount
                 className="bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400"
                 style={{ 
                   backgroundColor: '#1F2937', 
@@ -320,6 +338,8 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
                 value={formData.A}
                 onChange={handleInputChange}
                 placeholder="پاسخ را وارد کنید"
+                maxLength={1000}
+                showCount
                 rows={6}
                 className="bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400 resize-none"
                 style={{ 
