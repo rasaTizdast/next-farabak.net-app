@@ -10,6 +10,7 @@ import MemberEditor from "./componets/ui/MemberEditor";
 import ProjectEditor from "./componets/ui/ProjectEditor";
 import ActivityEditor from "./componets/ui/ActivityEditor";
 import ContactUsEditor from "./componets/ui/ContactUsEditor";
+import FaqEditor from "./componets/ui/FaqEditor";
 import { FaEdit } from "react-icons/fa";
 import toast, { Toaster } from "react-hot-toast";
 import NewMember from "./componets/ui/newPage/NewMember";
@@ -114,6 +115,8 @@ const AdminPageManager: React.FC = () => {
         return <ActivityEditor onClose={closeEditor} />;
       case "contact":
         return <ContactUsEditor onClose={closeEditor} />;
+      case "faq":
+        return <FaqEditor onClose={closeEditor} />;
       default:
         return null;
     }
@@ -147,7 +150,9 @@ const AdminPageManager: React.FC = () => {
         case "project":
           endpoint = `/api/projects/${id}`;
           break;
-
+        case "faq":
+          endpoint = `/api/admin/faqs/${id}`;
+          break;
         // Add more cases as needed
         default:
           throw new Error("Invalid delete type");
