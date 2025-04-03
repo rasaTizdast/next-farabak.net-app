@@ -111,7 +111,6 @@ model Factor {
 
 model FaqDetails {
   FaqDetailsid Int       @id(map: "PK__FaqDetai__35A141347E7D7444") @default(autoincrement())
-  Title        String?   @db.VarChar(30)
   Q            String?   @db.VarChar(100)
   A            String?   @db.VarChar(100)
   Available    Boolean?

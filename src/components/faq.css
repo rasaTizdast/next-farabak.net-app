@@ -1,0 +1,31 @@
+/* Override Ant Design input styles to inherit font family */
+.faq-search-container .ant-input,
+.faq-search-container .ant-input::placeholder,
+.faq-search-container .ant-input-affix-wrapper,
+.faq-search-container .ant-input-clear-icon,
+.faq-search-input {
+  font-family: inherit !important;
+}
+
+/* Make sure the placeholder text is right-aligned in RTL */
+.faq-search-container .ant-input::placeholder {
+  text-align: right;
+}
+
+/* Ensure RTL input behavior */
+.faq-search-container .ant-input-affix-wrapper input {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Fix the prefix icon position */
+.faq-search-container .ant-input-affix-wrapper .ant-input-prefix {
+  margin-right: 0;
+  margin-left: 8px;
+}
+
+/* Make sure the clear button appears properly */
+.faq-search-container .ant-input-clear-icon {
+  right: auto;
+  left: 8px;
+} 
