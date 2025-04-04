@@ -20,6 +20,7 @@ interface UserContextType {
   logout: () => void;
   isLoggedIn: boolean;
   isAdmin: boolean;
+  isBranch: boolean;
   userFullName: string;
   loading: boolean; // Loading state
   updateUserContext: () => void; // Function to fetch and update context
@@ -59,6 +60,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const isLoggedIn = !!user;
   const isAdmin = user?.role.toLowerCase() === "admin";
+  const isBranch = user?.role.toLowerCase() === "branch";
   const userFullName = `${user?.firstName || ""} ${user?.lastName || ""}`;
 
   // Try to fetch user data on mount (e.g., when the page is first loaded)
@@ -74,6 +76,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         logout,
         isLoggedIn,
         isAdmin,
+        isBranch,
         userFullName,
         loading,
         updateUserContext, // Provide the function to manually update the user context

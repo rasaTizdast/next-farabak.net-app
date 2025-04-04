@@ -7,7 +7,7 @@ import { useUser } from "@/context/UserContext";
 
 const UserDropDown = () => {
   const [isVis, setIsVis] = useState(false);
-  const { isAdmin, logout } = useUser();
+  const { isAdmin, isBranch, logout } = useUser();
 
   const dropdownRef = useRef<HTMLUListElement | null>(null); // Ref to track the dropdown element
   const iconRef = useRef<HTMLDivElement | null>(null); // Ref to track the icon element
@@ -49,17 +49,22 @@ const UserDropDown = () => {
               <Link href="/admin">پنل مدیریت</Link>
             </li>
           )}
-          {!isAdmin && (
+          {isBranch && (
+            <li>
+              <Link href="/branch">پنل شعبه</Link>
+            </li>
+          )}
+          {!isAdmin && !isBranch && (
             <li>
               <Link href="/dashboard">پروفایل</Link>
             </li>
           )}
-          {!isAdmin && (
+          {!isAdmin && !isBranch && (
             <li>
               <Link href="/dashboard/all-invoices">فاکتور‌ها</Link>
             </li>
           )}
-          {!isAdmin && (
+          {!isAdmin && !isBranch && (
             <li>
               <Link href="/dashboard/edit-user">ویرایش اطلاعات</Link>
             </li>
