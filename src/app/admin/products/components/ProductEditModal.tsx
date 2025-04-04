@@ -9,6 +9,7 @@ import EditModalOverviewDetails from "./EditModalOverviewDetails";
 import EditModalSpecs from "./EditModalSpecs";
 import EditModalProductBlog from "./EditModalProductBlog";
 import NewOverviewDetailsModal from "./NewOverviewDetailsModal";
+import EditModalFAQ from "./EditModalFAQ";
 
 type Category = {
   CategoryID: number;
@@ -24,6 +25,12 @@ type ProductEditModalProps = {
   onClose: () => void;
   refetchProducts: () => void;
   setIsEditModalOpen: (arg0: boolean) => void;
+};
+
+// Add a new type for FAQs
+type FAQItem = {
+  question: string;
+  answer: string;
 };
 
 const ProductEditModal: React.FC<ProductEditModalProps> = ({
@@ -45,6 +52,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     OverviewDetail[] | null
   >(null);
   const [specs, setSpecs] = useState<Specs | null>(null);
+  const [faqs, setFaqs] = useState<FAQItem[]>([]);
 
   useEffect(() => {
     axios
@@ -249,6 +257,15 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
       return;
     }
 
+    // Validate FAQs
+    const hasInvalidFaqs = faqs.some(
+      (faq) => !faq.question.trim() || !faq.answer.trim()
+    );
+    if (hasInvalidFaqs) {
+      toast.error("لطفاً تمام سوالات و پاسخ‌ها را تکمیل کنید.");
+      return;
+    }
+
     // Convert CategoryContentIds to a string format for CategoryContentId
     const formattedCategoryContentId = formState.CategoryContentIds.map(
       (subcategory) => subcategory.CategoryContentId
@@ -323,6 +340,13 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
         });
       } catch (error) {
         toast.error("آپدیت جزئیات بررسی به مشکل خورده است.");
+      }
+
+      // Save FAQs
+      try {
+        await axios.put(`/api/faqs/product/${formState.ProductId}`, faqs);
+      } catch (error) {
+        toast.error("ذخیره سوالات متداول با مشکل روبرو شد.");
       }
 
       toast.success("محصول مورد نظر با موفقیت آپدیت شد!");
@@ -629,6 +653,11 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               productName={formState.Name}
               specs={specs}
               setSpecs={setSpecs}
+            />
+
+            <EditModalFAQ 
+              productId={formState.ProductId} 
+              setFaqs={setFaqs} 
             />
 
             <div className="col-span-1 sm:col-span-2 flex justify-end gap-6">
