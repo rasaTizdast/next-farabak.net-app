@@ -1,94 +1,65 @@
-type Props = {
-  currentAction: {
-    id: number | number[];
-    type: "delete" | "bulk-delete" | "";
-    name: string | string[];
-  };
-  handleModalConfirm: () => void;
-  setIsModalOpen: (arg0: boolean) => void;
-};
+import React, { ReactNode } from "react";
+import { IoIosClose } from "react-icons/io";
 
-const Modal = ({
-  currentAction,
-  handleModalConfirm,
-  setIsModalOpen,
-}: Props) => {
-  const productNames = Array.isArray(currentAction.name)
-    ? currentAction.name
-    : [currentAction.name];
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  children: ReactNode;
+  title?: string;
+  className?: string;
+  showCloseButton?: boolean;
+  preventOutsideClick?: boolean;
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "full";
+  zIndex?: number;
+}
 
-  const modalMessage = () => {
-    switch (currentAction.type) {
-      case "delete":
-        return "آیا از حذف محصول زیر مطمئن هستید؟";
-      case "bulk-delete":
-        return "آیا از حذف محصولات زیر مطمئن هستید؟";
-      default:
-        return "عملیات انتخاب شده";
-    }
-  };
+const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  children,
+  title,
+  className = "",
+  showCloseButton = true,
+  preventOutsideClick = false,
+  size = "lg",
+  zIndex = 50,
+}) => {
+  // Don't render if not open
+  if (!isOpen) return null;
 
-  const modalStyles =
-    currentAction.type === "delete" || currentAction.type === "bulk-delete"
-      ? "bg-red-100 border-red-500"
-      : "bg-white";
-
-  const buttonStyles =
-    currentAction.type === "delete" || currentAction.type === "bulk-delete"
-      ? "bg-red-600 hover:bg-red-700 focus:ring-red-500"
-      : "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500";
-
-  const cancelButtonStyles =
-    currentAction.type === "delete" || currentAction.type === "bulk-delete"
-      ? "bg-gray-600 hover:bg-gray-700 focus:ring-gray-400 text-white"
-      : "bg-gray-600 hover:bg-gray-700 focus:ring-gray-400 text-white";
+  // Map size to width classes
+  const sizeClasses = {
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-lg",
+    xl: "max-w-xl",
+    "2xl": "max-w-2xl",
+    full: "max-w-6xl",
+  }[size];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-opacity">
+    <div
+      className={`fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity`}
+      style={{ zIndex }}
+    >
       <div
-        className={`relative rounded-lg shadow-lg p-8 max-w-md w-full animate-fade-in ${modalStyles}`}
+        className={`bg-gray-800 text-white rounded-lg shadow-xl p-6 w-full ${sizeClasses} max-h-[90vh] overflow-auto relative animate-fade-in ${className}`}
       >
-        {/* Close Button */}
-        <button
-          onClick={() => setIsModalOpen(false)}
-          className="absolute top-4 right-4 font-bold text-gray-900 hover:text-gray-600 focus:outline-none"
-        >
-          ✕
-        </button>
+        {title && (
+          <h2 className="text-xl font-bold mb-6 text-center">{title}</h2>
+        )}
 
-        {/* Modal Header */}
-        <p className="text-center text-lg font-medium text-gray-700 mb-4">
-          {modalMessage()}
-        </p>
-
-        {/* Product List */}
-        <div className="max-h-56 overflow-y-auto border rounded-lg p-4 bg-gray-50">
-          {productNames.map((productName, index) => (
-            <p
-              key={index}
-              className="text-sm text-gray-800 truncate hover:text-clip hover:whitespace-normal"
-              title={typeof productName === "string" ? productName : ""}
-            >
-              {index + 1}. {productName}
-            </p>
-          ))}
-        </div>
-
-        {/* Actions */}
-        <div className="flex justify-center gap-4 mt-6">
+        {showCloseButton && (
           <button
-            onClick={handleModalConfirm}
-            className={`px-6 py-2 text-white rounded-lg focus:outline-none transition-all ${buttonStyles}`}
+            onClick={onClose}
+            className="absolute top-3 right-3 text-red-400 hover:text-red-500 transition-colors"
+            aria-label="Close"
           >
-            تایید
+            <IoIosClose size={30} />
           </button>
-          <button
-            onClick={() => setIsModalOpen(false)}
-            className={`px-6 py-2 text-gray-800 rounded-lg focus:outline-none transition-all ${cancelButtonStyles}`}
-          >
-            لغو
-          </button>
-        </div>
+        )}
+
+        {children}
       </div>
     </div>
   );

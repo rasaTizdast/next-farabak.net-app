@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Overview, OverviewDetail, Product, Specs } from "../types";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -8,6 +8,7 @@ import EditModalOverview from "./EditModalOverview";
 import EditModalOverviewDetails from "./EditModalOverviewDetails";
 import EditModalSpecs from "./EditModalSpecs";
 import EditModalProductBlog from "./EditModalProductBlog";
+import NewOverviewDetailsModal from "./NewOverviewDetailsModal";
 
 type Category = {
   CategoryID: number;
@@ -36,6 +37,8 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const [newImg1, setNewImg1] = useState<File | null>(null);
   const [newImg2, setNewImg2] = useState<File | null>(null);
   const [isLoading, setIsloading] = useState<boolean>(false);
+  const [showNewOverviewDetailsModal, setShowNewOverviewDetailsModal] =
+    useState(false);
 
   const [overviews, setOverviews] = useState<Overview | null>(null);
   const [overviewDetails, setOverviewDetails] = useState<
@@ -340,6 +343,11 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
 
   return (
     <>
+      {showNewOverviewDetailsModal && (
+        <NewOverviewDetailsModal
+          onClose={() => setShowNewOverviewDetailsModal(false)}
+        />
+      )}
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm shadow-lg">
         <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg w-full max-w-6xl max-h-[95dvh] overflow-auto">
           <h2 className="text-xl font-bold mb-10 text-center">ویرایش محصول</h2>
@@ -512,6 +520,15 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               productId={formState.ProductId}
               setProductOverviewDetails={setOverviewDetails}
             />
+            <div className="col-span-1 sm:col-span-2 border-b-4 border-b-gray-200 pb-2">
+              <button
+                type="button"
+                onClick={() => setShowNewOverviewDetailsModal(true)}
+                className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-white mb-4"
+              >
+                ایجاد توضیحات محصول جدید
+              </button>
+            </div>
 
             <InputField
               label="قیمت (دلار)"

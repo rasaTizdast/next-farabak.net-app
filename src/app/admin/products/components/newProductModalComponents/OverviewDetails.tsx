@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { IoIosClose } from "react-icons/io";
 import axios from "axios";
 import Image from "next/image";
+import DeleteOverviewDetailButton from "../DeleteOverviewDetailButton";
 
 type OverviewDetail = {
   ProductOverviewDetailsId: number;
@@ -84,6 +85,7 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
   // Open the detail modal
   const openDetailModal = (detail: OverviewDetail) => {
     setSelectedDetail(detail);
+    setImageLoaded(false);
   };
 
   // Close the detail modal
@@ -131,6 +133,11 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
                   {/* Truncated Title */}
                   <span>{truncateText(detail.Title, 60)}</span>
                   <div className="flex gap-3">
+                    <DeleteOverviewDetailButton
+                      detailId={detail.ProductOverviewDetailsId}
+                      detailTitle={detail.Title}
+                      onSuccess={fetchOverviewDetails}
+                    />
                     <button
                       type="button"
                       onClick={() => openDetailModal(detail)}
@@ -215,15 +222,25 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
               />
             </div>
 
-            <button
-              onClick={() => {
-                toggleSelection(selectedDetail.ProductOverviewDetailsId);
-                closeDetailModal();
-              }}
-              className="mt-6 py-2 px-6 bg-blue-500 hover:bg-blue-600 rounded-lg text-white w-full"
-            >
-              {selectedDetail.selected ? "لغو انتخاب" : "انتخاب"}
-            </button>
+            <div className="mt-6 flex gap-2">
+              <DeleteOverviewDetailButton
+                detailId={selectedDetail.ProductOverviewDetailsId}
+                detailTitle={selectedDetail.Title}
+                onSuccess={() => {
+                  closeDetailModal();
+                  fetchOverviewDetails();
+                }}
+              />
+              <button
+                onClick={() => {
+                  toggleSelection(selectedDetail.ProductOverviewDetailsId);
+                  closeDetailModal();
+                }}
+                className="flex-1 py-2 px-6 bg-blue-500 hover:bg-blue-600 rounded-lg text-white"
+              >
+                {selectedDetail.selected ? "لغو انتخاب" : "انتخاب"}
+              </button>
+            </div>
           </div>
         </div>
       )}
