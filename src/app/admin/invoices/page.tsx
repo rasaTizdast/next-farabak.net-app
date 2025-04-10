@@ -186,96 +186,108 @@ const AdminInvoicesPage = () => {
         </div>
 
         {/* Search and Warranty Check Controls */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-          <div className="flex w-full sm:w-96 items-center">
-            {/* Filter Options - Right side */}
-            <Select
-              value={searchMode}
-              onChange={(value) => {
-                setSearchMode(value as "basic" | "warranty");
-                if (!searchText.trim()) {
-                  setFilteredInvoices(invoices);
-                }
-              }}
-              className="search-select"
-              popupClassName="bg-gray-800 text-white"
-              style={{
-                width: "105px",
-                color: "white",
-                height: "32px",
-              }}
-            >
-              <Option value="basic" className="bg-gray-800 text-white">
-                فیلتر عادی
-              </Option>
-              <Option value="warranty" className="bg-gray-800 text-white">
-                کد گارانتی
-              </Option>
-            </Select>
-
-            {/* Search Input - Middle */}
-            <Input
-              placeholder={
-                searchMode === "warranty"
-                  ? "جستجو در کدهای گارانتی..."
-                  : "جستجوی فاکتور، نام یا شماره تلفن"
-              }
-              value={searchText}
-              onChange={(e) => {
-                setSearchText(e.target.value);
-                // Clear search results when input is empty
-                if (!e.target.value.trim()) {
-                  setFilteredInvoices(invoices);
-                }
-              }}
-              className="search-input"
-              style={{
-                backgroundColor: "#1e293b",
-                color: "white",
-                borderColor: "#384152",
-                height: "32px",
-                direction: "rtl",
-                borderRadius: "0",
-                flex: 1,
-              }}
-            />
-
-            {/* Search Button - Left side */}
-            <Button
-              icon={<SearchOutlined style={{ fontSize: "14px" }} />}
-              type="primary"
-              onClick={() => {
-                if (searchText.trim()) {
-                  // Search is handled by the useEffect
-                } else {
-                  setFilteredInvoices(invoices);
-                }
-              }}
-              className="search-button"
-              style={{
-                width: "32px",
-                height: "32px",
-                borderTopLeftRadius: "0.375rem",
-                borderBottomLeftRadius: "0.375rem",
-                borderTopRightRadius: "0",
-                borderBottomRightRadius: "0",
-                padding: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            />
+        {loading ? (
+          // Search UI skeleton during loading
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            <div className="flex w-full sm:w-96 items-center">
+              <div className="w-[105px] h-[32px] bg-gray-800 rounded-r-md animate-pulse"></div>
+              <div className="flex-1 h-[32px] bg-gray-800 animate-pulse"></div>
+              <div className="w-[32px] h-[32px] bg-blue-700 rounded-l-md animate-pulse"></div>
+            </div>
+            <div className="w-full sm:w-[120px] h-[32px] bg-blue-700 rounded-md animate-pulse"></div>
           </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            <div className="flex w-full sm:w-96 items-center">
+              {/* Filter Options - Right side */}
+              <Select
+                value={searchMode}
+                onChange={(value) => {
+                  setSearchMode(value as "basic" | "warranty");
+                  if (!searchText.trim()) {
+                    setFilteredInvoices(invoices);
+                  }
+                }}
+                className="search-select"
+                popupClassName="bg-gray-800 text-white"
+                style={{
+                  width: "105px",
+                  color: "white",
+                  height: "32px",
+                }}
+              >
+                <Option value="basic" className="bg-gray-800 text-white">
+                  فیلتر عادی
+                </Option>
+                <Option value="warranty" className="bg-gray-800 text-white">
+                  کد گارانتی
+                </Option>
+              </Select>
 
-          <Button
-            onClick={checkWarrantyStatus}
-            loading={isCheckingWarranties}
-            className="w-full sm:w-auto px-3 bg-blue-700 hover:bg-blue-600 text-white border-blue-800"
-            style={{ height: "32px" }}
-          >
-            بررسی گارانتی‌ها
-          </Button>
-        </div>
+              {/* Search Input - Middle */}
+              <Input
+                placeholder={
+                  searchMode === "warranty"
+                    ? "جستجو در کدهای گارانتی..."
+                    : "جستجوی فاکتور، نام یا شماره تلفن"
+                }
+                value={searchText}
+                onChange={(e) => {
+                  setSearchText(e.target.value);
+                  // Clear search results when input is empty
+                  if (!e.target.value.trim()) {
+                    setFilteredInvoices(invoices);
+                  }
+                }}
+                className="search-input"
+                style={{
+                  backgroundColor: "#1e293b",
+                  color: "white",
+                  borderColor: "#384152",
+                  height: "32px",
+                  direction: "rtl",
+                  borderRadius: "0",
+                  flex: 1,
+                }}
+              />
+
+              {/* Search Button - Left side */}
+              <Button
+                icon={<SearchOutlined style={{ fontSize: "14px" }} />}
+                type="primary"
+                onClick={() => {
+                  if (searchText.trim()) {
+                    // Search is handled by the useEffect
+                  } else {
+                    setFilteredInvoices(invoices);
+                  }
+                }}
+                className="search-button"
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  borderTopLeftRadius: "0.375rem",
+                  borderBottomLeftRadius: "0.375rem",
+                  borderTopRightRadius: "0",
+                  borderBottomRightRadius: "0",
+                  padding: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              />
+            </div>
+
+            <Button
+              onClick={checkWarrantyStatus}
+              loading={isCheckingWarranties}
+              className="w-full sm:w-auto px-3 bg-blue-700 hover:bg-blue-600 text-white border-blue-800"
+              style={{ height: "32px" }}
+            >
+              بررسی گارانتی‌ها
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="w-full overflow-auto rounded-lg bg-gray-800 shadow-md">
