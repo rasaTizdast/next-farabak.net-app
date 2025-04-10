@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React, { useEffect, useState } from "react";
 import { HiArrowTurnLeftDown } from "react-icons/hi2";
 import { FaLink } from "react-icons/fa6";

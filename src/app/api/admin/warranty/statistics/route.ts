@@ -5,6 +5,8 @@ import { cookies } from "next/headers";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+export const dynamic = "force-dynamic";
+
 async function verifyToken(token: string) {
   try {
     const secret = new TextEncoder().encode(JWT_SECRET);
@@ -13,7 +15,7 @@ async function verifyToken(token: string) {
     return {
       userId: payload.userId as string,
       role: payload.role as string,
-      branchId: payload.branchId as number
+      branchId: payload.branchId as number,
     };
   } catch (error) {
     console.error("Token verification error:", error);
@@ -24,13 +26,13 @@ async function verifyToken(token: string) {
 // Helper function to format BigInt in query results to Number
 function formatBigIntResults(results: any[]) {
   if (!Array.isArray(results)) return [];
-  
-  return results.map(item => {
+
+  return results.map((item) => {
     if (!item) return item;
-    
+
     const formattedItem: any = {};
-    Object.keys(item).forEach(key => {
-      if (typeof item[key] === 'bigint') {
+    Object.keys(item).forEach((key) => {
+      if (typeof item[key] === "bigint") {
         formattedItem[key] = Number(item[key]);
       } else {
         formattedItem[key] = item[key];
@@ -52,41 +54,43 @@ export async function GET() {
     if (!token) {
       console.log("[STATS API] No authentication token found");
       return NextResponse.json(
-        { 
+        {
           message: "Authorization token required",
           allBranches: [],
-          myBranches: [] 
+          myBranches: [],
         },
         { status: 401 }
       );
     }
 
     const decoded = await verifyToken(token);
-    
+
     if (!decoded) {
       console.log("[STATS API] Invalid token");
       return NextResponse.json(
-        { 
+        {
           message: "Invalid token",
           allBranches: [],
-          myBranches: [] 
+          myBranches: [],
         },
         { status: 401 }
       );
     }
-    
+
     const userRole = decoded.role;
     const userId = decoded.userId;
-    console.log(`[STATS API] Token decoded: UserID=${userId}, Role=${userRole}`);
+    console.log(
+      `[STATS API] Token decoded: UserID=${userId}, Role=${userRole}`
+    );
 
     if (!userRole || (userRole !== "Admin" && userRole !== "Branch")) {
       console.log(`[STATS API] Unauthorized role: ${userRole}`);
       return NextResponse.json(
-        { 
-          message: "Unauthorized", 
+        {
+          message: "Unauthorized",
           allBranches: [],
-          myBranches: [] 
-        }, 
+          myBranches: [],
+        },
         { status: 401 }
       );
     }
@@ -109,10 +113,17 @@ export async function GET() {
           GROUP BY b."branchid", b."name"
           ORDER BY b."name"
         `;
-        
-        console.log(`[STATS API] Admin query returned ${(branchStats as any[]).length} branches`);
+
+        console.log(
+          `[STATS API] Admin query returned ${
+            (branchStats as any[]).length
+          } branches`
+        );
         if ((branchStats as any[]).length > 0) {
-          console.log(`[STATS API] First branch result:`, (branchStats as any[])[0]);
+          console.log(
+            `[STATS API] First branch result:`,
+            (branchStats as any[])[0]
+          );
         } else {
           console.log(`[STATS API] No branches found in admin query`);
         }
@@ -125,38 +136,47 @@ export async function GET() {
       }
     } else {
       // For branch user, get statistics only for their branches
-      console.log(`[STATS API] Executing branch user stats query for UserID=${userId}`);
+      console.log(
+        `[STATS API] Executing branch user stats query for UserID=${userId}`
+      );
       try {
         // Validate userID is a valid number
         const numericUserId = parseInt(userId, 10);
         if (isNaN(numericUserId)) {
           console.error(`[STATS API] UserID is not a valid number: ${userId}`);
           return NextResponse.json(
-            { 
+            {
               message: "Invalid user ID",
               allBranches: [],
-              myBranches: [] 
+              myBranches: [],
             },
             { status: 400 }
           );
         }
-        
+
         console.log(`[STATS API] Converted UserID to number: ${numericUserId}`);
-        
+
         // First check if this user is associated with any branch
         const userBranches = await prisma.branch.findMany({
           where: {
-            UserID: numericUserId
-          }
+            UserID: numericUserId,
+          },
         });
-        
-        console.log(`[STATS API] Found ${userBranches.length} branches for this user`);
+
+        console.log(
+          `[STATS API] Found ${userBranches.length} branches for this user`
+        );
         if (userBranches.length === 0) {
-          console.log(`[STATS API] No branches found for UserID=${numericUserId}`);
+          console.log(
+            `[STATS API] No branches found for UserID=${numericUserId}`
+          );
           result = { allBranches: [], myBranches: [] };
         } else {
-          console.log(`[STATS API] User branch IDs:`, userBranches.map(b => b.branchid));
-          
+          console.log(
+            `[STATS API] User branch IDs:`,
+            userBranches.map((b) => b.branchid)
+          );
+
           const branchStats = await prisma.$queryRaw`
             SELECT 
               b."branchid", 
@@ -170,10 +190,17 @@ export async function GET() {
             GROUP BY b."branchid", b."name"
             ORDER BY b."name"
           `;
-          
-          console.log(`[STATS API] Branch query returned ${(branchStats as any[]).length} branches`);
+
+          console.log(
+            `[STATS API] Branch query returned ${
+              (branchStats as any[]).length
+            } branches`
+          );
           if ((branchStats as any[]).length > 0) {
-            console.log(`[STATS API] Branch stats first result:`, (branchStats as any[])[0]);
+            console.log(
+              `[STATS API] Branch stats first result:`,
+              (branchStats as any[])[0]
+            );
           } else {
             console.log(`[STATS API] No branch stats found in query`);
           }
@@ -192,12 +219,12 @@ export async function GET() {
   } catch (error) {
     console.error("[STATS API] Error getting warranty statistics:", error);
     return NextResponse.json(
-      { 
+      {
         message: "Failed to get warranty statistics",
         allBranches: [],
-        myBranches: [] 
+        myBranches: [],
       },
       { status: 500 }
     );
   }
-} 
+}

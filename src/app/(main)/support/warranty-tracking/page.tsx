@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React, { useState } from "react";
 import {
   Button,
@@ -9,16 +11,13 @@ import {
   Spin,
   Typography,
   Steps,
-  Divider,
   Row,
   Col,
   Result,
-  Modal,
 } from "antd";
 import {
   CheckCircleFilled,
   CloseCircleFilled,
-  ExclamationCircleFilled,
   LoadingOutlined,
   InfoCircleFilled,
   PhoneFilled,

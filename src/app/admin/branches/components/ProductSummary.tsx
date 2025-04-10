@@ -2,14 +2,21 @@ import React from 'react';
 import { Product } from './types';
 
 interface ProductSummaryProps {
-  products: Product[];
+  products: Product[] | any;
 }
 
 const ProductSummary: React.FC<ProductSummaryProps> = ({ products }) => {
-  const totalQuantity = products.reduce(
-    (total, product) => total + (product.quantity || 0),
-    0
-  );
+  // Safely check if products is an array before using reduce
+  const isValidArray = Array.isArray(products);
+  
+  const totalQuantity = isValidArray 
+    ? products.reduce(
+        (total, product) => total + (product.quantity || 0),
+        0
+      )
+    : 0;
+  
+  const productCount = isValidArray ? products.length : 0;
   
   return (
     <div className="bg-blue-900/20 mb-6 p-4 rounded-lg border border-blue-800/50">
@@ -17,7 +24,7 @@ const ProductSummary: React.FC<ProductSummaryProps> = ({ products }) => {
         <div className="flex flex-col">
           <span className="text-gray-400 text-sm">محصولات</span>
           <span className="text-white text-lg font-medium">
-            {products.length} نوع محصول
+            {productCount} نوع محصول
           </span>
         </div>
 

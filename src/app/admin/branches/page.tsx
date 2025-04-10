@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, useRef, Suspense } from "react";
 import { Button, Form, message, Input, AutoComplete, Tabs, Card } from "antd";
 import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
@@ -55,19 +57,21 @@ function BranchesPageContent() {
   // Check URL for productId param
   useEffect(() => {
     const productId = searchParams.get("productId");
-    if (productId) {
-      setSearchProductId(parseInt(productId));
+    if (productId && !initialLoading) {
+      const parsedId = parseInt(productId);
+      setSearchProductId(parsedId);
+      
       // Find product name to set in search value
       if (allProducts.length > 0) {
         const product = allProducts.find(
-          (p) => p.ProductId === parseInt(productId)
+          (p) => p.ProductId === parsedId
         );
         if (product && product.Type) {
           setSearchValue(product.Type);
         }
       }
     }
-  }, [searchParams, allProducts]);
+  }, [searchParams, allProducts, initialLoading]);
 
   // Load data when component mounts and set up auto-refresh
   useEffect(() => {
@@ -140,11 +144,6 @@ function BranchesPageContent() {
     fetchBranchesRef.current = () =>
       fetchBranches(pagination.current, pagination.pageSize);
   }, [searchProductId, pagination.current, pagination.pageSize]);
-
-  // Handle pagination change
-  const handleTableChange = (pagination: any) => {
-    fetchBranches(pagination.current, pagination.pageSize);
-  };
 
   const fetchUsers = async () => {
     try {
@@ -253,11 +252,19 @@ function BranchesPageContent() {
       setProductsLoading(true);
       const response = await fetch(`/api/admin/branches/${branchId}/products`);
       if (!response.ok) throw new Error("خطا در دریافت محصولات شعبه");
-      const data = await response.json();
-      setProducts(data);
+      const responseData = await response.json();
+      
+      // Extract products from the data property if it exists
+      const productsArray = responseData.data && Array.isArray(responseData.data) 
+        ? responseData.data 
+        : (Array.isArray(responseData) ? responseData : []);
+      
+      setProducts(productsArray);
     } catch (error) {
       console.error("Error fetching branch products:", error);
       message.error("خطا در بارگذاری محصولات شعبه");
+      // Set empty array in case of error
+      setProducts([]);
     } finally {
       setProductsLoading(false);
     }
@@ -614,7 +621,7 @@ function BranchesPageContent() {
         </div>
       </div>
       {/* Product Search Summary if search is active */}
-      {searchProductId && allProducts.length > 0 && (
+      {searchProductId && allProducts.length > 0 && !initialLoading && !loading && (
         <ProductSearchSummary
           productName={
             allProducts.find((p) => p.ProductId === searchProductId)?.Type ||
@@ -630,7 +637,7 @@ function BranchesPageContent() {
         className="mt-4 branches-tabs"
         onChange={(key) => {
           setActiveTab(key);
-          
+
           // Show loading message for better UX
           if (key === "warranty-stats") {
             message.info("در حال بارگیری آمار گارانتی‌ها...", 0.5);
@@ -678,8 +685,8 @@ function BranchesPageContent() {
             <p className="text-gray-400 mb-4">
               آمار گارانتی‌های فعال، منقضی شده و درخواست‌های بررسی
             </p>
-            <WarrantyStats 
-              key={`stats-${new Date().getTime()}`} 
+            <WarrantyStats
+              key={`stats-${new Date().getTime()}`}
               isTabActive={activeTab === "warranty-stats"}
             />
           </Card>
@@ -698,8 +705,8 @@ function BranchesPageContent() {
             <p className="text-gray-400 mb-4">
               لیست درخواست‌های بررسی گارانتی از تمام شعبه‌ها
             </p>
-            <WarrantyRequests 
-              key={`requests-${new Date().getTime()}`} 
+            <WarrantyRequests
+              key={`requests-${new Date().getTime()}`}
               isTabActive={activeTab === "warranty-requests"}
             />
           </Card>

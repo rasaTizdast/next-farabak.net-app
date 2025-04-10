@@ -5,15 +5,17 @@ import { jwtVerify } from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+export const dynamic = "force-dynamic";
+
 // Helper function to verify the JWT token
 async function verifyCurrentUser() {
   const cookieStore = cookies();
   const token = cookieStore.get("accessToken")?.value;
-  
+
   if (!token) {
     return null;
   }
-  
+
   try {
     const secret = new TextEncoder().encode(JWT_SECRET);
     const { payload } = await jwtVerify(token, secret);
@@ -21,7 +23,7 @@ async function verifyCurrentUser() {
     return {
       id: payload.userId as string,
       role: payload.role as string,
-      branchId: payload.branchId as number
+      branchId: payload.branchId as number,
     };
   } catch (error) {
     console.error("Token verification failed:", error);
@@ -32,14 +34,14 @@ async function verifyCurrentUser() {
 // Helper function to format BigInt results to Number
 const formatBigIntResults = (results: any[]) => {
   if (!Array.isArray(results)) return [];
-  
-  return results.map(row => {
+
+  return results.map((row) => {
     if (!row) return row;
-    
+
     // Convert any BigInt values to Number for JSON serialization
     const formattedRow: any = {};
     Object.entries(row).forEach(([key, value]) => {
-      if (typeof value === 'bigint') {
+      if (typeof value === "bigint") {
         formattedRow[key] = Number(value);
       } else {
         formattedRow[key] = value;
@@ -56,15 +58,15 @@ export async function GET(req: NextRequest) {
 
     if (!currentUser) {
       return NextResponse.json(
-        { 
-          error: "Authentication required - Please log in", 
+        {
+          error: "Authentication required - Please log in",
           requests: [],
           pagination: {
             currentPage: 1,
             pageSize: 10,
             totalCount: 0,
-            totalPages: 0
-          }
+            totalPages: 0,
+          },
         },
         { status: 401 }
       );
@@ -72,15 +74,15 @@ export async function GET(req: NextRequest) {
 
     if (currentUser.role !== "Branch") {
       return NextResponse.json(
-        { 
+        {
           error: "Unauthorized access - Branch owners only",
           requests: [],
           pagination: {
             currentPage: 1,
             pageSize: 10,
             totalCount: 0,
-            totalPages: 0
-          }
+            totalPages: 0,
+          },
         },
         { status: 401 }
       );
@@ -133,9 +135,10 @@ export async function GET(req: NextRequest) {
         AND b."UserID" = ${currentUser.id}
       `;
 
-      totalCount = countResult && Array.isArray(countResult) && countResult.length > 0 
-        ? Number(countResult[0].count) 
-        : 0;
+      totalCount =
+        countResult && Array.isArray(countResult) && countResult.length > 0
+          ? Number(countResult[0].count)
+          : 0;
     } catch (error) {
       console.error("SQL error in count query:", error);
       totalCount = 0;
@@ -149,23 +152,23 @@ export async function GET(req: NextRequest) {
         currentPage: page,
         pageSize: limit,
         totalCount: totalCount,
-        totalPages: Math.ceil(totalCount / limit)
-      }
+        totalPages: Math.ceil(totalCount / limit),
+      },
     });
   } catch (error) {
     console.error("Error fetching branch warranty requests:", error);
     return NextResponse.json(
-      { 
+      {
         error: "Failed to fetch branch warranty requests",
         requests: [],
         pagination: {
           currentPage: 1,
           pageSize: 10,
           totalCount: 0,
-          totalPages: 0
-        }
+          totalPages: 0,
+        },
       },
       { status: 500 }
     );
   }
-} 
+}

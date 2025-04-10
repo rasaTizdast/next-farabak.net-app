@@ -94,7 +94,7 @@ const ProductSearchSummary: React.FC<ProductSearchSummaryProps> = ({
             </div>
           </div>
           
-          {branches.length > 0 && totalQuantity === 0 && (
+          {branches.length > 0 && branchesWithProduct === 0 && (
             <Alert
               message="محصول مورد نظر در هیچ شعبه‌ای یافت نشد."
               type="warning"

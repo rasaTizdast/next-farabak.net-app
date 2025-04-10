@@ -1,26 +1,21 @@
 import React, { ReactNode } from "react";
-import { IoIosClose } from "react-icons/io";
 
-interface ModalProps {
+interface Props {
   isOpen: boolean;
   onClose: () => void;
   children: ReactNode;
   title?: string;
   className?: string;
-  showCloseButton?: boolean;
-  preventOutsideClick?: boolean;
   size?: "sm" | "md" | "lg" | "xl" | "2xl" | "full";
   zIndex?: number;
 }
 
-const Modal: React.FC<ModalProps> = ({
+const Modal: React.FC<Props> = ({
   isOpen,
   onClose,
   children,
   title,
   className = "",
-  showCloseButton = true,
-  preventOutsideClick = false,
   size = "lg",
   zIndex = 50,
 }) => {
@@ -49,15 +44,12 @@ const Modal: React.FC<ModalProps> = ({
           <h2 className="text-xl font-bold mb-6 text-center">{title}</h2>
         )}
 
-        {showCloseButton && (
-          <button
-            onClick={onClose}
-            className="absolute top-3 right-3 text-red-400 hover:text-red-500 transition-colors"
-            aria-label="Close"
-          >
-            <IoIosClose size={30} />
-          </button>
-        )}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 font-bold text-gray-400 hover:text-gray-200 focus:outline-none"
+        >
+          ✕
+        </button>
 
         {children}
       </div>

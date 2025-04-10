@@ -1,7 +1,9 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useEffect, useState } from "react";
-import { Input, Button, message, Spin, Select } from "antd";
+import { Input, Button, Select } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import AdminInvoiceDetailsModal from "./components/ui/AdminInvoiceDetailsModal";
 import AdminPhoneNumberModal from "./components/ui/AdminPhoneNumberModal";
@@ -132,7 +134,10 @@ const AdminInvoicesPage = () => {
     const payload = { checked: status };
 
     try {
-      const response = await axios.patch(`/api/admin/invoices?id=${Invoiceid}`, payload);
+      const response = await axios.patch(
+        `/api/admin/invoices?id=${Invoiceid}`,
+        payload
+      );
 
       if (!response) {
         throw new Error("Failed to update invoice status.");
@@ -404,19 +409,29 @@ const AdminInvoicesPage = () => {
                 onWarrantyUpdate={async () => {
                   // Fetch updated invoice data
                   try {
-                    const response = await fetch(`/api/admin/invoices/${selectedInvoice.Invoiceid}`);
+                    const response = await fetch(
+                      `/api/admin/invoices/${selectedInvoice.Invoiceid}`
+                    );
                     if (response.ok) {
                       const updatedInvoice = await response.json();
-                      
+
                       // Update the selected invoice with fresh data
                       setSelectedInvoice(updatedInvoice);
-                      
+
                       // Also update the invoice in the invoices list
-                      setInvoices(prev => 
-                        prev.map(inv => inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv)
+                      setInvoices((prev) =>
+                        prev.map((inv) =>
+                          inv.Invoiceid === updatedInvoice.Invoiceid
+                            ? updatedInvoice
+                            : inv
+                        )
                       );
-                      setFilteredInvoices(prev => 
-                        prev.map(inv => inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv)
+                      setFilteredInvoices((prev) =>
+                        prev.map((inv) =>
+                          inv.Invoiceid === updatedInvoice.Invoiceid
+                            ? updatedInvoice
+                            : inv
+                        )
                       );
                     }
                   } catch (error) {

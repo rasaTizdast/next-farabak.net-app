@@ -4,6 +4,8 @@ import Link from "next/link";
 import styles from "./ProductsMegaMenu.module.css";
 import axios from "axios";
 
+export const dynamic = "force-dynamic";
+
 // Category and Subcategory types
 export interface Subcategory {
   CategoryContentId: number;
@@ -35,17 +37,23 @@ export interface Category {
 
 // Fetch data on the server
 async function fetchCategories(): Promise<Category[]> {
-  const res = await axios.get(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/getAll`
-  );
+  try {
+    const res = await axios.get(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/getAll`
+    );
 
-  if (!res.status) {
-    console.error("Fetch failed with status");
-    throw new Error("Failed to fetch categories");
+    if (!res.status) {
+      console.error("Fetch failed with status");
+      return []; // Return empty array instead of throwing
+    }
+
+    const categories: Category[] = await res.data;
+    return categories.filter((category) => category.Available);
+  } catch (error) {
+    // During build time or when API is unavailable, return empty array
+    console.error("Error fetching categories:", error);
+    return [];
   }
-
-  const categories: Category[] = await res.data;
-  return categories.filter((category) => category.Available);
 }
 
 const ProductsMegaMenu = async () => {

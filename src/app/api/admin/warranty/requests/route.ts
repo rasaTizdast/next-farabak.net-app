@@ -5,16 +5,18 @@ import { jwtVerify } from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+export const dynamic = "force-dynamic";
+
 // Helper function to verify the JWT token
 async function verifyCurrentUser() {
   const cookieStore = cookies();
   const token = cookieStore.get("accessToken")?.value;
-  
+
   if (!token) {
     console.log("[REQUESTS API] No token found in cookies");
     return null;
   }
-  
+
   try {
     const secret = new TextEncoder().encode(JWT_SECRET);
     const { payload } = await jwtVerify(token, secret);
@@ -22,7 +24,7 @@ async function verifyCurrentUser() {
     return {
       id: payload.userId as string,
       role: payload.role as string,
-      branchId: payload.branchId as number
+      branchId: payload.branchId as number,
     };
   } catch (error) {
     console.error("[REQUESTS API] Token verification failed:", error);
@@ -33,14 +35,14 @@ async function verifyCurrentUser() {
 // Helper function to format BigInt results to Number
 const formatBigIntResults = (results: any[]) => {
   if (!Array.isArray(results)) return [];
-  
-  return results.map(row => {
+
+  return results.map((row) => {
     if (!row) return row;
-    
+
     // Convert any BigInt values to Number for JSON serialization
     const formattedRow: any = {};
     Object.entries(row).forEach(([key, value]) => {
-      if (typeof value === 'bigint') {
+      if (typeof value === "bigint") {
         formattedRow[key] = Number(value);
       } else {
         formattedRow[key] = value;
@@ -59,32 +61,34 @@ export async function GET(req: NextRequest) {
     if (!currentUser) {
       console.log("[REQUESTS API] No authentication found");
       return NextResponse.json(
-        { 
+        {
           error: "Authentication required - Please log in",
           requests: [],
           pagination: {
             currentPage: 1,
             pageSize: 10,
             totalCount: 0,
-            totalPages: 0
-          }
+            totalPages: 0,
+          },
         },
         { status: 401 }
       );
     }
 
     if (currentUser.role !== "Admin" && currentUser.role !== "Branch") {
-      console.log(`[REQUESTS API] Unauthorized role for warranty requests: ${currentUser.role}`);
+      console.log(
+        `[REQUESTS API] Unauthorized role for warranty requests: ${currentUser.role}`
+      );
       return NextResponse.json(
-        { 
+        {
           error: "Unauthorized access",
           requests: [],
           pagination: {
             currentPage: 1,
             pageSize: 10,
             totalCount: 0,
-            totalPages: 0
-          }
+            totalPages: 0,
+          },
         },
         { status: 401 }
       );
@@ -95,35 +99,41 @@ export async function GET(req: NextRequest) {
     const page = parseInt(url.searchParams.get("page") || "1");
     const limit = parseInt(url.searchParams.get("limit") || "10");
     const offset = (page - 1) * limit;
-    
+
     // Validate userID is a valid number
     const numericUserId = parseInt(currentUser.id, 10);
     if (isNaN(numericUserId)) {
-      console.error(`[REQUESTS API] UserID is not a valid number: ${currentUser.id}`);
+      console.error(
+        `[REQUESTS API] UserID is not a valid number: ${currentUser.id}`
+      );
       return NextResponse.json(
-        { 
+        {
           error: "Invalid user ID",
           requests: [],
           pagination: {
             currentPage: 1,
             pageSize: 10,
             totalCount: 0,
-            totalPages: 0
-          }
+            totalPages: 0,
+          },
         },
         { status: 400 }
       );
     }
-    
-    console.log(`[REQUESTS API] Pagination: page=${page}, limit=${limit}, offset=${offset}`);
-    console.log(`[REQUESTS API] Valid user ID: ${numericUserId}, Role: ${currentUser.role}`);
+
+    console.log(
+      `[REQUESTS API] Pagination: page=${page}, limit=${limit}, offset=${offset}`
+    );
+    console.log(
+      `[REQUESTS API] Valid user ID: ${numericUserId}, Role: ${currentUser.role}`
+    );
 
     let requests = [];
     let totalCount = 0;
 
     if (currentUser.role === "Admin") {
       console.log("[REQUESTS API] Executing admin warranty requests query");
-      
+
       // First, check if there are any warranties with 'Requested' status
       const checkQuery = await prisma.$queryRaw`
         SELECT COUNT(*)::integer as count
@@ -131,7 +141,7 @@ export async function GET(req: NextRequest) {
         WHERE w."status" = 'Requested'
       `;
       console.log("[REQUESTS API] Check query result:", checkQuery);
-      
+
       // Get all requests for admin with pagination
       requests = await prisma.$queryRaw`
         SELECT 
@@ -153,51 +163,63 @@ export async function GET(req: NextRequest) {
         ORDER BY w."warrantyid" DESC
         LIMIT ${limit} OFFSET ${offset}
       `;
-      
+
       // Count total for pagination
       const countResult = await prisma.$queryRaw`
         SELECT COUNT(*)::integer as count
         FROM "info"."warranty" w
         WHERE w."status" = 'Requested'
       `;
-      
-      totalCount = countResult && Array.isArray(countResult) && countResult.length > 0 
-        ? Number(countResult[0].count) 
-        : 0;
-      
-      console.log(`[REQUESTS API] Admin query returned ${requests.length} warranty requests (total: ${totalCount})`);
+
+      totalCount =
+        countResult && Array.isArray(countResult) && countResult.length > 0
+          ? Number(countResult[0].count)
+          : 0;
+
+      console.log(
+        `[REQUESTS API] Admin query returned ${requests.length} warranty requests (total: ${totalCount})`
+      );
       if (requests.length > 0) {
         console.log(`[REQUESTS API] First request result:`, requests[0]);
       } else {
         console.log(`[REQUESTS API] No warranty requests found in admin query`);
       }
     } else {
-      console.log(`[REQUESTS API] Executing branch user warranty requests query for UserID=${numericUserId}`);
-      
+      console.log(
+        `[REQUESTS API] Executing branch user warranty requests query for UserID=${numericUserId}`
+      );
+
       // First check if this user is associated with any branch
       const userBranches = await prisma.branch.findMany({
         where: {
-          UserID: numericUserId
-        }
+          UserID: numericUserId,
+        },
       });
-      
-      console.log(`[REQUESTS API] Found ${userBranches.length} branches for user ${numericUserId}`);
-      
+
+      console.log(
+        `[REQUESTS API] Found ${userBranches.length} branches for user ${numericUserId}`
+      );
+
       if (userBranches.length === 0) {
-        console.log(`[REQUESTS API] No branches found for UserID=${numericUserId}`);
+        console.log(
+          `[REQUESTS API] No branches found for UserID=${numericUserId}`
+        );
         return NextResponse.json({
           requests: [],
           pagination: {
             currentPage: page,
             pageSize: limit,
             totalCount: 0,
-            totalPages: 0
-          }
+            totalPages: 0,
+          },
         });
       }
-      
-      console.log(`[REQUESTS API] User branch IDs:`, userBranches.map(b => b.branchid));
-      
+
+      console.log(
+        `[REQUESTS API] User branch IDs:`,
+        userBranches.map((b) => b.branchid)
+      );
+
       // First, check if there are any warranties with 'Requested' status for this branch
       const checkQuery = await prisma.$queryRaw`
         SELECT COUNT(*)::integer as count
@@ -207,7 +229,7 @@ export async function GET(req: NextRequest) {
         AND b."UserID" = ${numericUserId}
       `;
       console.log("[REQUESTS API] Check query result:", checkQuery);
-      
+
       // Get branch-specific requests with pagination
       requests = await prisma.$queryRaw`
         SELECT 
@@ -230,7 +252,7 @@ export async function GET(req: NextRequest) {
         ORDER BY w."warrantyid" DESC
         LIMIT ${limit} OFFSET ${offset}
       `;
-      
+
       // Count total for pagination
       const countResult = await prisma.$queryRaw`
         SELECT COUNT(*)::integer as count
@@ -239,21 +261,28 @@ export async function GET(req: NextRequest) {
         WHERE w."status" = 'Requested'
         AND b."UserID" = ${numericUserId}
       `;
-      
-      totalCount = countResult && Array.isArray(countResult) && countResult.length > 0 
-        ? Number(countResult[0].count) 
-        : 0;
-      
-      console.log(`[REQUESTS API] Branch query returned ${requests.length} warranty requests (total: ${totalCount})`);
+
+      totalCount =
+        countResult && Array.isArray(countResult) && countResult.length > 0
+          ? Number(countResult[0].count)
+          : 0;
+
+      console.log(
+        `[REQUESTS API] Branch query returned ${requests.length} warranty requests (total: ${totalCount})`
+      );
       if (requests.length > 0) {
         console.log(`[REQUESTS API] First request result:`, requests[0]);
       } else {
-        console.log(`[REQUESTS API] No warranty requests found in branch query`);
+        console.log(
+          `[REQUESTS API] No warranty requests found in branch query`
+        );
       }
     }
 
     const formattedRequests = formatBigIntResults(requests as any[]);
-    console.log(`[REQUESTS API] Returning ${formattedRequests.length} warranty requests`);
+    console.log(
+      `[REQUESTS API] Returning ${formattedRequests.length} warranty requests`
+    );
 
     return NextResponse.json({
       requests: formattedRequests,
@@ -261,21 +290,21 @@ export async function GET(req: NextRequest) {
         currentPage: page,
         pageSize: limit,
         totalCount: totalCount,
-        totalPages: Math.ceil(totalCount / limit)
-      }
+        totalPages: Math.ceil(totalCount / limit),
+      },
     });
   } catch (error) {
     console.error("[REQUESTS API] Error fetching warranty requests:", error);
     return NextResponse.json(
-      { 
+      {
         error: "Failed to fetch warranty requests",
         requests: [],
         pagination: {
           currentPage: 1,
           pageSize: 10,
           totalCount: 0,
-          totalPages: 0
-        }
+          totalPages: 0,
+        },
       },
       { status: 500 }
     );
@@ -289,7 +318,9 @@ export async function PUT(req: NextRequest) {
     const currentUser = await verifyCurrentUser();
 
     if (!currentUser) {
-      console.log("[REQUESTS API] No authentication found for warranty request update");
+      console.log(
+        "[REQUESTS API] No authentication found for warranty request update"
+      );
       return NextResponse.json(
         { error: "Authentication required - Please log in" },
         { status: 401 }
@@ -297,7 +328,9 @@ export async function PUT(req: NextRequest) {
     }
 
     if (currentUser.role !== "Admin" && currentUser.role !== "Branch") {
-      console.log(`[REQUESTS API] Unauthorized role for warranty request update: ${currentUser.role}`);
+      console.log(
+        `[REQUESTS API] Unauthorized role for warranty request update: ${currentUser.role}`
+      );
       return NextResponse.json(
         { error: "Unauthorized access" },
         { status: 401 }
@@ -306,7 +339,9 @@ export async function PUT(req: NextRequest) {
 
     const body = await req.json();
     const { warrantyId, action } = body;
-    console.log(`[REQUESTS API] Update request - warrantyId: ${warrantyId}, action: ${action}`);
+    console.log(
+      `[REQUESTS API] Update request - warrantyId: ${warrantyId}, action: ${action}`
+    );
 
     if (!warrantyId || !action) {
       console.log("[REQUESTS API] Missing required fields for warranty update");
@@ -316,7 +351,7 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    if (action === 'resolve') {
+    if (action === "resolve") {
       // Get the warranty to check its expiry date
       let warrantyRecord;
       try {
@@ -329,7 +364,10 @@ export async function PUT(req: NextRequest) {
           WHERE w."warrantyid" = ${warrantyId}
           LIMIT 1
         `;
-        console.log(`[REQUESTS API] Found warranty record:`, warrantyRecord[0] || {});
+        console.log(
+          `[REQUESTS API] Found warranty record:`,
+          warrantyRecord[0] || {}
+        );
       } catch (error) {
         console.error("[REQUESTS API] Error fetching warranty details:", error);
         return NextResponse.json(
@@ -346,8 +384,10 @@ export async function PUT(req: NextRequest) {
       }
 
       // Branch users can only resolve warranties for their own branches
-      if (currentUser.role === "Branch" && 
-          warrantyRecord[0].branch_user_id !== currentUser.id) {
+      if (
+        currentUser.role === "Branch" &&
+        warrantyRecord[0].branch_user_id !== currentUser.id
+      ) {
         return NextResponse.json(
           { error: "You can only resolve warranty requests for your branch" },
           { status: 403 }
@@ -380,10 +420,7 @@ export async function PUT(req: NextRequest) {
       });
     }
 
-    return NextResponse.json(
-      { error: "Invalid action" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (error) {
     console.error("[REQUESTS API] Error updating warranty request:", error);
     return NextResponse.json(

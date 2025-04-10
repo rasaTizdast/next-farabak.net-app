@@ -5,6 +5,8 @@ import { jwtVerify } from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+export const dynamic = "force-dynamic";
+
 // Helper function to verify the JWT token
 async function verifyToken() {
   const cookieStore = cookies();
