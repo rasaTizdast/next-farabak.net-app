@@ -239,7 +239,7 @@ export default async function ProductPage({
             </div>
           }
         >
-          <ProductFaq />
+          <ProductFaq productId={productData.ProductId} />
         </Suspense>
       </section>
     </>

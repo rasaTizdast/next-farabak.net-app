@@ -222,71 +222,92 @@ export async function GET(request: Request) {
       return new NextResponse("No products found", { status: 404 });
     }
 
-    const data = await Promise.all(
-      products.map(async (product: ProductType) => {
-        const categorySlug = product.Category?.Slug || null;
-
-        // Parse CategoryContentId string
-        const categoryContentIds = product.CategoryContentId
-          ? product.CategoryContentId.split(",").map((id) =>
-              parseInt(id.trim(), 10)
-            )
-          : [];
-
-        // Fetch all subcategories for the product
-        const subCategories: CategoryContentType[] =
-          await prisma.categoryContent.findMany({
-            where: {
-              CategoryContentId: { in: categoryContentIds },
-            },
-          });
-
-        // Sort subcategories to match the order in categoryContentIds
-        const sortedSubCategories = categoryContentIds
-          .map((id) =>
-            subCategories.find(
-              (sub: CategoryContentType) => sub.CategoryContentId === id
-            )
-          )
-          .filter(Boolean); // Filter out any undefined matches
-
-        const subCategoryName =
-          sortedSubCategories.length > 0
-            ? sortedSubCategories.map((sub) => sub!.Name).join(", ")
-            : null;
-
-        const categoryContentDetails = sortedSubCategories.map((sub) => ({
-          CategoryContentId: sub!.CategoryContentId,
-          Name: sub!.Name || "",
-        }));
-
-        const {
-          ProductId,
-          Name,
-          Type,
-          Description,
-          Price,
-          Available,
-          Slug,
-          ...rest
-        } = product;
-
-        return {
-          ProductId,
-          Name,
-          Type: Type || "",
-          Description,
-          categoryName: product.Category?.Name || "",
-          subCategoryName,
-          productSlug: Slug || "",
-          Price: parseFloat(Price || "0"),
-          Available: Available || false,
-          link: `${categorySlug}/${sortedSubCategories[0]?.Slug || ""}/${Slug}`,
-          CategoryContentIds: categoryContentDetails,
-          ...rest, // Include remaining untouched fields
-        };
-      })
+    // --- Optimization Start ---
+    // 1. Collect all unique CategoryContentIds from the fetched products
+    const allCategoryContentIds = products.reduce(
+      (acc: number[], product: ProductType) => {
+        if (product.CategoryContentId) {
+          const ids = product.CategoryContentId.split(",")
+            .map((id) => parseInt(id.trim(), 10))
+            .filter((id) => !isNaN(id)); // Ensure only valid numbers are included
+          return [...acc, ...ids];
+        }
+        return acc;
+      },
+      []
     );
+    const uniqueCategoryContentIds = Array.from(new Set(allCategoryContentIds)); // Remove duplicates
+
+    // 2. Fetch all relevant subcategories in one query
+    let subCategoriesMap: Map<number, CategoryContentType> = new Map();
+    if (uniqueCategoryContentIds.length > 0) {
+      const subCategoriesData: CategoryContentType[] =
+        await prisma.categoryContent.findMany({
+          where: {
+            CategoryContentId: { in: uniqueCategoryContentIds },
+          },
+        });
+      // Create a map for quick lookup
+      subCategoriesData.forEach((sub) =>
+        subCategoriesMap.set(sub.CategoryContentId, sub)
+      );
+    }
+    // --- Optimization End ---
+
+    const data = products.map((product: ProductType) => {
+      const categorySlug = product.Category?.Slug || null;
+
+      // Parse CategoryContentId string
+      const categoryContentIds = product.CategoryContentId
+        ? product.CategoryContentId.split(",").map((id) =>
+            parseInt(id.trim(), 10)
+          )
+        : [];
+
+      // --- Optimization Start ---
+      // 3. Map subcategories from the pre-fetched map
+      const sortedSubCategories = categoryContentIds
+        .map((id) => subCategoriesMap.get(id)) // Look up from the map
+        .filter((sub): sub is CategoryContentType => sub !== undefined); // Filter out undefined results (if any ID wasn't found)
+      // --- Optimization End ---
+
+      // Extract subCategory slugs and names
+      const subCategoryName =
+        sortedSubCategories.length > 0
+          ? sortedSubCategories.map((sub) => sub!.Name).join(", ")
+          : null;
+
+      const categoryContentDetails = sortedSubCategories.map((sub) => ({
+        CategoryContentId: sub!.CategoryContentId,
+        Name: sub!.Name || "",
+      }));
+
+      const {
+        ProductId,
+        Name,
+        Type,
+        Description,
+        Price,
+        Available,
+        Slug,
+        ...rest
+      } = product;
+
+      return {
+        ProductId,
+        Name,
+        Type: Type || "",
+        Description,
+        categoryName: product.Category?.Name || "",
+        subCategoryName,
+        productSlug: Slug || "",
+        Price: parseFloat(Price || "0"),
+        Available: Available || false,
+        link: `${categorySlug}/${sortedSubCategories[0]?.Slug || ""}/${Slug}`,
+        CategoryContentIds: categoryContentDetails,
+        ...rest, // Include remaining untouched fields
+      };
+    });
 
     return NextResponse.json({
       data,

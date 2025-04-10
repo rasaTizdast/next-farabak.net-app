@@ -1,9 +1,9 @@
-import React from 'react';
-import { Drawer } from 'antd';
-import { Product, Branch } from './types';
-import ProductSummary from './ProductSummary';
-import ProductForm from './ProductForm';
-import ProductTable from './ProductTable';
+import React from "react";
+import { Drawer } from "antd";
+import { Product, Branch } from "./types";
+import ProductSummary from "./ProductSummary";
+import ProductForm from "./ProductForm";
+import ProductTable from "./ProductTable";
 
 interface ProductDrawerProps {
   visible: boolean;
@@ -29,12 +29,11 @@ const ProductDrawer: React.FC<ProductDrawerProps> = ({
   allProducts,
   loading,
   productForm,
-  selectedProduct,
   onSelectProduct,
   onQuantityChange,
   onAddProduct,
   onUpdateQuantity,
-  onRemoveProduct
+  onRemoveProduct,
 }) => {
   return (
     <Drawer
@@ -53,8 +52,8 @@ const ProductDrawer: React.FC<ProductDrawerProps> = ({
           padding: "16px 24px",
           fontFamily: "inherit",
         },
-        body: { 
-          background: "#111827", 
+        body: {
+          background: "#111827",
           padding: "16px",
           fontFamily: "inherit",
         },
@@ -78,9 +77,7 @@ const ProductDrawer: React.FC<ProductDrawerProps> = ({
       />
 
       <div className="mb-4">
-        <h3 className="text-lg font-medium mb-3 text-gray-200">
-          لیست محصولات
-        </h3>
+        <h3 className="text-lg font-medium mb-3 text-gray-200">لیست محصولات</h3>
         <ProductTable
           products={products}
           loading={loading}
@@ -92,4 +89,4 @@ const ProductDrawer: React.FC<ProductDrawerProps> = ({
   );
 };
 
-export default ProductDrawer; 
+export default ProductDrawer;

@@ -5,20 +5,25 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 10;
+  padding: 1rem;
+  overflow-y: auto;
 }
 
 .modalContent {
   background-color: #fff;
   padding: 2rem;
-  border-radius: 8px;
+  border-radius: 12px;
   width: 90%;
-  max-width: 800px;
+  max-width: 850px;
   text-align: right;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .invoice {
@@ -32,45 +37,67 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  font-size: 1.2rem;
-  height: fit-content;
-  align-self: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  width: 100%;
 }
 
 .invoiceLogo img {
-  width: 30%;
+  width: 25%;
+  height: auto;
 }
 
 .invoiceHeader {
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #eaeaea;
 }
 
 .invoiceHeader h3 {
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  color: var(--dark-blue-color);
 }
 
 .invoiceHeader .date {
-  margin-bottom: 1.3rem;
+  margin: 1.5rem 0;
 }
 
 .invoiceTable {
   width: 100%;
   border-collapse: collapse;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .invoiceTable th,
 .invoiceTable td {
-  padding: 10px;
-  border: 1px solid #ccc;
+  padding: 12px 15px;
+  border: 1px solid #eaeaea;
 }
 
 .invoiceTable th {
   text-align: right;
-  background-color: #f8f8f8;
+  background-color: var(--dark-blue-color);
+  color: white;
+  font-weight: 600;
+}
+
+.invoiceTable tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.invoiceTable tr:hover {
+  background-color: #f1f1f1;
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem 0;
 }
 
 .userDetails .name,
@@ -83,48 +110,160 @@
 
 .userDetails .name span,
 .userDetails .phoneNumber span {
-  font-weight: 400;
+  font-weight: 500;
+  color: #444;
 }
 
 .actions {
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
+  gap: 1rem;
   margin-top: 1.5rem;
 }
 
 .printButton,
 .downloadButton,
 .closeButton {
-  padding: 0.5rem 1.5rem;
-  background-color: var(--dark-blue-color);
-  color: #fff;
-  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
-  transition: all 0.3s ease-in-out;
+  transition: all 0.2s ease-in-out;
+  font-weight: 600;
+  font-size: 1rem;
 }
 
-@media (min-width: 576px) {
-  .printButton:hover,
-  .downloadButton:hover,
-  .closeButton:hover {
-    background-color: var(--fourth-color);
-  }
+.downloadButton {
+  background-color: var(--dark-blue-color);
+  color: #fff;
+}
+
+.closeButton {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.downloadButton:hover {
+  background-color: var(--fourth-color);
+  transform: translateY(-2px);
+}
+
+.closeButton:hover {
+  background-color: #e0e0e0;
+  transform: translateY(-2px);
+}
+
+.warrantyInfo {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  padding: 8px;
+  border-radius: 6px;
+  background-color: #f8f8f8;
+}
+
+.warrantyInfo div {
+  margin-bottom: 4px;
+}
+
+.warrantyInfo strong {
+  color: var(--dark-blue-color);
+  margin-left: 4px;
+}
+
+.statusTag {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-right: 5px;
+}
+
+.statusActive {
+  background-color: #e6f7e6;
+  color: #2e7d32;
+}
+
+.statusExpired {
+  background-color: #ffeaea;
+  color: #d32f2f;
+}
+
+.statusRequested {
+  background-color: #fff8e1;
+  color: #ff8f00;
+}
+
+.noWarranty {
+  color: #757575;
+  font-style: italic;
+  font-size: 0.9rem;
+  padding: 4px 8px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  display: inline-block;
 }
 
 @media (max-width: 768px) {
   .modalContent {
     width: 95%;
-    padding: 1rem;
+    padding: 1.5rem 1rem;
+  }
+  
+  .invoiceTable {
+    font-size: 0.85rem;
+  }
+
+  .invoiceTable th,
+  .invoiceTable td {
+    padding: 8px 10px;
+  }
+  
+  .warrantyInfo {
+    font-size: 0.8rem;
+  }
+  
+  .actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .downloadButton,
+  .closeButton {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .invoiceLogo img {
+    width: 40%;
   }
 }
 
 @media (max-width: 576px) {
-  .invoiceLogo {
-    font-size: 1rem;
-    gap: 0.5rem;
+  .modalContent {
+    padding: 1rem;
+    width: 98%;
   }
+
+  .invoice {
+    padding: 0.5rem;
+  }
+
+  .invoiceTable {
+    font-size: 0.75rem;
+    display: block;
+    overflow-x: auto;
+  }
+  
+  .invoiceHeader h3 {
+    font-size: 1.2rem;
+  }
+  
+  .warrantyInfo {
+    font-size: 0.7rem;
+  }
+  
   .invoiceLogo img {
-    height: 11px;
+    width: 50%;
   }
 }

@@ -91,7 +91,20 @@ export async function GET(): Promise<NextResponse> {
       },
     });
 
-    return NextResponse.json(invoices, { status: 200 });
+    // Sort Invoice_Details by ProductId for each invoice to group them
+    const sortedInvoices = invoices.map((invoice) => ({
+      ...invoice,
+      Invoice_Details: invoice.Invoice_Details.sort((a, b) => {
+        // First sort by ProductId to group same products together
+        if (a.ProductId !== b.ProductId) {
+          return (a.ProductId || 0) - (b.ProductId || 0);
+        }
+        // If same product, preserve original order
+        return 0;
+      }),
+    }));
+
+    return NextResponse.json(sortedInvoices, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       { message: "Failed to fetch invoices" },
@@ -204,26 +217,38 @@ export async function POST(request: Request) {
 
     const invoiceId = createdInvoice.Invoiceid;
 
-    // Create invoice details for each product
-    const invoiceDetailsData = Products.map((product) => ({
-      Invoiceid: invoiceId,
-      ProductId: product.ProductId,
-      quantity: product.Quantity,
-      price: product.Price,
-      total_price:
-        product.Quantity * product.Price - product.Discount * product.Quantity,
-      UserId: userId,
-    }));
+    // Create individual invoice details for each product quantity
+    const invoiceDetailsPromises: Promise<any>[] = [];
 
-    await prisma.invoice_Details.createMany({
-      data: invoiceDetailsData,
-    });
+    for (const product of Products) {
+      // Calculate the final price after discount once
+      const finalPrice = product.Price - product.Discount;
+
+      // For each product, create separate record for each quantity
+      for (let i = 0; i < product.Quantity; i++) {
+        const invoiceDetail = prisma.invoice_Details.create({
+          data: {
+            Invoiceid: invoiceId,
+            ProductId: product.ProductId,
+            quantity: 1, // Each record represents 1 item
+            price: finalPrice, // Use final price (after discount) for price field
+            total_price: finalPrice, // Use same final price for total_price field
+            UserId: userId,
+          },
+        });
+
+        invoiceDetailsPromises.push(invoiceDetail);
+      }
+    }
+
+    // Execute all create operations
+    const createdDetails = await Promise.all(invoiceDetailsPromises);
 
     return NextResponse.json(
       {
         message: "Invoice successfully created",
         invoice: createdInvoice,
-        details: invoiceDetailsData,
+        details: createdDetails,
       },
       { status: 201 }
     );

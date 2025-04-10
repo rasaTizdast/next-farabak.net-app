@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Overview, OverviewDetail, Product, Specs } from "../types";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -8,6 +8,8 @@ import EditModalOverview from "./EditModalOverview";
 import EditModalOverviewDetails from "./EditModalOverviewDetails";
 import EditModalSpecs from "./EditModalSpecs";
 import EditModalProductBlog from "./EditModalProductBlog";
+import NewOverviewDetailsModal from "./NewOverviewDetailsModal";
+import EditModalFAQ from "./EditModalFAQ";
 
 type Category = {
   CategoryID: number;
@@ -25,6 +27,12 @@ type ProductEditModalProps = {
   setIsEditModalOpen: (arg0: boolean) => void;
 };
 
+// Add a new type for FAQs
+type FAQItem = {
+  question: string;
+  answer: string;
+};
+
 const ProductEditModal: React.FC<ProductEditModalProps> = ({
   product,
   onClose,
@@ -36,12 +44,15 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const [newImg1, setNewImg1] = useState<File | null>(null);
   const [newImg2, setNewImg2] = useState<File | null>(null);
   const [isLoading, setIsloading] = useState<boolean>(false);
+  const [showNewOverviewDetailsModal, setShowNewOverviewDetailsModal] =
+    useState(false);
 
   const [overviews, setOverviews] = useState<Overview | null>(null);
   const [overviewDetails, setOverviewDetails] = useState<
     OverviewDetail[] | null
   >(null);
   const [specs, setSpecs] = useState<Specs | null>(null);
+  const [faqs, setFaqs] = useState<FAQItem[]>([]);
 
   useEffect(() => {
     axios
@@ -246,6 +257,15 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
       return;
     }
 
+    // Validate FAQs
+    const hasInvalidFaqs = faqs.some(
+      (faq) => !faq.question.trim() || !faq.answer.trim()
+    );
+    if (hasInvalidFaqs) {
+      toast.error("لطفاً تمام سوالات و پاسخ‌ها را تکمیل کنید.");
+      return;
+    }
+
     // Convert CategoryContentIds to a string format for CategoryContentId
     const formattedCategoryContentId = formState.CategoryContentIds.map(
       (subcategory) => subcategory.CategoryContentId
@@ -322,6 +342,13 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
         toast.error("آپدیت جزئیات بررسی به مشکل خورده است.");
       }
 
+      // Save FAQs
+      try {
+        await axios.put(`/api/faqs/product/${formState.ProductId}`, faqs);
+      } catch (error) {
+        toast.error("ذخیره سوالات متداول با مشکل روبرو شد.");
+      }
+
       toast.success("محصول مورد نظر با موفقیت آپدیت شد!");
       refetchProducts();
     } catch (error) {
@@ -340,6 +367,11 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
 
   return (
     <>
+      {showNewOverviewDetailsModal && (
+        <NewOverviewDetailsModal
+          onClose={() => setShowNewOverviewDetailsModal(false)}
+        />
+      )}
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm shadow-lg">
         <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg w-full max-w-6xl max-h-[95dvh] overflow-auto">
           <h2 className="text-xl font-bold mb-10 text-center">ویرایش محصول</h2>
@@ -512,6 +544,15 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               productId={formState.ProductId}
               setProductOverviewDetails={setOverviewDetails}
             />
+            <div className="col-span-1 sm:col-span-2 border-b-4 border-b-gray-200 pb-2">
+              <button
+                type="button"
+                onClick={() => setShowNewOverviewDetailsModal(true)}
+                className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-white mb-4"
+              >
+                ایجاد توضیحات محصول جدید
+              </button>
+            </div>
 
             <InputField
               label="قیمت (دلار)"
@@ -612,6 +653,11 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               productName={formState.Name}
               specs={specs}
               setSpecs={setSpecs}
+            />
+
+            <EditModalFAQ 
+              productId={formState.ProductId} 
+              setFaqs={setFaqs} 
             />
 
             <div className="col-span-1 sm:col-span-2 flex justify-end gap-6">

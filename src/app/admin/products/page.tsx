@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { toast, Toaster } from "react-hot-toast";
 import axios from "axios";
 
-import Modal from "./components/Modal";
+import ProductDeletionModal from "./components/ProductDeletionModal";
 import FilterModal from "./components/FilterModal";
 import Pagination from "./components/Pagination";
 import fetchProducts from "./helper/fetchProducts";
@@ -244,7 +244,7 @@ const AdminProductsPage = () => {
 
         {/* Modal */}
         {isModalOpen && (
-          <Modal
+          <ProductDeletionModal
             currentAction={currentAction}
             handleModalConfirm={handleModalConfirm}
             setIsModalOpen={setIsModalOpen}

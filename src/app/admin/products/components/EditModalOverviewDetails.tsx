@@ -4,6 +4,8 @@ import Image from "next/image";
 import { IoIosClose } from "react-icons/io";
 import toast from "react-hot-toast";
 import { OverviewDetail } from "../types";
+import { FiChevronDown, FiChevronUp } from "react-icons/fi";
+import DeleteOverviewDetailButton from "./DeleteOverviewDetailButton";
 
 type Props = {
   productId: number;
@@ -22,8 +24,13 @@ const EditModalOverviewDetails = ({
   );
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isListening, setIsListening] = useState(false);
 
-  useEffect(() => {
+  // Number of items to show when collapsed
+  const COLLAPSED_ITEM_COUNT = 3;
+
+  const fetchData = () => {
     const fetchAllDetailsPromise = axios
       .get("/api/productOverviewDetails/getAll")
       .catch((error) => {
@@ -56,7 +63,24 @@ const EditModalOverviewDetails = ({
       .catch((error) => {
         toast.error("در دریافت اطلاعات بررسی محصول مشکلی وجود دارد");
       });
-  }, [productId]);
+  };
+
+  useEffect(() => {
+    fetchData();
+
+    // Set up event listener for refresh event
+    if (!isListening) {
+      document.addEventListener("refreshOverviewDetails", fetchData);
+      setIsListening(true);
+    }
+
+    // Cleanup function
+    return () => {
+      if (isListening) {
+        document.removeEventListener("refreshOverviewDetails", fetchData);
+      }
+    };
+  }, [productId, isListening]);
 
   const toggleSelection = (detailId: number) => {
     const updatedDetails = allOverviewDetails.map((detail) =>
@@ -82,30 +106,70 @@ const EditModalOverviewDetails = ({
     setSelectedDetail(null);
   };
 
+  // Create a filtered list based on expansion state
+  const displayedDetails = isExpanded
+    ? allOverviewDetails
+    : allOverviewDetails.slice(0, COLLAPSED_ITEM_COUNT);
+
+  const hasMoreItems = allOverviewDetails.length > COLLAPSED_ITEM_COUNT;
+
   return (
-    <div className="flex flex-col gap-5 col-span-1 sm:col-span-2 border-b-4 border-b-gray-200 mb-5 pb-5">
-      <h3 className="text-lg font-semibold mb-4">ویژگی‌های محصول</h3>
+    <div className="flex flex-col gap-5 col-span-1 sm:col-span-2 border-t-4 border-t-gray-200 pt-5 mt-3">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold">ویژگی‌های محصول</h3>
+        {hasMoreItems && (
+          <button
+            type="button"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center text-blue-400 hover:text-blue-500 transition-colors"
+          >
+            {isExpanded ? (
+              <>
+                <span>نمایش کمتر</span>
+                <FiChevronUp className="ml-1" />
+              </>
+            ) : (
+              <>
+                <span>
+                  نمایش {allOverviewDetails.length - COLLAPSED_ITEM_COUNT} مورد
+                  بیشتر
+                </span>
+                <FiChevronDown className="ml-1" />
+              </>
+            )}
+          </button>
+        )}
+      </div>
 
       {/* Overview Details List */}
       <div className="grid grid-cols-1 gap-4">
-        {allOverviewDetails.map((detail) => (
+        {displayedDetails.map((detail) => (
           <div
             key={detail.ProductOverviewDetailsId}
             className="bg-gray-900 p-4 rounded-lg shadow-md flex flex-col gap-2"
           >
             <div className="flex justify-between items-center">
               <h4 className="font-medium">{detail.Title}</h4>
-              <button
-                type="button"
-                onClick={() => toggleSelection(detail.ProductOverviewDetailsId)}
-                className={`px-3 py-1 rounded-md ${
-                  detail.selected
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-200 text-gray-700"
-                }`}
-              >
-                {detail.selected ? "انتخاب شده" : "انتخاب"}
-              </button>
+              <div className="flex gap-2">
+                <DeleteOverviewDetailButton
+                  detailId={detail.ProductOverviewDetailsId}
+                  detailTitle={detail.Title}
+                  onSuccess={fetchData}
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    toggleSelection(detail.ProductOverviewDetailsId)
+                  }
+                  className={`px-3 py-1 rounded-md ${
+                    detail.selected
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-200 text-gray-700"
+                  }`}
+                >
+                  {detail.selected ? "انتخاب شده" : "انتخاب"}
+                </button>
+              </div>
             </div>
             <button
               type="button"
@@ -117,6 +181,30 @@ const EditModalOverviewDetails = ({
           </div>
         ))}
       </div>
+
+      {/* Show more/less button at the bottom for better UX */}
+      {hasMoreItems && (
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="mt-2 py-2 text-center text-blue-400 hover:text-blue-500 bg-gray-900 rounded-lg transition-colors"
+        >
+          {isExpanded ? (
+            <div className="flex justify-center items-center">
+              <span>نمایش کمتر</span>
+              <FiChevronUp className="ml-1" />
+            </div>
+          ) : (
+            <div className="flex justify-center items-center">
+              <span>
+                نمایش {allOverviewDetails.length - COLLAPSED_ITEM_COUNT} مورد
+                بیشتر
+              </span>
+              <FiChevronDown className="ml-1" />
+            </div>
+          )}
+        </button>
+      )}
 
       {/* Detail Modal */}
       {showDetailModal && selectedDetail && (
@@ -154,15 +242,25 @@ const EditModalOverviewDetails = ({
               />
             </div>
 
-            <button
-              onClick={() => {
-                toggleSelection(selectedDetail.ProductOverviewDetailsId);
-                closeDetailModal();
-              }}
-              className="mt-6 py-2 px-6 bg-blue-500 hover:bg-blue-600 rounded-lg text-white w-full"
-            >
-              {selectedDetail.selected ? "لغو انتخاب" : "انتخاب"}
-            </button>
+            <div className="mt-6 flex gap-2">
+              <DeleteOverviewDetailButton
+                detailId={selectedDetail.ProductOverviewDetailsId}
+                detailTitle={selectedDetail.Title}
+                onSuccess={() => {
+                  closeDetailModal();
+                  fetchData();
+                }}
+              />
+              <button
+                onClick={() => {
+                  toggleSelection(selectedDetail.ProductOverviewDetailsId);
+                  closeDetailModal();
+                }}
+                className="flex-1 py-2 px-6 bg-blue-500 hover:bg-blue-600 rounded-lg text-white"
+              >
+                {selectedDetail.selected ? "لغو انتخاب" : "انتخاب"}
+              </button>
+            </div>
           </div>
         </div>
       )}

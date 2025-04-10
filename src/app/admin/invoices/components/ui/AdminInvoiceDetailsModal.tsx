@@ -6,25 +6,30 @@ import {
   Warranty,
   WarrantyCode,
 } from "../../type";
+import WarrantyManagementModal from "./WarrantyManagementModal";
 
 // Define an interface for expanded items with individual warranties
-interface ExpandedInvoiceItem extends InvoiceDetail {
+export interface ExpandedInvoiceItem extends InvoiceDetail {
   itemNumber?: number;
   itemIndex?: number;
   individualWarranty?: Warranty | null;
+  Name?: string;
 }
 
 type Props = {
   invoice: AdminInvoice | null;
   onClose: () => void;
+  onWarrantyUpdate?: () => Promise<void>;
 };
 
-const AdminInvoiceDetailsModal = ({ invoice, onClose }: Props) => {
+const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props) => {
   const componentRef = useRef<HTMLDivElement>(null);
   const [productNames, setProductNames] = useState<{ [key: string]: string }>(
     {}
   );
   const [expandedItems, setExpandedItems] = useState<ExpandedInvoiceItem[]>([]);
+  const [selectedItem, setSelectedItem] = useState<ExpandedInvoiceItem | null>(null);
+  const [refreshCounter, setRefreshCounter] = useState(0);
 
   if (!invoice) return null;
 
@@ -39,6 +44,15 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose }: Props) => {
     const seconds = String(date.getSeconds()).padStart(2, "0");
 
     return `${year}/${month}/${day} | ${hours}:${minutes}:${seconds}`;
+  };
+
+  // Refresh invoice data after warranty updates
+  const handleWarrantyUpdated = () => {
+    setRefreshCounter(prev => prev + 1);
+    // Call parent's update function if provided
+    if (onWarrantyUpdate) {
+      onWarrantyUpdate();
+    }
   };
 
   // Fetch product names
@@ -78,7 +92,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose }: Props) => {
     };
 
     fetchProductNames();
-  }, [invoice]); // Add invoice as a dependency so it triggers when it changes
+  }, [invoice, refreshCounter]); // Add refreshCounter to dependencies
 
   // Create expanded items list
   useEffect(() => {
@@ -103,6 +117,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose }: Props) => {
           ...product,
           itemNumber: 1,
           individualWarranty: product.warranty,
+          Name: productNames[product.ProductId]
         });
         return;
       }
@@ -131,12 +146,18 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose }: Props) => {
                     : code.status || product.warranty?.status || "Active",
               }
             : product.warranty,
+          Name: productNames[product.ProductId]
         });
       }
     });
 
     setExpandedItems(items);
-  }, [invoice.Invoice_Details]);
+  }, [invoice.Invoice_Details, productNames, refreshCounter]); // Add refreshCounter to dependencies
+
+  // Function to handle opening the warranty modal
+  const handleManageWarranty = (item: ExpandedInvoiceItem) => {
+    setSelectedItem(item);
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
@@ -195,6 +216,9 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose }: Props) => {
                         </th>
                         <th className="p-2 sm:p-4 text-right font-medium text-gray-300">
                           گارانتی
+                        </th>
+                        <th className="p-2 sm:p-4 text-right font-medium text-gray-300">
+                          عملیات
                         </th>
                       </tr>
                     </thead>
@@ -323,12 +347,22 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose }: Props) => {
                                   </span>
                                 )}
                               </td>
+                              <td className="p-2 sm:p-4">
+                                <button
+                                  onClick={() => handleManageWarranty(item)}
+                                  className="text-xs bg-blue-700 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors"
+                                >
+                                  {item.individualWarranty
+                                    ? "ویرایش گارانتی"
+                                    : "افزودن گارانتی"}
+                                </button>
+                              </td>
                             </tr>
                           );
                         })
                       ) : (
                         <tr>
-                          <td colSpan={3} className="p-2 sm:p-4 text-center">
+                          <td colSpan={4} className="p-2 sm:p-4 text-center">
                             هیچ محصولی در این فاکتور وجود ندارد
                           </td>
                         </tr>
@@ -368,6 +402,16 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose }: Props) => {
           </button>
         </div>
       </div>
+
+      {/* Warranty Management Modal */}
+      {selectedItem && (
+        <WarrantyManagementModal
+          item={selectedItem}
+          invoiceId={invoice.Invoiceid}
+          onClose={() => setSelectedItem(null)}
+          onSuccess={handleWarrantyUpdated}
+        />
+      )}
 
       {/* Add styles for product grouping */}
       <style jsx>{`

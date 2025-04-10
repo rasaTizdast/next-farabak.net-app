@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import {
   Card,
@@ -36,6 +38,10 @@ import { AdminInvoice } from "@/app/admin/invoices/type";
 import BranchInvoiceDetailsModal from "./invoices/components/BranchInvoiceDetailsModal";
 import moment from "jalali-moment";
 import SkeletonLoading from "./components/SkeletonLoading";
+import WarrantyStats from "../components/WarrantyStats";
+import WarrantyRequests from "../components/WarrantyRequests";
+
+const { TabPane } = Tabs;
 
 function MyBranchContent() {
   const [branch, setBranch] = useState<Branch | null>(null);
@@ -72,22 +78,26 @@ function MyBranchContent() {
   const [activeTab, setActiveTab] = useState("products");
 
   // Add debounce state and refs for product quantity updates
-  const [debouncedQuantities, setDebouncedQuantities] = useState<{[key: number]: number}>({});
-  const quantityTimersRef = useRef<{[key: number]: NodeJS.Timeout}>({});
-  
+  const [debouncedQuantities, setDebouncedQuantities] = useState<{
+    [key: number]: number;
+  }>({});
+  const quantityTimersRef = useRef<{ [key: number]: NodeJS.Timeout }>({});
+
   // Initialize debounced quantities when products change
   useEffect(() => {
-    const initialValues: {[key: number]: number} = {};
-    products.forEach(product => {
+    const initialValues: { [key: number]: number } = {};
+    products.forEach((product) => {
       initialValues[product.ProductId] = product.quantity;
     });
     setDebouncedQuantities(initialValues);
   }, [products]);
-  
+
   // Clean up timers on unmount
   useEffect(() => {
     return () => {
-      Object.values(quantityTimersRef.current).forEach(timer => clearTimeout(timer));
+      Object.values(quantityTimersRef.current).forEach((timer) =>
+        clearTimeout(timer)
+      );
     };
   }, []);
 
@@ -181,13 +191,19 @@ function MyBranchContent() {
   };
 
   // Update the fetchBranchProducts function to use pagination
-  const fetchBranchProducts = async (branchId: number, page: number = productPagination.current, pageSize: number = productPagination.pageSize) => {
+  const fetchBranchProducts = async (
+    branchId: number,
+    page: number = productPagination.current,
+    pageSize: number = productPagination.pageSize
+  ) => {
     try {
       setProductsLoading(true);
-      const response = await fetch(`/api/admin/branches/${branchId}/products?page=${page}&limit=${pageSize}`);
+      const response = await fetch(
+        `/api/admin/branches/${branchId}/products?page=${page}&limit=${pageSize}`
+      );
       if (!response.ok) throw new Error("خطا در دریافت محصولات شعبه");
       const responseData = await response.json();
-      
+
       // Update products and pagination
       setProducts(responseData.data);
       setProductPagination({
@@ -239,24 +255,30 @@ function MyBranchContent() {
   }, [productDrawerVisible, branch]);
 
   // Update the fetchInvoices function to use pagination
-  const fetchInvoices = async (page: number = invoicePagination.current, pageSize: number = invoicePagination.pageSize) => {
+  const fetchInvoices = async (
+    page: number = invoicePagination.current,
+    pageSize: number = invoicePagination.pageSize
+  ) => {
     if (!branch) return;
-    
+
     try {
       setInvoicesLoading(true);
-      const response = await fetch(`/api/admin/branches/my/invoices?page=${page}&limit=${pageSize}`, {
-        credentials: "include",
-      });
-      
+      const response = await fetch(
+        `/api/admin/branches/my/invoices?page=${page}&limit=${pageSize}`,
+        {
+          credentials: "include",
+        }
+      );
+
       if (!response.ok) {
         throw new Error("Failed to fetch invoices");
       }
-      
+
       const data = await response.json();
       setInvoices(data.invoices);
       setFilteredInvoices(data.invoices);
       setWarrantySummary(data.warrantySummary);
-      
+
       // Update pagination
       setInvoicePagination({
         current: data.pagination.currentPage,
@@ -502,10 +524,21 @@ function MyBranchContent() {
 
   // Add effect to load invoices when switching to the invoices tab
   useEffect(() => {
+    console.log("[MyBranchPage] Tab changed to:", activeTab);
     if (activeTab === "invoices") {
       fetchInvoices();
     }
   }, [activeTab]);
+
+  const handleTabChange = (newActiveTab: string) => {
+    console.log(
+      "[MyBranchPage] Changing tab from",
+      activeTab,
+      "to",
+      newActiveTab
+    );
+    setActiveTab(newActiveTab);
+  };
 
   const handleAddProduct = async () => {
     if (!branch || !selectedProduct) return;
@@ -555,9 +588,9 @@ function MyBranchContent() {
     }
 
     // Update local state immediately for UI
-    setDebouncedQuantities(prev => ({
+    setDebouncedQuantities((prev) => ({
       ...prev,
-      [productId]: value
+      [productId]: value,
     }));
 
     // Set a new timer for this product
@@ -718,7 +751,10 @@ function MyBranchContent() {
             // Update immediately on blur
             if (quantityTimersRef.current[record.ProductId]) {
               clearTimeout(quantityTimersRef.current[record.ProductId]);
-              handleUpdateProductQuantity(record.ProductId, debouncedQuantities[record.ProductId]);
+              handleUpdateProductQuantity(
+                record.ProductId,
+                debouncedQuantities[record.ProductId]
+              );
             }
           }}
           className="w-20 dark-input-number"
@@ -1015,7 +1051,7 @@ function MyBranchContent() {
       {/* Tabs for Products and Invoices */}
       <Tabs
         activeKey={activeTab}
-        onChange={setActiveTab}
+        onChange={handleTabChange}
         className="bg-gray-800 rounded-lg text-white pt-4 mb-6 invoice-warranty-tabs"
         type="card"
         items={[
@@ -1071,7 +1107,11 @@ function MyBranchContent() {
                         total: productPagination.total,
                         onChange: (page, pageSize) => {
                           if (branch) {
-                            fetchBranchProducts(branch.branchid, page, pageSize || productPagination.pageSize);
+                            fetchBranchProducts(
+                              branch.branchid,
+                              page,
+                              pageSize || productPagination.pageSize
+                            );
                           }
                         },
                       }}
@@ -1255,7 +1295,10 @@ function MyBranchContent() {
                         pageSize: invoicePagination.pageSize,
                         total: invoicePagination.total,
                         onChange: (page, pageSize) => {
-                          fetchInvoices(page, pageSize || invoicePagination.pageSize);
+                          fetchInvoices(
+                            page,
+                            pageSize || invoicePagination.pageSize
+                          );
                         },
                         position: ["bottomCenter"],
                         className: "pagination-dark",
@@ -1269,6 +1312,48 @@ function MyBranchContent() {
                   )}
                 </Card>
               </>
+            ),
+          },
+          {
+            key: "warranty-requests",
+            label: (
+              <span className="text-white px-3 py-1 text-base font-medium">
+                درخواست‌های گارانتی
+              </span>
+            ),
+            children: (
+              <Card
+                className="bg-gray-800 rounded-lg overflow-hidden text-white border-0"
+                bodyStyle={{
+                  backgroundColor: "#19202b",
+                  padding: "16px 20px",
+                  fontFamily: "inherit",
+                }}
+              >
+                <WarrantyRequests
+                  isTabActive={activeTab === "warranty-requests"}
+                />
+              </Card>
+            ),
+          },
+          {
+            key: "warranty-stats",
+            label: (
+              <span className="text-white px-3 py-1 text-base font-medium">
+                آمار گارانتی‌ها
+              </span>
+            ),
+            children: (
+              <Card
+                className="bg-gray-800 rounded-lg overflow-hidden text-white border-0"
+                bodyStyle={{
+                  backgroundColor: "#19202b",
+                  padding: "16px 20px",
+                  fontFamily: "inherit",
+                }}
+              >
+                <WarrantyStats isTabActive={activeTab === "warranty-stats"} />
+              </Card>
             ),
           },
         ]}
@@ -1704,6 +1789,36 @@ function MyBranchContent() {
         .ant-input-suffix .anticon-search {
           color: #ffffff !important;
           opacity: 0.7;
+        }
+
+        /* Add better contrast for tabs */
+        .ant-tabs-tab {
+          padding: 8px 16px !important;
+        }
+
+        .ant-tabs-tab-btn {
+          color: white !important;
+          font-weight: 500 !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .ant-tabs-tab:not(.ant-tabs-tab-active) {
+          background-color: #374151 !important;
+          border-color: #4b5563 !important;
+        }
+
+        .ant-tabs-tab.ant-tabs-tab-active {
+          background-color: #1f73f1 !important;
+          border-color: #1f73f1 !important;
+        }
+
+        .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+          color: white !important;
+          font-weight: 600 !important;
+        }
+
+        .ant-tabs-nav:before {
+          border-bottom-color: #4b5563 !important;
         }
       `}</style>
     </div>

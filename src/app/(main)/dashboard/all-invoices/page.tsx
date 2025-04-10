@@ -18,10 +18,11 @@ import toast, { Toaster } from "react-hot-toast";
 type Product = {
   Invoiceid: string;
   price: number;
-  discount: number;
+  discount?: number;
   ProductId: number;
   quantity: number;
   total_price: number;
+  Invoice_Details: number; // ID field from API response
 };
 
 // Types

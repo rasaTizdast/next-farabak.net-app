@@ -1,7 +1,9 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, useRef, Suspense } from "react";
-import { Button, Form, Spin, message, Input, Select, AutoComplete } from "antd";
+import { Button, Form, message, Input, AutoComplete, Tabs, Card } from "antd";
 import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Branch, User, Product } from "./components/types";
@@ -13,6 +15,10 @@ import LoadingSkeleton from "./components/LoadingSkeleton";
 import Styles from "./components/Styles";
 import InvoiceModal from "./components/invoice/InvoiceModal";
 import ProductSearchSummary from "./components/ProductSearchSummary";
+import WarrantyStats from "./components/WarrantyStats";
+import WarrantyRequests from "./components/WarrantyRequests";
+
+const { TabPane } = Tabs;
 
 function BranchesPageContent() {
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -35,6 +41,7 @@ function BranchesPageContent() {
   const [productsLoading, setProductsLoading] = useState(false);
   const [searchValue, setSearchValue] = useState<string>("");
   const [searchProductId, setSearchProductId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("branches"); // Track the active tab
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -50,19 +57,21 @@ function BranchesPageContent() {
   // Check URL for productId param
   useEffect(() => {
     const productId = searchParams.get("productId");
-    if (productId) {
-      setSearchProductId(parseInt(productId));
+    if (productId && !initialLoading) {
+      const parsedId = parseInt(productId);
+      setSearchProductId(parsedId);
+      
       // Find product name to set in search value
       if (allProducts.length > 0) {
         const product = allProducts.find(
-          (p) => p.ProductId === parseInt(productId)
+          (p) => p.ProductId === parsedId
         );
         if (product && product.Type) {
           setSearchValue(product.Type);
         }
       }
     }
-  }, [searchParams, allProducts]);
+  }, [searchParams, allProducts, initialLoading]);
 
   // Load data when component mounts and set up auto-refresh
   useEffect(() => {
@@ -92,7 +101,10 @@ function BranchesPageContent() {
     return () => clearInterval(intervalId);
   }, []);
 
-  const fetchBranches = async (page: number = pagination.current, pageSize: number = pagination.pageSize) => {
+  const fetchBranches = async (
+    page: number = pagination.current,
+    pageSize: number = pagination.pageSize
+  ) => {
     try {
       setLoading(true);
       let url = `/api/admin/branches?page=${page}&limit=${pageSize}`;
@@ -129,13 +141,9 @@ function BranchesPageContent() {
 
   // Store the fetchBranches function in the ref to use in the interval
   useEffect(() => {
-    fetchBranchesRef.current = () => fetchBranches(pagination.current, pagination.pageSize);
+    fetchBranchesRef.current = () =>
+      fetchBranches(pagination.current, pagination.pageSize);
   }, [searchProductId, pagination.current, pagination.pageSize]);
-
-  // Handle pagination change
-  const handleTableChange = (pagination: any) => {
-    fetchBranches(pagination.current, pagination.pageSize);
-  };
 
   const fetchUsers = async () => {
     try {
@@ -244,11 +252,19 @@ function BranchesPageContent() {
       setProductsLoading(true);
       const response = await fetch(`/api/admin/branches/${branchId}/products`);
       if (!response.ok) throw new Error("خطا در دریافت محصولات شعبه");
-      const data = await response.json();
-      setProducts(data);
+      const responseData = await response.json();
+      
+      // Extract products from the data property if it exists
+      const productsArray = responseData.data && Array.isArray(responseData.data) 
+        ? responseData.data 
+        : (Array.isArray(responseData) ? responseData : []);
+      
+      setProducts(productsArray);
     } catch (error) {
       console.error("Error fetching branch products:", error);
       message.error("خطا در بارگذاری محصولات شعبه");
+      // Set empty array in case of error
+      setProducts([]);
     } finally {
       setProductsLoading(false);
     }
@@ -604,9 +620,8 @@ function BranchesPageContent() {
           </Button>
         </div>
       </div>
-
       {/* Product Search Summary if search is active */}
-      {searchProductId && allProducts.length > 0 && (
+      {searchProductId && allProducts.length > 0 && !initialLoading && !loading && (
         <ProductSearchSummary
           productName={
             allProducts.find((p) => p.ProductId === searchProductId)?.Type ||
@@ -617,28 +632,86 @@ function BranchesPageContent() {
           clearSearch={clearSearch}
         />
       )}
+      <Tabs
+        activeKey={activeTab}
+        className="mt-4 branches-tabs"
+        onChange={(key) => {
+          setActiveTab(key);
 
-      {/* Branches Table */}
-      <div className="bg-gray-800 rounded-lg shadow overflow-hidden">
-        <BranchTable
-          branches={branches}
-          loading={loading || refreshing}
-          onEdit={showEditBranchModal}
-          onDelete={handleDeleteBranch}
-          onViewProducts={handleViewProducts}
-          onCreateInvoice={handleCreateInvoice}
-          isSearching={!!searchProductId}
-          pagination={{
-            current: pagination.current,
-            pageSize: pagination.pageSize,
-            total: pagination.total,
-            onChange: (page, pageSize) => {
-              fetchBranches(page, pageSize || pagination.pageSize);
-            },
-          }}
-        />
-      </div>
+          // Show loading message for better UX
+          if (key === "warranty-stats") {
+            message.info("در حال بارگیری آمار گارانتی‌ها...", 0.5);
+          } else if (key === "warranty-requests") {
+            message.info("در حال بارگیری درخواست‌های بررسی...", 0.5);
+          }
+        }}
+      >
+        <TabPane
+          tab={<span className="tab-label">شعبه‌ها</span>}
+          key="branches"
+        >
+          {/* Branches Table */}
+          <div className="bg-gray-800 rounded-lg shadow overflow-hidden">
+            <BranchTable
+              branches={branches}
+              loading={loading || refreshing}
+              onEdit={showEditBranchModal}
+              onDelete={handleDeleteBranch}
+              onViewProducts={handleViewProducts}
+              onCreateInvoice={handleCreateInvoice}
+              isSearching={!!searchProductId}
+              pagination={{
+                current: pagination.current,
+                pageSize: pagination.pageSize,
+                total: pagination.total,
+                onChange: (page, pageSize) => {
+                  fetchBranches(page, pageSize || pagination.pageSize);
+                },
+              }}
+            />
+          </div>
+        </TabPane>
 
+        <TabPane
+          tab={<span className="tab-label">آمار گارانتی</span>}
+          key="warranty-stats"
+        >
+          <Card
+            title="آمار گارانتی‌ها"
+            bordered={false}
+            className="bg-gray-800 text-white"
+            headStyle={{ color: "white", borderBottom: "1px solid #4b5563" }}
+          >
+            <p className="text-gray-400 mb-4">
+              آمار گارانتی‌های فعال، منقضی شده و درخواست‌های بررسی
+            </p>
+            <WarrantyStats
+              key={`stats-${new Date().getTime()}`}
+              isTabActive={activeTab === "warranty-stats"}
+            />
+          </Card>
+        </TabPane>
+
+        <TabPane
+          tab={<span className="tab-label">درخواست‌های بررسی</span>}
+          key="warranty-requests"
+        >
+          <Card
+            title="درخواست‌های بررسی گارانتی"
+            bordered={false}
+            className="bg-gray-800 text-white"
+            headStyle={{ color: "white", borderBottom: "1px solid #4b5563" }}
+          >
+            <p className="text-gray-400 mb-4">
+              لیست درخواست‌های بررسی گارانتی از تمام شعبه‌ها
+            </p>
+            <WarrantyRequests
+              key={`requests-${new Date().getTime()}`}
+              isTabActive={activeTab === "warranty-requests"}
+            />
+          </Card>
+        </TabPane>
+      </Tabs>
       {/* Create Branch Modal */}
       <CreateBranchModal
         visible={modalVisible}
@@ -647,7 +720,6 @@ function BranchesPageContent() {
         form={form}
         users={users}
       />
-
       {/* Edit Branch Modal */}
       {currentBranch && (
         <EditBranchModal
@@ -659,7 +731,6 @@ function BranchesPageContent() {
           users={users}
         />
       )}
-
       {/* Products Drawer */}
       {currentBranch && (
         <ProductDrawer
@@ -678,7 +749,6 @@ function BranchesPageContent() {
           onQuantityChange={(quantity) => setProductQuantity(quantity || 1)}
         />
       )}
-
       {/* Invoice Modal */}
       {currentBranch && (
         <InvoiceModal
@@ -687,11 +757,92 @@ function BranchesPageContent() {
           branch={currentBranch}
         />
       )}
-
       {/* Global Styles */}
       <Styles />
-
       <style jsx global>{`
+        /* Better tabs styling */
+        .branches-tabs .ant-tabs-nav-list {
+          gap: 8px;
+        }
+
+        .branches-tabs .ant-tabs-tab {
+          padding: 8px 16px !important;
+          margin: 0 !important;
+          border-radius: 6px 6px 0 0 !important;
+          position: relative;
+          z-index: 1;
+          margin-bottom: -1px !important;
+        }
+
+        .tab-label {
+          color: #e5e7eb !important;
+          font-weight: 500 !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+          padding: 0 8px !important;
+          font-size: 15px !important;
+          display: flex !important;
+          align-items: center !important;
+          gap: 8px !important;
+        }
+
+        .branches-tabs .ant-tabs-tab:not(.ant-tabs-tab-active) {
+          background-color: #374151 !important;
+          border-color: #4b5563 !important;
+        }
+
+        .branches-tabs .ant-tabs-tab:not(.ant-tabs-tab-active):hover {
+          background-color: #4b5563 !important;
+        }
+
+        .branches-tabs .ant-tabs-tab.ant-tabs-tab-active {
+          background-color: #1f73f1 !important;
+          border-color: #1f73f1 !important;
+        }
+
+        .branches-tabs .ant-tabs-tab.ant-tabs-tab-active .tab-label {
+          color: white !important;
+          font-weight: 600 !important;
+        }
+
+        .branches-tabs .ant-tabs-content {
+          background-color: transparent !important;
+          padding: 0 !important;
+        }
+
+        .branches-tabs .ant-tabs-nav:before {
+          border-bottom-color: #4b5563 !important;
+        }
+
+        /* Add better contrast for tabs - remove old styles */
+        .ant-tabs-tab {
+          padding: 8px 16px !important;
+        }
+
+        .ant-tabs-tab-btn {
+          color: #e5e7eb !important;
+          font-weight: 500 !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .ant-tabs-tab:not(.ant-tabs-tab-active) {
+          background-color: #374151 !important;
+          border-color: #4b5563 !important;
+        }
+
+        .ant-tabs-tab.ant-tabs-tab-active {
+          background-color: #1f73f1 !important;
+          border-color: #1f73f1 !important;
+        }
+
+        .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+          color: white !important;
+          font-weight: 600 !important;
+        }
+
+        .ant-tabs-nav:before {
+          border-bottom-color: #4b5563 !important;
+        }
+
         .custom-dropdown {
           background-color: #1f2937;
           border-color: #4b5563;

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ProductTableSkeleton from "./ProductTableSkeleton";
 import {
   FaExternalLinkAlt,
@@ -13,6 +14,7 @@ import { Product } from "../types";
 import { IoQrCode } from "react-icons/io5";
 import QrCodeModal from "./QrCodeModal";
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+import axios from "axios";
 
 type Props = {
   isLoading: boolean;
@@ -37,7 +39,10 @@ const ProductsTable = ({
   setCurrentAction,
   refetchProducts,
 }: Props) => {
+  const router = useRouter();
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
+  const [productQuantities, setProductQuantities] = useState<Record<number, {value: number, timestamp: number}>>({});
+  const [loadingQuantities, setLoadingQuantities] = useState<Record<number, boolean>>({});
 
   const [sortConfig, setSortConfig] = useState<{
     key: SortKey;
@@ -172,6 +177,43 @@ const ProductsTable = ({
     setQrCodeProduct(product);
   };
 
+  // Fetch branch quantities for a product with 30-second cache
+  const fetchProductBranchQuantity = async (productId: number) => {
+    if (loadingQuantities[productId]) return;
+    
+    // Check if we have cached data less than 30 seconds old
+    const cached = productQuantities[productId];
+    const now = Date.now();
+    if (cached && (now - cached.timestamp < 30000)) {
+      // Use cached data if it's less than 30 seconds old
+      return;
+    }
+    
+    setLoadingQuantities(prev => ({ ...prev, [productId]: true }));
+    
+    try {
+      const response = await axios.get(`/api/admin/branches/product-quantity/${productId}`);
+      if (response.status === 200) {
+        setProductQuantities(prev => ({ 
+          ...prev, 
+          [productId]: {
+            value: response.data.totalQuantity || 0,
+            timestamp: now
+          }
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching product quantity:', error);
+    } finally {
+      setLoadingQuantities(prev => ({ ...prev, [productId]: false }));
+    }
+  };
+  
+  // Navigate to branches page with product filter
+  const navigateToBranches = (productId: number) => {
+    router.push(`/admin/branches?productId=${productId}`);
+  };
+
   if (notFound) {
     return (
       <div className="w-full text-center text-white p-5 rounded-lg bg-blue-600 shadow-lg animate-fade-in transition-all">
@@ -304,13 +346,29 @@ const ProductsTable = ({
 
                     <td className="px-6 py-4">
                       <span
-                        className={`px-3 py-1 text-xs rounded-lg ${
+                        className={`px-3 py-1 text-xs rounded-lg cursor-pointer relative group ${
                           product.Available
                             ? "bg-green-100 text-green-700"
                             : "bg-red-100 text-red-700"
                         }`}
+                        onMouseEnter={() => fetchProductBranchQuantity(product.ProductId)}
+                        onClick={() => navigateToBranches(product.ProductId)}
                       >
                         {product.Available ? "موجود" : "ناموجود"}
+                        
+                        {/* Tooltip on hover */}
+                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                          {loadingQuantities[product.ProductId] ? (
+                            "در حال بارگذاری..."
+                          ) : (
+                            productQuantities[product.ProductId] !== undefined ? (
+                              `تعداد کل در شعبه‌ها: ${productQuantities[product.ProductId].value} عدد`
+                            ) : (
+                              "کلیک برای مشاهده جزئیات در شعبه‌ها"
+                            )
+                          )}
+                          <div className="absolute left-1/2 -translate-x-1/2 top-full -mt-1 w-2 h-2 bg-slate-800 rotate-45"></div>
+                        </div>
                       </span>
                     </td>
                     <td className="px-6 py-4">
