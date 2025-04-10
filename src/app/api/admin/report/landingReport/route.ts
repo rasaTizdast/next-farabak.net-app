@@ -89,7 +89,11 @@ export async function GET(): Promise<NextResponse> {
     // Fetch the total amount of invoices based on Checked status
     const invoiceStatusCount = {
       checked: await prisma.invoice.count({ where: { Checked: true } }),
-      unchecked: await prisma.invoice.count({ where: { Checked: false } }),
+      unchecked: await prisma.invoice.count({
+        where: {
+          OR: [{ Checked: false }, { Checked: null }],
+        },
+      }),
     };
 
     return NextResponse.json({

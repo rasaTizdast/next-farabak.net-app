@@ -11,7 +11,7 @@ async function verifyToken(token: string) {
   return payload;
 }
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 /**
  * @swagger
@@ -49,10 +49,10 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
-    const page = parseInt(url.searchParams.get('page') || '1');
-    const limit = parseInt(url.searchParams.get('limit') || '10');
+    const page = parseInt(url.searchParams.get("page") || "1");
+    const limit = parseInt(url.searchParams.get("limit") || "10");
     const offset = (page - 1) * limit;
-    
+
     // Get the access token from cookies
     const cookieStore = cookies();
     const token = cookieStore.get("accessToken")?.value;
@@ -105,7 +105,7 @@ export async function GET(request: Request) {
       WHERE 
         w."branchid" = ${branchId}
     `;
-    
+
     const totalCount = Number((countResult as any[])[0].total);
 
     // Find all invoices that have warranties created by this branch with pagination
@@ -159,39 +159,49 @@ export async function GET(request: Request) {
         `;
 
         // Process warranty status
-        const processedWarranties = (warranties as any[]).map(warranty => {
+        const processedWarranties = (warranties as any[]).map((warranty) => {
           const today = new Date();
           const expiryDate = new Date(warranty.expirydate);
-          
+
           // Add a display status without modifying the database
           let displayStatus = warranty.status;
           if (today > expiryDate) {
-            displayStatus = 'Expired';
+            displayStatus = "Expired";
           } else {
-            displayStatus = 'Active';
+            displayStatus = "Active";
           }
-          
+
           return {
             ...warranty,
-            displayStatus
+            displayStatus,
           };
         });
-          
+
         // Map warranty data to invoice details
         const detailsWithWarranty = (details as any[]).map((detail) => {
           const warranty = processedWarranties.find(
             (w) => w.invoicedetailid === detail.Invoice_Details
           );
-          
+
           return {
             ...detail,
-            warranty: warranty || null
+            warranty: warranty || null,
           };
+        });
+
+        // Sort details by ProductId to group same products together
+        const sortedDetails = [...detailsWithWarranty].sort((a, b) => {
+          // First sort by ProductId to group same products together
+          if (a.ProductId !== b.ProductId) {
+            return (a.ProductId || 0) - (b.ProductId || 0);
+          }
+          // If same product, preserve original order
+          return 0;
         });
 
         return {
           ...invoice,
-          Invoice_Details: detailsWithWarranty
+          Invoice_Details: sortedDetails,
         };
       })
     );
@@ -206,14 +216,14 @@ export async function GET(request: Request) {
       WHERE 
         w."branchid" = ${branchId}
     `;
-    
+
     let active = 0;
     let expired = 0;
-    
-    (allWarranties as any[]).forEach(warranty => {
+
+    (allWarranties as any[]).forEach((warranty) => {
       const today = new Date();
       const expiryDate = new Date(warranty.expirydate);
-      
+
       if (today > expiryDate) {
         expired++;
       } else {
@@ -223,7 +233,7 @@ export async function GET(request: Request) {
 
     // Calculate pagination details
     const totalPages = Math.ceil(totalCount / limit);
-    
+
     return NextResponse.json({
       branch,
       invoices: invoicesWithDetails,
@@ -234,12 +244,12 @@ export async function GET(request: Request) {
         totalPages,
         hasNextPage: page < totalPages,
         hasPrevPage: page > 1,
-      }
+      },
     });
   } catch (error) {
-    console.error('Error fetching branch invoices:', error);
+    console.error("Error fetching branch invoices:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

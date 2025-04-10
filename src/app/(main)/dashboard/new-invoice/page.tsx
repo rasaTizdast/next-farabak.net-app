@@ -72,7 +72,7 @@ const NewInvoicePage = () => {
                 return (
                   <tr key={product.ProductId}>
                     <td>{product.ProductName}</td>
-                    <td>{price}</td>
+                    <td>{Intl.NumberFormat("fa-IR").format(price)}</td>
                     <td>
                       <input
                         type="number"
@@ -87,9 +87,17 @@ const NewInvoicePage = () => {
                         className={styles.quantityInput}
                       />
                     </td>
-                    <td>{price * quantity}</td>
-                    <td>{discount * quantity}</td>
-                    <td>{price * quantity - discount * quantity}</td>
+                    <td>
+                      {Intl.NumberFormat("fa-IR").format(price * quantity)}
+                    </td>
+                    <td>
+                      {Intl.NumberFormat("fa-IR").format(discount * quantity)}
+                    </td>
+                    <td>
+                      {Intl.NumberFormat("fa-IR").format(
+                        price * quantity - discount * quantity
+                      )}
+                    </td>
                     <td>
                       <button
                         className={styles.clearButton}
@@ -109,7 +117,8 @@ const NewInvoicePage = () => {
 
         <div className={styles.actions}>
           <p className={styles.total}>
-            تعداد کل محصولات: {invoice.TotalAmount}
+            تعداد کل محصولات:{" "}
+            {Intl.NumberFormat("fa-IR").format(invoice.TotalAmount)}
           </p>
           <button
             className={styles.finalizeButton}

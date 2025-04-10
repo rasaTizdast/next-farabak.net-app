@@ -129,10 +129,10 @@ const AdminInvoicesPage = () => {
 
   // Handler to update invoice status
   const handleStatusChange = async (Invoiceid: string, status: boolean) => {
-    const payload = { Invoiceid, checked: status };
+    const payload = { checked: status };
 
     try {
-      const response = await axios.patch(`/api/admin/invoices`, payload);
+      const response = await axios.patch(`/api/admin/invoices?id=${Invoiceid}`, payload);
 
       if (!response) {
         throw new Error("Failed to update invoice status.");
@@ -401,6 +401,28 @@ const AdminInvoicesPage = () => {
               <AdminInvoiceDetailsModal
                 invoice={selectedInvoice}
                 onClose={() => setSelectedInvoice(null)}
+                onWarrantyUpdate={async () => {
+                  // Fetch updated invoice data
+                  try {
+                    const response = await fetch(`/api/admin/invoices/${selectedInvoice.Invoiceid}`);
+                    if (response.ok) {
+                      const updatedInvoice = await response.json();
+                      
+                      // Update the selected invoice with fresh data
+                      setSelectedInvoice(updatedInvoice);
+                      
+                      // Also update the invoice in the invoices list
+                      setInvoices(prev => 
+                        prev.map(inv => inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv)
+                      );
+                      setFilteredInvoices(prev => 
+                        prev.map(inv => inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv)
+                      );
+                    }
+                  } catch (error) {
+                    console.error("Failed to refresh invoice data:", error);
+                  }
+                }}
               />
             )}
             {showPhoneNumberModal && (

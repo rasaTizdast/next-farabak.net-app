@@ -1,5 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
+async function verifyToken(token: string) {
+  const secret = new TextEncoder().encode(JWT_SECRET);
+  const { payload } = await jwtVerify(token, secret);
+  return payload;
+}
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +18,25 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(request: Request) {
   try {
+    // Auth check
+    const cookieStore = cookies();
+    const token = cookieStore.get("accessToken")?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        { error: "Authorization token required" },
+        { status: 401 }
+      );
+    }
+
+    const decoded = await verifyToken(token);
+    const userRole = decoded.role;
+
+    // Only admin or branch users can generate warranty codes
+    if (!userRole || (userRole !== "Admin" && userRole !== "Branch")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { branchCode, yearMonth } = await request.json();
     
     if (!branchCode || !yearMonth) {

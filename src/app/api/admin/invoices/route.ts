@@ -119,9 +119,19 @@ export async function GET() {
           };
         });
 
+        // Sort details by ProductId to group same products together
+        const sortedDetails = [...detailsWithWarranty].sort((a, b) => {
+          // First sort by ProductId to group same products together
+          if (a.ProductId !== b.ProductId) {
+            return (a.ProductId || 0) - (b.ProductId || 0);
+          }
+          // If same product, preserve original order
+          return 0;
+        });
+
         return {
           ...invoice,
-          Invoice_Details: detailsWithWarranty,
+          Invoice_Details: sortedDetails,
         };
       })
     );
@@ -313,16 +323,22 @@ export async function PATCH(req: Request): Promise<NextResponse> {
 
     // Get invoice ID from query parameters
     const { searchParams } = new URL(req.url);
-    const invoiceId = searchParams.get("id");
+    const queryInvoiceId = searchParams.get("id");
+    
+    // Get request body
+    const body = await req.json();
+    
+    // Check for invoiceId in both query params and request body
+    const invoiceId = queryInvoiceId || body.Invoiceid?.toString();
 
     if (!invoiceId) {
       return NextResponse.json(
-        { message: "Invoice ID is required" },
+        { message: "Invoice ID is required in either query params ('id') or request body ('Invoiceid')" },
         { status: 400 }
       );
     }
 
-    const { checked } = await req.json();
+    const checked = body.checked;
 
     if (typeof checked !== "boolean") {
       return NextResponse.json(
