@@ -279,6 +279,21 @@ const ImageNode = ({
     });
   };
 
+  // Function to check if a URL is external (doesn't need the bucket prefix)
+  const isExternalUrl = (url: string): boolean => {
+    return url.startsWith('http://') || url.startsWith('https://');
+  };
+
+  // Function to get proper image URL based on source
+  const getImageUrl = (src: string): string => {
+    if (isExternalUrl(src)) {
+      return src; // Return external URLs as is
+    } else {
+      // Add bucket URL prefix for internal uploads
+      return `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${src}`;
+    }
+  };
+
   return (
     <NodeViewWrapper>
       <div className="relative group" draggable={!isResizing}>
@@ -296,15 +311,28 @@ const ImageNode = ({
             } as React.CSSProperties
           }
         >
-          <Image
-            src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${node.attrs.src}`}
-            alt={node.attrs.alt || "Image"}
-            width={safeWidth}
-            height={safeHeight}
-            layout="responsive"
-            objectFit="contain"
-            className="rounded-lg pointer-events-none max-w-full max-h-[500px]"
-          />
+          {isExternalUrl(node.attrs.src) ? (
+            // Use regular img tag for external URLs to avoid Next.js domain restrictions
+            <img
+              src={node.attrs.src}
+              alt={node.attrs.alt || "Image"}
+              width={safeWidth}
+              height={safeHeight}
+              className="rounded-lg pointer-events-none max-w-full max-h-[500px] object-contain"
+              style={{ width: '100%', height: 'auto' }}
+            />
+          ) : (
+            // Use Next/Image for internal uploads
+            <Image
+              src={getImageUrl(node.attrs.src)}
+              alt={node.attrs.alt || "Image"}
+              width={safeWidth}
+              height={safeHeight}
+              layout="responsive"
+              objectFit="contain"
+              className="rounded-lg pointer-events-none max-w-full max-h-[500px]"
+            />
+          )}
 
           {isDeleting && (
             <div className="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center rounded-lg">
