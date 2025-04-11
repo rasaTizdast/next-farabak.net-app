@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from "react";
 import { IoIosClose } from "react-icons/io";
+import { toast } from "react-hot-toast";
 import { useDropzone } from "react-dropzone";
 import { FiUpload } from "react-icons/fi";
-import toast from "react-hot-toast";
 
 // NewOverviewDetailsModal component
 const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {

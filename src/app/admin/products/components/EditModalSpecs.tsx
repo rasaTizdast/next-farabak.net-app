@@ -1,136 +1,227 @@
-import React, { useEffect, useState } from "react";
-import { FaTrashAlt } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Specs } from "../types";
+import { IoIosClose } from "react-icons/io";
+import { FiPlus } from "react-icons/fi";
+import SpecTemplateManager from "./SpecTemplateManager";
 
-type Props = {
+type SpecItem = {
+  ProductSpecsId: number;
+  Title: string;
+  Description: string;
+};
+
+type Specs = {
+  isChanged: boolean;
+  data: SpecItem[];
+};
+
+type EditModalSpecsProps = {
   productId: number;
   productName: string;
   specs: Specs | null;
-  setSpecs: (arg0: Specs) => void;
+  setSpecs: (specs: Specs) => void;
 };
 
-const EditModalSpecs = ({ productId, productName, specs, setSpecs }: Props) => {
-  const [localErrors, setLocalErrors] = useState<{ [key: string]: string }>({});
-  const [loading, setLoading] = useState(true); // Add loading state
+const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
+  productId,
+  productName,
+  specs,
+  setSpecs,
+}) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [showTemplateManager, setShowTemplateManager] = useState(false);
 
   useEffect(() => {
-    axios
-      .get(`/api/products/getProductSpecsByProductId?productId=${productId}`)
-      .then((response) => {
-        setSpecs(response.data || { data: [] }); // Handle null response
-      })
-      .catch(() => {
-        toast.error("مشخصاتی برای این محصول پیدا نشد");
-        setSpecs({ data: [] }); // Set empty specs if none exist
-      })
-      .finally(() => setLoading(false)); // Turn off loading
+    fetchSpecs();
   }, [productId]);
 
-  const validateField = (field: string, value: string) => {
-    let error = "";
-    if (field === "Title") {
-      if (!value.trim()) error = "عنوان نمی‌تواند خالی باشد.";
-      else if (value.length > 100)
-        error = "عنوان نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.";
-      else if (!/^[a-zA-Z0-9\u0600-\u06FF\s_-]+$/.test(value))
-        error = "عنوان فقط می‌تواند شامل حروف انگلیسی، فارسی و اعداد باشد.";
-    } else if (field === "Description") {
-      if (!value.trim()) error = "توضیحات نمی‌تواند خالی باشد.";
-      else if (value.length > 1000)
-        error = "توضیحات نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
+  const fetchSpecs = async () => {
+    if (!productId) return;
+
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`/api/specs/${productId}`);
+      const specData = response.data.map((spec: any) => ({
+        ProductSpecsId: spec.ProductSpecsId,
+        Title: spec.Title,
+        Description: spec.Description,
+      }));
+
+      setSpecs({
+        isChanged: false,
+        data: specData,
+      });
+    } catch (error) {
+      console.error("Error fetching specs:", error);
+      toast.error("خطا در دریافت مشخصات محصول");
+      setSpecs({
+        isChanged: false,
+        data: [],
+      });
+    } finally {
+      setIsLoading(false);
     }
-    return error;
   };
 
   const handleSpecChange = (
     index: number,
-    field: keyof Specs["data"][0],
+    field: "Title" | "Description",
     value: string
   ) => {
-    const error = validateField(field, value);
-    setLocalErrors((prev) => ({ ...prev, [`${field}-${index}`]: error }));
+    if (!specs) return;
 
-    const updatedSpecs = [...(specs?.data || [])];
-    updatedSpecs[index] = { ...updatedSpecs[index], [field]: value };
-    setSpecs({ data: updatedSpecs });
+    const newData = [...specs.data];
+    newData[index][field] = value;
+    setSpecs({
+      isChanged: true,
+      data: newData,
+    });
   };
 
-  const handleAddSpec = () => {
-    const newSpec = {
-      ProductSpecsId: Date.now(), // Temporary ID for new specs
-      Name: productName,
-      Title: "",
-      Description: "",
-      ProductId: productId,
-      Available: true,
-    };
+  const handleAddSpec = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!specs) return;
 
-    setSpecs({ data: [...(specs?.data || []), newSpec] });
+    setSpecs({
+      isChanged: true,
+      data: [
+        ...specs.data,
+        {
+          ProductSpecsId: 0, // New item will have ID 0 until saved
+          Title: "",
+          Description: "",
+        },
+      ],
+    });
   };
 
-  const handleRemoveSpec = (index: number) => {
-    const updatedSpecs = specs?.data.filter((_, i) => i !== index) || [];
-    setSpecs({ data: updatedSpecs });
+  const handleRemoveSpec = (e: React.MouseEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!specs) return;
+
+    const newData = [...specs.data];
+    newData.splice(index, 1);
+    setSpecs({
+      isChanged: true,
+      data: newData,
+    });
   };
 
-  if (loading) {
-    return <div>در حال بارگذاری...</div>; // Show a loading message
+  // Open template manager with stopPropagation
+  const openTemplateManager = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowTemplateManager(true);
+  };
+
+  // Handle template selection
+  const handleTemplateSelect = (templateSpecs: { title: string; description: string }[]) => {
+    if (!specs) return;
+
+    // Convert template specs to the correct format and add them to existing specs
+    const formattedTemplateSpecs = templateSpecs.map(item => ({
+      ProductSpecsId: 0,
+      Title: item.title,
+      Description: item.description,
+    }));
+
+    setSpecs({
+      isChanged: true,
+      data: [...specs.data, ...formattedTemplateSpecs],
+    });
+  };
+
+  if (isLoading) {
+    return <div className="p-4 text-center">در حال بارگیری مشخصات...</div>;
   }
 
   return (
-    <div className="flex flex-col gap-5 col-span-1 sm:col-span-2 border-y-4 border-y-gray-200 my-5 py-5">
-      <div className="mb-3">مشخصات</div>
-      {specs?.data.map((spec, index) => (
-        <div
-          key={spec.ProductSpecsId}
-          className="flex flex-col gap-5 bg-gray-900 p-4 rounded-md shadow-lg"
-        >
-          <div className="flex items-center gap-4">
-            <input
-              type="text"
-              value={spec.Title}
-              onChange={(e) => handleSpecChange(index, "Title", e.target.value)}
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-300"
-              placeholder={`عنوان مشخصه ${index + 1}`}
-            />
-            {localErrors[`Title-${index}`] && (
-              <p className="text-red-500 mt-1">
-                {localErrors[`Title-${index}`]}
-              </p>
-            )}
+    <>
+      {showTemplateManager && (
+        <SpecTemplateManager 
+          onClose={() => setShowTemplateManager(false)}
+          onTemplateSelect={handleTemplateSelect}
+        />
+      )}
+
+      <div className="col-span-1 sm:col-span-2 p-4 border border-gray-700 rounded-lg mt-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-bold text-lg">مشخصات محصول</h3>
+          <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => handleRemoveSpec(index)}
-              className="text-red-500 hover:text-red-600 transition-all"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm flex items-center gap-1"
+              onClick={openTemplateManager}
             >
-              <FaTrashAlt size={20} />
+              مدیریت قالب‌ها
+            </button>
+            <button
+              type="button"
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white text-sm flex items-center gap-1"
+              onClick={handleAddSpec}
+            >
+              <FiPlus size={18} />
+              افزودن مشخصات
             </button>
           </div>
-          <textarea
-            value={spec.Description}
-            onChange={(e) =>
-              handleSpecChange(index, "Description", e.target.value)
-            }
-            className="w-full p-3 rounded-lg bg-gray-700 border border-gray-300"
-            placeholder={`توضیحات مشخصه ${index + 1}`}
-          />
-          {localErrors[`Description-${index}`] && (
-            <p className="text-red-500 mt-1">
-              {localErrors[`Description-${index}`]}
-            </p>
+        </div>
+
+        <div className="space-y-4">
+          {specs && specs.data.length > 0 ? (
+            specs.data.map((spec, index) => (
+              <div key={index} className="flex gap-4" onClick={(e) => e.stopPropagation()}>
+                <div className="flex-1">
+                  <label className="block mb-1 text-sm">عنوان</label>
+                  <input
+                    type="text"
+                    value={spec.Title}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      handleSpecChange(index, "Title", e.target.value);
+                    }}
+                    className="w-full p-2 rounded bg-gray-700 border border-gray-600"
+                    placeholder="مثال: وزن، ابعاد، مواد، و غیره"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block mb-1 text-sm">توضیحات</label>
+                  <input
+                    type="text"
+                    value={spec.Description}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      handleSpecChange(index, "Description", e.target.value);
+                    }}
+                    className="w-full p-2 rounded bg-gray-700 border border-gray-600"
+                    placeholder="مثال: 100 گرم، 10×5 سانتی‌متر، فلزی، و غیره"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+                <div className="flex items-end mb-1">
+                  <button
+                    type="button"
+                    onClick={(e) => handleRemoveSpec(e, index)}
+                    className="p-2 text-red-400 hover:text-red-300"
+                  >
+                    <IoIosClose size={24} />
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-4 text-gray-400">
+              هیچ مشخصاتی وجود ندارد. لطفاً با کلیک بر روی «افزودن مشخصات» یا انتخاب یک قالب، مشخصات را اضافه کنید.
+            </div>
           )}
         </div>
-      ))}
-      <button
-        type="button"
-        onClick={handleAddSpec}
-        className="w-full bg-blue-600 text-white py-2 px-4 mt-3 rounded-md hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-700"
-      >
-        افزودن مشخصه جدید
-      </button>
-    </div>
+      </div>
+    </>
   );
 };
 

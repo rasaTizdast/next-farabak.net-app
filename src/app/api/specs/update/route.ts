@@ -58,80 +58,63 @@ import { prisma } from "@/lib/prisma"; // Ensure your Prisma client is set up co
  *         description: Internal server error.
  */
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json();
-
+    const body = await request.json();
     const { productId, specs } = body;
 
-    if (!productId || !Array.isArray(specs)) {
-      console.warn("[WARN] Invalid input: productId or specs is missing.");
+    if (!productId) {
       return NextResponse.json(
-        { message: "Invalid input: productId or specs is missing." },
+        { message: "Product ID is required" },
         { status: 400 }
       );
     }
 
-    const existingSpecs = await prisma.productSpecs.findMany({
-      where: { ProductId: productId },
+    // Update existing and add new specs
+    // First, mark all existing specs as unavailable
+    await prisma.productSpecs.updateMany({
+      where: {
+        ProductId: productId,
+      },
+      data: {
+        Available: false,
+      },
     });
 
-    const existingSpecIds = existingSpecs.map((spec) => spec.ProductSpecsId);
-    const incomingSpecIds = specs.map((spec) => spec.ProductSpecsId);
-
-    const specsToDelete = existingSpecs.filter(
-      (spec) => !incomingSpecIds.includes(spec.ProductSpecsId)
-    );
-
-    if (specsToDelete.length > 0) {
-      await prisma.productSpecs.deleteMany({
-        where: {
-          ProductSpecsId: {
-            in: specsToDelete.map((spec) => spec.ProductSpecsId),
-          },
-        },
-      });
-    }
-
+    // Process each spec in the provided array
     for (const spec of specs) {
-      if (
-        spec.ProductSpecsId &&
-        existingSpecIds.includes(spec.ProductSpecsId)
-      ) {
+      if (spec.ProductSpecsId && spec.ProductSpecsId > 0) {
+        // Update existing spec
         await prisma.productSpecs.update({
-          where: { ProductSpecsId: spec.ProductSpecsId },
+          where: {
+            ProductSpecsId: spec.ProductSpecsId,
+          },
           data: {
-            Name: spec.Name,
             Title: spec.Title,
             Description: spec.Description,
-            Available: spec.Available,
+            Available: true,
             ModifyDate: new Date(),
           },
         });
       } else {
+        // Create new spec
         await prisma.productSpecs.create({
           data: {
             ProductId: productId,
             Title: spec.Title,
             Description: spec.Description,
-            Available: spec.Available ?? true,
-            InsertDate: new Date(),
+            Available: true,
+            Name: "", // This field is required but not used in your app's UI
           },
         });
       }
     }
 
+    return NextResponse.json({ message: "Specs updated successfully" });
+  } catch (error) {
+    console.error("Error updating product specs:", error);
     return NextResponse.json(
-      { message: "Specifications updated successfully." },
-      { status: 200 }
-    );
-  } catch (error: any) {
-    console.error("[ERROR] Internal server error:", error);
-    return NextResponse.json(
-      {
-        message: "Internal server error.",
-        error: error.response?.data?.message,
-      },
+      { message: "Error updating product specs" },
       { status: 500 }
     );
   }
