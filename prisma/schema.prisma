@@ -475,3 +475,27 @@ model warranty {
 
   @@schema("info")
 }
+
+model SpecTemplate {
+  SpecTemplateId     Int                 @id @default(autoincrement())
+  Name               String              @db.VarChar(100)
+  InsertDate         DateTime            @default(now())
+  ModifyDate         DateTime            @updatedAt
+  Items              SpecTemplateItem[]  // Relation
+
+  @@map("SpecTemplate")
+  @@schema("support")
+}
+
+model SpecTemplateItem {
+  SpecTemplateItemId Int          @id @default(autoincrement())
+  SpecTemplateId     Int
+  Title              String       @db.VarChar(100)
+  InsertDate         DateTime     @default(now())
+  ModifyDate         DateTime     @updatedAt
+
+  Template           SpecTemplate @relation(fields: [SpecTemplateId], references: [SpecTemplateId], onDelete: Cascade)
+
+  @@map("SpecTemplateItem")
+  @@schema("support")
+}
