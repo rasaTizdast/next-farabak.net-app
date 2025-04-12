@@ -94,21 +94,6 @@ model Client {
   @@schema("info")
 }
 
-model Factor {
-  FactorId    Int      @id(map: "PK__Factor__E733AADD27EF8FF1") @default(autoincrement())
-  FactorGuid  String?  @db.VarChar(50)
-  Fullname    String?  @db.VarChar(255)
-  Phonenumber String?  @db.VarChar(50)
-  TotalAmount BigInt?
-  ProductName String?  @db.VarChar(255)
-  Date        String?  @db.VarChar(100)
-  UserId      Int?
-  Quantity    String?  @db.VarChar(50)
-  Checked     Boolean?
-
-  @@schema("info")
-}
-
 model FaqDetails {
   FaqDetailsid Int       @id(map: "PK__FaqDetai__35A141347E7D7444") @default(autoincrement())
   Q            String?   @db.VarChar(500)

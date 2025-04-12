@@ -4,23 +4,25 @@ import toast from "react-hot-toast";
 import { IoIosClose } from "react-icons/io";
 import { FiPlus } from "react-icons/fi";
 import SpecTemplateManager from "./SpecTemplateManager";
+import { Specs } from "../types";
 
-type SpecItem = {
+type SpecItemLocal = {
   ProductSpecsId: number;
   Title: string;
   Description: string;
 };
 
-type Specs = {
+// Add the internal Specs type with the isChanged flag
+type SpecsInternal = {
   isChanged: boolean;
-  data: SpecItem[];
+  data: SpecItemLocal[];
 };
 
 type EditModalSpecsProps = {
   productId: number;
   productName: string;
   specs: Specs | null;
-  setSpecs: (specs: Specs) => void;
+  setSpecs: React.Dispatch<React.SetStateAction<Specs | null>>;
 };
 
 const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
@@ -31,10 +33,42 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [showTemplateManager, setShowTemplateManager] = useState(false);
+  const [internalSpecs, setInternalSpecs] = useState<SpecsInternal | null>(null);
 
   useEffect(() => {
     fetchSpecs();
   }, [productId]);
+
+  // Convert from internal format to the API format
+  useEffect(() => {
+    if (internalSpecs && internalSpecs.isChanged) {
+      const convertedSpecs: Specs = {
+        data: internalSpecs.data.map(spec => ({
+          ProductSpecsId: spec.ProductSpecsId,
+          Name: productName,
+          Title: spec.Title,
+          Description: spec.Description,
+          ProductId: productId,
+          Available: true
+        }))
+      };
+      setSpecs(convertedSpecs);
+    }
+  }, [internalSpecs]);
+
+  // Convert from API format to the internal format
+  useEffect(() => {
+    if (specs && !internalSpecs) {
+      setInternalSpecs({
+        isChanged: false,
+        data: specs.data.map(spec => ({
+          ProductSpecsId: spec.ProductSpecsId,
+          Title: spec.Title,
+          Description: spec.Description
+        }))
+      });
+    }
+  }, [specs]);
 
   const fetchSpecs = async () => {
     if (!productId) return;
@@ -48,14 +82,14 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
         Description: spec.Description,
       }));
 
-      setSpecs({
+      setInternalSpecs({
         isChanged: false,
         data: specData,
       });
     } catch (error) {
       console.error("Error fetching specs:", error);
       toast.error("خطا در دریافت مشخصات محصول");
-      setSpecs({
+      setInternalSpecs({
         isChanged: false,
         data: [],
       });
@@ -69,11 +103,11 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
     field: "Title" | "Description",
     value: string
   ) => {
-    if (!specs) return;
+    if (!internalSpecs) return;
 
-    const newData = [...specs.data];
+    const newData = [...internalSpecs.data];
     newData[index][field] = value;
-    setSpecs({
+    setInternalSpecs({
       isChanged: true,
       data: newData,
     });
@@ -83,12 +117,12 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
     e.preventDefault();
     e.stopPropagation();
     
-    if (!specs) return;
+    if (!internalSpecs) return;
 
-    setSpecs({
+    setInternalSpecs({
       isChanged: true,
       data: [
-        ...specs.data,
+        ...internalSpecs.data,
         {
           ProductSpecsId: 0, // New item will have ID 0 until saved
           Title: "",
@@ -102,11 +136,11 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
     e.preventDefault();
     e.stopPropagation();
     
-    if (!specs) return;
+    if (!internalSpecs) return;
 
-    const newData = [...specs.data];
+    const newData = [...internalSpecs.data];
     newData.splice(index, 1);
-    setSpecs({
+    setInternalSpecs({
       isChanged: true,
       data: newData,
     });
@@ -121,7 +155,7 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
 
   // Handle template selection
   const handleTemplateSelect = (templateSpecs: { title: string; description: string }[]) => {
-    if (!specs) return;
+    if (!internalSpecs) return;
 
     // Convert template specs to the correct format and add them to existing specs
     const formattedTemplateSpecs = templateSpecs.map(item => ({
@@ -130,9 +164,9 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
       Description: item.description,
     }));
 
-    setSpecs({
+    setInternalSpecs({
       isChanged: true,
-      data: [...specs.data, ...formattedTemplateSpecs],
+      data: [...internalSpecs.data, ...formattedTemplateSpecs],
     });
   };
 
@@ -172,8 +206,8 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
         </div>
 
         <div className="space-y-4">
-          {specs && specs.data.length > 0 ? (
-            specs.data.map((spec, index) => (
+          {internalSpecs && internalSpecs.data.length > 0 ? (
+            internalSpecs.data.map((spec, index) => (
               <div key={index} className="flex gap-4" onClick={(e) => e.stopPropagation()}>
                 <div className="flex-1">
                   <label className="block mb-1 text-sm">عنوان</label>
