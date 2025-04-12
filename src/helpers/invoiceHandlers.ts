@@ -44,23 +44,31 @@ export const getUserInvoices = async () => {
   try {
     const res = await axios.get("/api/invoice");
     // Debug the response to see the structure
-    console.log("API response data:", res.data);
-    
+
     // Validate Invoice_Details structure in each invoice
     if (Array.isArray(res.data)) {
       res.data.forEach((invoice, index) => {
-        if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
-          console.warn(`Invoice at index ${index} has invalid Invoice_Details`, invoice);
+        if (
+          !invoice.Invoice_Details ||
+          !Array.isArray(invoice.Invoice_Details)
+        ) {
+          console.warn(
+            `Invoice at index ${index} has invalid Invoice_Details`,
+            invoice
+          );
         } else {
           invoice.Invoice_Details.forEach((detail, detailIndex) => {
             if (!detail.Invoice_Details) {
-              console.warn(`Detail at index ${detailIndex} in invoice ${index} is missing Invoice_Details ID`, detail);
+              console.warn(
+                `Detail at index ${detailIndex} in invoice ${index} is missing Invoice_Details ID`,
+                detail
+              );
             }
           });
         }
       });
     }
-    
+
     return res.data;
   } catch (error: unknown) {
     // Handle error and check for AxiosError structure

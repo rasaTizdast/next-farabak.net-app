@@ -11,7 +11,6 @@ async function verifyToken(token: string) {
   try {
     const secret = new TextEncoder().encode(JWT_SECRET);
     const { payload } = await jwtVerify(token, secret);
-    console.log("[STATS API] Token payload:", payload);
     return {
       userId: payload.userId as string,
       role: payload.role as string,
@@ -46,13 +45,11 @@ function formatBigIntResults(results: any[]) {
  * Get warranty statistics for branches
  */
 export async function GET() {
-  console.log("[STATS API] Statistics API route hit");
   try {
     const cookieStore = cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      console.log("[STATS API] No authentication token found");
       return NextResponse.json(
         {
           message: "Authorization token required",
@@ -66,7 +63,6 @@ export async function GET() {
     const decoded = await verifyToken(token);
 
     if (!decoded) {
-      console.log("[STATS API] Invalid token");
       return NextResponse.json(
         {
           message: "Invalid token",
@@ -79,12 +75,8 @@ export async function GET() {
 
     const userRole = decoded.role;
     const userId = decoded.userId;
-    console.log(
-      `[STATS API] Token decoded: UserID=${userId}, Role=${userRole}`
-    );
 
     if (!userRole || (userRole !== "Admin" && userRole !== "Branch")) {
-      console.log(`[STATS API] Unauthorized role: ${userRole}`);
       return NextResponse.json(
         {
           message: "Unauthorized",
@@ -99,7 +91,6 @@ export async function GET() {
 
     if (userRole === "Admin") {
       // For admin, get statistics for all branches
-      console.log("[STATS API] Executing admin branch stats query");
       try {
         const branchStats = await prisma.$queryRaw`
           SELECT 
@@ -114,20 +105,6 @@ export async function GET() {
           ORDER BY b."name"
         `;
 
-        console.log(
-          `[STATS API] Admin query returned ${
-            (branchStats as any[]).length
-          } branches`
-        );
-        if ((branchStats as any[]).length > 0) {
-          console.log(
-            `[STATS API] First branch result:`,
-            (branchStats as any[])[0]
-          );
-        } else {
-          console.log(`[STATS API] No branches found in admin query`);
-        }
-
         const formattedStats = formatBigIntResults(branchStats as any[]);
         result = { allBranches: formattedStats, myBranches: [] };
       } catch (error) {
@@ -135,10 +112,6 @@ export async function GET() {
         result = { allBranches: [], myBranches: [] };
       }
     } else {
-      // For branch user, get statistics only for their branches
-      console.log(
-        `[STATS API] Executing branch user stats query for UserID=${userId}`
-      );
       try {
         // Validate userID is a valid number
         const numericUserId = parseInt(userId, 10);
@@ -154,8 +127,6 @@ export async function GET() {
           );
         }
 
-        console.log(`[STATS API] Converted UserID to number: ${numericUserId}`);
-
         // First check if this user is associated with any branch
         const userBranches = await prisma.branch.findMany({
           where: {
@@ -163,20 +134,9 @@ export async function GET() {
           },
         });
 
-        console.log(
-          `[STATS API] Found ${userBranches.length} branches for this user`
-        );
         if (userBranches.length === 0) {
-          console.log(
-            `[STATS API] No branches found for UserID=${numericUserId}`
-          );
           result = { allBranches: [], myBranches: [] };
         } else {
-          console.log(
-            `[STATS API] User branch IDs:`,
-            userBranches.map((b) => b.branchid)
-          );
-
           const branchStats = await prisma.$queryRaw`
             SELECT 
               b."branchid", 
@@ -191,20 +151,6 @@ export async function GET() {
             ORDER BY b."name"
           `;
 
-          console.log(
-            `[STATS API] Branch query returned ${
-              (branchStats as any[]).length
-            } branches`
-          );
-          if ((branchStats as any[]).length > 0) {
-            console.log(
-              `[STATS API] Branch stats first result:`,
-              (branchStats as any[])[0]
-            );
-          } else {
-            console.log(`[STATS API] No branch stats found in query`);
-          }
-
           const formattedStats = formatBigIntResults(branchStats as any[]);
           result = { allBranches: [], myBranches: formattedStats };
         }
@@ -214,7 +160,6 @@ export async function GET() {
       }
     }
 
-    console.log(`[STATS API] Returning warranty statistics`);
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.error("[STATS API] Error getting warranty statistics:", error);

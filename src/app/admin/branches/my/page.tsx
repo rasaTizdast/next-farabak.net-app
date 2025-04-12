@@ -524,19 +524,12 @@ function MyBranchContent() {
 
   // Add effect to load invoices when switching to the invoices tab
   useEffect(() => {
-    console.log("[MyBranchPage] Tab changed to:", activeTab);
     if (activeTab === "invoices") {
       fetchInvoices();
     }
   }, [activeTab]);
 
   const handleTabChange = (newActiveTab: string) => {
-    console.log(
-      "[MyBranchPage] Changing tab from",
-      activeTab,
-      "to",
-      newActiveTab
-    );
     setActiveTab(newActiveTab);
   };
 

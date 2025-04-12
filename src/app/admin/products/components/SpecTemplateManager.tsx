@@ -40,7 +40,6 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({
     setIsLoading(true);
     try {
       const response = await axios.get("/api/specTemplates");
-      console.log("Templates fetched:", response.data);
       setTemplates(response.data);
     } catch (error) {
       console.error("Error fetching templates:", error);
@@ -55,14 +54,11 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({
   }, []);
 
   const handleCreateTemplate = () => {
-    console.log("Creating new template...");
     setTemplateToEdit(null);
     setShowTemplateModal(true);
-    console.log("showTemplateModal set to:", true);
   };
 
   const handleEditTemplate = (template: SpecTemplate) => {
-    console.log("Editing template:", template);
     setTemplateToEdit(template);
     setShowTemplateModal(true);
   };
@@ -102,19 +98,11 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({
     }
   };
 
-  // Effect to log state changes
-  useEffect(() => {
-    console.log("showTemplateModal value:", showTemplateModal);
-  }, [showTemplateModal]);
-
   return (
     <>
       {showTemplateModal && (
         <SpecTemplateModal
-          onClose={() => {
-            console.log("Closing template modal");
-            setShowTemplateModal(false);
-          }}
+          onClose={() => setShowTemplateModal(false)}
           onTemplateAdded={fetchTemplates}
           templateToEdit={templateToEdit}
         />
@@ -137,7 +125,6 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                console.log("Create template button clicked");
                 handleCreateTemplate();
               }}
               className="px-4 py-2 bg-green-600 rounded-lg hover:bg-green-500 transition-colors flex items-center gap-2"

@@ -35,7 +35,9 @@ interface WarrantyStatsProps {
   isTabActive?: boolean;
 }
 
-export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps) {
+export default function WarrantyStats({
+  isTabActive = true,
+}: WarrantyStatsProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [statistics, setStatistics] = useState<BranchStats[]>([]);
@@ -43,43 +45,45 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
   const [lastFetchTime, setLastFetchTime] = useState<number>(0);
 
   // Create a memoized fetch function using useCallback
-  const fetchWarrantyStats = useCallback(async (force = false) => {
-    // Skip if not active and not forced
-    if (!isTabActive && !force) return;
-    
-    // Skip if we've fetched in the last 10 seconds and not forced
-    const now = Date.now();
-    if (!force && now - lastFetchTime < 10000 && dataFetched) return;
-    
-    console.log("[Client] Fetching warranty statistics...");
-    try {
-      setLoading(true);
-      const response = await fetch("/api/admin/warranty/statistics");
+  const fetchWarrantyStats = useCallback(
+    async (force = false) => {
+      // Skip if not active and not forced
+      if (!isTabActive && !force) return;
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch warranty statistics");
+      // Skip if we've fetched in the last 10 seconds and not forced
+      const now = Date.now();
+      if (!force && now - lastFetchTime < 10000 && dataFetched) return;
+
+      try {
+        setLoading(true);
+        const response = await fetch("/api/admin/warranty/statistics");
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch warranty statistics");
+        }
+
+        const data = await response.json();
+
+        // Use either allBranches or myBranches, whichever has data
+        const stats =
+          data.allBranches?.length > 0
+            ? data.allBranches
+            : data.myBranches || [];
+        setStatistics(stats);
+        setDataFetched(true);
+        setLastFetchTime(now);
+      } catch (err: any) {
+        console.error("[Client] Error fetching warranty stats:", err);
+        setError(err.message || "خطا در دریافت آمار گارانتی‌ها");
+      } finally {
+        setLoading(false);
       }
-
-      const data = await response.json();
-      console.log("[Client] Warranty statistics received:", data);
-      
-      // Use either allBranches or myBranches, whichever has data
-      const stats = data.allBranches?.length > 0 ? data.allBranches : data.myBranches || [];
-      console.log("[Client] Setting statistics:", stats);
-      setStatistics(stats);
-      setDataFetched(true);
-      setLastFetchTime(now);
-    } catch (err: any) {
-      console.error("[Client] Error fetching warranty stats:", err);
-      setError(err.message || "خطا در دریافت آمار گارانتی‌ها");
-    } finally {
-      setLoading(false);
-    }
-  }, [isTabActive, lastFetchTime, dataFetched]);
+    },
+    [isTabActive, lastFetchTime, dataFetched]
+  );
 
   // Effect to fetch data when tab becomes active
   useEffect(() => {
-    console.log("[Client] WarrantyStats tab active state changed:", isTabActive);
     if (isTabActive) {
       fetchWarrantyStats(false);
     }
@@ -102,23 +106,23 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
 
   if (error) {
     return (
-      <Alert 
-        message="خطا" 
+      <Alert
+        message="خطا"
         description={
           <div>
             <p>{error}</p>
-            <Button 
-              type="primary" 
-              onClick={() => fetchWarrantyStats(true)} 
+            <Button
+              type="primary"
+              onClick={() => fetchWarrantyStats(true)}
               icon={<ReloadOutlined />}
               className="mt-4"
             >
               تلاش مجدد
             </Button>
           </div>
-        } 
-        type="error" 
-        showIcon 
+        }
+        type="error"
+        showIcon
       />
     );
   }
@@ -127,9 +131,9 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
     <div className="space-y-6 bg-gray-900 p-6 rounded-lg border border-gray-800 shadow-xl warranty-stats-wrapper">
       {/* Refresh Button */}
       <div className="flex justify-end mb-2">
-        <Button 
-          onClick={() => fetchWarrantyStats(true)} 
-          icon={<ReloadOutlined />} 
+        <Button
+          onClick={() => fetchWarrantyStats(true)}
+          icon={<ReloadOutlined />}
           loading={loading}
           className="bg-blue-600 hover:bg-blue-700 text-white"
         >
@@ -162,7 +166,9 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
                   style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
                 >
                   <Statistic
-                    title={<Text className="text-gray-300">گارانتی‌های فعال</Text>}
+                    title={
+                      <Text className="text-gray-300">گارانتی‌های فعال</Text>
+                    }
                     value={totalStats.active}
                     valueStyle={{ color: "#10B981", fontWeight: "bold" }}
                     prefix={<CheckCircleOutlined />}
@@ -176,7 +182,9 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
                 >
                   <Statistic
                     title={
-                      <Text className="text-gray-300">گارانتی‌های منقضی شده</Text>
+                      <Text className="text-gray-300">
+                        گارانتی‌های منقضی شده
+                      </Text>
                     }
                     value={totalStats.expired}
                     valueStyle={{ color: "#EF4444", fontWeight: "bold" }}
@@ -190,7 +198,9 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
                   style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
                 >
                   <Statistic
-                    title={<Text className="text-gray-300">درخواست‌های بررسی</Text>}
+                    title={
+                      <Text className="text-gray-300">درخواست‌های بررسی</Text>
+                    }
                     value={totalStats.requested}
                     valueStyle={{ color: "#F59E0B", fontWeight: "bold" }}
                     prefix={<SyncOutlined spin />}
@@ -225,13 +235,17 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
                     </Text>
                   </div>
                   <div className="text-center">
-                    <Text className="text-gray-300 block text-sm">منقضی شده</Text>
+                    <Text className="text-gray-300 block text-sm">
+                      منقضی شده
+                    </Text>
                     <Text className="text-red-500 text-lg font-bold">
                       {branch.expired_count}
                     </Text>
                   </div>
                   <div className="text-center">
-                    <Text className="text-gray-300 block text-sm">درخواست‌ها</Text>
+                    <Text className="text-gray-300 block text-sm">
+                      درخواست‌ها
+                    </Text>
                     <Text className="text-yellow-500 text-lg font-bold">
                       {branch.requested_count}
                     </Text>
@@ -247,11 +261,11 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
         .warranty-stats-wrapper {
           font-family: inherit !important;
         }
-        
+
         .warranty-stats-wrapper * {
           font-family: inherit !important;
         }
-      
+
         .ant-card-head-title,
         .ant-statistic-title {
           color: #e5e7eb !important;
@@ -269,7 +283,7 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
         .ant-card-head {
           background-color: rgba(31, 41, 55, 0.9);
         }
-        
+
         /* Fix font-family issues */
         .ant-card,
         .ant-card-head,
@@ -283,7 +297,7 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
         .ant-alert {
           font-family: inherit !important;
         }
-        
+
         /* Ensure numeric values also use the right font */
         .ant-statistic-content-value-int,
         .ant-statistic-content-value-decimal {

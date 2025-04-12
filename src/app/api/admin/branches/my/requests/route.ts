@@ -19,7 +19,6 @@ async function verifyCurrentUser() {
   try {
     const secret = new TextEncoder().encode(JWT_SECRET);
     const { payload } = await jwtVerify(token, secret);
-    console.log("[BRANCH API] Token payload:", payload);
     return {
       id: payload.userId as string,
       role: payload.role as string,

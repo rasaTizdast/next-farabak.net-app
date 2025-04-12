@@ -27,15 +27,12 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
   onTemplateAdded,
   templateToEdit,
 }) => {
-  console.log("SpecTemplateModal rendered", { templateToEdit });
-  
   const [templateName, setTemplateName] = useState("");
   const [items, setItems] = useState<{ Title: string }[]>([{ Title: "" }]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Initialize state when editing an existing template
   useEffect(() => {
-    console.log("templateToEdit changed:", templateToEdit);
     if (templateToEdit) {
       setTemplateName(templateToEdit.Name);
       setItems(
@@ -47,13 +44,11 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
   }, [templateToEdit]);
 
   const handleAddItem = () => {
-    console.log("Adding item");
     setItems([...items, { Title: "" }]);
   };
 
   const handleRemoveItem = (index: number) => {
     if (items.length > 1) {
-      console.log("Removing item at index:", index);
       const newItems = [...items];
       newItems.splice(index, 1);
       setItems(newItems);
@@ -69,8 +64,6 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    console.log("Form submitted", { templateName, items });
 
     // Validation
     if (!templateName.trim()) {
@@ -89,7 +82,6 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
     try {
       if (templateToEdit) {
         // Update existing template
-        console.log("Updating template:", templateToEdit.SpecTemplateId);
         await axios.put(`/api/specTemplates/${templateToEdit.SpecTemplateId}`, {
           Name: templateName,
           Items: nonEmptyItems,
@@ -97,7 +89,6 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
         toast.success("قالب با موفقیت به‌روزرسانی شد");
       } else {
         // Create new template
-        console.log("Creating new template");
         await axios.post("/api/specTemplates", {
           Name: templateName,
           Items: nonEmptyItems,
@@ -106,10 +97,8 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
       }
 
       if (onTemplateAdded) {
-        console.log("Calling onTemplateAdded callback");
         onTemplateAdded();
       }
-      console.log("Closing modal");
       onClose();
     } catch (error) {
       console.error("Error saving template:", error);
@@ -120,8 +109,14 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity" onClick={(e) => e.stopPropagation()}>
-      <div className="bg-gray-800 text-white rounded-xl shadow-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative animate-fade-in" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div
+        className="bg-gray-800 text-white rounded-xl shadow-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative animate-fade-in"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="text-xl font-bold mb-6 text-center">
           {templateToEdit ? "ویرایش قالب مشخصات" : "ایجاد قالب مشخصات جدید"}
         </h2>
@@ -181,7 +176,6 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                console.log("Cancel button clicked");
                 onClose();
               }}
               className="px-4 py-2 bg-gray-600 rounded-lg hover:bg-gray-500 transition-colors"
@@ -213,7 +207,6 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
           className="absolute top-2 right-2 text-gray-400 hover:text-white"
           onClick={(e) => {
             e.stopPropagation();
-            console.log("Close button clicked");
             onClose();
           }}
         >
@@ -224,4 +217,4 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
   );
 };
 
-export default SpecTemplateModal; 
+export default SpecTemplateModal;
