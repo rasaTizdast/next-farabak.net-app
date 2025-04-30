@@ -6,13 +6,11 @@ import { Invoice } from "../../types";
 
 interface ReviewStepProps {
   invoice: Invoice;
-  selectedProducts: any[];
   productsWithWarranty: any[];
 }
 
 const ReviewStep: React.FC<ReviewStepProps> = ({
   invoice,
-  selectedProducts,
   productsWithWarranty,
 }) => {
   // Check if all products have valid warranty settings
@@ -84,7 +82,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
         // Generate item indicator
         const itemIndicator =
           sameProductItems.length > 1
-            ? `عدد ${currentIndex + 1} از ${sameProductItems.length}: `
+            ? `محصول ${currentIndex + 1} از ${sameProductItems.length}: `
             : "";
 
         // Display individual warranty code

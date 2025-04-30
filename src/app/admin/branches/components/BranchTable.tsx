@@ -1,5 +1,5 @@
 import React from "react";
-import { Table, Button, Popconfirm, Empty, Tooltip, Tag, Space, TablePaginationConfig } from "antd";
+import { Button, Popconfirm, Empty, Tooltip, Tag, Space, TablePaginationConfig } from "antd";
 import {
   DeleteOutlined,
   EditOutlined,
@@ -9,6 +9,7 @@ import {
 import { Branch } from "./types";
 import StatusBadge from "./StatusBadge";
 import { toPersianDate } from "./types";
+import PersianTable from "./PersianTable";
 
 interface BranchTableProps {
   branches: Branch[];
@@ -184,15 +185,21 @@ const BranchTable: React.FC<BranchTableProps> = ({
   return (
     <div className="bg-gray-800 rounded-lg shadow-md overflow-hidden">
       <div className="overflow-x-auto">
-        <Table
+        <PersianTable
           columns={columns}
           dataSource={branches}
           rowKey="branchid"
           loading={loading}
-          pagination={pagination || {
-            pageSize: 10,
+          pagination={{
+            current: pagination?.current,
+            pageSize: pagination?.pageSize || 10,
+            total: pagination?.total,
+            onChange: pagination?.onChange,
+            showSizeChanger: true,
+            showQuickJumper: false,
+            pageSizeOptions: ["10", "20", "50"],
             position: ["bottomCenter"],
-            className: "pagination-dark",
+            className: "pagination-dark"
           }}
           scroll={{ x: "max-content" }}
           className="branch-table dark-table rtl-table"
@@ -201,7 +208,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
               <Empty
                 description="هیچ شعبه‌ای یافت نشد"
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                className="text-gray-400"
+                className="text-gray-200"
               />
             ),
           }}

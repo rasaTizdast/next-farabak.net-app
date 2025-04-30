@@ -110,7 +110,6 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
       content: (
         <ReviewStep
           invoice={invoice as Invoice}
-          selectedProducts={selectedProducts}
           productsWithWarranty={productsWithWarranty}
         />
       ),
@@ -140,15 +139,17 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
     try {
       // With the new approach, each item already has its own warranty
       // Just need to make sure each item has quantity=1
-      const individualItems = productsWithWarranty.map(item => ({
+      const individualItems = productsWithWarranty.map((item) => ({
         ProductId: item.ProductId,
         quantity: 1, // Each item has quantity 1
         price: item.price,
         total_price: item.price,
-        warranty: item.warranty.hasWarranty ? {
-          ...item.warranty,
-          hasWarranty: true
-        } : null,
+        warranty: item.warranty.hasWarranty
+          ? {
+              ...item.warranty,
+              hasWarranty: true,
+            }
+          : null,
       }));
 
       // Prepare data for submission with individual items
@@ -272,6 +273,10 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
           color: #9ca3af !important;
         }
 
+        .invoice-modal .ant-steps-item-title:after {
+          background-color: #465266 !important;
+        }
+
         .invoice-modal .ant-steps-item-active .ant-steps-item-title {
           color: white !important;
         }
@@ -302,20 +307,20 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
         .zaman-calendar-container {
           z-index: 3000 !important;
         }
-        
+
         /* Make modals have lower z-index than DatePicker popover */
         .ant-modal {
           z-index: 1000;
         }
-        
+
         .ant-modal-mask {
           z-index: 1000;
         }
-        
+
         .ant-modal-wrap {
           z-index: 1000;
         }
-        
+
         /* Override any other styles that might interfere */
         .ant-picker-dropdown {
           z-index: 3000 !important;
@@ -350,7 +355,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
         .custom-dark-tabs .ant-tabs-nav {
           margin-bottom: 16px;
         }
-        
+
         .custom-dark-tabs .ant-tabs-tab {
           background-color: #1e293b !important;
           border-color: #334155 !important;
@@ -361,36 +366,36 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
           color: #b5bdca;
           opacity: 0.8;
         }
-        
+
         .custom-dark-tabs .ant-tabs-tab:hover {
           background-color: #263244 !important;
           opacity: 1;
         }
-        
+
         .custom-dark-tabs .ant-tabs-tab-active {
           background-color: #19202b !important;
           opacity: 1;
         }
-        
+
         .custom-dark-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
           color: white !important;
           font-weight: 500;
         }
-        
+
         .custom-dark-tabs .ant-tabs-content {
           background-color: #19202b;
           padding: 16px;
           border-radius: 0 8px 8px 8px;
         }
-        
+
         .custom-dark-tabs .ant-tabs-ink-bar {
           display: none;
         }
-        
+
         .custom-dark-tabs .ant-tabs-nav:before {
           border-bottom: 1px solid #334155;
         }
-        
+
         .custom-dark-tabs .ant-tabs-nav-list {
           display: flex;
           gap: 4px;
@@ -399,7 +404,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
         .custom-dark-tabs .ant-empty-description {
           color: white !important;
         }
-        
+
         .custom-dark-table .ant-table-container {
           border: 1px solid #374151;
           border-radius: 8px;

@@ -666,7 +666,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
                       label={<span className="text-white">کد گارانتی</span>}
                     >
                       <Input
-                        className="w-full p-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-white"
+                        className="w-full p-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none !text-gray-300"
                         placeholder="کد گارانتی"
                         readOnly
                         disabled
