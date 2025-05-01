@@ -18,7 +18,7 @@ interface ProductDrawerProps {
   onQuantityChange: (value: number | null) => void;
   onAddProduct: () => void;
   onUpdateQuantity: (productId: number, quantity: number) => void;
-  onRemoveProduct: (productId: number) => void;
+  onRemoveProduct?: (productId: number) => void;
 }
 
 const ProductDrawer: React.FC<ProductDrawerProps> = ({
@@ -82,7 +82,8 @@ const ProductDrawer: React.FC<ProductDrawerProps> = ({
           products={products}
           loading={loading}
           onUpdateQuantity={onUpdateQuantity}
-          onRemove={onRemoveProduct}
+          showRemoveButton={!!onRemoveProduct}
+          onRemove={onRemoveProduct || (() => {})}
         />
       </div>
     </Drawer>

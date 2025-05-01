@@ -14,12 +14,14 @@ interface InvoiceModalProps {
   visible: boolean;
   onClose: () => void;
   branch: Branch;
+  onSuccess?: () => void;
 }
 
 const InvoiceModal: React.FC<InvoiceModalProps> = ({
   visible,
   onClose,
   branch,
+  onSuccess,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [usdToRialRate, setUsdToRialRate] = useState<number | null>(null);
@@ -176,7 +178,13 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
       }
 
       message.success("فاکتور با موفقیت ثبت شد");
-      handleClose();
+      
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        handleClose(); // Only close if onSuccess is not provided
+      }
     } catch (error: any) {
       console.error("Error creating invoice:", error);
       message.error(error.message || "خطا در ثبت فاکتور");

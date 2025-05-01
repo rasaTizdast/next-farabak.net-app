@@ -21,7 +21,6 @@ import {
   AutoComplete,
 } from "antd";
 import {
-  DeleteOutlined,
   ExclamationCircleOutlined,
   PlusOutlined,
   SearchOutlined,
@@ -40,8 +39,6 @@ import moment from "jalali-moment";
 import SkeletonLoading from "./components/SkeletonLoading";
 import WarrantyStats from "../components/WarrantyStats";
 import WarrantyRequests from "../components/WarrantyRequests";
-
-const { TabPane } = Tabs;
 
 function MyBranchContent() {
   const [branch, setBranch] = useState<Branch | null>(null);
@@ -86,9 +83,11 @@ function MyBranchContent() {
   // Initialize debounced quantities when products change
   useEffect(() => {
     const initialValues: { [key: number]: number } = {};
-    products.forEach((product) => {
-      initialValues[product.ProductId] = product.quantity;
-    });
+    if (products && Array.isArray(products)) {
+      products.forEach((product) => {
+        initialValues[product.ProductId] = product.quantity;
+      });
+    }
     setDebouncedQuantities(initialValues);
   }, [products]);
 
@@ -204,13 +203,30 @@ function MyBranchContent() {
       if (!response.ok) throw new Error("خطا در دریافت محصولات شعبه");
       const responseData = await response.json();
 
-      // Update products and pagination
-      setProducts(responseData.data);
-      setProductPagination({
-        current: responseData.pagination.currentPage,
-        pageSize: pageSize,
-        total: responseData.pagination.totalCount,
-      });
+      // Check if response is an array (new API format) or has pagination (old format)
+      if (Array.isArray(responseData)) {
+        // New API format - direct array of products
+        setProducts(responseData);
+        setProductPagination({
+          ...productPagination, // Maintain current pagination state
+          total: responseData.length, // Set total to array length
+        });
+      } else if (responseData.data) {
+        // Old API format with pagination object
+        setProducts(responseData.data);
+        setProductPagination({
+          current: responseData.pagination.currentPage,
+          pageSize: pageSize,
+          total: responseData.pagination.totalCount,
+        });
+      } else {
+        // Fallback case
+        setProducts([]);
+        setProductPagination({
+          ...productPagination,
+          total: 0,
+        });
+      }
     } catch (error) {
       console.error("Error fetching branch products:", error);
       message.error("خطا در بارگذاری محصولات شعبه");
@@ -275,16 +291,26 @@ function MyBranchContent() {
       }
 
       const data = await response.json();
-      setInvoices(data.invoices);
-      setFilteredInvoices(data.invoices);
-      setWarrantySummary(data.warrantySummary);
+      if (data.invoices) {
+        setInvoices(data.invoices);
+        setFilteredInvoices(data.invoices);
+        if (data.warrantySummary) {
+          setWarrantySummary(data.warrantySummary);
+        }
 
-      // Update pagination
-      setInvoicePagination({
-        current: data.pagination.currentPage,
-        pageSize: pageSize,
-        total: data.pagination.totalCount,
-      });
+        // Update pagination if available
+        if (data.pagination) {
+          setInvoicePagination({
+            current: data.pagination.currentPage,
+            pageSize: pageSize,
+            total: data.pagination.totalCount,
+          });
+        }
+      } else {
+        // Handle case where response doesn't have expected structure
+        setInvoices([]);
+        setFilteredInvoices([]);
+      }
     } catch (error) {
       console.error("Error fetching invoices:", error);
       message.error("خطا در بارگذاری فاکتورها");
@@ -308,7 +334,7 @@ function MyBranchContent() {
 
   // Update search options for invoices
   useEffect(() => {
-    if (!searchText.trim() || !invoices.length) {
+    if (!searchText.trim() || !invoices || !Array.isArray(invoices) || !invoices.length) {
       setSearchOptions([]);
       return;
     }
@@ -340,6 +366,21 @@ function MyBranchContent() {
             <div>
               <span className="text-green-500 font-bold">نام مشتری: </span>
               {invoice.Fullname}
+            </div>
+          ),
+        });
+      }
+    });
+    
+    // Add phone numbers
+    invoices.forEach((invoice) => {
+      if (invoice.Phonenumber && invoice.Phonenumber.includes(lowerCaseSearch)) {
+        options.push({
+          value: invoice.Phonenumber,
+          label: (
+            <div>
+              <span className="text-purple-500 font-bold">شماره تماس: </span>
+              {invoice.Phonenumber}
             </div>
           ),
         });
@@ -395,11 +436,12 @@ function MyBranchContent() {
 
     const lowerCaseSearch = searchText.toLowerCase();
 
-    // Search in invoice number, customer name, or warranty code
+    // Search in invoice number, customer name, phone number, or warranty code
     const filtered = invoices.filter(
       (invoice) =>
         invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch) ||
         invoice.Fullname.toLowerCase().includes(lowerCaseSearch) ||
+        (invoice.Phonenumber && invoice.Phonenumber.includes(lowerCaseSearch)) ||
         // Search in warranty codes
         (invoice.Invoice_Details &&
           invoice.Invoice_Details.some(
@@ -629,39 +671,21 @@ function MyBranchContent() {
     }
   };
 
-  const handleRemoveProduct = async (productId: number) => {
-    if (!branch) return;
-
-    try {
-      const response = await fetch(
-        `/api/admin/branches/${branch.branchid}/products/${productId}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!response.ok) throw new Error("خطا در حذف محصول");
-
-      message.success("محصول با موفقیت از شعبه حذف شد");
-
-      // Update branch products
-      await fetchBranchProducts(branch.branchid);
-
-      // Refresh branch data to update product counts and totals
-      const branchResponse = await fetch("/api/admin/branches/my");
-      if (branchResponse.ok) {
-        const branchData = await branchResponse.json();
-        setBranch(branchData);
-      }
-    } catch (error) {
-      console.error("Error removing product:", error);
-      message.error("خطا در حذف محصول از شعبه");
-    }
-  };
-
   // Add function to handle invoice creation
   const handleCreateInvoice = () => {
     setInvoiceModalVisible(true);
+  };
+
+  // Add function for invoice creation success
+  const handleInvoiceCreationSuccess = () => {
+    // Close the modal
+    setInvoiceModalVisible(false);
+    
+    // Refresh invoices list
+    fetchInvoices();
+    
+    // Show success message
+    message.success("فاکتور با موفقیت ایجاد شد");
   };
 
   // Add function to update invoice status
@@ -729,7 +753,7 @@ function MyBranchContent() {
       title: "تعداد",
       dataIndex: "quantity",
       key: "quantity",
-      width: "20%",
+      width: "40%",
       className: "text-center",
       render: (quantity: number, record: Product) => (
         <InputNumber
@@ -757,32 +781,6 @@ function MyBranchContent() {
             color: "#e5e7eb",
           }}
         />
-      ),
-    },
-    {
-      title: "عملیات",
-      key: "actions",
-      width: "20%",
-      className: "text-center",
-      render: (_: any, product: Product) => (
-        <Popconfirm
-          title="حذف محصول"
-          description="آیا از حذف این محصول از شعبه اطمینان دارید؟"
-          onConfirm={() => handleRemoveProduct(product.ProductId)}
-          okText="بله"
-          cancelText="خیر"
-          okButtonProps={{ className: "bg-red-600 hover:bg-red-700" }}
-          placement="topRight"
-        >
-          <Button
-            icon={<DeleteOutlined />}
-            danger
-            size="small"
-            className="!bg-red-500 !text-white !border-none hover:!bg-red-600"
-          >
-            حذف
-          </Button>
-        </Popconfirm>
       ),
     },
   ];
@@ -1107,8 +1105,13 @@ function MyBranchContent() {
                             );
                           }
                         },
+                        showSizeChanger: true,
+                        showQuickJumper: true,
+                        pageSizeOptions: ["10", "20", "50"],
+                        position: ["bottomCenter"],
+                        className: "pagination-dark",
                       }}
-                      className="dark-table enhanced-table"
+                      className="dark-table enhanced-table rtl-table"
                       locale={{
                         emptyText: (
                           <Empty
@@ -1185,7 +1188,7 @@ function MyBranchContent() {
                 >
                   <div className="relative">
                     <AutoComplete
-                      placeholder="جستجوی شماره فاکتور، نام مشتری یا کد گارانتی..."
+                      placeholder="جستجوی شماره فاکتور، نام مشتری، شماره تماس یا کد گارانتی..."
                       popupMatchSelectWidth={500}
                       style={{ width: "100%" }}
                       options={searchOptions}
@@ -1293,11 +1296,14 @@ function MyBranchContent() {
                             pageSize || invoicePagination.pageSize
                           );
                         },
+                        showSizeChanger: true,
+                        showQuickJumper: true,
+                        pageSizeOptions: ["10", "20", "50"],
                         position: ["bottomCenter"],
                         className: "pagination-dark",
                       }}
                       scroll={{ x: "max-content" }}
-                      className="branch-invoices-table enhanced-table"
+                      className="branch-invoices-table enhanced-table rtl-table"
                       rowClassName={(record) =>
                         !record.Checked ? "unread-invoice-row" : ""
                       }
@@ -1358,6 +1364,7 @@ function MyBranchContent() {
           visible={invoiceModalVisible}
           onClose={() => setInvoiceModalVisible(false)}
           branch={branch}
+          onSuccess={handleInvoiceCreationSuccess}
         />
       )}
 
@@ -1376,7 +1383,6 @@ function MyBranchContent() {
         }
         onAddProduct={handleAddProduct}
         onUpdateQuantity={handleUpdateProductQuantity}
-        onRemoveProduct={handleRemoveProduct}
       />
 
       {/* Invoice Details Modal */}
@@ -1812,6 +1818,102 @@ function MyBranchContent() {
 
         .ant-tabs-nav:before {
           border-bottom-color: #4b5563 !important;
+        }
+
+        /* Add RTL table styles from branches page */
+        .rtl-table .ant-table-container table {
+          direction: rtl;
+        }
+
+        .rtl-table .ant-table-pagination {
+          direction: rtl !important;
+          margin: 16px 0;
+        }
+
+        .rtl-table .ant-pagination-prev {
+          transform: rotate(180deg);
+        }
+
+        .rtl-table .ant-pagination-next {
+          transform: rotate(180deg);
+        }
+
+        /* Add better contrast for pagination */
+        .pagination-dark .ant-pagination-item {
+          background-color: #1f2937 !important;
+          border-color: #4b5563 !important;
+        }
+
+        .pagination-dark .ant-pagination-item a {
+          color: #e5e7eb !important;
+        }
+
+        .pagination-dark .ant-pagination-item:hover {
+          border-color: #3b82f6 !important;
+        }
+
+        .pagination-dark .ant-pagination-item:hover a {
+          color: #3b82f6 !important;
+        }
+
+        .pagination-dark .ant-pagination-item-active {
+          background-color: #3b82f6 !important;
+          border-color: #3b82f6 !important;
+        }
+
+        .pagination-dark .ant-pagination-item-active a {
+          color: white !important;
+        }
+
+        .pagination-dark .ant-pagination-prev button,
+        .pagination-dark .ant-pagination-next button {
+          color: #e5e7eb !important;
+          background-color: #1f2937 !important;
+          border-color: #4b5563 !important;
+        }
+
+        .pagination-dark .ant-pagination-prev:hover button,
+        .pagination-dark .ant-pagination-next:hover button {
+          color: #3b82f6 !important;
+          border-color: #3b82f6 !important;
+        }
+
+        .pagination-dark .ant-pagination-disabled button {
+          color: #6b7280 !important;
+          background-color: #1f2937 !important;
+          border-color: #4b5563 !important;
+        }
+
+        /* Persian text for pagination */
+        .pagination-dark .ant-pagination-options-quick-jumper {
+          display: none !important; /* Hide the quick jumper completely */
+        }
+        
+        /* Position the quick jumper container for RTL */
+        .pagination-dark .ant-pagination-options {
+          direction: rtl !important;
+        }
+        
+        /* Fix per page text in the dropdown */
+        .pagination-dark .ant-pagination-options .ant-select-selection-item::after {
+          content: " / صفحه" !important;
+          display: inline !important;
+        }
+        
+        /* Fix dropdown items */
+        .pagination-dark .ant-select-dropdown .ant-select-item-option-content::after {
+          content: " / صفحه" !important;
+        }
+        
+        /* Page size selector styling */
+        .pagination-dark .ant-pagination-options-size-changer .ant-select-selector {
+          background-color: #1f2937 !important;
+          border-color: #4b5563 !important;
+          color: #e5e7eb !important;
+        }
+        
+        .pagination-dark .ant-pagination-options-size-changer:hover .ant-select-selector {
+          border-color: #3b82f6 !important;
         }
       `}</style>
     </div>
