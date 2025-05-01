@@ -34,6 +34,7 @@ interface Branch {
   branchid: number;
   name: string;
   location?: string;
+  quantity?: number; // Add quantity field
 }
 
 type WarrantyManagementModalProps = {
@@ -63,10 +64,18 @@ const WarrantyManagementModal = ({
     branchId: number | null;
   }>({
     warrantycode: item.individualWarranty?.warrantycode || "",
-    startdate: item.individualWarranty?.startdate || new Date().toISOString().split("T")[0],
-    expirydate: item.individualWarranty?.expirydate || new Date(Date.now() + 730*24*60*60*1000).toISOString().split("T")[0],
+    startdate:
+      item.individualWarranty?.startdate ||
+      new Date().toISOString().split("T")[0],
+    expirydate:
+      item.individualWarranty?.expirydate ||
+      new Date(Date.now() + 730 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0],
     status: item.individualWarranty?.status || "Active",
-    branchId: item.individualWarranty?.branchid ? Number(item.individualWarranty.branchid) : null,
+    branchId: item.individualWarranty?.branchid
+      ? Number(item.individualWarranty.branchid)
+      : null,
   });
   const [durationText, setDurationText] = useState<string | null>(null);
 
@@ -76,30 +85,34 @@ const WarrantyManagementModal = ({
   useEffect(() => {
     fetchBranches();
   }, []);
-  
+
   // Fetch list of available branches
   const fetchBranches = async () => {
     try {
       setLoadingBranches(true);
-      const response = await fetch('/api/admin/branches/list');
-      
+
+      // Use new API endpoint to get only branches with this product in stock
+      const response = await fetch(
+        `/api/admin/branches/product-stock?productId=${item.ProductId}`
+      );
+
       if (!response.ok) {
-        throw new Error('Failed to fetch branches');
+        throw new Error("Failed to fetch branches");
       }
-      
+
       const data = await response.json();
       setBranches(data);
-      
+
       // If this is a new warranty and we have branches, select the first one by default
       if (!isUpdate && data.length > 0 && !warrantyData.branchId) {
-        setWarrantyData(prev => ({
+        setWarrantyData((prev) => ({
           ...prev,
-          branchId: data[0].branchid
+          branchId: data[0].branchid,
         }));
       }
     } catch (error) {
-      console.error('Error fetching branches:', error);
-      toast.error('خطا در دریافت لیست شعبه‌ها');
+      console.error("Error fetching branches:", error);
+      toast.error("خطا در دریافت لیست شعبه‌ها");
     } finally {
       setLoadingBranches(false);
     }
@@ -114,24 +127,27 @@ const WarrantyManagementModal = ({
 
   // Calculate warranty duration and update status based on expiry date
   useEffect(() => {
-    calculateDuration(new Date(warrantyData.startdate), new Date(warrantyData.expirydate));
-    
+    calculateDuration(
+      new Date(warrantyData.startdate),
+      new Date(warrantyData.expirydate)
+    );
+
     // Auto-set status based on expiry date
     const currentDate = new Date();
     const expiryDate = new Date(warrantyData.expirydate);
-    
+
     // If expiry date is in the past, set status to Expired
     if (expiryDate < currentDate) {
-      setWarrantyData(prev => ({
+      setWarrantyData((prev) => ({
         ...prev,
-        status: "Expired"
+        status: "Expired",
       }));
     } else {
       // Otherwise set to Active (only if current status is Expired)
       if (warrantyData.status === "Expired") {
-        setWarrantyData(prev => ({
+        setWarrantyData((prev) => ({
           ...prev,
-          status: "Active"
+          status: "Active",
         }));
       }
     }
@@ -142,13 +158,17 @@ const WarrantyManagementModal = ({
       setLoadingWarrantyCode(true);
 
       // Find selected branch
-      const selectedBranch = branches.find(b => b.branchid === warrantyData.branchId);
+      const selectedBranch = branches.find(
+        (b) => b.branchid === warrantyData.branchId
+      );
       if (!selectedBranch) {
         throw new Error("شعبه انتخاب شده یافت نشد");
       }
-      
+
       // Use branch location code or name as branch code
-      const branchCode = selectedBranch.location || selectedBranch.name.substring(0, 2).toUpperCase();
+      const branchCode =
+        selectedBranch.location ||
+        selectedBranch.name.substring(0, 2).toUpperCase();
 
       // Get current date for year-month format
       const date = new Date();
@@ -187,35 +207,47 @@ const WarrantyManagementModal = ({
       }
 
       const data = await response.json();
-      
+
       // Update state with generated code
-      setWarrantyData(prev => ({
+      setWarrantyData((prev) => ({
         ...prev,
-        warrantycode: data.warrantyCode
+        warrantycode: data.warrantyCode,
       }));
     } catch (error) {
       console.error("Error generating warranty code:", error);
-      
+
       // Fallback to local generation
-      const selectedBranch = branches.find(b => b.branchid === warrantyData.branchId);
-      const branchCode = selectedBranch?.location || selectedBranch?.name.substring(0, 2).toUpperCase() || "FA";
-      
-      const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-      
+      const selectedBranch = branches.find(
+        (b) => b.branchid === warrantyData.branchId
+      );
+      const branchCode =
+        selectedBranch?.location ||
+        selectedBranch?.name.substring(0, 2).toUpperCase() ||
+        "FA";
+
+      const randomCode = Math.random()
+        .toString(36)
+        .substring(2, 8)
+        .toUpperCase();
+
       // Use Persian date for the fallback as well
       const date = new Date();
-      const persianYear = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(date);
-      const persianMonth = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" }).format(date);
-      
+      const persianYear = new Intl.DateTimeFormat("fa-IR", {
+        year: "numeric",
+      }).format(date);
+      const persianMonth = new Intl.DateTimeFormat("fa-IR", {
+        month: "2-digit",
+      }).format(date);
+
       const yearStr = persianToEnglishDigits(persianYear);
       const monthStr = persianToEnglishDigits(persianMonth);
-      
+
       const yearNum = yearStr.slice(-3); // Get last 3 digits, e.g., 404 from 1404
       const yearMonth = yearNum + monthStr.padStart(2, "0");
-      
-      setWarrantyData(prev => ({
+
+      setWarrantyData((prev) => ({
         ...prev,
-        warrantycode: `${branchCode}-${yearMonth}-${randomCode}`
+        warrantycode: `${branchCode}-${yearMonth}-${randomCode}`,
       }));
     } finally {
       setLoadingWarrantyCode(false);
@@ -249,16 +281,16 @@ const WarrantyManagementModal = ({
       const startYear = start.getFullYear();
       const startMonth = start.getMonth();
       const startDay = start.getDate();
-      
+
       const endYear = end.getFullYear();
       const endMonth = end.getMonth();
       const endDay = end.getDate();
-      
+
       // Calculate exact years, months, days
       let years = endYear - startYear;
       let months = endMonth - startMonth;
       let days = endDay - startDay;
-      
+
       // Adjust for negative months or days
       if (days < 0) {
         // Get last month's total days to calculate how many days to borrow
@@ -266,12 +298,12 @@ const WarrantyManagementModal = ({
         days += lastDayOfLastMonth;
         months--;
       }
-      
+
       if (months < 0) {
         months += 12;
         years--;
       }
-      
+
       // Format the duration string
       let durationStr = "";
       if (years > 0) {
@@ -293,27 +325,33 @@ const WarrantyManagementModal = ({
 
   const handleStartDateChange = (date: any) => {
     // Convert the date object provided by zaman DatePicker
-    const formattedDate = date && date.value ? formatDateToISOString(new Date(date.value)) : null;
+    const formattedDate =
+      date && date.value ? formatDateToISOString(new Date(date.value)) : null;
     setWarrantyData({
       ...warrantyData,
-      startdate: formattedDate || new Date().toISOString().split("T")[0]
+      startdate: formattedDate || new Date().toISOString().split("T")[0],
     });
   };
 
   const handleEndDateChange = (date: any) => {
     // Convert the date object provided by zaman DatePicker
-    const formattedDate = date && date.value ? formatDateToISOString(new Date(date.value)) : null;
+    const formattedDate =
+      date && date.value ? formatDateToISOString(new Date(date.value)) : null;
     setWarrantyData({
       ...warrantyData,
-      expirydate: formattedDate || new Date(Date.now() + 730*24*60*60*1000).toISOString().split("T")[0]
+      expirydate:
+        formattedDate ||
+        new Date(Date.now() + 730 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split("T")[0],
     });
   };
 
   const handleBranchChange = (value: number) => {
-    setWarrantyData(prevData => ({
+    setWarrantyData((prevData) => ({
       ...prevData,
       branchId: value,
-      warrantycode: "" // Clear warranty code when branch changes
+      warrantycode: "", // Clear warranty code when branch changes
     }));
     // generateWarrantyCode will be triggered by the useEffect when branchId changes
   };
@@ -329,7 +367,7 @@ const WarrantyManagementModal = ({
     setLoading(true);
 
     try {
-      const endpoint = `/api/admin/warranty/${isUpdate ? 'update' : 'create'}`;
+      const endpoint = `/api/admin/warranty/${isUpdate ? "update" : "create"}`;
       const payload = {
         invoiceId: invoiceId,
         invoiceDetailId: item.Invoice_Details,
@@ -337,7 +375,7 @@ const WarrantyManagementModal = ({
         warrantyData: {
           ...warrantyData,
           warrantyid: item.individualWarranty?.warrantyid,
-          branchId: warrantyData.branchId
+          branchId: warrantyData.branchId,
         },
       };
 
@@ -354,7 +392,11 @@ const WarrantyManagementModal = ({
         throw new Error(errorData.error || "خطا در مدیریت گارانتی");
       }
 
-      toast.success(isUpdate ? "گارانتی با موفقیت به‌روزرسانی شد" : "گارانتی جدید با موفقیت ایجاد شد");
+      toast.success(
+        isUpdate
+          ? "گارانتی با موفقیت به‌روزرسانی شد"
+          : "گارانتی جدید با موفقیت ایجاد شد"
+      );
       onSuccess();
       onClose();
     } catch (error: any) {
@@ -365,8 +407,14 @@ const WarrantyManagementModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={(e) => e.stopPropagation()}>
-      <div className="bg-slate-900 rounded-lg w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div
+        className="bg-slate-900 rounded-lg w-full max-w-md"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="p-6 border-b border-slate-700">
           <h2 className="text-xl font-bold text-white text-center">
             {isUpdate ? "ویرایش گارانتی" : "افزودن گارانتی جدید"}
@@ -375,7 +423,10 @@ const WarrantyManagementModal = ({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4" dir="rtl">
           <div className="space-y-2">
-            <label htmlFor="productName" className="block text-sm font-medium text-gray-300">
+            <label
+              htmlFor="productName"
+              className="block text-sm font-medium text-gray-300"
+            >
               محصول
             </label>
             <input
@@ -391,36 +442,67 @@ const WarrantyManagementModal = ({
             <label className="block text-sm font-medium text-gray-300">
               شعبه مسئول گارانتی <span className="text-red-400">*</span>
             </label>
-            {!isUpdate && <p className="text-xs text-gray-400 mb-1">ابتدا شعبه را انتخاب کنید، سپس کد گارانتی تولید خواهد شد</p>}
-            {loadingBranches ? (
-              <div className="flex justify-center p-2">
-                <Spin size="small" />
-              </div>
-            ) : (
-              <Select
-                className="w-full custom-dark-select"
-                placeholder="انتخاب شعبه"
-                value={warrantyData.branchId || undefined}
-                onChange={handleBranchChange}
-                disabled={isUpdate} // Disable change for existing warranties
-                style={{ width: '100%' }}
-                popupClassName="custom-dark-popup"
-              >
-                {branches.map(branch => (
-                  <Option key={branch.branchid} value={branch.branchid}>
-                    {branch.name} {branch.location ? `(${branch.location})` : ''}
-                  </Option>
-                ))}
-              </Select>
+            {!isUpdate && (
+              <p className="text-xs text-gray-400 mb-1">
+                ابتدا شعبه را انتخاب کنید، سپس کد گارانتی تولید خواهد شد
+              </p>
             )}
+            {/* Branch Selection */}
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-300">
+                شعبه
+              </label>
+
+              {/* Informative text about branch listing */}
+              <div className="text-xs text-gray-400 mb-2">
+                توجه: فقط شعبه‌هایی که این محصول را در انبار خود دارند نمایش
+                داده می‌شوند. با ثبت گارانتی، یک عدد از موجودی محصول در شعبه کم
+                می‌شود.
+              </div>
+
+              {loadingBranches ? (
+                <div className="flex justify-center p-2">
+                  <Spin size="small" />
+                </div>
+              ) : (
+                <div>
+                  <Select
+                    className="w-full warranty-select"
+                    placeholder="انتخاب شعبه"
+                    value={warrantyData.branchId || undefined}
+                    onChange={handleBranchChange}
+                    loading={loadingBranches}
+                    disabled={loadingBranches || isUpdate}
+                    popupClassName="warranty-select-dropdown"
+                    notFoundContent={
+                      <div className="text-center py-3 text-red-400">
+                        هیچ شعبه‌ای با موجودی این محصول یافت نشد
+                      </div>
+                    }
+                  >
+                    {branches.map((branch) => (
+                      <Option key={branch.branchid} value={branch.branchid}>
+                        {branch.name}
+                        {branch.quantity ? ` (موجودی: ${branch.quantity})` : ""}
+                      </Option>
+                    ))}
+                  </Select>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="warrantycode" className="block text-sm font-medium text-gray-300">
+            <label
+              htmlFor="warrantycode"
+              className="block text-sm font-medium text-gray-300"
+            >
               کد گارانتی
             </label>
             {!warrantyData.branchId && !isUpdate ? (
-              <p className="text-amber-400 text-sm mb-1">برای تولید کد گارانتی ابتدا شعبه را انتخاب کنید</p>
+              <p className="text-amber-400 text-sm mb-1">
+                برای تولید کد گارانتی ابتدا شعبه را انتخاب کنید
+              </p>
             ) : loadingWarrantyCode ? (
               <div className="flex justify-center p-2">
                 <Spin size="small" />
@@ -453,7 +535,10 @@ const WarrantyManagementModal = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label htmlFor="startdate" className="block text-sm font-medium text-gray-300">
+              <label
+                htmlFor="startdate"
+                className="block text-sm font-medium text-gray-300"
+              >
                 تاریخ شروع
               </label>
               <DatePicker
@@ -469,7 +554,10 @@ const WarrantyManagementModal = ({
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="expirydate" className="block text-sm font-medium text-gray-300">
+              <label
+                htmlFor="expirydate"
+                className="block text-sm font-medium text-gray-300"
+              >
                 تاریخ انقضا
               </label>
               <DatePicker
@@ -494,32 +582,48 @@ const WarrantyManagementModal = ({
                 ) : (
                   <span className="text-green-400 text-xs">فعال</span>
                 )}
-                <span className="text-gray-500 text-xs"> (تعیین اتوماتیک براساس تاریخ انقضا)</span>
+                <span className="text-gray-500 text-xs">
+                  {" "}
+                  (تعیین اتوماتیک براساس تاریخ انقضا)
+                </span>
               </div>
-              <div className={`text-center p-2 rounded ${
-                durationText.includes("باید") || durationText.includes("خطا")
-                  ? "bg-red-900/40 text-red-300"
-                  : "bg-blue-900/40 text-blue-300"
-              }`}>
+              <div
+                className={`text-center p-2 rounded ${
+                  durationText.includes("باید") || durationText.includes("خطا")
+                    ? "bg-red-900/40 text-red-300"
+                    : "bg-blue-900/40 text-blue-300"
+                }`}
+              >
                 <span>مدت گارانتی: {durationText}</span>
               </div>
             </>
           )}
 
-          <div className="flex justify-end space-x-3 rtl:space-x-reverse pt-4">
+          <div className="flex justify-between gap-4 mt-8">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition-colors"
+              className="flex-1 px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white"
             >
               انصراف
             </button>
             <button
               type="submit"
-              disabled={loading || !warrantyData.warrantycode || !warrantyData.branchId || durationText?.includes("باید") || durationText?.includes("خطا")}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+              disabled={
+                loading ||
+                !warrantyData.warrantycode ||
+                (!isUpdate &&
+                  (branches.length === 0 || !warrantyData.branchId)) ||
+                durationText?.includes("باید") ||
+                durationText?.includes("خطا")
+              }
+              className="flex-1 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-600 text-white disabled:bg-blue-900 disabled:text-gray-300"
             >
-              {loading ? "در حال پردازش..." : isUpdate ? "به‌روزرسانی" : "ثبت گارانتی"}
+              {loading
+                ? "در حال پردازش..."
+                : isUpdate
+                ? "بروزرسانی گارانتی"
+                : "ثبت گارانتی"}
             </button>
           </div>
         </form>
@@ -535,35 +639,135 @@ const WarrantyManagementModal = ({
           display: flex;
           align-items: center;
         }
-        
+
         .custom-dark-select .ant-select-selection-item {
           color: white !important;
         }
-        
+
         .custom-dark-select .ant-select-arrow {
           color: #94a3b8 !important;
         }
-        
+
         .custom-dark-popup {
           background-color: #1e293b !important;
           border: 1px solid #334155 !important;
           border-radius: 0.5rem !important;
         }
-        
+
         .custom-dark-popup .ant-select-item {
           color: white !important;
         }
-        
-        .custom-dark-popup .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+
+        .custom-dark-popup
+          .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
           background-color: #2d3748 !important;
         }
-        
-        .custom-dark-popup .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+
+        .custom-dark-popup
+          .ant-select-item-option-selected:not(
+            .ant-select-item-option-disabled
+          ) {
           background-color: #3b82f6 !important;
+        }
+
+        /* Warranty select dark mode styles */
+        .warranty-select .ant-select-selector {
+          background-color: #1e293b !important;
+          border-color: #334155 !important;
+          color: white !important;
+          height: 40px !important;
+          border-radius: 0.5rem !important;
+          display: flex;
+          align-items: center;
+          transition: all 0.3s ease;
+        }
+
+        .warranty-select:hover .ant-select-selector {
+          border-color: #4b5563 !important;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .warranty-select.ant-select-focused .ant-select-selector {
+          border-color: #3b82f6 !important;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+        }
+
+        .warranty-select .ant-select-selection-placeholder {
+          color: #94a3b8 !important;
+        }
+
+        .warranty-select .ant-select-selection-item {
+          color: white !important;
+        }
+
+        .warranty-select .ant-select-arrow {
+          color: #94a3b8 !important;
+        }
+
+        .warranty-select .ant-select-clear {
+          background-color: #1e293b !important;
+          color: #94a3b8 !important;
+        }
+
+        .warranty-select-dropdown {
+          background-color: #1e293b !important;
+          border: 1px solid #334155 !important;
+          border-radius: 0.5rem !important;
+        }
+
+        .warranty-select-dropdown .ant-select-item {
+          color: white !important;
+        }
+
+        .warranty-select-dropdown
+          .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+          background-color: #2d3748 !important;
+        }
+
+        .warranty-select-dropdown
+          .ant-select-item-option-selected:not(
+            .ant-select-item-option-disabled
+          ) {
+          background-color: #3b82f6 !important;
+        }
+
+        /* Style for empty dropdown */
+        .warranty-select-dropdown .ant-empty {
+          margin: 8px 0;
+        }
+
+        .warranty-select-dropdown .ant-empty-description {
+          color: #f87171 !important; /* red-400 */
+          font-size: 0.875rem !important;
+        }
+
+        .warranty-select-dropdown .ant-empty-img-simple-path {
+          fill: #4b5563 !important;
+        }
+
+        .warranty-select-dropdown .ant-empty-img-simple-ellipse {
+          fill: #1e293b !important;
+        }
+
+        .warranty-select-dropdown .ant-select-item-empty {
+          color: #f87171 !important;
+          padding: 12px;
+          text-align: center;
+        }
+
+        /* Style for the loading icon within select */
+        .warranty-select .ant-select-arrow .anticon-loading {
+          color: #3b82f6 !important;
+        }
+
+        /* Adjust disabled state */
+        .warranty-select.ant-select-disabled .ant-select-selector {
+          background-color: #0f172a !important;
+          opacity: 0.7;
         }
       `}</style>
     </div>
   );
 };
 
-export default WarrantyManagementModal; 
+export default WarrantyManagementModal;

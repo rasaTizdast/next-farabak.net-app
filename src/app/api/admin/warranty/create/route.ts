@@ -47,12 +47,13 @@ export async function POST(request: Request) {
           { status: 403 }
         );
       }
-      
+
       branchId = (branch as any[])[0].branchid;
     }
 
     // Get request data
-    const { invoiceId, invoiceDetailId, productId, warrantyData } = await request.json();
+    const { invoiceId, invoiceDetailId, productId, warrantyData } =
+      await request.json();
 
     if (!invoiceId || !invoiceDetailId || !productId || !warrantyData) {
       return NextResponse.json(
@@ -61,7 +62,11 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!warrantyData.warrantycode || !warrantyData.startdate || !warrantyData.expirydate) {
+    if (
+      !warrantyData.warrantycode ||
+      !warrantyData.startdate ||
+      !warrantyData.expirydate
+    ) {
       return NextResponse.json(
         { error: "Missing warranty details" },
         { status: 400 }
@@ -74,10 +79,7 @@ export async function POST(request: Request) {
     });
 
     if (!invoice) {
-      return NextResponse.json(
-        { error: "Invoice not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
     }
 
     // For branch users, verify they can only create warranties for their own branch
@@ -102,32 +104,79 @@ export async function POST(request: Request) {
 
         if (((invoiceAuth as any[])[0].count as number) === 0) {
           return NextResponse.json(
-            { error: "You are not authorized to create a warranty for this invoice" },
+            {
+              error:
+                "You are not authorized to create a warranty for this invoice",
+            },
             { status: 403 }
           );
         }
       }
     }
 
-    // Create warranty record
-    const newWarranty = await prisma.warranty.create({
-      data: {
-        userid: invoice.UserId || 0,
-        invoicedetailid: parseInt(invoiceDetailId),
-        branchid: warrantyData.branchId || branchId || null, // Use branchId from warrantyData, then from user, no default fallback
-        warrantycode: warrantyData.warrantycode,
+    // Verify the branch has stock of this product
+    const selectedBranchId = warrantyData.branchId || branchId;
+    if (!selectedBranchId) {
+      return NextResponse.json(
+        { error: "Branch ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const branchProduct = await prisma.branchproduct.findFirst({
+      where: {
+        branchid: selectedBranchId,
         ProductId: parseInt(productId),
-        startdate: warrantyData.startdate,
-        expirydate: warrantyData.expirydate,
-        status: determineWarrantyStatus(warrantyData.expirydate),
       },
     });
 
-    return NextResponse.json({
-      message: "Warranty created successfully",
-      warranty: newWarranty,
-    }, { status: 201 });
+    if (
+      !branchProduct ||
+      branchProduct.quantity === null ||
+      branchProduct.quantity <= 0
+    ) {
+      return NextResponse.json(
+        { error: "The selected branch does not have this product in stock" },
+        { status: 400 }
+      );
+    }
 
+    // Start a transaction to create warranty and update stock atomically
+    const [newWarranty] = await prisma.$transaction([
+      // Create warranty record
+      prisma.warranty.create({
+        data: {
+          userid: invoice.UserId || 0,
+          invoicedetailid: parseInt(invoiceDetailId),
+          branchid: selectedBranchId,
+          warrantycode: warrantyData.warrantycode,
+          ProductId: parseInt(productId),
+          startdate: warrantyData.startdate,
+          expirydate: warrantyData.expirydate,
+          status: determineWarrantyStatus(warrantyData.expirydate),
+        },
+      }),
+
+      // Decrease product quantity in branch
+      prisma.branchproduct.update({
+        where: {
+          branchproductid: branchProduct.branchproductid,
+        },
+        data: {
+          quantity: {
+            decrement: 1,
+          },
+        },
+      }),
+    ]);
+
+    return NextResponse.json(
+      {
+        message: "Warranty created successfully",
+        warranty: newWarranty,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error creating warranty:", error);
     return NextResponse.json(
@@ -142,10 +191,10 @@ function determineWarrantyStatus(expiryDate: string): string {
   // Compare expiry date with current date
   const currentDate = new Date();
   const expiry = new Date(expiryDate);
-  
+
   if (expiry < currentDate) {
     return "Expired";
   } else {
     return "Active";
   }
-} 
+}
