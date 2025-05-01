@@ -21,3 +21,29 @@ export async function DELETE(
     );
   }
 }
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id } = params;
+    const data = await request.json();
+    
+    // Update the showcase product in the database
+    const updatedProduct = await prisma.showcase_products.update({
+      where: { id: parseInt(id) },
+      data: {
+        order: data.order,
+        // Can add other updatable fields here if needed
+      },
+    });
+
+    return NextResponse.json(updatedProduct);
+  } catch (error) {
+    return NextResponse.json(
+      { error: "خطا در بروزرسانی محصول نمایشی." },
+      { status: 500 }
+    );
+  }
+}
