@@ -1,10 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import {
-  AdminInvoice,
-  InvoiceDetail,
-  Warranty,
-} from "../../type";
+import { AdminInvoice, InvoiceDetail, Warranty } from "../../type";
 import WarrantyManagementModal from "./WarrantyManagementModal";
 import { usePrint } from "@/app/utils/usePrint";
 import PrintButton from "@/app/components/ui/PrintButton";
@@ -171,23 +167,23 @@ const AdminInvoiceDetailsModal = ({
   // Handle print with specific options
   const handleInvoicePrint = () => {
     // Remove height restriction from table container right before printing
-    const tableContainer = document.querySelector('.invoice-table-container');
+    const tableContainer = document.querySelector(".invoice-table-container");
     if (tableContainer) {
-      (tableContainer as HTMLElement).style.maxHeight = 'none';
-      (tableContainer as HTMLElement).style.overflow = 'visible';
+      (tableContainer as HTMLElement).style.maxHeight = "none";
+      (tableContainer as HTMLElement).style.overflow = "visible";
     }
-    
+
     handlePrint({
       printTitle: `فاکتور ${invoice.FactorGuid}`,
       hideElements: [".print-button", "button"],
       compactMode: true, // Enable compact mode for smaller print
     });
-    
+
     // Reset the styles after print dialog is shown
     setTimeout(() => {
       if (tableContainer) {
-        (tableContainer as HTMLElement).style.maxHeight = '500px';
-        (tableContainer as HTMLElement).style.overflow = 'auto';
+        (tableContainer as HTMLElement).style.maxHeight = "500px";
+        (tableContainer as HTMLElement).style.overflow = "auto";
       }
     }, 1000);
   };
@@ -199,6 +195,13 @@ const AdminInvoiceDetailsModal = ({
           <div className="text-gray-100">
             {/* Header */}
             <div className="mb-4 sm:mb-8">
+              <img
+                src="/Farabak_Logo.webp"
+                alt="Farabak Logo"
+                width={130}
+                height={130}
+                className="mx-auto logo print-only flex justify-center items-center mt-4 mb-5"
+              />
               <h2 className="text-xl sm:text-2xl font-bold text-center">
                 جزئیات فاکتور
                 <br />
@@ -336,11 +339,11 @@ const AdminInvoiceDetailsModal = ({
                                   <div className="flex flex-col gap-1">
                                     {item.individualWarranty.status ===
                                     "Expired" ? (
-                                      <span className="text-xs bg-red-900/40 text-red-300 px-2 py-1 rounded-full inline-block w-fit">
+                                      <span className="text-xs bg-red-900/40 text-red-300 px-2 py-1 rounded-full inline-block w-fit no-print">
                                         منقضی شده
                                       </span>
                                     ) : (
-                                      <span className="text-xs bg-green-900/40 text-green-300 px-2 py-1 rounded-full inline-block w-fit">
+                                      <span className="text-xs bg-green-900/40 text-green-300 px-2 py-1 rounded-full inline-block w-fit no-print">
                                         فعال
                                       </span>
                                     )}
@@ -564,6 +567,10 @@ const AdminInvoiceDetailsModal = ({
             display: none !important;
           }
 
+          .print-only {
+            display: inline-block !important;
+          }
+
           body {
             background-color: white;
             color: black;
@@ -581,29 +588,36 @@ const AdminInvoiceDetailsModal = ({
           .text-gray-400 {
             color: #333 !important;
           }
-          
+
           /* Invoice table specific styles */
           .invoice-table-container {
             max-height: none !important;
             height: auto !important;
             overflow: visible !important;
           }
-          
+
           /* Remove height limits and overflow restrictions when printing */
-          .overflow-auto, .overflow-x-auto {
+          .overflow-auto,
+          .overflow-x-auto {
             overflow: visible !important;
             max-height: none !important;
           }
-          
+
           /* Ensure table rows don't break across pages */
           tr {
             page-break-inside: avoid;
           }
-          
+
           /* Ensure proper spacing between table rows in print */
-          td, th {
+          td,
+          th {
             padding: 8px !important;
           }
+        }
+
+        /* Add class to hide logo in normal view */
+        .print-only {
+          display: none;
         }
       `}</style>
     </div>

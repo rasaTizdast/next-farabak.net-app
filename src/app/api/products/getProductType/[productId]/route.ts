@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+export const revalidate = 60;
+
 /**
  * @swagger
  * /api/products/getProductType/{productId}:

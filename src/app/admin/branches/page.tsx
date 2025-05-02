@@ -11,7 +11,6 @@ import {
   AutoComplete,
   Tabs,
   Card,
-  ConfigProvider,
 } from "antd";
 import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import { useRouter, useSearchParams } from "next/navigation";
