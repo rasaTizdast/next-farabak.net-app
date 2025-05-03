@@ -895,7 +895,7 @@ function MyBranchContent() {
       dataIndex: "quantity",
       key: "quantity",
       width: "40%",
-      className: "text-center",
+      // className: "text-center",
       render: (quantity: number, record: Product) => (
         <InputNumber
           min={0}
@@ -2131,31 +2131,20 @@ function MyBranchContent() {
           text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1) !important;
         }
 
-        /* Existing RTL and responsive styles */
-        /* ... */
-
         .ant-input::placeholder {
-          color: #9ca3af !important;
+          /* color: #9ca3af !important; */
           text-align: center !important;
           opacity: 1 !important;
-        }
-
-        .ant-input-affix-wrapper .ant-input {
-          text-align: center !important;
         }
 
         .ant-input-affix-wrapper .ant-input::placeholder {
-          color: #9ca3af !important;
+          /* color: #9ca3af !important; */
           text-align: center !important;
           opacity: 1 !important;
         }
 
-        .ant-select-selection-search-input {
-          text-align: center !important;
-        }
-
         .ant-select-selection-search-input::placeholder {
-          color: #9ca3af !important;
+          /* color: #9ca3af !important; */
           text-align: center !important;
           opacity: 1 !important;
         }
