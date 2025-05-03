@@ -25,13 +25,12 @@ const NavBar = () => {
       subMenu: [
         { id: 1, title: "بلاگ", link: "/support/blog" },
         { id: 2, title: "پیگیری گارانتی", link: "/support/warranty-tracking" },
-        { id: 3, title: "بخش آموزش", link: "/support/training-section" },
         {
-          id: 4,
+          id: 3,
           title: "نرم‌افزارها و آپدیت‌ها",
           link: "/support/download-center",
         },
-        { id: 5, title: "سوالات متداول", link: "/support/faq" },
+        { id: 4, title: "سوالات متداول", link: "/support/faq" },
       ],
     },
     {
