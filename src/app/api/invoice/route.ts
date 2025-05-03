@@ -70,7 +70,7 @@ export async function GET(): Promise<NextResponse> {
 
     if (!token) {
       return NextResponse.json(
-        { message: "Authorization token required" },
+        { message: "توکن احراز هویت مورد نیاز است" },
         { status: 401 }
       );
     }
@@ -79,7 +79,7 @@ export async function GET(): Promise<NextResponse> {
     const userId = decoded.userId;
 
     if (!userId) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "دسترسی غیرمجاز" }, { status: 401 });
     }
 
     // Fetch invoices and their details
@@ -107,7 +107,7 @@ export async function GET(): Promise<NextResponse> {
     return NextResponse.json(sortedInvoices, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { message: "Failed to fetch invoices" },
+      { message: "خطا در دریافت فاکتورها" },
       { status: 500 }
     );
   }
@@ -179,7 +179,7 @@ export async function POST(request: Request) {
 
     if (!token) {
       return NextResponse.json(
-        { message: "Authorization token required" },
+        { message: "توکن احراز هویت مورد نیاز است" },
         { status: 401 }
       );
     }
@@ -195,7 +195,7 @@ export async function POST(request: Request) {
       Products.length === 0
     ) {
       return NextResponse.json(
-        { message: "Invalid request data" },
+        { message: "اطلاعات درخواست نامعتبر است" },
         { status: 400 }
       );
     }
@@ -246,7 +246,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       {
-        message: "Invoice successfully created",
+        message: "فاکتور با موفقیت ایجاد شد",
         invoice: createdInvoice,
         details: createdDetails,
       },
@@ -254,7 +254,7 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     return NextResponse.json(
-      { message: "Failed to create invoice" },
+      { message: "خطا در ایجاد فاکتور" },
       { status: 500 }
     );
   }
@@ -295,7 +295,7 @@ export async function PATCH(request: Request) {
 
     if (!token) {
       return NextResponse.json(
-        { message: "Authorization token required" },
+        { message: "توکن احراز هویت مورد نیاز است" },
         { status: 401 }
       );
     }
@@ -305,7 +305,7 @@ export async function PATCH(request: Request) {
 
     if (!FactorGuid || !userId) {
       return NextResponse.json(
-        { message: "Invalid request data" },
+        { message: "اطلاعات درخواست نامعتبر است" },
         { status: 400 }
       );
     }
@@ -317,7 +317,7 @@ export async function PATCH(request: Request) {
 
     if (!invoice) {
       return NextResponse.json(
-        { message: "Invoice not found or unauthorized" },
+        { message: "فاکتور یافت نشد یا دسترسی غیرمجاز است" },
         { status: 404 }
       );
     }
@@ -329,12 +329,12 @@ export async function PATCH(request: Request) {
     });
 
     return NextResponse.json(
-      { message: "Invoice checked status updated" },
+      { message: "وضعیت فاکتور با موفقیت بروزرسانی شد" },
       { status: 200 }
     );
   } catch (error) {
     return NextResponse.json(
-      { message: "Failed to update invoice" },
+      { message: "خطا در بروزرسانی فاکتور" },
       { status: 500 }
     );
   }

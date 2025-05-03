@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -47,27 +47,24 @@ export async function PUT(
     const branchId = parseInt(params.branchId);
     const productId = parseInt(params.productId);
     const { quantity } = await request.json();
-    
+
     if (quantity === undefined) {
-      return NextResponse.json(
-        { error: 'تعداد الزامی است' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "تعداد الزامی است" }, { status: 400 });
     }
-    
+
     // Check if branch product exists
     const branchProductResult = await prisma.$queryRaw`
       SELECT * FROM "support"."branchproduct"
       WHERE "branchid" = ${branchId} AND "ProductId" = ${productId}
     `;
-    
+
     if ((branchProductResult as any[]).length === 0) {
       return NextResponse.json(
-        { error: 'محصول در این شعبه یافت نشد' },
+        { error: "محصول در این شعبه یافت نشد" },
         { status: 404 }
       );
     }
-    
+
     // Update product quantity
     const updatedProduct = await prisma.$queryRaw`
       UPDATE "support"."branchproduct"
@@ -75,12 +72,12 @@ export async function PUT(
       WHERE "branchid" = ${branchId} AND "ProductId" = ${productId}
       RETURNING *
     `;
-    
+
     return NextResponse.json((updatedProduct as any[])[0]);
   } catch (error) {
-    console.error('Error updating branch product:', error);
+    console.error("Error updating branch product:", error);
     return NextResponse.json(
-      { error: 'خطا در بروزرسانی محصول شعبه' },
+      { error: "خطا در بروزرسانی محصول شعبه" },
       { status: 500 }
     );
   }
@@ -119,32 +116,32 @@ export async function DELETE(
   try {
     const branchId = parseInt(params.branchId);
     const productId = parseInt(params.productId);
-    
+
     // Check if branch product exists
     const branchProductResult = await prisma.$queryRaw`
       SELECT * FROM "support"."branchproduct"
       WHERE "branchid" = ${branchId} AND "ProductId" = ${productId}
     `;
-    
+
     if ((branchProductResult as any[]).length === 0) {
       return NextResponse.json(
-        { error: 'محصول در این شعبه یافت نشد' },
+        { error: "محصول در این شعبه یافت نشد" },
         { status: 404 }
       );
     }
-    
+
     // Delete branch product
     await prisma.$queryRaw`
       DELETE FROM "support"."branchproduct"
       WHERE "branchid" = ${branchId} AND "ProductId" = ${productId}
     `;
-    
+
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting branch product:', error);
+    console.error("Error deleting branch product:", error);
     return NextResponse.json(
-      { error: 'خطا در حذف محصول از شعبه' },
+      { error: "خطا در حذف محصول از شعبه" },
       { status: 500 }
     );
   }
-} 
+}

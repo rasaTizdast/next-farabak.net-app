@@ -39,15 +39,15 @@ async function verifyToken(
     ) {
       return payload as unknown as DecodedToken;
     } else {
-      throw new Error("Invalid token payload: Missing required fields");
+      throw new Error("محتوای توکن نامعتبر است: فیلدهای ضروری وجود ندارند");
     }
   } catch (err: unknown) {
     // Ensure 'err' is of type 'Error' before accessing 'message'
     if (err instanceof Error) {
-      throw new Error("Invalid or expired refresh token: " + err.message);
+      throw new Error("توکن بازیابی نامعتبر یا منقضی شده است: " + err.message);
     } else {
       // Handle unexpected error types
-      throw new Error("Invalid or expired refresh token: Unknown error");
+      throw new Error("توکن بازیابی نامعتبر یا منقضی شده است: خطای ناشناخته");
     }
   }
 }
@@ -90,7 +90,7 @@ async function verifyToken(
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Refresh token is required
+ *                   example: توکن بازیابی الزامی است
  *       401:
  *         description: Unauthorized, invalid or expired refresh token
  *         content:
@@ -100,7 +100,7 @@ async function verifyToken(
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Invalid or expired refresh token
+ *                   example: توکن بازیابی نامعتبر یا منقضی شده است
  *       500:
  *         description: Internal server error
  *         content:
@@ -110,7 +110,7 @@ async function verifyToken(
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Internal Server Error
+ *                   example: خطای داخلی سرور
  */
 
 /**
@@ -123,18 +123,18 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     // Try to get refresh token from request body first
     let refreshToken: string | undefined;
-    
+
     try {
       const body = await request.json();
       refreshToken = body.refreshToken;
     } catch (e) {
       // If request body parsing fails, check for refresh token in cookies
-      const cookies = request.headers.get('cookie');
+      const cookies = request.headers.get("cookie");
       if (cookies) {
         const cookieObj = Object.fromEntries(
-          cookies.split('; ').map(c => {
-            const [name, ...value] = c.split('=');
-            return [name, value.join('=')];
+          cookies.split("; ").map((c) => {
+            const [name, ...value] = c.split("=");
+            return [name, value.join("=")];
           })
         );
         refreshToken = cookieObj.refreshToken;
@@ -143,7 +143,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     if (!refreshToken) {
       return NextResponse.json(
-        { message: "Refresh token is required" },
+        { message: "توکن بازیابی الزامی است" },
         { status: 400 }
       );
     }
@@ -174,16 +174,16 @@ export async function POST(request: Request): Promise<NextResponse> {
       .sign(new TextEncoder().encode(JWT_SECRET));
 
     // Set the new access token as an HTTP-only cookie
-    const response = NextResponse.json({ 
+    const response = NextResponse.json({
       accessToken: newAccessToken,
       success: true,
       user: {
         userId: decodedToken.userId,
         username: decodedToken.username,
-        role: decodedToken.role
-      }
+        role: decodedToken.role,
+      },
     });
-    
+
     response.cookies.set("accessToken", newAccessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -193,9 +193,9 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     return response;
   } catch (error) {
-    console.error("Error refreshing token:", error);
+    console.error("خطا در بازیابی توکن:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", success: false },
+      { message: "خطای داخلی سرور", success: false },
       { status: 500 }
     );
   }

@@ -42,7 +42,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
 
     if (!token) {
       return NextResponse.json(
-        { message: "Authorization token required" },
+        { message: "توکن احراز هویت مورد نیاز است" },
         { status: 401 }
       );
     }
@@ -67,7 +67,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
 
     if (!activePasswordRecord) {
       return NextResponse.json(
-        { message: "Current password not found" },
+        { message: "رمز عبور فعلی یافت نشد" },
         { status: 401 }
       );
     }
@@ -75,7 +75,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     // Validate the current password
     if (!activePasswordRecord.Password1) {
       return NextResponse.json(
-        { message: "Current password is invalid" },
+        { message: "رمز عبور فعلی نامعتبر است" },
         { status: 401 }
       );
     }
@@ -86,7 +86,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     );
     if (!passwordMatch) {
       return NextResponse.json(
-        { message: "Invalid current password" },
+        { message: "رمز عبور فعلی اشتباه است" },
         { status: 401 }
       );
     }
@@ -109,11 +109,8 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       },
     });
 
-    return NextResponse.json({ message: "Password changed successfully" });
+    return NextResponse.json({ message: "رمز عبور با موفقیت تغییر یافت" });
   } catch (error) {
-    return NextResponse.json(
-      { message: "Internal Server Error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
   }
 }

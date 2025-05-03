@@ -22,7 +22,7 @@ async function fetchExchangeRateFromApi() {
     );
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch: ${response.statusText}`);
+      throw new Error(`خطا در دریافت اطلاعات: ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -31,12 +31,12 @@ async function fetchExchangeRateFromApi() {
     )?.price;
 
     if (!usdRate) {
-      throw new Error("USD rate not found in response");
+      throw new Error("نرخ دلار در پاسخ دریافتی یافت نشد");
     }
 
     return Number(usdRate);
   } catch (error) {
-    console.error("Error fetching exchange rate:", error);
+    console.error("خطا در دریافت نرخ ارز:", error);
     throw error;
   }
 }
@@ -64,9 +64,9 @@ export async function GET() {
 
     return NextResponse.json({ rate });
   } catch (error) {
-    console.error("Error in exchange rate API:", error);
+    console.error("خطا در API نرخ ارز:", error);
     return NextResponse.json(
-      { error: "Failed to fetch exchange rate" },
+      { error: "خطا در دریافت نرخ ارز" },
       { status: 500 }
     );
   }

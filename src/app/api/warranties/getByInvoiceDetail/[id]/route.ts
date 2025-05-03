@@ -12,27 +12,27 @@ export async function GET(
 ) {
   try {
     const invoiceDetailId = parseInt(params.id);
-    
+
     if (isNaN(invoiceDetailId)) {
       return NextResponse.json(
-        { error: "Invalid invoice detail ID" },
+        { error: "شناسه جزئیات فاکتور نامعتبر است" },
         { status: 400 }
       );
     }
-    
+
     // Get warranty information for this invoice detail
     const warranty = await prisma.warranty.findFirst({
       where: {
-        invoicedetailid: invoiceDetailId
-      }
+        invoicedetailid: invoiceDetailId,
+      },
     });
-    
+
     return NextResponse.json({ warranty });
   } catch (error) {
     console.error("Error fetching warranty:", error);
     return NextResponse.json(
-      { error: "An error occurred while fetching warranty information" },
+      { error: "خطایی هنگام دریافت اطلاعات گارانتی رخ داده است" },
       { status: 500 }
     );
   }
-} 
+}

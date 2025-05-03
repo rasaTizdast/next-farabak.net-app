@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -27,22 +27,19 @@ export async function GET(
 ) {
   try {
     const branchId = parseInt(params.branchId);
-    
+
     // Check if branch exists
     const branchResult = await prisma.$queryRaw`
       SELECT * FROM "support"."branch"
       WHERE "branchid" = ${branchId}
     `;
-    
+
     const branch = (branchResult as any[])[0];
-    
+
     if (!branch) {
-      return NextResponse.json(
-        { error: 'شعبه یافت نشد' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "شعبه یافت نشد" }, { status: 404 });
     }
-    
+
     // Get all branch products with product details without pagination
     const branchProducts = await prisma.$queryRaw`
       SELECT 
@@ -59,12 +56,12 @@ export async function GET(
       WHERE bp."branchid" = ${branchId}
       ORDER BY p."Type"
     `;
-    
+
     return NextResponse.json(branchProducts);
   } catch (error) {
-    console.error('Error fetching branch products:', error);
+    console.error("Error fetching branch products:", error);
     return NextResponse.json(
-      { error: 'خطا در بارگذاری محصولات شعبه' },
+      { error: "خطا در بارگذاری محصولات شعبه" },
       { status: 500 }
     );
   }
@@ -110,46 +107,40 @@ export async function POST(
   try {
     const branchId = parseInt(params.branchId);
     const { productId, quantity } = await request.json();
-    
+
     if (!productId || quantity === undefined) {
       return NextResponse.json(
-        { error: 'شناسه محصول و تعداد الزامی است' },
+        { error: "شناسه محصول و تعداد الزامی است" },
         { status: 400 }
       );
     }
-    
+
     // Check if branch exists
     const branchResult = await prisma.$queryRaw`
       SELECT * FROM "support"."branch"
       WHERE "branchid" = ${branchId}
     `;
-    
+
     if ((branchResult as any[]).length === 0) {
-      return NextResponse.json(
-        { error: 'شعبه یافت نشد' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "شعبه یافت نشد" }, { status: 404 });
     }
-    
+
     // Check if product exists
     const productResult = await prisma.$queryRaw`
       SELECT * FROM "support"."Product"
       WHERE "ProductId" = ${productId}
     `;
-    
+
     if ((productResult as any[]).length === 0) {
-      return NextResponse.json(
-        { error: 'محصول یافت نشد' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "محصول یافت نشد" }, { status: 404 });
     }
-    
+
     // Check if product already exists in branch
     const existingProduct = await prisma.$queryRaw`
       SELECT * FROM "support"."branchproduct"
       WHERE "branchid" = ${branchId} AND "ProductId" = ${productId}
     `;
-    
+
     if ((existingProduct as any[]).length > 0) {
       // If product exists, update quantity
       const updatedProduct = await prisma.$queryRaw`
@@ -158,23 +149,23 @@ export async function POST(
         WHERE "branchid" = ${branchId} AND "ProductId" = ${productId}
         RETURNING *
       `;
-      
+
       return NextResponse.json((updatedProduct as any[])[0], { status: 200 });
     }
-    
+
     // Add product to branch
     const newBranchProduct = await prisma.$queryRaw`
       INSERT INTO "support"."branchproduct" ("branchid", "ProductId", "quantity")
       VALUES (${branchId}, ${productId}, ${quantity})
       RETURNING *
     `;
-    
+
     return NextResponse.json((newBranchProduct as any[])[0], { status: 201 });
   } catch (error) {
-    console.error('Error adding product to branch:', error);
+    console.error("Error adding product to branch:", error);
     return NextResponse.json(
-      { error: 'خطا در افزودن محصول به شعبه' },
+      { error: "خطا در افزودن محصول به شعبه" },
       { status: 500 }
     );
   }
-} 
+}

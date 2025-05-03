@@ -59,7 +59,7 @@ export async function GET(request: Request) {
 
     if (!token) {
       return NextResponse.json(
-        { error: "Authorization token required" },
+        { error: "توکن احراز هویت مورد نیاز است" },
         { status: 401 }
       );
     }
@@ -71,7 +71,10 @@ export async function GET(request: Request) {
 
     if (!userId || userRole !== "Branch") {
       return NextResponse.json(
-        { error: "Unauthorized: Only branch users can access this endpoint" },
+        {
+          error:
+            "دسترسی غیرمجاز: فقط کاربران شعبه می‌توانند به این بخش دسترسی داشته باشند",
+        },
         { status: 401 }
       );
     }
@@ -85,7 +88,7 @@ export async function GET(request: Request) {
 
     if (!branchResult || (branchResult as any[]).length === 0) {
       return NextResponse.json(
-        { error: "Branch not found for this user" },
+        { error: "شعبه‌ای برای این کاربر یافت نشد" },
         { status: 404 }
       );
     }
@@ -348,9 +351,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("Error fetching branch invoices:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطای داخلی سرور" }, { status: 500 });
   }
 }

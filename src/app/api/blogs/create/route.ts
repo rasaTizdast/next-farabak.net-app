@@ -35,15 +35,15 @@ export async function POST(request: Request) {
 
     return NextResponse.json(blog);
   } catch (error) {
-    console.error("Error creating blog:", error);
+    console.error("خطا در ایجاد بلاگ:", error);
     if ((error as any).code === "P2002") {
       return NextResponse.json(
-        { error: "A blog with this slug already exists" },
+        { error: "بلاگی با این اسلاگ قبلاً وجود دارد" },
         { status: 400 }
       );
     }
     return NextResponse.json(
-      { error: "Failed to create blog" },
+      { error: "ایجاد بلاگ با مشکل مواجه شد" },
       { status: 500 }
     );
   }

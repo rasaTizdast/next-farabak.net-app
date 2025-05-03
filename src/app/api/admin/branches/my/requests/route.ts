@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
     if (!currentUser) {
       return NextResponse.json(
         {
-          error: "Authentication required - Please log in",
+          error: "احراز هویت الزامی است - لطفا وارد شوید",
           requests: [],
           pagination: {
             currentPage: 1,
@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
     if (currentUser.role !== "Branch") {
       return NextResponse.json(
         {
-          error: "Unauthorized access - Branch owners only",
+          error: "دسترسی غیرمجاز - فقط مدیران شعبه",
           requests: [],
           pagination: {
             currentPage: 1,
@@ -158,7 +158,7 @@ export async function GET(req: NextRequest) {
     console.error("Error fetching branch warranty requests:", error);
     return NextResponse.json(
       {
-        error: "Failed to fetch branch warranty requests",
+        error: "خطا در دریافت درخواست‌های گارانتی شعبه",
         requests: [],
         pagination: {
           currentPage: 1,

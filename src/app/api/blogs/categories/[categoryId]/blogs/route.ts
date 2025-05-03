@@ -23,9 +23,9 @@ export async function GET(
 
     return NextResponse.json(blogsUsingCategory.map((bc) => bc.Blogs));
   } catch (error) {
-    console.error("[API] Fetch blogs by category error:", error);
+    console.error("[API] خطا در دریافت بلاگ‌ها بر اساس دسته‌بندی:", error);
     return NextResponse.json(
-      { error: "Failed to fetch blogs" },
+      { error: "خطا در دریافت بلاگ‌ها" },
       { status: 500 }
     );
   }

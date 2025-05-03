@@ -9,7 +9,7 @@ export async function GET() {
   } catch (error) {
     console.error("Error fetching categories:", error);
     return NextResponse.json(
-      { error: "Failed to fetch categories" },
+      { error: "خطا در دریافت دسته‌بندی‌ها" },
       { status: 500 }
     );
   }
@@ -33,12 +33,12 @@ export async function POST(request: Request) {
     console.error("Error creating category:", error);
     if ((error as any).code === "P2002") {
       return NextResponse.json(
-        { error: "Category already exists" },
+        { error: "این دسته‌بندی قبلاً وجود دارد" },
         { status: 400 }
       );
     }
     return NextResponse.json(
-      { error: "Failed to create category" },
+      { error: "خطا در ایجاد دسته‌بندی" },
       { status: 500 }
     );
   }
@@ -59,7 +59,7 @@ export async function DELETE(request: Request) {
       if (!force) {
         return NextResponse.json(
           {
-            error: "Cannot delete category used in blog posts",
+            error: "امکان حذف دسته‌بندی که در مقالات استفاده شده است وجود ندارد",
             blogs: blogsWithCategory.map((bc) => ({
               id: bc.Blogs.id,
               title: bc.Blogs.title,
@@ -92,7 +92,7 @@ export async function DELETE(request: Request) {
       });
 
       return NextResponse.json({
-        message: "Category and associated blogs deleted",
+        message: "دسته‌بندی و مقالات مرتبط با آن حذف شدند",
         deletedBlogs: blogsWithCategory.length,
       });
     }
@@ -107,12 +107,12 @@ export async function DELETE(request: Request) {
     console.error("[API] Delete category error:", error);
     if ((error as any).code === "P2025") {
       return NextResponse.json(
-        { error: "Category not found" },
+        { error: "دسته‌بندی مورد نظر یافت نشد" },
         { status: 404 }
       );
     }
     return NextResponse.json(
-      { error: "Failed to delete category" },
+      { error: "خطا در حذف دسته‌بندی" },
       { status: 500 }
     );
   }

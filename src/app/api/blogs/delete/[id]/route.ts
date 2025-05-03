@@ -16,12 +16,18 @@ export async function DELETE(
   try {
     const blogId = parseInt(params.id);
     if (isNaN(blogId)) {
-      return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
+      return NextResponse.json(
+        { error: "شناسه وبلاگ معتبر نیست." },
+        { status: 400 }
+      );
     }
 
     const blog = await prisma.blogs.findUnique({ where: { id: blogId } });
     if (!blog) {
-      return NextResponse.json({ error: "Blog not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "وبلاگ مورد نظر پیدا نشد." },
+        { status: 404 }
+      );
     }
 
     // Delete relationships first
@@ -62,14 +68,19 @@ export async function DELETE(
 
     return NextResponse.json({
       message:
-        "Blog deleted successfully" +
-        (imageDeletionSuccess ? "" : ", but some images might remain"),
+        "وبلاگ با موفقیت حذف شد" +
+        (imageDeletionSuccess
+          ? ""
+          : "، اما ممکن است برخی تصاویر همچنان باقی مانده باشند."),
     });
   } catch (error) {
     console.error("Delete error:", error);
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Failed to delete blog",
+        error:
+          error instanceof Error
+            ? `خطا در حذف وبلاگ: ${error.message}`
+            : "حذف وبلاگ با خطا مواجه شد.",
       },
       { status: 500 }
     );

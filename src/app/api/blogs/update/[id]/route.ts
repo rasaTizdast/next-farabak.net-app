@@ -20,9 +20,9 @@ export async function PUT(
 
     return NextResponse.json(blog);
   } catch (error) {
-    console.error("Error updating blog:", error);
+    console.error("خطا در بروزرسانی محتوای وبلاگ:", error);
     return NextResponse.json(
-      { error: "خطا در بروزرسانی وبلاگ" },
+      { error: "خطا در بروزرسانی محتوای وبلاگ" },
       { status: 500 }
     );
   }
@@ -66,9 +66,9 @@ export async function PATCH(
 
     return NextResponse.json(updatedBlog);
   } catch (error) {
-    console.error("Error updating blog:", error);
+    console.error("خطا در بروزرسانی اطلاعات وبلاگ:", error);
     return NextResponse.json(
-      { error: "Failed to update blog" },
+      { error: "خطا در بروزرسانی اطلاعات وبلاگ" },
       { status: 500 }
     );
   }
