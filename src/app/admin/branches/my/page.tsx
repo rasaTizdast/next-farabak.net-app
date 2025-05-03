@@ -1465,224 +1465,230 @@ function MyBranchContent() {
                   )}
                 </Card>
 
-                {/* Standalone Warranties Section */}
                 {filteredStandaloneWarranties.length > 0 && (
-                  <Card
-                    className="bg-gray-800 rounded-lg shadow-md overflow-hidden border-0"
-                    bodyStyle={{
-                      padding: "0",
-                      fontFamily: "inherit",
-                      backgroundColor: "#1f2937",
-                    }}
-                    title={
-                      <div className="flex items-center px-4 py-2">
-                        <h3 className="text-white text-lg font-medium m-0">
-                          گارانتی‌های مستقل
-                        </h3>
-                        <Tag color="blue" className="mr-2">
-                          {filteredStandaloneWarranties.length} گارانتی
-                        </Tag>
-                      </div>
-                    }
-                    headStyle={{
-                      backgroundColor: "#1f2937",
-                      borderBottom: "1px solid #374151",
-                      color: "#f3f4f6",
-                      padding: "12px 0",
-                    }}
-                  >
-                    {invoicesLoading ? (
-                      <div className="flex justify-center items-center p-10">
-                        <Spin size="large" tip="در حال بارگذاری..." />
-                      </div>
-                    ) : (
-                      <Table
-                        columns={[
-                          {
-                            title: "کد گارانتی",
-                            dataIndex: "warrantycode",
-                            key: "warrantycode",
-                            className: "text-right font-medium",
-                            render: (text: string) => (
-                              <span className="text-orange-400 font-medium">
-                                {text}
-                              </span>
-                            ),
-                          },
-                          {
-                            title: "نام مشتری",
-                            dataIndex: "clientFullName",
-                            key: "clientFullName",
-                            className: "text-right font-medium",
-                            render: (text: string) => (
-                              <span className="text-green-400 font-medium">
-                                {text || "نامشخص"}
-                              </span>
-                            ),
-                          },
-                          {
-                            title: "شماره تماس",
-                            dataIndex: "ClientPhoneNumber",
-                            key: "ClientPhoneNumber",
-                            className: "text-right font-medium",
-                            render: (phone: string) =>
-                              phone ? (
-                                <a
-                                  href={`tel:${phone}`}
-                                  className="text-blue-400 hover:text-blue-300 transition-colors"
-                                >
-                                  {phone}
-                                </a>
-                              ) : (
-                                <span className="text-gray-400">-</span>
+                  <>
+                    <hr className="mt-4" />
+                    <Card
+                      className="bg-gray-800 rounded-lg shadow-md overflow-hidden border-0"
+                      bodyStyle={{
+                        padding: "0",
+                        fontFamily: "inherit",
+                        backgroundColor: "#1f2937",
+                      }}
+                      title={
+                        <div className="flex items-center px-4 py-2">
+                          <h3 className="text-white text-lg font-medium m-0">
+                            گارانتی‌های مستقل
+                          </h3>
+                          <Tag color="blue" className="mr-2">
+                            {filteredStandaloneWarranties.length} گارانتی
+                          </Tag>
+                        </div>
+                      }
+                      headStyle={{
+                        backgroundColor: "#1f2937",
+                        borderBottom: "1px solid #374151",
+                        color: "#f3f4f6",
+                        padding: "12px 0",
+                      }}
+                    >
+                      {invoicesLoading ? (
+                        <div className="flex justify-center items-center p-10">
+                          <Spin size="large" tip="در حال بارگذاری..." />
+                        </div>
+                      ) : (
+                        <Table
+                          columns={[
+                            {
+                              title: "کد گارانتی",
+                              dataIndex: "warrantycode",
+                              key: "warrantycode",
+                              className: "text-right font-medium",
+                              render: (text: string) => (
+                                <span className="text-orange-400 font-medium">
+                                  {text}
+                                </span>
                               ),
-                          },
-                          {
-                            title: "نوع محصول",
-                            dataIndex: "Type",
-                            key: "Type",
-                            className: "text-right font-medium",
-                            render: (text: string) => (
-                              <span className="text-gray-100">{text}</span>
-                            ),
-                          },
-                          {
-                            title: "تاریخ شروع",
-                            dataIndex: "startdate",
-                            key: "startdate",
-                            className: "text-right font-medium",
-                            render: (date: string) => {
-                              try {
-                                // Try to use moment to format into Persian date
-                                const persianDate = moment(date)
-                                  .locale("fa")
-                                  .format("jYYYY/jMM/jDD");
-                                return (
-                                  <span className="text-gray-200">
-                                    {persianDate}
-                                  </span>
-                                );
-                              } catch (e) {
-                                return (
-                                  <span className="text-gray-200">
-                                    {formatDate(date)}
-                                  </span>
-                                );
-                              }
                             },
-                          },
-                          {
-                            title: "تاریخ انقضا",
-                            dataIndex: "expirydate",
-                            key: "expirydate",
-                            className: "text-right font-medium",
-                            render: (date: string) => {
-                              try {
-                                // Try to use moment to format into Persian date
-                                const persianDate = moment(date)
-                                  .locale("fa")
-                                  .format("jYYYY/jMM/jDD");
-                                return (
-                                  <span className="text-gray-200">
-                                    {persianDate}
-                                  </span>
-                                );
-                              } catch (e) {
-                                return (
-                                  <span className="text-gray-200">
-                                    {formatDate(date)}
-                                  </span>
-                                );
-                              }
+                            {
+                              title: "نام مشتری",
+                              dataIndex: "clientFullName",
+                              key: "clientFullName",
+                              className: "text-right font-medium",
+                              render: (text: string) => (
+                                <span className="text-green-400 font-medium">
+                                  {text || "نامشخص"}
+                                </span>
+                              ),
                             },
-                          },
-                          {
-                            title: "وضعیت",
-                            dataIndex: "displayStatus",
-                            key: "displayStatus",
-                            className: "text-center font-medium",
-                            render: (status: string) => (
-                              <Tag
-                                color={
-                                  status === "Expired" ? "error" : "success"
-                                }
-                                className="px-4 py-1.5 flex items-center justify-center min-w-[120px]"
-                                style={{
-                                  fontFamily: "inherit",
-                                  fontWeight: 500,
-                                }}
-                              >
-                                {status === "Expired" ? "منقضی شده" : "فعال"}
-                              </Tag>
-                            ),
-                          },
-                          {
-                            title: "عملیات",
-                            key: "actions",
-                            className: "text-center font-medium",
-                            render: (_, warranty: any) => (
-                              <Button
-                                type="primary"
-                                className="bg-blue-600 hover:bg-blue-700 border-blue-700 flex items-center"
-                                onClick={() => {
-                                  // Log the warranty object to debug
-                                  console.log(
-                                    "Opening standalone warranty details:",
-                                    warranty
+                            {
+                              title: "شماره تماس",
+                              dataIndex: "ClientPhoneNumber",
+                              key: "ClientPhoneNumber",
+                              className: "text-right font-medium",
+                              render: (phone: string) =>
+                                phone ? (
+                                  <a
+                                    href={`tel:${phone}`}
+                                    className="text-blue-400 hover:text-blue-300 transition-colors"
+                                  >
+                                    {phone}
+                                  </a>
+                                ) : (
+                                  <span className="text-gray-400">-</span>
+                                ),
+                            },
+                            {
+                              title: "نوع محصول",
+                              dataIndex: "Type",
+                              key: "Type",
+                              className: "text-right font-medium",
+                              render: (text: string) => (
+                                <span className="text-gray-100">{text}</span>
+                              ),
+                            },
+                            {
+                              title: "تاریخ شروع",
+                              dataIndex: "startdate",
+                              key: "startdate",
+                              className: "text-right font-medium",
+                              render: (date: string) => {
+                                try {
+                                  // Try to use moment to format into Persian date
+                                  const persianDate = moment(date)
+                                    .locale("fa")
+                                    .format("jYYYY/jMM/jDD");
+                                  return (
+                                    <span className="text-gray-200">
+                                      {persianDate}
+                                    </span>
                                   );
+                                } catch (e) {
+                                  return (
+                                    <span className="text-gray-200">
+                                      {formatDate(date)}
+                                    </span>
+                                  );
+                                }
+                              },
+                            },
+                            {
+                              title: "تاریخ انقضا",
+                              dataIndex: "expirydate",
+                              key: "expirydate",
+                              className: "text-right font-medium",
+                              render: (date: string) => {
+                                try {
+                                  // Try to use moment to format into Persian date
+                                  const persianDate = moment(date)
+                                    .locale("fa")
+                                    .format("jYYYY/jMM/jDD");
+                                  return (
+                                    <span className="text-gray-200">
+                                      {persianDate}
+                                    </span>
+                                  );
+                                } catch (e) {
+                                  return (
+                                    <span className="text-gray-200">
+                                      {formatDate(date)}
+                                    </span>
+                                  );
+                                }
+                              },
+                            },
+                            {
+                              title: "وضعیت",
+                              dataIndex: "displayStatus",
+                              key: "displayStatus",
+                              className: "text-center font-medium",
+                              render: (status: string) => (
+                                <Tag
+                                  color={
+                                    status === "Expired" ? "error" : "success"
+                                  }
+                                  className="px-4 py-1.5 flex items-center justify-center min-w-[120px]"
+                                  style={{
+                                    fontFamily: "inherit",
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  {status === "Expired" ? "منقضی شده" : "فعال"}
+                                </Tag>
+                              ),
+                            },
+                            {
+                              title: "عملیات",
+                              key: "actions",
+                              className: "text-center font-medium",
+                              render: (_, warranty: any) => (
+                                <Button
+                                  type="primary"
+                                  className="bg-blue-600 hover:bg-blue-700 border-blue-700 flex items-center"
+                                  onClick={() => {
+                                    // Log the warranty object to debug
+                                    console.log(
+                                      "Opening standalone warranty details:",
+                                      warranty
+                                    );
 
-                                  // Create an item object expected by BranchWarrantyViewModal
-                                  const warrantyItem = {
-                                    Invoice_Details: String(
-                                      warranty.invoicedetailid || ""
-                                    ),
-                                    ProductId: String(warranty.ProductId || ""),
-                                    quantity: warranty.quantity || 1,
-                                    price: warranty.price || 0,
-                                    total_price:
-                                      (warranty.price || 0) *
-                                      (warranty.quantity || 1),
-                                    Name: warranty.Type,
-                                    Type: warranty.Type,
-                                    individualWarranty: {
-                                      ...warranty,
-                                      warrantyid: String(
-                                        warranty.warrantyid || ""
-                                      ),
-                                      invoicedetailid: String(
+                                    // Create an item object expected by BranchWarrantyViewModal
+                                    const warrantyItem = {
+                                      Invoice_Details: String(
                                         warranty.invoicedetailid || ""
                                       ),
                                       ProductId: String(
                                         warranty.ProductId || ""
                                       ),
-                                      branchid: String(warranty.branchid || ""),
-                                      branchname: branch?.name,
-                                    },
-                                  };
+                                      quantity: warranty.quantity || 1,
+                                      price: warranty.price || 0,
+                                      total_price:
+                                        (warranty.price || 0) *
+                                        (warranty.quantity || 1),
+                                      Name: warranty.Type,
+                                      Type: warranty.Type,
+                                      individualWarranty: {
+                                        ...warranty,
+                                        warrantyid: String(
+                                          warranty.warrantyid || ""
+                                        ),
+                                        invoicedetailid: String(
+                                          warranty.invoicedetailid || ""
+                                        ),
+                                        ProductId: String(
+                                          warranty.ProductId || ""
+                                        ),
+                                        branchid: String(
+                                          warranty.branchid || ""
+                                        ),
+                                        branchname: branch?.name,
+                                      },
+                                    };
 
-                                  // Set the selected standalone warranty to show the modal
-                                  setSelectedStandaloneWarranty(warrantyItem);
-                                }}
-                              >
-                                <span>مشاهده جزئیات</span>
-                                <EyeOutlined className="mr-2" />
-                              </Button>
-                            ),
-                          },
-                        ]}
-                        dataSource={filteredStandaloneWarranties}
-                        rowKey="warrantyid"
-                        pagination={{
-                          pageSize: 5,
-                          hideOnSinglePage: true,
-                          position: ["bottomCenter"],
-                          className: "pagination-dark",
-                        }}
-                        scroll={{ x: "max-content" }}
-                        className="standalone-warranties-table enhanced-table rtl-table"
-                      />
-                    )}
-                  </Card>
+                                    // Set the selected standalone warranty to show the modal
+                                    setSelectedStandaloneWarranty(warrantyItem);
+                                  }}
+                                >
+                                  <span>مشاهده جزئیات</span>
+                                  <EyeOutlined className="mr-2" />
+                                </Button>
+                              ),
+                            },
+                          ]}
+                          dataSource={filteredStandaloneWarranties}
+                          rowKey="warrantyid"
+                          pagination={{
+                            pageSize: 5,
+                            hideOnSinglePage: true,
+                            position: ["bottomCenter"],
+                            className: "pagination-dark",
+                          }}
+                          scroll={{ x: "max-content" }}
+                          className="standalone-warranties-table enhanced-table rtl-table"
+                        />
+                      )}
+                    </Card>
+                  </>
                 )}
               </>
             ),
