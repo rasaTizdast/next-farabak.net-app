@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   AdminInvoice,
   InvoiceDetail,
@@ -6,17 +6,25 @@ import {
 } from "@/app/admin/invoices/type";
 import moment from "jalali-moment";
 import axios from "axios";
+import { usePrint } from "@/app/utils/usePrint";
+import PrintButton from "@/app/components/ui/PrintButton";
+import BranchWarrantyViewModal from "./BranchWarrantyViewModal";
+import BranchWarrantyManagementModal from "./BranchWarrantyManagementModal";
+import { message } from "antd";
 
 // Extend the Warranty interface to include the hasWarranty property
 interface ExtendedWarranty extends Warranty {
   hasWarranty?: boolean;
+  branchname?: string;
+  branchid?: string;
 }
 
 // Define an interface for expanded items with individual warranties
-interface ExpandedInvoiceItem extends InvoiceDetail {
+export interface ExpandedInvoiceItem extends InvoiceDetail {
   itemNumber?: number;
   itemIndex?: number;
   individualWarranty?: ExtendedWarranty | null;
+  Name?: string; // Add Name field for use in both components
 }
 
 interface BranchInvoiceDetailsModalProps {
@@ -28,11 +36,20 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
   invoice,
   onClose,
 }) => {
-  const componentRef = useRef<HTMLDivElement>(null);
   const [productNames, setProductNames] = useState<{ [key: string]: string }>(
     {}
   );
   const [expandedItems, setExpandedItems] = useState<ExpandedInvoiceItem[]>([]);
+  const [selectedItem, setSelectedItem] = useState<ExpandedInvoiceItem | null>(
+    null
+  );
+  const [showPrintView, setShowPrintView] = useState(false);
+  const [addWarrantyItem, setAddWarrantyItem] =
+    useState<ExpandedInvoiceItem | null>(null);
+  const [refreshCounter, setRefreshCounter] = useState(0);
+
+  // Use the print hook for printing
+  const { componentRef, handlePrint } = usePrint();
 
   if (!invoice) return null;
 
@@ -61,28 +78,23 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
   const formatDate = (dateString: string, includeTime: boolean = true) => {
     if (!dateString) return "-";
     try {
-      // Check if the date is likely a Gregorian date (years like 2025, 2026, etc.)
-      const year = new Date(dateString).getFullYear();
+      // Create a date object
+      const date = new Date(dateString);
 
-      let formattedDate = "";
-      if (year > 1900 && year < 2100) {
-        // This is a Gregorian date - convert to Jalali
-        formattedDate = moment(dateString)
-          .locale("fa")
-          .format(includeTime ? "jYYYY/jMM/jDD | HH:mm:ss" : "jYYYY/jMM/jDD");
+      // Format date like AdminInvoiceDetailsModal
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const seconds = String(date.getSeconds()).padStart(2, "0");
+
+      if (includeTime) {
+        return `${year}/${month}/${day} | ${hours}:${minutes}:${seconds}`;
       } else {
-        // This is already a Jalali date in ISO format
-        formattedDate = moment(dateString).format(
-          includeTime ? "YYYY/MM/DD | HH:mm:ss" : "YYYY/MM/DD"
-        );
+        // Use toLocaleDateString for consistency with AdminInvoiceDetailsModal
+        return new Date(dateString).toLocaleDateString("fa-IR");
       }
-
-      // Convert to Persian digits for warranty dates (when not including time)
-      if (!includeTime) {
-        return toPersianDigits(formattedDate);
-      }
-
-      return formattedDate;
     } catch (e) {
       console.error("Error formatting date:", e);
       return dateString;
@@ -93,7 +105,8 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
   const formatCurrency = (amount: number) => {
     if (!amount && amount !== 0) return "-";
     try {
-      return new Intl.NumberFormat("fa-IR").format(amount);
+      // Use toLocaleString like AdminInvoiceDetailsModal
+      return amount.toLocaleString("fa");
     } catch (e) {
       console.error("Error formatting currency:", e);
       return amount.toString();
@@ -137,7 +150,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
     };
 
     fetchProductNames();
-  }, [invoice]);
+  }, [invoice, refreshCounter]);
 
   // Create expanded items list
   useEffect(() => {
@@ -191,6 +204,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
           ? {
               ...product.warranty,
               hasWarranty: !!product.warranty.warrantycode,
+              branchid: product.warranty.branchid,
             }
           : null;
 
@@ -198,6 +212,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
           ...product,
           itemNumber: 1,
           individualWarranty,
+          Name: productNames[product.ProductId],
         });
         return;
       }
@@ -225,6 +240,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                   ? product.warranty?.status
                   : code.status || product.warranty?.status || "Active",
               hasWarranty: true,
+              branchid: product.warranty.branchid,
             }
           : product.warranty;
 
@@ -233,12 +249,104 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
           ...product,
           itemNumber: i + 1,
           individualWarranty,
+          Name: productNames[product.ProductId],
         });
       }
     });
 
     setExpandedItems(items);
-  }, [invoice?.Invoice_Details]);
+  }, [invoice?.Invoice_Details, productNames, refreshCounter]);
+
+  // Handle refresh after warranty actions
+  const handleWarrantyUpdated = async () => {
+    // Close the warranty management modal
+    setAddWarrantyItem(null);
+
+    // Show success message
+    message.success("گارانتی با موفقیت اضافه شد");
+
+    // Fetch updated invoice data directly instead of just triggering useEffect
+    try {
+      const response = await axios.get(
+        `/api/admin/invoices/${invoice.Invoiceid}`
+      );
+      if (response.data && response.data.invoice) {
+        // Update with fresh data that includes branchid
+        const updatedInvoice = response.data.invoice;
+
+        // Update the invoice data
+        if (updatedInvoice.Invoice_Details) {
+          Object.assign(invoice, updatedInvoice);
+
+          // Increment refresh counter to trigger re-render
+          setRefreshCounter((prev) => prev + 1);
+        }
+      }
+    } catch (error) {
+      console.error("Error refreshing invoice data:", error);
+    }
+  };
+
+  // Handle view warranty
+  const handleViewWarranty = (item: ExpandedInvoiceItem) => {
+    setSelectedItem(item);
+  };
+
+  // Handle add warranty
+  const handleAddWarranty = (item: ExpandedInvoiceItem) => {
+    setAddWarrantyItem(item);
+  };
+
+  // Handle print with specific options
+  const handleInvoicePrint = () => {
+    // Remove height restriction from table container right before printing
+    const tableContainer = document.querySelector(".invoice-table-container");
+    if (tableContainer) {
+      (tableContainer as HTMLElement).style.maxHeight = "none";
+      (tableContainer as HTMLElement).style.overflow = "visible";
+    }
+
+    handlePrint({
+      printTitle: `فاکتور ${invoice.FactorGuid}`,
+      hideElements: [".print-button", "button"], // Removed ".no-print" to match admin component
+      compactMode: true, // Enable compact mode for smaller print
+    });
+
+    // Reset the styles after print dialog is shown
+    setTimeout(() => {
+      if (tableContainer) {
+        (tableContainer as HTMLElement).style.maxHeight = "500px";
+        (tableContainer as HTMLElement).style.overflow = "auto";
+      }
+    }, 1000);
+  };
+
+  // Add effect to refresh invoice data when refreshCounter changes
+  useEffect(() => {
+    if (refreshCounter > 0) {
+      const fetchUpdatedInvoiceData = async () => {
+        try {
+          const response = await axios.get(
+            `/api/admin/invoices/${invoice.Invoiceid}`
+          );
+          if (response.data && response.data.invoice) {
+            // Update with fresh data
+            const updatedInvoice = response.data.invoice;
+
+            // Update invoice details with fresh data that includes the branchid
+            if (updatedInvoice.Invoice_Details) {
+              // The refresh will happen through existing useEffects that depend on invoice
+              Object.assign(invoice, updatedInvoice);
+            }
+          }
+        } catch (error) {
+          console.error("Error refreshing invoice data:", error);
+        }
+      };
+
+      fetchUpdatedInvoiceData();
+    }
+  }, [refreshCounter, invoice.Invoiceid]);
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
@@ -247,6 +355,13 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
           <div className="text-gray-100">
             {/* Header */}
             <div className="mb-4 sm:mb-8">
+              <img
+                src="/Farabak_Logo.webp"
+                alt="Farabak Logo"
+                width={130}
+                height={130}
+                className="mx-auto logo print-only flex justify-center items-center mt-4 mb-5"
+              />
               <h2 className="text-xl sm:text-2xl font-bold text-center">
                 جزئیات فاکتور
                 <br />
@@ -271,7 +386,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                     {formatDate(invoice.Date)}
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center no-print">
                   <span className="text-gray-300">وضعیت فاکتور:</span>
                   <span className="font-medium">
                     {invoice.Checked ? (
@@ -285,7 +400,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
 
               {/* Products Table */}
               <div className="overflow-x-auto bg-slate-800 rounded-lg">
-                <div className="overflow-auto max-h-[500px]">
+                <div className="overflow-auto max-h-[500px] invoice-table-container">
                   <table className="w-full text-xs sm:text-sm whitespace-nowrap">
                     <thead className="bg-slate-700 sticky top-0 z-10">
                       <tr>
@@ -297,6 +412,9 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                         </th>
                         <th className="p-2 sm:p-4 text-right font-medium text-gray-300">
                           گارانتی
+                        </th>
+                        <th className="p-2 sm:p-4 text-right font-medium text-gray-300 no-print">
+                          عملیات
                         </th>
                       </tr>
                     </thead>
@@ -319,7 +437,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                           // Generate item indicator for warranty
                           const itemIndicator =
                             sameProductItems.length > 1
-                              ? `عدد ${currentIndex + 1} از ${
+                              ? `محصول ${currentIndex + 1} از ${
                                   sameProductItems.length
                                 }: `
                               : "";
@@ -389,11 +507,11 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                                       new Date(
                                         item.individualWarranty.expirydate
                                       ) < new Date()) ? (
-                                      <span className="text-xs bg-red-900/40 text-red-300 px-2 py-1 rounded-full inline-block w-fit">
+                                      <span className="text-xs bg-red-900/40 text-red-300 px-2 py-1 rounded-full inline-block w-fit no-print">
                                         منقضی شده
                                       </span>
                                     ) : (
-                                      <span className="text-xs bg-green-900/40 text-green-300 px-2 py-1 rounded-full inline-block w-fit">
+                                      <span className="text-xs bg-green-900/40 text-green-300 px-2 py-1 rounded-full inline-block w-fit no-print">
                                         فعال
                                       </span>
                                     )}
@@ -407,10 +525,9 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                                         item.individualWarranty.expirydate && (
                                           <div className="text-gray-500">
                                             اعتبار:{" "}
-                                            {formatDate(
-                                              item.individualWarranty.startdate,
-                                              false
-                                            )}{" "}
+                                            {new Date(
+                                              item.individualWarranty.startdate
+                                            ).toLocaleDateString("fa-IR")}{" "}
                                             تا{" "}
                                             <span
                                               className={
@@ -426,11 +543,9 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                                                   : "text-gray-400"
                                               }
                                             >
-                                              {formatDate(
-                                                item.individualWarranty
-                                                  .expirydate,
-                                                false
-                                              )}
+                                              {new Date(
+                                                item.individualWarranty.expirydate
+                                              ).toLocaleDateString("fa-IR")}
                                             </span>
                                           </div>
                                         )}
@@ -442,12 +557,30 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                                   </span>
                                 )}
                               </td>
+                              <td className="p-2 sm:p-4 no-print">
+                                {item.individualWarranty &&
+                                item.individualWarranty.warrantycode ? (
+                                  <button
+                                    onClick={() => handleViewWarranty(item)}
+                                    className="text-xs bg-blue-700 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors"
+                                  >
+                                    مشاهده گارانتی
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleAddWarranty(item)}
+                                    className="text-xs bg-green-700 hover:bg-green-600 text-white px-2 py-1 rounded transition-colors"
+                                  >
+                                    افزودن گارانتی
+                                  </button>
+                                )}
+                              </td>
                             </tr>
                           );
                         })
                       ) : (
                         <tr>
-                          <td colSpan={3} className="p-2 sm:p-4 text-center">
+                          <td colSpan={4} className="p-2 sm:p-4 text-center">
                             هیچ محصولی در این فاکتور وجود ندارد
                           </td>
                         </tr>
@@ -464,13 +597,11 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                   <span>
                     {invoice.Invoice_Details &&
                     Array.isArray(invoice.Invoice_Details)
-                      ? formatCurrency(
-                          invoice.Invoice_Details.reduce(
-                            (sum, product) => sum + product.total_price,
-                            0
-                          )
-                        )
-                      : formatCurrency(invoice.TotalAmount || 0)}
+                      ? invoice.Invoice_Details.reduce(
+                          (sum, product) => sum + product.total_price,
+                          0
+                        ).toLocaleString("fa")
+                      : (invoice.TotalAmount || 0).toLocaleString("fa")}
                   </span>
                   <span>تومان</span>
                 </span>
@@ -480,7 +611,8 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-4 p-3 sm:p-6 border-t border-slate-700">
+        <div className="flex justify-between gap-4 p-3 sm:p-6 border-t border-slate-700 no-print">
+          <PrintButton onPrint={handleInvoicePrint} />
           <button
             onClick={onClose}
             className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors duration-200 text-gray-100 text-sm sm:text-base"
@@ -489,6 +621,24 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Warranty View Modal */}
+      {selectedItem && (
+        <BranchWarrantyViewModal
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
+
+      {/* Warranty Management Modal for adding new warranties */}
+      {addWarrantyItem && (
+        <BranchWarrantyManagementModal
+          item={addWarrantyItem}
+          invoiceId={invoice.Invoiceid}
+          onClose={() => setAddWarrantyItem(null)}
+          onSuccess={handleWarrantyUpdated}
+        />
+      )}
 
       {/* Add styles for product grouping */}
       <style jsx>{`
@@ -599,6 +749,65 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
           position: sticky;
           top: 0;
           z-index: 10;
+        }
+
+        /* Print-specific styles */
+        @media print {
+          .no-print {
+            display: none !important;
+          }
+
+          .print-only {
+            display: inline-block !important;
+          }
+
+          body {
+            background-color: white;
+            color: black;
+          }
+
+          .bg-slate-900,
+          .bg-slate-800,
+          .bg-slate-700 {
+            background-color: white !important;
+            color: black !important;
+          }
+
+          .text-gray-100,
+          .text-gray-300,
+          .text-gray-400 {
+            color: #333 !important;
+          }
+
+          /* Invoice table specific styles */
+          .invoice-table-container {
+            max-height: none !important;
+            height: auto !important;
+            overflow: visible !important;
+          }
+
+          /* Remove height limits and overflow restrictions when printing */
+          .overflow-auto,
+          .overflow-x-auto {
+            overflow: visible !important;
+            max-height: none !important;
+          }
+
+          /* Ensure table rows don't break across pages */
+          tr {
+            page-break-inside: avoid;
+          }
+
+          /* Ensure proper spacing between table rows in print */
+          td,
+          th {
+            padding: 8px !important;
+          }
+        }
+
+        /* Add class to hide logo in normal view */
+        .print-only {
+          display: none;
         }
       `}</style>
     </div>

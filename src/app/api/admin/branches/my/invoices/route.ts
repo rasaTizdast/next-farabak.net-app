@@ -98,29 +98,21 @@ export async function GET(request: Request) {
       SELECT COUNT(DISTINCT i."Invoiceid") as total
       FROM 
         "info"."Invoice" i
-      JOIN
-        "info"."Invoice_Details" id ON i."Invoiceid" = id."Invoiceid"
-      JOIN
-        "info"."warranty" w ON id."Invoice_Details" = w."invoicedetailid"
       WHERE 
-        w."branchid" = ${branchId}
+        i."UserId" = ${Number(userId)}
     `;
 
     const totalCount = Number((countResult as any[])[0].total);
 
-    // Find all invoices that have warranties created by this branch with pagination
+    // Find all invoices created by this branch with pagination
     const invoices = await prisma.$queryRaw`
       SELECT DISTINCT
         i."Invoiceid", i."FactorGuid", i."Fullname", i."Phonenumber",
         i."UserId", i."TotalAmount", i."Checked", i."Date"
       FROM 
         "info"."Invoice" i
-      JOIN
-        "info"."Invoice_Details" id ON i."Invoiceid" = id."Invoiceid"
-      JOIN
-        "info"."warranty" w ON id."Invoice_Details" = w."invoicedetailid"
       WHERE 
-        w."branchid" = ${branchId}
+        i."UserId" = ${Number(userId)}
       ORDER BY
         i."Date" DESC
       LIMIT ${limit}
@@ -148,7 +140,7 @@ export async function GET(request: Request) {
         const warranties = await prisma.$queryRaw`
           SELECT 
             w."warrantyid", w."invoicedetailid", w."warrantycode", 
-            w."startdate", w."expirydate", w."status", w."ProductId"
+            w."startdate", w."expirydate", w."status", w."ProductId", w."branchid"
           FROM 
             "info"."warranty" w
           JOIN 
@@ -210,7 +202,7 @@ export async function GET(request: Request) {
     // Get all warranties for this branch
     const allWarranties = await prisma.$queryRaw`
       SELECT 
-        w."warrantyid", w."startdate", w."expirydate", w."status"
+        w."warrantyid", w."startdate", w."expirydate", w."status", w."branchid"
       FROM 
         "info"."warranty" w
       WHERE 

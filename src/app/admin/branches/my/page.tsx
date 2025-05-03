@@ -1389,7 +1389,11 @@ function MyBranchContent() {
       {selectedInvoice && (
         <BranchInvoiceDetailsModal
           invoice={selectedInvoice}
-          onClose={() => setSelectedInvoice(null)}
+          onClose={() => {
+            setSelectedInvoice(null);
+            // Refresh the invoices data when closing the modal
+            fetchInvoices();
+          }}
         />
       )}
 

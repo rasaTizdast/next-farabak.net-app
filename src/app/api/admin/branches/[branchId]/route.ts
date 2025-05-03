@@ -1,21 +1,23 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = "force-dynamic";
+
 /**
  * @swagger
  * /api/admin/branches/{branchId}:
  *   get:
- *     summary: Get a single branch by ID with product count and total quantity
+ *     summary: Get information about a specific branch
  *     parameters:
- *       - name: branchId
- *         in: path
+ *       - in: path
+ *         name: branchId
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID of the branch
+ *         description: ID of the branch to retrieve
  *     responses:
  *       200:
- *         description: Branch details with product count and total quantity
+ *         description: Returns branch information
  *       404:
  *         description: Branch not found
  *       500:
@@ -26,48 +28,42 @@ export async function GET(
   { params }: { params: { branchId: string } }
 ) {
   try {
-    const branchId = parseInt(params.branchId);
+    console.log("Getting branch info for ID:", params.branchId);
     
-    // Get branch with product count and total quantity
-    const branchResult = await prisma.$queryRaw`
-      SELECT 
-        b.*,
-        COUNT(DISTINCT bp."ProductId") as "productCount",
-        COALESCE(SUM(bp."quantity"), 0)::integer as "totalQuantity"
-      FROM 
-        "support"."branch" b
-      LEFT JOIN 
-        "support"."branchproduct" bp ON b."branchid" = bp."branchid"
-      WHERE 
-        b."branchid" = ${branchId}
-      GROUP BY 
-        b."branchid", b."UserID", b."name", b."location", b."createdat"
-    `;
-    
-    const branchData = (branchResult as any[])[0];
-    
-    if (!branchData) {
+    if (!params.branchId) {
       return NextResponse.json(
-        { error: 'شعبه یافت نشد' },
+        { error: "Branch ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const branchId = parseInt(params.branchId);
+    if (isNaN(branchId)) {
+      return NextResponse.json(
+        { error: "Invalid branch ID format" },
+        { status: 400 }
+      );
+    }
+
+    const branch = await prisma.$queryRaw`
+      SELECT "branchid", "name", "location" FROM "support"."branch"
+      WHERE "branchid" = ${branchId}
+    `;
+
+    console.log("Branch query result:", branch);
+
+    if (!branch || (branch as any[]).length === 0) {
+      return NextResponse.json(
+        { error: "Branch not found" },
         { status: 404 }
       );
     }
-    
-    // Convert any BigInt values to regular Numbers
-    const sanitizedBranch: Record<string, any> = {};
-    for (const [key, value] of Object.entries(branchData)) {
-      if (typeof value === 'bigint') {
-        sanitizedBranch[key] = Number(value);
-      } else {
-        sanitizedBranch[key] = value;
-      }
-    }
-    
-    return NextResponse.json(sanitizedBranch);
+
+    return NextResponse.json(branch[0]);
   } catch (error) {
-    console.error('Error fetching branch:', error);
+    console.error("Error fetching branch:", error);
     return NextResponse.json(
-      { error: 'خطا در بارگذاری اطلاعات شعبه' },
+      { error: "Failed to fetch branch information" },
       { status: 500 }
     );
   }
