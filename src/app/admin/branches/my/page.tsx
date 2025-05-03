@@ -342,9 +342,6 @@ function MyBranchContent() {
   const formatDate = (dateString: any) => {
     if (!dateString) return "-";
 
-    // Log the incoming date string for debugging
-    console.log("Formatting date:", dateString, typeof dateString);
-
     try {
       // For non-string dates, convert to string format
       if (typeof dateString === "object") {
@@ -1626,12 +1623,6 @@ function MyBranchContent() {
                                   type="primary"
                                   className="bg-blue-600 hover:bg-blue-700 border-blue-700 flex items-center"
                                   onClick={() => {
-                                    // Log the warranty object to debug
-                                    console.log(
-                                      "Opening standalone warranty details:",
-                                      warranty
-                                    );
-
                                     // Create an item object expected by BranchWarrantyViewModal
                                     const warrantyItem = {
                                       Invoice_Details: String(

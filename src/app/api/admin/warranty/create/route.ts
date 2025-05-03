@@ -37,14 +37,10 @@ export async function POST(request: Request) {
     let branchName = null;
     if (userRole === "Branch") {
       const userId = decoded.userId || decoded.id || decoded.sub;
-      console.log("Getting branch for user ID:", userId);
-      
       const branch = await prisma.$queryRaw`
         SELECT "branchid", "name" FROM "support"."branch"
         WHERE "UserID" = ${Number(userId)}
       `;
-
-      console.log("Branch data from DB:", branch);
 
       if (!branch || (branch as any[]).length === 0) {
         return NextResponse.json(
@@ -55,14 +51,11 @@ export async function POST(request: Request) {
 
       branchId = (branch as any[])[0].branchid;
       branchName = (branch as any[])[0].name;
-      console.log("Using branch:", { branchId, branchName });
     }
 
     // Get request data
     const { invoiceId, invoiceDetailId, productId, warrantyData } =
       await request.json();
-      
-    console.log("Request data:", { invoiceId, invoiceDetailId, productId, warrantyData });
 
     if (!invoiceId || !invoiceDetailId || !productId || !warrantyData) {
       return NextResponse.json(
@@ -113,17 +106,12 @@ export async function POST(request: Request) {
 
         // If the branch is trying to create a warranty, check if the invoice belongs to them
         if (((invoiceAuth as any[])[0].count as number) === 0) {
-          // Check if the invoice is for this branch
-          console.log("Checking if invoice belongs to branch:", { invoiceId, branchId });
-          
           const invoiceBranchCheck = await prisma.$queryRaw`
             SELECT COUNT(*) as count
             FROM "info"."Invoice" i
             WHERE i."Invoiceid" = ${parseInt(invoiceId)}
             AND i."BranchId" = ${branchId}
           `;
-          
-          console.log("Invoice branch check result:", invoiceBranchCheck);
 
           if (((invoiceBranchCheck as any[])[0].count as number) === 0) {
             return NextResponse.json(
@@ -146,28 +134,22 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    
+
     // Get branch name if needed
     let selectedBranchName = branchName;
     if (!selectedBranchName) {
-      console.log("Fetching branch name for ID:", selectedBranchId);
       const branchInfo = await prisma.$queryRaw`
         SELECT "name" FROM "support"."branch"
         WHERE "branchid" = ${selectedBranchId}
       `;
-      console.log("Branch info result:", branchInfo);
-      
+
       if (branchInfo && (branchInfo as any[]).length > 0) {
         selectedBranchName = (branchInfo as any[])[0].name;
       }
     }
-    
-    console.log("Using branch for warranty:", { selectedBranchId, selectedBranchName });
 
     // For dontReduceStock case, we need to check if the invoice has this product
     if (warrantyData.dontReduceStock) {
-      console.log("Using dontReduceStock flow, checking invoice product");
-      
       // Check if the invoice actually has this product
       const invoiceProductCheck = await prisma.$queryRaw`
         SELECT COUNT(*) as count
@@ -175,11 +157,10 @@ export async function POST(request: Request) {
         WHERE id."Invoiceid" = ${parseInt(invoiceId)}
         AND id."ProductId" = ${parseInt(productId)}
       `;
-      
-      console.log("Invoice product check result:", invoiceProductCheck);
-      
-      const hasProduct = ((invoiceProductCheck as any[])[0].count as number) > 0;
-      
+
+      const hasProduct =
+        ((invoiceProductCheck as any[])[0].count as number) > 0;
+
       if (!hasProduct) {
         return NextResponse.json(
           { error: "The invoice does not contain this product" },
@@ -209,7 +190,7 @@ export async function POST(request: Request) {
 
     // Create warranty record - now use conditional logic for stock reduction
     let newWarranty;
-    
+
     // Create the warranty data object
     // The schema doesn't appear to have a branchname field, so we'll remove it
     const warrantyCreateData = {
@@ -223,13 +204,11 @@ export async function POST(request: Request) {
       expirydate: warrantyData.expirydate,
       status: determineWarrantyStatus(warrantyData.expirydate),
     };
-    
-    console.log("Creating warranty with data:", warrantyCreateData);
-    
+
     if (warrantyData.dontReduceStock) {
       // If we're using an item from an invoice, don't reduce stock
       newWarranty = await prisma.warranty.create({
-        data: warrantyCreateData
+        data: warrantyCreateData,
       });
     } else {
       // The traditional way - reduce stock when creating warranty
@@ -239,12 +218,12 @@ export async function POST(request: Request) {
           ProductId: parseInt(productId),
         },
       });
-      
+
       // Start a transaction to create warranty and update stock atomically
       [newWarranty] = await prisma.$transaction([
         // Create warranty record
         prisma.warranty.create({
-          data: warrantyCreateData
+          data: warrantyCreateData,
         }),
 
         // Decrease product quantity in branch
@@ -260,8 +239,6 @@ export async function POST(request: Request) {
         }),
       ]);
     }
-    
-    console.log("Created warranty:", newWarranty);
 
     return NextResponse.json(
       {

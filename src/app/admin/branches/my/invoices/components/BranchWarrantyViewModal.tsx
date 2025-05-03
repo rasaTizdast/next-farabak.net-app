@@ -19,28 +19,6 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [showPrintView, setShowPrintView] = useState<boolean>(false);
 
-  // Log the entire item and warranty object to debug the structure
-  useEffect(() => {
-    console.log("Full item object:", item);
-
-    if (item?.individualWarranty) {
-      // Log all properties directly on the warranty object
-      console.log("Warranty properties:", Object.keys(item.individualWarranty));
-
-      // Check if branchname already exists on the warranty object
-      console.log("Direct branch name:", item.individualWarranty.branchname);
-
-      // Check if branch object exists and has name
-      if ((item.individualWarranty as any).branch) {
-        console.log("Branch object:", (item.individualWarranty as any).branch);
-        console.log(
-          "Branch name from relationship:",
-          (item.individualWarranty as any).branch.name
-        );
-      }
-    }
-  }, [item]);
-
   if (!item || !item.individualWarranty) return null;
 
   const warranty = item.individualWarranty;
@@ -63,34 +41,25 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({
     // If no branch name is available in data, then try API fetch
     const branchId = warranty.branchid;
 
-    // Log what we're using
-    console.log("Using branch ID for API fetch:", branchId);
-
     const fetchBranchName = async () => {
       if (!branchId) {
-        console.log("No branch ID available for API fetch");
         setBranchName("تعیین نشده");
         return;
       }
 
       try {
         setLoading(true);
-        console.log("Fetching branch name for ID:", branchId);
 
         const url = `/api/admin/branches/${branchId}`;
-        console.log("Request URL:", url);
 
         const response = await fetch(url);
-        console.log("Response status:", response.status, "OK:", response.ok);
 
         if (response.ok) {
           const responseText = await response.text();
-          console.log("Raw response:", responseText);
 
           let branchData;
           try {
             branchData = JSON.parse(responseText);
-            console.log("Parsed branch data:", branchData);
 
             // The API returns an object with a 'name' property
             setBranchName(branchData.name || "تعیین نشده");
@@ -510,7 +479,7 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({
           .text-green-600 {
             color: #16a34a !important;
           }
-          
+
           .warranty-certificate {
             padding: 1.5rem;
             border: 1px solid #ddd;
@@ -578,7 +547,7 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({
           .warranty-certificate .mt-auto {
             margin-top: auto !important;
           }
-          
+
           .warranty-certificate img {
             width: 60px !important;
             height: 60px !important;

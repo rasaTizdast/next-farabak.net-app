@@ -199,36 +199,38 @@ export async function GET(request: Request) {
     );
 
     // Get standalone warranties (warranties associated with the branch but not attached to any invoices in the current pagination set)
-    const invoiceIds = (invoices as any[]).map(invoice => invoice.Invoiceid);
-    
+    const invoiceIds = (invoices as any[]).map((invoice) => invoice.Invoiceid);
+
     // Get all invoice detail IDs for these invoices
     let detailIds: any[] = [];
-    
+
     if (invoiceIds.length > 0) {
       // Create a dynamic query for the IN clause
-      let placeholders = invoiceIds.map((_, i) => `$${i + 1}`).join(', ');
-      
+      let placeholders = invoiceIds.map((_, i) => `$${i + 1}`).join(", ");
+
       const query = `
         SELECT "Invoice_Details"
         FROM "info"."Invoice_Details" 
         WHERE "Invoiceid" IN (${placeholders})
       `;
-      
+
       const invoiceDetailsIds = await prisma.$queryRawUnsafe(
         query,
         ...invoiceIds
       );
-      
-      detailIds = (invoiceDetailsIds as any[]).map(detail => detail.Invoice_Details);
+
+      detailIds = (invoiceDetailsIds as any[]).map(
+        (detail) => detail.Invoice_Details
+      );
     }
-    
+
     // Now get all standalone warranties for this branch that are not in the current set of invoice details
     let standaloneWarranties: any[] = [];
-    
+
     if (detailIds.length > 0) {
       // Create a dynamic query for the NOT IN clause
-      let placeholders = detailIds.map((_, i) => `$${i + 2}`).join(', '); // +2 because $1 is reserved for branchId
-      
+      let placeholders = detailIds.map((_, i) => `$${i + 2}`).join(", "); // +2 because $1 is reserved for branchId
+
       const query = `
         SELECT 
           w."warrantyid", w."invoicedetailid", w."warrantycode", 
@@ -248,15 +250,12 @@ export async function GET(request: Request) {
           w."branchid" = $1
           AND w."invoicedetailid" NOT IN (${placeholders})
       `;
-      
+
       standaloneWarranties = await prisma.$queryRawUnsafe(
         query,
         branchId,
         ...detailIds
       );
-      
-      // Add debugging log
-      console.log("Standalone warranties before user join:", JSON.stringify(standaloneWarranties).substring(0, 500));
     } else {
       standaloneWarranties = await prisma.$queryRaw`
         SELECT 
@@ -279,34 +278,32 @@ export async function GET(request: Request) {
     }
 
     // Process standalone warranty status
-    const processedStandaloneWarranties = standaloneWarranties.map((warranty) => {
-      const today = new Date();
-      const expiryDate = new Date(warranty.expirydate);
+    const processedStandaloneWarranties = standaloneWarranties.map(
+      (warranty) => {
+        const today = new Date();
+        const expiryDate = new Date(warranty.expirydate);
 
-      // Add a display status without modifying the database
-      let displayStatus = warranty.status;
-      if (today > expiryDate) {
-        displayStatus = "Expired";
-      } else {
-        displayStatus = "Active";
+        // Add a display status without modifying the database
+        let displayStatus = warranty.status;
+        if (today > expiryDate) {
+          displayStatus = "Expired";
+        } else {
+          displayStatus = "Active";
+        }
+
+        // Create a full name from first name and last name
+        const clientFullName =
+          warranty.ClientFirstName && warranty.ClientLastName
+            ? `${warranty.ClientFirstName} ${warranty.ClientLastName}`
+            : "نامشخص";
+
+        return {
+          ...warranty,
+          displayStatus,
+          clientFullName,
+        };
       }
-
-      // Create a full name from first name and last name
-      const clientFullName = warranty.ClientFirstName && warranty.ClientLastName 
-        ? `${warranty.ClientFirstName} ${warranty.ClientLastName}`
-        : "نامشخص";
-
-      return {
-        ...warranty,
-        displayStatus,
-        clientFullName
-      };
-    });
-    
-    // Add debugging log for the first item
-    if (processedStandaloneWarranties.length > 0) {
-      console.log("First processed standalone warranty:", JSON.stringify(processedStandaloneWarranties[0], null, 2));
-    }
+    );
 
     // Calculate summary of active and expired warranties (for all invoices, not just paginated ones)
     // Get all warranties for this branch

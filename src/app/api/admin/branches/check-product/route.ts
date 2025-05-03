@@ -49,8 +49,6 @@ export async function GET(request: Request) {
     const productId = url.searchParams.get("productId");
     const invoiceId = url.searchParams.get("invoiceId");
 
-    console.log("Check-product params:", { branchId, productId, invoiceId });
-
     if (!branchId || !productId || !invoiceId) {
       return NextResponse.json(
         { error: "برخی پارامترهای لازم ارسال نشده اند" },
@@ -93,8 +91,6 @@ export async function GET(request: Request) {
         WHERE "UserID" = ${Number(userId)} AND "branchid" = ${Number(branchId)}
       `;
 
-      console.log("Branch check result:", branch);
-
       if (!branch || (branch as any[]).length === 0) {
         return NextResponse.json(
           { error: "شعبه مورد نظر برای این کاربر یافت نشد" },
@@ -110,14 +106,12 @@ export async function GET(request: Request) {
         WHERE id."Invoiceid" = ${Number(invoiceId)}
         AND id."ProductId"::text = ${productId}::text
       `;
-      
-      console.log("Invoice product check result:", invoiceProductCheck);
-      
+
       let hasProduct = ((invoiceProductCheck as any[])[0].count as number) > 0;
-      
+
       // If product is in invoice, we can assume the branch has access
       // This is a simplification - in a more secure system, you'd verify branch ownership of invoices
-      
+
       // Optionally check if there's any existing warranty to confirm this branch is authorized
       if (hasProduct) {
         const existingWarranty = await prisma.$queryRaw`
@@ -126,17 +120,14 @@ export async function GET(request: Request) {
           WHERE w."branchid" = ${Number(branchId)}
           AND w."ProductId"::text = ${productId}::text
         `;
-        
-        console.log("Existing warranty check:", existingWarranty);
-        
+
         // If there's an existing warranty for this product with this branch, that's even better validation
-        const hasWarranty = ((existingWarranty as any[])[0].count as number) > 0;
-        
+        const hasWarranty =
+          ((existingWarranty as any[])[0].count as number) > 0;
+
         // Either way, we'll return true if product is in invoice
         hasProduct = hasProduct || hasWarranty;
       }
-
-      console.log("Final has product result:", hasProduct);
 
       return NextResponse.json({ hasProduct });
     } catch (tokenError) {
@@ -156,4 +147,4 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-} 
+}
