@@ -9,6 +9,7 @@ import {
   FiZoomIn,
   FiArrowUp,
   FiArrowDown,
+  FiAlertTriangle,
 } from "react-icons/fi";
 
 type Slider = {
@@ -66,20 +67,30 @@ const ConfirmationDialog = ({
   onConfirm: () => void;
 }) => (
   <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm z-50">
-    <div className="bg-gray-800 p-6 rounded-lg max-w-md">
-      <h3 className="text-lg font-semibold mb-4">آیا مطمئن هستید؟</h3>
-      <div className="flex justify-end space-x-3">
+    <div className="bg-gray-800 p-8 rounded-lg max-w-md w-full shadow-xl border border-gray-700 animate-fadeIn text-gray-200">
+      <div className="flex flex-col items-center text-center mb-6">
+        <div className="bg-red-500/20 p-3 rounded-full mb-4">
+          <FiAlertTriangle className="w-8 h-8 text-red-500" />
+        </div>
+        <h3 className="text-xl font-bold mb-2">آیا مطمئن هستید؟</h3>
+        <p className="text-gray-400 text-sm">
+          این عملیات قابل بازگشت نیست و داده‌های حذف شده قابل بازیابی نخواهند
+          بود.
+        </p>
+      </div>
+      <div className="flex justify-center gap-4 mt-2">
         <button
           onClick={onCancel}
-          className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
+          className="px-5 py-2.5 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors flex-1 font-medium"
         >
-          لغو
+          انصراف
         </button>
         <button
           onClick={onConfirm}
-          className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition-colors"
+          className="px-5 py-2.5 rounded-lg text-white bg-red-600 hover:bg-red-700 transition-colors flex-1 font-medium flex items-center justify-center gap-2"
         >
-          حذف
+          <FiTrash2 className="w-4 h-4" />
+          تأیید حذف
         </button>
       </div>
     </div>
@@ -642,9 +653,10 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
       setIsUploadingProduct(true);
 
       // Always use the next order value (highest + 1) to avoid conflicts
-      const nextOrder = showcaseProducts.length > 0
-        ? Math.max(...showcaseProducts.map((p) => p.order)) + 1
-        : 1;
+      const nextOrder =
+        showcaseProducts.length > 0
+          ? Math.max(...showcaseProducts.map((p) => p.order)) + 1
+          : 1;
 
       const formData = new FormData();
       formData.append("file", productFile);
@@ -705,9 +717,12 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   // New function to update product order
   const updateProductOrder = async (id: number, newOrder: number) => {
     try {
-      const response = await axios.patch(`/api/landingPage/showcase_products/${id}`, {
-        order: newOrder,
-      });
+      const response = await axios.patch(
+        `/api/landingPage/showcase_products/${id}`,
+        {
+          order: newOrder,
+        }
+      );
 
       return response.data;
     } catch (error) {
@@ -733,16 +748,16 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
         try {
           // Step 1: Move the current product to a temporary order
           await updateProductOrder(id, tempOrder);
-          
+
           // Step 2: Move the previous product to the current product's original order
           await updateProductOrder(prevProduct.id, currentOrder);
-          
+
           // Step 3: Move the current product to the previous product's original order
           await updateProductOrder(id, prevProduct.order);
-          
+
           // Update local state to reflect the changes
-          setShowcaseProducts(prevProducts => 
-            prevProducts.map(product => {
+          setShowcaseProducts((prevProducts) =>
+            prevProducts.map((product) => {
               if (product.id === id) {
                 return { ...product, order: prevProduct.order };
               }
@@ -752,12 +767,12 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
               return product;
             })
           );
-          
+
           toast.success("ترتیب محصول با موفقیت تغییر کرد.");
         } catch (error) {
           toast.error("خطا در تغییر ترتیب محصول.");
           console.error("Error in handleMoveProductUp:", error);
-          
+
           // Refresh data from server to ensure UI is in sync
           fetchShowcaseProducts();
         }
@@ -784,16 +799,16 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
         try {
           // Step 1: Move the current product to a temporary order
           await updateProductOrder(id, tempOrder);
-          
+
           // Step 2: Move the next product to the current product's original order
           await updateProductOrder(nextProduct.id, currentOrder);
-          
+
           // Step 3: Move the current product to the next product's original order
           await updateProductOrder(id, nextProduct.order);
-          
+
           // Update local state to reflect the changes
-          setShowcaseProducts(prevProducts => 
-            prevProducts.map(product => {
+          setShowcaseProducts((prevProducts) =>
+            prevProducts.map((product) => {
               if (product.id === id) {
                 return { ...product, order: nextProduct.order };
               }
@@ -803,12 +818,12 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
               return product;
             })
           );
-          
+
           toast.success("ترتیب محصول با موفقیت تغییر کرد.");
         } catch (error) {
           toast.error("خطا در تغییر ترتیب محصول.");
           console.error("Error in handleMoveProductDown:", error);
-          
+
           // Refresh data from server to ensure UI is in sync
           fetchShowcaseProducts();
         }
