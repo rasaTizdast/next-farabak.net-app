@@ -38,7 +38,7 @@ import BranchInvoiceDetailsModal from "./invoices/components/BranchInvoiceDetail
 import BranchWarrantyViewModal from "./invoices/components/BranchWarrantyViewModal";
 import moment from "jalali-moment";
 import SkeletonLoading from "./components/SkeletonLoading";
-import WarrantyStats from "../components/WarrantyStats";
+import WarrantyStats from "./components/WarrantyStats";
 import WarrantyRequests from "../components/WarrantyRequests";
 
 function MyBranchContent() {
@@ -62,7 +62,8 @@ function MyBranchContent() {
   const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<AdminInvoice[]>([]);
   const [standaloneWarranties, setStandaloneWarranties] = useState<any[]>([]);
-  const [filteredStandaloneWarranties, setFilteredStandaloneWarranties] = useState<any[]>([]);
+  const [filteredStandaloneWarranties, setFilteredStandaloneWarranties] =
+    useState<any[]>([]);
   const [invoicesLoading, setInvoicesLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [searchOptions, setSearchOptions] = useState<
@@ -71,7 +72,9 @@ function MyBranchContent() {
   const [selectedInvoice, setSelectedInvoice] = useState<AdminInvoice | null>(
     null
   );
-  const [selectedStandaloneWarranty, setSelectedStandaloneWarranty] = useState<any | null>(null);
+  const [selectedStandaloneWarranty, setSelectedStandaloneWarranty] = useState<
+    any | null
+  >(null);
   const [warrantySummary, setWarrantySummary] = useState<{
     active: number;
     expired: number;
@@ -298,7 +301,7 @@ function MyBranchContent() {
       if (data.invoices) {
         setInvoices(data.invoices);
         setFilteredInvoices(data.invoices);
-        
+
         // Handle standalone warranties
         if (data.standaloneWarranties) {
           setStandaloneWarranties(data.standaloneWarranties);
@@ -307,7 +310,7 @@ function MyBranchContent() {
           setStandaloneWarranties([]);
           setFilteredStandaloneWarranties([]);
         }
-        
+
         if (data.warrantySummary) {
           setWarrantySummary(data.warrantySummary);
         }
@@ -338,54 +341,54 @@ function MyBranchContent() {
   // Enhanced date formatting function with better error handling
   const formatDate = (dateString: any) => {
     if (!dateString) return "-";
-    
+
     // Log the incoming date string for debugging
     console.log("Formatting date:", dateString, typeof dateString);
-    
+
     try {
       // For non-string dates, convert to string format
-      if (typeof dateString === 'object') {
+      if (typeof dateString === "object") {
         if (dateString instanceof Date) {
           return moment(dateString).format("YYYY/MM/DD | HH:mm:ss");
         }
       }
-      
+
       // Handle numeric timestamps
-      if (typeof dateString === 'number') {
+      if (typeof dateString === "number") {
         return moment(new Date(dateString)).format("YYYY/MM/DD | HH:mm:ss");
       }
-      
+
       // Ensure we're working with a string
       const dateStr = String(dateString);
-      
+
       // For ISO date strings like "2023-05-15T10:30:00.000Z"
-      if (dateStr.includes('T') && dateStr.includes('Z')) {
+      if (dateStr.includes("T") && dateStr.includes("Z")) {
         return moment(dateStr).format("YYYY/MM/DD | HH:mm:ss");
       }
-      
+
       // For YYYY-MM-DD format
       if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
         return moment(dateStr, "YYYY-MM-DD").format("YYYY/MM/DD");
       }
-      
+
       // For DD/MM/YYYY format
       if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
         return moment(dateStr, "DD/MM/YYYY").format("YYYY/MM/DD");
       }
-      
+
       // For already formatted dates like "YYYY/MM/DD | HH:mm:ss"
       if (dateStr.match(/^\d{4}\/\d{2}\/\d{2} \| \d{2}:\d{2}:\d{2}$/)) {
         return dateStr; // Already formatted correctly
       }
-      
+
       // Default parsing as last resort
       const formattedDate = moment(dateStr).format("YYYY/MM/DD | HH:mm:ss");
-      
+
       if (formattedDate === "Invalid date") {
         console.error("Failed to parse date:", dateStr);
         return dateStr; // Return original if we can't parse it
       }
-      
+
       return formattedDate;
     } catch (e) {
       console.error("Error formatting date:", e, typeof dateString, dateString);
@@ -435,10 +438,13 @@ function MyBranchContent() {
           });
         }
       });
-      
+
       // Add phone numbers
       invoices.forEach((invoice) => {
-        if (invoice.Phonenumber && invoice.Phonenumber.includes(lowerCaseSearch)) {
+        if (
+          invoice.Phonenumber &&
+          invoice.Phonenumber.includes(lowerCaseSearch)
+        ) {
           options.push({
             value: invoice.Phonenumber,
             label: (
@@ -458,7 +464,9 @@ function MyBranchContent() {
             if (
               detail.warranty &&
               detail.warranty.warrantycode &&
-              detail.warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)
+              detail.warranty.warrantycode
+                .toLowerCase()
+                .includes(lowerCaseSearch)
             ) {
               options.push({
                 value: detail.warranty.warrantycode,
@@ -490,9 +498,16 @@ function MyBranchContent() {
     }
 
     // Add standalone warranty codes
-    if (standaloneWarranties && Array.isArray(standaloneWarranties) && standaloneWarranties.length) {
+    if (
+      standaloneWarranties &&
+      Array.isArray(standaloneWarranties) &&
+      standaloneWarranties.length
+    ) {
       standaloneWarranties.forEach((warranty) => {
-        if (warranty.warrantycode && warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)) {
+        if (
+          warranty.warrantycode &&
+          warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)
+        ) {
           options.push({
             value: warranty.warrantycode,
             label: (
@@ -517,9 +532,12 @@ function MyBranchContent() {
             ),
           });
         }
-        
+
         // Add product names from standalone warranties
-        if (warranty.Type && warranty.Type.toLowerCase().includes(lowerCaseSearch)) {
+        if (
+          warranty.Type &&
+          warranty.Type.toLowerCase().includes(lowerCaseSearch)
+        ) {
           options.push({
             value: warranty.Type,
             label: (
@@ -553,7 +571,8 @@ function MyBranchContent() {
       (invoice) =>
         invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch) ||
         invoice.Fullname.toLowerCase().includes(lowerCaseSearch) ||
-        (invoice.Phonenumber && invoice.Phonenumber.includes(lowerCaseSearch)) ||
+        (invoice.Phonenumber &&
+          invoice.Phonenumber.includes(lowerCaseSearch)) ||
         // Search in warranty codes
         (invoice.Invoice_Details &&
           invoice.Invoice_Details.some(
@@ -567,16 +586,15 @@ function MyBranchContent() {
     );
 
     setFilteredInvoices(filteredInvoicesResult);
-    
+
     // Filter standalone warranties
     const filteredWarrantiesResult = standaloneWarranties.filter(
       (warranty) =>
-        (warranty.warrantycode && 
+        (warranty.warrantycode &&
           warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)) ||
-        (warranty.Type && 
-          warranty.Type.toLowerCase().includes(lowerCaseSearch))
+        (warranty.Type && warranty.Type.toLowerCase().includes(lowerCaseSearch))
     );
-    
+
     setFilteredStandaloneWarranties(filteredWarrantiesResult);
   }, [searchText, invoices, standaloneWarranties]);
 
@@ -803,10 +821,10 @@ function MyBranchContent() {
   const handleInvoiceCreationSuccess = () => {
     // Close the modal
     setInvoiceModalVisible(false);
-    
+
     // Refresh invoices list
     fetchInvoices();
-    
+
     // Show success message
     message.success("فاکتور با موفقیت ایجاد شد");
   };
@@ -1395,7 +1413,9 @@ function MyBranchContent() {
                   }}
                   title={
                     <div className="flex items-center px-4 py-2">
-                      <h3 className="text-white text-lg font-medium m-0">فاکتورها</h3>
+                      <h3 className="text-white text-lg font-medium m-0">
+                        فاکتورها
+                      </h3>
                     </div>
                   }
                   headStyle={{
@@ -1456,7 +1476,9 @@ function MyBranchContent() {
                     }}
                     title={
                       <div className="flex items-center px-4 py-2">
-                        <h3 className="text-white text-lg font-medium m-0">گارانتی‌های مستقل</h3>
+                        <h3 className="text-white text-lg font-medium m-0">
+                          گارانتی‌های مستقل
+                        </h3>
                         <Tag color="blue" className="mr-2">
                           {filteredStandaloneWarranties.length} گارانتی
                         </Tag>
@@ -1482,7 +1504,9 @@ function MyBranchContent() {
                             key: "warrantycode",
                             className: "text-right font-medium",
                             render: (text: string) => (
-                              <span className="text-orange-400 font-medium">{text}</span>
+                              <span className="text-orange-400 font-medium">
+                                {text}
+                              </span>
                             ),
                           },
                           {
@@ -1491,7 +1515,9 @@ function MyBranchContent() {
                             key: "clientFullName",
                             className: "text-right font-medium",
                             render: (text: string) => (
-                              <span className="text-green-400 font-medium">{text || "نامشخص"}</span>
+                              <span className="text-green-400 font-medium">
+                                {text || "نامشخص"}
+                              </span>
                             ),
                           },
                           {
@@ -1499,7 +1525,7 @@ function MyBranchContent() {
                             dataIndex: "ClientPhoneNumber",
                             key: "ClientPhoneNumber",
                             className: "text-right font-medium",
-                            render: (phone: string) => (
+                            render: (phone: string) =>
                               phone ? (
                                 <a
                                   href={`tel:${phone}`}
@@ -1509,15 +1535,16 @@ function MyBranchContent() {
                                 </a>
                               ) : (
                                 <span className="text-gray-400">-</span>
-                              )
-                            ),
+                              ),
                           },
                           {
                             title: "نوع محصول",
                             dataIndex: "Type",
                             key: "Type",
                             className: "text-right font-medium",
-                            render: (text: string) => <span className="text-gray-100">{text}</span>,
+                            render: (text: string) => (
+                              <span className="text-gray-100">{text}</span>
+                            ),
                           },
                           {
                             title: "تاریخ شروع",
@@ -1527,10 +1554,20 @@ function MyBranchContent() {
                             render: (date: string) => {
                               try {
                                 // Try to use moment to format into Persian date
-                                const persianDate = moment(date).locale('fa').format('jYYYY/jMM/jDD');
-                                return <span className="text-gray-200">{persianDate}</span>;
+                                const persianDate = moment(date)
+                                  .locale("fa")
+                                  .format("jYYYY/jMM/jDD");
+                                return (
+                                  <span className="text-gray-200">
+                                    {persianDate}
+                                  </span>
+                                );
                               } catch (e) {
-                                return <span className="text-gray-200">{formatDate(date)}</span>;
+                                return (
+                                  <span className="text-gray-200">
+                                    {formatDate(date)}
+                                  </span>
+                                );
                               }
                             },
                           },
@@ -1542,10 +1579,20 @@ function MyBranchContent() {
                             render: (date: string) => {
                               try {
                                 // Try to use moment to format into Persian date
-                                const persianDate = moment(date).locale('fa').format('jYYYY/jMM/jDD');
-                                return <span className="text-gray-200">{persianDate}</span>;
+                                const persianDate = moment(date)
+                                  .locale("fa")
+                                  .format("jYYYY/jMM/jDD");
+                                return (
+                                  <span className="text-gray-200">
+                                    {persianDate}
+                                  </span>
+                                );
                               } catch (e) {
-                                return <span className="text-gray-200">{formatDate(date)}</span>;
+                                return (
+                                  <span className="text-gray-200">
+                                    {formatDate(date)}
+                                  </span>
+                                );
                               }
                             },
                           },
@@ -1556,9 +1603,14 @@ function MyBranchContent() {
                             className: "text-center font-medium",
                             render: (status: string) => (
                               <Tag
-                                color={status === "Expired" ? "error" : "success"}
+                                color={
+                                  status === "Expired" ? "error" : "success"
+                                }
                                 className="px-4 py-1.5 flex items-center justify-center min-w-[120px]"
-                                style={{ fontFamily: "inherit", fontWeight: 500 }}
+                                style={{
+                                  fontFamily: "inherit",
+                                  fontWeight: 500,
+                                }}
                               >
                                 {status === "Expired" ? "منقضی شده" : "فعال"}
                               </Tag>
@@ -1574,27 +1626,40 @@ function MyBranchContent() {
                                 className="bg-blue-600 hover:bg-blue-700 border-blue-700 flex items-center"
                                 onClick={() => {
                                   // Log the warranty object to debug
-                                  console.log("Opening standalone warranty details:", warranty);
-                                  
+                                  console.log(
+                                    "Opening standalone warranty details:",
+                                    warranty
+                                  );
+
                                   // Create an item object expected by BranchWarrantyViewModal
                                   const warrantyItem = {
-                                    Invoice_Details: String(warranty.invoicedetailid || ""),
+                                    Invoice_Details: String(
+                                      warranty.invoicedetailid || ""
+                                    ),
                                     ProductId: String(warranty.ProductId || ""),
                                     quantity: warranty.quantity || 1,
                                     price: warranty.price || 0,
-                                    total_price: (warranty.price || 0) * (warranty.quantity || 1),
+                                    total_price:
+                                      (warranty.price || 0) *
+                                      (warranty.quantity || 1),
                                     Name: warranty.Type,
                                     Type: warranty.Type,
                                     individualWarranty: {
                                       ...warranty,
-                                      warrantyid: String(warranty.warrantyid || ""),
-                                      invoicedetailid: String(warranty.invoicedetailid || ""),
-                                      ProductId: String(warranty.ProductId || ""),
+                                      warrantyid: String(
+                                        warranty.warrantyid || ""
+                                      ),
+                                      invoicedetailid: String(
+                                        warranty.invoicedetailid || ""
+                                      ),
+                                      ProductId: String(
+                                        warranty.ProductId || ""
+                                      ),
                                       branchid: String(warranty.branchid || ""),
-                                      branchname: branch?.name
-                                    }
+                                      branchname: branch?.name,
+                                    },
                                   };
-                                  
+
                                   // Set the selected standalone warranty to show the modal
                                   setSelectedStandaloneWarranty(warrantyItem);
                                 }}
@@ -1655,7 +1720,6 @@ function MyBranchContent() {
               <Card
                 className="bg-gray-800 rounded-lg overflow-hidden text-white border-0"
                 bodyStyle={{
-                  backgroundColor: "#19202b",
                   padding: "16px 20px",
                   fontFamily: "inherit",
                 }}
@@ -1705,7 +1769,7 @@ function MyBranchContent() {
           }}
         />
       )}
-      
+
       {/* Standalone Warranty Modal */}
       {selectedStandaloneWarranty && (
         <BranchWarrantyViewModal
@@ -2213,31 +2277,39 @@ function MyBranchContent() {
         .pagination-dark .ant-pagination-options-quick-jumper {
           display: none !important; /* Hide the quick jumper completely */
         }
-        
+
         /* Position the quick jumper container for RTL */
         .pagination-dark .ant-pagination-options {
           direction: rtl !important;
         }
-        
+
         /* Fix per page text in the dropdown */
-        .pagination-dark .ant-pagination-options .ant-select-selection-item::after {
+        .pagination-dark
+          .ant-pagination-options
+          .ant-select-selection-item::after {
           content: " / صفحه" !important;
           display: inline !important;
         }
-        
+
         /* Fix dropdown items */
-        .pagination-dark .ant-select-dropdown .ant-select-item-option-content::after {
+        .pagination-dark
+          .ant-select-dropdown
+          .ant-select-item-option-content::after {
           content: " / صفحه" !important;
         }
-        
+
         /* Page size selector styling */
-        .pagination-dark .ant-pagination-options-size-changer .ant-select-selector {
+        .pagination-dark
+          .ant-pagination-options-size-changer
+          .ant-select-selector {
           background-color: #1f2937 !important;
           border-color: #4b5563 !important;
           color: #e5e7eb !important;
         }
-        
-        .pagination-dark .ant-pagination-options-size-changer:hover .ant-select-selector {
+
+        .pagination-dark
+          .ant-pagination-options-size-changer:hover
+          .ant-select-selector {
           border-color: #3b82f6 !important;
         }
       `}</style>
