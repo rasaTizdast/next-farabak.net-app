@@ -80,7 +80,7 @@ const SignUp = () => {
     try {
       // Call the signup API using axios
       const response = await axios.post("/api/auth/signup", signUpData);
-      if (response.data.message === "User registered successfully") {
+      if (response.data.message === "ثبت نام با موفقیت انجام شد") {
         updateUserContext();
         // Redirect to the dashboard on success
         router.push("/dashboard");
