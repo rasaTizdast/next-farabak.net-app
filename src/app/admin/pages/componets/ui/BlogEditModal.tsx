@@ -175,7 +175,9 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
 
     // Add slug validation
     if (formData.slug && !/^[a-z0-9\-_]+$/.test(formData.slug)) {
-      errors.push("شناسه فقط می‌تواند شامل حروف انگلیسی، اعداد، خط تیره و زیرخط باشد");
+      errors.push(
+        "شناسه فقط می‌تواند شامل حروف انگلیسی، اعداد، خط تیره و زیرخط باشد"
+      );
     }
 
     if (formData.categories.length === 0) {
@@ -317,14 +319,16 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
       if (!newCategory.name) {
         throw new Error("نام دسته بندی الزامی است");
       }
-      
+
       if (!newCategory.slug) {
         throw new Error("شناسه دسته بندی الزامی است");
       }
-      
+
       // Validate slug format
       if (!/^[a-z0-9\-_]+$/.test(newCategory.slug)) {
-        throw new Error("شناسه فقط می‌تواند شامل حروف انگلیسی، اعداد، خط تیره و زیرخط باشد");
+        throw new Error(
+          "شناسه فقط می‌تواند شامل حروف انگلیسی، اعداد، خط تیره و زیرخط باشد"
+        );
       }
 
       const response = await fetch("/api/blogs/categories", {
@@ -468,7 +472,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
     if (!/[a-zA-Z0-9]/.test(title)) {
       return "";
     }
-    
+
     return (
       title
         // Convert to lowercase
@@ -539,7 +543,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
-      <div className="bg-gray-800 text-gray-200 p-6 pb-0 rounded-lg shadow-xl w-full max-w-7xl max-h-[95vh] overflow-auto">
+      <div className="bg-gray-800 text-gray-200 p-6 rounded-lg shadow-xl w-full max-w-7xl max-h-[95vh] overflow-auto">
         {step === 1 ? (
           <>
             <div className="flex justify-between items-center mb-6">
@@ -614,7 +618,9 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        slug: e.target.value.toLowerCase().replace(/[^a-z0-9\-_]/g, ""),
+                        slug: e.target.value
+                          .toLowerCase()
+                          .replace(/[^a-z0-9\-_]/g, ""),
                       })
                     }
                     className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
@@ -622,7 +628,8 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                     dir="ltr"
                   />
                   <span className="text-xs text-gray-400">
-                    شناسه باید به انگلیسی باشد و فقط می‌تواند شامل حروف کوچک انگلیسی، اعداد، خط تیره و زیرخط باشد
+                    شناسه باید به انگلیسی باشد و فقط می‌تواند شامل حروف کوچک
+                    انگلیسی، اعداد، خط تیره و زیرخط باشد
                   </span>
                 </div>
                 <div className="md:col-span-2">
@@ -912,7 +919,9 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                         onChange={(e) =>
                           setNewCategory((prev) => ({
                             ...prev,
-                            slug: e.target.value.toLowerCase().replace(/[^a-z0-9\-_]/g, ""),
+                            slug: e.target.value
+                              .toLowerCase()
+                              .replace(/[^a-z0-9\-_]/g, ""),
                           }))
                         }
                         className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg"
@@ -920,7 +929,8 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                         dir="ltr"
                       />
                       <span className="text-xs text-gray-400">
-                        شناسه باید به انگلیسی باشد و فقط می‌تواند شامل حروف کوچک انگلیسی، اعداد، خط تیره و زیرخط باشد
+                        شناسه باید به انگلیسی باشد و فقط می‌تواند شامل حروف کوچک
+                        انگلیسی، اعداد، خط تیره و زیرخط باشد
                       </span>
                     </div>
                     <div className="flex justify-end gap-2">
@@ -933,7 +943,11 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                       <button
                         onClick={handleCreateCategory}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
-                        disabled={!newCategory.name || !newCategory.slug || !/^[a-z0-9\-_]+$/.test(newCategory.slug)}
+                        disabled={
+                          !newCategory.name ||
+                          !newCategory.slug ||
+                          !/^[a-z0-9\-_]+$/.test(newCategory.slug)
+                        }
                       >
                         ایجاد
                       </button>
