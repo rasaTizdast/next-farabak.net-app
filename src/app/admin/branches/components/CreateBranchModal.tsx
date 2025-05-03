@@ -9,6 +9,7 @@ interface CreateBranchModalProps {
   onFinish: (values: any) => void;
   form: any;
   users: User[];
+  currentUserId?: number;
 }
 
 const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
@@ -17,11 +18,17 @@ const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
   onFinish,
   form,
   users,
+  currentUserId,
 }) => {
   const handleCancel = () => {
     form.resetFields();
     onClose();
   };
+
+  // Filter out the current user from the users list
+  const filteredUsers = currentUserId 
+    ? users.filter(user => user.UserID !== currentUserId)
+    : users;
 
   return (
     <Modal
@@ -48,7 +55,7 @@ const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
         form={form}
         onFinish={onFinish}
         onCancel={handleCancel}
-        users={users}
+        users={filteredUsers}
         isEdit={false}
         submitButtonText="ایجاد شعبه"
       />

@@ -3,15 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect, useRef, Suspense } from "react";
-import {
-  Button,
-  Form,
-  message,
-  Input,
-  AutoComplete,
-  Tabs,
-  Card,
-} from "antd";
+import { Button, Form, message, Input, AutoComplete, Tabs, Card } from "antd";
 import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Branch, User, Product } from "./components/types";
@@ -25,10 +17,13 @@ import InvoiceModal from "./components/invoice/InvoiceModal";
 import ProductSearchSummary from "./components/ProductSearchSummary";
 import WarrantyStats from "./components/WarrantyStats";
 import WarrantyRequests from "./components/WarrantyRequests";
+import { useUser } from "@/context/UserContext";
 
 const { TabPane } = Tabs;
 
 function BranchesPageContent() {
+  const { user } = useUser();
+  const currentUserId = user?.userId ? parseInt(user.userId) : undefined;
   const [branches, setBranches] = useState<Branch[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -736,6 +731,7 @@ function BranchesPageContent() {
         onFinish={handleCreateBranch}
         form={form}
         users={users}
+        currentUserId={currentUserId}
       />
       {/* Edit Branch Modal */}
       {currentBranch && (
@@ -1088,50 +1084,39 @@ function BranchesPageContent() {
         .ant-pagination-options-quick-jumper {
           display: none !important; /* Hide the quick jumper completely */
         }
-        
+
         /* Position the quick jumper container for RTL */
         .ant-pagination-options {
           direction: rtl !important;
         }
-        
-        /* Fix per page text in the dropdown */
-        .ant-pagination-options .ant-select-selection-item::after {
-          content: " / صفحه" !important;
-          display: inline !important;
-        }
-        
-        /* Fix dropdown items */
-        .ant-select-dropdown .ant-select-item-option-content::after {
-          content: " / صفحه" !important;
-        }
-        
+
         /* Pagination items styling */
         .ant-pagination-item {
           background-color: #1f2937 !important;
           border-color: #4b5563 !important;
         }
-        
+
         .ant-pagination-item a {
           color: #e5e7eb !important;
         }
-        
+
         .ant-pagination-item:hover {
           border-color: #3b82f6 !important;
         }
-        
+
         .ant-pagination-item:hover a {
           color: #3b82f6 !important;
         }
-        
+
         .ant-pagination-item-active {
           background-color: #3b82f6 !important;
           border-color: #3b82f6 !important;
         }
-        
+
         .ant-pagination-item-active a {
           color: white !important;
         }
-        
+
         /* Styling for next/prev buttons */
         .ant-pagination-prev button,
         .ant-pagination-next button {
@@ -1139,39 +1124,43 @@ function BranchesPageContent() {
           background-color: #1f2937 !important;
           border-color: #4b5563 !important;
         }
-        
+
         .ant-pagination-prev:hover button,
         .ant-pagination-next:hover button {
           color: #3b82f6 !important;
           border-color: #3b82f6 !important;
         }
-        
+
         /* Page size selector styling */
         .ant-pagination-options-size-changer .ant-select-selector {
           background-color: #1f2937 !important;
           border-color: #4b5563 !important;
           color: #e5e7eb !important;
         }
-        
+
         .ant-pagination-options-size-changer:hover .ant-select-selector {
           border-color: #3b82f6 !important;
         }
-        
+
         .ant-select-dropdown {
           background-color: #1f2937 !important;
           border-color: #4b5563 !important;
           box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5) !important;
         }
-        
+
         .ant-select-dropdown .ant-select-item {
           color: #e5e7eb !important;
         }
-        
-        .ant-select-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+
+        .ant-select-dropdown
+          .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
           background-color: #374151 !important;
         }
-        
-        .ant-select-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+
+        .ant-select-dropdown
+          .ant-select-item-option-selected:not(
+            .ant-select-item-option-disabled
+          ) {
           background-color: #3b82f6 !important;
           color: white !important;
         }
