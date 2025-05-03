@@ -35,6 +35,7 @@ import InvoiceModal from "../components/invoice/InvoiceModal";
 import Styles from "../components/Styles";
 import { AdminInvoice } from "@/app/admin/invoices/type";
 import BranchInvoiceDetailsModal from "./invoices/components/BranchInvoiceDetailsModal";
+import BranchWarrantyViewModal from "./invoices/components/BranchWarrantyViewModal";
 import moment from "jalali-moment";
 import SkeletonLoading from "./components/SkeletonLoading";
 import WarrantyStats from "../components/WarrantyStats";
@@ -60,6 +61,8 @@ function MyBranchContent() {
   // Added for invoices section
   const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<AdminInvoice[]>([]);
+  const [standaloneWarranties, setStandaloneWarranties] = useState<any[]>([]);
+  const [filteredStandaloneWarranties, setFilteredStandaloneWarranties] = useState<any[]>([]);
   const [invoicesLoading, setInvoicesLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [searchOptions, setSearchOptions] = useState<
@@ -68,6 +71,7 @@ function MyBranchContent() {
   const [selectedInvoice, setSelectedInvoice] = useState<AdminInvoice | null>(
     null
   );
+  const [selectedStandaloneWarranty, setSelectedStandaloneWarranty] = useState<any | null>(null);
   const [warrantySummary, setWarrantySummary] = useState<{
     active: number;
     expired: number;
@@ -294,6 +298,16 @@ function MyBranchContent() {
       if (data.invoices) {
         setInvoices(data.invoices);
         setFilteredInvoices(data.invoices);
+        
+        // Handle standalone warranties
+        if (data.standaloneWarranties) {
+          setStandaloneWarranties(data.standaloneWarranties);
+          setFilteredStandaloneWarranties(data.standaloneWarranties);
+        } else {
+          setStandaloneWarranties([]);
+          setFilteredStandaloneWarranties([]);
+        }
+        
         if (data.warrantySummary) {
           setWarrantySummary(data.warrantySummary);
         }
@@ -310,6 +324,8 @@ function MyBranchContent() {
         // Handle case where response doesn't have expected structure
         setInvoices([]);
         setFilteredInvoices([]);
+        setStandaloneWarranties([]);
+        setFilteredStandaloneWarranties([]);
       }
     } catch (error) {
       console.error("Error fetching invoices:", error);
@@ -319,22 +335,68 @@ function MyBranchContent() {
     }
   };
 
-  // Format date using jalali moment
-  const formatDate = (dateString: string) => {
+  // Enhanced date formatting function with better error handling
+  const formatDate = (dateString: any) => {
     if (!dateString) return "-";
+    
+    // Log the incoming date string for debugging
+    console.log("Formatting date:", dateString, typeof dateString);
+    
     try {
-      // Parse the date using moment without locale first (as Gregorian)
-      // Then format it with the desired format
-      return moment(dateString).format("YYYY/MM/DD | HH:mm:ss");
+      // For non-string dates, convert to string format
+      if (typeof dateString === 'object') {
+        if (dateString instanceof Date) {
+          return moment(dateString).format("YYYY/MM/DD | HH:mm:ss");
+        }
+      }
+      
+      // Handle numeric timestamps
+      if (typeof dateString === 'number') {
+        return moment(new Date(dateString)).format("YYYY/MM/DD | HH:mm:ss");
+      }
+      
+      // Ensure we're working with a string
+      const dateStr = String(dateString);
+      
+      // For ISO date strings like "2023-05-15T10:30:00.000Z"
+      if (dateStr.includes('T') && dateStr.includes('Z')) {
+        return moment(dateStr).format("YYYY/MM/DD | HH:mm:ss");
+      }
+      
+      // For YYYY-MM-DD format
+      if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return moment(dateStr, "YYYY-MM-DD").format("YYYY/MM/DD");
+      }
+      
+      // For DD/MM/YYYY format
+      if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+        return moment(dateStr, "DD/MM/YYYY").format("YYYY/MM/DD");
+      }
+      
+      // For already formatted dates like "YYYY/MM/DD | HH:mm:ss"
+      if (dateStr.match(/^\d{4}\/\d{2}\/\d{2} \| \d{2}:\d{2}:\d{2}$/)) {
+        return dateStr; // Already formatted correctly
+      }
+      
+      // Default parsing as last resort
+      const formattedDate = moment(dateStr).format("YYYY/MM/DD | HH:mm:ss");
+      
+      if (formattedDate === "Invalid date") {
+        console.error("Failed to parse date:", dateStr);
+        return dateStr; // Return original if we can't parse it
+      }
+      
+      return formattedDate;
     } catch (e) {
-      console.error("Error formatting date:", e);
-      return dateString;
+      console.error("Error formatting date:", e, typeof dateString, dateString);
+      // Return a standardized format for invalid dates
+      return String(dateString);
     }
   };
 
-  // Update search options for invoices
+  // Update search options for invoices and standalone warranties
   useEffect(() => {
-    if (!searchText.trim() || !invoices || !Array.isArray(invoices) || !invoices.length) {
+    if (!searchText.trim()) {
       setSearchOptions([]);
       return;
     }
@@ -342,102 +404,152 @@ function MyBranchContent() {
     const lowerCaseSearch = searchText.toLowerCase();
     const options: { value: string; label: React.ReactNode }[] = [];
 
-    // Add invoice numbers
-    invoices.forEach((invoice) => {
-      if (invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch)) {
-        options.push({
-          value: invoice.FactorGuid,
-          label: (
-            <div>
-              <span className="text-blue-500 font-bold">شماره فاکتور: </span>
-              {invoice.FactorGuid}
-            </div>
-          ),
-        });
-      }
-    });
+    // Add options from invoices
+    if (invoices && Array.isArray(invoices) && invoices.length) {
+      // Add invoice numbers
+      invoices.forEach((invoice) => {
+        if (invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch)) {
+          options.push({
+            value: invoice.FactorGuid,
+            label: (
+              <div>
+                <span className="text-blue-500 font-bold">شماره فاکتور: </span>
+                {invoice.FactorGuid}
+              </div>
+            ),
+          });
+        }
+      });
 
-    // Add customer names
-    invoices.forEach((invoice) => {
-      if (invoice.Fullname.toLowerCase().includes(lowerCaseSearch)) {
-        options.push({
-          value: invoice.Fullname,
-          label: (
-            <div>
-              <span className="text-green-500 font-bold">نام مشتری: </span>
-              {invoice.Fullname}
-            </div>
-          ),
-        });
-      }
-    });
-    
-    // Add phone numbers
-    invoices.forEach((invoice) => {
-      if (invoice.Phonenumber && invoice.Phonenumber.includes(lowerCaseSearch)) {
-        options.push({
-          value: invoice.Phonenumber,
-          label: (
-            <div>
-              <span className="text-purple-500 font-bold">شماره تماس: </span>
-              {invoice.Phonenumber}
-            </div>
-          ),
-        });
-      }
-    });
+      // Add customer names
+      invoices.forEach((invoice) => {
+        if (invoice.Fullname.toLowerCase().includes(lowerCaseSearch)) {
+          options.push({
+            value: invoice.Fullname,
+            label: (
+              <div>
+                <span className="text-green-500 font-bold">نام مشتری: </span>
+                {invoice.Fullname}
+              </div>
+            ),
+          });
+        }
+      });
+      
+      // Add phone numbers
+      invoices.forEach((invoice) => {
+        if (invoice.Phonenumber && invoice.Phonenumber.includes(lowerCaseSearch)) {
+          options.push({
+            value: invoice.Phonenumber,
+            label: (
+              <div>
+                <span className="text-purple-500 font-bold">شماره تماس: </span>
+                {invoice.Phonenumber}
+              </div>
+            ),
+          });
+        }
+      });
 
-    // Add warranty codes
-    invoices.forEach((invoice) => {
-      if (invoice.Invoice_Details && Array.isArray(invoice.Invoice_Details)) {
-        invoice.Invoice_Details.forEach((detail) => {
-          if (
-            detail.warranty &&
-            detail.warranty.warrantycode &&
-            detail.warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)
-          ) {
-            options.push({
-              value: detail.warranty.warrantycode,
-              label: (
-                <div>
-                  <span className="text-yellow-500 font-bold">
-                    کد گارانتی:{" "}
-                  </span>
-                  {detail.warranty.warrantycode}
-                  <span className="mr-2">
-                    {detail.warranty.status === "Expired" ||
-                    detail.warranty.displayStatus === "Expired" ? (
-                      <Tag color="red" className="mr-2">
-                        منقضی شده
-                      </Tag>
-                    ) : (
-                      <Tag color="green" className="mr-2">
-                        فعال
-                      </Tag>
-                    )}
-                  </span>
-                </div>
-              ),
-            });
-          }
-        });
-      }
-    });
+      // Add warranty codes from invoices
+      invoices.forEach((invoice) => {
+        if (invoice.Invoice_Details && Array.isArray(invoice.Invoice_Details)) {
+          invoice.Invoice_Details.forEach((detail) => {
+            if (
+              detail.warranty &&
+              detail.warranty.warrantycode &&
+              detail.warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)
+            ) {
+              options.push({
+                value: detail.warranty.warrantycode,
+                label: (
+                  <div>
+                    <span className="text-yellow-500 font-bold">
+                      کد گارانتی:{" "}
+                    </span>
+                    {detail.warranty.warrantycode}
+                    <span className="mr-2">
+                      {detail.warranty.status === "Expired" ||
+                      detail.warranty.displayStatus === "Expired" ? (
+                        <Tag color="red" className="mr-2">
+                          منقضی شده
+                        </Tag>
+                      ) : (
+                        <Tag color="green" className="mr-2">
+                          فعال
+                        </Tag>
+                      )}
+                    </span>
+                  </div>
+                ),
+              });
+            }
+          });
+        }
+      });
+    }
+
+    // Add standalone warranty codes
+    if (standaloneWarranties && Array.isArray(standaloneWarranties) && standaloneWarranties.length) {
+      standaloneWarranties.forEach((warranty) => {
+        if (warranty.warrantycode && warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)) {
+          options.push({
+            value: warranty.warrantycode,
+            label: (
+              <div>
+                <span className="text-orange-500 font-bold">
+                  کد گارانتی مستقل:{" "}
+                </span>
+                {warranty.warrantycode}
+                <span className="mr-2">
+                  {warranty.status === "Expired" ||
+                  warranty.displayStatus === "Expired" ? (
+                    <Tag color="red" className="mr-2">
+                      منقضی شده
+                    </Tag>
+                  ) : (
+                    <Tag color="green" className="mr-2">
+                      فعال
+                    </Tag>
+                  )}
+                </span>
+              </div>
+            ),
+          });
+        }
+        
+        // Add product names from standalone warranties
+        if (warranty.Type && warranty.Type.toLowerCase().includes(lowerCaseSearch)) {
+          options.push({
+            value: warranty.Type,
+            label: (
+              <div>
+                <span className="text-cyan-500 font-bold">
+                  محصول با گارانتی مستقل:{" "}
+                </span>
+                {warranty.Type}
+              </div>
+            ),
+          });
+        }
+      });
+    }
 
     setSearchOptions(options);
-  }, [searchText, invoices]);
+  }, [searchText, invoices, standaloneWarranties]);
 
-  // Filter invoices based on search text
+  // Filter invoices and standalone warranties based on search text
   useEffect(() => {
     if (!searchText.trim()) {
       setFilteredInvoices(invoices);
+      setFilteredStandaloneWarranties(standaloneWarranties);
       return;
     }
 
     const lowerCaseSearch = searchText.toLowerCase();
 
     // Search in invoice number, customer name, phone number, or warranty code
-    const filtered = invoices.filter(
+    const filteredInvoicesResult = invoices.filter(
       (invoice) =>
         invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch) ||
         invoice.Fullname.toLowerCase().includes(lowerCaseSearch) ||
@@ -454,8 +566,19 @@ function MyBranchContent() {
           ))
     );
 
-    setFilteredInvoices(filtered);
-  }, [searchText, invoices]);
+    setFilteredInvoices(filteredInvoicesResult);
+    
+    // Filter standalone warranties
+    const filteredWarrantiesResult = standaloneWarranties.filter(
+      (warranty) =>
+        (warranty.warrantycode && 
+          warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)) ||
+        (warranty.Type && 
+          warranty.Type.toLowerCase().includes(lowerCaseSearch))
+    );
+    
+    setFilteredStandaloneWarranties(filteredWarrantiesResult);
+  }, [searchText, invoices, standaloneWarranties]);
 
   // Function to get warranty status summary for an invoice
   const getWarrantyStatusSummary = (invoice: AdminInvoice) => {
@@ -1264,11 +1387,22 @@ function MyBranchContent() {
                 </div>
 
                 <Card
-                  className="bg-gray-800 rounded-lg shadow-md overflow-hidden border-0"
+                  className="bg-gray-800 rounded-lg shadow-md overflow-hidden border-0 mb-6"
                   bodyStyle={{
                     padding: "0",
                     fontFamily: "inherit",
                     backgroundColor: "#1f2937",
+                  }}
+                  title={
+                    <div className="flex items-center px-4 py-2">
+                      <h3 className="text-white text-lg font-medium m-0">فاکتورها</h3>
+                    </div>
+                  }
+                  headStyle={{
+                    backgroundColor: "#1f2937",
+                    borderBottom: "1px solid #374151",
+                    color: "#f3f4f6",
+                    padding: "12px 0",
                   }}
                 >
                   {invoicesLoading ? (
@@ -1310,6 +1444,181 @@ function MyBranchContent() {
                     />
                   )}
                 </Card>
+
+                {/* Standalone Warranties Section */}
+                {filteredStandaloneWarranties.length > 0 && (
+                  <Card
+                    className="bg-gray-800 rounded-lg shadow-md overflow-hidden border-0"
+                    bodyStyle={{
+                      padding: "0",
+                      fontFamily: "inherit",
+                      backgroundColor: "#1f2937",
+                    }}
+                    title={
+                      <div className="flex items-center px-4 py-2">
+                        <h3 className="text-white text-lg font-medium m-0">گارانتی‌های مستقل</h3>
+                        <Tag color="blue" className="mr-2">
+                          {filteredStandaloneWarranties.length} گارانتی
+                        </Tag>
+                      </div>
+                    }
+                    headStyle={{
+                      backgroundColor: "#1f2937",
+                      borderBottom: "1px solid #374151",
+                      color: "#f3f4f6",
+                      padding: "12px 0",
+                    }}
+                  >
+                    {invoicesLoading ? (
+                      <div className="flex justify-center items-center p-10">
+                        <Spin size="large" tip="در حال بارگذاری..." />
+                      </div>
+                    ) : (
+                      <Table
+                        columns={[
+                          {
+                            title: "کد گارانتی",
+                            dataIndex: "warrantycode",
+                            key: "warrantycode",
+                            className: "text-right font-medium",
+                            render: (text: string) => (
+                              <span className="text-orange-400 font-medium">{text}</span>
+                            ),
+                          },
+                          {
+                            title: "نام مشتری",
+                            dataIndex: "clientFullName",
+                            key: "clientFullName",
+                            className: "text-right font-medium",
+                            render: (text: string) => (
+                              <span className="text-green-400 font-medium">{text || "نامشخص"}</span>
+                            ),
+                          },
+                          {
+                            title: "شماره تماس",
+                            dataIndex: "ClientPhoneNumber",
+                            key: "ClientPhoneNumber",
+                            className: "text-right font-medium",
+                            render: (phone: string) => (
+                              phone ? (
+                                <a
+                                  href={`tel:${phone}`}
+                                  className="text-blue-400 hover:text-blue-300 transition-colors"
+                                >
+                                  {phone}
+                                </a>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )
+                            ),
+                          },
+                          {
+                            title: "نوع محصول",
+                            dataIndex: "Type",
+                            key: "Type",
+                            className: "text-right font-medium",
+                            render: (text: string) => <span className="text-gray-100">{text}</span>,
+                          },
+                          {
+                            title: "تاریخ شروع",
+                            dataIndex: "startdate",
+                            key: "startdate",
+                            className: "text-right font-medium",
+                            render: (date: string) => {
+                              try {
+                                // Try to use moment to format into Persian date
+                                const persianDate = moment(date).locale('fa').format('jYYYY/jMM/jDD');
+                                return <span className="text-gray-200">{persianDate}</span>;
+                              } catch (e) {
+                                return <span className="text-gray-200">{formatDate(date)}</span>;
+                              }
+                            },
+                          },
+                          {
+                            title: "تاریخ انقضا",
+                            dataIndex: "expirydate",
+                            key: "expirydate",
+                            className: "text-right font-medium",
+                            render: (date: string) => {
+                              try {
+                                // Try to use moment to format into Persian date
+                                const persianDate = moment(date).locale('fa').format('jYYYY/jMM/jDD');
+                                return <span className="text-gray-200">{persianDate}</span>;
+                              } catch (e) {
+                                return <span className="text-gray-200">{formatDate(date)}</span>;
+                              }
+                            },
+                          },
+                          {
+                            title: "وضعیت",
+                            dataIndex: "displayStatus",
+                            key: "displayStatus",
+                            className: "text-center font-medium",
+                            render: (status: string) => (
+                              <Tag
+                                color={status === "Expired" ? "error" : "success"}
+                                className="px-4 py-1.5 flex items-center justify-center min-w-[120px]"
+                                style={{ fontFamily: "inherit", fontWeight: 500 }}
+                              >
+                                {status === "Expired" ? "منقضی شده" : "فعال"}
+                              </Tag>
+                            ),
+                          },
+                          {
+                            title: "عملیات",
+                            key: "actions",
+                            className: "text-center font-medium",
+                            render: (_, warranty: any) => (
+                              <Button
+                                type="primary"
+                                className="bg-blue-600 hover:bg-blue-700 border-blue-700 flex items-center"
+                                onClick={() => {
+                                  // Log the warranty object to debug
+                                  console.log("Opening standalone warranty details:", warranty);
+                                  
+                                  // Create an item object expected by BranchWarrantyViewModal
+                                  const warrantyItem = {
+                                    Invoice_Details: String(warranty.invoicedetailid || ""),
+                                    ProductId: String(warranty.ProductId || ""),
+                                    quantity: warranty.quantity || 1,
+                                    price: warranty.price || 0,
+                                    total_price: (warranty.price || 0) * (warranty.quantity || 1),
+                                    Name: warranty.Type,
+                                    Type: warranty.Type,
+                                    individualWarranty: {
+                                      ...warranty,
+                                      warrantyid: String(warranty.warrantyid || ""),
+                                      invoicedetailid: String(warranty.invoicedetailid || ""),
+                                      ProductId: String(warranty.ProductId || ""),
+                                      branchid: String(warranty.branchid || ""),
+                                      branchname: branch?.name
+                                    }
+                                  };
+                                  
+                                  // Set the selected standalone warranty to show the modal
+                                  setSelectedStandaloneWarranty(warrantyItem);
+                                }}
+                              >
+                                <span>مشاهده جزئیات</span>
+                                <EyeOutlined className="mr-2" />
+                              </Button>
+                            ),
+                          },
+                        ]}
+                        dataSource={filteredStandaloneWarranties}
+                        rowKey="warrantyid"
+                        pagination={{
+                          pageSize: 5,
+                          hideOnSinglePage: true,
+                          position: ["bottomCenter"],
+                          className: "pagination-dark",
+                        }}
+                        scroll={{ x: "max-content" }}
+                        className="standalone-warranties-table enhanced-table rtl-table"
+                      />
+                    )}
+                  </Card>
+                )}
               </>
             ),
           },
@@ -1392,6 +1701,18 @@ function MyBranchContent() {
           onClose={() => {
             setSelectedInvoice(null);
             // Refresh the invoices data when closing the modal
+            fetchInvoices();
+          }}
+        />
+      )}
+      
+      {/* Standalone Warranty Modal */}
+      {selectedStandaloneWarranty && (
+        <BranchWarrantyViewModal
+          item={selectedStandaloneWarranty}
+          onClose={() => {
+            setSelectedStandaloneWarranty(null);
+            // Refresh the data when closing the modal
             fetchInvoices();
           }}
         />
