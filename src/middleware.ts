@@ -28,6 +28,29 @@ const createAccessToken = async (user: {
     .sign(new TextEncoder().encode(JWT_SECRET));
 };
 
+// Helper function to refresh access token
+const refreshAccessToken = async (refreshToken: string) => {
+  try {
+    // Verify the refresh token
+    const { payload: refreshPayload } = await jwtVerify(
+      refreshToken,
+      new TextEncoder().encode(REFRESH_TOKEN_SECRET)
+    );
+
+    const user = refreshPayload as {
+      userId: string;
+      username: string;
+      role: string;
+    };
+
+    // Create a new access token
+    return await createAccessToken(user);
+  } catch (error) {
+    console.error("Failed to refresh token:", error);
+    throw error;
+  }
+};
+
 // Middleware function to protect routes and handle token refresh
 export async function middleware(req: ExtendedNextRequest) {
   // Extract tokens from cookies
@@ -50,20 +73,7 @@ export async function middleware(req: ExtendedNextRequest) {
   // If the access token is missing but refresh token is available, refresh the access token
   if (!accessToken && refreshToken) {
     try {
-      // Verify the refresh token
-      const { payload: refreshPayload } = await jwtVerify(
-        refreshToken,
-        new TextEncoder().encode(REFRESH_TOKEN_SECRET)
-      );
-
-      const user = refreshPayload as {
-        userId: string;
-        username: string;
-        role: string;
-      };
-
-      // Create a new access token
-      const newAccessToken = await createAccessToken(user);
+      const newAccessToken = await refreshAccessToken(refreshToken);
 
       // Add the new access token to the cookies
       const response = NextResponse.next();
@@ -75,6 +85,17 @@ export async function middleware(req: ExtendedNextRequest) {
 
       // Check if the user was navigating to an auth route, if so, redirect to the appropriate dashboard
       if (req.nextUrl.pathname.startsWith("/auth")) {
+        // Get user info from the refresh token
+        const { payload } = await jwtVerify(
+          refreshToken,
+          new TextEncoder().encode(REFRESH_TOKEN_SECRET)
+        );
+        const user = payload as {
+          userId: string;
+          username: string;
+          role: string;
+        };
+
         // Redirect Branch users to their branch page
         if (user.role === "Branch") {
           return NextResponse.redirect(new URL("/admin/branches/my", req.url));
@@ -161,6 +182,44 @@ export async function middleware(req: ExtendedNextRequest) {
       return NextResponse.next(); // Proceed to the requested route if all checks pass
     } catch (error) {
       console.error("Access token verification error:", error);
+      
+      // Handle 401 errors - try to refresh token and retry the request
+      if (refreshToken) {
+        try {
+          const newAccessToken = await refreshAccessToken(refreshToken);
+          
+          // Create a new response with the refreshed token
+          const response = NextResponse.next();
+          response.cookies.set("accessToken", newAccessToken, {
+            httpOnly: true,
+            path: "/",
+            maxAge: ACCESS_TOKEN_EXPIRATION,
+          });
+          
+          // Get user info from the refresh token to attach to the request
+          const { payload } = await jwtVerify(
+            refreshToken,
+            new TextEncoder().encode(REFRESH_TOKEN_SECRET)
+          );
+          const user = payload as {
+            userId: string;
+            username: string;
+            role: string;
+          };
+          
+          // Attach user info to request for downstream middleware/handlers
+          req.user = user;
+          
+          return response; // Retry the original request with new token
+        } catch (refreshError) {
+          console.error("Failed to refresh token after 401:", refreshError);
+          // If refresh token is invalid, redirect to login
+          return NextResponse.redirect(new URL("/auth/login", req.url));
+        }
+      } else {
+        // No refresh token available, redirect to login
+        return NextResponse.redirect(new URL("/auth/login", req.url));
+      }
     }
   }
 

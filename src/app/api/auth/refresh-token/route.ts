@@ -7,11 +7,15 @@ import { jwtVerify, SignJWT } from "jose"; // Using jose for JWT handling
 interface DecodedToken {
   userId: string;
   username: string;
+  role: string;
 }
 
 const REFRESH_TOKEN_SECRET =
   process.env.REFRESH_TOKEN_SECRET || "your_refresh_token_secret";
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+
+// Token expiration times (in seconds)
+const ACCESS_TOKEN_EXPIRATION = 15 * 60; // 15 minutes
 
 /**
  * Verifies a JWT using jose and returns the decoded payload.
@@ -27,10 +31,11 @@ async function verifyToken(
   try {
     const { payload } = await jwtVerify(token, secret);
 
-    // Ensure the required fields (userId and username) exist in the payload
+    // Ensure the required fields exist in the payload
     if (
       typeof payload.userId === "string" &&
-      typeof payload.username === "string"
+      typeof payload.username === "string" &&
+      typeof payload.role === "string"
     ) {
       return payload as unknown as DecodedToken;
     } else {
@@ -116,8 +121,25 @@ async function verifyToken(
  */
 export async function POST(request: Request): Promise<NextResponse> {
   try {
-    const body = await request.json();
-    const refreshToken: string = body.refreshToken;
+    // Try to get refresh token from request body first
+    let refreshToken: string | undefined;
+    
+    try {
+      const body = await request.json();
+      refreshToken = body.refreshToken;
+    } catch (e) {
+      // If request body parsing fails, check for refresh token in cookies
+      const cookies = request.headers.get('cookie');
+      if (cookies) {
+        const cookieObj = Object.fromEntries(
+          cookies.split('; ').map(c => {
+            const [name, ...value] = c.split('=');
+            return [name, value.join('=')];
+          })
+        );
+        refreshToken = cookieObj.refreshToken;
+      }
+    }
 
     if (!refreshToken) {
       return NextResponse.json(
@@ -144,6 +166,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const newAccessToken = await new SignJWT({
       userId: decodedToken.userId,
       username: decodedToken.username,
+      role: decodedToken.role,
     })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
@@ -151,18 +174,28 @@ export async function POST(request: Request): Promise<NextResponse> {
       .sign(new TextEncoder().encode(JWT_SECRET));
 
     // Set the new access token as an HTTP-only cookie
-    const response = NextResponse.json({ accessToken: newAccessToken });
+    const response = NextResponse.json({ 
+      accessToken: newAccessToken,
+      success: true,
+      user: {
+        userId: decodedToken.userId,
+        username: decodedToken.username,
+        role: decodedToken.role
+      }
+    });
+    
     response.cookies.set("accessToken", newAccessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 15 * 60, // 15 minutes
+      maxAge: ACCESS_TOKEN_EXPIRATION,
       path: "/",
     });
 
     return response;
   } catch (error) {
+    console.error("Error refreshing token:", error);
     return NextResponse.json(
-      { message: "Internal Server Error" },
+      { message: "Internal Server Error", success: false },
       { status: 500 }
     );
   }
