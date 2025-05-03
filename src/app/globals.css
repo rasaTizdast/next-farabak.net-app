@@ -163,12 +163,6 @@ a {
   max-width: 100%;
 }
 
-/* Custom image sizes - these will be applied from the editor */
-.prose-view .w-full {
-  @apply max-w-[1000px] mx-auto;
-  width: 100%;
-}
-
 .prose-view .w-1\/2 {
   @apply max-w-[500px] mx-auto;
   width: 50%;
@@ -186,7 +180,7 @@ a {
 }
 
 /* Image size attributes for both TipTap editors */
-.prose-view img[size="full"], 
+.prose-view img[size="full"],
 .prose-view Image[size="full"] {
   --img-width: 100%;
   max-width: 1000px;
@@ -195,7 +189,7 @@ a {
   margin-right: auto;
 }
 
-.prose-view img[size="half"], 
+.prose-view img[size="half"],
 .prose-view Image[size="half"] {
   --img-width: 50%;
   max-width: 500px;
@@ -204,7 +198,7 @@ a {
   margin-right: auto;
 }
 
-.prose-view img[size="third"], 
+.prose-view img[size="third"],
 .prose-view Image[size="third"] {
   --img-width: 33.333333%;
   max-width: 333px;
@@ -213,7 +207,7 @@ a {
   margin-right: auto;
 }
 
-.prose-view img[size="custom"], 
+.prose-view img[size="custom"],
 .prose-view Image[size="custom"] {
   --img-width: var(--custom-width, auto);
   width: var(--custom-width, auto) !important;
@@ -222,7 +216,7 @@ a {
 }
 
 /* Add a default value for the CSS variable */
-.prose-view img, 
+.prose-view img,
 .prose-view Image {
   --img-width: auto;
   --custom-width: auto;
@@ -271,4 +265,80 @@ a {
 }
 .prose-view pre {
   @apply bg-gray-800 text-white p-4 rounded overflow-x-auto;
+}
+
+/* Table styles for blog content */
+.prose-view table {
+  @apply w-full my-6 border-collapse overflow-hidden rounded-lg shadow-sm;
+  direction: rtl;
+  border: 1px solid #e2e8f0;
+  table-layout: fixed;
+}
+
+.prose-view thead {
+  @apply bg-blue-50;
+}
+
+.prose-view th {
+  @apply px-4 py-3 text-right font-semibold text-gray-800 border-b-2 border-gray-300;
+  width: calc(100% / var(--column-count, 3));
+}
+
+.prose-view td {
+  @apply px-4 py-3 border-t border-gray-200 text-gray-700;
+  width: calc(100% / var(--column-count, 3));
+}
+
+.prose-view tr {
+  @apply bg-white even:bg-gray-50 transition-colors duration-150;
+  display: table-row;
+  width: 100%;
+}
+
+.prose-view tr:hover {
+  @apply bg-blue-50;
+}
+
+.prose-view caption {
+  @apply text-xs text-gray-600 mt-2 mb-4 italic;
+}
+
+/* Responsive table styles */
+@media (max-width: 768px) {
+  /* Wrap tables in a scrollable container */
+  .prose-view table {
+    @apply w-full overflow-x-auto;
+    width: 100% !important;
+    max-width: 100vw;
+    padding: 0 1rem;
+    border-radius: 0;
+    table-layout: fixed;
+    display: table;
+  }
+
+  .prose-view tr {
+    width: 100%;
+    display: table-row;
+  }
+
+  .prose-view th,
+  .prose-view td {
+    @apply px-3 py-2 text-sm;
+    white-space: normal;
+    width: auto;
+    display: table-cell;
+    text-align: center;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .prose-view table {
+    padding: 0 0.5rem;
+  }
+
+  .prose-view th,
+  .prose-view td {
+    @apply px-2 py-1 text-xs;
+  }
 }
