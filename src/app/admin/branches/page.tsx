@@ -17,10 +17,13 @@ import InvoiceModal from "./components/invoice/InvoiceModal";
 import ProductSearchSummary from "./components/ProductSearchSummary";
 import WarrantyStats from "./components/WarrantyStats";
 import WarrantyRequests from "./components/WarrantyRequests";
+import { useUser } from "@/context/UserContext";
 
 const { TabPane } = Tabs;
 
 function BranchesPageContent() {
+  const { user } = useUser();
+  const currentUserId = user?.userId ? parseInt(user.userId) : undefined;
   const [branches, setBranches] = useState<Branch[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -60,12 +63,10 @@ function BranchesPageContent() {
     if (productId && !initialLoading) {
       const parsedId = parseInt(productId);
       setSearchProductId(parsedId);
-      
+
       // Find product name to set in search value
       if (allProducts.length > 0) {
-        const product = allProducts.find(
-          (p) => p.ProductId === parsedId
-        );
+        const product = allProducts.find((p) => p.ProductId === parsedId);
         if (product && product.Type) {
           setSearchValue(product.Type);
         }
@@ -253,12 +254,15 @@ function BranchesPageContent() {
       const response = await fetch(`/api/admin/branches/${branchId}/products`);
       if (!response.ok) throw new Error("خطا در دریافت محصولات شعبه");
       const responseData = await response.json();
-      
+
       // Extract products from the data property if it exists
-      const productsArray = responseData.data && Array.isArray(responseData.data) 
-        ? responseData.data 
-        : (Array.isArray(responseData) ? responseData : []);
-      
+      const productsArray =
+        responseData.data && Array.isArray(responseData.data)
+          ? responseData.data
+          : Array.isArray(responseData)
+          ? responseData
+          : [];
+
       setProducts(productsArray);
     } catch (error) {
       console.error("Error fetching branch products:", error);
@@ -621,17 +625,20 @@ function BranchesPageContent() {
         </div>
       </div>
       {/* Product Search Summary if search is active */}
-      {searchProductId && allProducts.length > 0 && !initialLoading && !loading && (
-        <ProductSearchSummary
-          productName={
-            allProducts.find((p) => p.ProductId === searchProductId)?.Type ||
-            "محصول نامشخص"
-          }
-          productId={searchProductId}
-          branches={branches}
-          clearSearch={clearSearch}
-        />
-      )}
+      {searchProductId &&
+        allProducts.length > 0 &&
+        !initialLoading &&
+        !loading && (
+          <ProductSearchSummary
+            productName={
+              allProducts.find((p) => p.ProductId === searchProductId)?.Type ||
+              "محصول نامشخص"
+            }
+            productId={searchProductId}
+            branches={branches}
+            clearSearch={clearSearch}
+          />
+        )}
       <Tabs
         activeKey={activeTab}
         className="mt-4 branches-tabs"
@@ -667,6 +674,11 @@ function BranchesPageContent() {
                 onChange: (page, pageSize) => {
                   fetchBranches(page, pageSize || pagination.pageSize);
                 },
+                showSizeChanger: true,
+                showQuickJumper: true,
+                pageSizeOptions: ["10", "20", "50"],
+                position: ["bottomCenter"],
+                className: "pagination-dark",
               }}
             />
           </div>
@@ -719,6 +731,7 @@ function BranchesPageContent() {
         onFinish={handleCreateBranch}
         form={form}
         users={users}
+        currentUserId={currentUserId}
       />
       {/* Edit Branch Modal */}
       {currentBranch && (
@@ -1009,7 +1022,8 @@ function BranchesPageContent() {
         }
 
         .rtl-table .ant-table-pagination {
-          direction: ltr;
+          direction: rtl !important;
+          margin: 16px 0;
         }
 
         .rtl-table .ant-pagination-prev {
@@ -1020,36 +1034,135 @@ function BranchesPageContent() {
           transform: rotate(180deg);
         }
 
-        .ant-drawer-header-title {
-          flex-direction: row-reverse;
+        /* Add better contrast for pagination */
+        .ant-pagination-item {
+          background-color: #1f2937 !important;
+          border-color: #4b5563 !important;
         }
 
-        .ant-drawer-header .ant-drawer-close {
-          margin-right: 0;
-          margin-left: 12px;
+        .ant-pagination-item a {
+          color: #e5e7eb !important;
         }
 
-        /* RTL modal fixes */
-        .ant-modal-title {
-          text-align: right;
+        .ant-pagination-item:hover {
+          border-color: #3b82f6 !important;
         }
 
-        .ant-modal-close {
-          right: auto;
-          left: 17px;
+        .ant-pagination-item:hover a {
+          color: #3b82f6 !important;
         }
 
-        .ant-form-item-label {
-          text-align: right;
+        .ant-pagination-item-active {
+          background-color: #3b82f6 !important;
+          border-color: #3b82f6 !important;
         }
 
-        .ant-alert-message {
-          text-align: right;
+        .ant-pagination-item-active a {
+          color: white !important;
         }
 
-        .custom-autocomplete .ant-select-selection-search {
-          right: 0;
-          left: auto;
+        .ant-pagination-prev button,
+        .ant-pagination-next button {
+          color: #e5e7eb !important;
+          background-color: #1f2937 !important;
+          border-color: #4b5563 !important;
+        }
+
+        .ant-pagination-prev:hover button,
+        .ant-pagination-next:hover button {
+          color: #3b82f6 !important;
+          border-color: #3b82f6 !important;
+        }
+
+        .ant-pagination-disabled button {
+          color: #6b7280 !important;
+          background-color: #1f2937 !important;
+          border-color: #4b5563 !important;
+        }
+
+        /* Persian text for pagination */
+        .ant-pagination-options-quick-jumper {
+          display: none !important; /* Hide the quick jumper completely */
+        }
+
+        /* Position the quick jumper container for RTL */
+        .ant-pagination-options {
+          direction: rtl !important;
+        }
+
+        /* Pagination items styling */
+        .ant-pagination-item {
+          background-color: #1f2937 !important;
+          border-color: #4b5563 !important;
+        }
+
+        .ant-pagination-item a {
+          color: #e5e7eb !important;
+        }
+
+        .ant-pagination-item:hover {
+          border-color: #3b82f6 !important;
+        }
+
+        .ant-pagination-item:hover a {
+          color: #3b82f6 !important;
+        }
+
+        .ant-pagination-item-active {
+          background-color: #3b82f6 !important;
+          border-color: #3b82f6 !important;
+        }
+
+        .ant-pagination-item-active a {
+          color: white !important;
+        }
+
+        /* Styling for next/prev buttons */
+        .ant-pagination-prev button,
+        .ant-pagination-next button {
+          color: #e5e7eb !important;
+          background-color: #1f2937 !important;
+          border-color: #4b5563 !important;
+        }
+
+        .ant-pagination-prev:hover button,
+        .ant-pagination-next:hover button {
+          color: #3b82f6 !important;
+          border-color: #3b82f6 !important;
+        }
+
+        /* Page size selector styling */
+        .ant-pagination-options-size-changer .ant-select-selector {
+          background-color: #1f2937 !important;
+          border-color: #4b5563 !important;
+          color: #e5e7eb !important;
+        }
+
+        .ant-pagination-options-size-changer:hover .ant-select-selector {
+          border-color: #3b82f6 !important;
+        }
+
+        .ant-select-dropdown {
+          background-color: #1f2937 !important;
+          border-color: #4b5563 !important;
+          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        .ant-select-dropdown .ant-select-item {
+          color: #e5e7eb !important;
+        }
+
+        .ant-select-dropdown
+          .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+          background-color: #374151 !important;
+        }
+
+        .ant-select-dropdown
+          .ant-select-item-option-selected:not(
+            .ant-select-item-option-disabled
+          ) {
+          background-color: #3b82f6 !important;
+          color: white !important;
         }
       `}</style>
     </div>

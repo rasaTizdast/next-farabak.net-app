@@ -39,9 +39,9 @@ export async function GET() {
 
     return NextResponse.json(categories, { status: 200 });
   } catch (error) {
-    console.error("Error fetching categories:", error);
+    console.error("خطا در دریافت دسته‌بندی‌ها:", error);
     return NextResponse.json(
-      { error: "An error occurred while fetching categories." },
+      { error: "خطایی هنگام دریافت دسته‌بندی‌ها رخ داده است." },
       { status: 500 }
     );
   }

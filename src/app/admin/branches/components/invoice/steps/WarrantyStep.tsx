@@ -149,13 +149,11 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
         // Default dates
         const currentDate = new Date();
         const startDate = currentDate.toISOString().split("T")[0];
-        const endDate = new Date(
-          currentDate.getFullYear() + 2,
-          currentDate.getMonth(),
-          currentDate.getDate()
-        )
-          .toISOString()
-          .split("T")[0];
+        const twoYearsLater = new Date(currentDate);
+        twoYearsLater.setFullYear(twoYearsLater.getFullYear() + 2);
+        // Ensure we keep the same day of month
+        twoYearsLater.setDate(currentDate.getDate());
+        const endDate = twoYearsLater.toISOString().split("T")[0];
 
         // Calculate total codes needed across all products
         let totalCodesNeeded = 0;
@@ -261,6 +259,8 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
       // Default end date (2 years)
       const twoYearsLater = new Date(today);
       twoYearsLater.setFullYear(twoYearsLater.getFullYear() + 2);
+      // Ensure we keep the same day of month
+      twoYearsLater.setDate(today.getDate());
       expiryDate = formatDateToISOString(twoYearsLater);
     }
 
@@ -434,6 +434,8 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
       // Default end date (2 years)
       const twoYearsLater = new Date(today);
       twoYearsLater.setFullYear(twoYearsLater.getFullYear() + 2);
+      // Ensure we keep the same day of month
+      twoYearsLater.setDate(today.getDate());
 
       // For Zaman DatePicker, use Date objects directly
       form.setFieldsValue({
@@ -666,7 +668,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
                       label={<span className="text-white">کد گارانتی</span>}
                     >
                       <Input
-                        className="w-full p-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-white"
+                        className="w-full p-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none !text-gray-300"
                         placeholder="کد گارانتی"
                         readOnly
                         disabled

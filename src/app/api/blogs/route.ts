@@ -127,9 +127,9 @@ export async function GET() {
 
     return NextResponse.json({ blogs: formattedBlogs });
   } catch (error) {
-    console.error("Error fetching blogs:", error);
+    console.error("خطا در دریافت مقالات:", error);
     return NextResponse.json(
-      { error: "Failed to fetch blogs" },
+      { error: "دریافت مقالات با مشکل مواجه شد" },
       { status: 500 }
     );
   }

@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -27,29 +27,29 @@ export async function GET(
 ) {
   try {
     const branchId = parseInt(params.branchId);
-    
+
     if (isNaN(branchId)) {
       return NextResponse.json(
-        { error: 'شناسه شعبه نامعتبر است' },
+        { error: "شناسه شعبه نامعتبر است" },
         { status: 400 }
       );
     }
-    
+
     // Check if branch exists
     const branch = await prisma.$queryRaw`
       SELECT * FROM "support"."branch" WHERE "branchid" = ${branchId}
     `;
-    
+
     if (!branch || (branch as any[]).length === 0) {
       return NextResponse.json(
-        { error: 'شعبه مورد نظر یافت نشد' },
+        { error: "شعبه مورد نظر یافت نشد" },
         { status: 404 }
       );
     }
-    
+
     // Get branch's user ID
     const branchUserID = (branch as any[])[0].UserID;
-    
+
     // Get all invoices for this branch's user
     const invoices = await prisma.$queryRaw`
       SELECT 
@@ -62,7 +62,7 @@ export async function GET(
       ORDER BY
         i."Invoiceid" DESC
     `;
-    
+
     // Get details for each invoice
     const invoicesWithDetails = await Promise.all(
       (invoices as any[]).map(async (invoice) => {
@@ -78,7 +78,7 @@ export async function GET(
           WHERE 
             id."Invoiceid" = ${invoice.Invoiceid}
         `;
-        
+
         // Get warranty info for each detail
         const detailsWithWarranty = await Promise.all(
           (details as any[]).map(async (detail) => {
@@ -91,27 +91,28 @@ export async function GET(
               WHERE 
                 w."invoicedetailid" = ${detail.Invoice_Details}
             `;
-            
+
             return {
               ...detail,
-              warranty: (warranty as any[]).length > 0 ? (warranty as any[])[0] : null
+              warranty:
+                (warranty as any[]).length > 0 ? (warranty as any[])[0] : null,
             };
           })
         );
-        
+
         return {
           ...invoice,
-          details: detailsWithWarranty
+          details: detailsWithWarranty,
         };
       })
     );
-    
+
     return NextResponse.json(invoicesWithDetails);
   } catch (error) {
-    console.error('Error fetching branch invoices:', error);
+    console.error("Error fetching branch invoices:", error);
     return NextResponse.json(
-      { error: 'خطا در بارگذاری فاکتورهای شعبه' },
+      { error: "خطا در بارگذاری فاکتورهای شعبه" },
       { status: 500 }
     );
   }
-} 
+}

@@ -38,6 +38,10 @@ import { ToolbarButton } from "./ToolbarButton";
 import { Divider } from "./Divider";
 import { CustomImage } from "./Image";
 
+// Default dimensions for imported images
+const DEFAULT_WIDTH = 500;
+const DEFAULT_HEIGHT = 400;
+
 interface TipTapBlogEditorProps {
   onSave?: (content: string, status: boolean) => void;
   blogData?: string; // Add prop for initial content
@@ -212,6 +216,11 @@ const TipTapBlogEditor = ({
     [addImage]
   );
 
+  // Function to check if a URL is external
+  const isExternalUrl = (url: string): boolean => {
+    return url.startsWith('http://') || url.startsWith('https://');
+  };
+
   const setLink = useCallback(() => {
     if (!editor) return;
 
@@ -259,8 +268,16 @@ const TipTapBlogEditor = ({
 
             // For custom sizes, add a style attribute as well
             const styleAttr = size === "custom" ? `style="--img-width:${width}px"` : "";
-
-            return `<Image src="${src}" alt="${alt}" width={${width}} height={${height}} className="${tailwindClass}" quality={100} layout="responsive" ${styleAttr} />`;
+            
+            // Handle external URLs differently
+            const imgSrc = isExternalUrl(src) ? src : `${src}`;
+            
+            if (isExternalUrl(src)) {
+              // For external URLs, use unoptimized Image with domain property
+              return `<img src="${imgSrc}" alt="${alt}" width="${width}" height="${height}" className="${tailwindClass}" />`;
+            } else {
+              return `<Image src="${imgSrc}" alt="${alt}" width={${width}} height={${height}} className="${tailwindClass}" quality={100} layout="responsive" ${styleAttr} />`;
+            }
           }
         )
 
@@ -269,7 +286,15 @@ const TipTapBlogEditor = ({
           /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*>/g,
           (match, src, alt, width, height) => {
             // If this regex matches, it means our first replace didn't catch it (no data-size)
-            return `<Image src="${src}" alt="${alt}" width={${width}} height={${height}} className="w-full" quality={100} layout="responsive" />`;
+            // Handle external URLs differently
+            const imgSrc = isExternalUrl(src) ? src : `${src}`;
+            
+            if (isExternalUrl(src)) {
+              // For external URLs, use unoptimized Image with domain property
+              return `<img src="${imgSrc}" alt="${alt}" width="${width}" height="${height}" className="w-full" />`;
+            } else {
+              return `<Image src="${imgSrc}" alt="${alt}" width={${width}} height={${height}} className="w-full" quality={100} layout="responsive" />`;
+            }
           }
         )
 
@@ -356,8 +381,33 @@ const TipTapBlogEditor = ({
 
     // Safely clean and insert HTML at cursor position instead of replacing all content
     try {
-      // Store the current cursor position
-      editor.chain().focus().insertContent(htmlContent).run();
+      // Pre-process HTML to ensure external image sources are preserved
+      const processedHtml = htmlContent.replace(
+        /<img\s+src="([^"]+)"([^>]*)>/g,
+        (match, src, rest) => {
+          // Always preserve the original URL to avoid prefixing with bucket URL
+          
+          // Extract existing width and height if available
+          const widthMatch = rest.match(/width="([^"]+)"/);
+          const heightMatch = rest.match(/height="([^"]+)"/);
+          
+          const width = widthMatch ? widthMatch[1] : DEFAULT_WIDTH;
+          const height = heightMatch ? heightMatch[1] : DEFAULT_HEIGHT;
+          
+          // Add width and height if they're missing
+          const widthAttr = widthMatch ? '' : ` width="${DEFAULT_WIDTH}"`;
+          const heightAttr = heightMatch ? '' : ` height="${DEFAULT_HEIGHT}"`;
+          
+          // Ensure we have data-size attribute to identify imported images
+          const dataSize = rest.includes('data-size') ? '' : ' data-size="full"';
+          
+          // Preserve original URL but ensure other attributes are added
+          return `<img src="${src}"${rest}${widthAttr}${heightAttr}${dataSize}>`;
+        }
+      );
+      
+      // Insert the processed HTML
+      editor.chain().focus().insertContent(processedHtml).run();
       setHtmlContent("");
       setIsHtmlImportModalOpen(false);
     } catch (error) {

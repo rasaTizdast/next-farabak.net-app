@@ -89,10 +89,6 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Log the invoice details to debug
-        console.log("Invoice data:", invoice);
-        console.log("Invoice details:", invoice.Invoice_Details);
-
         const productNameRequests = invoice.Invoice_Details.map((product) =>
           axios
             .get(`/api/products/getProductType/${product.ProductId}`)

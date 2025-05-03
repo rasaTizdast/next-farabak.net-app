@@ -13,14 +13,12 @@ async function verifyCurrentUser() {
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
-    console.log("[REQUESTS API] No token found in cookies");
     return null;
   }
 
   try {
     const secret = new TextEncoder().encode(JWT_SECRET);
     const { payload } = await jwtVerify(token, secret);
-    console.log("[REQUESTS API] Token payload:", payload);
     return {
       id: payload.userId as string,
       role: payload.role as string,
@@ -53,13 +51,11 @@ const formatBigIntResults = (results: any[]) => {
 };
 
 export async function GET(req: NextRequest) {
-  console.log("[REQUESTS API] Warranty requests API route hit");
   try {
     // Verify admin user
     const currentUser = await verifyCurrentUser();
 
     if (!currentUser) {
-      console.log("[REQUESTS API] No authentication found");
       return NextResponse.json(
         {
           error: "Authentication required - Please log in",
@@ -76,9 +72,6 @@ export async function GET(req: NextRequest) {
     }
 
     if (currentUser.role !== "Admin" && currentUser.role !== "Branch") {
-      console.log(
-        `[REQUESTS API] Unauthorized role for warranty requests: ${currentUser.role}`
-      );
       return NextResponse.json(
         {
           error: "Unauthorized access",
@@ -121,27 +114,10 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    console.log(
-      `[REQUESTS API] Pagination: page=${page}, limit=${limit}, offset=${offset}`
-    );
-    console.log(
-      `[REQUESTS API] Valid user ID: ${numericUserId}, Role: ${currentUser.role}`
-    );
-
     let requests = [];
     let totalCount = 0;
 
     if (currentUser.role === "Admin") {
-      console.log("[REQUESTS API] Executing admin warranty requests query");
-
-      // First, check if there are any warranties with 'Requested' status
-      const checkQuery = await prisma.$queryRaw`
-        SELECT COUNT(*)::integer as count
-        FROM "info"."warranty" w
-        WHERE w."status" = 'Requested'
-      `;
-      console.log("[REQUESTS API] Check query result:", checkQuery);
-
       // Get all requests for admin with pagination
       requests = await prisma.$queryRaw`
         SELECT 
@@ -175,20 +151,7 @@ export async function GET(req: NextRequest) {
         countResult && Array.isArray(countResult) && countResult.length > 0
           ? Number(countResult[0].count)
           : 0;
-
-      console.log(
-        `[REQUESTS API] Admin query returned ${requests.length} warranty requests (total: ${totalCount})`
-      );
-      if (requests.length > 0) {
-        console.log(`[REQUESTS API] First request result:`, requests[0]);
-      } else {
-        console.log(`[REQUESTS API] No warranty requests found in admin query`);
-      }
     } else {
-      console.log(
-        `[REQUESTS API] Executing branch user warranty requests query for UserID=${numericUserId}`
-      );
-
       // First check if this user is associated with any branch
       const userBranches = await prisma.branch.findMany({
         where: {
@@ -196,14 +159,7 @@ export async function GET(req: NextRequest) {
         },
       });
 
-      console.log(
-        `[REQUESTS API] Found ${userBranches.length} branches for user ${numericUserId}`
-      );
-
       if (userBranches.length === 0) {
-        console.log(
-          `[REQUESTS API] No branches found for UserID=${numericUserId}`
-        );
         return NextResponse.json({
           requests: [],
           pagination: {
@@ -214,21 +170,6 @@ export async function GET(req: NextRequest) {
           },
         });
       }
-
-      console.log(
-        `[REQUESTS API] User branch IDs:`,
-        userBranches.map((b) => b.branchid)
-      );
-
-      // First, check if there are any warranties with 'Requested' status for this branch
-      const checkQuery = await prisma.$queryRaw`
-        SELECT COUNT(*)::integer as count
-        FROM "info"."warranty" w
-        JOIN "support"."branch" b ON w."branchid" = b."branchid"
-        WHERE w."status" = 'Requested'
-        AND b."UserID" = ${numericUserId}
-      `;
-      console.log("[REQUESTS API] Check query result:", checkQuery);
 
       // Get branch-specific requests with pagination
       requests = await prisma.$queryRaw`
@@ -266,23 +207,9 @@ export async function GET(req: NextRequest) {
         countResult && Array.isArray(countResult) && countResult.length > 0
           ? Number(countResult[0].count)
           : 0;
-
-      console.log(
-        `[REQUESTS API] Branch query returned ${requests.length} warranty requests (total: ${totalCount})`
-      );
-      if (requests.length > 0) {
-        console.log(`[REQUESTS API] First request result:`, requests[0]);
-      } else {
-        console.log(
-          `[REQUESTS API] No warranty requests found in branch query`
-        );
-      }
     }
 
     const formattedRequests = formatBigIntResults(requests as any[]);
-    console.log(
-      `[REQUESTS API] Returning ${formattedRequests.length} warranty requests`
-    );
 
     return NextResponse.json({
       requests: formattedRequests,
@@ -312,15 +239,11 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  console.log("[REQUESTS API] Warranty requests PUT route hit");
   try {
     // Verify admin user
     const currentUser = await verifyCurrentUser();
 
     if (!currentUser) {
-      console.log(
-        "[REQUESTS API] No authentication found for warranty request update"
-      );
       return NextResponse.json(
         { error: "Authentication required - Please log in" },
         { status: 401 }
@@ -328,9 +251,6 @@ export async function PUT(req: NextRequest) {
     }
 
     if (currentUser.role !== "Admin" && currentUser.role !== "Branch") {
-      console.log(
-        `[REQUESTS API] Unauthorized role for warranty request update: ${currentUser.role}`
-      );
       return NextResponse.json(
         { error: "Unauthorized access" },
         { status: 401 }
@@ -339,12 +259,8 @@ export async function PUT(req: NextRequest) {
 
     const body = await req.json();
     const { warrantyId, action } = body;
-    console.log(
-      `[REQUESTS API] Update request - warrantyId: ${warrantyId}, action: ${action}`
-    );
 
     if (!warrantyId || !action) {
-      console.log("[REQUESTS API] Missing required fields for warranty update");
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -364,10 +280,6 @@ export async function PUT(req: NextRequest) {
           WHERE w."warrantyid" = ${warrantyId}
           LIMIT 1
         `;
-        console.log(
-          `[REQUESTS API] Found warranty record:`,
-          warrantyRecord[0] || {}
-        );
       } catch (error) {
         console.error("[REQUESTS API] Error fetching warranty details:", error);
         return NextResponse.json(

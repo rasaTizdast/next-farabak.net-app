@@ -24,7 +24,7 @@ export async function GET(
     });
 
     if (!blog) {
-      return NextResponse.json({ message: "Blog not found" }, { status: 404 });
+      return NextResponse.json({ message: "مقاله مورد نظر یافت نشد" }, { status: 404 });
     }
 
     // Fetch related media using the blog ID
@@ -69,9 +69,9 @@ export async function GET(
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Error fetching blog details:", error);
+    console.error("خطا در دریافت جزئیات مقاله:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "خطای داخلی سرور" },
       { status: 500 }
     );
   }

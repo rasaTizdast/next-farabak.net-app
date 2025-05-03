@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
@@ -11,11 +11,11 @@ export const dynamic = "force-dynamic";
 async function verifyToken() {
   const cookieStore = cookies();
   const token = cookieStore.get("accessToken")?.value;
-  
+
   if (!token) {
     return null;
   }
-  
+
   try {
     const secret = new TextEncoder().encode(JWT_SECRET);
     const { payload } = await jwtVerify(token, secret);
@@ -34,44 +34,41 @@ export async function GET() {
   try {
     // Verify authentication
     const tokenPayload = await verifyToken();
-    
+
     if (!tokenPayload) {
       return NextResponse.json(
-        { error: "Authentication required" },
+        { error: "احراز هویت الزامی است" },
         { status: 401 }
       );
     }
-    
+
     // Get user role from token
     const userRole = tokenPayload.role;
     const userId = tokenPayload.userId;
-    
+
     // Only Admin or Branch users can see branches
     if (userRole !== "Admin" && userRole !== "Branch") {
-      return NextResponse.json(
-        { error: "Unauthorized access" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
     }
-    
+
     // Get all branches with simplified data for dropdowns
     const branches = await prisma.branch.findMany({
       select: {
         branchid: true,
         name: true,
-        location: true
+        location: true,
       },
       orderBy: {
-        name: 'asc'
-      }
+        name: "asc",
+      },
     });
-    
+
     return NextResponse.json(branches);
   } catch (error) {
-    console.error('Error fetching branches list:', error);
+    console.error("Error fetching branches list:", error);
     return NextResponse.json(
-      { error: 'خطا در بارگذاری لیست شعبه‌ها' },
+      { error: "خطا در بارگذاری لیست شعبه‌ها" },
       { status: 500 }
     );
   }
-} 
+}

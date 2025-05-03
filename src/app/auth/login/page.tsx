@@ -45,7 +45,7 @@ const SignIn = () => {
 
     try {
       const response = await axios.post("/api/auth/login", data);
-      if (response.data.message === "Login successful") {
+      if (response.data.message === "ورود با موفقیت انجام شد") {
         updateUserContext();
         // Redirect to the dashboard on success
         router.push("/dashboard");

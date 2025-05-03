@@ -94,21 +94,6 @@ model Client {
   @@schema("info")
 }
 
-model Factor {
-  FactorId    Int      @id(map: "PK__Factor__E733AADD27EF8FF1") @default(autoincrement())
-  FactorGuid  String?  @db.VarChar(50)
-  Fullname    String?  @db.VarChar(255)
-  Phonenumber String?  @db.VarChar(50)
-  TotalAmount BigInt?
-  ProductName String?  @db.VarChar(255)
-  Date        String?  @db.VarChar(100)
-  UserId      Int?
-  Quantity    String?  @db.VarChar(50)
-  Checked     Boolean?
-
-  @@schema("info")
-}
-
 model FaqDetails {
   FaqDetailsid Int       @id(map: "PK__FaqDetai__35A141347E7D7444") @default(autoincrement())
   Q            String?   @db.VarChar(500)
@@ -474,4 +459,28 @@ model warranty {
   Invoice_Details Invoice_Details @relation(fields: [invoicedetailid], references: [Invoice_Details], onDelete: Cascade, onUpdate: NoAction)
 
   @@schema("info")
+}
+
+model SpecTemplate {
+  SpecTemplateId     Int                 @id @default(autoincrement())
+  Name               String              @db.VarChar(100)
+  InsertDate         DateTime            @default(now())
+  ModifyDate         DateTime            @updatedAt
+  Items              SpecTemplateItem[]  // Relation
+
+  @@map("SpecTemplate")
+  @@schema("support")
+}
+
+model SpecTemplateItem {
+  SpecTemplateItemId Int          @id @default(autoincrement())
+  SpecTemplateId     Int
+  Title              String       @db.VarChar(100)
+  InsertDate         DateTime     @default(now())
+  ModifyDate         DateTime     @updatedAt
+
+  Template           SpecTemplate @relation(fields: [SpecTemplateId], references: [SpecTemplateId], onDelete: Cascade)
+
+  @@map("SpecTemplateItem")
+  @@schema("support")
 }

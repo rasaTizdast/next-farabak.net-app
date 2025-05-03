@@ -8,13 +8,15 @@ interface ProductTableProps {
   loading: boolean;
   onUpdateQuantity: (productId: number, quantity: number) => void;
   onRemove: (productId: number) => void;
+  showRemoveButton?: boolean;
 }
 
 const ProductTable: React.FC<ProductTableProps> = ({
   products,
   loading,
   onUpdateQuantity,
-  onRemove
+  onRemove,
+  showRemoveButton = true
 }) => {
   // Keep track of debounced values per product
   const [debouncedValues, setDebouncedValues] = useState<{[key: number]: number}>({});
@@ -55,18 +57,19 @@ const ProductTable: React.FC<ProductTableProps> = ({
     };
   }, []);
 
-  const columns = [
+  // Define columns based on whether the remove button should be shown
+  const baseColumns = [
     {
       title: "نام محصول",
       dataIndex: "Type",
       key: "Type",
-      width: "60%",
+      width: showRemoveButton ? "60%" : "70%",
     },
     {
       title: "تعداد",
       dataIndex: "quantity",
       key: "quantity",
-      width: "20%",
+      width: showRemoveButton ? "20%" : "30%",
       render: (_: number, record: Product) => (
         <InputNumber
           min={0}
@@ -92,6 +95,11 @@ const ProductTable: React.FC<ProductTableProps> = ({
         />
       ),
     },
+  ];
+
+  // Add actions column if remove button should be shown
+  const columns = showRemoveButton ? [
+    ...baseColumns,
     {
       title: "عملیات",
       key: "actions",
@@ -116,7 +124,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
         </Popconfirm>
       ),
     },
-  ];
+  ] : baseColumns;
 
   if (loading) {
     return (

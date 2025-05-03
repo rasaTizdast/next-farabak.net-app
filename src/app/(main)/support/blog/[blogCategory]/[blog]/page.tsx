@@ -167,11 +167,11 @@ export default async function BlogPage({
 
       <article className="max-w-[1580px] w-full mt-5 mx-auto bg-gray-200 p-5 sm:p-10 rounded-lg">
         <header className="mb-8">
-          <h1 className="text-4xl font-bold mb-8">{blog.title}</h1>
+          <h1 className="text-2xl sm:text-4xl font-bold mb-8">{blog.title}</h1>
           <Image
             src={`${process.env.LIARA_BUCKET_URL}/${blog.image_URL}`}
             alt={blog.image_alt}
-            className="rounded-lg w-3/5 object-cover mb-6 mx-auto"
+            className="rounded-lg w-full lg:w-3/5 object-cover mb-6 mx-auto"
             width={1200}
             height={630}
             quality={100}

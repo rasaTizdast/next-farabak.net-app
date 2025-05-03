@@ -1,108 +1,148 @@
-import React, { useState, useEffect } from "react";
-import { FaTrashAlt } from "react-icons/fa";
-
-type Spec = {
-  title: string;
-  description: string;
-};
+import React, { useState } from "react";
+import { IoIosClose } from "react-icons/io";
+import { FiPlus } from "react-icons/fi";
+import SpecTemplateManager from "../SpecTemplateManager";
 
 type State = {
-  specs: Spec[];
+  specs: { title: string; description: string }[];
 };
 
-type Props = {
+type SpecsProps = {
   state: State;
-  dispatch: React.Dispatch<any>;
-  setErrors: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
+  dispatch: (action: any) => void;
+  setErrors: (errors: any) => void;
 };
 
-const Specs = ({ state, dispatch, setErrors }: Props) => {
-  const [localSpecs, setLocalSpecs] = useState<Spec[]>(state.specs);
-  const [localErrors, setLocalErrors] = useState<{ [key: string]: string }>({});
+const Specs: React.FC<SpecsProps> = ({ state, dispatch, setErrors }) => {
+  const [showTemplateManager, setShowTemplateManager] = useState(false);
 
-  useEffect(() => {
-    setErrors((prev) => ({ ...prev, ...localErrors }));
-  }, [localErrors, setErrors]);
-
-  const validateField = (field: string, value: string) => {
-    let error = "";
-    if (field === "title") {
-      if (!value.trim()) error = "عنوان نمی‌تواند خالی باشد.";
-      else if (value.length > 100) error = "عنوان نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.";
-      else if (!/^[a-zA-Z0-9\u0600-\u06FF\s_-]+$/.test(value)) error = "عنوان فقط می‌تواند شامل حروف انگلیسی، فارسی و اعداد باشد.";
-    } else if (field === "description") {
-      if (!value.trim()) error = "توضیحات نمی‌تواند خالی باشد.";
-      else if (value.length > 1000) error = "توضیحات نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
-    }
-    return error;
+  // Add a new spec item
+  const addSpec = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const newSpecs = [
+      ...state.specs,
+      { title: "", description: "" },
+    ];
+    dispatch({ type: "SET_SPECS", specs: newSpecs });
   };
 
-  const handleSpecChange = (index: number, field: string, value: string) => {
-    const error = validateField(field, value);
-    setLocalErrors((prev) => ({ ...prev, [`${field}-${index}`]: error }));
-
-    const updatedSpecs = [...localSpecs];
-    updatedSpecs[index] = { ...updatedSpecs[index], [field]: value };
-    setLocalSpecs(updatedSpecs);
-    dispatch({ type: "SET_SPECS", specs: updatedSpecs });
+  // Remove a spec item
+  const removeSpec = (e: React.MouseEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const newSpecs = state.specs.filter((_, i) => i !== index);
+    dispatch({ type: "SET_SPECS", specs: newSpecs });
   };
 
-  const handleAddSpec = () => {
-    if (localSpecs.length < 12) {
-      setLocalSpecs([...localSpecs, { title: "", description: "" }]);
-    }
+  // Handle change in spec fields
+  const handleSpecChange = (
+    index: number,
+    field: "title" | "description",
+    value: string
+  ) => {
+    const newSpecs = [...state.specs];
+    newSpecs[index][field] = value;
+    dispatch({ type: "SET_SPECS", specs: newSpecs });
   };
 
-  const handleRemoveSpec = (index: number) => {
-    const updatedSpecs = localSpecs.filter((_, i) => i !== index);
-    setLocalSpecs(updatedSpecs);
-    dispatch({ type: "SET_SPECS", specs: updatedSpecs });
+  // Handle template selection
+  const handleTemplateSelect = (templateSpecs: { title: string; description: string }[]) => {
+    // Merge existing specs with template specs
+    const newSpecs = [...state.specs, ...templateSpecs];
+    dispatch({ type: "SET_SPECS", specs: newSpecs });
+  };
+
+  const openTemplateManager = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowTemplateManager(true);
   };
 
   return (
-    <div className="mb-6 p-4">
-      {localSpecs.map((spec, index) => (
-        <div
-          key={index}
-          className="mb-10 flex flex-col gap-5 bg-gray-800 p-4 rounded-md shadow-lg"
-        >
-          <div className="flex items-center gap-4">
-            <input
-              type="text"
-              value={spec.title}
-              onChange={(e) => handleSpecChange(index, "title", e.target.value)}
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-300"
-              placeholder={`عنوان مشخصه ${index + 1}`}
-            />
-            {localErrors[`title-${index}`] && <p className="text-red-500 mt-1">{localErrors[`title-${index}`]}</p>}
+    <>
+      {showTemplateManager && (
+        <SpecTemplateManager 
+          onClose={() => setShowTemplateManager(false)}
+          onTemplateSelect={handleTemplateSelect}
+        />
+      )}
+
+      <div className="p-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">مشخصات محصول</h2>
+          <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => handleRemoveSpec(index)}
-              className="text-red-500 hover:text-red-600 transition-all"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm flex items-center gap-1"
+              onClick={openTemplateManager}
             >
-              <FaTrashAlt size={20} />
+              مدیریت قالب‌ها
+            </button>
+            <button
+              type="button"
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white text-sm flex items-center gap-1"
+              onClick={addSpec}
+            >
+              <FiPlus size={18} />
+              افزودن مشخصات
             </button>
           </div>
-          <textarea
-            value={spec.description}
-            onChange={(e) =>
-              handleSpecChange(index, "description", e.target.value)
-            }
-            className="w-full p-3 rounded-lg bg-gray-700 border border-gray-300"
-            placeholder={`توضیحات مشخصه ${index + 1}`}
-          />
-          {localErrors[`description-${index}`] && <p className="text-red-500 mt-1">{localErrors[`description-${index}`]}</p>}
         </div>
-      ))}
-      <button
-        type="button"
-        onClick={handleAddSpec}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-700"
-        disabled={localSpecs.length >= 12}
-      >
-        افزودن مشخصه جدید
-      </button>
-    </div>
+
+        <div className="space-y-4">
+          {state.specs.map((spec, index) => (
+            <div key={index} className="flex gap-4" onClick={(e) => e.stopPropagation()}>
+              <div className="flex-1">
+                <label className="block mb-1 text-sm">عنوان</label>
+                <input
+                  type="text"
+                  value={spec.title}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    handleSpecChange(index, "title", e.target.value);
+                  }}
+                  className="w-full p-2 rounded bg-gray-700 border border-gray-600"
+                  placeholder="مثال: وزن، ابعاد، مواد، و غیره"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block mb-1 text-sm">توضیحات</label>
+                <input
+                  type="text"
+                  value={spec.description}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    handleSpecChange(index, "description", e.target.value);
+                  }}
+                  className="w-full p-2 rounded bg-gray-700 border border-gray-600"
+                  placeholder="مثال: 100 گرم، 10×5 سانتی‌متر، فلزی، و غیره"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+              <div className="flex items-end mb-1">
+                <button
+                  type="button"
+                  onClick={(e) => removeSpec(e, index)}
+                  className="p-2 text-red-400 hover:text-red-300"
+                >
+                  <IoIosClose size={24} />
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {state.specs.length === 0 && (
+            <div className="text-center py-4 text-gray-400">
+              هیچ مشخصاتی وجود ندارد. لطفاً با کلیک بر روی «افزودن مشخصات» یا انتخاب یک قالب، مشخصات را اضافه کنید.
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   );
 };
 

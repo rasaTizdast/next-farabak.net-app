@@ -21,7 +21,6 @@ import {
   AutoComplete,
 } from "antd";
 import {
-  DeleteOutlined,
   ExclamationCircleOutlined,
   PlusOutlined,
   SearchOutlined,
@@ -36,12 +35,11 @@ import InvoiceModal from "../components/invoice/InvoiceModal";
 import Styles from "../components/Styles";
 import { AdminInvoice } from "@/app/admin/invoices/type";
 import BranchInvoiceDetailsModal from "./invoices/components/BranchInvoiceDetailsModal";
+import BranchWarrantyViewModal from "./invoices/components/BranchWarrantyViewModal";
 import moment from "jalali-moment";
 import SkeletonLoading from "./components/SkeletonLoading";
-import WarrantyStats from "../components/WarrantyStats";
+import WarrantyStats from "./components/WarrantyStats";
 import WarrantyRequests from "../components/WarrantyRequests";
-
-const { TabPane } = Tabs;
 
 function MyBranchContent() {
   const [branch, setBranch] = useState<Branch | null>(null);
@@ -63,6 +61,9 @@ function MyBranchContent() {
   // Added for invoices section
   const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<AdminInvoice[]>([]);
+  const [standaloneWarranties, setStandaloneWarranties] = useState<any[]>([]);
+  const [filteredStandaloneWarranties, setFilteredStandaloneWarranties] =
+    useState<any[]>([]);
   const [invoicesLoading, setInvoicesLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [searchOptions, setSearchOptions] = useState<
@@ -71,6 +72,9 @@ function MyBranchContent() {
   const [selectedInvoice, setSelectedInvoice] = useState<AdminInvoice | null>(
     null
   );
+  const [selectedStandaloneWarranty, setSelectedStandaloneWarranty] = useState<
+    any | null
+  >(null);
   const [warrantySummary, setWarrantySummary] = useState<{
     active: number;
     expired: number;
@@ -86,9 +90,11 @@ function MyBranchContent() {
   // Initialize debounced quantities when products change
   useEffect(() => {
     const initialValues: { [key: number]: number } = {};
-    products.forEach((product) => {
-      initialValues[product.ProductId] = product.quantity;
-    });
+    if (products && Array.isArray(products)) {
+      products.forEach((product) => {
+        initialValues[product.ProductId] = product.quantity;
+      });
+    }
     setDebouncedQuantities(initialValues);
   }, [products]);
 
@@ -204,13 +210,30 @@ function MyBranchContent() {
       if (!response.ok) throw new Error("خطا در دریافت محصولات شعبه");
       const responseData = await response.json();
 
-      // Update products and pagination
-      setProducts(responseData.data);
-      setProductPagination({
-        current: responseData.pagination.currentPage,
-        pageSize: pageSize,
-        total: responseData.pagination.totalCount,
-      });
+      // Check if response is an array (new API format) or has pagination (old format)
+      if (Array.isArray(responseData)) {
+        // New API format - direct array of products
+        setProducts(responseData);
+        setProductPagination({
+          ...productPagination, // Maintain current pagination state
+          total: responseData.length, // Set total to array length
+        });
+      } else if (responseData.data) {
+        // Old API format with pagination object
+        setProducts(responseData.data);
+        setProductPagination({
+          current: responseData.pagination.currentPage,
+          pageSize: pageSize,
+          total: responseData.pagination.totalCount,
+        });
+      } else {
+        // Fallback case
+        setProducts([]);
+        setProductPagination({
+          ...productPagination,
+          total: 0,
+        });
+      }
     } catch (error) {
       console.error("Error fetching branch products:", error);
       message.error("خطا در بارگذاری محصولات شعبه");
@@ -275,16 +298,38 @@ function MyBranchContent() {
       }
 
       const data = await response.json();
-      setInvoices(data.invoices);
-      setFilteredInvoices(data.invoices);
-      setWarrantySummary(data.warrantySummary);
+      if (data.invoices) {
+        setInvoices(data.invoices);
+        setFilteredInvoices(data.invoices);
 
-      // Update pagination
-      setInvoicePagination({
-        current: data.pagination.currentPage,
-        pageSize: pageSize,
-        total: data.pagination.totalCount,
-      });
+        // Handle standalone warranties
+        if (data.standaloneWarranties) {
+          setStandaloneWarranties(data.standaloneWarranties);
+          setFilteredStandaloneWarranties(data.standaloneWarranties);
+        } else {
+          setStandaloneWarranties([]);
+          setFilteredStandaloneWarranties([]);
+        }
+
+        if (data.warrantySummary) {
+          setWarrantySummary(data.warrantySummary);
+        }
+
+        // Update pagination if available
+        if (data.pagination) {
+          setInvoicePagination({
+            current: data.pagination.currentPage,
+            pageSize: pageSize,
+            total: data.pagination.totalCount,
+          });
+        }
+      } else {
+        // Handle case where response doesn't have expected structure
+        setInvoices([]);
+        setFilteredInvoices([]);
+        setStandaloneWarranties([]);
+        setFilteredStandaloneWarranties([]);
+      }
     } catch (error) {
       console.error("Error fetching invoices:", error);
       message.error("خطا در بارگذاری فاکتورها");
@@ -293,22 +338,65 @@ function MyBranchContent() {
     }
   };
 
-  // Format date using jalali moment
-  const formatDate = (dateString: string) => {
+  // Enhanced date formatting function with better error handling
+  const formatDate = (dateString: any) => {
     if (!dateString) return "-";
+
     try {
-      // Parse the date using moment without locale first (as Gregorian)
-      // Then format it with the desired format
-      return moment(dateString).format("YYYY/MM/DD | HH:mm:ss");
+      // For non-string dates, convert to string format
+      if (typeof dateString === "object") {
+        if (dateString instanceof Date) {
+          return moment(dateString).format("YYYY/MM/DD | HH:mm:ss");
+        }
+      }
+
+      // Handle numeric timestamps
+      if (typeof dateString === "number") {
+        return moment(new Date(dateString)).format("YYYY/MM/DD | HH:mm:ss");
+      }
+
+      // Ensure we're working with a string
+      const dateStr = String(dateString);
+
+      // For ISO date strings like "2023-05-15T10:30:00.000Z"
+      if (dateStr.includes("T") && dateStr.includes("Z")) {
+        return moment(dateStr).format("YYYY/MM/DD | HH:mm:ss");
+      }
+
+      // For YYYY-MM-DD format
+      if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return moment(dateStr, "YYYY-MM-DD").format("YYYY/MM/DD");
+      }
+
+      // For DD/MM/YYYY format
+      if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+        return moment(dateStr, "DD/MM/YYYY").format("YYYY/MM/DD");
+      }
+
+      // For already formatted dates like "YYYY/MM/DD | HH:mm:ss"
+      if (dateStr.match(/^\d{4}\/\d{2}\/\d{2} \| \d{2}:\d{2}:\d{2}$/)) {
+        return dateStr; // Already formatted correctly
+      }
+
+      // Default parsing as last resort
+      const formattedDate = moment(dateStr).format("YYYY/MM/DD | HH:mm:ss");
+
+      if (formattedDate === "Invalid date") {
+        console.error("Failed to parse date:", dateStr);
+        return dateStr; // Return original if we can't parse it
+      }
+
+      return formattedDate;
     } catch (e) {
-      console.error("Error formatting date:", e);
-      return dateString;
+      console.error("Error formatting date:", e, typeof dateString, dateString);
+      // Return a standardized format for invalid dates
+      return String(dateString);
     }
   };
 
-  // Update search options for invoices
+  // Update search options for invoices and standalone warranties
   useEffect(() => {
-    if (!searchText.trim() || !invoices.length) {
+    if (!searchText.trim()) {
       setSearchOptions([]);
       return;
     }
@@ -316,90 +404,172 @@ function MyBranchContent() {
     const lowerCaseSearch = searchText.toLowerCase();
     const options: { value: string; label: React.ReactNode }[] = [];
 
-    // Add invoice numbers
-    invoices.forEach((invoice) => {
-      if (invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch)) {
-        options.push({
-          value: invoice.FactorGuid,
-          label: (
-            <div>
-              <span className="text-blue-500 font-bold">شماره فاکتور: </span>
-              {invoice.FactorGuid}
-            </div>
-          ),
-        });
-      }
-    });
+    // Add options from invoices
+    if (invoices && Array.isArray(invoices) && invoices.length) {
+      // Add invoice numbers
+      invoices.forEach((invoice) => {
+        if (invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch)) {
+          options.push({
+            value: invoice.FactorGuid,
+            label: (
+              <div>
+                <span className="text-blue-500 font-bold">شماره فاکتور: </span>
+                {invoice.FactorGuid}
+              </div>
+            ),
+          });
+        }
+      });
 
-    // Add customer names
-    invoices.forEach((invoice) => {
-      if (invoice.Fullname.toLowerCase().includes(lowerCaseSearch)) {
-        options.push({
-          value: invoice.Fullname,
-          label: (
-            <div>
-              <span className="text-green-500 font-bold">نام مشتری: </span>
-              {invoice.Fullname}
-            </div>
-          ),
-        });
-      }
-    });
+      // Add customer names
+      invoices.forEach((invoice) => {
+        if (invoice.Fullname.toLowerCase().includes(lowerCaseSearch)) {
+          options.push({
+            value: invoice.Fullname,
+            label: (
+              <div>
+                <span className="text-green-500 font-bold">نام مشتری: </span>
+                {invoice.Fullname}
+              </div>
+            ),
+          });
+        }
+      });
 
-    // Add warranty codes
-    invoices.forEach((invoice) => {
-      if (invoice.Invoice_Details && Array.isArray(invoice.Invoice_Details)) {
-        invoice.Invoice_Details.forEach((detail) => {
-          if (
-            detail.warranty &&
-            detail.warranty.warrantycode &&
-            detail.warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)
-          ) {
-            options.push({
-              value: detail.warranty.warrantycode,
-              label: (
-                <div>
-                  <span className="text-yellow-500 font-bold">
-                    کد گارانتی:{" "}
-                  </span>
-                  {detail.warranty.warrantycode}
-                  <span className="mr-2">
-                    {detail.warranty.status === "Expired" ||
-                    detail.warranty.displayStatus === "Expired" ? (
-                      <Tag color="red" className="mr-2">
-                        منقضی شده
-                      </Tag>
-                    ) : (
-                      <Tag color="green" className="mr-2">
-                        فعال
-                      </Tag>
-                    )}
-                  </span>
-                </div>
-              ),
-            });
-          }
-        });
-      }
-    });
+      // Add phone numbers
+      invoices.forEach((invoice) => {
+        if (
+          invoice.Phonenumber &&
+          invoice.Phonenumber.includes(lowerCaseSearch)
+        ) {
+          options.push({
+            value: invoice.Phonenumber,
+            label: (
+              <div>
+                <span className="text-purple-500 font-bold">شماره تماس: </span>
+                {invoice.Phonenumber}
+              </div>
+            ),
+          });
+        }
+      });
+
+      // Add warranty codes from invoices
+      invoices.forEach((invoice) => {
+        if (invoice.Invoice_Details && Array.isArray(invoice.Invoice_Details)) {
+          invoice.Invoice_Details.forEach((detail) => {
+            if (
+              detail.warranty &&
+              detail.warranty.warrantycode &&
+              detail.warranty.warrantycode
+                .toLowerCase()
+                .includes(lowerCaseSearch)
+            ) {
+              options.push({
+                value: detail.warranty.warrantycode,
+                label: (
+                  <div>
+                    <span className="text-yellow-500 font-bold">
+                      کد گارانتی:{" "}
+                    </span>
+                    {detail.warranty.warrantycode}
+                    <span className="mr-2">
+                      {detail.warranty.status === "Expired" ||
+                      detail.warranty.displayStatus === "Expired" ? (
+                        <Tag color="red" className="mr-2">
+                          منقضی شده
+                        </Tag>
+                      ) : (
+                        <Tag color="green" className="mr-2">
+                          فعال
+                        </Tag>
+                      )}
+                    </span>
+                  </div>
+                ),
+              });
+            }
+          });
+        }
+      });
+    }
+
+    // Add standalone warranty codes
+    if (
+      standaloneWarranties &&
+      Array.isArray(standaloneWarranties) &&
+      standaloneWarranties.length
+    ) {
+      standaloneWarranties.forEach((warranty) => {
+        if (
+          warranty.warrantycode &&
+          warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)
+        ) {
+          options.push({
+            value: warranty.warrantycode,
+            label: (
+              <div>
+                <span className="text-orange-500 font-bold">
+                  کد گارانتی مستقل:{" "}
+                </span>
+                {warranty.warrantycode}
+                <span className="mr-2">
+                  {warranty.status === "Expired" ||
+                  warranty.displayStatus === "Expired" ? (
+                    <Tag color="red" className="mr-2">
+                      منقضی شده
+                    </Tag>
+                  ) : (
+                    <Tag color="green" className="mr-2">
+                      فعال
+                    </Tag>
+                  )}
+                </span>
+              </div>
+            ),
+          });
+        }
+
+        // Add product names from standalone warranties
+        if (
+          warranty.Type &&
+          warranty.Type.toLowerCase().includes(lowerCaseSearch)
+        ) {
+          options.push({
+            value: warranty.Type,
+            label: (
+              <div>
+                <span className="text-cyan-500 font-bold">
+                  محصول با گارانتی مستقل:{" "}
+                </span>
+                {warranty.Type}
+              </div>
+            ),
+          });
+        }
+      });
+    }
 
     setSearchOptions(options);
-  }, [searchText, invoices]);
+  }, [searchText, invoices, standaloneWarranties]);
 
-  // Filter invoices based on search text
+  // Filter invoices and standalone warranties based on search text
   useEffect(() => {
     if (!searchText.trim()) {
       setFilteredInvoices(invoices);
+      setFilteredStandaloneWarranties(standaloneWarranties);
       return;
     }
 
     const lowerCaseSearch = searchText.toLowerCase();
 
-    // Search in invoice number, customer name, or warranty code
-    const filtered = invoices.filter(
+    // Search in invoice number, customer name, phone number, or warranty code
+    const filteredInvoicesResult = invoices.filter(
       (invoice) =>
         invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch) ||
         invoice.Fullname.toLowerCase().includes(lowerCaseSearch) ||
+        (invoice.Phonenumber &&
+          invoice.Phonenumber.includes(lowerCaseSearch)) ||
         // Search in warranty codes
         (invoice.Invoice_Details &&
           invoice.Invoice_Details.some(
@@ -412,8 +582,18 @@ function MyBranchContent() {
           ))
     );
 
-    setFilteredInvoices(filtered);
-  }, [searchText, invoices]);
+    setFilteredInvoices(filteredInvoicesResult);
+
+    // Filter standalone warranties
+    const filteredWarrantiesResult = standaloneWarranties.filter(
+      (warranty) =>
+        (warranty.warrantycode &&
+          warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)) ||
+        (warranty.Type && warranty.Type.toLowerCase().includes(lowerCaseSearch))
+    );
+
+    setFilteredStandaloneWarranties(filteredWarrantiesResult);
+  }, [searchText, invoices, standaloneWarranties]);
 
   // Function to get warranty status summary for an invoice
   const getWarrantyStatusSummary = (invoice: AdminInvoice) => {
@@ -524,19 +704,12 @@ function MyBranchContent() {
 
   // Add effect to load invoices when switching to the invoices tab
   useEffect(() => {
-    console.log("[MyBranchPage] Tab changed to:", activeTab);
     if (activeTab === "invoices") {
       fetchInvoices();
     }
   }, [activeTab]);
 
   const handleTabChange = (newActiveTab: string) => {
-    console.log(
-      "[MyBranchPage] Changing tab from",
-      activeTab,
-      "to",
-      newActiveTab
-    );
     setActiveTab(newActiveTab);
   };
 
@@ -636,39 +809,21 @@ function MyBranchContent() {
     }
   };
 
-  const handleRemoveProduct = async (productId: number) => {
-    if (!branch) return;
-
-    try {
-      const response = await fetch(
-        `/api/admin/branches/${branch.branchid}/products/${productId}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!response.ok) throw new Error("خطا در حذف محصول");
-
-      message.success("محصول با موفقیت از شعبه حذف شد");
-
-      // Update branch products
-      await fetchBranchProducts(branch.branchid);
-
-      // Refresh branch data to update product counts and totals
-      const branchResponse = await fetch("/api/admin/branches/my");
-      if (branchResponse.ok) {
-        const branchData = await branchResponse.json();
-        setBranch(branchData);
-      }
-    } catch (error) {
-      console.error("Error removing product:", error);
-      message.error("خطا در حذف محصول از شعبه");
-    }
-  };
-
   // Add function to handle invoice creation
   const handleCreateInvoice = () => {
     setInvoiceModalVisible(true);
+  };
+
+  // Add function for invoice creation success
+  const handleInvoiceCreationSuccess = () => {
+    // Close the modal
+    setInvoiceModalVisible(false);
+
+    // Refresh invoices list
+    fetchInvoices();
+
+    // Show success message
+    message.success("فاکتور با موفقیت ایجاد شد");
   };
 
   // Add function to update invoice status
@@ -736,8 +891,8 @@ function MyBranchContent() {
       title: "تعداد",
       dataIndex: "quantity",
       key: "quantity",
-      width: "20%",
-      className: "text-center",
+      width: "40%",
+      // className: "text-center",
       render: (quantity: number, record: Product) => (
         <InputNumber
           min={0}
@@ -764,32 +919,6 @@ function MyBranchContent() {
             color: "#e5e7eb",
           }}
         />
-      ),
-    },
-    {
-      title: "عملیات",
-      key: "actions",
-      width: "20%",
-      className: "text-center",
-      render: (_: any, product: Product) => (
-        <Popconfirm
-          title="حذف محصول"
-          description="آیا از حذف این محصول از شعبه اطمینان دارید؟"
-          onConfirm={() => handleRemoveProduct(product.ProductId)}
-          okText="بله"
-          cancelText="خیر"
-          okButtonProps={{ className: "bg-red-600 hover:bg-red-700" }}
-          placement="topRight"
-        >
-          <Button
-            icon={<DeleteOutlined />}
-            danger
-            size="small"
-            className="!bg-red-500 !text-white !border-none hover:!bg-red-600"
-          >
-            حذف
-          </Button>
-        </Popconfirm>
       ),
     },
   ];
@@ -1114,8 +1243,13 @@ function MyBranchContent() {
                             );
                           }
                         },
+                        showSizeChanger: true,
+                        showQuickJumper: true,
+                        pageSizeOptions: ["10", "20", "50"],
+                        position: ["bottomCenter"],
+                        className: "pagination-dark",
                       }}
-                      className="dark-table enhanced-table"
+                      className="dark-table enhanced-table rtl-table"
                       locale={{
                         emptyText: (
                           <Empty
@@ -1192,7 +1326,7 @@ function MyBranchContent() {
                 >
                   <div className="relative">
                     <AutoComplete
-                      placeholder="جستجوی شماره فاکتور، نام مشتری یا کد گارانتی..."
+                      placeholder="جستجوی شماره فاکتور، نام مشتری، شماره تماس یا کد گارانتی..."
                       popupMatchSelectWidth={500}
                       style={{ width: "100%" }}
                       options={searchOptions}
@@ -1268,11 +1402,24 @@ function MyBranchContent() {
                 </div>
 
                 <Card
-                  className="bg-gray-800 rounded-lg shadow-md overflow-hidden border-0"
+                  className="bg-gray-800 rounded-lg shadow-md overflow-hidden border-0 mb-6"
                   bodyStyle={{
                     padding: "0",
                     fontFamily: "inherit",
                     backgroundColor: "#1f2937",
+                  }}
+                  title={
+                    <div className="flex items-center px-4 py-2">
+                      <h3 className="text-white text-lg font-medium m-0">
+                        فاکتورها
+                      </h3>
+                    </div>
+                  }
+                  headStyle={{
+                    backgroundColor: "#1f2937",
+                    borderBottom: "1px solid #374151",
+                    color: "#f3f4f6",
+                    padding: "12px 0",
                   }}
                 >
                   {invoicesLoading ? (
@@ -1300,17 +1447,240 @@ function MyBranchContent() {
                             pageSize || invoicePagination.pageSize
                           );
                         },
+                        showSizeChanger: true,
+                        showQuickJumper: true,
+                        pageSizeOptions: ["10", "20", "50"],
                         position: ["bottomCenter"],
                         className: "pagination-dark",
                       }}
                       scroll={{ x: "max-content" }}
-                      className="branch-invoices-table enhanced-table"
+                      className="branch-invoices-table enhanced-table rtl-table"
                       rowClassName={(record) =>
                         !record.Checked ? "unread-invoice-row" : ""
                       }
                     />
                   )}
                 </Card>
+
+                {filteredStandaloneWarranties.length > 0 && (
+                  <>
+                    <hr className="mt-4" />
+                    <Card
+                      className="bg-gray-800 rounded-lg shadow-md overflow-hidden border-0"
+                      bodyStyle={{
+                        padding: "0",
+                        fontFamily: "inherit",
+                        backgroundColor: "#1f2937",
+                      }}
+                      title={
+                        <div className="flex items-center px-4 py-2">
+                          <h3 className="text-white text-lg font-medium m-0">
+                            گارانتی‌های مستقل
+                          </h3>
+                          <Tag color="blue" className="mr-2">
+                            {filteredStandaloneWarranties.length} گارانتی
+                          </Tag>
+                        </div>
+                      }
+                      headStyle={{
+                        backgroundColor: "#1f2937",
+                        borderBottom: "1px solid #374151",
+                        color: "#f3f4f6",
+                        padding: "12px 0",
+                      }}
+                    >
+                      {invoicesLoading ? (
+                        <div className="flex justify-center items-center p-10">
+                          <Spin size="large" tip="در حال بارگذاری..." />
+                        </div>
+                      ) : (
+                        <Table
+                          columns={[
+                            {
+                              title: "کد گارانتی",
+                              dataIndex: "warrantycode",
+                              key: "warrantycode",
+                              className: "text-right font-medium",
+                              render: (text: string) => (
+                                <span className="text-orange-400 font-medium">
+                                  {text}
+                                </span>
+                              ),
+                            },
+                            {
+                              title: "نام مشتری",
+                              dataIndex: "clientFullName",
+                              key: "clientFullName",
+                              className: "text-right font-medium",
+                              render: (text: string) => (
+                                <span className="text-green-400 font-medium">
+                                  {text || "نامشخص"}
+                                </span>
+                              ),
+                            },
+                            {
+                              title: "شماره تماس",
+                              dataIndex: "ClientPhoneNumber",
+                              key: "ClientPhoneNumber",
+                              className: "text-right font-medium",
+                              render: (phone: string) =>
+                                phone ? (
+                                  <a
+                                    href={`tel:${phone}`}
+                                    className="text-blue-400 hover:text-blue-300 transition-colors"
+                                  >
+                                    {phone}
+                                  </a>
+                                ) : (
+                                  <span className="text-gray-400">-</span>
+                                ),
+                            },
+                            {
+                              title: "نوع محصول",
+                              dataIndex: "Type",
+                              key: "Type",
+                              className: "text-right font-medium",
+                              render: (text: string) => (
+                                <span className="text-gray-100">{text}</span>
+                              ),
+                            },
+                            {
+                              title: "تاریخ شروع",
+                              dataIndex: "startdate",
+                              key: "startdate",
+                              className: "text-right font-medium",
+                              render: (date: string) => {
+                                try {
+                                  // Try to use moment to format into Persian date
+                                  const persianDate = moment(date)
+                                    .locale("fa")
+                                    .format("jYYYY/jMM/jDD");
+                                  return (
+                                    <span className="text-gray-200">
+                                      {persianDate}
+                                    </span>
+                                  );
+                                } catch (e) {
+                                  return (
+                                    <span className="text-gray-200">
+                                      {formatDate(date)}
+                                    </span>
+                                  );
+                                }
+                              },
+                            },
+                            {
+                              title: "تاریخ انقضا",
+                              dataIndex: "expirydate",
+                              key: "expirydate",
+                              className: "text-right font-medium",
+                              render: (date: string) => {
+                                try {
+                                  // Try to use moment to format into Persian date
+                                  const persianDate = moment(date)
+                                    .locale("fa")
+                                    .format("jYYYY/jMM/jDD");
+                                  return (
+                                    <span className="text-gray-200">
+                                      {persianDate}
+                                    </span>
+                                  );
+                                } catch (e) {
+                                  return (
+                                    <span className="text-gray-200">
+                                      {formatDate(date)}
+                                    </span>
+                                  );
+                                }
+                              },
+                            },
+                            {
+                              title: "وضعیت",
+                              dataIndex: "displayStatus",
+                              key: "displayStatus",
+                              className: "text-center font-medium",
+                              render: (status: string) => (
+                                <Tag
+                                  color={
+                                    status === "Expired" ? "error" : "success"
+                                  }
+                                  className="px-4 py-1.5 flex items-center justify-center min-w-[120px]"
+                                  style={{
+                                    fontFamily: "inherit",
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  {status === "Expired" ? "منقضی شده" : "فعال"}
+                                </Tag>
+                              ),
+                            },
+                            {
+                              title: "عملیات",
+                              key: "actions",
+                              className: "text-center font-medium",
+                              render: (_, warranty: any) => (
+                                <Button
+                                  type="primary"
+                                  className="bg-blue-600 hover:bg-blue-700 border-blue-700 flex items-center"
+                                  onClick={() => {
+                                    // Create an item object expected by BranchWarrantyViewModal
+                                    const warrantyItem = {
+                                      Invoice_Details: String(
+                                        warranty.invoicedetailid || ""
+                                      ),
+                                      ProductId: String(
+                                        warranty.ProductId || ""
+                                      ),
+                                      quantity: warranty.quantity || 1,
+                                      price: warranty.price || 0,
+                                      total_price:
+                                        (warranty.price || 0) *
+                                        (warranty.quantity || 1),
+                                      Name: warranty.Type,
+                                      Type: warranty.Type,
+                                      individualWarranty: {
+                                        ...warranty,
+                                        warrantyid: String(
+                                          warranty.warrantyid || ""
+                                        ),
+                                        invoicedetailid: String(
+                                          warranty.invoicedetailid || ""
+                                        ),
+                                        ProductId: String(
+                                          warranty.ProductId || ""
+                                        ),
+                                        branchid: String(
+                                          warranty.branchid || ""
+                                        ),
+                                        branchname: branch?.name,
+                                      },
+                                    };
+
+                                    // Set the selected standalone warranty to show the modal
+                                    setSelectedStandaloneWarranty(warrantyItem);
+                                  }}
+                                >
+                                  <span>مشاهده جزئیات</span>
+                                  <EyeOutlined className="mr-2" />
+                                </Button>
+                              ),
+                            },
+                          ]}
+                          dataSource={filteredStandaloneWarranties}
+                          rowKey="warrantyid"
+                          pagination={{
+                            pageSize: 5,
+                            hideOnSinglePage: true,
+                            position: ["bottomCenter"],
+                            className: "pagination-dark",
+                          }}
+                          scroll={{ x: "max-content" }}
+                          className="standalone-warranties-table enhanced-table rtl-table"
+                        />
+                      )}
+                    </Card>
+                  </>
+                )}
               </>
             ),
           },
@@ -1347,7 +1717,6 @@ function MyBranchContent() {
               <Card
                 className="bg-gray-800 rounded-lg overflow-hidden text-white border-0"
                 bodyStyle={{
-                  backgroundColor: "#19202b",
                   padding: "16px 20px",
                   fontFamily: "inherit",
                 }}
@@ -1365,6 +1734,7 @@ function MyBranchContent() {
           visible={invoiceModalVisible}
           onClose={() => setInvoiceModalVisible(false)}
           branch={branch}
+          onSuccess={handleInvoiceCreationSuccess}
         />
       )}
 
@@ -1383,14 +1753,29 @@ function MyBranchContent() {
         }
         onAddProduct={handleAddProduct}
         onUpdateQuantity={handleUpdateProductQuantity}
-        onRemoveProduct={handleRemoveProduct}
       />
 
       {/* Invoice Details Modal */}
       {selectedInvoice && (
         <BranchInvoiceDetailsModal
           invoice={selectedInvoice}
-          onClose={() => setSelectedInvoice(null)}
+          onClose={() => {
+            setSelectedInvoice(null);
+            // Refresh the invoices data when closing the modal
+            fetchInvoices();
+          }}
+        />
+      )}
+
+      {/* Standalone Warranty Modal */}
+      {selectedStandaloneWarranty && (
+        <BranchWarrantyViewModal
+          item={selectedStandaloneWarranty}
+          onClose={() => {
+            setSelectedStandaloneWarranty(null);
+            // Refresh the data when closing the modal
+            fetchInvoices();
+          }}
         />
       )}
 
@@ -1737,31 +2122,20 @@ function MyBranchContent() {
           text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1) !important;
         }
 
-        /* Existing RTL and responsive styles */
-        /* ... */
-
         .ant-input::placeholder {
-          color: #9ca3af !important;
+          /* color: #9ca3af !important; */
           text-align: center !important;
           opacity: 1 !important;
-        }
-
-        .ant-input-affix-wrapper .ant-input {
-          text-align: center !important;
         }
 
         .ant-input-affix-wrapper .ant-input::placeholder {
-          color: #9ca3af !important;
+          /* color: #9ca3af !important; */
           text-align: center !important;
           opacity: 1 !important;
         }
 
-        .ant-select-selection-search-input {
-          text-align: center !important;
-        }
-
         .ant-select-selection-search-input::placeholder {
-          color: #9ca3af !important;
+          /* color: #9ca3af !important; */
           text-align: center !important;
           opacity: 1 !important;
         }
@@ -1819,6 +2193,110 @@ function MyBranchContent() {
 
         .ant-tabs-nav:before {
           border-bottom-color: #4b5563 !important;
+        }
+
+        /* Add RTL table styles from branches page */
+        .rtl-table .ant-table-container table {
+          direction: rtl;
+        }
+
+        .rtl-table .ant-table-pagination {
+          direction: rtl !important;
+          margin: 16px 0;
+        }
+
+        .rtl-table .ant-pagination-prev {
+          transform: rotate(180deg);
+        }
+
+        .rtl-table .ant-pagination-next {
+          transform: rotate(180deg);
+        }
+
+        /* Add better contrast for pagination */
+        .pagination-dark .ant-pagination-item {
+          background-color: #1f2937 !important;
+          border-color: #4b5563 !important;
+        }
+
+        .pagination-dark .ant-pagination-item a {
+          color: #e5e7eb !important;
+        }
+
+        .pagination-dark .ant-pagination-item:hover {
+          border-color: #3b82f6 !important;
+        }
+
+        .pagination-dark .ant-pagination-item:hover a {
+          color: #3b82f6 !important;
+        }
+
+        .pagination-dark .ant-pagination-item-active {
+          background-color: #3b82f6 !important;
+          border-color: #3b82f6 !important;
+        }
+
+        .pagination-dark .ant-pagination-item-active a {
+          color: white !important;
+        }
+
+        .pagination-dark .ant-pagination-prev button,
+        .pagination-dark .ant-pagination-next button {
+          color: #e5e7eb !important;
+          background-color: #1f2937 !important;
+          border-color: #4b5563 !important;
+        }
+
+        .pagination-dark .ant-pagination-prev:hover button,
+        .pagination-dark .ant-pagination-next:hover button {
+          color: #3b82f6 !important;
+          border-color: #3b82f6 !important;
+        }
+
+        .pagination-dark .ant-pagination-disabled button {
+          color: #6b7280 !important;
+          background-color: #1f2937 !important;
+          border-color: #4b5563 !important;
+        }
+
+        /* Persian text for pagination */
+        .pagination-dark .ant-pagination-options-quick-jumper {
+          display: none !important; /* Hide the quick jumper completely */
+        }
+
+        /* Position the quick jumper container for RTL */
+        .pagination-dark .ant-pagination-options {
+          direction: rtl !important;
+        }
+
+        /* Fix per page text in the dropdown */
+        .pagination-dark
+          .ant-pagination-options
+          .ant-select-selection-item::after {
+          content: " / صفحه" !important;
+          display: inline !important;
+        }
+
+        /* Fix dropdown items */
+        .pagination-dark
+          .ant-select-dropdown
+          .ant-select-item-option-content::after {
+          content: " / صفحه" !important;
+        }
+
+        /* Page size selector styling */
+        .pagination-dark
+          .ant-pagination-options-size-changer
+          .ant-select-selector {
+          background-color: #1f2937 !important;
+          border-color: #4b5563 !important;
+          color: #e5e7eb !important;
+        }
+
+        .pagination-dark
+          .ant-pagination-options-size-changer:hover
+          .ant-select-selector {
+          border-color: #3b82f6 !important;
         }
       `}</style>
     </div>

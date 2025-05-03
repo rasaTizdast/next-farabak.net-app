@@ -33,7 +33,8 @@ export async function POST(request: Request) {
     }
 
     // Get request data
-    const { invoiceId, invoiceDetailId, productId, warrantyData } = await request.json();
+    const { invoiceId, invoiceDetailId, productId, warrantyData } =
+      await request.json();
 
     if (!warrantyData || !warrantyData.warrantycode) {
       return NextResponse.json(
@@ -74,23 +75,103 @@ export async function POST(request: Request) {
       }
     }
 
-    // Update the warranty
-    const updatedWarranty = await prisma.warranty.update({
+    // Get the current warranty to check if branch is changing
+    const currentWarranty = await prisma.warranty.findUnique({
       where: { warrantyid: parseInt(warrantyData.warrantyid) },
-      data: {
-        warrantycode: warrantyData.warrantycode,
-        startdate: warrantyData.startdate,
-        expirydate: warrantyData.expirydate,
-        status: determineWarrantyStatus(warrantyData.expirydate, warrantyData.status),
-        branchid: warrantyData.branchId || undefined,
-      },
     });
 
-    return NextResponse.json({
-      message: "Warranty updated successfully",
-      warranty: updatedWarranty,
-    });
-    
+    if (!currentWarranty) {
+      return NextResponse.json(
+        { error: "Warranty not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check if branch is being changed
+    const isBranchChanging =
+      warrantyData.branchId &&
+      currentWarranty.branchid !== warrantyData.branchId;
+
+    // If branch is changing, verify new branch has stock
+    if (isBranchChanging) {
+      const newBranchProduct = await prisma.branchproduct.findFirst({
+        where: {
+          branchid: warrantyData.branchId,
+          ProductId: currentWarranty.ProductId,
+        },
+      });
+
+      if (
+        !newBranchProduct ||
+        newBranchProduct.quantity === null ||
+        newBranchProduct.quantity <= 0
+      ) {
+        return NextResponse.json(
+          { error: "The selected branch does not have this product in stock" },
+          { status: 400 }
+        );
+      }
+
+      // Start a transaction to update warranty, decrement new branch and increment old branch
+      const [updatedWarranty] = await prisma.$transaction([
+        // Update the warranty
+        prisma.warranty.update({
+          where: { warrantyid: parseInt(warrantyData.warrantyid) },
+          data: {
+            warrantycode: warrantyData.warrantycode,
+            startdate: warrantyData.startdate,
+            expirydate: warrantyData.expirydate,
+            status: determineWarrantyStatus(
+              warrantyData.expirydate,
+              warrantyData.status
+            ),
+            branchid: warrantyData.branchId,
+          },
+        }),
+
+        // Decrement product in new branch
+        prisma.branchproduct.update({
+          where: { branchproductid: newBranchProduct.branchproductid },
+          data: {
+            quantity: {
+              decrement: 1,
+            },
+          },
+        }),
+
+        // Find and update old branch product - can't use upsert with composite key
+        prisma.$queryRaw`
+          UPDATE "support"."branchproduct" 
+          SET "quantity" = "quantity" + 1
+          WHERE "branchid" = ${currentWarranty.branchid}
+          AND "ProductId" = ${currentWarranty.ProductId}
+        `,
+      ]);
+
+      return NextResponse.json({
+        message: "Warranty updated successfully",
+        warranty: updatedWarranty,
+      });
+    } else {
+      // No branch change, just update the warranty
+      const updatedWarranty = await prisma.warranty.update({
+        where: { warrantyid: parseInt(warrantyData.warrantyid) },
+        data: {
+          warrantycode: warrantyData.warrantycode,
+          startdate: warrantyData.startdate,
+          expirydate: warrantyData.expirydate,
+          status: determineWarrantyStatus(
+            warrantyData.expirydate,
+            warrantyData.status
+          ),
+        },
+      });
+
+      return NextResponse.json({
+        message: "Warranty updated successfully",
+        warranty: updatedWarranty,
+      });
+    }
   } catch (error) {
     console.error("Error updating warranty:", error);
     return NextResponse.json(
@@ -101,14 +182,17 @@ export async function POST(request: Request) {
 }
 
 // Helper function to determine warranty status based on expiry date
-function determineWarrantyStatus(expiryDate: string, providedStatus: string): string {
+function determineWarrantyStatus(
+  expiryDate: string,
+  providedStatus: string
+): string {
   // Compare expiry date with current date
   const currentDate = new Date();
   const expiry = new Date(expiryDate);
-  
+
   if (expiry < currentDate) {
     return "Expired";
   } else {
     return "Active";
   }
-} 
+}

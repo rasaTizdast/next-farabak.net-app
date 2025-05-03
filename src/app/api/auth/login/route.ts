@@ -59,7 +59,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     if (!user || !user.Password || user.Password.length === 0) {
       return NextResponse.json(
-        { message: "Invalid username or password" },
+        { message: "نام کاربری یا رمز عبور نامعتبر است" },
         { status: 401 }
       );
     }
@@ -67,7 +67,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const passwordHash = user.Password[0].Password1;
     if (!passwordHash) {
       return NextResponse.json(
-        { message: "Invalid username or password" },
+        { message: "نام کاربری یا رمز عبور نامعتبر است" },
         { status: 401 }
       );
     }
@@ -76,7 +76,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     if (!passwordMatch) {
       return NextResponse.json(
-        { message: "Invalid username or password" },
+        { message: "نام کاربری یا رمز عبور نامعتبر است" },
         { status: 401 }
       );
     }
@@ -100,7 +100,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       .setExpirationTime("7d")
       .sign(new TextEncoder().encode(REFRESH_TOKEN_SECRET));
 
-    const response = NextResponse.json({ message: "Login successful" });
+    const response = NextResponse.json({ message: "ورود با موفقیت انجام شد" });
     response.cookies.set("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -116,9 +116,6 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     return response;
   } catch (error) {
-    return NextResponse.json(
-      { message: "Internal Server Error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
   }
 }

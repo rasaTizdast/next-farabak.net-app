@@ -11,15 +11,19 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(request: Request) {
   try {
-    const { warrantycode, checkOnly = false, confirm = false } = await request.json();
-    
+    const {
+      warrantycode,
+      checkOnly = false,
+      confirm = false,
+    } = await request.json();
+
     if (!warrantycode) {
       return NextResponse.json(
-        { error: 'کد گارانتی نمی‌تواند خالی باشد' },
+        { error: "کد گارانتی نمی‌تواند خالی باشد" },
         { status: 400 }
       );
     }
-    
+
     // Check if warranty exists and get its details
     const warranty = await prisma.$queryRaw`
       SELECT w.*, i."Fullname" as customer_name, i."Phonenumber" as customer_phone 
@@ -29,21 +33,21 @@ export async function POST(request: Request) {
       WHERE w."warrantycode" = ${warrantycode}
       LIMIT 1
     `;
-    
+
     if ((warranty as any[]).length === 0) {
       return NextResponse.json(
-        { error: 'کد گارانتی وارد شده معتبر نیست' },
+        { error: "کد گارانتی وارد شده معتبر نیست" },
         { status: 404 }
       );
     }
 
     const warrantyData = (warranty as any[])[0];
-    
+
     // Check if warranty is expired
     const today = new Date();
     const expiryDate = new Date(warrantyData.expirydate);
     const isExpired = expiryDate < today;
-    
+
     // If checkOnly flag is true, just return the warranty data without changing status
     if (checkOnly) {
       if (isExpired) {
@@ -56,8 +60,8 @@ export async function POST(request: Request) {
             startDate: warrantyData.startdate,
             status: warrantyData.status,
             customerName: warrantyData.customer_name,
-            customerPhone: warrantyData.customer_phone
-          }
+            customerPhone: warrantyData.customer_phone,
+          },
         });
       } else if (warrantyData.status === "Requested") {
         return NextResponse.json({
@@ -69,8 +73,8 @@ export async function POST(request: Request) {
             startDate: warrantyData.startdate,
             status: warrantyData.status,
             customerName: warrantyData.customer_name,
-            customerPhone: warrantyData.customer_phone
-          }
+            customerPhone: warrantyData.customer_phone,
+          },
         });
       } else {
         return NextResponse.json({
@@ -82,12 +86,12 @@ export async function POST(request: Request) {
             startDate: warrantyData.startdate,
             status: warrantyData.status,
             customerName: warrantyData.customer_name,
-            customerPhone: warrantyData.customer_phone
-          }
+            customerPhone: warrantyData.customer_phone,
+          },
         });
       }
     }
-    
+
     // If we get here, it's a confirmation of the request
     if (confirm) {
       // If warranty is active, update status to "Requested"
@@ -97,7 +101,7 @@ export async function POST(request: Request) {
           SET "status" = 'Requested'
           WHERE "warrantyid" = ${warrantyData.warrantyid}
         `;
-        
+
         return NextResponse.json({
           status: "success",
           message: "درخواست بررسی گارانتی با موفقیت ثبت شد",
@@ -107,11 +111,10 @@ export async function POST(request: Request) {
             startDate: warrantyData.startdate,
             status: "Requested",
             customerName: warrantyData.customer_name,
-            customerPhone: warrantyData.customer_phone
-          }
+            customerPhone: warrantyData.customer_phone,
+          },
         });
-      } 
-      else if (isExpired) {
+      } else if (isExpired) {
         return NextResponse.json({
           status: "expired",
           message: "مدت زمان گارانتی به پایان رسیده است",
@@ -121,11 +124,10 @@ export async function POST(request: Request) {
             startDate: warrantyData.startdate,
             status: warrantyData.status,
             customerName: warrantyData.customer_name,
-            customerPhone: warrantyData.customer_phone
-          }
+            customerPhone: warrantyData.customer_phone,
+          },
         });
-      }
-      else {
+      } else {
         return NextResponse.json({
           status: "already_requested",
           message: "این گارانتی قبلاً درخواست بررسی شده است",
@@ -135,8 +137,8 @@ export async function POST(request: Request) {
             startDate: warrantyData.startdate,
             status: warrantyData.status,
             customerName: warrantyData.customer_name,
-            customerPhone: warrantyData.customer_phone
-          }
+            customerPhone: warrantyData.customer_phone,
+          },
         });
       }
     }
@@ -148,7 +150,7 @@ export async function POST(request: Request) {
         SET "status" = 'Requested'
         WHERE "warrantyid" = ${warrantyData.warrantyid}
       `;
-      
+
       return NextResponse.json({
         status: "success",
         message: "درخواست بررسی گارانتی با موفقیت ثبت شد",
@@ -158,11 +160,10 @@ export async function POST(request: Request) {
           startDate: warrantyData.startdate,
           status: "Requested",
           customerName: warrantyData.customer_name,
-          customerPhone: warrantyData.customer_phone
-        }
+          customerPhone: warrantyData.customer_phone,
+        },
       });
-    } 
-    else if (isExpired) {
+    } else if (isExpired) {
       return NextResponse.json({
         status: "expired",
         message: "مدت زمان گارانتی به پایان رسیده است",
@@ -172,11 +173,10 @@ export async function POST(request: Request) {
           startDate: warrantyData.startdate,
           status: warrantyData.status,
           customerName: warrantyData.customer_name,
-          customerPhone: warrantyData.customer_phone
-        }
+          customerPhone: warrantyData.customer_phone,
+        },
       });
-    }
-    else {
+    } else {
       return NextResponse.json({
         status: "already_requested",
         message: "این گارانتی قبلاً درخواست بررسی شده است",
@@ -186,15 +186,15 @@ export async function POST(request: Request) {
           startDate: warrantyData.startdate,
           status: warrantyData.status,
           customerName: warrantyData.customer_name,
-          customerPhone: warrantyData.customer_phone
-        }
+          customerPhone: warrantyData.customer_phone,
+        },
       });
     }
   } catch (error) {
-    console.error('Error checking warranty status:', error);
+    console.error("Error checking warranty status:", error);
     return NextResponse.json(
-      { error: 'خطا در بررسی وضعیت گارانتی' },
+      { error: "خطا در بررسی وضعیت گارانتی" },
       { status: 500 }
     );
   }
-} 
+}

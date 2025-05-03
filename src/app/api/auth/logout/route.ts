@@ -21,7 +21,7 @@ import { NextResponse } from "next/server";
 export async function POST(): Promise<NextResponse> {
   try {
     // Create a response object
-    const response = NextResponse.json({ message: "Logged out successfully" });
+    const response = NextResponse.json({ message: "با موفقیت خارج شدید" });
 
     // Clear the refresh token cookie
     response.cookies.set("refreshToken", "", {
@@ -41,9 +41,6 @@ export async function POST(): Promise<NextResponse> {
 
     return response;
   } catch (error) {
-    return NextResponse.json(
-      { message: "Internal Server Error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
   }
 }

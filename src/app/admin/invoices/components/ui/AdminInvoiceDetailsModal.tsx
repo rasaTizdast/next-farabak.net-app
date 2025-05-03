@@ -1,12 +1,9 @@
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
-import {
-  AdminInvoice,
-  InvoiceDetail,
-  Warranty,
-  WarrantyCode,
-} from "../../type";
+import { useEffect, useState } from "react";
+import { AdminInvoice, InvoiceDetail, Warranty } from "../../type";
 import WarrantyManagementModal from "./WarrantyManagementModal";
+import { usePrint } from "@/app/utils/usePrint";
+import PrintButton from "@/app/components/ui/PrintButton";
 
 // Define an interface for expanded items with individual warranties
 export interface ExpandedInvoiceItem extends InvoiceDetail {
@@ -22,14 +19,22 @@ type Props = {
   onWarrantyUpdate?: () => Promise<void>;
 };
 
-const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props) => {
-  const componentRef = useRef<HTMLDivElement>(null);
+const AdminInvoiceDetailsModal = ({
+  invoice,
+  onClose,
+  onWarrantyUpdate,
+}: Props) => {
   const [productNames, setProductNames] = useState<{ [key: string]: string }>(
     {}
   );
   const [expandedItems, setExpandedItems] = useState<ExpandedInvoiceItem[]>([]);
-  const [selectedItem, setSelectedItem] = useState<ExpandedInvoiceItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<ExpandedInvoiceItem | null>(
+    null
+  );
   const [refreshCounter, setRefreshCounter] = useState(0);
+
+  // Use the print hook
+  const { componentRef, handlePrint } = usePrint();
 
   if (!invoice) return null;
 
@@ -48,7 +53,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
 
   // Refresh invoice data after warranty updates
   const handleWarrantyUpdated = () => {
-    setRefreshCounter(prev => prev + 1);
+    setRefreshCounter((prev) => prev + 1);
     // Call parent's update function if provided
     if (onWarrantyUpdate) {
       onWarrantyUpdate();
@@ -117,7 +122,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
           ...product,
           itemNumber: 1,
           individualWarranty: product.warranty,
-          Name: productNames[product.ProductId]
+          Name: productNames[product.ProductId],
         });
         return;
       }
@@ -146,7 +151,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                     : code.status || product.warranty?.status || "Active",
               }
             : product.warranty,
-          Name: productNames[product.ProductId]
+          Name: productNames[product.ProductId],
         });
       }
     });
@@ -159,6 +164,30 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
     setSelectedItem(item);
   };
 
+  // Handle print with specific options
+  const handleInvoicePrint = () => {
+    // Remove height restriction from table container right before printing
+    const tableContainer = document.querySelector(".invoice-table-container");
+    if (tableContainer) {
+      (tableContainer as HTMLElement).style.maxHeight = "none";
+      (tableContainer as HTMLElement).style.overflow = "visible";
+    }
+
+    handlePrint({
+      printTitle: `فاکتور ${invoice.FactorGuid}`,
+      hideElements: [".print-button", "button"],
+      compactMode: true, // Enable compact mode for smaller print
+    });
+
+    // Reset the styles after print dialog is shown
+    setTimeout(() => {
+      if (tableContainer) {
+        (tableContainer as HTMLElement).style.maxHeight = "500px";
+        (tableContainer as HTMLElement).style.overflow = "auto";
+      }
+    }, 1000);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
       <div className="bg-slate-900 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -166,6 +195,13 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
           <div className="text-gray-100">
             {/* Header */}
             <div className="mb-4 sm:mb-8">
+              <img
+                src="/Farabak_Logo.webp"
+                alt="Farabak Logo"
+                width={130}
+                height={130}
+                className="mx-auto logo print-only flex justify-center items-center mt-4 mb-5"
+              />
               <h2 className="text-xl sm:text-2xl font-bold text-center">
                 جزئیات فاکتور
                 <br />
@@ -190,7 +226,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                     {formatDateTime(invoice.Date)}
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center no-print">
                   <span className="text-gray-300">وضعیت فاکتور:</span>
                   <span className="font-medium">
                     {invoice.Checked ? (
@@ -204,7 +240,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
 
               {/* Products Table */}
               <div className="overflow-x-auto bg-slate-800 rounded-lg">
-                <div className="overflow-auto max-h-[500px]">
+                <div className="overflow-auto max-h-[500px] invoice-table-container">
                   <table className="w-full text-xs sm:text-sm whitespace-nowrap">
                     <thead className="bg-slate-700 sticky top-0 z-10">
                       <tr>
@@ -217,7 +253,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                         <th className="p-2 sm:p-4 text-right font-medium text-gray-300">
                           گارانتی
                         </th>
-                        <th className="p-2 sm:p-4 text-right font-medium text-gray-300">
+                        <th className="p-2 sm:p-4 text-right font-medium text-gray-300 no-print">
                           عملیات
                         </th>
                       </tr>
@@ -241,7 +277,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                           // Generate item indicator for warranty
                           const itemIndicator =
                             sameProductItems.length > 1
-                              ? `عدد ${currentIndex + 1} از ${
+                              ? `محصول ${currentIndex + 1} از ${
                                   sameProductItems.length
                                 }: `
                               : "";
@@ -303,11 +339,11 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                                   <div className="flex flex-col gap-1">
                                     {item.individualWarranty.status ===
                                     "Expired" ? (
-                                      <span className="text-xs bg-red-900/40 text-red-300 px-2 py-1 rounded-full inline-block w-fit">
+                                      <span className="text-xs bg-red-900/40 text-red-300 px-2 py-1 rounded-full inline-block w-fit no-print">
                                         منقضی شده
                                       </span>
                                     ) : (
-                                      <span className="text-xs bg-green-900/40 text-green-300 px-2 py-1 rounded-full inline-block w-fit">
+                                      <span className="text-xs bg-green-900/40 text-green-300 px-2 py-1 rounded-full inline-block w-fit no-print">
                                         فعال
                                       </span>
                                     )}
@@ -347,7 +383,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                                   </span>
                                 )}
                               </td>
-                              <td className="p-2 sm:p-4">
+                              <td className="p-2 sm:p-4 no-print">
                                 <button
                                   onClick={() => handleManageWarranty(item)}
                                   className="text-xs bg-blue-700 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors"
@@ -393,7 +429,8 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-4 p-3 sm:p-6 border-t border-slate-700">
+        <div className="flex justify-between gap-4 p-3 sm:p-6 border-t border-slate-700 no-print">
+          <PrintButton onPrint={handleInvoicePrint} />
           <button
             onClick={onClose}
             className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors duration-200 text-gray-100 text-sm sm:text-base"
@@ -522,6 +559,65 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
           position: sticky;
           top: 0;
           z-index: 10;
+        }
+
+        /* Print-specific styles */
+        @media print {
+          .no-print {
+            display: none !important;
+          }
+
+          .print-only {
+            display: inline-block !important;
+          }
+
+          body {
+            background-color: white;
+            color: black;
+          }
+
+          .bg-slate-900,
+          .bg-slate-800,
+          .bg-slate-700 {
+            background-color: white !important;
+            color: black !important;
+          }
+
+          .text-gray-100,
+          .text-gray-300,
+          .text-gray-400 {
+            color: #333 !important;
+          }
+
+          /* Invoice table specific styles */
+          .invoice-table-container {
+            max-height: none !important;
+            height: auto !important;
+            overflow: visible !important;
+          }
+
+          /* Remove height limits and overflow restrictions when printing */
+          .overflow-auto,
+          .overflow-x-auto {
+            overflow: visible !important;
+            max-height: none !important;
+          }
+
+          /* Ensure table rows don't break across pages */
+          tr {
+            page-break-inside: avoid;
+          }
+
+          /* Ensure proper spacing between table rows in print */
+          td,
+          th {
+            padding: 8px !important;
+          }
+        }
+
+        /* Add class to hide logo in normal view */
+        .print-only {
+          display: none;
         }
       `}</style>
     </div>

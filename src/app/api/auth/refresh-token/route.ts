@@ -7,11 +7,15 @@ import { jwtVerify, SignJWT } from "jose"; // Using jose for JWT handling
 interface DecodedToken {
   userId: string;
   username: string;
+  role: string;
 }
 
 const REFRESH_TOKEN_SECRET =
   process.env.REFRESH_TOKEN_SECRET || "your_refresh_token_secret";
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+
+// Token expiration times (in seconds)
+const ACCESS_TOKEN_EXPIRATION = 15 * 60; // 15 minutes
 
 /**
  * Verifies a JWT using jose and returns the decoded payload.
@@ -27,22 +31,23 @@ async function verifyToken(
   try {
     const { payload } = await jwtVerify(token, secret);
 
-    // Ensure the required fields (userId and username) exist in the payload
+    // Ensure the required fields exist in the payload
     if (
       typeof payload.userId === "string" &&
-      typeof payload.username === "string"
+      typeof payload.username === "string" &&
+      typeof payload.role === "string"
     ) {
       return payload as unknown as DecodedToken;
     } else {
-      throw new Error("Invalid token payload: Missing required fields");
+      throw new Error("محتوای توکن نامعتبر است: فیلدهای ضروری وجود ندارند");
     }
   } catch (err: unknown) {
     // Ensure 'err' is of type 'Error' before accessing 'message'
     if (err instanceof Error) {
-      throw new Error("Invalid or expired refresh token: " + err.message);
+      throw new Error("توکن بازیابی نامعتبر یا منقضی شده است: " + err.message);
     } else {
       // Handle unexpected error types
-      throw new Error("Invalid or expired refresh token: Unknown error");
+      throw new Error("توکن بازیابی نامعتبر یا منقضی شده است: خطای ناشناخته");
     }
   }
 }
@@ -85,7 +90,7 @@ async function verifyToken(
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Refresh token is required
+ *                   example: توکن بازیابی الزامی است
  *       401:
  *         description: Unauthorized, invalid or expired refresh token
  *         content:
@@ -95,7 +100,7 @@ async function verifyToken(
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Invalid or expired refresh token
+ *                   example: توکن بازیابی نامعتبر یا منقضی شده است
  *       500:
  *         description: Internal server error
  *         content:
@@ -105,7 +110,7 @@ async function verifyToken(
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Internal Server Error
+ *                   example: خطای داخلی سرور
  */
 
 /**
@@ -116,12 +121,29 @@ async function verifyToken(
  */
 export async function POST(request: Request): Promise<NextResponse> {
   try {
-    const body = await request.json();
-    const refreshToken: string = body.refreshToken;
+    // Try to get refresh token from request body first
+    let refreshToken: string | undefined;
+
+    try {
+      const body = await request.json();
+      refreshToken = body.refreshToken;
+    } catch (e) {
+      // If request body parsing fails, check for refresh token in cookies
+      const cookies = request.headers.get("cookie");
+      if (cookies) {
+        const cookieObj = Object.fromEntries(
+          cookies.split("; ").map((c) => {
+            const [name, ...value] = c.split("=");
+            return [name, value.join("=")];
+          })
+        );
+        refreshToken = cookieObj.refreshToken;
+      }
+    }
 
     if (!refreshToken) {
       return NextResponse.json(
-        { message: "Refresh token is required" },
+        { message: "توکن بازیابی الزامی است" },
         { status: 400 }
       );
     }
@@ -144,6 +166,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const newAccessToken = await new SignJWT({
       userId: decodedToken.userId,
       username: decodedToken.username,
+      role: decodedToken.role,
     })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
@@ -151,18 +174,28 @@ export async function POST(request: Request): Promise<NextResponse> {
       .sign(new TextEncoder().encode(JWT_SECRET));
 
     // Set the new access token as an HTTP-only cookie
-    const response = NextResponse.json({ accessToken: newAccessToken });
+    const response = NextResponse.json({
+      accessToken: newAccessToken,
+      success: true,
+      user: {
+        userId: decodedToken.userId,
+        username: decodedToken.username,
+        role: decodedToken.role,
+      },
+    });
+
     response.cookies.set("accessToken", newAccessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 15 * 60, // 15 minutes
+      maxAge: ACCESS_TOKEN_EXPIRATION,
       path: "/",
     });
 
     return response;
   } catch (error) {
+    console.error("خطا در بازیابی توکن:", error);
     return NextResponse.json(
-      { message: "Internal Server Error" },
+      { message: "خطای داخلی سرور", success: false },
       { status: 500 }
     );
   }

@@ -142,59 +142,6 @@ export default function WarrantyStats({
   return (
     <div className="space-y-6 bg-gray-900 p-6 rounded-lg border border-gray-800 shadow-xl warranty-stats-wrapper">
       {/* Total Statistics Summary - Row Layout */}
-      <Card
-        className="border-0 shadow-lg mb-6"
-        style={{ backgroundColor: "#121f3b", borderColor: "#374151" }}
-        title={
-          <Title level={4} className="!text-white">
-            آمار گارانتی‌های شعبه شما
-          </Title>
-        }
-      >
-        <Row gutter={[16, 16]} justify="center">
-          <Col xs={24} md={8}>
-            <Card
-              className="text-center h-full border-0"
-              style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
-            >
-              <Statistic
-                title={<Text className="text-gray-300">گارانتی‌های فعال</Text>}
-                value={totalStats.active}
-                valueStyle={{ color: "#10B981", fontWeight: "bold" }}
-                prefix={<CheckCircleOutlined />}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} md={8}>
-            <Card
-              className="text-center h-full border-0"
-              style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
-            >
-              <Statistic
-                title={
-                  <Text className="text-gray-300">گارانتی‌های منقضی شده</Text>
-                }
-                value={totalStats.expired}
-                valueStyle={{ color: "#EF4444", fontWeight: "bold" }}
-                prefix={<CloseCircleOutlined />}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} md={8}>
-            <Card
-              className="text-center h-full border-0"
-              style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
-            >
-              <Statistic
-                title={<Text className="text-gray-300">درخواست‌های بررسی</Text>}
-                value={totalStats.requested}
-                valueStyle={{ color: "#F59E0B", fontWeight: "bold" }}
-                prefix={<SyncOutlined spin />}
-              />
-            </Card>
-          </Col>
-        </Row>
-      </Card>
 
       {/* Detailed breakdown for each period */}
       {statistics.length > 0 && (

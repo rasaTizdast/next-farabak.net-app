@@ -8,7 +8,7 @@ export async function POST(request: Request) {
 
     if (!blogId || !qrCodeKey) {
       return NextResponse.json(
-        { error: "Blog ID and QR Code Key are required" },
+        { error: "شناسه بلاگ و کلید کد QR الزامی هستند" },
         { status: 400 }
       );
     }
@@ -24,9 +24,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json(updatedBlog, { status: 200 });
   } catch (error) {
-    console.error("Error generating QR code:", error);
+    console.error("خطا در ایجاد کد QR:", error);
     return NextResponse.json(
-      { error: "Failed to generate QR code" },
+      { error: "ایجاد کد QR با مشکل مواجه شد" },
       { status: 500 }
     );
   }
@@ -39,7 +39,7 @@ export async function DELETE(request: Request) {
 
     if (!blogId) {
       return NextResponse.json(
-        { error: "Blog ID is required" },
+        { error: "شناسه بلاگ الزامی است" },
         { status: 400 }
       );
     }
@@ -55,9 +55,9 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json(updatedBlog, { status: 200 });
   } catch (error) {
-    console.error("Error deleting QR code:", error);
+    console.error("خطا در حذف کد QR:", error);
     return NextResponse.json(
-      { error: "Failed to delete QR code" },
+      { error: "حذف کد QR با مشکل مواجه شد" },
       { status: 500 }
     );
   }

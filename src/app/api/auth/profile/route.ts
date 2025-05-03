@@ -85,7 +85,7 @@ export async function GET(): Promise<NextResponse> {
 
     if (!token) {
       return NextResponse.json(
-        { message: "Authorization token required" },
+        { message: "توکن احراز هویت الزامی است" },
         { status: 401 }
       );
     }
@@ -106,7 +106,7 @@ export async function GET(): Promise<NextResponse> {
     });
 
     if (!user) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+      return NextResponse.json({ message: "کاربر یافت نشد" }, { status: 404 });
     }
 
     return NextResponse.json({
@@ -118,10 +118,7 @@ export async function GET(): Promise<NextResponse> {
       role: user.Role,
     });
   } catch (error) {
-    return NextResponse.json(
-      { message: "Internal Server Error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
   }
 }
 
@@ -132,7 +129,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
 
     if (!token) {
       return NextResponse.json(
-        { message: "Authorization token required" },
+        { message: "توکن احراز هویت الزامی است" },
         { status: 401 }
       );
     }
@@ -151,7 +148,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(
-        { message: "No data provided for update" },
+        { message: "هیچ داده‌ای برای به‌روزرسانی ارائه نشده است" },
         { status: 400 }
       );
     }
@@ -168,11 +165,8 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       },
     });
 
-    return NextResponse.json({ message: "Profile updated successfully" });
+    return NextResponse.json({ message: "پروفایل با موفقیت به‌روزرسانی شد" });
   } catch (error) {
-    return NextResponse.json(
-      { message: "Internal Server Error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
   }
 }

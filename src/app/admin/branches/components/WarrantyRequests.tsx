@@ -40,7 +40,9 @@ interface WarrantyRequestsProps {
   isTabActive?: boolean;
 }
 
-export default function WarrantyRequests({ isTabActive = true }: WarrantyRequestsProps) {
+export default function WarrantyRequests({
+  isTabActive = true,
+}: WarrantyRequestsProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [requests, setRequests] = useState<WarrantyRequest[]>([]);
@@ -53,49 +55,48 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
     totalPages: 0,
   });
 
-  const fetchRequests = useCallback(async (page: number = 1, pageSize: number = 10, force: boolean = false) => {
-    // Skip if not active and not forced
-    if (!isTabActive && !force) return;
-    
-    // Skip if we've fetched in the last 10 seconds and not forced
-    const now = Date.now();
-    if (!force && now - lastFetchTime < 10000 && dataFetched) return;
-    
-    console.log("[Client] Fetching warranty requests...", { page, pageSize });
-    
-    try {
-      setLoading(true);
-      const response = await fetch(
-        `/api/admin/warranty/requests?page=${page}&limit=${pageSize}`
-      );
+  const fetchRequests = useCallback(
+    async (page: number = 1, pageSize: number = 10, force: boolean = false) => {
+      // Skip if not active and not forced
+      if (!isTabActive && !force) return;
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch warranty requests");
+      // Skip if we've fetched in the last 10 seconds and not forced
+      const now = Date.now();
+      if (!force && now - lastFetchTime < 10000 && dataFetched) return;
+
+      try {
+        setLoading(true);
+        const response = await fetch(
+          `/api/admin/warranty/requests?page=${page}&limit=${pageSize}`
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch warranty requests");
+        }
+
+        const data = await response.json();
+
+        setRequests(data.requests);
+        setPagination({
+          current: data.pagination.currentPage,
+          pageSize: data.pagination.pageSize,
+          total: data.pagination.totalCount,
+          totalPages: data.pagination.totalPages,
+        });
+        setDataFetched(true);
+        setLastFetchTime(now);
+      } catch (err: any) {
+        console.error("[Client] Error fetching warranty requests:", err);
+        setError(err.message || "خطا در دریافت درخواست‌های گارانتی");
+      } finally {
+        setLoading(false);
       }
-
-      const data = await response.json();
-      console.log("[Client] Warranty requests received:", data);
-      
-      setRequests(data.requests);
-      setPagination({
-        current: data.pagination.currentPage,
-        pageSize: data.pagination.pageSize,
-        total: data.pagination.totalCount,
-        totalPages: data.pagination.totalPages,
-      });
-      setDataFetched(true);
-      setLastFetchTime(now);
-    } catch (err: any) {
-      console.error("[Client] Error fetching warranty requests:", err);
-      setError(err.message || "خطا در دریافت درخواست‌های گارانتی");
-    } finally {
-      setLoading(false);
-    }
-  }, [isTabActive, dataFetched, lastFetchTime]);
+    },
+    [isTabActive, dataFetched, lastFetchTime]
+  );
 
   // Fetch data when the tab becomes active
   useEffect(() => {
-    console.log("[Client] WarrantyRequests tab active state changed:", isTabActive);
     if (isTabActive) {
       fetchRequests(pagination.current, pagination.pageSize, false);
     }
@@ -253,10 +254,14 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
     <div className="space-y-4">
       {/* Header with refresh button */}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-white">درخواست‌های بررسی گارانتی</h2>
-        <Button 
-          onClick={() => fetchRequests(pagination.current, pagination.pageSize, true)} 
-          icon={<ReloadOutlined />} 
+        <h2 className="text-xl font-bold text-white">
+          درخواست‌های بررسی گارانتی
+        </h2>
+        <Button
+          onClick={() =>
+            fetchRequests(pagination.current, pagination.pageSize, true)
+          }
+          icon={<ReloadOutlined />}
           loading={loading}
           className="bg-blue-600 hover:bg-blue-700 text-white"
         >
@@ -265,23 +270,25 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
       </div>
 
       {error ? (
-        <Alert 
-          message="خطا" 
+        <Alert
+          message="خطا"
           description={
             <div>
               <p>{error}</p>
-              <Button 
-                type="primary" 
-                onClick={() => fetchRequests(pagination.current, pagination.pageSize, true)} 
+              <Button
+                type="primary"
+                onClick={() =>
+                  fetchRequests(pagination.current, pagination.pageSize, true)
+                }
                 icon={<ReloadOutlined />}
                 className="mt-4"
               >
                 تلاش مجدد
               </Button>
             </div>
-          } 
-          type="error" 
-          showIcon 
+          }
+          type="error"
+          showIcon
         />
       ) : loading ? (
         <div className="flex justify-center items-center p-8">
@@ -305,7 +312,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
               className="warranty-requests-table"
             />
           </div>
-          
+
           {pagination.total > pagination.pageSize && (
             <div className="flex justify-center mt-4">
               <Pagination
@@ -325,43 +332,46 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
 
       <style jsx global>{`
         .warranty-requests-table .ant-table {
-          background-color: #1F2937;
+          background-color: #1f2937;
           color: white;
         }
-        
+
         .warranty-requests-table .ant-table-thead > tr > th {
           background-color: #263244;
           color: white;
           text-align: center;
           font-weight: 600;
         }
-        
+
         .warranty-requests-table .ant-table-tbody > tr > td {
           border-color: #374151;
           transition: background 0.2s;
         }
-        
+
         .warranty-requests-table .ant-table-tbody > tr:nth-child(odd) {
-          background-color: #1F2937;
+          background-color: #1f2937;
         }
-        
+
         .warranty-requests-table .ant-table-tbody > tr:nth-child(even) {
           background-color: #263144;
         }
-        
-        .warranty-requests-table .ant-table-tbody > tr.ant-table-row:hover > td {
+
+        .warranty-requests-table
+          .ant-table-tbody
+          > tr.ant-table-row:hover
+          > td {
           background-color: #374151;
         }
-        
+
         .custom-pagination .ant-pagination-item-active {
-          background-color: #2563EB;
-          border-color: #2563EB;
+          background-color: #2563eb;
+          border-color: #2563eb;
         }
-        
+
         .custom-pagination .ant-pagination-item-active a {
           color: white;
         }
-        
+
         .ant-tag {
           margin: 0;
           text-align: center;

@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       !password
     ) {
       return NextResponse.json(
-        { message: "Missing required fields" },
+        { message: "لطفا تمام فیلدهای ضروری را تکمیل کنید" },
         { status: 400 }
       );
     }
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { message: "User already exists" },
+        { message: "این نام کاربری یا ایمیل قبلاً ثبت شده است" },
         { status: 400 }
       );
     }
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
 
     // Set cookies
     const response = NextResponse.json({
-      message: "User registered successfully",
+      message: "ثبت نام با موفقیت انجام شد",
     });
     response.cookies.set("accessToken", accessToken, {
       httpOnly: true,
@@ -118,7 +118,7 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     return NextResponse.json(
-      { message: "Internal Server Error" },
+      { message: "خطای داخلی سرور رخ داده است" },
       { status: 500 }
     );
   }

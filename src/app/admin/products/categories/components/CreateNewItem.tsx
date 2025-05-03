@@ -21,7 +21,7 @@ const CreateNewItem = ({ refetchCategories, isLoading, categories }: Props) => {
           <div className="animate-pulse p-3 rounded-xl bg-gray-300 shadow-lg w-full h-[50px] max-w-64"></div>
         ) : (
           <button
-            className="p-3 rounded-xl bg-blue-300 shadow-lg hover:bg-blue-400 transition-all text-xs md:text-md"
+            className="p-3 rounded-xl bg-blue-300 shadow-lg hover:bg-blue-400 transition-all text-md"
             onClick={openModalHandler}
           >
             ساخت دسته‌بندی یا زیردسته‌بندی جدید
