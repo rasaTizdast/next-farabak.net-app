@@ -104,6 +104,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `https://farabak.net/support/blog` },
     { url: `https://farabak.net/support/blog/reolink/` },
     { url: `https://farabak.net/support/blog/reolink/reolink-products` },
+    {
+      url: `https://farabak.net/support/blog/reolink/common-mistakes-buying-cctv`,
+    },
+    {
+      url: `https://farabak.net/support/blog/reolink/wireless-wired-cctv-comparison`,
+    },
+    { url: `https://farabak.net/support/blog/x-ray/x-ray` },
+    {
+      url: `https://farabak.net/support/blog/reolink/2025-technologies-in-cctv`,
+    },
+    {
+      url: `https://farabak.net/support/blog/phase1-cameras/150-megapixel-imaging-cameras`,
+    },
+    { url: `https://farabak.net/support/blog/reolink/wiring` },
+    { url: `https://farabak.net/support/blog/reolink/-wiring-` },
 
     { url: `https://farabak.net/about-us` },
     { url: `https://farabak.net/about-us/projects` },
