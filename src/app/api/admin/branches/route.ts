@@ -40,6 +40,13 @@ export async function GET(request: Request) {
 
     let branchesWithCounts;
     let totalCount;
+    let totalBranchCount = 0;
+
+    // Always get total count of branches for reference
+    const allBranchesCount = await prisma.$queryRaw`
+      SELECT COUNT(*) as total FROM "support"."branch"
+    `;
+    totalBranchCount = Number((allBranchesCount as any[])[0].total);
 
     if (productId) {
       // First get total count of branches that have this product
@@ -94,6 +101,7 @@ export async function GET(request: Request) {
       `;
 
       totalCount = Number((countResult as any[])[0].total);
+      totalBranchCount = totalCount;
 
       // Get all branches with product counts and total quantities with pagination
       branchesWithCounts = await prisma.$queryRaw`
@@ -139,6 +147,7 @@ export async function GET(request: Request) {
       data: sanitizedData,
       pagination: {
         totalCount,
+        totalBranchCount,
         currentPage: page,
         totalPages,
         hasNextPage: page < totalPages,
