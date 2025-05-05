@@ -40,6 +40,7 @@ import moment from "jalali-moment";
 import SkeletonLoading from "./components/SkeletonLoading";
 import WarrantyStats from "./components/WarrantyStats";
 import WarrantyRequests from "../components/WarrantyRequests";
+import BranchProductSearch from "./components/BranchProductSearch";
 
 function MyBranchContent() {
   const [branch, setBranch] = useState<Branch | null>(null);
@@ -1192,77 +1193,83 @@ function MyBranchContent() {
               </span>
             ),
             children: (
-              <Card
-                title={
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-medium">محصولات شعبه</span>
-                    <Button
-                      type="primary"
-                      onClick={() => setProductDrawerVisible(true)}
-                      className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 border-blue-700"
-                    >
-                      <span>افزودن محصول</span>
-                      <PlusOutlined className="mr-2" />
-                    </Button>
-                  </div>
-                }
-                className="bg-gray-800 rounded-lg overflow-hidden text-white border-0"
-                headStyle={{
-                  backgroundColor: "#19202b",
-                  borderBottom: "1px solid #374151",
-                  color: "#f3f4f6",
-                  padding: "16px 20px",
-                  fontFamily: "inherit",
-                }}
-                bodyStyle={{
-                  backgroundColor: "#19202b",
-                  padding: "16px 20px",
-                  fontFamily: "inherit",
-                }}
-              >
-                {productsLoading ? (
-                  <div className="flex justify-center my-8">
-                    <Spin />
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table
-                      columns={productColumns}
-                      dataSource={products}
-                      rowKey="ProductId"
-                      pagination={{
-                        current: productPagination.current,
-                        pageSize: productPagination.pageSize,
-                        total: productPagination.total,
-                        onChange: (page, pageSize) => {
-                          if (branch) {
-                            fetchBranchProducts(
-                              branch.branchid,
-                              page,
-                              pageSize || productPagination.pageSize
-                            );
-                          }
-                        },
-                        showSizeChanger: true,
-                        showQuickJumper: true,
-                        pageSizeOptions: ["10", "20", "50"],
-                        position: ["bottomCenter"],
-                        className: "pagination-dark",
-                      }}
-                      className="dark-table enhanced-table rtl-table"
-                      locale={{
-                        emptyText: (
-                          <Empty
-                            description="هیچ محصولی برای این شعبه یافت نشد"
-                            image={Empty.PRESENTED_IMAGE_SIMPLE}
-                            className="text-gray-400"
-                          />
-                        ),
-                      }}
-                    />
-                  </div>
-                )}
-              </Card>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Branch Products Section */}
+                <Card
+                  title={
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-medium">محصولات شعبه</span>
+                      <Button
+                        type="primary"
+                        onClick={() => setProductDrawerVisible(true)}
+                        className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 border-blue-700"
+                      >
+                        <span>افزودن محصول</span>
+                        <PlusOutlined className="mr-2" />
+                      </Button>
+                    </div>
+                  }
+                  className="bg-gray-800 rounded-lg overflow-hidden text-white border-0"
+                  headStyle={{
+                    backgroundColor: "#19202b",
+                    borderBottom: "1px solid #374151",
+                    color: "#f3f4f6",
+                    padding: "16px 20px",
+                    fontFamily: "inherit",
+                  }}
+                  bodyStyle={{
+                    backgroundColor: "#19202b",
+                    padding: "16px 20px",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  {productsLoading ? (
+                    <div className="flex justify-center my-8">
+                      <Spin />
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table
+                        columns={productColumns}
+                        dataSource={products}
+                        rowKey="ProductId"
+                        pagination={{
+                          current: productPagination.current,
+                          pageSize: productPagination.pageSize,
+                          total: productPagination.total,
+                          onChange: (page, pageSize) => {
+                            if (branch) {
+                              fetchBranchProducts(
+                                branch.branchid,
+                                page,
+                                pageSize || productPagination.pageSize
+                              );
+                            }
+                          },
+                          showSizeChanger: true,
+                          showQuickJumper: true,
+                          pageSizeOptions: ["10", "20", "50"],
+                          position: ["bottomCenter"],
+                          className: "pagination-dark",
+                        }}
+                        className="dark-table enhanced-table rtl-table"
+                        locale={{
+                          emptyText: (
+                            <Empty
+                              description="هیچ محصولی برای این شعبه یافت نشد"
+                              image={Empty.PRESENTED_IMAGE_SIMPLE}
+                              className="text-gray-400"
+                            />
+                          ),
+                        }}
+                      />
+                    </div>
+                  )}
+                </Card>
+                
+                {/* Product Search in Other Branches Section */}
+                <BranchProductSearch isTabActive={activeTab === "products"} />
+              </div>
             ),
           },
           {
@@ -2297,6 +2304,102 @@ function MyBranchContent() {
           .ant-pagination-options-size-changer:hover
           .ant-select-selector {
           border-color: #3b82f6 !important;
+        }
+
+        /* Branch product search styles */
+        .branch-product-search .ant-select-selector {
+          background-color: #374151 !important;
+          border-color: #4b5563 !important;
+          color: white !important;
+        }
+
+        .branch-product-search .ant-select-selection-placeholder {
+          color: rgba(255, 255, 255, 0.5) !important;
+        }
+        
+        .branch-product-search .ant-select-arrow {
+          color: #9ca3af !important;
+        }
+        
+        .branch-product-search .ant-select-focused .ant-select-selector {
+          border-color: #3b82f6 !important;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+        }
+        
+        .branch-product-search .ant-input {
+          background-color: #374151 !important;
+          border-color: #4b5563 !important;
+          color: white !important;
+        }
+        
+        .branch-product-search .ant-input::placeholder {
+          color: rgba(255, 255, 255, 0.5) !important;
+        }
+        
+        .branch-product-search .ant-input:focus,
+        .branch-product-search .ant-input-focused {
+          border-color: #3b82f6 !important;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+        }
+
+        .branch-result-table .ant-table {
+          background-color: #1f2937 !important;
+        }
+        
+        .branch-result-table .ant-table-thead > tr > th {
+          background-color: #263244 !important;
+          color: white !important;
+          font-weight: 600 !important;
+          padding: 16px 12px !important;
+          border-color: #374151 !important;
+        }
+
+        .branch-result-table .ant-table-tbody > tr > td {
+          border-color: #374151 !important;
+          padding: 12px !important;
+          transition: background 0.2s ease;
+        }
+
+        .branch-result-table .ant-table-tbody > tr:nth-child(odd) {
+          background-color: #1f2937 !important;
+        }
+
+        .branch-result-table .ant-table-tbody > tr:nth-child(even) {
+          background-color: #1a2234 !important;
+        }
+
+        .branch-result-table .ant-table-tbody > tr.ant-table-row:hover > td {
+          background-color: #2d3748 !important;
+        }
+
+        /* RTL Modal */
+        .rtl-modal .ant-modal-content {
+          direction: rtl;
+          text-align: right;
+        }
+
+        .rtl-modal .ant-modal-header {
+          direction: rtl;
+          text-align: right;
+        }
+
+        .rtl-modal .ant-modal-title {
+          text-align: right;
+        }
+
+        .rtl-modal .ant-modal-footer {
+          text-align: left;
+        }
+
+        .rtl-modal .ant-form-item-label {
+          text-align: right;
+        }
+
+        .rtl-modal .ant-input-number-handler-wrap {
+          right: auto;
+          left: 0;
+          border-right: 1px solid #434343;
+          border-left: 0;
         }
       `}</style>
     </div>
