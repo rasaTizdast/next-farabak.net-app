@@ -47,8 +47,16 @@ const SignIn = () => {
       const response = await axios.post("/api/auth/login", data);
       if (response.data.message === "ورود با موفقیت انجام شد") {
         updateUserContext();
-        // Redirect to the dashboard on success
-        router.push("/dashboard");
+        // Redirect based on user role
+        const userRole = response.data.role;
+        if (userRole === "Admin") {
+          router.push("/admin");
+        } else if (userRole === "Branch") {
+          router.push("/admin/branches/my");
+        } else {
+          // Default case for regular users
+          router.push("/dashboard");
+        }
       } else {
         setErrorMessage(response.data.message || "خطا در فرایند ورود.");
       }

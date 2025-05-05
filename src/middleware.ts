@@ -138,7 +138,7 @@ export async function middleware(req: ExtendedNextRequest) {
         if (user.role === "Branch") {
           // Allow branch users only to access their specific branch page and related pages
           if (
-            req.nextUrl.pathname === "/admin/branches/my" || 
+            req.nextUrl.pathname === "/admin/branches/my" ||
             req.nextUrl.pathname === "/admin/branches/my/invoices" ||
             req.nextUrl.pathname.startsWith("/admin/branches/my/invoices/")
           ) {
@@ -148,7 +148,9 @@ export async function middleware(req: ExtendedNextRequest) {
             req.nextUrl.pathname === "/admin/"
           ) {
             // Redirect to their branch page if they try to access the admin home
-            return NextResponse.redirect(new URL("/admin/branches/my", req.url));
+            return NextResponse.redirect(
+              new URL("/admin/branches/my", req.url)
+            );
           } else {
             // Add an error message as a searchParam and redirect to their branch page
             const redirectUrl = new URL("/admin/branches/my", req.url);
@@ -182,12 +184,12 @@ export async function middleware(req: ExtendedNextRequest) {
       return NextResponse.next(); // Proceed to the requested route if all checks pass
     } catch (error) {
       console.error("Access token verification error:", error);
-      
+
       // Handle 401 errors - try to refresh token and retry the request
       if (refreshToken) {
         try {
           const newAccessToken = await refreshAccessToken(refreshToken);
-          
+
           // Create a new response with the refreshed token
           const response = NextResponse.next();
           response.cookies.set("accessToken", newAccessToken, {
@@ -195,7 +197,7 @@ export async function middleware(req: ExtendedNextRequest) {
             path: "/",
             maxAge: ACCESS_TOKEN_EXPIRATION,
           });
-          
+
           // Get user info from the refresh token to attach to the request
           const { payload } = await jwtVerify(
             refreshToken,
@@ -206,10 +208,10 @@ export async function middleware(req: ExtendedNextRequest) {
             username: string;
             role: string;
           };
-          
+
           // Attach user info to request for downstream middleware/handlers
           req.user = user;
-          
+
           return response; // Retry the original request with new token
         } catch (refreshError) {
           console.error("Failed to refresh token after 401:", refreshError);
