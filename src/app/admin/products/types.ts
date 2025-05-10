@@ -33,7 +33,7 @@ export type Overview = {
   Property2: string;
   Property3: string;
   Property4: string;
-  isChanged: true;
+  isChanged: boolean;
 };
 
 export type OverviewDetail = {
