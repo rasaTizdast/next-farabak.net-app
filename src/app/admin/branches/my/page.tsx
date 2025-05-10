@@ -896,10 +896,10 @@ function MyBranchContent() {
       // className: "text-center",
       render: (quantity: number, record: Product) => (
         <InputNumber
-          min={0}
+          min={record.quantity}
           value={debouncedQuantities[record.ProductId] ?? record.quantity}
           onChange={(value) => {
-            if (value !== null) {
+            if (value !== null && value >= record.quantity) {
               handleDebouncedQuantityChange(record.ProductId, value);
             }
           }}
@@ -1266,7 +1266,7 @@ function MyBranchContent() {
                     </div>
                   )}
                 </Card>
-                
+
                 {/* Product Search in Other Branches Section */}
                 <BranchProductSearch isTabActive={activeTab === "products"} />
               </div>
@@ -2316,26 +2316,26 @@ function MyBranchContent() {
         .branch-product-search .ant-select-selection-placeholder {
           color: rgba(255, 255, 255, 0.5) !important;
         }
-        
+
         .branch-product-search .ant-select-arrow {
           color: #9ca3af !important;
         }
-        
+
         .branch-product-search .ant-select-focused .ant-select-selector {
           border-color: #3b82f6 !important;
           box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
         }
-        
+
         .branch-product-search .ant-input {
           background-color: #374151 !important;
           border-color: #4b5563 !important;
           color: white !important;
         }
-        
+
         .branch-product-search .ant-input::placeholder {
           color: rgba(255, 255, 255, 0.5) !important;
         }
-        
+
         .branch-product-search .ant-input:focus,
         .branch-product-search .ant-input-focused {
           border-color: #3b82f6 !important;
@@ -2345,7 +2345,7 @@ function MyBranchContent() {
         .branch-result-table .ant-table {
           background-color: #1f2937 !important;
         }
-        
+
         .branch-result-table .ant-table-thead > tr > th {
           background-color: #263244 !important;
           color: white !important;

@@ -1,7 +1,7 @@
-import React from 'react';
-import { Form, Select, InputNumber, Button } from 'antd';
+import React from "react";
+import { Form, Select, InputNumber, Button } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { Product } from './types';
+import { Product } from "./types";
 
 interface ProductFormProps {
   form: any;
@@ -16,7 +16,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   allProducts,
   onFinish,
   onSelectProduct,
-  onQuantityChange
+  onQuantityChange,
 }) => {
   return (
     <div className="mb-6 bg-gray-800 p-4 rounded-lg">
@@ -34,9 +34,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             name="productId"
             label={<span className="text-gray-300">محصول</span>}
             className="flex-1 min-w-[200px]"
-            rules={[
-              { required: true, message: "لطفاً یک محصول انتخاب کنید" },
-            ]}
+            rules={[{ required: true, message: "لطفاً یک محصول انتخاب کنید" }]}
           >
             <Select
               placeholder="انتخاب محصول"
@@ -64,7 +62,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
           >
             <InputNumber
               min={1}
-              onChange={onQuantityChange}
+              onChange={(value) => {
+                if (value !== null && value >= 1) {
+                  onQuantityChange(value);
+                }
+              }}
               className="w-full text-right dark-input-number"
               style={{
                 backgroundColor: "#374151",
@@ -90,4 +92,4 @@ const ProductForm: React.FC<ProductFormProps> = ({
   );
 };
 
-export default ProductForm; 
+export default ProductForm;
