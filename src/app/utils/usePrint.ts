@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef } from "react";
 
 export interface PrintOptions {
   hideElements?: string[];
@@ -13,45 +13,70 @@ export const usePrint = () => {
   const handlePrint = (options: PrintOptions = {}) => {
     if (!componentRef.current) return;
 
-    const { hideElements = [], printTitle, compactMode = false, stickerMode = false } = options;
+    const {
+      hideElements = [],
+      printTitle,
+      compactMode = false,
+      stickerMode = false,
+    } = options;
 
     // Store original title to restore later
     const originalTitle = document.title;
-    
+
     // Set print-specific title if provided
     if (printTitle) {
       document.title = printTitle;
     }
 
     // Create a new window for printing
-    const printWindow = window.open('', '_blank');
-    
+    const printWindow = window.open("", "_blank");
+
     if (!printWindow) {
-      alert('لطفاً اجازه باز شدن پنجره جدید را بدهید.');
+      alert("لطفاً اجازه باز شدن پنجره جدید را بدهید.");
       return;
     }
 
     // Get all stylesheets from the current document
     const stylesheets = Array.from(document.styleSheets);
     const styleLinks = stylesheets
-      .map(stylesheet => {
+      .map((stylesheet) => {
         if (stylesheet.href) {
           return `<link rel="stylesheet" href="${stylesheet.href}" />`;
         }
-        return '';
+        return "";
       })
-      .join('');
+      .join("");
+
+    // Get the font path from the root
+    const fontPath = "/fonts/Vazirmatn-VariableFont_wght.ttf";
 
     // Create print-specific stylesheet
     const printStyles = `
       <style>
+        /* Add Vazirmatn font-face declaration */
+        @font-face {
+          font-family: 'Vazirmatn';
+          src: url('${fontPath}') format('truetype');
+          font-weight: 100 900;
+          font-style: normal;
+          font-display: swap;
+        }
+        
+        :root {
+          --font-vazirmatn: 'Vazirmatn', Tahoma, Arial, sans-serif;
+        }
+        
+        * {
+          font-family: var(--font-vazirmatn) !important;
+        }
+        
         @media print {
           body {
             background-color: white;
             color: black;
-            font-family: Tahoma, Arial, sans-serif;
-            ${compactMode ? 'font-size: 90%;' : ''}
-            ${stickerMode ? 'margin: 0; padding: 0;' : ''}
+            font-family: var(--font-vazirmatn) !important;
+            ${compactMode ? "font-size: 90%;" : ""}
+            ${stickerMode ? "margin: 0; padding: 0;" : ""}
           }
           
           /* Light mode conversion */
@@ -71,7 +96,9 @@ export const usePrint = () => {
           }
           
           /* Custom hide elements */
-          ${hideElements.map(selector => `${selector} { display: none !important; }`).join('\n')}
+          ${hideElements
+            .map((selector) => `${selector} { display: none !important; }`)
+            .join("\n")}
           
           /* Default hide elements for all print templates */
           button, .no-print {
@@ -82,13 +109,15 @@ export const usePrint = () => {
           table {
             width: 100%;
             border-collapse: collapse;
-            ${compactMode ? 'font-size: 90%;' : ''}
+            ${compactMode ? "font-size: 90%;" : ""}
+            font-family: var(--font-vazirmatn) !important;
           }
           
           th, td {
             border: 1px solid #ddd;
-            padding: ${compactMode ? '4px' : '8px'};
+            padding: ${compactMode ? "4px" : "8px"};
             text-align: right;
+            font-family: var(--font-vazirmatn) !important;
           }
           
           th {
@@ -131,7 +160,9 @@ export const usePrint = () => {
           }
 
           /* Compact spacing for all elements */
-          ${compactMode ? `
+          ${
+            compactMode
+              ? `
           p {
             margin: 5px 0;
           }
@@ -152,10 +183,14 @@ export const usePrint = () => {
             margin-top: 8px !important;
             margin-bottom: 8px !important;
           }
-          ` : ''}
+          `
+              : ""
+          }
 
           /* Sticker mode for warranty card */
-          ${stickerMode ? `
+          ${
+            stickerMode
+              ? `
           @page {
             size: 3.5in 2in !important;
             margin: 0 !important;
@@ -187,12 +222,14 @@ export const usePrint = () => {
             box-sizing: border-box !important;
             display: flex !important;
             flex-direction: column !important;
+            font-family: var(--font-vazirmatn) !important;
           }
 
           .warranty-certificate h1 {
             font-size: 9pt !important;
             margin: 2px 0 !important;
             padding: 0 !important;
+            font-family: var(--font-vazirmatn) !important;
           }
 
           .warranty-certificate p {
@@ -200,6 +237,7 @@ export const usePrint = () => {
             padding: 0 !important;
             font-size: 6pt !important;
             line-height: 1.2 !important;
+            font-family: var(--font-vazirmatn) !important;
           }
 
           .warranty-certificate .flex {
@@ -232,27 +270,29 @@ export const usePrint = () => {
           .warranty-certificate .text-center {
             text-align: center !important;
           }
-          ` : ''}
+          `
+              : ""
+          }
         }
       </style>
     `;
 
     // Clone and prepare the content
     const content = componentRef.current.cloneNode(true) as HTMLElement;
-    
+
     // Apply print-only modifications to the cloned content
-    hideElements.forEach(selector => {
+    hideElements.forEach((selector) => {
       const elements = content.querySelectorAll(selector);
-      elements.forEach(el => {
+      elements.forEach((el) => {
         if (el instanceof HTMLElement) {
-          el.style.display = 'none';
+          el.style.display = "none";
         }
       });
     });
 
     // Populate the print window with special handling for sticker mode
     printWindow.document.open();
-    
+
     if (stickerMode) {
       // For sticker, create a minimal, tightly controlled document
       printWindow.document.write(`
@@ -262,17 +302,22 @@ export const usePrint = () => {
             <title>${printTitle || document.title}</title>
             ${styleLinks}
             ${printStyles}
-          </head>
-          <body style="margin:0;padding:0;overflow:hidden;width:3.5in;height:2in">
-            ${componentRef.current.innerHTML}
             <script>
-              window.onload = function() {
-                window.print();
-                setTimeout(function() {
-                  window.close();
-                }, 500);
-              };
+              // Ensure fonts are loaded before printing
+              document.fonts.ready.then(function() {
+                window.onload = function() {
+                  setTimeout(function() {
+                    window.print();
+                    setTimeout(function() {
+                      window.close();
+                    }, 500);
+                  }, 200); // Small delay to ensure font rendering
+                };
+              });
             </script>
+          </head>
+          <body style="margin:0;padding:0;overflow:hidden;width:3.5in;height:2in;font-family:var(--font-vazirmatn);">
+            ${componentRef.current.innerHTML}
           </body>
         </html>
       `);
@@ -285,22 +330,27 @@ export const usePrint = () => {
             <title>${printTitle || document.title}</title>
             ${styleLinks}
             ${printStyles}
-          </head>
-          <body>
-            ${content.outerHTML}
             <script>
-              window.onload = function() {
-                window.print();
-                setTimeout(function() {
-                  window.close();
-                }, 500);
-              };
+              // Ensure fonts are loaded before printing
+              document.fonts.ready.then(function() {
+                window.onload = function() {
+                  setTimeout(function() {
+                    window.print();
+                    setTimeout(function() {
+                      window.close();
+                    }, 200);
+                  }, 200); // Small delay to ensure font rendering
+                };
+              });
             </script>
+          </head>
+          <body style="font-family:var(--font-vazirmatn);">
+            ${content.outerHTML}
           </body>
         </html>
       `);
     }
-    
+
     printWindow.document.close();
 
     // Restore original title
@@ -308,4 +358,4 @@ export const usePrint = () => {
   };
 
   return { componentRef, handlePrint };
-}; 
+};
