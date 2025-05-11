@@ -364,7 +364,7 @@ const TipTapBlogEditor = ({
       ref={editorContainerRef}
     >
       {/* Fixed Toolbar */}
-      <div className="sticky top-0 z-20 bg-gray-800 p-2 border-b border-gray-600 rounded-t-lg shadow-lg">
+      <div className="sticky -top-6 z-20 bg-gray-800 p-2 border-b border-gray-600 rounded-t-lg shadow-lg">
         <div className="flex flex-wrap items-center gap-1">
           <div className="flex items-center gap-1">
             <ToolbarButton

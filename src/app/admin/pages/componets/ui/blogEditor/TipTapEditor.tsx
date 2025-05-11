@@ -218,7 +218,7 @@ const TipTapBlogEditor = ({
 
   // Function to check if a URL is external
   const isExternalUrl = (url: string): boolean => {
-    return url.startsWith('http://') || url.startsWith('https://');
+    return url.startsWith("http://") || url.startsWith("https://");
   };
 
   const setLink = useCallback(() => {
@@ -267,11 +267,12 @@ const TipTapBlogEditor = ({
             }
 
             // For custom sizes, add a style attribute as well
-            const styleAttr = size === "custom" ? `style="--img-width:${width}px"` : "";
-            
+            const styleAttr =
+              size === "custom" ? `style="--img-width:${width}px"` : "";
+
             // Handle external URLs differently
             const imgSrc = isExternalUrl(src) ? src : `${src}`;
-            
+
             if (isExternalUrl(src)) {
               // For external URLs, use unoptimized Image with domain property
               return `<img src="${imgSrc}" alt="${alt}" width="${width}" height="${height}" className="${tailwindClass}" />`;
@@ -288,7 +289,7 @@ const TipTapBlogEditor = ({
             // If this regex matches, it means our first replace didn't catch it (no data-size)
             // Handle external URLs differently
             const imgSrc = isExternalUrl(src) ? src : `${src}`;
-            
+
             if (isExternalUrl(src)) {
               // For external URLs, use unoptimized Image with domain property
               return `<img src="${imgSrc}" alt="${alt}" width="${width}" height="${height}" className="w-full" />`;
@@ -386,26 +387,28 @@ const TipTapBlogEditor = ({
         /<img\s+src="([^"]+)"([^>]*)>/g,
         (match, src, rest) => {
           // Always preserve the original URL to avoid prefixing with bucket URL
-          
+
           // Extract existing width and height if available
           const widthMatch = rest.match(/width="([^"]+)"/);
           const heightMatch = rest.match(/height="([^"]+)"/);
-          
+
           const width = widthMatch ? widthMatch[1] : DEFAULT_WIDTH;
           const height = heightMatch ? heightMatch[1] : DEFAULT_HEIGHT;
-          
+
           // Add width and height if they're missing
-          const widthAttr = widthMatch ? '' : ` width="${DEFAULT_WIDTH}"`;
-          const heightAttr = heightMatch ? '' : ` height="${DEFAULT_HEIGHT}"`;
-          
+          const widthAttr = widthMatch ? "" : ` width="${DEFAULT_WIDTH}"`;
+          const heightAttr = heightMatch ? "" : ` height="${DEFAULT_HEIGHT}"`;
+
           // Ensure we have data-size attribute to identify imported images
-          const dataSize = rest.includes('data-size') ? '' : ' data-size="full"';
-          
+          const dataSize = rest.includes("data-size")
+            ? ""
+            : ' data-size="full"';
+
           // Preserve original URL but ensure other attributes are added
           return `<img src="${src}"${rest}${widthAttr}${heightAttr}${dataSize}>`;
         }
       );
-      
+
       // Insert the processed HTML
       editor.chain().focus().insertContent(processedHtml).run();
       setHtmlContent("");
@@ -456,7 +459,7 @@ const TipTapBlogEditor = ({
       ref={editorContainerRef}
     >
       {/* Fixed Toolbar */}
-      <div className="sticky top-0 z-20 bg-gray-800 p-2 border-b border-gray-600 rounded-t-lg shadow-lg">
+      <div className="sticky -top-6 z-20 bg-gray-800 p-2 border-b border-gray-600 rounded-t-lg shadow-lg">
         <div className="flex flex-wrap items-center gap-1">
           <div className="flex items-center gap-1">
             <ToolbarButton
@@ -841,7 +844,7 @@ const TipTapBlogEditor = ({
       </div>
 
       {/* Save Button */}
-      <div className="sticky bottom-0 flex gap-2 p-4 bg-gray-800 border-t border-gray-600 rounded-b-lg">
+      <div className="sticky -bottom-6 flex gap-2 p-4 bg-gray-800 border-t border-gray-600 rounded-b-lg">
         <button
           onClick={() => exportToMDX(false)}
           className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
