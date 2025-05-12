@@ -75,15 +75,30 @@ import { NextResponse } from "next/server";
  *                   example: "Error details here"
  */
 
-const transporter = nodemailer.createTransport({
-  host: process.env.MAIL_HOST,
-  port: parseInt(process.env.MAIL_PORT || "587", 10),
-  secure: process.env.MAIL_PORT === "465",
-  auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS,
-  },
-});
+// Helper function to get a working transporter
+async function getTransporter() {
+  // Create a new transporter
+  const transporterConfig = {
+    host: process.env.MAIL_HOST,
+    port: parseInt(process.env.MAIL_PORT || "587", 10),
+    secure: process.env.MAIL_PORT === "465",
+    auth: {
+      user: process.env.MAIL_USER,
+      pass: process.env.MAIL_PASS,
+    },
+    connectionTimeout: 15000, // 15 seconds
+    socketTimeout: 20000, // 20 seconds
+    tls: {
+      rejectUnauthorized: false,
+    },
+  };
+
+  // Create transporter
+  return nodemailer.createTransport(transporterConfig);
+}
+
+// Initial transporter (will be set on first request)
+let transporter: nodemailer.Transporter | null = null;
 
 // Email templates
 const templates = {
@@ -118,6 +133,58 @@ const templates = {
   }),
 };
 
+// Helper function to safely send email with proper error handling
+async function sendEmail(mailOptions: nodemailer.SendMailOptions) {
+  // Initialize transporter if not already done
+  if (!transporter) {
+    transporter = await getTransporter();
+  }
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    return info;
+  } catch (error) {
+    console.error("Error sending email:", error);
+
+    // Check if this is a connection timeout error
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      error.code === "ETIMEDOUT"
+    ) {
+      // Recreate the transporter with different settings
+      const alternativeTransporter = nodemailer.createTransport({
+        host: process.env.MAIL_HOST,
+        port: 587, // Try non-SSL port
+        secure: false,
+        auth: {
+          user: process.env.MAIL_USER,
+          pass: process.env.MAIL_PASS,
+        },
+        connectionTimeout: 10000,
+        socketTimeout: 15000,
+        tls: {
+          rejectUnauthorized: false,
+        },
+      });
+
+      try {
+        const info = await alternativeTransporter.sendMail(mailOptions);
+
+        // Update the main transporter for future requests
+        transporter = alternativeTransporter;
+
+        return info;
+      } catch (altError) {
+        console.error("Alternative transport also failed:", altError);
+        throw altError;
+      }
+    }
+
+    throw error;
+  }
+}
+
 export async function POST(req: Request) {
   const { to, subject, text, html, template, templateData } = await req.json();
 
@@ -137,7 +204,7 @@ export async function POST(req: Request) {
     };
 
     try {
-      await transporter.sendMail(mailOptions);
+      await sendEmail(mailOptions);
       return NextResponse.json({ message: "Email sent successfully" });
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -171,7 +238,7 @@ export async function POST(req: Request) {
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    await sendEmail(mailOptions);
     return NextResponse.json({ message: "Email sent successfully" });
   } catch (error: unknown) {
     if (error instanceof Error) {

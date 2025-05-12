@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { SignJWT } from "jose";
 
+export const dynamic = "force-dynamic";
+
 // Generate a random 6-digit code
 function generateVerificationCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -26,6 +28,54 @@ async function createResetCodeToken(
   return token;
 }
 
+// Function to send an email with retry logic
+async function sendEmailWithRetry(
+  email: string,
+  code: string,
+  maxRetries = 2
+): Promise<boolean> {
+  let retries = 0;
+
+  while (retries <= maxRetries) {
+    try {
+      const emailResponse = await fetch(
+        new URL("/api/send-email", process.env.BASE_URL).toString(),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            to: email,
+            template: "reset-password",
+            templateData: { code },
+          }),
+        }
+      );
+
+      if (!emailResponse.ok) {
+        const errorData = await emailResponse.json();
+        throw new Error(errorData.error || "Failed to send email");
+      }
+
+      return true; // Success
+    } catch (error) {
+      console.error(`Email sending attempt ${retries + 1} failed:`, error);
+      retries++;
+
+      if (retries > maxRetries) {
+        console.error("All retry attempts failed");
+        return false;
+      }
+
+      // Wait before retry (exponential backoff)
+      await new Promise((resolve) => setTimeout(resolve, 1000 * retries));
+    }
+  }
+
+  return false;
+}
+
 export async function POST(request: Request) {
   try {
     const { email } = await request.json();
@@ -46,39 +96,20 @@ export async function POST(request: Request) {
     // Create a JWT token with the email and code
     const resetToken = await createResetCodeToken(email, code);
 
-    try {
-      // Use the existing send-email API instead of creating a new transporter
-      const emailResponse = await fetch(
-        new URL("/api/send-email", request.url).toString(),
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            to: email,
-            template: "reset-password",
-            templateData: { code },
-          }),
-        }
-      );
+    // Try to send the email with retry logic
+    const emailSent = await sendEmailWithRetry(email, code);
 
-      if (!emailResponse.ok) {
-        const errorData = await emailResponse.json();
-        throw new Error(errorData.error || "Failed to send email");
-      }
-
+    if (emailSent) {
       return NextResponse.json({
         message: "کد بازیابی رمز عبور به ایمیل شما ارسال شد",
         emailSent: true,
         resetToken: resetToken, // Send the token to the client
       });
-    } catch (error) {
-      console.error("Error sending email:", error);
+    } else {
+      // Email sending failed even after retries
       return NextResponse.json(
         {
-          error: "خطا در ارسال ایمیل",
-          details: error instanceof Error ? error.message : "Unknown error",
+          error: "خطا در ارسال ایمیل. لطفا بعدا دوباره تلاش کنید.",
         },
         { status: 500 }
       );

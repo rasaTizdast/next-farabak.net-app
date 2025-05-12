@@ -12,7 +12,7 @@ const nextConfig = {
       fullUrl: true,
     },
   },
-  output: "standalone",
+  // output: "standalone",
   // reactStrictMode: false, // Disable React Strict Mode
   images: {
     remotePatterns: allowedHostnames.map((hostname) => ({
