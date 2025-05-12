@@ -11,6 +11,7 @@ import axios from "axios";
 
 import { signInSchema } from "@/helpers/validationSchema";
 import TextInput from "../_components/TextInput";
+import ForgotPasswordModal from "../_components/ForgotPasswordModal";
 import styles from "../FormStyles.module.css";
 
 import { useUser } from "@/context/UserContext";
@@ -21,6 +22,7 @@ import farabakLogo from "/public/Farabak_Logo.webp";
 const SignIn = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
   const router = useRouter();
 
   const { updateUserContext } = useUser();
@@ -109,9 +111,13 @@ const SignIn = () => {
               type="password"
               autoComplete="current-password"
             />
-            {/* <Link to="/auth/forgot-password" className={styles.forgot}>
+            <button 
+              type="button" 
+              className={styles.forgot}
+              onClick={() => setIsForgotPasswordModalOpen(true)}
+            >
               کلمه عبور خود را فراموش کرده‌اید؟
-            </Link> */}
+            </button>
             <input
               className={styles.login_submit}
               type="submit"
@@ -150,6 +156,11 @@ const SignIn = () => {
           </h3>
         </div>
       </div>
+      
+      <ForgotPasswordModal 
+        isOpen={isForgotPasswordModalOpen} 
+        onClose={() => setIsForgotPasswordModalOpen(false)} 
+      />
     </FormProvider>
   );
 };

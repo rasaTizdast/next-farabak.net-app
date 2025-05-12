@@ -103,7 +103,9 @@ const TipTapBlogEditor = ({
         HTMLAttributes: { class: "rounded-lg max-w-full my-4" },
       }),
       Link.configure({ openOnClick: false }),
-      TextAlign.configure({ types: ["heading", "paragraph", "tableCell", "tableHeader"] }),
+      TextAlign.configure({
+        types: ["heading", "paragraph", "tableCell", "tableHeader"],
+      }),
       // Table extensions - complete configuration with RTL support
       Table.configure({
         resizable: true,
