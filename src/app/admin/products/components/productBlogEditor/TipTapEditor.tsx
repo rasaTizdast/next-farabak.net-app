@@ -34,14 +34,17 @@ import {
   Heading5,
   Heading6,
   Table as TableIcon,
+  Video,
   FileUp,
 } from "lucide-react";
 import { ToolbarButton } from "./ToolbarButton";
 import { Divider } from "./Divider";
 import { CustomImage } from "./Image";
+import { CustomVideo } from "./Video";
+import VideoUploadModal from "./VideoUploadModal";
 
 interface TipTapBlogEditorProps {
-  onSave?: (blog: string) => void;
+  onSave?: (blog: string, status: boolean) => void;
   blogData?: string; // Add prop for initial content
   slug: string;
 }
@@ -60,6 +63,8 @@ const TipTapBlogEditor = ({
   const [isHtmlImportModalOpen, setIsHtmlImportModalOpen] = useState(false);
   const [htmlContent, setHtmlContent] = useState("");
   const editorContainerRef = useRef<HTMLDivElement>(null);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [isVideoLoading, setIsVideoLoading] = useState(false);
 
   const calculateDimensions = async (url: string) => {
     if (typeof window === "undefined") {
@@ -127,6 +132,9 @@ const TipTapBlogEditor = ({
       }),
       // Replace the existing ResizableImage configuration in the editor setup
       CustomImage,
+      CustomVideo.configure({
+        HTMLAttributes: { class: "w-full my-4" },
+      }),
     ],
     content: blogData || "", // Initialize with blogData if provided
   });
@@ -262,45 +270,110 @@ const TipTapBlogEditor = ({
     }
   }, [editor, htmlContent]);
 
-  const exportToMDX = useCallback(() => {
-    if (!editor) return;
+  // Function to check if a URL is external
+  const isExternalUrl = (url: string): boolean => {
+    return url.startsWith("http://") || url.startsWith("https://");
+  };
 
-    // Convert editor content to MDX
-    let mdxContent = editor
-      .getHTML()
-      // Convert img tags to Next.js Image components with size attribute
-      .replace(
-        /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*(size="([^"]+)")?[^>]*>/g,
-        (match, src, alt, width, height, sizeAttr, size) => {
-          // Default size to "full" if not specified
-          const imgSize = size || "full";
-          return `<Image src="${src}" alt="${alt}" width={${width}} height={${height}} size="${imgSize}" quality={100} layout="responsive" />`;
-        }
-      )
+  const exportToMDX = useCallback(
+    (status: boolean) => {
+      if (!editor) return;
 
-      // Convert a tags to Next.js Link components
-      .replace(
-        /<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g,
-        '<Link href="$1">$2</Link>'
-      );
+      // Convert editor content to MDX
+      let mdxContent = editor
+        .getHTML()
+        // Convert img tags to Next.js Image components with proper sizing
+        .replace(
+          /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*data-size="([^"]+)"[^>]*>/g,
+          (match, src, alt, width, height, size) => {
+            // Define different tailwind classes based on size
+            let tailwindClass = "";
 
-    // Preserve table structure but add styling classes for MDX
-    mdxContent = mdxContent
-      .replace(
-        /<table[^>]*>/g,
-        '<table className="w-full my-4 border-collapse" dir="rtl">'
-      )
-      .replace(
-        /<th[^>]*>/g,
-        '<th className="border border-gray-600 bg-gray-700 p-2 text-right">'
-      )
-      .replace(
-        /<td[^>]*>/g,
-        '<td className="border border-gray-600 p-2 text-right">'
-      );
+            switch (size) {
+              case "full":
+                tailwindClass = "w-full";
+                break;
+              case "half":
+                tailwindClass = "w-1/2 mx-auto";
+                break;
+              case "third":
+                tailwindClass = "w-1/3 mx-auto";
+                break;
+              case "custom":
+                // For custom sizes, we'll create an inline style
+                tailwindClass = `max-w-full`;
+                break;
+              default:
+                tailwindClass = "w-full";
+            }
 
-    onSave?.(mdxContent);
-  }, [editor, onSave]);
+            // For custom sizes, add a style attribute as well
+            const styleAttr =
+              size === "custom" ? `style="--img-width:${width}px"` : "";
+
+            // Handle external URLs differently
+            const imgSrc = isExternalUrl(src) ? src : `${src}`;
+
+            if (isExternalUrl(src)) {
+              // For external URLs, use unoptimized Image with domain property
+              return `<img src="${imgSrc}" alt="${alt}" width="${width}" height="${height}" className="${tailwindClass}" />`;
+            } else {
+              return `<Image src="${imgSrc}" alt="${alt}" width={${width}} height={${height}} className="${tailwindClass}" quality={100} layout="responsive" ${styleAttr} />`;
+            }
+          }
+        )
+
+        // Also handle images that don't have data-size attribute
+        .replace(
+          /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*>/g,
+          (match, src, alt, width, height) => {
+            // If this regex matches, it means our first replace didn't catch it (no data-size)
+            // Handle external URLs differently
+            const imgSrc = isExternalUrl(src) ? src : `${src}`;
+
+            if (isExternalUrl(src)) {
+              // For external URLs, use unoptimized Image with domain property
+              return `<img src="${imgSrc}" alt="${alt}" width="${width}" height="${height}" className="w-full" />`;
+            } else {
+              return `<Image src="${imgSrc}" alt="${alt}" width={${width}} height={${height}} className="w-full" quality={100} layout="responsive" />`;
+            }
+          }
+        )
+
+        // Make sure videos have the right src path (keep the relative path)
+        .replace(
+          /<div data-type="video"[^>]*>([\s\S]*?)<\/div>/g,
+          (match) => {
+            // Preserve the video element as is - it will be processed on the frontend
+            return match;
+          }
+        )
+
+        // Convert a tags to Next.js Link components
+        .replace(
+          /<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g,
+          '<Link href="$1">$2</Link>'
+        );
+
+      // Preserve table structure but add styling classes for MDX
+      mdxContent = mdxContent
+        .replace(
+          /<table[^>]*>/g,
+          '<table className="w-full my-4 border-collapse" dir="rtl">'
+        )
+        .replace(
+          /<th[^>]*>/g,
+          '<th className="border border-gray-600 bg-gray-700 p-2 text-right">'
+        )
+        .replace(
+          /<td[^>]*>/g,
+          '<td className="border border-gray-600 p-2 text-right">'
+        );
+
+      onSave?.(mdxContent, status);
+    },
+    [editor, onSave]
+  );
 
   const convertMDXToHTML = (mdxContent: string) => {
     return (
@@ -354,6 +427,56 @@ const TipTapBlogEditor = ({
   [&_th]:border [&_th]:border-gray-600 [&_th]:p-2 [&_th]:bg-gray-700
   [&_td]:border [&_td]:border-gray-600 [&_td]:p-2
   [&_.tableControls]:relative [&_.tableControls]:top-[-30px] [&_.tableControls]:justify-center [&_.tableControls]:z-20 [&_.tableControls]:flex`;
+
+  const addVideo = useCallback(
+    async (file: File) => {
+      if (!editor) {
+        return;
+      }
+
+      if (file.size > 500 * 1024 * 1024) {
+        alert("Video size should be less than 500MB");
+        return;
+      }
+
+      try {
+        setIsVideoLoading(true);
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("slug", slug);
+
+        const response = await fetch("/api/products/productBlog/uploadVideo", {
+          method: "POST",
+          body: formData,
+        });
+
+        const { url } = await response.json();
+
+        // Insert the video into the editor
+        editor.commands.command(({ chain }) => {
+          return chain()
+            .focus()
+            .setVideo({
+              src: url,
+              title: file.name,
+              slug,
+            })
+            .run();
+        });
+      } catch (error) {
+        console.error("Video upload failed:", error);
+        alert("Failed to upload video");
+      } finally {
+        setIsVideoLoading(false);
+      }
+    },
+    [editor, slug]
+  );
+
+  const toggleVideoModal = () => {
+    setIsVideoModalOpen(!isVideoModalOpen);
+  };
 
   if (!editor) return null;
 
@@ -515,7 +638,7 @@ const TipTapBlogEditor = ({
               icon={Link2}
               title="Link"
             />
-            <label className="p-2 hover:bg-gray-600 rounded-md cursor-pointer text-gray-300">
+            <label className="cursor-pointer p-2 hover:bg-gray-600 rounded-md">
               <input
                 type="file"
                 className="hidden"
@@ -525,8 +648,14 @@ const TipTapBlogEditor = ({
                   if (file) addImage(file);
                 }}
               />
-              <ImageIcon className="w-5 h-5" />
+              <ImageIcon className="h-5 w-5 text-gray-300" />
             </label>
+            <ToolbarButton
+              onClick={toggleVideoModal}
+              icon={Video}
+              title="Add Video"
+            />
+            <Divider />
             {isImageLoading && (
               <div className="ml-2 flex items-center gap-2 text-sm text-gray-400">
                 <Divider />
@@ -756,13 +885,20 @@ const TipTapBlogEditor = ({
       </div>
 
       {/* Save Button */}
-      <div className="flex gap-2 p-4 bg-gray-800 border-t border-gray-600 rounded-b-lg">
+      <div className="flex justify-between mt-4">
         <button
           type="button"
-          onClick={exportToMDX}
+          onClick={() => exportToMDX(false)}
+          className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+        >
+          ذخیره پیش‌نویس
+        </button>
+        <button
+          type="button"
+          onClick={() => exportToMDX(true)}
           className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
         >
-          ذخیره مقاله محصول
+          ذخیره
         </button>
       </div>
 
@@ -798,6 +934,23 @@ const TipTapBlogEditor = ({
             title="Link"
           />
         </BubbleMenu>
+      )}
+
+      {/* Video Modal */}
+      {isVideoModalOpen && (
+        <VideoUploadModal
+          onClose={toggleVideoModal}
+          onVideoUpload={addVideo}
+        />
+      )}
+
+      {/* Video Loading Indicator */}
+      {isVideoLoading && (
+        <div className="ml-2 flex items-center gap-2 text-sm text-gray-400">
+          <Divider />
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          در حال آپلود ویدیو...
+        </div>
       )}
     </div>
   );

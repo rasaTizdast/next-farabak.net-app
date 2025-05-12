@@ -123,13 +123,47 @@ export default async function BlogPage({
   const processContentWithImageUrls = (content: string) => {
     const baseUrl = process.env.LIARA_BUCKET_URL || "";
 
-    // First, handle src attribute to make sure URLs are correct
+    // First, handle src attribute to make sure URLs are correct for images
     let processedContent = content.replace(
       /<Image([^>]*)src="([^"]*)"([^>]*)/g,
       (match, before, src, after) => {
         if (src.startsWith(baseUrl)) return match;
         return `<Image${before}src="${baseUrl}/${src}"${after}`;
       }
+    );
+
+    // Handle video sources inside regular video tags
+    processedContent = processedContent.replace(
+      /<video([^>]*)src="([^"]*)"([^>]*)/g,
+      (match, before, src, after) => {
+        if (src.startsWith(baseUrl) || src.startsWith("http")) return match;
+        return `<video${before}src="${baseUrl}/${src}"${after}`;
+      }
+    );
+    
+    // Process TipTap video nodes - convert them to standard HTML5 video tags
+    processedContent = processedContent.replace(
+      /<div data-type="video"[^>]*>([\s\S]*?)<\/div>/g,
+      (match) => {
+        // Extract src attribute from the video tag inside the div
+        const srcMatch = match.match(/src="([^"]*)"/);
+        if (srcMatch && srcMatch[1]) {
+          const src = srcMatch[1];
+          const fullSrc = src.startsWith(baseUrl) || src.startsWith("http") 
+            ? src 
+            : `${baseUrl}/${src}`;
+          
+          // Replace the entire div with a simple video element
+          return `<video src="${fullSrc}" controls class="w-full max-w-4xl mx-auto rounded-md my-4"></video>`;
+        }
+        return match;
+      }
+    );
+    
+    // Ensure videos have controls
+    processedContent = processedContent.replace(
+      /<video(?![^>]*controls)([^>]*)/g,
+      '<video$1 controls '
     );
 
     // Then handle the size classes. Make sure classes defined in the editor are preserved
