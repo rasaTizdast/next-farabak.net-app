@@ -47,21 +47,14 @@ export const usePrint = () => {
       })
       .join("");
 
-    // Get the font path from the root
-    const fontPath = "/fonts/Vazirmatn-VariableFont_wght.ttf";
+    // Include Google Fonts for Vazirmatn
+    const googleFontLink =
+      '<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">';
 
     // Create print-specific stylesheet
     const printStyles = `
       <style>
-        /* Add Vazirmatn font-face declaration */
-        @font-face {
-          font-family: 'Vazirmatn';
-          src: url('${fontPath}') format('truetype');
-          font-weight: 100 900;
-          font-style: normal;
-          font-display: swap;
-        }
-        
+        /* Use Vazirmatn from Google Fonts */
         :root {
           --font-vazirmatn: 'Vazirmatn', Tahoma, Arial, sans-serif;
         }
@@ -293,6 +286,67 @@ export const usePrint = () => {
     // Populate the print window with special handling for sticker mode
     printWindow.document.open();
 
+    // Improved script with better window handling and font loading
+    const printScript = `
+      <script>
+        // Track if print dialog was opened
+        let printDialogOpened = false;
+        let closingTimeout;
+        
+        // Function to close the window with multiple attempts
+        function attemptToClose() {
+          try {
+            window.close();
+            // If window didn't close, try again in 100ms
+            setTimeout(function() {
+              if (!window.closed) {
+                window.close();
+              }
+            }, 100);
+          } catch (e) {
+            console.error('Failed to close window:', e);
+          }
+        }
+        
+        // Ensure fonts are loaded before printing
+        document.fonts.ready.then(function() {
+          window.onload = function() {
+            // Allow a moment for everything to render
+            setTimeout(function() {
+              // Open print dialog
+              window.print();
+              printDialogOpened = true;
+              
+              // Add event listener for afterprint - most reliable method
+              window.addEventListener('afterprint', function() {
+                clearTimeout(closingTimeout);
+                attemptToClose();
+              });
+              
+              // Set a fallback timeout to close the window if afterprint doesn't fire
+              closingTimeout = setTimeout(attemptToClose, 1000);
+            }, 300);
+          };
+        });
+        
+        // Backup for when print dialog is closed without printing
+        window.addEventListener('focus', function() {
+          if (printDialogOpened) {
+            clearTimeout(closingTimeout);
+            attemptToClose();
+          }
+        });
+        
+        // Close on any user interaction as last resort
+        document.addEventListener('click', function() {
+          attemptToClose();
+        });
+        
+        // Force close after a maximum time as ultimate fallback
+        setTimeout(attemptToClose, 10000);
+      </script>
+    `;
+
     if (stickerMode) {
       // For sticker, create a minimal, tightly controlled document
       printWindow.document.write(`
@@ -301,20 +355,9 @@ export const usePrint = () => {
           <head>
             <title>${printTitle || document.title}</title>
             ${styleLinks}
+            ${googleFontLink}
             ${printStyles}
-            <script>
-              // Ensure fonts are loaded before printing
-              document.fonts.ready.then(function() {
-                window.onload = function() {
-                  setTimeout(function() {
-                    window.print();
-                    setTimeout(function() {
-                      window.close();
-                    }, 500);
-                  }, 200); // Small delay to ensure font rendering
-                };
-              });
-            </script>
+            ${printScript}
           </head>
           <body style="margin:0;padding:0;overflow:hidden;width:3.5in;height:2in;font-family:var(--font-vazirmatn);">
             ${componentRef.current.innerHTML}
@@ -329,20 +372,9 @@ export const usePrint = () => {
           <head>
             <title>${printTitle || document.title}</title>
             ${styleLinks}
+            ${googleFontLink}
             ${printStyles}
-            <script>
-              // Ensure fonts are loaded before printing
-              document.fonts.ready.then(function() {
-                window.onload = function() {
-                  setTimeout(function() {
-                    window.print();
-                    setTimeout(function() {
-                      window.close();
-                    }, 200);
-                  }, 200); // Small delay to ensure font rendering
-                };
-              });
-            </script>
+            ${printScript}
           </head>
           <body style="font-family:var(--font-vazirmatn);">
             ${content.outerHTML}
@@ -352,6 +384,9 @@ export const usePrint = () => {
     }
 
     printWindow.document.close();
+
+    // Focus the print window to bring it to front
+    printWindow.focus();
 
     // Restore original title
     document.title = originalTitle;
