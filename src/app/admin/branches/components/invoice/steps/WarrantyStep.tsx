@@ -15,6 +15,7 @@ import {
 } from "antd";
 import { DatePicker } from "zaman";
 import { Branch } from "../../types";
+import { useUser } from "@/context/UserContext";
 
 // Format a Date object to YYYY-MM-DD string
 const formatDateToISOString = (date: Date | null): string | null => {
@@ -63,6 +64,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
   productsWithWarranty,
   setProductsWithWarranty,
 }) => {
+  const { isAdmin, isBranch } = useUser();
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
@@ -94,13 +96,15 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
     } catch (error) {
       console.error("Error generating batch warranty codes:", error);
       // Fallback to local generation if API fails
-      return Array(count).fill(null).map(() => {
-        const randomCode = Math.random()
-          .toString(36)
-          .substring(2, 8)
-          .toUpperCase();
-        return `${branchCode}-${yearMonth}-${randomCode}`;
-      });
+      return Array(count)
+        .fill(null)
+        .map(() => {
+          const randomCode = Math.random()
+            .toString(36)
+            .substring(2, 8)
+            .toUpperCase();
+          return `${branchCode}-${yearMonth}-${randomCode}`;
+        });
     }
   };
 
@@ -157,7 +161,11 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
 
         // Calculate total codes needed across all products
         let totalCodesNeeded = 0;
-        const productCodeNeeds: { productId: number; existingCodes: string[]; codesNeeded: number }[] = [];
+        const productCodeNeeds: {
+          productId: number;
+          existingCodes: string[];
+          codesNeeded: number;
+        }[] = [];
 
         for (const product of selectedProducts) {
           // Find existing product warranty if available
@@ -169,21 +177,28 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
           const existingCodes = existingProduct?.warranty?.warrantycodes || [];
 
           // Calculate codes needed for this product
-          const codesNeeded = Math.max(0, product.quantity - existingCodes.length);
-          
+          const codesNeeded = Math.max(
+            0,
+            product.quantity - existingCodes.length
+          );
+
           totalCodesNeeded += codesNeeded;
-          
+
           productCodeNeeds.push({
             productId: product.ProductId,
             existingCodes,
-            codesNeeded
+            codesNeeded,
           });
         }
 
         // Generate all needed codes in a single request
         let allNewCodes: string[] = [];
         if (totalCodesNeeded > 0) {
-          allNewCodes = await generateBatchWarrantyCodes(branchCode, yearMonth, totalCodesNeeded);
+          allNewCodes = await generateBatchWarrantyCodes(
+            branchCode,
+            yearMonth,
+            totalCodesNeeded
+          );
         }
 
         // Create expanded items with individual warranties
@@ -193,14 +208,17 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
         for (let i = 0; i < productCodeNeeds.length; i++) {
           const product = selectedProducts[i];
           const { existingCodes, codesNeeded } = productCodeNeeds[i];
-          
+
           // Get the slice of new codes for this product
-          const productNewCodes = allNewCodes.slice(usedCodesCount, usedCodesCount + codesNeeded);
+          const productNewCodes = allNewCodes.slice(
+            usedCodesCount,
+            usedCodesCount + codesNeeded
+          );
           usedCodesCount += codesNeeded;
-          
+
           // Combine existing and new codes
           let warrantyCodes = [...existingCodes];
-          
+
           if (codesNeeded > 0) {
             warrantyCodes = [...warrantyCodes, ...productNewCodes];
           } else if (product.quantity < existingCodes.length) {
@@ -321,6 +339,11 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
           }
         }
 
+        // For branch users, preserve the original start date
+        if (isBranch && editingProduct.warranty?.startdate) {
+          startdate = editingProduct.warranty.startdate;
+        }
+
         // Find the item in the current list and update it
         const updatedItems = productsWithWarranty.map((item) => {
           if (item.singleItemId === editingProduct.singleItemId) {
@@ -437,14 +460,20 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
       // Ensure we keep the same day of month
       twoYearsLater.setDate(today.getDate());
 
+      // For branch users, keep the original start date if editing an existing product
+      const startDate =
+        isBranch && editingProduct?.warranty?.startdate
+          ? parseISODate(editingProduct.warranty.startdate)
+          : today;
+
       // For Zaman DatePicker, use Date objects directly
       form.setFieldsValue({
-        startdate: today,
+        startdate: startDate,
         expirydate: twoYearsLater,
       });
 
       // Calculate duration
-      const duration = calculateDuration(today, twoYearsLater);
+      const duration = calculateDuration(startDate, twoYearsLater);
       setDurationText(duration);
     } else {
       // Clear date fields if warranty is disabled
@@ -678,7 +707,26 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
                     <Form.Item
                       name="startdate"
                       label={
-                        <span className="text-white">تاریخ شروع گارانتی</span>
+                        <span className="text-white">
+                          تاریخ شروع گارانتی
+                          {isBranch && (
+                            <span className="mr-2 text-xs inline-flex items-center px-2 py-0.5 rounded-full bg-blue-900 text-blue-200 border border-blue-700">
+                              <svg
+                                className="w-3 h-3 ml-1"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                  clipRule="evenodd"
+                                ></path>
+                              </svg>
+                              غیرقابل تغییر
+                            </span>
+                          )}
+                        </span>
                       }
                       rules={
                         hasWarranty
@@ -688,25 +736,32 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
                                 message: "لطفا تاریخ شروع گارانتی را وارد کنید",
                               },
                             ]
-                          : []
+                          : undefined
                       }
                     >
-                      <DatePicker
-                        defaultValue={
-                          form.getFieldValue("startdate") || new Date()
-                        }
-                        weekends={[5, 6]}
-                        round="x2"
-                        accentColor="#226bff"
-                        inputClass="w-full p-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-white"
-                        className="z-[1000]"
-                        direction="rtl"
-                        position="left"
-                        onChange={(value) => {
-                          form.setFieldsValue({ startdate: value });
-                          handleDateChange();
-                        }}
-                      />
+                      <div className={isBranch ? "pointer-events-none" : ""}>
+                        <DatePicker
+                          defaultValue={
+                            form.getFieldValue("startdate") || new Date()
+                          }
+                          weekends={[5, 6]}
+                          round="x2"
+                          accentColor="#226bff"
+                          inputClass={`w-full p-2 ${
+                            isBranch ? "bg-gray-800 opacity-70" : "bg-gray-700"
+                          } rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-white`}
+                          className="z-[1000]"
+                          direction="rtl"
+                          position="left"
+                          onChange={(value) => {
+                            // Only update if not branch (extra safeguard)
+                            if (!isBranch) {
+                              form.setFieldsValue({ startdate: value });
+                              handleDateChange();
+                            }
+                          }}
+                        />
+                      </div>
                     </Form.Item>
 
                     <Form.Item
@@ -723,7 +778,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
                                   "لطفا تاریخ پایان گارانتی را وارد کنید",
                               },
                             ]
-                          : []
+                          : undefined
                       }
                     >
                       <DatePicker
