@@ -44,10 +44,7 @@ export async function POST(request: Request) {
 
     // Only Branch users can send product requests
     if (userRole !== "Branch") {
-      return NextResponse.json(
-        { error: "دسترسی غیرمجاز" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
     }
 
     // Find the user's branch information
@@ -56,7 +53,11 @@ export async function POST(request: Request) {
       include: { branch: true },
     });
 
-    if (!userWithBranch || !userWithBranch.branch || userWithBranch.branch.length === 0) {
+    if (
+      !userWithBranch ||
+      !userWithBranch.branch ||
+      userWithBranch.branch.length === 0
+    ) {
       return NextResponse.json(
         { error: "کاربر به شعبه‌ای متصل نیست" },
         { status: 403 }
@@ -65,21 +66,18 @@ export async function POST(request: Request) {
 
     // Get request data
     const data = await request.json();
-    const { 
-      productId, 
-      productName, 
-      quantity, 
-      message, 
-      targetBranchId, 
-      targetBranchName 
+    const {
+      productId,
+      productName,
+      quantity,
+      message,
+      targetBranchId,
+      targetBranchName,
     } = data;
 
     // Validate request data
     if (!productId || !quantity || !message || !targetBranchId) {
-      return NextResponse.json(
-        { error: "اطلاعات ناقص است" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "اطلاعات ناقص است" }, { status: 400 });
     }
 
     // Get the current user's branch
@@ -88,7 +86,7 @@ export async function POST(request: Request) {
     // Create a product request record in the database
     // If there's no product_requests table yet, we'll simulate storing the request
     // In a real implementation, you would store this in a database table
-    
+
     // For this example, we'll use a notification method - you can replace with actual storage logic
     const requestData = {
       requestId: Date.now(), // simulated ID
@@ -103,11 +101,10 @@ export async function POST(request: Request) {
       status: "pending",
       createdAt: new Date(),
       createdBy: Number(userId),
-      createdByName: `${userWithBranch.FirstName || ""} ${userWithBranch.LastName || ""}`.trim(),
+      createdByName: `${userWithBranch.FirstName || ""} ${
+        userWithBranch.LastName || ""
+      }`.trim(),
     };
-
-    // In a real implementation, you would save this to a database
-    console.log("Product Request Created:", requestData);
 
     // You might also want to send an email or notification to the admin
     // This would be implemented based on your notification system
@@ -119,9 +116,6 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Error creating product request:", error);
-    return NextResponse.json(
-      { error: "خطا در ثبت درخواست" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در ثبت درخواست" }, { status: 500 });
   }
-} 
+}

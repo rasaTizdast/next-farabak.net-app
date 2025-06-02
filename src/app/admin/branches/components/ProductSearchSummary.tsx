@@ -37,21 +37,6 @@ const ProductSearchSummary: React.FC<ProductSearchSummaryProps> = ({
   // Calculate branches without this product
   const branchesWithoutProduct = totalBranchCount - branchesWithProduct;
 
-  // Debug logging
-  useEffect(() => {
-    console.log("Total branches count:", totalBranchCount);
-    console.log("Branches with product:", branchesWithProduct);
-    console.log("Branches without product:", branchesWithoutProduct);
-    console.log(
-      "Branch quantities:",
-      branches.map((b) => ({
-        name: b.name,
-        qty: b.specificProductQuantity,
-        hasProduct: (b.specificProductQuantity || 0) > 0,
-      }))
-    );
-  }, [branches, branchesWithProduct, branchesWithoutProduct, totalBranchCount]);
-
   return (
     <Card
       className="bg-gray-800 mb-6 rounded-lg shadow-lg overflow-hidden border-0"

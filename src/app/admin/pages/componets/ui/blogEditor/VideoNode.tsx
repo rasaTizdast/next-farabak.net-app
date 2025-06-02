@@ -50,7 +50,6 @@ const VideoNode = ({
     if (isExternalUrl(src)) return src;
 
     const bucketUrl = process.env.NEXT_PUBLIC_LIARA_BUCKET_URL;
-    console.log(bucketUrl);
     return `${bucketUrl}/${src}`;
   };
 
