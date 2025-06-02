@@ -85,7 +85,7 @@ export async function GET() {
         const warranties = await prisma.$queryRaw`
           SELECT 
             w."warrantyid", w."invoicedetailid", w."warrantycode", 
-            w."startdate", w."expirydate", w."status", w."ProductId"
+            w."startdate", w."expirydate", w."status", w."ProductId", w."branchid"
           FROM 
             "info"."warranty" w
           JOIN 
@@ -126,6 +126,7 @@ export async function GET() {
                     startdate: warranty.startdate,
                     expirydate: warranty.expirydate,
                     status: warranty.status,
+                    branchid: warranty.branchid,
                   },
                 ],
               };
@@ -136,6 +137,7 @@ export async function GET() {
                 startdate: warranty.startdate,
                 expirydate: warranty.expirydate,
                 status: warranty.status,
+                branchid: warranty.branchid,
               });
             }
             return acc;
