@@ -153,11 +153,11 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
         // Default dates
         const currentDate = new Date();
         const startDate = currentDate.toISOString().split("T")[0];
-        const twoYearsLater = new Date(currentDate);
-        twoYearsLater.setFullYear(twoYearsLater.getFullYear() + 2);
+        const oneYearLater = new Date(currentDate);
+        oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
         // Ensure we keep the same day of month
-        twoYearsLater.setDate(currentDate.getDate());
-        const endDate = twoYearsLater.toISOString().split("T")[0];
+        oneYearLater.setDate(currentDate.getDate());
+        const endDate = oneYearLater.toISOString().split("T")[0];
 
         // Calculate total codes needed across all products
         let totalCodesNeeded = 0;
@@ -274,12 +274,12 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
       const today = new Date();
       startDate = formatDateToISOString(today);
 
-      // Default end date (2 years)
-      const twoYearsLater = new Date(today);
-      twoYearsLater.setFullYear(twoYearsLater.getFullYear() + 2);
+      // Default end date (1 year)
+      const oneYearLater = new Date(today);
+      oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
       // Ensure we keep the same day of month
-      twoYearsLater.setDate(today.getDate());
-      expiryDate = formatDateToISOString(twoYearsLater);
+      oneYearLater.setDate(today.getDate());
+      expiryDate = formatDateToISOString(oneYearLater);
     }
 
     // For the form, use the Date objects - Zaman requires Date objects for defaultValue
@@ -454,11 +454,11 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
       // Set default dates if warranty is enabled
       const today = new Date();
 
-      // Default end date (2 years)
-      const twoYearsLater = new Date(today);
-      twoYearsLater.setFullYear(twoYearsLater.getFullYear() + 2);
+      // Default end date (1 year)
+      const oneYearLater = new Date(today);
+      oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
       // Ensure we keep the same day of month
-      twoYearsLater.setDate(today.getDate());
+      oneYearLater.setDate(today.getDate());
 
       // For branch users, keep the original start date if editing an existing product
       const startDate =
@@ -469,11 +469,11 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
       // For Zaman DatePicker, use Date objects directly
       form.setFieldsValue({
         startdate: startDate,
-        expirydate: twoYearsLater,
+        expirydate: oneYearLater,
       });
 
       // Calculate duration
-      const duration = calculateDuration(startDate, twoYearsLater);
+      const duration = calculateDuration(startDate, oneYearLater);
       setDurationText(duration);
     } else {
       // Clear date fields if warranty is disabled
@@ -786,7 +786,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
                           form.getFieldValue("expirydate") ||
                           (() => {
                             const date = new Date();
-                            date.setFullYear(date.getFullYear() + 2);
+                            date.setFullYear(date.getFullYear() + 1);
                             return date;
                           })()
                         }
