@@ -1,0 +1,284 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  Button,
+  Table,
+  Empty,
+  Spin,
+  message,
+  Select,
+  Card,
+  Alert,
+  Tag,
+} from "antd";
+import { SearchOutlined, ShopOutlined } from "@ant-design/icons";
+import { Product } from "../../components/types";
+
+interface BranchProduct {
+  branchid: number;
+  branchName: string;
+  location?: string;
+  ProductId: number;
+  ProductType: string;
+  quantity: number;
+}
+
+interface BranchProductSearchProps {
+  isTabActive: boolean;
+}
+
+const BranchProductSearch: React.FC<BranchProductSearchProps> = ({
+  isTabActive,
+}) => {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
+  const [branchProducts, setBranchProducts] = useState<BranchProduct[]>([]);
+  const [searchPerformed, setSearchPerformed] = useState<boolean>(false);
+
+  // Fetch product list when component mounts
+  useEffect(() => {
+    if (isTabActive) {
+      fetchProducts();
+    }
+  }, [isTabActive]);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/admin/products/all");
+      if (!response.ok) {
+        throw new Error("Failed to fetch products");
+      }
+      const data = await response.json();
+
+      if (data && data.data && Array.isArray(data.data)) {
+        setProducts(data.data);
+      } else {
+        // Fallback to standard endpoint if new one fails
+        const fallbackResponse = await fetch(
+          "/api/admin/products?page=1&limit=1000"
+        );
+        if (!fallbackResponse.ok) {
+          throw new Error("Failed to fetch products");
+        }
+        const fallbackData = await fallbackResponse.json();
+        if (
+          fallbackData &&
+          fallbackData.data &&
+          Array.isArray(fallbackData.data)
+        ) {
+          setProducts(fallbackData.data);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      message.error("خطا در بارگذاری محصولات");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = async () => {
+    if (!selectedProduct) {
+      message.warning("لطفا یک محصول انتخاب کنید");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setSearchPerformed(true);
+
+      // Use the existing endpoint that was created for the warranty system
+      const response = await fetch(
+        `/api/admin/branches/product-stock?productId=${selectedProduct}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to search branches");
+      }
+
+      const data = await response.json();
+      let processedData: BranchProduct[] = [];
+
+      if (Array.isArray(data)) {
+        // Transform data format to match what our component expects
+        processedData = data
+          .filter((branch) => branch && branch.branchid && branch.name) // Filter out invalid entries
+          .map((branch) => ({
+            branchid: branch.branchid,
+            branchName: branch.name,
+            location: branch.location,
+            ProductId: selectedProduct,
+            ProductType:
+              products.find((p) => p.ProductId === selectedProduct)?.Type || "",
+            quantity: branch.quantity || 0,
+          }));
+      } else if (data && Array.isArray(data.branches)) {
+        // Original response format from our custom endpoint
+        processedData = data.branches.filter(
+          (branch) => branch && branch.branchid
+        );
+      }
+
+      setBranchProducts(processedData);
+    } catch (error) {
+      console.error("Error searching branches:", error);
+      message.error("خطا در جستجوی شعبه‌ها");
+      setBranchProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // More compact columns for side-by-side layout
+  const columns = [
+    {
+      title: "نام شعبه",
+      dataIndex: "branchName",
+      key: "branchName",
+      width: "65%",
+      render: (text: string) => (
+        <span className="text-blue-400 font-medium">{text}</span>
+      ),
+    },
+    {
+      title: "موجودی",
+      dataIndex: "quantity",
+      key: "quantity",
+      width: "35%",
+      render: (quantity: number) => (
+        <Tag
+          color={
+            quantity > 10 ? "success" : quantity > 0 ? "blue-inverse" : "error"
+          }
+          className="text-center px-2 py-0.5"
+        >
+          {quantity} عدد
+        </Tag>
+      ),
+    },
+  ];
+
+  return (
+    <div className="branch-product-search">
+      <Card
+        title="جستجوی محصول در شعبه‌های دیگر"
+        className="bg-gray-800 border-0 h-full"
+        headStyle={{
+          backgroundColor: "#19202b",
+          color: "white",
+          borderBottom: "1px solid #374151",
+        }}
+        bodyStyle={{
+          backgroundColor: "#19202b",
+          padding: "16px",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <div className="mb-4">
+          <Alert
+            message="جستجوی موجودی محصولات در سایر شعبه‌ها"
+            description="محصول مورد نظر خود را انتخاب کنید تا شعبه‌های دارای آن محصول را مشاهده نمایید."
+            type="info"
+            showIcon
+            className="mb-4"
+          />
+        </div>
+
+        <div className="flex flex-col gap-3 mb-4">
+          <div>
+            <label className="block text-gray-300 mb-2">انتخاب محصول</label>
+            <Select
+              showSearch
+              placeholder="محصول مورد نظر را انتخاب کنید"
+              optionFilterProp="children"
+              onChange={(value) => setSelectedProduct(value)}
+              value={selectedProduct}
+              loading={loading}
+              className="w-full bg-gray-700 border-gray-600 text-white"
+              popupClassName="custom-dropdown enhanced-dropdown"
+              filterOption={(input, option) =>
+                (option?.label?.toString() || "")
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
+              }
+              options={products.map((product) => ({
+                value: product.ProductId,
+                label: product.Type,
+              }))}
+            />
+          </div>
+
+          <div className="mt-2">
+            <Button
+              type="primary"
+              onClick={handleSearch}
+              loading={loading}
+              icon={<SearchOutlined />}
+              className="bg-blue-600 hover:bg-blue-700 w-full"
+            >
+              جستجو در شعبه‌ها
+            </Button>
+          </div>
+        </div>
+
+        {/* Results section */}
+        {searchPerformed && (
+          <div className="flex-grow overflow-auto mt-2">
+            <div className="border-t border-gray-600 pt-4 mb-3">
+              <div className="flex items-center mb-3">
+                <ShopOutlined className="ml-2 text-blue-400" />
+                <span className="text-lg font-medium text-gray-200">
+                  نتایج جستجو
+                </span>
+                {selectedProduct && (
+                  <Tag color="blue" className="mr-3">
+                    {
+                      products.find((p) => p.ProductId === selectedProduct)
+                        ?.Type
+                    }
+                  </Tag>
+                )}
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="flex justify-center items-center p-6">
+                <Spin size="large" tip="در حال جستجو..." />
+              </div>
+            ) : branchProducts.length > 0 ? (
+              <div>
+                <Table
+                  dataSource={branchProducts}
+                  columns={columns}
+                  rowKey="branchid"
+                  pagination={{ pageSize: 5, size: "small" }}
+                  className="branch-result-table enhanced-table rtl-table"
+                  size="small"
+                  scroll={{ x: 500 }}
+                />
+                <Alert
+                  message="اقدام بعدی"
+                  description="برای درخواست انتقال محصول از شعبه دیگر، لطفا با مدیر سیستم تماس بگیرید."
+                  type="warning"
+                  showIcon
+                  className="mt-4"
+                />
+              </div>
+            ) : (
+              <Empty
+                description="هیچ شعبه‌ای با این محصول یافت نشد"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                className="p-6 text-gray-300"
+              />
+            )}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+};
+
+export default BranchProductSearch;

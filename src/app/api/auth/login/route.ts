@@ -100,7 +100,10 @@ export async function POST(request: Request): Promise<NextResponse> {
       .setExpirationTime("7d")
       .sign(new TextEncoder().encode(REFRESH_TOKEN_SECRET));
 
-    const response = NextResponse.json({ message: "ورود با موفقیت انجام شد" });
+    const response = NextResponse.json({
+      role: user.Role,
+      message: "ورود با موفقیت انجام شد",
+    });
     response.cookies.set("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

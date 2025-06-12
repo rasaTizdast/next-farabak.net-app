@@ -281,7 +281,7 @@ const ImageNode = ({
 
   // Function to check if a URL is external (doesn't need the bucket prefix)
   const isExternalUrl = (url: string): boolean => {
-    return url.startsWith('http://') || url.startsWith('https://');
+    return url.startsWith("http://") || url.startsWith("https://");
   };
 
   // Function to get proper image URL based on source
@@ -319,7 +319,7 @@ const ImageNode = ({
               width={safeWidth}
               height={safeHeight}
               className="rounded-lg pointer-events-none max-w-full max-h-[500px] object-contain"
-              style={{ width: '100%', height: 'auto' }}
+              style={{ width: "100%", height: "auto" }}
             />
           ) : (
             // Use Next/Image for internal uploads
@@ -397,6 +397,7 @@ const ImageNode = ({
             onClick={toggleResizeOptions}
             className="p-1 bg-blue-600 rounded-md hover:bg-blue-700 text-white"
             title="تغییر اندازه"
+            type="button"
           >
             {showResizeOptions ? (
               <Minimize2 size={20} />
@@ -411,6 +412,7 @@ const ImageNode = ({
             className="p-1 bg-red-600 rounded-md hover:bg-red-700 text-white"
             disabled={isDeleting}
             title="حذف تصویر"
+            type="button"
           >
             <Trash2 size={20} />
           </button>

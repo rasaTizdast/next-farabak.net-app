@@ -163,6 +163,12 @@ a {
   max-width: 100%;
 }
 
+/* Video styling for blog content */
+.prose-view video {
+  @apply rounded-md mx-auto my-4 mobile:my-10 w-full max-w-4xl;
+  aspect-ratio: 16 / 9;
+}
+
 .prose-view .w-1\/2 {
   @apply max-w-[500px] mx-auto;
   width: 50%;

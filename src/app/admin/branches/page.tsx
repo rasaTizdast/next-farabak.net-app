@@ -50,6 +50,7 @@ function BranchesPageContent() {
     pageSize: 10,
     total: 0,
   });
+  const [totalBranchCount, setTotalBranchCount] = useState<number>(0);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -121,6 +122,7 @@ function BranchesPageContent() {
 
       // Update branches and pagination data
       setBranches(responseData.data);
+      setTotalBranchCount(responseData.pagination.totalBranchCount || 0);
       setPagination({
         current: responseData.pagination.currentPage,
         pageSize: pageSize,
@@ -637,6 +639,7 @@ function BranchesPageContent() {
             productId={searchProductId}
             branches={branches}
             clearSearch={clearSearch}
+            totalBranchCount={totalBranchCount}
           />
         )}
       <Tabs

@@ -14,6 +14,35 @@ async function verifyToken(token: string) {
 }
 
 /**
+ * Generate a shorter unique GUID for invoices
+ * Takes the first 12 characters of a UUID and checks if it already exists
+ */
+async function generateShortGuid(): Promise<string> {
+  let isUnique = false;
+  let shortGuid = "";
+
+  while (!isUnique) {
+    // Generate a full UUID and take only the first part before the first hyphen
+    const fullUuid = uuidv4();
+    shortGuid = fullUuid.split("-")[0].toUpperCase(); // Convert to uppercase
+
+    // Check if this short GUID already exists in the database (case-insensitive)
+    const existingInvoice = await prisma.invoice.findFirst({
+      where: {
+        FactorGuid: {
+          contains: `FARABAK-${shortGuid}`,
+          mode: "insensitive", // Case-insensitive check
+        },
+      },
+    });
+
+    isUnique = !existingInvoice;
+  }
+
+  return `FARABAK-${shortGuid}`;
+}
+
+/**
  * @swagger
  * /api/invoice:
  *   get:
@@ -200,7 +229,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const FactorGuid = `FARABAK-${uuidv4()}`;
+    // Generate shorter, unique GUID
+    const FactorGuid = await generateShortGuid();
     const currentDate = moment().locale("fa").format("YYYY-MM-DDTHH:mm:ss");
 
     // Create invoice first

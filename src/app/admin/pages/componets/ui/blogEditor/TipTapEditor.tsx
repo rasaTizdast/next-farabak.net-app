@@ -33,10 +33,13 @@ import {
   Heading6,
   Table as TableIcon,
   FileUp,
+  Video,
 } from "lucide-react";
 import { ToolbarButton } from "./ToolbarButton";
 import { Divider } from "./Divider";
 import { CustomImage } from "./Image";
+import { CustomVideo } from "./Video";
+import VideoUploadModal from "./VideoUploadModal";
 
 // Default dimensions for imported images
 const DEFAULT_WIDTH = 500;
@@ -61,6 +64,8 @@ const TipTapBlogEditor = ({
   const [tableCols, setTableCols] = useState(3);
   const [isHtmlImportModalOpen, setIsHtmlImportModalOpen] = useState(false);
   const [htmlContent, setHtmlContent] = useState("");
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [isVideoLoading, setIsVideoLoading] = useState(false);
   const editorContainerRef = useRef<HTMLDivElement>(null);
 
   const calculateDimensions = async (url: string) => {
@@ -127,8 +132,11 @@ const TipTapBlogEditor = ({
           class: "border border-gray-600 p-2 text-right",
         },
       }),
-      // Replace the existing ResizableImage configuration in the editor setup
+      // Add CustomImage and CustomVideo extensions
       CustomImage,
+      CustomVideo.configure({
+        HTMLAttributes: { class: "w-full my-4" },
+      }),
     ],
     content: blogData || "", // Initialize with blogData if provided
   });
@@ -218,7 +226,7 @@ const TipTapBlogEditor = ({
 
   // Function to check if a URL is external
   const isExternalUrl = (url: string): boolean => {
-    return url.startsWith('http://') || url.startsWith('https://');
+    return url.startsWith("http://") || url.startsWith("https://");
   };
 
   const setLink = useCallback(() => {
@@ -267,11 +275,12 @@ const TipTapBlogEditor = ({
             }
 
             // For custom sizes, add a style attribute as well
-            const styleAttr = size === "custom" ? `style="--img-width:${width}px"` : "";
-            
+            const styleAttr =
+              size === "custom" ? `style="--img-width:${width}px"` : "";
+
             // Handle external URLs differently
             const imgSrc = isExternalUrl(src) ? src : `${src}`;
-            
+
             if (isExternalUrl(src)) {
               // For external URLs, use unoptimized Image with domain property
               return `<img src="${imgSrc}" alt="${alt}" width="${width}" height="${height}" className="${tailwindClass}" />`;
@@ -288,13 +297,22 @@ const TipTapBlogEditor = ({
             // If this regex matches, it means our first replace didn't catch it (no data-size)
             // Handle external URLs differently
             const imgSrc = isExternalUrl(src) ? src : `${src}`;
-            
+
             if (isExternalUrl(src)) {
               // For external URLs, use unoptimized Image with domain property
               return `<img src="${imgSrc}" alt="${alt}" width="${width}" height="${height}" className="w-full" />`;
             } else {
               return `<Image src="${imgSrc}" alt="${alt}" width={${width}} height={${height}} className="w-full" quality={100} layout="responsive" />`;
             }
+          }
+        )
+
+        // Make sure videos have the right src path (keep the relative path)
+        .replace(
+          /<div data-type="video"[^>]*>([\s\S]*?)<\/div>/g,
+          (match) => {
+            // Preserve the video element as is - it will be processed on the frontend
+            return match;
           }
         )
 
@@ -386,26 +404,28 @@ const TipTapBlogEditor = ({
         /<img\s+src="([^"]+)"([^>]*)>/g,
         (match, src, rest) => {
           // Always preserve the original URL to avoid prefixing with bucket URL
-          
+
           // Extract existing width and height if available
           const widthMatch = rest.match(/width="([^"]+)"/);
           const heightMatch = rest.match(/height="([^"]+)"/);
-          
+
           const width = widthMatch ? widthMatch[1] : DEFAULT_WIDTH;
           const height = heightMatch ? heightMatch[1] : DEFAULT_HEIGHT;
-          
+
           // Add width and height if they're missing
-          const widthAttr = widthMatch ? '' : ` width="${DEFAULT_WIDTH}"`;
-          const heightAttr = heightMatch ? '' : ` height="${DEFAULT_HEIGHT}"`;
-          
+          const widthAttr = widthMatch ? "" : ` width="${DEFAULT_WIDTH}"`;
+          const heightAttr = heightMatch ? "" : ` height="${DEFAULT_HEIGHT}"`;
+
           // Ensure we have data-size attribute to identify imported images
-          const dataSize = rest.includes('data-size') ? '' : ' data-size="full"';
-          
+          const dataSize = rest.includes("data-size")
+            ? ""
+            : ' data-size="full"';
+
           // Preserve original URL but ensure other attributes are added
           return `<img src="${src}"${rest}${widthAttr}${heightAttr}${dataSize}>`;
         }
       );
-      
+
       // Insert the processed HTML
       editor.chain().focus().insertContent(processedHtml).run();
       setHtmlContent("");
@@ -445,6 +465,58 @@ const TipTapBlogEditor = ({
   [&_td]:border [&_td]:border-gray-600 [&_td]:p-2
   [&_.tableControls]:relative [&_.tableControls]:top-[-30px] [&_.tableControls]:justify-center [&_.tableControls]:z-20 [&_.tableControls]:flex`;
 
+  // Add the addVideo function
+  const addVideo = useCallback(
+    async (file: File) => {
+      if (!editor) {
+        return;
+      }
+
+      if (file.size > 500 * 1024 * 1024) {
+        alert("Video size should be less than 500MB");
+        return;
+      }
+
+      try {
+        setIsVideoLoading(true);
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("slug", slug);
+
+        const response = await fetch("/api/manageBlog/uploadVideo", {
+          method: "POST",
+          body: formData,
+        });
+
+        const { url } = await response.json();
+
+        // Insert the video into the editor
+        editor.commands.command(({ chain }) => {
+          return chain()
+            .focus()
+            .setVideo({
+              src: url,
+              title: file.name,
+              slug,
+            })
+            .run();
+        });
+      } catch (error) {
+        console.error("Video upload failed:", error);
+        alert("Failed to upload video");
+      } finally {
+        setIsVideoLoading(false);
+      }
+    },
+    [editor, slug]
+  );
+
+  // Add toggleVideoModal function
+  const toggleVideoModal = () => {
+    setIsVideoModalOpen(!isVideoModalOpen);
+  };
+
   if (!editor) return null;
 
   return (
@@ -456,7 +528,7 @@ const TipTapBlogEditor = ({
       ref={editorContainerRef}
     >
       {/* Fixed Toolbar */}
-      <div className="sticky top-0 z-20 bg-gray-800 p-2 border-b border-gray-600 rounded-t-lg shadow-lg">
+      <div className="sticky -top-6 z-20 bg-gray-800 p-2 border-b border-gray-600 rounded-t-lg shadow-lg">
         <div className="flex flex-wrap items-center gap-1">
           <div className="flex items-center gap-1">
             <ToolbarButton
@@ -624,6 +696,11 @@ const TipTapBlogEditor = ({
                 در حال آپلود عکس...
               </div>
             )}
+            <ToolbarButton
+              onClick={toggleVideoModal}
+              icon={Video}
+              title="Add Video"
+            />
           </div>
 
           {isLinkMenuOpen && (
@@ -771,6 +848,14 @@ const TipTapBlogEditor = ({
         </div>
       )}
 
+      {/* Video upload modal */}
+      {isVideoModalOpen && (
+        <VideoUploadModal
+          onClose={toggleVideoModal}
+          onVideoUpload={addVideo}
+        />
+      )}
+
       {/* Improved Editor Content Area with ProseMirror Table Controls Extension */}
       <div className={editorContainerClasses}>
         <EditorContent
@@ -841,7 +926,7 @@ const TipTapBlogEditor = ({
       </div>
 
       {/* Save Button */}
-      <div className="sticky bottom-0 flex gap-2 p-4 bg-gray-800 border-t border-gray-600 rounded-b-lg">
+      <div className="sticky -bottom-6 flex gap-2 p-4 bg-gray-800 border-t border-gray-600 rounded-b-lg">
         <button
           onClick={() => exportToMDX(false)}
           className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"

@@ -180,7 +180,7 @@ export async function GET() {
         name: member.Name,
         link: `/about-us/members/${member.Slug}`,
       })),
-      "/projects": projects.map((project) => ({
+      "/about-us/projects": projects.map((project) => ({
         id: project.ProjectID,
         name: project.Title,
         link: `/about-us/projects/${project.Slug}`,

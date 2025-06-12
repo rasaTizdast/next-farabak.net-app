@@ -15,6 +15,35 @@ async function verifyToken(token: string) {
 }
 
 /**
+ * Generate a shorter unique GUID for invoices
+ * Takes the first part of a UUID and checks if it already exists
+ */
+async function generateShortGuid(): Promise<string> {
+  let isUnique = false;
+  let shortGuid = "";
+
+  while (!isUnique) {
+    // Generate a full UUID and take only the first part before the first hyphen
+    const fullUuid = uuidv4();
+    shortGuid = fullUuid.split("-")[0].toUpperCase(); // Convert to uppercase
+
+    // Check if this short GUID already exists in the database (case-insensitive)
+    const existingInvoice = await prisma.invoice.findFirst({
+      where: {
+        FactorGuid: {
+          contains: `FARABAK-${shortGuid}`,
+          mode: "insensitive", // Case-insensitive check
+        },
+      },
+    });
+
+    isUnique = !existingInvoice;
+  }
+
+  return `FARABAK-${shortGuid}`;
+}
+
+/**
  * @swagger
  * /api/admin/invoices:
  *   get:
@@ -56,7 +85,7 @@ export async function GET() {
         const warranties = await prisma.$queryRaw`
           SELECT 
             w."warrantyid", w."invoicedetailid", w."warrantycode", 
-            w."startdate", w."expirydate", w."status", w."ProductId"
+            w."startdate", w."expirydate", w."status", w."ProductId", w."branchid"
           FROM 
             "info"."warranty" w
           JOIN 
@@ -66,56 +95,63 @@ export async function GET() {
         `;
 
         // Process warranty status
-        const processedWarranties = (warranties as any[]).map(warranty => {
+        const processedWarranties = (warranties as any[]).map((warranty) => {
           const today = new Date();
           const expiryDate = new Date(warranty.expirydate);
-          
+
           // Add a display status without modifying the database
           let displayStatus = warranty.status;
           if (today > expiryDate) {
-            displayStatus = 'Expired';
+            displayStatus = "Expired";
           } else {
-            displayStatus = 'Active';
+            displayStatus = "Active";
           }
-          
+
           return {
             ...warranty,
-            displayStatus
+            displayStatus,
           };
         });
 
         // Group warranties by invoice detail and product
-        const warrantiesByDetail = processedWarranties.reduce((acc, warranty) => {
-          const key = warranty.invoicedetailid;
-          if (!acc[key]) {
-            acc[key] = {
-              ...warranty,
-              warrantycodes: [{
+        const warrantiesByDetail = processedWarranties.reduce(
+          (acc, warranty) => {
+            const key = warranty.invoicedetailid;
+            if (!acc[key]) {
+              acc[key] = {
+                ...warranty,
+                warrantycodes: [
+                  {
+                    code: warranty.warrantycode,
+                    startdate: warranty.startdate,
+                    expirydate: warranty.expirydate,
+                    status: warranty.status,
+                    branchid: warranty.branchid,
+                  },
+                ],
+              };
+            } else {
+              // Add this warranty code to the existing entry
+              acc[key].warrantycodes.push({
                 code: warranty.warrantycode,
                 startdate: warranty.startdate,
                 expirydate: warranty.expirydate,
-                status: warranty.status
-              }]
-            };
-          } else {
-            // Add this warranty code to the existing entry
-            acc[key].warrantycodes.push({
-              code: warranty.warrantycode,
-              startdate: warranty.startdate,
-              expirydate: warranty.expirydate,
-              status: warranty.status
-            });
-          }
-          return acc;
-        }, {});
-          
+                status: warranty.status,
+                branchid: warranty.branchid,
+              });
+            }
+            return acc;
+          },
+          {}
+        );
+
         // Map warranty data to invoice details
         const detailsWithWarranty = (details as any[]).map((detail) => {
           const warranty = warrantiesByDetail[detail.Invoice_Details];
-          
+
           return {
             ...detail,
-            warranty: warranty || null
+            warranty: warranty || null,
           };
         });
 
@@ -192,10 +228,13 @@ export async function POST(request: Request) {
       );
     }
 
+    // Generate shorter, unique GUID
+    const factorGuid = await generateShortGuid();
+
     // Create the invoice with Checked: true for branch users
     const createdInvoice = await prisma.invoice.create({
       data: {
-        FactorGuid: `FARABAK-${uuidv4()}`,
+        FactorGuid: factorGuid,
         Fullname: invoiceData.Fullname,
         Phonenumber: invoiceData.Phonenumber,
         TotalAmount: invoiceData.TotalAmount,
@@ -324,16 +363,19 @@ export async function PATCH(req: Request): Promise<NextResponse> {
     // Get invoice ID from query parameters
     const { searchParams } = new URL(req.url);
     const queryInvoiceId = searchParams.get("id");
-    
+
     // Get request body
     const body = await req.json();
-    
+
     // Check for invoiceId in both query params and request body
     const invoiceId = queryInvoiceId || body.Invoiceid?.toString();
 
     if (!invoiceId) {
       return NextResponse.json(
-        { message: "Invoice ID is required in either query params ('id') or request body ('Invoiceid')" },
+        {
+          message:
+            "Invoice ID is required in either query params ('id') or request body ('Invoiceid')",
+        },
         { status: 400 }
       );
     }

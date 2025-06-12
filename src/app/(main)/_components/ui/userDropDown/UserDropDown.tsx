@@ -51,7 +51,7 @@ const UserDropDown = () => {
           )}
           {isBranch && (
             <li>
-              <Link href="/branch">پنل شعبه</Link>
+              <Link href="/admin/branches/my">پنل شعبه</Link>
             </li>
           )}
           {!isAdmin && !isBranch && (

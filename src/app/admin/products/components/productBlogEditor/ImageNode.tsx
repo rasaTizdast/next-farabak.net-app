@@ -369,6 +369,7 @@ const ImageNode = ({
             onClick={toggleResizeOptions}
             className="p-1 bg-blue-600 rounded-md hover:bg-blue-700 text-white"
             title="تغییر اندازه"
+            type="button"
           >
             {showResizeOptions ? (
               <Minimize2 size={20} />
@@ -426,7 +427,7 @@ const ImageNode = ({
                 یک سوم عرض صفحه
               </button>
             </div>
-            
+
             <div className="text-center bg-blue-600 text-white text-xs p-1 rounded mb-2">
               برای تغییر اندازه مستقیم، گوشه های تصویر را بکشید
             </div>

@@ -122,6 +122,18 @@ const forgotPasswordSchema = yup.object().shape({
     .string()
     .matches(emailPattern, "آدرس ایمیل نامعتبر است")
     .required("آدرس ایمیل الزامی است"),
+});
+
+// !VerifyCode schema
+const verifyCodeSchema = yup.object().shape({
+  code: yup
+    .string()
+    .matches(/^\d{6}$/, "کد تایید باید ۶ رقم باشد")
+    .required("کد تایید الزامی است"),
+});
+
+// !ResetPassword schema
+const resetPasswordSchema = yup.object().shape({
   password: yup
     .string()
     .matches(
@@ -131,6 +143,10 @@ const forgotPasswordSchema = yup.object().shape({
     .required("کلمه عبور الزامی است")
     .min(8, "کلمه عبور نباید کمتر از ۸ کاراکتر باشد")
     .max(50, "کلمه عبور نباید بیش از ۵۰ کاراکتر باشد"),
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref("password"), null], "کلمه عبور باید مطابقت داشته باشد")
+    .required("تکرار کلمه عبور الزامی است"),
 });
 
 // !EditUser schema
@@ -186,6 +202,8 @@ export {
   signUpSchema,
   signInSchema,
   forgotPasswordSchema,
+  verifyCodeSchema,
+  resetPasswordSchema,
   editUserSchema,
   changePasswordSchema,
 };

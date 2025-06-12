@@ -323,13 +323,16 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
         });
       }
 
-      try {
-        await axios.post("/api/specs/update", {
-          productId: formState.ProductId,
-          specs: specs?.data,
-        });
-      } catch (error) {
-        toast.error("اپدیت بررسی ها به مشکل  برخورد، مجددا تلاش کنید");
+      // Only update specs if they exist and have been changed
+      if (specs?.data) {
+        try {
+          await axios.post("/api/specs/update", {
+            productId: formState.ProductId,
+            specs: specs.data,
+          });
+        } catch (error) {
+          toast.error("اپدیت بررسی ها به مشکل  برخورد، مجددا تلاش کنید");
+        }
       }
 
       try {

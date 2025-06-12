@@ -67,7 +67,7 @@ const BranchWarrantyManagementModal = ({
   }>({
     warrantycode: "",
     startdate: new Date().toISOString().split("T")[0],
-    expirydate: new Date(Date.now() + 730 * 24 * 60 * 60 * 1000)
+    expirydate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
       .toISOString()
       .split("T")[0],
     status: "Active",
@@ -409,7 +409,7 @@ const BranchWarrantyManagementModal = ({
       ...warrantyData,
       expirydate:
         formattedDate ||
-        new Date(Date.now() + 730 * 24 * 60 * 60 * 1000)
+        new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
           .toISOString()
           .split("T")[0],
     });
@@ -560,7 +560,7 @@ const BranchWarrantyManagementModal = ({
 
               {branchHasProduct && (
                 <div className="text-green-400 text-sm mt-1">
-                  این محصول در فاکتور شعبه شما موجود است و قابل ثبت گارانتی
+                  این محصول در شعبه شما موجود است و قابل ثبت گارانتی
                   می‌باشد.
                 </div>
               )}

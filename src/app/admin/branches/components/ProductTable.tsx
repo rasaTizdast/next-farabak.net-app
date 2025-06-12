@@ -72,10 +72,10 @@ const ProductTable: React.FC<ProductTableProps> = ({
       width: showRemoveButton ? "20%" : "30%",
       render: (_: number, record: Product) => (
         <InputNumber
-          min={0}
+          min={record.quantity}
           value={debouncedValues[record.ProductId] ?? record.quantity}
           onChange={(value) => {
-            if (value !== null) {
+            if (value !== null && value >= record.quantity) {
               handleQuantityChange(record.ProductId, value);
             }
           }}

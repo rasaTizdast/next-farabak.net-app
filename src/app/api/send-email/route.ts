@@ -28,6 +28,17 @@ import { NextResponse } from "next/server";
  *                 type: string
  *                 example: "Thank you for joining us! We're excited to have you."
  *                 description: "The text content of the email."
+ *               html:
+ *                 type: string
+ *                 example: "<p>Thank you for joining us! We're excited to have you.</p>"
+ *                 description: "The HTML content of the email. If provided, it will be used instead of text."
+ *               template:
+ *                 type: string
+ *                 example: "reset-password"
+ *                 description: "The template to use for the email."
+ *               templateData:
+ *                 type: object
+ *                 description: "Data to be used in the template."
  *     responses:
  *       200:
  *         description: Email sent successfully
@@ -64,45 +75,178 @@ import { NextResponse } from "next/server";
  *                   example: "Error details here"
  */
 
-const transporter = nodemailer.createTransport({
-  host: process.env.WEBMAIL_HOST,
-  port: parseInt(process.env.WEBMAIL_PORT || "587", 10),
-  secure: process.env.WEBMAIL_PORT === "465",
-  auth: {
-    user: process.env.WEBMAIL_USER,
-    pass: process.env.WEBMAIL_PASS,
-  },
-});
+// Helper function to get a working transporter
+async function getTransporter() {
+  // Create a new transporter
+  const transporterConfig = {
+    host: process.env.MAIL_HOST,
+    port: parseInt(process.env.MAIL_PORT || "587", 10),
+    secure: process.env.MAIL_PORT === "465",
+    auth: {
+      user: process.env.MAIL_USER,
+      pass: process.env.MAIL_PASS,
+    },
+    connectionTimeout: 15000, // 15 seconds
+    socketTimeout: 20000, // 20 seconds
+    tls: {
+      rejectUnauthorized: false,
+    },
+  };
+
+  // Create transporter
+  return nodemailer.createTransport(transporterConfig);
+}
+
+// Initial transporter (will be set on first request)
+let transporter: nodemailer.Transporter | null = null;
+
+// Email templates
+const templates = {
+  "reset-password": (data: { code: string }) => ({
+    subject: "بازیابی رمز عبور | فرابک",
+    text: `کد بازیابی رمز عبور شما: ${data.code}\nاین کد تا ۱۵ دقیقه معتبر است.`,
+    html: `
+      <div dir="rtl" style="font-family: Tahoma, Arial; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 5px;">
+        <h2 style="color: #333; text-align: center;">بازیابی رمز عبور</h2>
+        <p style="font-size: 16px; line-height: 1.5;">کاربر گرامی، درخواست بازیابی رمز عبور برای حساب کاربری شما دریافت شد.</p>
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; text-align: center; margin: 20px 0;">
+          <p style="font-size: 14px; margin: 0;">کد بازیابی رمز عبور شما:</p>
+          <h3 style="margin: 10px 0; font-size: 24px; letter-spacing: 2px;">${data.code}</h3>
+          <p style="font-size: 13px; margin: 5px 0 0; color: #777;">این کد تا ۱۵ دقیقه معتبر است.</p>
+        </div>
+        <p style="font-size: 14px; color: #666; text-align: right;">اگر شما درخواست بازیابی رمز عبور نداده‌اید، لطفاً این ایمیل را نادیده بگیرید.</p>
+        <div style="margin-top: 30px; border-top: 1px solid #eaeaea; padding-top: 15px; text-align: center; font-size: 12px; color: #999;">
+          <p>شرکت فرابک | این ایمیل به صورت خودکار ارسال شده است، لطفاً به آن پاسخ ندهید.</p>
+        </div>
+      </div>
+    `,
+  }),
+  test: () => ({
+    subject: "تست ارسال ایمیل | فرابک",
+    text: "این یک ایمیل تست است.",
+    html: `
+      <div dir="rtl" style="font-family: Tahoma, Arial; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 5px;">
+        <h2 style="color: #333; text-align: center;">تست ارسال ایمیل</h2>
+        <p style="font-size: 16px; line-height: 1.5; text-align: center;">این یک ایمیل تست است.</p>
+      </div>
+    `,
+  }),
+};
+
+// Helper function to safely send email with proper error handling
+async function sendEmail(mailOptions: nodemailer.SendMailOptions) {
+  // Initialize transporter if not already done
+  if (!transporter) {
+    transporter = await getTransporter();
+  }
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    return info;
+  } catch (error) {
+    console.error("Error sending email:", error);
+
+    // Check if this is a connection timeout error
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      error.code === "ETIMEDOUT"
+    ) {
+      // Recreate the transporter with different settings
+      const alternativeTransporter = nodemailer.createTransport({
+        host: process.env.MAIL_HOST,
+        port: 587, // Try non-SSL port
+        secure: false,
+        auth: {
+          user: process.env.MAIL_USER,
+          pass: process.env.MAIL_PASS,
+        },
+        connectionTimeout: 10000,
+        socketTimeout: 15000,
+        tls: {
+          rejectUnauthorized: false,
+        },
+      });
+
+      try {
+        const info = await alternativeTransporter.sendMail(mailOptions);
+
+        // Update the main transporter for future requests
+        transporter = alternativeTransporter;
+
+        return info;
+      } catch (altError) {
+        console.error("Alternative transport also failed:", altError);
+        throw altError;
+      }
+    }
+
+    throw error;
+  }
+}
 
 export async function POST(req: Request) {
-  const { to, subject, text } = await req.json();
+  const { to, subject, text, html, template, templateData } = await req.json();
 
-  if (!to || !subject || !text) {
+  // Handle template-based emails
+  if (template && templates[template]) {
+    const templateContent = templates[template](templateData || {});
+
+    const mailOptions = {
+      from: `"فرابک" <${process.env.MAIL_FROM || "noreply@farabak.net"}>`,
+      to,
+      subject: templateContent.subject,
+      text: templateContent.text,
+      html: templateContent.html,
+      headers: {
+        "x-liara-tag": template, // Tag for tracking in Liara
+      },
+    };
+
+    try {
+      await sendEmail(mailOptions);
+      return NextResponse.json({ message: "Email sent successfully" });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return NextResponse.json(
+          { error: "Failed to send email", details: error.message },
+          { status: 500 }
+        );
+      } else {
+        return NextResponse.json(
+          { error: "Failed to send email", details: "Unknown error" },
+          { status: 500 }
+        );
+      }
+    }
+  }
+
+  // Handle regular emails
+  if (!to || !subject || (!text && !html)) {
     return NextResponse.json(
-      { error: "Please provide to, subject, and text fields" },
+      { error: "Please provide to, subject, and either text or html content" },
       { status: 400 }
     );
   }
 
   const mailOptions = {
-    from: process.env.WEBMAIL_USER,
+    from: `"فرابک" <${process.env.MAIL_FROM || "noreply@farabak.net"}>`,
     to,
     subject,
     text,
+    html: html || undefined,
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    await sendEmail(mailOptions);
     return NextResponse.json({ message: "Email sent successfully" });
   } catch (error: unknown) {
-    // Check if the error is an instance of the Error class
     if (error instanceof Error) {
       return NextResponse.json(
         { error: "Failed to send email", details: error.message },
         { status: 500 }
       );
     } else {
-      // Fallback in case error is not an instance of Error
       return NextResponse.json(
         { error: "Failed to send email", details: "Unknown error" },
         { status: 500 }

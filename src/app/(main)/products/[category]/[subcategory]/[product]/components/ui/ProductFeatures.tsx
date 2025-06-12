@@ -9,6 +9,7 @@ async function getProductFeatures(productId: number) {
     );
 
     if (!res) throw new Error("Failed to fetch features");
+
     return res.data;
   } catch (error) {
     return null;
@@ -26,12 +27,22 @@ export default async function ProductFeatures({
     return <p>ویژگی برای این محصول یافت نشد</p>;
   }
 
+  const properties = [
+    features.Property1,
+    features.Property2,
+    features.Property3,
+    features.Property4,
+  ].filter((prop) => prop !== null && prop !== undefined && prop.trim() !== "");
+
+  if (properties.length === 0) {
+    return <p>ویژگی برای این محصول یافت نشد</p>;
+  }
+
   return (
     <ul className={styles.productFeatures}>
-      <li>{features.Property1}</li>
-      <li>{features.Property2}</li>
-      <li>{features.Property3}</li>
-      <li>{features.Property4}</li>
+      {properties.map((property, index) => (
+        <li key={index}>{property}</li>
+      ))}
     </ul>
   );
 }

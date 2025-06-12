@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-
 // GET handler to fetch contact us data
 export async function GET() {
   try {
@@ -31,42 +30,48 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const { address, emails, phone_numbers } = body;
 
-    // Update address
-    if (address) {
-      await prisma.address.update({
-        where: { id: address.id },
-        data: {
-          address: address.address,
-          postal_code: address.postal_code,
-          alt_text: address.alt_text,
-        },
-      });
-    }
-
-    // Update emails
-    if (emails && emails.length > 0) {
-      for (const email of emails) {
-        await prisma.emails.update({
-          where: { id: email.id },
+    // Use a transaction to ensure all updates are applied together
+    await prisma.$transaction(async (tx) => {
+      // Update address
+      if (address) {
+        await tx.address.update({
+          where: { id: address.id },
           data: {
-            title: email.title,
-            address: email.address,
+            address: address.address,
+            postal_code: address.postal_code,
+            alt_text: address.alt_text,
           },
         });
       }
-    }
 
-    // Update phone numbers
-    if (phone_numbers && phone_numbers.length > 0) {
-      for (const phone of phone_numbers) {
-        await prisma.phone_numbers.update({
-          where: { id: phone.id },
-          data: {
-            number: phone.number,
-          },
-        });
+      // Update emails - preserve order by updating with index
+      if (emails && emails.length > 0) {
+        // First, update each email record to maintain their data
+        for (let i = 0; i < emails.length; i++) {
+          const email = emails[i];
+          await tx.emails.update({
+            where: { id: email.id },
+            data: {
+              title: email.title,
+              address: email.address,
+            },
+          });
+        }
       }
-    }
+
+      // Update phone numbers - preserve order by updating with index
+      if (phone_numbers && phone_numbers.length > 0) {
+        for (let i = 0; i < phone_numbers.length; i++) {
+          const phone = phone_numbers[i];
+          await tx.phone_numbers.update({
+            where: { id: phone.id },
+            data: {
+              number: phone.number,
+            },
+          });
+        }
+      }
+    });
 
     return NextResponse.json({ message: "اطلاعات با موفقیت به‌روزرسانی شد." });
   } catch (error) {

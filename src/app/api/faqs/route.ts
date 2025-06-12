@@ -26,7 +26,7 @@ import { prisma } from "@/lib/prisma";
  *                       example: "What is the warranty period?"
  *                     Description:
  *                       type: string
- *                       example: "The warranty period is 2 years."
+ *                       example: "The warranty period is 1 year."
  *                     ProductId:
  *                       type: integer
  *                       example: 1

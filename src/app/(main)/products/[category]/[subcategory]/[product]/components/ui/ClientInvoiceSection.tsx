@@ -23,7 +23,7 @@ const ClientInvoiceSection = ({
 }: Props) => {
   const { addProductToInvoice, getProductQuantity, removeProductFromInvoice } =
     useInvoice();
-  const { user, loading } = useUser();
+  const { user, loading, isAdmin, isBranch } = useUser();
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
   const [isFetchingRate, setIsFetchingRate] = useState(true);
 
@@ -102,34 +102,71 @@ const ClientInvoiceSection = ({
     );
   }
 
-  return (
-    <div className={styles.invoiceParent}>
-      {/* Minimal Price and Discount Section */}
-      <div
-        className={`flex ${styles.priceParent} flex-col gap-3 my-6 bg-blue-100 p-3 rounded-lg max-w-full animate-fade-in`}
-      >
-        <div className="flex items-center gap-2 content-center">
-          قیمت قبلی:{" "}
+  // Price display block (used for all logged in users)
+  const priceBlock = (
+    <div
+      className={`flex ${styles.priceParent} flex-col gap-3 my-6 bg-blue-100 p-3 rounded-lg max-w-full animate-fade-in`}
+    >
+      <div className="flex items-center gap-2 content-center">
+        قیمت قبلی:{" "}
+        <span
+          className={`${styles.beforePrice} font-extralight text-gray-500 line-through`}
+        >
+          {e2p(priceInRial?.toLocaleString() || "0")} تومان
+        </span>
+        {discountInRial && discountInRial > 0 && (
           <span
-            className={`${styles.beforePrice} font-extralight text-gray-500 line-through`}
+            className={`${styles.discount} text-xs bg-[#003262] text-white py-1 px-2 rounded-lg lg:rounded-xl font-semibold`}
           >
-            {e2p(priceInRial?.toLocaleString() || "0")} تومان
+            {discountPercentage}%
           </span>
-          {discountInRial && discountInRial > 0 && (
-            <span
-              className={`${styles.discount} text-xs bg-[#003262] text-white py-1 px-2 rounded-lg lg:rounded-xl font-semibold`}
+        )}
+      </div>
+      <div className="flex items-center content-center gap-2">
+        قیمت جدید:{" "}
+        <span className="text-2xl font-black text-[#003262]">
+          {e2p(discountedPrice?.toLocaleString() || "0")} تومان
+        </span>
+      </div>
+    </div>
+  );
+
+  // Render for admin or branch users - show price block first, then special message
+  if (isAdmin || isBranch) {
+    return (
+      <div className={styles.invoiceParent}>
+        {priceBlock}
+        <div className="w-full flex flex-col items-center justify-center bg-blue-100 p-3 rounded-lg text-center gap-3 my-6">
+          <p className="text-lg text-blue-950 font-bold">
+            برای ثبت این محصول داخل فاکتور وارد پنل خود شوید و از آنجا انتخاب
+            کنید
+          </p>
+
+          {isAdmin && (
+            <Link
+              href="/admin/invoices"
+              className="bg-blue-600 text-white py-2 px-4 rounded-lg text-base md:text-lg hover:bg-blue-700 transition-all animate-fade-in"
             >
-              {discountPercentage}%
-            </span>
+              رفتن به پنل مدیریت
+            </Link>
+          )}
+          {isBranch && (
+            <Link
+              href="/admin/branches/my"
+              className="bg-blue-600 text-white py-2 px-4 rounded-lg text-base md:text-lg hover:bg-blue-700 transition-all animate-fade-in"
+            >
+              رفتن به پنل شعبه
+            </Link>
           )}
         </div>
-        <div className="flex items-center content-center gap-2">
-          قیمت جدید:{" "}
-          <span className="text-2xl font-black text-[#003262]">
-            {e2p(discountedPrice?.toLocaleString() || "0")} تومان
-          </span>
-        </div>
       </div>
+    );
+  }
+
+  // Render for regular users
+  return (
+    <div className={styles.invoiceParent}>
+      {priceBlock}
 
       {currentQuantity > 0 && (
         <p className={styles.invoiceText}>تعداد این محصول در فاکتور</p>

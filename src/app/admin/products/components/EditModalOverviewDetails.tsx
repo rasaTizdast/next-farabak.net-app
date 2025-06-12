@@ -116,7 +116,7 @@ const EditModalOverviewDetails = ({
   return (
     <div className="flex flex-col gap-5 col-span-1 sm:col-span-2 border-t-4 border-t-gray-200 pt-5 mt-3">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">ویژگی‌های محصول</h3>
+        <h3 className="text-lg font-semibold">توضیحات محصول</h3>
         {hasMoreItems && (
           <button
             type="button"

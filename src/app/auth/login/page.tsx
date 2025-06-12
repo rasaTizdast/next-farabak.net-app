@@ -11,6 +11,7 @@ import axios from "axios";
 
 import { signInSchema } from "@/helpers/validationSchema";
 import TextInput from "../_components/TextInput";
+import ForgotPasswordModal from "../_components/ForgotPasswordModal";
 import styles from "../FormStyles.module.css";
 
 import { useUser } from "@/context/UserContext";
@@ -21,6 +22,7 @@ import farabakLogo from "/public/Farabak_Logo.webp";
 const SignIn = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
   const router = useRouter();
 
   const { updateUserContext } = useUser();
@@ -47,8 +49,16 @@ const SignIn = () => {
       const response = await axios.post("/api/auth/login", data);
       if (response.data.message === "ورود با موفقیت انجام شد") {
         updateUserContext();
-        // Redirect to the dashboard on success
-        router.push("/dashboard");
+        // Redirect based on user role
+        const userRole = response.data.role;
+        if (userRole === "Admin") {
+          router.push("/admin");
+        } else if (userRole === "Branch") {
+          router.push("/admin/branches/my");
+        } else {
+          // Default case for regular users
+          router.push("/dashboard");
+        }
       } else {
         setErrorMessage(response.data.message || "خطا در فرایند ورود.");
       }
@@ -101,9 +111,13 @@ const SignIn = () => {
               type="password"
               autoComplete="current-password"
             />
-            {/* <Link to="/auth/forgot-password" className={styles.forgot}>
+            <button 
+              type="button" 
+              className={styles.forgot}
+              onClick={() => setIsForgotPasswordModalOpen(true)}
+            >
               کلمه عبور خود را فراموش کرده‌اید؟
-            </Link> */}
+            </button>
             <input
               className={styles.login_submit}
               type="submit"
@@ -142,6 +156,11 @@ const SignIn = () => {
           </h3>
         </div>
       </div>
+      
+      <ForgotPasswordModal 
+        isOpen={isForgotPasswordModalOpen} 
+        onClose={() => setIsForgotPasswordModalOpen(false)} 
+      />
     </FormProvider>
   );
 };

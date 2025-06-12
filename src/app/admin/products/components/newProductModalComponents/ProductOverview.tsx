@@ -22,8 +22,15 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
   const validateField = (value: string) => {
     let error = "";
     if (!value.trim()) error = "ویژگی نمی‌تواند خالی باشد.";
-    else if (value.length > 300) error = "ویژگی نمی‌تواند بیشتر از ۳۰۰ کاراکتر باشد.";
-    else if (!/^[\u0600-\u06FFa-zA-Z0-9\s.,-_]+$/.test(value)) error = "ویژگی فقط می‌تواند شامل حروف فارسی، انگلیسی، اعداد و علائم نگارشی باشد.";
+    else if (value.length > 300)
+      error = "ویژگی نمی‌تواند بیشتر از ۳۰۰ کاراکتر باشد.";
+    else if (
+      !/^[\u0600-\u06FFa-zA-Z0-9\s.,;:'"()<>[\]{}\\/@#$%^&*+=\-_!?]+$/.test(
+        value
+      )
+    )
+      error =
+        "ویژگی فقط می‌تواند شامل حروف فارسی، انگلیسی، اعداد و علائم نگارشی باشد.";
     return error;
   };
 
@@ -63,7 +70,11 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
               className="w-full p-3 rounded-lg bg-gray-700 border border-gray-300"
               placeholder={`ویژگی ${index + 1}`}
             />
-            {localErrors[`feature-${index}`] && <p className="text-red-500 mt-1">{localErrors[`feature-${index}`]}</p>}
+            {localErrors[`feature-${index}`] && (
+              <p className="text-red-500 mt-1">
+                {localErrors[`feature-${index}`]}
+              </p>
+            )}
             <button
               type="button"
               onClick={() => handleFeatureRemove(index)}
