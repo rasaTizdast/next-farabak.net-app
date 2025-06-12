@@ -176,19 +176,6 @@ const AllInvoices = () => {
                     >
                       مشاهده فاکتور
                     </button>
-                    {!item.Checked && (
-                      <button
-                        onClick={() =>
-                          handleCheckInvoice(item.FactorGuid, user?.email)
-                        }
-                        className={styles.confirm}
-                        disabled={updatingGuid === item.FactorGuid}
-                      >
-                        {updatingGuid === item.FactorGuid
-                          ? "در حال تایید..."
-                          : "تائید فاکتور"}
-                      </button>
-                    )}
                   </td>
                 </tr>
               ))
