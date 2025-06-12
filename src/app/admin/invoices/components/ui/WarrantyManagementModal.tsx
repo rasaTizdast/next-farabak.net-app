@@ -73,7 +73,7 @@ const WarrantyManagementModal = ({
       new Date().toISOString().split("T")[0],
     expirydate:
       item.individualWarranty?.expirydate ||
-      new Date(Date.now() + 730 * 24 * 60 * 60 * 1000)
+      new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
         .toISOString()
         .split("T")[0],
     status: item.individualWarranty?.status || "Active",
@@ -351,7 +351,7 @@ const WarrantyManagementModal = ({
       ...warrantyData,
       expirydate:
         formattedDate ||
-        new Date(Date.now() + 730 * 24 * 60 * 60 * 1000)
+        new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
           .toISOString()
           .split("T")[0],
     });
