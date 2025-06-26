@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Table, InputNumber, Card, Spin, Empty, Alert, Tabs } from "antd";
 import { Product } from "../../types";
 
@@ -30,14 +30,29 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
 }) => {
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<ExtendedProduct[]>([]);
+  const [rawProducts, setRawProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [localSelectedProducts, setLocalSelectedProducts] = useState<any[]>([]);
+  const [manualExchangeRate, setManualExchangeRate] = useState<number | null>(
+    null
+  );
+
+  // Determine which exchange rate to use (automatic or manual)
+  const effectiveRate = useMemo(() => {
+    // If automatic rate is valid, use it
+    if (usdToRialRate && !isNaN(usdToRialRate) && usdToRialRate > 0) {
+      return usdToRialRate;
+    }
+    // Otherwise use manual rate if it's set
+    return manualExchangeRate;
+  }, [usdToRialRate, manualExchangeRate]);
 
   // Initialize local state from props on first render and when selectedProducts changes externally
   useEffect(() => {
     setLocalSelectedProducts(selectedProducts);
   }, [selectedProducts]);
 
+  // This effect only fetches raw product data from the API
   useEffect(() => {
     if (!branchId) return;
 
@@ -53,34 +68,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
         }
 
         const data = await response.json();
-
-        // Add price in Rials and selected status
-        const extendedProducts = data.map((product: Product) => {
-          const price = product.Price ? parseFloat(product.Price) : 0;
-          const discount = product.Discount ? parseFloat(product.Discount) : 0;
-          const finalPrice = Math.max(0, price - discount); // Calculate price after discount
-          const priceInRials = usdToRialRate
-            ? finalPrice * usdToRialRate
-            : finalPrice;
-
-          // Check if product is already selected
-          const existingProduct = localSelectedProducts.find(
-            (p) => p.ProductId === product.ProductId
-          );
-
-          return {
-            ...product,
-            priceInRials,
-            currentQuantity: product.quantity || 0, // Store the available quantity
-            selectedQuantity: existingProduct ? existingProduct.quantity : 0, // How many are selected
-            isSelected: !!existingProduct,
-            total_price: existingProduct
-              ? existingProduct.quantity * priceInRials
-              : 0,
-          };
-        });
-
-        setProducts(extendedProducts as ExtendedProduct[]);
+        setRawProducts(data);
         setError(null);
       } catch (err: any) {
         console.error("Error fetching products:", err);
@@ -91,7 +79,77 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     };
 
     fetchProducts();
-  }, [branchId, usdToRialRate]);
+  }, [branchId]); // Only depends on branchId, not on rate changes
+
+  // This effect processes the raw products with the current exchange rate
+  // without triggering API calls
+  useEffect(() => {
+    if (rawProducts.length === 0) return;
+
+    const processedProducts = rawProducts.map((product: Product) => {
+      const price = product.Price ? parseFloat(product.Price) : 0;
+      const discount = product.Discount ? parseFloat(product.Discount) : 0;
+      const finalPrice = Math.max(0, price - discount);
+
+      const priceInRials = effectiveRate ? finalPrice * effectiveRate : 0;
+
+      // Check if product is already selected
+      const existingProduct = localSelectedProducts.find(
+        (p) => p.ProductId === product.ProductId
+      );
+
+      return {
+        ...product,
+        priceInRials,
+        currentQuantity: product.quantity || 0,
+        selectedQuantity: existingProduct ? existingProduct.quantity : 0,
+        isSelected: !!existingProduct,
+        total_price: existingProduct
+          ? existingProduct.quantity * priceInRials
+          : 0,
+      };
+    });
+
+    setProducts(processedProducts as ExtendedProduct[]);
+
+    // Update selected products with new prices based on new rate
+    if (effectiveRate && localSelectedProducts.length > 0) {
+      const updatedSelectedProducts = localSelectedProducts.map((product) => {
+        const originalProduct = rawProducts.find(
+          (p) => p.ProductId === product.ProductId
+        );
+        if (!originalProduct) return product;
+
+        const price = originalProduct.Price
+          ? parseFloat(originalProduct.Price)
+          : 0;
+        const discount = originalProduct.Discount
+          ? parseFloat(originalProduct.Discount)
+          : 0;
+        const finalPrice = Math.max(0, price - discount);
+        const priceInRials = finalPrice * effectiveRate;
+
+        return {
+          ...product,
+          price: priceInRials,
+          total_price: product.quantity * priceInRials,
+        };
+      });
+
+      // Only update if prices have changed
+      const pricesChanged = updatedSelectedProducts.some(
+        (p, i) => p.price !== localSelectedProducts[i]?.price
+      );
+
+      if (pricesChanged) {
+        setLocalSelectedProducts(updatedSelectedProducts);
+        onUpdate(
+          updatedSelectedProducts,
+          updatedSelectedProducts.reduce((sum, p) => sum + p.total_price, 0)
+        );
+      }
+    }
+  }, [rawProducts, effectiveRate]);
 
   // Use memoized callback to avoid re-renders
   const handleQuantityChange = useCallback(
@@ -171,6 +229,12 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     [products, setSelectedProducts, onUpdate]
   );
 
+  // Handle manual exchange rate change without full re-renders
+  const handleManualRateChange = useCallback((value: number | null) => {
+    if (value === null) return;
+    setManualExchangeRate(value);
+  }, []);
+
   const branchProductsColumns = [
     {
       title: "نام محصول",
@@ -188,7 +252,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
       key: "originalPrice",
       render: (_: any, record: any) => {
         const originalPrice = record.Price
-          ? parseFloat(record.Price) * (usdToRialRate || 1)
+          ? parseFloat(record.Price) * (effectiveRate || 1)
           : 0;
         return originalPrice
           ? new Intl.NumberFormat("fa-IR").format(originalPrice)
@@ -200,7 +264,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
       key: "discount",
       render: (_: any, record: any) => {
         const discount = record.Discount
-          ? parseFloat(record.Discount) * (usdToRialRate || 1)
+          ? parseFloat(record.Discount) * (effectiveRate || 1)
           : 0;
         return discount ? new Intl.NumberFormat("fa-IR").format(discount) : "0";
       },
@@ -288,13 +352,16 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     return <Alert message={error} type="error" />;
   }
 
+  const isValidAutoRate =
+    usdToRialRate && !isNaN(usdToRialRate) && usdToRialRate > 0;
+
   return (
     <Card className="bg-gray-900 border-0 shadow-md">
       <h3 className="text-lg font-medium text-white mb-4">
         محصولات مورد نظر را انتخاب کنید
       </h3>
 
-      {usdToRialRate && (
+      {isValidAutoRate ? (
         <div className="mb-4 p-3 bg-blue-900/20 border border-blue-800/30 rounded-md">
           <p className="text-blue-100 text-sm">
             نرخ تبدیل دلار به تومان:{" "}
@@ -303,61 +370,99 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
             </span>
           </p>
         </div>
+      ) : (
+        <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-800/30 rounded-md">
+          <p className="text-yellow-100 text-sm mb-2">
+            خطا در دریافت نرخ ارز. لطفا نرخ تبدیل دلار به تومان را وارد کنید:
+          </p>
+          <div className="flex items-center">
+            <InputNumber
+              min={1}
+              value={manualExchangeRate || undefined}
+              onChange={handleManualRateChange}
+              className="dark-input-number"
+              formatter={(value) =>
+                value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : ""
+              }
+              parser={(value) =>
+                value ? parseFloat(value.replace(/,/g, "")) : 0
+              }
+              style={{
+                backgroundColor: "#1f2937",
+                borderColor: "#374151",
+                color: "#e5e7eb",
+                width: "180px",
+              }}
+            />
+            <span className="text-white mr-2">تومان</span>
+          </div>
+        </div>
       )}
 
-      <Tabs
-        defaultActiveKey="1"
-        className="custom-dark-tabs"
-        type="card"
-        items={[
-          {
-            key: "1",
-            label: "محصولات شعبه",
-            children:
-              products.length > 0 ? (
-                <Table
-                  dataSource={products}
-                  columns={branchProductsColumns}
-                  rowKey="ProductId"
-                  pagination={false}
-                  className="custom-dark-table"
-                  scroll={{ x: "max-content" }}
-                  rowClassName="dark-table-row"
-                />
-              ) : (
-                <Empty description="محصولی برای این شعبه یافت نشد" />
-              ),
-          },
-          {
-            key: "2",
-            label: "محصولات انتخاب شده",
-            children:
-              localSelectedProducts.length > 0 ? (
-                <Table
-                  dataSource={localSelectedProducts}
-                  columns={selectedProductsColumns}
-                  rowKey="ProductId"
-                  pagination={false}
-                  className="custom-dark-table"
-                  scroll={{ x: "max-content" }}
-                  rowClassName="dark-table-row"
-                />
-              ) : (
-                <Empty description="هیچ محصولی انتخاب نشده است" />
-              ),
-          },
-        ]}
-      />
+      {!effectiveRate ? (
+        <Alert
+          message="لطفا برای مشاهده و انتخاب محصولات، نرخ تبدیل دلار به تومان را وارد کنید."
+          type="error"
+          className="mb-4"
+          showIcon
+        />
+      ) : (
+        <>
+          <Tabs
+            defaultActiveKey="1"
+            className="custom-dark-tabs"
+            type="card"
+            items={[
+              {
+                key: "1",
+                label: "محصولات شعبه",
+                children:
+                  products.length > 0 ? (
+                    <Table
+                      dataSource={products}
+                      columns={branchProductsColumns}
+                      rowKey="ProductId"
+                      pagination={false}
+                      className="custom-dark-table"
+                      scroll={{ x: "max-content" }}
+                      rowClassName="dark-table-row"
+                    />
+                  ) : (
+                    <Empty description="محصولی برای این شعبه یافت نشد" />
+                  ),
+              },
+              {
+                key: "2",
+                label: "محصولات انتخاب شده",
+                children:
+                  localSelectedProducts.length > 0 ? (
+                    <Table
+                      dataSource={localSelectedProducts}
+                      columns={selectedProductsColumns}
+                      rowKey="ProductId"
+                      pagination={false}
+                      className="custom-dark-table"
+                      scroll={{ x: "max-content" }}
+                      rowClassName="dark-table-row"
+                    />
+                  ) : (
+                    <Empty description="هیچ محصولی انتخاب نشده است" />
+                  ),
+              },
+            ]}
+          />
 
-      <div className="mt-4 text-white text-right">
-        <p className="text-lg font-bold">
-          مجموع:{" "}
-          {new Intl.NumberFormat("fa-IR").format(
-            localSelectedProducts.reduce((sum, p) => sum + p.total_price, 0)
-          )}{" "}
-          تومان
-        </p>
-      </div>
+          <div className="mt-4 text-white text-right">
+            <p className="text-lg font-bold">
+              مجموع:{" "}
+              {new Intl.NumberFormat("fa-IR").format(
+                localSelectedProducts.reduce((sum, p) => sum + p.total_price, 0)
+              )}{" "}
+              تومان
+            </p>
+          </div>
+        </>
+      )}
 
       <style jsx global>{`
         .custom-dark-table .ant-table {
