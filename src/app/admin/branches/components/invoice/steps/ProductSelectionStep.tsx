@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Table, InputNumber, Card, Spin, Empty, Alert, Tabs } from "antd";
 import { Product } from "../../types";
+import { useUser } from "@/context/UserContext";
 
 // Extended Product interface with additional properties
 interface ExtendedProduct extends Product {
@@ -36,6 +37,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
   const [manualExchangeRate, setManualExchangeRate] = useState<number | null>(
     null
   );
+  const { isAdmin, isBranch } = useUser();
 
   // Determine which exchange rate to use (automatic or manual)
   const effectiveRate = useMemo(() => {
@@ -370,6 +372,15 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
             </span>
           </p>
         </div>
+      ) : isBranch ? (
+        <div className="mb-4 p-4 bg-red-900/20 border border-red-800/30 rounded-md">
+          <p className="text-red-100 mb-2">
+            <span className="font-bold">خطا در دریافت نرخ ارز</span>
+          </p>
+          <p className="text-red-100 text-sm">
+            در حال حاضر امکان ایجاد فاکتور وجود ندارد. لطفا با مدیر سیستم تماس بگیرید تا برای شما فاکتور ایجاد کند.
+          </p>
+        </div>
       ) : (
         <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-800/30 rounded-md">
           <p className="text-yellow-100 text-sm mb-2">
@@ -400,12 +411,21 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
       )}
 
       {!effectiveRate ? (
-        <Alert
-          message="لطفا برای مشاهده و انتخاب محصولات، نرخ تبدیل دلار به تومان را وارد کنید."
-          type="error"
-          className="mb-4"
-          showIcon
-        />
+        isBranch ? (
+          <Alert
+            message="امکان ایجاد فاکتور تا زمان رفع مشکل نرخ ارز وجود ندارد."
+            type="error"
+            className="mb-4"
+            showIcon
+          />
+        ) : (
+          <Alert
+            message="لطفا برای مشاهده و انتخاب محصولات، نرخ تبدیل دلار به تومان را وارد کنید."
+            type="error"
+            className="mb-4"
+            showIcon
+          />
+        )
       ) : (
         <>
           <Tabs
