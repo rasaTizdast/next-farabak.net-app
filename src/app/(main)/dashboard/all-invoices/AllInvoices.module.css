@@ -30,6 +30,41 @@
   z-index: 1;
 }
 
+/* Time remaining status colors */
+.normal {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.warning {
+  color: #ff8f00;
+  font-weight: 600;
+}
+
+.urgent {
+  color: #d32f2f;
+  font-weight: 700;
+  animation: pulse 1.5s infinite;
+}
+
+.expired {
+  color: #7d2f2f;
+  font-weight: 700;
+  text-decoration: line-through;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 .actionsParent button {
   width: 100%;
   max-width: 180px;
