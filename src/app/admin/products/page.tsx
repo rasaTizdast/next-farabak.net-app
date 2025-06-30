@@ -83,6 +83,11 @@ const AdminProductsPage = () => {
     if (!query) {
       setSearchQuery(""); // Clear the actual search query
       setTempSearchQuery(""); // Clear the temporary query
+      // Reset to page 1 when clearing search
+      setPagination(prev => ({
+        ...prev,
+        currentPage: 1
+      }));
       return;
     }
 
@@ -97,6 +102,13 @@ const AdminProductsPage = () => {
     // Set a new debounce timeout to update searchQuery after the delay
     debounceTimeout.current = setTimeout(() => {
       const lowerCaseQuery = query.toLowerCase();
+      
+      // Reset to page 1 when search query changes
+      setPagination(prev => ({
+        ...prev,
+        currentPage: 1
+      }));
+      
       setSearchQuery(lowerCaseQuery); // Set the debounced search query
     }, 300); // Adjust debounce time as needed
   };
@@ -160,12 +172,24 @@ const AdminProductsPage = () => {
     subCategory: string;
     available: boolean | null;
   }) => {
+    // Reset to page 1 when filters change
+    setPagination(prev => ({
+      ...prev,
+      currentPage: 1
+    }));
+    
     setFilters(newFilters);
     toast.success("فیلتر اعمال شد.");
     setShowFilterModal(false);
   };
 
   const clearFilters = () => {
+    // Reset to page 1 when filters are cleared
+    setPagination(prev => ({
+      ...prev,
+      currentPage: 1
+    }));
+    
     setFilters({
       category: "",
       subCategory: "",

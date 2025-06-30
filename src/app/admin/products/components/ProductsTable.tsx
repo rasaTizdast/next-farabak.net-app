@@ -7,6 +7,7 @@ import {
   FaSort,
   FaSortUp,
   FaSortDown,
+  FaTimes,
 } from "react-icons/fa";
 import ProductEditModal from "./ProductEditModal";
 import { Product } from "../types";
@@ -28,7 +29,7 @@ type Props = {
   refetchProducts: () => void;
 };
 
-type SortKey = keyof Pick<Product, "Type" | "Price" | "Available">;
+type SortKey = keyof Pick<Product, "Price" | "Available"> | null;
 
 const ProductsTable = ({
   isLoading,
@@ -50,7 +51,7 @@ const ProductsTable = ({
   const [sortConfig, setSortConfig] = useState<{
     key: SortKey;
     direction: "ascending" | "descending";
-  }>({ key: "Type", direction: "ascending" });
+  }>({ key: null, direction: "ascending" });
 
   const [activeSubCategories, setActiveSubCategories] = useState<{
     name: string;
@@ -91,13 +92,28 @@ const ProductsTable = ({
   const sortedProducts = useMemo(() => {
     if (!products.length) return [];
 
-    return [...products].sort((a, b) => {
-      const key = sortConfig.key;
+    // If no sorting is selected, return products in their original order
+    if (sortConfig.key === null) {
+      return [...products];
+    }
 
-      if (a[key] < b[key]) {
+    // Otherwise, apply the selected sort
+    return [...products].sort((a, b) => {
+      const key = sortConfig.key as keyof Product;
+      
+      // Handle potential null values in the comparison
+      const valueA = a[key];
+      const valueB = b[key];
+      
+      // If either value is null or undefined, handle it appropriately
+      if (valueA == null && valueB == null) return 0;
+      if (valueA == null) return 1; // null values go last
+      if (valueB == null) return -1;
+
+      if (valueA < valueB) {
         return sortConfig.direction === "ascending" ? -1 : 1;
       }
-      if (a[key] > b[key]) {
+      if (valueA > valueB) {
         return sortConfig.direction === "ascending" ? 1 : -1;
       }
       return 0;
@@ -106,13 +122,32 @@ const ProductsTable = ({
 
   // Handle sorting
   const handleSort = (key: SortKey) => {
-    setSortConfig((prevConfig) => ({
-      key,
-      direction:
-        prevConfig.key === key && prevConfig.direction === "ascending"
-          ? "descending"
-          : "ascending",
-    }));
+    setSortConfig((prevConfig) => {
+      // If clicking the same column that's already sorted
+      if (prevConfig.key === key) {
+        // If it's ascending, make it descending
+        if (prevConfig.direction === "ascending") {
+          return {
+            key,
+            direction: "descending"
+          };
+        } 
+        // If it's already descending, clear the sort (back to default)
+        else {
+          return {
+            key: null,
+            direction: "ascending"
+          };
+        }
+      }
+      // If clicking a different column, sort it ascending
+      else {
+        return {
+          key,
+          direction: "ascending"
+        };
+      }
+    });
   };
 
   // Toggle select all checkbox
@@ -146,6 +181,14 @@ const ProductsTable = ({
     }
   };
 
+  // Reset sorting to default
+  const resetSorting = () => {
+    setSortConfig({
+      key: null,
+      direction: "ascending"
+    });
+  };
+
   // Sorting header component
   const SortableHeader = ({
     children,
@@ -161,13 +204,13 @@ const ProductsTable = ({
     >
       <div className="flex items-center justify-center gap-2">
         {children}
-        {sortConfig.key === sortKey &&
-          (sortConfig.direction === "ascending" ? (
+        {sortConfig.key === sortKey ? (
+          sortConfig.direction === "ascending" ? (
             <FaSortUp aria-label="Sort ascending" />
           ) : (
             <FaSortDown aria-label="Sort descending" />
-          ))}
-        {sortConfig.key !== sortKey && (
+          )
+        ) : (
           <FaSort className="text-gray-400" aria-label="Sort" />
         )}
       </div>
@@ -234,6 +277,19 @@ const ProductsTable = ({
   return (
     <>
       <div className="w-full overflow-x-auto rounded-xl max-w-[1800px]">
+        {/* Sort reset bar */}
+        {sortConfig.key !== null && (
+          <div className="flex justify-end bg-blue-600 p-2 rounded-t-xl">
+            <button 
+              onClick={resetSorting}
+              className="flex items-center gap-1 text-white text-xs px-3 py-1 bg-blue-800 hover:bg-blue-900 rounded-lg transition-all"
+            >
+              <FaTimes size={10} />
+              <span>حذف مرتب‌سازی</span>
+            </button>
+          </div>
+        )}
+
         {selectedProducts.length > 0 && (
           <div className="flex flex-wrap justify-between items-center bg-slate-600 p-4 rounded-t-xl text-xs lg:text-sm">
             <span className="text-white">
@@ -262,7 +318,7 @@ const ProductsTable = ({
                 />
               </th>
 
-              <SortableHeader sortKey="Type">نام محصول</SortableHeader>
+              <th scope="col" className="px-6 py-3">نام محصول</th>
               <th scope="col" className="px-6 py-3">
                 دسته‌بندی
               </th>

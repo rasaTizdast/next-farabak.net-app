@@ -150,6 +150,66 @@ type CategoryContentType = {
   ModifyDate: Date | null;
 };
 
+// Helper function to calculate search relevance score
+function calculateRelevanceScore(product: ProductType, query: string): number {
+  const normalizedQuery = query.toLowerCase().trim();
+  let score = 0;
+
+  // Type contains product name - highest priority (exact match)
+  if (product.Type?.toLowerCase() === normalizedQuery) {
+    score += 100;
+  }
+  // Type contains the query as a substring (product name partial match)
+  else if (product.Type?.toLowerCase().includes(normalizedQuery)) {
+    score += 70;
+  }
+  // Begin with query (higher priority)
+  else if (product.Type?.toLowerCase().startsWith(normalizedQuery)) {
+    score += 80;
+  }
+
+  // Name contains brief description - high priority
+  if (product.Name?.toLowerCase().includes(normalizedQuery)) {
+    score += 50;
+  }
+
+  // Description contains keywords - medium priority
+  if (product.Description?.toLowerCase().includes(normalizedQuery)) {
+    score += 30;
+  }
+
+  // Slug match - lower priority than direct name match
+  if (product.Slug?.toLowerCase().includes(normalizedQuery)) {
+    score += 25;
+  }
+
+  // Add match on other fields like SEO_Title, etc.
+  if (product.SEO_Title?.toLowerCase().includes(normalizedQuery)) {
+    score += 10;
+  }
+
+  return score;
+}
+
+/**
+ * Parse the CategoryContentId string into an array of numbers
+ */
+function parseCategoryContentIds(product: ProductType): number[] {
+  if (!product.CategoryContentId) return [];
+
+  return product.CategoryContentId.split(",")
+    .map((id) => parseInt(id.trim(), 10))
+    .filter((id) => !isNaN(id));
+}
+
+/**
+ * Get the first subcategory ID for a product
+ */
+function getFirstSubcategoryId(product: ProductType): number {
+  const ids = parseCategoryContentIds(product);
+  return ids.length > 0 ? ids[0] : -1;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get("page") || "1", 10);
@@ -158,27 +218,50 @@ export async function GET(request: Request) {
   const category = parseInt(searchParams.get("category") || "0", 10);
   const subcategory = searchParams.get("subcategory") || "";
   const available = searchParams.get("available");
-  const offset = (page - 1) * limit;
 
   try {
     const conditions: any = {};
 
-    // Query search logic
+    // Enhanced search logic
     if (query.trim()) {
+      const searchQuery = query.trim();
       conditions.OR = [
-        { Type: { equals: query.trim(), mode: "insensitive" } }, // Match Type exactly
-        { Slug: { equals: query.trim(), mode: "insensitive" } }, // Match Slug exactly
-      ];
-    }
-
-    // If no products match Type or Slug, include Description search
-    if (query.trim()) {
-      conditions.OR.push({
-        Description: {
-          contains: query.trim(),
-          mode: "insensitive", // Case-insensitive matching for descriptions
+        // Product name (stored in Type field) - contains search
+        {
+          Type: {
+            contains: searchQuery,
+            mode: "insensitive",
+          },
         },
-      });
+        // Brief description (stored in Name field)
+        {
+          Name: {
+            contains: searchQuery,
+            mode: "insensitive",
+          },
+        },
+        // Keywords (stored in Description field)
+        {
+          Description: {
+            contains: searchQuery,
+            mode: "insensitive",
+          },
+        },
+        // Search by slug as well
+        {
+          Slug: {
+            contains: searchQuery,
+            mode: "insensitive",
+          },
+        },
+        // Also search in SEO fields
+        {
+          SEO_Title: {
+            contains: searchQuery,
+            mode: "insensitive",
+          },
+        },
+      ];
     }
 
     if (category > 0) {
@@ -187,8 +270,17 @@ export async function GET(request: Request) {
 
     if (subcategory) {
       const subcategoryIds = subcategory.split(",").map((id) => id.trim());
+
+      // Handle the OR conditions for subcategories properly
+      if (!conditions.OR) {
+        conditions.OR = [];
+      } else if (!Array.isArray(conditions.OR)) {
+        conditions.OR = [conditions.OR];
+      }
+
+      // Add subcategory conditions
       conditions.OR = [
-        ...(conditions.OR || []),
+        ...conditions.OR,
         ...subcategoryIds.map((id) => ({
           CategoryContentId: {
             contains: id,
@@ -202,84 +294,203 @@ export async function GET(request: Request) {
       conditions.Available = available === "true";
     }
 
-    const [products, totalCount] = await prisma.$transaction([
-      prisma.product.findMany({
-        where: conditions,
-        skip: offset,
-        take: limit,
-        include: {
-          Category: true,
-        },
-      }),
-      prisma.product.count({
-        where: conditions,
-      }),
-    ]);
+    // First, get the total count of products matching the conditions
+    const totalCount = await prisma.product.count({
+      where: conditions,
+    });
 
-    const totalPages = Math.ceil(totalCount / limit);
-
-    if (products.length === 0) {
-      return new NextResponse("No products found", { status: 404 });
-    }
-
-    // --- Optimization Start ---
-    // 1. Collect all unique CategoryContentIds from the fetched products
-    const allCategoryContentIds = products.reduce(
-      (acc: number[], product: ProductType) => {
-        if (product.CategoryContentId) {
-          const ids = product.CategoryContentId.split(",")
-            .map((id) => parseInt(id.trim(), 10))
-            .filter((id) => !isNaN(id)); // Ensure only valid numbers are included
-          return [...acc, ...ids];
-        }
-        return acc;
-      },
-      []
-    );
-    const uniqueCategoryContentIds = Array.from(new Set(allCategoryContentIds)); // Remove duplicates
-
-    // 2. Fetch all relevant subcategories in one query
-    let subCategoriesMap: Map<number, CategoryContentType> = new Map();
-    if (uniqueCategoryContentIds.length > 0) {
-      const subCategoriesData: CategoryContentType[] =
-        await prisma.categoryContent.findMany({
-          where: {
-            CategoryContentId: { in: uniqueCategoryContentIds },
+    // If there are no products at all matching the conditions
+    if (totalCount === 0) {
+      return NextResponse.json(
+        {
+          data: [],
+          pagination: {
+            totalCount: 0,
+            currentPage: 1,
+            totalPages: 0,
+            hasNextPage: false,
+            hasPrevPage: false,
           },
-        });
-      // Create a map for quick lookup
-      subCategoriesData.forEach((sub) =>
-        subCategoriesMap.set(sub.CategoryContentId, sub)
+          message: "محصولی یافت نشد!",
+        },
+        { status: 200 }
       );
     }
-    // --- Optimization End ---
 
-    const data = products.map((product: ProductType) => {
+    // Calculate correct pagination values
+    const totalPages = Math.ceil(totalCount / limit);
+    const currentPageToUse = page > totalPages ? 1 : page; // Reset to page 1 if current page exceeds total pages
+
+    // STEP 1: Get all categories and subcategories
+    const allCategories = await prisma.category.findMany({
+      orderBy: {
+        CategoryID: "asc",
+      },
+    });
+
+    const allSubCategories = await prisma.categoryContent.findMany({
+      orderBy: {
+        CategoryContentId: "asc",
+      },
+    });
+
+    // Create maps for efficient lookups
+    const subcategoryMap = new Map();
+    allSubCategories.forEach((sub) => {
+      subcategoryMap.set(sub.CategoryContentId, sub);
+    });
+
+    // STEP 2: Get ALL products matching the conditions (without pagination)
+    const allProducts = await prisma.product.findMany({
+      where: conditions,
+      include: {
+        Category: true,
+      },
+      orderBy: {
+        ProductId: "desc", // Default ordering within subcategories
+      },
+    });
+
+    // STEP 3: Create structured data organized by category, subcategory, and product
+    const structuredData: any = {};
+    let allProcessedProducts: any[] = [];
+
+    // Process all products and organize by category and subcategory
+    for (const category of allCategories) {
+      structuredData[category.CategoryID] = {
+        category: category,
+        subcategories: {},
+        products: [],
+      };
+    }
+
+    // Assign products to their categories/subcategories
+    for (const product of allProducts) {
+      const categoryId = product.CategoryId;
+      const subcategoryIds = parseCategoryContentIds(product);
+
+      if (!categoryId || !structuredData[categoryId]) continue;
+
+      // Add product to its category's product list
+      structuredData[categoryId].products.push(product);
+
+      // Add product to each of its subcategories
+      for (const subcatId of subcategoryIds) {
+        const subcat = subcategoryMap.get(subcatId);
+        if (!subcat) continue;
+
+        if (!structuredData[categoryId].subcategories[subcatId]) {
+          structuredData[categoryId].subcategories[subcatId] = {
+            subcategory: subcat,
+            products: [],
+          };
+        }
+
+        structuredData[categoryId].subcategories[subcatId].products.push(
+          product
+        );
+      }
+    }
+
+    // STEP 4: Flatten the structured data into a list, preserving order
+    for (const categoryId of Object.keys(structuredData).sort(
+      (a, b) => Number(a) - Number(b)
+    )) {
+      const categoryData = structuredData[categoryId];
+
+      // For each subcategory in this category, add its products to the list
+      const subcategoryIds = Object.keys(categoryData.subcategories).sort(
+        (a, b) => Number(a) - Number(b)
+      );
+
+      for (const subcatId of subcategoryIds) {
+        const subcatData = categoryData.subcategories[subcatId];
+        // Sort products by ProductId descending
+        const sortedProducts = subcatData.products.sort(
+          (a: ProductType, b: ProductType) => b.ProductId - a.ProductId
+        );
+
+        allProcessedProducts = [...allProcessedProducts, ...sortedProducts];
+      }
+
+      // Add any products directly associated with the category (not in any subcategory)
+      // This should rarely happen but we handle it just in case
+      const productsNotInSubcats = categoryData.products.filter(
+        (p: ProductType) => {
+          // Product is not in any subcategory we processed
+          return !parseCategoryContentIds(p).some(
+            (id) => categoryData.subcategories[id]
+          );
+        }
+      );
+
+      if (productsNotInSubcats.length > 0) {
+        const sortedDirectProducts = productsNotInSubcats.sort(
+          (a: ProductType, b: ProductType) => b.ProductId - a.ProductId
+        );
+        allProcessedProducts = [
+          ...allProcessedProducts,
+          ...sortedDirectProducts,
+        ];
+      }
+    }
+
+    // Remove duplicate products - sometimes products can be in multiple subcategories
+    const processedProductIds = new Set();
+    allProcessedProducts = allProcessedProducts.filter((p) => {
+      if (processedProductIds.has(p.ProductId)) {
+        return false;
+      }
+      processedProductIds.add(p.ProductId);
+      return true;
+    });
+
+    // STEP 5: If search query exists, calculate and sort by relevance
+    let finalSortedProducts;
+
+    if (query.trim()) {
+      // Add relevance score and sort by it
+      const scoredProducts = allProcessedProducts.map((product) => ({
+        product,
+        score: calculateRelevanceScore(product, query.trim()),
+      }));
+
+      scoredProducts.sort((a, b) => b.score - a.score);
+      finalSortedProducts = scoredProducts;
+    } else {
+      // If no search query, use the category/subcategory order we already established
+      finalSortedProducts = allProcessedProducts.map((product) => ({
+        product,
+        score: 0,
+      }));
+    }
+
+    // STEP 6: Apply pagination to the ALREADY ORGANIZED list
+    const startIndex = (currentPageToUse - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedProducts = finalSortedProducts.slice(startIndex, endIndex);
+
+    // STEP 7: Format the data for the response
+    const data = paginatedProducts.map(({ product, score }) => {
       const categorySlug = product.Category?.Slug || null;
 
       // Parse CategoryContentId string
-      const categoryContentIds = product.CategoryContentId
-        ? product.CategoryContentId.split(",").map((id) =>
-            parseInt(id.trim(), 10)
-          )
-        : [];
+      const categoryContentIds = parseCategoryContentIds(product);
 
-      // --- Optimization Start ---
-      // 3. Map subcategories from the pre-fetched map
-      const sortedSubCategories = categoryContentIds
-        .map((id) => subCategoriesMap.get(id)) // Look up from the map
-        .filter((sub): sub is CategoryContentType => sub !== undefined); // Filter out undefined results (if any ID wasn't found)
-      // --- Optimization End ---
+      // Map subcategories from the pre-fetched map
+      const subcategories = categoryContentIds
+        .map((id) => subcategoryMap.get(id))
+        .filter((sub) => sub !== undefined);
 
       // Extract subCategory slugs and names
       const subCategoryName =
-        sortedSubCategories.length > 0
-          ? sortedSubCategories.map((sub) => sub!.Name).join(", ")
+        subcategories.length > 0
+          ? subcategories.map((sub) => sub.Name).join(", ")
           : null;
 
-      const categoryContentDetails = sortedSubCategories.map((sub) => ({
-        CategoryContentId: sub!.CategoryContentId,
-        Name: sub!.Name || "",
+      const categoryContentDetails = subcategories.map((sub) => ({
+        CategoryContentId: sub.CategoryContentId,
+        Name: sub.Name || "",
       }));
 
       const {
@@ -293,6 +504,7 @@ export async function GET(request: Request) {
         ...rest
       } = product;
 
+      // Include relevance score in the output for debugging
       return {
         ProductId,
         Name,
@@ -303,8 +515,9 @@ export async function GET(request: Request) {
         productSlug: Slug || "",
         Price: parseFloat(Price || "0"),
         Available: Available || false,
-        link: `${categorySlug}/${sortedSubCategories[0]?.Slug || ""}/${Slug}`,
+        link: `${categorySlug}/${subcategories[0]?.Slug || ""}/${Slug}`,
         CategoryContentIds: categoryContentDetails,
+        _relevanceScore: score, // For debugging
         ...rest, // Include remaining untouched fields
       };
     });
@@ -313,13 +526,28 @@ export async function GET(request: Request) {
       data,
       pagination: {
         totalCount,
-        currentPage: page,
+        currentPage: currentPageToUse, // Use the adjusted current page
         totalPages,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
+        hasNextPage: currentPageToUse < totalPages,
+        hasPrevPage: currentPageToUse > 1,
       },
+      searchInfo: query.trim()
+        ? {
+            query: query.trim(),
+            resultsWithScores: data
+              .map((p) => ({
+                id: p.ProductId,
+                name: p.Type,
+                score: p._relevanceScore,
+              }))
+              .slice(0, 5),
+          }
+        : null,
     });
   } catch (error) {
-    return new NextResponse("Failed to fetch products", { status: 500 });
+    console.error("Error fetching products:", error);
+    return new NextResponse("دریافت محصولات با شکست مواجه شد!", {
+      status: 500,
+    });
   }
 }
