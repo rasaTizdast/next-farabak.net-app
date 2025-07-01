@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { v4 as uuidv4 } from "uuid";
+import moment from "jalali-moment";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -57,7 +58,7 @@ async function generateShortGuid(): Promise<string> {
 export async function GET() {
   try {
     // First, fetch all invoices with basic information
-    const invoices = await prisma.$queryRaw`
+    let invoices = await prisma.$queryRaw`
       SELECT 
         i."Invoiceid", i."FactorGuid", i."Fullname", i."Phonenumber",
         i."UserId", i."TotalAmount", i."Checked", i."Date"
@@ -66,6 +67,89 @@ export async function GET() {
       ORDER BY
         i."Invoiceid" DESC
     `;
+
+    // Check for expired invoices (older than 48 hours) and delete them if not checked
+    const now = moment();
+    const validInvoices: any[] = [];
+    const deletedInvoiceIds: number[] = [];
+
+    for (const invoice of invoices as any[]) {
+      // Skip already checked invoices
+      if (invoice.Checked) {
+        validInvoices.push(invoice);
+        continue;
+      }
+
+      // Parse the invoice date
+      try {
+        // Make sure invoice.Date exists before parsing
+        if (!invoice.Date) {
+          // If date is missing, consider valid but keep it (fail safe)
+          validInvoices.push(invoice);
+          continue;
+        }
+
+        // Parse the date string, ensuring we handle Jalali date format correctly
+        let invoiceDate;
+
+        // If date includes 'T', it's in ISO format
+        if (invoice.Date.includes("T")) {
+          const [datePart, timePart] = invoice.Date.split("T");
+          const [year, month, day] = datePart.split("-").map(Number);
+          const [hour, minute, second] = timePart
+            ? timePart.split(":").map(Number)
+            : [0, 0, 0];
+
+          // Create a moment object with correct Jalali date components
+          invoiceDate = moment();
+          invoiceDate.jYear(year);
+          invoiceDate.jMonth(month - 1); // 0-based month
+          invoiceDate.jDate(day);
+          invoiceDate.hour(hour);
+          invoiceDate.minute(minute);
+          invoiceDate.second(second || 0);
+        } else {
+          // Use default parsing for other formats
+          invoiceDate = moment(invoice.Date);
+        }
+
+        // Calculate expiry (48 hours after creation)
+        const expiryDate = invoiceDate.clone().add(48, "hours");
+
+        // Check if the invoice is expired (current time is AFTER expiry time)
+        if (now.isAfter(expiryDate)) {
+          deletedInvoiceIds.push(invoice.Invoiceid);
+        } else {
+          validInvoices.push(invoice);
+        }
+      } catch (error) {
+        validInvoices.push(invoice);
+      }
+    }
+
+    // Delete expired invoices if there are any
+    if (deletedInvoiceIds.length > 0) {
+      // First delete the related invoice details
+      await prisma.invoice_Details.deleteMany({
+        where: {
+          Invoiceid: {
+            in: deletedInvoiceIds,
+          },
+        },
+      });
+
+      // Then delete the invoices
+      await prisma.invoice.deleteMany({
+        where: {
+          Invoiceid: {
+            in: deletedInvoiceIds,
+          },
+        },
+      });
+
+      // Update invoices list to only include valid ones
+      invoices = validInvoices;
+    }
 
     // For each invoice, get its details and warranties
     const invoicesWithDetails = await Promise.all(

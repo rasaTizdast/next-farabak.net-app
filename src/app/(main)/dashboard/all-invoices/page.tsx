@@ -249,14 +249,14 @@ const AllInvoices = () => {
     }
   };
 
-  const getTimeRemainingText = (dateString: string) => {
+  const getTimeRemainingText = (dateString: string, checked: boolean) => {
     if (!dateString) return "تاریخ نامشخص";
 
     try {
       const { hours, minutes, isExpired } = calculateTimeRemaining(dateString);
 
       if (isExpired) {
-        return "منقضی شده";
+        return checked ? "تائید شده قبل از انقضا" : "منقضی شده";
       } else if (hours >= 24) {
         const days = Math.floor(hours / 24);
         const remainingHours = hours % 24;
@@ -270,11 +270,11 @@ const AllInvoices = () => {
     }
   };
 
-  const getTimeRemainingClass = (dateString: string) => {
+  const getTimeRemainingClass = (dateString: string, checked?: boolean) => {
     const { hours, isExpired } = calculateTimeRemaining(dateString);
 
     if (isExpired) {
-      return styles.expired;
+      return checked ? styles.checked : styles.expired;
     } else if (hours < 6) {
       return styles.urgent;
     } else if (hours < 12) {
@@ -322,10 +322,10 @@ const AllInvoices = () => {
             />
           </svg>
           <p className="text-right">
-            <span className="font-bold">توجه:</span> فاکتورهایی که توسط فرابک در
-            مدت ۴۸ ساعت تایید نشوند، از پنل شما حذف خواهند شد و باید مجددا
-            فاکتور ثبت کنید. لطفاً برای تائید فاکتور های خود در اسرع وقت با
-            فرابک{" "}
+            <span className="font-bold">توجه:</span> فاکتورهایی که طی ۴۸ ساعت
+            توسط فرابک تأیید نشوند، به دلیل اعتبار محدود قیمت‌ها از پنل شما حذف
+            خواهند شد و نیاز به ثبت مجدد خواهند داشت. لطفاً در اسرع وقت جهت
+            تأیید فاکتورهای خود با فرابک{" "}
             <Link
               href="/contact-us"
               className="text-amber-900 underline font-bold hover:text-amber-950"
@@ -343,6 +343,7 @@ const AllInvoices = () => {
             <tr>
               <th>شماره فاکتور</th>
               <th>تعداد محصولات</th>
+              <th>وضعیت</th>
               <th>زمان باقیمانده</th>
               <th>عملیات‌ها</th>
             </tr>
@@ -359,9 +360,14 @@ const AllInvoices = () => {
                 <tr key={item.FactorGuid}>
                   <td>{item.FactorGuid}</td>
                   <td>{item.TotalAmount}</td>
-                  <td className={getTimeRemainingClass(item.Date)}>
+                  <td>{item.Checked ? "بررسی شده" : "بررسی نشده"}</td>
+                  <td
+                    className={getTimeRemainingClass(item.Date, item.Checked)}
+                  >
                     <div className="relative group cursor-help">
-                      <span>{getTimeRemainingText(item.Date)}</span>
+                      <span>
+                        {getTimeRemainingText(item.Date, item.Checked)}
+                      </span>
                       <div
                         className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gray-800 text-white text-xs rounded py-1 px-2 bottom-full left-1/2 transform -translate-x-1/2 mb-1 whitespace-nowrap z-10 pointer-events-none"
                         dir="ltr"

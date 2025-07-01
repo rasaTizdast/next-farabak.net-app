@@ -12,6 +12,7 @@ import DeleteInvoiceModal from "./components/ui/DeleteInvoiceModal";
 import axios from "axios";
 import { AdminInvoice } from "./type";
 import toast, { Toaster } from "react-hot-toast";
+import jalaali from "jalali-moment";
 
 const { Option } = Select;
 
@@ -33,6 +34,7 @@ const AdminInvoicesPage = () => {
   const [searchText, setSearchText] = useState("");
   const [searchMode, setSearchMode] = useState<"basic" | "warranty">("basic");
   const [isCheckingWarranties, setIsCheckingWarranties] = useState(false);
+  const [currentTime, setCurrentTime] = useState(jalaali());
 
   // Function to fetch invoices
   const fetchInvoices = async () => {
@@ -51,6 +53,15 @@ const AdminInvoicesPage = () => {
       setLoading(false);
     }
   };
+
+  // Update current time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(jalaali());
+    }, 60000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   // Initial data fetch
   useEffect(() => {
@@ -84,6 +95,191 @@ const AdminInvoicesPage = () => {
       toast.error("خطا در بررسی وضعیت گارانتی‌ها");
     } finally {
       setIsCheckingWarranties(false);
+    }
+  };
+
+  // Calculate time remaining before invoice expires (48 hours after creation)
+  const calculateTimeRemaining = (dateString: string) => {
+    if (!dateString) return { hours: 0, minutes: 0, isExpired: true };
+
+    try {
+      let creationDate;
+
+      // Handle ISO format Jalali date (e.g., "1404-04-09T18:13:49")
+      if (dateString.includes("T")) {
+        const [datePart, timePart] = dateString.split("T");
+        const [year, month, day] = datePart.split("-").map(Number);
+        const [hour, minute, second] = timePart.split(":").map(Number);
+
+        creationDate = jalaali()
+          .jYear(year)
+          .jMonth(month - 1) // Convert to 0-based month
+          .jDate(day)
+          .hour(hour)
+          .minute(minute)
+          .second(second || 0);
+      }
+      // Handle other possible formats
+      else if (dateString.includes("-")) {
+        const parts = dateString.split(/[- :]/);
+        // Check if year is first (YYYY-MM-DD)
+        if (parts[0].length === 4) {
+          const year = parseInt(parts[0]);
+          const month = parseInt(parts[1]) - 1;
+          const day = parseInt(parts[2]);
+
+          creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
+
+          // Add time if available
+          if (parts.length >= 6) {
+            creationDate.hour(parseInt(parts[3] || "0"));
+            creationDate.minute(parseInt(parts[4] || "0"));
+            creationDate.second(parseInt(parts[5] || "0"));
+          }
+        }
+        // Day first format (DD-MM-YYYY)
+        else {
+          const day = parseInt(parts[0]);
+          const month = parseInt(parts[1]) - 1;
+          const year = parseInt(parts[2]);
+
+          creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
+
+          // Add time if available
+          if (parts.length >= 6) {
+            creationDate.hour(parseInt(parts[3] || "0"));
+            creationDate.minute(parseInt(parts[4] || "0"));
+            creationDate.second(parseInt(parts[5] || "0"));
+          }
+        }
+      } else {
+        throw new Error("Unsupported date format");
+      }
+
+      // Set the current time for comparison
+      const now = jalaali();
+
+      // Calculate expiry (48 hours after creation)
+      const expiryDate = creationDate.clone().add(48, "hours");
+
+      // Check if expired
+      if (now.isAfter(expiryDate)) {
+        return { hours: 0, minutes: 0, isExpired: true };
+      }
+
+      // Calculate time difference
+      const diffHours = expiryDate.diff(now, "hours");
+      const diffMinutes = expiryDate.diff(now, "minutes") % 60;
+
+      return {
+        hours: diffHours,
+        minutes: diffMinutes,
+        isExpired: false,
+      };
+    } catch (error) {
+      console.error("Error parsing date:", dateString, error);
+      return { hours: 0, minutes: 0, isExpired: true };
+    }
+  };
+
+  // Format date to Persian
+  const formatPersianDate = (dateString: string) => {
+    try {
+      let creationDate;
+
+      // Handle ISO format Jalali date (e.g., "1404-04-09T18:13:49")
+      if (dateString.includes("T")) {
+        const [datePart, timePart] = dateString.split("T");
+        const [year, month, day] = datePart.split("-").map(Number);
+        const [hour, minute, second] = timePart.split(":").map(Number);
+
+        creationDate = jalaali()
+          .jYear(year)
+          .jMonth(month - 1) // Convert to 0-based month
+          .jDate(day)
+          .hour(hour)
+          .minute(minute)
+          .second(second || 0);
+      }
+      // Handle other possible formats
+      else if (dateString.includes("-")) {
+        const parts = dateString.split(/[- :]/);
+        // Check if year is first (YYYY-MM-DD)
+        if (parts[0].length === 4) {
+          const year = parseInt(parts[0]);
+          const month = parseInt(parts[1]) - 1;
+          const day = parseInt(parts[2]);
+
+          creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
+
+          // Add time if available
+          if (parts.length >= 6) {
+            creationDate.hour(parseInt(parts[3] || "0"));
+            creationDate.minute(parseInt(parts[4] || "0"));
+            creationDate.second(parseInt(parts[5] || "0"));
+          }
+        }
+        // Day first format (DD-MM-YYYY)
+        else {
+          const day = parseInt(parts[0]);
+          const month = parseInt(parts[1]) - 1;
+          const year = parseInt(parts[2]);
+
+          creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
+
+          // Add time if available
+          if (parts.length >= 6) {
+            creationDate.hour(parseInt(parts[3] || "0"));
+            creationDate.minute(parseInt(parts[4] || "0"));
+            creationDate.second(parseInt(parts[5] || "0"));
+          }
+        }
+      } else {
+        return dateString; // Return original if format not recognized
+      }
+
+      // Return Persian formatted date
+      return creationDate.locale("fa").format("YYYY/MM/DD HH:mm:ss");
+    } catch (error) {
+      console.error("Error formatting date:", dateString, error);
+      return dateString;
+    }
+  };
+
+  const getTimeRemainingText = (dateString: string, checked: boolean) => {
+    if (!dateString) return "تاریخ نامشخص";
+
+    try {
+      const { hours, minutes, isExpired } = calculateTimeRemaining(dateString);
+
+      if (isExpired) {
+        return checked ? "تائید شده قبل از انقضا" : "منقضی شده";
+      } else if (hours >= 24) {
+        const days = Math.floor(hours / 24);
+        const remainingHours = hours % 24;
+        return `${days} روز و ${remainingHours} ساعت مانده`;
+      } else {
+        return `${hours} ساعت و ${minutes} دقیقه مانده`;
+      }
+    } catch (error) {
+      console.error("Error parsing date:", dateString, error);
+      return `خطا در تاریخ: ${dateString}`;
+    }
+  };
+
+  const getTimeRemainingClass = (dateString: string, checked: boolean) => {
+    if (checked) return ""; // If already checked, no special styling
+
+    const { hours, isExpired } = calculateTimeRemaining(dateString);
+
+    if (isExpired) {
+      return "line-through text-gray-400";
+    } else if (hours < 6) {
+      return "text-red-500 font-bold";
+    } else if (hours < 12) {
+      return "text-yellow-500 font-bold";
+    } else {
+      return "text-green-500";
     }
   };
 
@@ -305,6 +501,9 @@ const AdminInvoicesPage = () => {
                   وضعیت
                 </th>
                 <th scope="col" className="px-6 py-3">
+                  زمان باقیمانده
+                </th>
+                <th scope="col" className="px-6 py-3">
                   عملیات‌ها
                 </th>
               </tr>
@@ -325,6 +524,9 @@ const AdminInvoicesPage = () => {
                   </td>
                   <td className="w-full px-6 py-4">
                     <div className="w-20 h-4 bg-slate-600 rounded"></div>
+                  </td>
+                  <td className="w-full px-6 py-4">
+                    <div className="w-32 h-4 bg-slate-600 rounded"></div>
                   </td>
                   <td className="w-full px-6 py-4 flex justify-center gap-3">
                     {Array.from({ length: 4 }).map((_, i) => (
@@ -359,6 +561,9 @@ const AdminInvoicesPage = () => {
                     وضعیت
                   </th>
                   <th scope="col" className="px-6 py-3">
+                    زمان باقیمانده
+                  </th>
+                  <th scope="col" className="px-6 py-3">
                     عملیات‌ها
                   </th>
                 </tr>
@@ -384,6 +589,38 @@ const AdminInvoicesPage = () => {
                         </span>
                       )}
                     </td>
+
+                    <td className="px-6 py-4">
+                      <div className="relative group cursor-help">
+                        <span
+                          className={getTimeRemainingClass(
+                            invoice.Date,
+                            invoice.Checked
+                          )}
+                        >
+                          {getTimeRemainingText(invoice.Date, invoice.Checked)}
+                        </span>
+                        <div
+                          className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gray-800 text-white text-xs rounded py-1 px-2 bottom-full left-1/2 transform -translate-x-1/2 mb-1 whitespace-nowrap z-10 pointer-events-none"
+                          dir="ltr"
+                        >
+                          {formatPersianDate(invoice.Date)}
+                          <svg
+                            className="absolute text-gray-800 h-2 w-full left-0 top-full"
+                            x="0px"
+                            y="0px"
+                            viewBox="0 0 255 255"
+                            xmlSpace="preserve"
+                          >
+                            <polygon
+                              className="fill-current"
+                              points="0,0 127.5,127.5 255,0"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </td>
+
                     <td className="px-6 py-4 flex justify-center flex-wrap gap-2">
                       <button
                         onClick={() => handleViewInvoice(invoice)}

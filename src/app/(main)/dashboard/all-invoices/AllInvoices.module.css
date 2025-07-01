@@ -53,6 +53,11 @@
   text-decoration: line-through;
 }
 
+.checked {
+  color: #3d5afe;
+  font-weight: 600;
+}
+
 @keyframes pulse {
   0% {
     opacity: 1;
