@@ -7,8 +7,9 @@ import { useUser } from "@/context/UserContext";
 import { useInvoice } from "@/context/InvoiceContext";
 import styles from "./NewInvoice.module.css";
 import toast, { Toaster } from "react-hot-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const NewInvoicePage = () => {
   const {
@@ -19,6 +20,18 @@ const NewInvoicePage = () => {
   } = useInvoice();
   const { user } = useUser();
   const [invoiceSuccess, setInvoiceSuccess] = useState(false);
+  const router = useRouter();
+
+  // Redirect to all-invoices page after successful invoice creation
+  useEffect(() => {
+    if (invoiceSuccess) {
+      const redirectTimer = setTimeout(() => {
+        router.push("/dashboard/all-invoices");
+      }, 5000); // Redirect after 5 seconds
+
+      return () => clearTimeout(redirectTimer);
+    }
+  }, [invoiceSuccess, router]);
 
   const handleQuantityChange = (ProductId: number, newQuantity: string) => {
     const parsedQuantity = +newQuantity;
@@ -59,6 +72,10 @@ const NewInvoicePage = () => {
               فاکتور ها
             </Link>{" "}
             مراجعه کنید
+            <div className="mt-2 text-sm">
+              شما بعد از ۵ ثانیه به صورت خودکار به صفحه فاکتورها منتقل خواهید
+              شد...
+            </div>
           </div>
         )}
         <h1 className={styles.header}>ثبت فاکتور جدید</h1>
