@@ -3,130 +3,84 @@ export const dynamic = "force-dynamic";
 import { MetadataRoute } from "next";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/sitemap/products`
-  );
-  const { urls } = await response.json();
-  const productEntries: MetadataRoute.Sitemap = urls.map((item: string) => ({
-    url: `${item}`,
-  }));
-  return [
-    { url: `https://farabak.net` },
+  try {
+    // Fetch all URLs from our enhanced API endpoint
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/sitemap`
+      // { next: { revalidate: 86400 } } // Revalidate every 24 hours (86400 seconds)
+    );
 
-    { url: `https://farabak.net/products` },
+    if (!response.ok) {
+      throw new Error(`Failed to fetch sitemap data: ${response.status}`);
+    }
 
-    // reolink-cctv-camera routes
-    {
-      url: `https://farabak.net/products/reolink-cctv-camera`,
-    },
-    {
-      url: `https://farabak.net/products/reolink-cctv-camera/page/2`,
-    },
-    {
-      url: `https://farabak.net/products/reolink-cctv-camera/ptz`,
-    },
-    {
-      url: `https://farabak.net/products/reolink-cctv-camera/dome`,
-    },
-    {
-      url: `https://farabak.net/products/reolink-cctv-camera/bullet`,
-    },
-    {
-      url: `https://farabak.net/products/reolink-cctv-camera/battery`,
-    },
-    {
-      url: `https://farabak.net/products/reolink-cctv-camera/ip`,
-    },
-    {
-      url: `https://farabak.net/products/reolink-cctv-camera/wifi`,
-    },
-    {
-      url: `https://farabak.net/products/reolink-cctv-camera/dual-lens`,
-    },
-    {
-      url: `https://farabak.net/products/reolink-cctv-camera/pan-tilt`,
-    },
-    {
-      url: `https://farabak.net/products/reolink-cctv-camera/4g`,
-    },
-    {
-      url: `https://farabak.net/products/reolink-cctv-camera/night-vision`,
-    },
+    const { urls } = await response.json();
 
-    // industrial-cctv-camera routes
-    {
-      url: `https://farabak.net/products/industrial-cctv-camera`,
-    },
-    {
-      url: `https://farabak.net/products/industrial-cctv-camera/explosion-proof-cctv-camera`,
-    },
-    {
-      url: `https://farabak.net/products/industrial-cctv-camera/thermal-cctv-camera`,
-    },
+    // Map all URLs to the sitemap format
+    const sitemapEntries: MetadataRoute.Sitemap = urls.map((url: string) => ({
+      url: url,
+      lastModified: new Date(),
+      changeFrequency: url.includes("/support/blog/") ? "weekly" : "daily",
+      priority: getPriority(url),
+    }));
 
-    // Blackmagic routes
-    {
-      url: `https://farabak.net/products/blackmagic`,
-    },
-    {
-      url: `https://farabak.net/products/blackmagic/page/2`,
-    },
-    {
-      url: `https://farabak.net/products/blackmagic/camera`,
-    },
-    {
-      url: `https://farabak.net/products/blackmagic/recording-devices`,
-    },
-    {
-      url: `https://farabak.net/products/blackmagic/duplicators`,
-    },
+    return sitemapEntries;
+  } catch (error) {
+    console.error("Error generating sitemap:", error);
 
-    // x-ray routes
-    { url: `https://farabak.net/products/x-ray` },
-    {
-      url: `https://farabak.net/products/x-ray/airport-luggage`,
-    },
+    // Fallback to minimal sitemap if the API fails
+    return [
+      {
+        url: "https://farabak.net",
+        lastModified: new Date(),
+        changeFrequency: "daily",
+        priority: 1.0,
+      },
+      {
+        url: "https://farabak.net/products",
+        lastModified: new Date(),
+        changeFrequency: "daily",
+        priority: 0.9,
+      },
+      {
+        url: "https://farabak.net/support",
+        lastModified: new Date(),
+        changeFrequency: "weekly",
+        priority: 0.8,
+      },
+      {
+        url: "https://farabak.net/about-us",
+        lastModified: new Date(),
+        changeFrequency: "monthly",
+        priority: 0.7,
+      },
+      {
+        url: "https://farabak.net/contact-us",
+        lastModified: new Date(),
+        changeFrequency: "monthly",
+        priority: 0.7,
+      },
+    ];
+  }
+}
 
-    // others routes
-    { url: `https://farabak.net/products/others` },
-    {
-      url: `https://farabak.net/products/others/nvr`,
-    },
-    {
-      url: `https://farabak.net/products/others/accessories`,
-    },
-
-    ...productEntries,
-
-    { url: `https://farabak.net/support` },
-    { url: `https://farabak.net/support/download-center` },
-
-    { url: `https://farabak.net/support/blog` },
-    { url: `https://farabak.net/support/blog/reolink/` },
-    { url: `https://farabak.net/support/blog/reolink/reolink-products` },
-    {
-      url: `https://farabak.net/support/blog/reolink/common-mistakes-buying-cctv`,
-    },
-    {
-      url: `https://farabak.net/support/blog/reolink/wireless-wired-cctv-comparison`,
-    },
-    { url: `https://farabak.net/support/blog/x-ray/x-ray` },
-    {
-      url: `https://farabak.net/support/blog/reolink/2025-technologies-in-cctv`,
-    },
-    {
-      url: `https://farabak.net/support/blog/phase1-cameras/150-megapixel-imaging-cameras`,
-    },
-    { url: `https://farabak.net/support/blog/reolink/wiring` },
-    { url: `https://farabak.net/support/blog/reolink/-wiring-` },
-
-    { url: `https://farabak.net/about-us` },
-    { url: `https://farabak.net/about-us/projects` },
-    { url: `https://farabak.net/about-us/projects/charmshahr` },
-
-    { url: `https://farabak.net/about-us/members` },
-
-    { url: `https://farabak.net/about-us/activity` },
-    { url: `https://farabak.net/contact-us` },
-  ];
+// Helper function to determine priority based on URL pattern
+function getPriority(url: string): number {
+  if (url === "https://farabak.net") {
+    return 1.0; // Homepage
+  } else if (url === "https://farabak.net/products") {
+    return 0.9; // Main product page
+  } else if (url.match(/\/products\/[^\/]+$/)) {
+    return 0.8; // Category pages
+  } else if (url.match(/\/products\/[^\/]+\/[^\/]+$/)) {
+    return 0.7; // Subcategory pages
+  } else if (url.match(/\/products\/[^\/]+\/[^\/]+\/[^\/]+$/)) {
+    return 0.6; // Individual product pages
+  } else if (url.includes("/support/blog/")) {
+    return 0.7; // Blog posts
+  } else if (url.includes("/about-us/projects/")) {
+    return 0.6; // Project pages
+  } else {
+    return 0.5; // Default for other pages
+  }
 }
