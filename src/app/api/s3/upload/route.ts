@@ -115,11 +115,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Sanitize folder name
+    // Sanitize folder name but preserve case
     const sanitizedFolderName = folderName
       .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/[^a-zA-Z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
 
     // Define the parent folder based on the type
