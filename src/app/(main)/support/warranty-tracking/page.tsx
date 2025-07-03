@@ -525,7 +525,7 @@ export default function WarrantyTrackingPage() {
 
       <style jsx global>{`
         .warranty-page {
-          font-family: "Vazirmatn", sans-serif;
+          font-family: "IranYekan", sans-serif;
         }
 
         .font-inherit {
