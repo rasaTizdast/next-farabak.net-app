@@ -29,24 +29,32 @@ const retryRequest = async <T,>(
   delay = 1000
 ): Promise<T> => {
   let lastError: Error | null = null;
-  
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await requestFn();
     } catch (error) {
       lastError = error as Error;
-      console.error(`Attempt ${attempt} failed | تلاش ${attempt} ناموفق بود:`, error);
-      
+      console.error(
+        `Attempt ${attempt} failed | تلاش ${attempt} ناموفق بود:`,
+        error
+      );
+
       if (attempt < maxRetries) {
         // Wait with exponential backoff before retrying
         const waitTime = delay * Math.pow(2, attempt - 1);
-        console.log(`Retrying in ${waitTime}ms... | در حال تلاش مجدد در ${waitTime} میلی‌ثانیه...`);
-        await new Promise(resolve => setTimeout(resolve, waitTime));
+        console.log(
+          `Retrying in ${waitTime}ms... | در حال تلاش مجدد در ${waitTime} میلی‌ثانیه...`
+        );
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
       }
     }
   }
-  
-  throw lastError || new Error("All retry attempts failed | تمام تلاش‌های مجدد ناموفق بودند");
+
+  throw (
+    lastError ||
+    new Error("All retry attempts failed | تمام تلاش‌های مجدد ناموفق بودند")
+  );
 };
 
 // Function to handle uploading images to S3
@@ -183,18 +191,18 @@ export const createProduct = async (
       SEO_Description: state.SEO_Description || state.smallDesc,
       productBlog: state.productBlog,
     };
-    
+
     const productResponse = await retryRequest(async () => {
       return await axios.post(
         "/api/admin/products/createNewProduct",
         productPayload
       );
     });
-    
+
     const productId = productResponse.data.ProductId;
 
     if (!productId) {
-      throw new Error("Product creation failed: No product ID returned | ساخت محصول ناموفق بود: شناسه محصول دریافت نشد");
+      throw new Error("ساخت محصول ناموفق بود: شناسه محصول دریافت نشد");
     }
     setProgress(30);
 
@@ -236,7 +244,7 @@ export const createProduct = async (
 
     return productResponse.data;
   } catch (error) {
-    console.error("Product creation error | خطا در ایجاد محصول:", error);
-    throw new Error("Product creation failed | ایجاد محصول ناموفق بود");
+    console.error("خطا در ایجاد محصول:", error);
+    throw new Error("ایجاد محصول ناموفق بود");
   }
 };
