@@ -22,6 +22,33 @@ type State = {
   faqs: { question: string; answer: string }[];
 };
 
+// Utility function for retrying API requests
+const retryRequest = async <T,>(
+  requestFn: () => Promise<T>,
+  maxRetries = 3,
+  delay = 1000
+): Promise<T> => {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await requestFn();
+    } catch (error) {
+      lastError = error as Error;
+      console.error(`Attempt ${attempt} failed | تلاش ${attempt} ناموفق بود:`, error);
+      
+      if (attempt < maxRetries) {
+        // Wait with exponential backoff before retrying
+        const waitTime = delay * Math.pow(2, attempt - 1);
+        console.log(`Retrying in ${waitTime}ms... | در حال تلاش مجدد در ${waitTime} میلی‌ثانیه...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
+    }
+  }
+  
+  throw lastError || new Error("All retry attempts failed | تمام تلاش‌های مجدد ناموفق بودند");
+};
+
 // Function to handle uploading images to S3
 const ImageUploader = async (
   image: File | null,
@@ -33,7 +60,7 @@ const ImageUploader = async (
     return;
   }
 
-  try {
+  return await retryRequest(async () => {
     // Request a presigned URL for image upload
     const response = await axios.post("/api/s3/upload", {
       type: "productImage",
@@ -52,9 +79,7 @@ const ImageUploader = async (
     });
 
     return key; // Return the image key for further use
-  } catch (error) {
-    throw new Error("Error uploading the image");
-  }
+  });
 };
 
 // Function to send features data to the API
@@ -71,7 +96,9 @@ const sendOverviews = async (
     Features, // Send the array of features
   };
 
-  await axios.post("/api/productOverview", payload);
+  return await retryRequest(async () => {
+    return await axios.post("/api/productOverview", payload);
+  });
 };
 
 // Function to send overview details to the API
@@ -88,7 +115,9 @@ const sendOverviewDetails = async (
     ProductId: productId,
   }));
 
-  await axios.post("/api/productOverviewDetails", payload);
+  return await retryRequest(async () => {
+    return await axios.post("/api/productOverviewDetails", payload);
+  });
 };
 
 // Function to send specifications data to the API
@@ -107,7 +136,9 @@ const sendSpecs = async (
     Available: true,
   }));
 
-  await axios.post("/api/specs", payload);
+  return await retryRequest(async () => {
+    return await axios.post("/api/specs", payload);
+  });
 };
 
 // Function to send FAQs data to the API
@@ -122,7 +153,9 @@ const sendFaqs = async (productId: number, faqs: State["faqs"]) => {
     FilesAddress: "", // Set as empty since it's not part of incoming data
   }));
 
-  await axios.post("/api/faqs", payload);
+  return await retryRequest(async () => {
+    return await axios.post("/api/faqs", payload);
+  });
 };
 
 // Main function to create a product and send all associated details
@@ -150,14 +183,18 @@ export const createProduct = async (
       SEO_Description: state.SEO_Description || state.smallDesc,
       productBlog: state.productBlog,
     };
-    const productResponse = await axios.post(
-      "/api/admin/products/createNewProduct",
-      productPayload
-    );
+    
+    const productResponse = await retryRequest(async () => {
+      return await axios.post(
+        "/api/admin/products/createNewProduct",
+        productPayload
+      );
+    });
+    
     const productId = productResponse.data.ProductId;
 
     if (!productId) {
-      throw new Error("Product creation failed: No product ID returned");
+      throw new Error("Product creation failed: No product ID returned | ساخت محصول ناموفق بود: شناسه محصول دریافت نشد");
     }
     setProgress(30);
 
@@ -170,9 +207,11 @@ export const createProduct = async (
     setProgress(50);
 
     // Step 3: Update the product with image keys
-    await axios.patch(`/api/admin/products/${productId}/updateImages`, {
-      img1,
-      img2,
+    await retryRequest(async () => {
+      await axios.patch(`/api/admin/products/${productId}/updateImages`, {
+        img1,
+        img2,
+      });
     });
 
     // Step 4: Send additional details
@@ -197,6 +236,7 @@ export const createProduct = async (
 
     return productResponse.data;
   } catch (error) {
-    throw new Error("Product creation failed");
+    console.error("Product creation error | خطا در ایجاد محصول:", error);
+    throw new Error("Product creation failed | ایجاد محصول ناموفق بود");
   }
 };
