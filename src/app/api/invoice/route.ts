@@ -114,14 +114,103 @@ export async function GET(): Promise<NextResponse> {
     // Fetch invoices and their details
     const invoices = await prisma.invoice.findMany({
       where: { UserId: userId },
-      orderBy: { Date: "desc" },
+      orderBy: { Date: "asc" },
       include: {
         Invoice_Details: true, // Include associated products
       },
     });
 
+    // Check for expired invoices (older than 48 hours) and delete them
+    const now = moment();
+    const validInvoices: typeof invoices = [];
+    const deletedInvoiceIds: number[] = [];
+
+    for (const invoice of invoices) {
+      // Skip already checked invoices
+      if (invoice.Checked) {
+        validInvoices.push(invoice);
+        continue;
+      }
+
+      // Parse the invoice date
+      try {
+        // Make sure invoice.Date exists before parsing
+        if (!invoice.Date) {
+          // If date is missing, consider invalid but keep it (fail safe)
+          validInvoices.push(invoice);
+          continue;
+        }
+
+        // Parse the date string, ensuring we handle Jalali date format correctly
+        let invoiceDate;
+        
+        // If date includes 'T', it's in ISO format - parse directly as it's already in correct format
+        if (invoice.Date.includes('T')) {
+          const [datePart, timePart] = invoice.Date.split('T');
+          const [year, month, day] = datePart.split('-').map(Number);
+          const [hour, minute, second] = timePart ? timePart.split(':').map(Number) : [0, 0, 0];
+          
+          // Create a moment object with correct Jalali date components
+          invoiceDate = moment();
+          invoiceDate.jYear(year);
+          invoiceDate.jMonth(month - 1); // 0-based month
+          invoiceDate.jDate(day);
+          invoiceDate.hour(hour);
+          invoiceDate.minute(minute);
+          invoiceDate.second(second || 0);
+        } else {
+          // Use default parsing for other formats, but be cautious
+          invoiceDate = moment(invoice.Date);
+        }
+        
+        // Calculate expiry (48 hours after creation)
+        const expiryDate = invoiceDate.clone().add(48, 'hours');
+        
+        // Debug info to help troubleshoot
+        console.log(`Invoice ${invoice.Invoiceid} - Created: ${invoiceDate.format('YYYY-MM-DD HH:mm:ss')}, Expires: ${expiryDate.format('YYYY-MM-DD HH:mm:ss')}, Now: ${now.format('YYYY-MM-DD HH:mm:ss')}, Expired: ${now.isAfter(expiryDate)}`);
+        
+        // Check if the invoice is expired (current time is AFTER expiry time)
+        if (now.isAfter(expiryDate)) {
+          // Invoice is expired, add to deletion list
+          console.log(`Adding invoice ${invoice.Invoiceid} to delete list - expired`);
+          deletedInvoiceIds.push(invoice.Invoiceid);
+        } else {
+          // Invoice is still valid
+          console.log(`Keeping invoice ${invoice.Invoiceid} - still valid`);
+          validInvoices.push(invoice);
+        }
+      } catch (error) {
+        console.error(`Error parsing date for invoice ${invoice.Invoiceid}:`, error);
+        // If date parsing fails, keep the invoice (fail safe)
+        validInvoices.push(invoice);
+      }
+    }
+
+    // Delete expired invoices if there are any
+    if (deletedInvoiceIds.length > 0) {
+      // First delete the related invoice details
+      await prisma.invoice_Details.deleteMany({
+        where: {
+          Invoiceid: {
+            in: deletedInvoiceIds
+          }
+        }
+      });
+
+      // Then delete the invoices
+      await prisma.invoice.deleteMany({
+        where: {
+          Invoiceid: {
+            in: deletedInvoiceIds
+          }
+        }
+      });
+
+      console.log(`Deleted ${deletedInvoiceIds.length} expired invoices for user ${userId}`);
+    }
+
     // Sort Invoice_Details by ProductId for each invoice to group them
-    const sortedInvoices = invoices.map((invoice) => ({
+    const sortedInvoices = validInvoices.map((invoice) => ({
       ...invoice,
       Invoice_Details: invoice.Invoice_Details.sort((a, b) => {
         // First sort by ProductId to group same products together

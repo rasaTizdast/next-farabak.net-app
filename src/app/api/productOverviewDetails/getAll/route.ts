@@ -61,6 +61,9 @@ export async function GET() {
           Img: true,
           Description: true,
         },
+        orderBy: {
+          id: "desc",
+        },
       }
     );
 

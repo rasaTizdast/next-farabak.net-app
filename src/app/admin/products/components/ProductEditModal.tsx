@@ -395,11 +395,23 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               onChange={handleInputChange}
             />
             <div className="block col-span-1 sm:col-span-2">
+              <div className="flex items-center gap-2">
+                <span>Slug</span>
+                <div className="relative group">
+                  <span className="text-gray-500 hover:text-blue-500 cursor-pointer">
+                    ℹ️
+                  </span>
+                  <div className="absolute top-full right-0 w-64 mt-1 text-justify hidden group-hover:block bg-gray-700 text-white text-sm p-3 rounded shadow-2xl z-40">
+                    شناسه محصول (Slug) قابل ویرایش نیست.
+                  </div>
+                </div>
+              </div>
               <InputField
-                label="Slug"
+                label=""
                 name="productSlug"
                 value={formState.productSlug}
                 onChange={handleInputChange}
+                disabled={true}
               />
             </div>
             <div className="block col-span-1 sm:col-span-2 border-t-4 pt-6 mt-4">
@@ -658,10 +670,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               setSpecs={setSpecs}
             />
 
-            <EditModalFAQ 
-              productId={formState.ProductId} 
-              setFaqs={setFaqs} 
-            />
+            <EditModalFAQ productId={formState.ProductId} setFaqs={setFaqs} />
 
             <div className="col-span-1 sm:col-span-2 flex justify-end gap-6">
               <button
@@ -713,7 +722,11 @@ const InputField: React.FC<InputFieldProps> = ({
       name={name}
       value={value}
       onChange={onChange}
-      className="bg-gray-700 border border-gray-800 rounded w-full p-2 mt-2"
+      className={`border border-gray-800 rounded w-full p-2 mt-2 ${
+        disabled
+          ? "bg-gray-600 text-gray-400 cursor-not-allowed opacity-75"
+          : "bg-gray-700"
+      }`}
       placeholder={`${label} را وارد کنید`}
       disabled={disabled}
     />

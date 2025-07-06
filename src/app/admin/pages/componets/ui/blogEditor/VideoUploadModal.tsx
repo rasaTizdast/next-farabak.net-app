@@ -23,7 +23,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
 
   const validateAndSetFile = (file: File | null) => {
     setError(null);
-    
+
     if (!file) {
       return;
     }
@@ -34,10 +34,10 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
       return;
     }
 
-    // Check file size (500MB max)
-    const maxSize = 500 * 1024 * 1024; // 500MB in bytes
+    // Check file size (1.5GB max)
+    const maxSize = 1.5 * 1024 * 1024 * 1024; // 1.5GB in bytes
     if (file.size > maxSize) {
-      setError("حجم فایل نباید بیشتر از 500 مگابایت باشد");
+      setError("حجم فایل نباید بیشتر از 1.5 گیگابایت باشد");
       return;
     }
 
@@ -56,17 +56,17 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     const file = e.dataTransfer.files[0];
     validateAndSetFile(file);
   };
 
   const handleUpload = async () => {
     if (!selectedFile) return;
-    
+
     setUploading(true);
     setError(null);
-    
+
     try {
       await onVideoUpload(selectedFile);
       onClose();
@@ -94,7 +94,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
 
         <div className="mb-6">
           <p className="text-gray-300 mb-2">
-            حداکثر حجم مجاز برای آپلود ویدیو: 500 مگابایت
+            حداکثر حجم مجاز برای آپلود ویدیو: 1.5 گیگابایت
           </p>
           <p className="text-gray-400 text-sm mb-4">
             فرمت‌های مجاز: MP4, WebM, MOV
@@ -171,4 +171,4 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
   );
 };
 
-export default VideoUploadModal; 
+export default VideoUploadModal;

@@ -8,7 +8,7 @@ import styles from "./SearchBox.module.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { formatPrice } from "@/app/admin/products/helper/formatPrice";
+import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 
 // Utility function to normalize Persian text
 const normalizePersianText = (text: string) => {
@@ -21,6 +21,16 @@ const normalizePersianText = (text: string) => {
     .replace(/إ/g, "ا")
     .replace(/\s+/g, " ") // Replace multiple spaces with a single space
     .trim();
+};
+
+// Format price function that uses a pre-fetched exchange rate
+const formatPriceWithRate = (price: number, exchangeRate: number | null): string => {
+  if (!price) return "بدون قیمت";
+  if (!exchangeRate || isNaN(exchangeRate) || exchangeRate <= 0) {
+    return "برای دریافت قیمت تماس بگیرید";
+  }
+  const updatedPrice = price * exchangeRate;
+  return updatedPrice.toLocaleString("fa-IR") + " تومان";
 };
 
 // Types for the product and the API response
@@ -109,10 +119,12 @@ const SearchResults = ({
   searchResults,
   hasSearched,
   closeSearchBox,
+  exchangeRate,
 }: {
   searchResults: Product[]; // No longer allowing undefined, ensures it's always an array
   hasSearched: boolean;
   closeSearchBox: () => void;
+  exchangeRate: number | null;
 }) => {
   return (
     <div className={styles.results}>
@@ -145,15 +157,15 @@ const SearchResults = ({
               ) : product.Discount && +product.Discount > 0 ? (
                 <div className="flex flex-col gap-1 items-center text-lg">
                   <span className="text-gray-500 font-light line-through">
-                    {formatPrice(+product.Price)}
+                    {formatPriceWithRate(+product.Price, exchangeRate)}
                   </span>
                   <span className="font-semibold">
-                    {formatPrice(+product.Price - +product.Discount)}
+                    {formatPriceWithRate(+product.Price - +product.Discount, exchangeRate)}
                   </span>
                 </div>
               ) : (
                 <span className="text-white text-lg font-semibold">
-                  {formatPrice(+product.Price)}
+                  {formatPriceWithRate(+product.Price, exchangeRate)}
                 </span>
               )}
             </div>
@@ -194,9 +206,33 @@ const SearchBox = () => {
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+  const [isExchangeRateLoading, setIsExchangeRateLoading] = useState(false);
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  // Fetch exchange rate only once when the component mounts
+  useEffect(() => {
+    // Define a function to fetch the exchange rate
+    const getExchangeRate = async () => {
+      // Only fetch if we don't already have a rate and aren't already loading
+      if (exchangeRate === null && !isExchangeRateLoading) {
+        setIsExchangeRateLoading(true);
+        try {
+          const rate = await fetchUsdToRialRate();
+          setExchangeRate(rate);
+        } catch (error) {
+          console.error("Failed to fetch exchange rate:", error);
+        } finally {
+          setIsExchangeRateLoading(false);
+        }
+      }
+    };
+
+    // Call the function
+    getExchangeRate();
+  }, [exchangeRate, isExchangeRateLoading]);
 
   const inputChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const result = e.target.value;
@@ -275,7 +311,7 @@ const SearchBox = () => {
   }, [handleClickOutside]);
 
   return (
-    <div className={styles.search}>
+    <div className={styles.search} ref={searchBoxRef}>
       <CgSearch
         className={styles.search_icon}
         strokeWidth={1}
@@ -297,6 +333,7 @@ const SearchBox = () => {
               searchResults={searchResults}
               hasSearched={hasSearched}
               closeSearchBox={closeSearchBox}
+              exchangeRate={exchangeRate}
             />
           )}
         </div>

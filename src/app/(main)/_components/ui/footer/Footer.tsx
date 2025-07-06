@@ -35,8 +35,8 @@ const Footer = async () => {
               <Link href="/support">پشتیبانی</Link>
             </h4>
             <div className={styles.cItems}>
-              <Link href="/support/training-section" className={styles.cItem}>
-                بخش آموزش
+              <Link href="/support/warranty-tracking" className={styles.cItem}>
+                پیگیری گارانتی
               </Link>
               <Link href="/support/download-center" className={styles.cItem}>
                 نرم‌افزارها و آپدیت‌ها

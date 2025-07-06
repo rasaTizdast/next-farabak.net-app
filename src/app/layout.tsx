@@ -4,11 +4,11 @@ import "./globals.css";
 import { UserProvider } from "@/context/UserContext";
 import { InvoiceProvider } from "@/context/InvoiceContext";
 
-// Importing the custom Vazirmatn font
-const vazirmatnFont = localFont({
-  src: "./fonts/Vazirmatn-VariableFont_wght.ttf",
-  variable: "--font-vazirmatn", // Define a CSS variable for the font
-  weight: "100 900", // Specify the range of font weights
+// Importing the custom iran yekan font
+const iranYekanFont = localFont({
+  src: "./fonts/IRANYekanXVF.woff",
+  variable: "--font-iran-yekan", // Define a CSS variable for the font
+  weight: "100 1000", // Specify the range of font weights
   display: "swap", // Optional: To improve performance, use 'swap' display behavior
 });
 
@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl">
-      <body className={`${vazirmatnFont.variable}`}>
+      <body className={`${iranYekanFont.variable}`}>
         <UserProvider>
           <InvoiceProvider>{children}</InvoiceProvider>
         </UserProvider>

@@ -8,14 +8,15 @@
   --third-color: #1e90ff;
   --fourth-color: #0e6aff;
   --dark-blue-color: #003262;
-  --font-vazirmatn: "Vazirmatn", sans-serif; /* Fallback to sans-serif */
+  --font-iran-yekan: "IranYekan", sans-serif; /* Fallback to sans-serif */
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: var(--font-vazirmatn);
+  font-family: var(--font-iran-yekan);
+  font-variation-settings: "dots" 4;
 }
 
 html {

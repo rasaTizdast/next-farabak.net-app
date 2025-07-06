@@ -8,6 +8,8 @@ const SkeletonTable = () => {
             <tr className="bg-gray-200">
               <th className="px-4 py-3 text-center">شماره فاکتور</th>
               <th className="px-4 py-3 text-center">تعداد محصولات</th>
+              <th className="px-4 py-3 text-center">وضعیت</th>
+              <th className="px-4 py-3 text-center">زمان باقیمانده</th>
               <th className="px-4 py-3 text-center">عملیات‌ها</th>
             </tr>
           </thead>
@@ -16,6 +18,12 @@ const SkeletonTable = () => {
               .fill("")
               .map((_, idx) => (
                 <tr key={idx} className="border-t border-gray-300">
+                  <td className="px-4 py-5">
+                    <div className="h-4 bg-gray-300 rounded-md"></div>
+                  </td>
+                  <td className="px-4 py-5">
+                    <div className="h-4 bg-gray-300 rounded-md"></div>
+                  </td>
                   <td className="px-4 py-5">
                     <div className="h-4 bg-gray-300 rounded-md"></div>
                   </td>

@@ -7,8 +7,8 @@ import {
   FaSort,
   FaSortUp,
   FaSortDown,
+  FaTimes,
 } from "react-icons/fa";
-import { formatPrice } from "../helper/formatPrice";
 import ProductEditModal from "./ProductEditModal";
 import { Product } from "../types";
 import { IoQrCode } from "react-icons/io5";
@@ -29,7 +29,7 @@ type Props = {
   refetchProducts: () => void;
 };
 
-type SortKey = keyof Pick<Product, "Type" | "Price" | "Available">;
+type SortKey = keyof Pick<Product, "Price" | "Available"> | null;
 
 const ProductsTable = ({
   isLoading,
@@ -41,13 +41,17 @@ const ProductsTable = ({
 }: Props) => {
   const router = useRouter();
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
-  const [productQuantities, setProductQuantities] = useState<Record<number, {value: number, timestamp: number}>>({});
-  const [loadingQuantities, setLoadingQuantities] = useState<Record<number, boolean>>({});
+  const [productQuantities, setProductQuantities] = useState<
+    Record<number, { value: number; timestamp: number }>
+  >({});
+  const [loadingQuantities, setLoadingQuantities] = useState<
+    Record<number, boolean>
+  >({});
 
   const [sortConfig, setSortConfig] = useState<{
     key: SortKey;
     direction: "ascending" | "descending";
-  }>({ key: "Type", direction: "ascending" });
+  }>({ key: null, direction: "ascending" });
 
   const [activeSubCategories, setActiveSubCategories] = useState<{
     name: string;
@@ -68,14 +72,18 @@ const ProductsTable = ({
         setUsdRate(rate);
       } catch (error) {
         console.error("Failed to fetch USD rate:", error);
-        setUsdRate(1); // Fallback to 1 if API fails
+        setUsdRate(null); // Don't set a fallback value to properly handle invalid rates
       }
     };
     fetchExchangeRate();
   }, []);
 
+  // Check if the USD rate is valid
+  const isValidRate = usdRate && !isNaN(usdRate) && usdRate > 0;
+
   const updatePrice = (price: number) => {
     if (!price) return "بدون قیمت";
+    if (!isValidRate) return "برای دریافت قیمت تماس بگیرید";
     const updatedPrice = price * usdRate!;
     return updatedPrice.toLocaleString("fa-IR") + " تومان";
   };
@@ -84,13 +92,28 @@ const ProductsTable = ({
   const sortedProducts = useMemo(() => {
     if (!products.length) return [];
 
-    return [...products].sort((a, b) => {
-      const key = sortConfig.key;
+    // If no sorting is selected, return products in their original order
+    if (sortConfig.key === null) {
+      return [...products];
+    }
 
-      if (a[key] < b[key]) {
+    // Otherwise, apply the selected sort
+    return [...products].sort((a, b) => {
+      const key = sortConfig.key as keyof Product;
+      
+      // Handle potential null values in the comparison
+      const valueA = a[key];
+      const valueB = b[key];
+      
+      // If either value is null or undefined, handle it appropriately
+      if (valueA == null && valueB == null) return 0;
+      if (valueA == null) return 1; // null values go last
+      if (valueB == null) return -1;
+
+      if (valueA < valueB) {
         return sortConfig.direction === "ascending" ? -1 : 1;
       }
-      if (a[key] > b[key]) {
+      if (valueA > valueB) {
         return sortConfig.direction === "ascending" ? 1 : -1;
       }
       return 0;
@@ -99,13 +122,32 @@ const ProductsTable = ({
 
   // Handle sorting
   const handleSort = (key: SortKey) => {
-    setSortConfig((prevConfig) => ({
-      key,
-      direction:
-        prevConfig.key === key && prevConfig.direction === "ascending"
-          ? "descending"
-          : "ascending",
-    }));
+    setSortConfig((prevConfig) => {
+      // If clicking the same column that's already sorted
+      if (prevConfig.key === key) {
+        // If it's ascending, make it descending
+        if (prevConfig.direction === "ascending") {
+          return {
+            key,
+            direction: "descending"
+          };
+        } 
+        // If it's already descending, clear the sort (back to default)
+        else {
+          return {
+            key: null,
+            direction: "ascending"
+          };
+        }
+      }
+      // If clicking a different column, sort it ascending
+      else {
+        return {
+          key,
+          direction: "ascending"
+        };
+      }
+    });
   };
 
   // Toggle select all checkbox
@@ -139,6 +181,14 @@ const ProductsTable = ({
     }
   };
 
+  // Reset sorting to default
+  const resetSorting = () => {
+    setSortConfig({
+      key: null,
+      direction: "ascending"
+    });
+  };
+
   // Sorting header component
   const SortableHeader = ({
     children,
@@ -154,13 +204,13 @@ const ProductsTable = ({
     >
       <div className="flex items-center justify-center gap-2">
         {children}
-        {sortConfig.key === sortKey &&
-          (sortConfig.direction === "ascending" ? (
+        {sortConfig.key === sortKey ? (
+          sortConfig.direction === "ascending" ? (
             <FaSortUp aria-label="Sort ascending" />
           ) : (
             <FaSortDown aria-label="Sort descending" />
-          ))}
-        {sortConfig.key !== sortKey && (
+          )
+        ) : (
           <FaSort className="text-gray-400" aria-label="Sort" />
         )}
       </div>
@@ -180,35 +230,37 @@ const ProductsTable = ({
   // Fetch branch quantities for a product with 30-second cache
   const fetchProductBranchQuantity = async (productId: number) => {
     if (loadingQuantities[productId]) return;
-    
+
     // Check if we have cached data less than 30 seconds old
     const cached = productQuantities[productId];
     const now = Date.now();
-    if (cached && (now - cached.timestamp < 30000)) {
+    if (cached && now - cached.timestamp < 30000) {
       // Use cached data if it's less than 30 seconds old
       return;
     }
-    
-    setLoadingQuantities(prev => ({ ...prev, [productId]: true }));
-    
+
+    setLoadingQuantities((prev) => ({ ...prev, [productId]: true }));
+
     try {
-      const response = await axios.get(`/api/admin/branches/product-quantity/${productId}`);
+      const response = await axios.get(
+        `/api/admin/branches/product-quantity/${productId}`
+      );
       if (response.status === 200) {
-        setProductQuantities(prev => ({ 
-          ...prev, 
+        setProductQuantities((prev) => ({
+          ...prev,
           [productId]: {
             value: response.data.totalQuantity || 0,
-            timestamp: now
-          }
+            timestamp: now,
+          },
         }));
       }
     } catch (error) {
-      console.error('Error fetching product quantity:', error);
+      console.error("Error fetching product quantity:", error);
     } finally {
-      setLoadingQuantities(prev => ({ ...prev, [productId]: false }));
+      setLoadingQuantities((prev) => ({ ...prev, [productId]: false }));
     }
   };
-  
+
   // Navigate to branches page with product filter
   const navigateToBranches = (productId: number) => {
     router.push(`/admin/branches?productId=${productId}`);
@@ -225,6 +277,19 @@ const ProductsTable = ({
   return (
     <>
       <div className="w-full overflow-x-auto rounded-xl max-w-[1800px]">
+        {/* Sort reset bar */}
+        {sortConfig.key !== null && (
+          <div className="flex justify-end bg-blue-600 p-2 rounded-t-xl">
+            <button 
+              onClick={resetSorting}
+              className="flex items-center gap-1 text-white text-xs px-3 py-1 bg-blue-800 hover:bg-blue-900 rounded-lg transition-all"
+            >
+              <FaTimes size={10} />
+              <span>حذف مرتب‌سازی</span>
+            </button>
+          </div>
+        )}
+
         {selectedProducts.length > 0 && (
           <div className="flex flex-wrap justify-between items-center bg-slate-600 p-4 rounded-t-xl text-xs lg:text-sm">
             <span className="text-white">
@@ -253,7 +318,7 @@ const ProductsTable = ({
                 />
               </th>
 
-              <SortableHeader sortKey="Type">نام محصول</SortableHeader>
+              <th scope="col" className="px-6 py-3">نام محصول</th>
               <th scope="col" className="px-6 py-3">
                 دسته‌بندی
               </th>
@@ -319,27 +384,42 @@ const ProductsTable = ({
                     <td className="px-6 py-4 relative group cursor-help">
                       <span className="absolute left-1/2 -translate-x-1/2 bottom-full -mb-3 opacity-0 group-hover:opacity-100 transition-opacity bg-blue-900 text-white font-extralight text-xs rounded px-2 py-1 whitespace-nowrap">
                         قیمت دلار:{" "}
-                        <span className="font-normal">
-                          {usdRate?.toLocaleString("fa-IR")}
-                        </span>{" "}
-                        تومان
+                        {isValidRate ? (
+                          <span className="font-normal">
+                            {usdRate?.toLocaleString("fa-IR")} تومان
+                          </span>
+                        ) : (
+                          <span className="font-normal text-yellow-300">
+                            خطا در دریافت نرخ ارز
+                          </span>
+                        )}
                       </span>
                       {product.Price === null ||
                       product.Price === undefined ||
                       +product.Price === 0 ? (
                         <span className="text-gray-400 italic">بدون قیمت</span>
+                      ) : !isValidRate ? (
+                        <span className="text-yellow-300 font-medium">
+                          خطا در دریافت نرخ ارز
+                        </span>
                       ) : product.Discount && +product.Discount > 0 ? (
                         <div className="flex flex-col items-center">
                           <span className="text-red-400 line-through">
-                            {updatePrice(+product.Price)}
+                            {(+product.Price * usdRate!).toLocaleString(
+                              "fa-IR"
+                            ) + " تومان"}
                           </span>
                           <span className="text-green-400 font-semibold">
-                            {updatePrice(+product.Price - +product.Discount)}
+                            {(
+                              (+product.Price - +product.Discount) *
+                              usdRate!
+                            ).toLocaleString("fa-IR") + " تومان"}
                           </span>
                         </div>
                       ) : (
                         <span className="text-white">
-                          {updatePrice(+product.Price)}
+                          {(+product.Price * usdRate!).toLocaleString("fa-IR") +
+                            " تومان"}
                         </span>
                       )}
                     </td>
@@ -351,22 +431,22 @@ const ProductsTable = ({
                             ? "bg-green-100 text-green-700"
                             : "bg-red-100 text-red-700"
                         }`}
-                        onMouseEnter={() => fetchProductBranchQuantity(product.ProductId)}
+                        onMouseEnter={() =>
+                          fetchProductBranchQuantity(product.ProductId)
+                        }
                         onClick={() => navigateToBranches(product.ProductId)}
                       >
                         {product.Available ? "موجود" : "ناموجود"}
-                        
+
                         {/* Tooltip on hover */}
                         <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                          {loadingQuantities[product.ProductId] ? (
-                            "در حال بارگذاری..."
-                          ) : (
-                            productQuantities[product.ProductId] !== undefined ? (
-                              `تعداد کل در شعبه‌ها: ${productQuantities[product.ProductId].value} عدد`
-                            ) : (
-                              "کلیک برای مشاهده جزئیات در شعبه‌ها"
-                            )
-                          )}
+                          {loadingQuantities[product.ProductId]
+                            ? "در حال بارگذاری..."
+                            : productQuantities[product.ProductId] !== undefined
+                            ? `تعداد کل در شعبه‌ها: ${
+                                productQuantities[product.ProductId].value
+                              } عدد`
+                            : "کلیک برای مشاهده جزئیات در شعبه‌ها"}
                           <div className="absolute left-1/2 -translate-x-1/2 top-full -mt-1 w-2 h-2 bg-slate-800 rotate-45"></div>
                         </div>
                       </span>

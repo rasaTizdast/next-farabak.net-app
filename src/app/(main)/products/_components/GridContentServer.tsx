@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import styles from "./ProductGrid.module.css";
 import Pagination from "@/app/_components/ui/Pagination";
-import { formatPrice } from "@/app/admin/products/helper/formatPrice";
+import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 
 interface Product {
   ProductId: number;
@@ -32,6 +32,10 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
 }) => {
   const { data: products, pagination } = await fetchProducts(apiUrl);
   const totalPages = pagination.totalPages;
+
+  // Get the USD to Rial rate once for all products
+  const usdRate = await fetchUsdToRialRate();
+  const isValidRate = usdRate && !isNaN(usdRate) && usdRate > 0;
 
   // Filter the products to only include those that are available
   const availableProducts = products.filter(
@@ -63,18 +67,27 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
                 <span className="text-gray-600">
                   برای ثبت سفارش با بخش فروش تماس بگیرید
                 </span>
+              ) : !isValidRate ? (
+                <span className="text-gray-600 font-medium">
+                  برای دریافت قیمت تماس بگیرید
+                </span>
               ) : product.Discount && +product.Discount > 0 ? (
                 <div className="flex flex-col gap-1 items-center text-lg">
                   <span className="text-gray-500 font-light line-through">
-                    {formatPrice(+product.Price)}
+                    {(+product.Price * usdRate).toLocaleString("fa-IR") +
+                      " تومان"}
                   </span>
                   <span className="font-semibold">
-                    {formatPrice(+product.Price - +product.Discount)}
+                    {(
+                      (+product.Price - +product.Discount) *
+                      usdRate
+                    ).toLocaleString("fa-IR") + " تومان"}
                   </span>
                 </div>
               ) : (
                 <span className="text-white text-lg font-semibold">
-                  {formatPrice(+product.Price)}
+                  {(+product.Price * usdRate).toLocaleString("fa-IR") +
+                    " تومان"}
                 </span>
               )}
             </div>

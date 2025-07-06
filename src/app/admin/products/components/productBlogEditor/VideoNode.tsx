@@ -48,7 +48,7 @@ const VideoNode = ({
 
   const getVideoUrl = (src: string): string => {
     if (isExternalUrl(src)) return src;
-    
+
     const bucketUrl = process.env.NEXT_PUBLIC_LIARA_BUCKET_URL;
     return `${bucketUrl}/${src}`;
   };
@@ -64,13 +64,14 @@ const VideoNode = ({
             className="w-full h-full rounded-md"
           />
         </div>
-        
+
         <div className="flex justify-end mt-2 space-x-2">
           <button
             onClick={handleDelete}
             disabled={isDeleting}
             className="p-1 bg-red-500 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
             title="Delete video"
+            type="button"
           >
             <Trash2 size={20} />
           </button>
@@ -80,4 +81,4 @@ const VideoNode = ({
   );
 };
 
-export default VideoNode; 
+export default VideoNode;

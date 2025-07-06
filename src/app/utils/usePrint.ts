@@ -47,27 +47,36 @@ export const usePrint = () => {
       })
       .join("");
 
-    // Include Google Fonts for Vazirmatn
-    const googleFontLink =
-      '<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">';
+    // Include IRANYekanXVF font
+    const customFontStyle = `
+      <style>
+        @font-face {
+          font-family: 'IranYekan';
+          src: url('https://farabaks3.storage.c2.liara.space/fonts/IRANYekanXVF.woff') format('woff');
+          font-weight: 100 1000;
+          font-style: normal;
+          font-display: swap;
+        }
+      </style>
+    `;
 
     // Create print-specific stylesheet
     const printStyles = `
       <style>
-        /* Use Vazirmatn from Google Fonts */
+        /* Use IranYekan font */
         :root {
-          --font-vazirmatn: 'Vazirmatn', Tahoma, Arial, sans-serif;
+          --font-iran-yekan: 'IranYekan', Tahoma, Arial, sans-serif;
         }
         
         * {
-          font-family: var(--font-vazirmatn) !important;
+          font-family: var(--font-iran-yekan) !important;
         }
         
         @media print {
           body {
             background-color: white;
             color: black;
-            font-family: var(--font-vazirmatn) !important;
+            font-family: var(--font-iran-yekan) !important;
             ${compactMode ? "font-size: 90%;" : ""}
             ${stickerMode ? "margin: 0; padding: 0;" : ""}
           }
@@ -103,14 +112,14 @@ export const usePrint = () => {
             width: 100%;
             border-collapse: collapse;
             ${compactMode ? "font-size: 90%;" : ""}
-            font-family: var(--font-vazirmatn) !important;
+            font-family: var(--font-iran-yekan) !important;
           }
           
           th, td {
             border: 1px solid #ddd;
             padding: ${compactMode ? "4px" : "8px"};
             text-align: right;
-            font-family: var(--font-vazirmatn) !important;
+            font-family: var(--font-iran-yekan) !important;
           }
           
           th {
@@ -215,14 +224,14 @@ export const usePrint = () => {
             box-sizing: border-box !important;
             display: flex !important;
             flex-direction: column !important;
-            font-family: var(--font-vazirmatn) !important;
+            font-family: var(--font-iran-yekan) !important;
           }
 
           .warranty-certificate h1 {
             font-size: 9pt !important;
             margin: 2px 0 !important;
             padding: 0 !important;
-            font-family: var(--font-vazirmatn) !important;
+            font-family: var(--font-iran-yekan) !important;
           }
 
           .warranty-certificate p {
@@ -230,7 +239,7 @@ export const usePrint = () => {
             padding: 0 !important;
             font-size: 6pt !important;
             line-height: 1.2 !important;
-            font-family: var(--font-vazirmatn) !important;
+            font-family: var(--font-iran-yekan) !important;
           }
 
           .warranty-certificate .flex {
@@ -355,11 +364,11 @@ export const usePrint = () => {
           <head>
             <title>${printTitle || document.title}</title>
             ${styleLinks}
-            ${googleFontLink}
+            ${customFontStyle}
             ${printStyles}
             ${printScript}
           </head>
-          <body style="margin:0;padding:0;overflow:hidden;width:3.5in;height:2in;font-family:var(--font-vazirmatn);">
+          <body style="margin:0;padding:0;overflow:hidden;width:3.5in;height:2in;font-family:var(--font-iran-yekan);">
             ${componentRef.current.innerHTML}
           </body>
         </html>
@@ -372,11 +381,11 @@ export const usePrint = () => {
           <head>
             <title>${printTitle || document.title}</title>
             ${styleLinks}
-            ${googleFontLink}
+            ${customFontStyle}
             ${printStyles}
             ${printScript}
           </head>
-          <body style="font-family:var(--font-vazirmatn);">
+          <body style="font-family:var(--font-iran-yekan);">
             ${content.outerHTML}
           </body>
         </html>
