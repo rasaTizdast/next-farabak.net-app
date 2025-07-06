@@ -52,16 +52,28 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
   // Helper function to format the date and time
   const formatDateTime = (isoString: string) => {
     try {
+      // Handle Jalali dates in ISO format (e.g. "1404-04-07T21:04:51" or "1404-04-7T21:04:51")
+      if (isoString && isoString.includes("T")) {
+        const [datePart, timePart] = isoString.split("T");
+        const [year, month, day] = datePart.split("-");
+        const [hour, minute] = timePart.split(":").slice(0, 2);
+
+        // Make sure to handle single digit days by explicitly parsing as integers
+        return `${year}/${month}/${day} | ${hour}:${minute}`;
+      }
+
+      // Fallback to standard Date parsing for non-Jalali dates
       const date = new Date(isoString);
+      if (!isNaN(date.getTime())) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        return `${year}/${month}/${day} | ${hours}:${minutes}`;
+      }
 
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-
-      const hours = String(date.getHours()).padStart(2, "0");
-      const minutes = String(date.getMinutes()).padStart(2, "0");
-
-      return `${year}/${month}/${day} | ${hours}:${minutes}`;
+      return isoString || "تاریخ نامشخص";
     } catch (error) {
       return isoString || "تاریخ نامشخص";
     }
@@ -70,16 +82,29 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
   // Helper function to format date to Persian format
   const formatPersianDate = (isoString: string) => {
     try {
-      // Create a new date object from the ISO string
-      const date = new Date(isoString);
+      // Handle Jalali dates in ISO format (e.g. "1404-04-07T21:04:51" or "1404-04-7T21:04:51")
+      if (isoString && isoString.includes("T")) {
+        const [datePart] = isoString.split("T");
+        const [year, month, day] = datePart.split("-");
 
-      // Format the date to Persian format
-      // Use toLocaleDateString with Persian locale and options
-      return date.toLocaleDateString("fa-IR", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
+        // Ensure we have proper formatting with zero-padded month and day
+        const formattedMonth = month.padStart(2, "0");
+        const formattedDay = day.padStart(2, "0");
+
+        return `${year}/${formattedMonth}/${formattedDay}`;
+      }
+
+      // Fallback to standard Date parsing for non-Jalali dates
+      const date = new Date(isoString);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString("fa-IR", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
+      }
+
+      return isoString || "تاریخ نامشخص";
     } catch (error) {
       return isoString || "تاریخ نامشخص";
     }
