@@ -4,33 +4,286 @@
   align-items: center;
 }
 
+.iconContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .userIcon svg {
   color: #fff;
+}
+
+.invoiceBadge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: var(--fourth-color);
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.invoiceItemsPopup {
+  position: absolute;
+  top: 150%;
+  right: -150%;
+  width: 280px;
+  background-color: #f8f8f8;
+  box-shadow: 0 4px 12px 1px rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  padding: 1rem;
+  z-index: 100;
+}
+
+.invoiceItemsPopup h4 {
+  text-align: center;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 0.5rem;
+}
+
+.invoiceItemsPopup ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.invoiceItemsPopup li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+  font-size: 0.9rem;
+}
+
+.invoiceMenuPopup {
+  position: absolute;
+  top: 0;
+  right: -280px;
+  width: 250px;
+  background-color: #f8f8f8;
+  box-shadow: 0 4px 12px 1px rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  padding: 1rem;
+  z-index: 200;
+}
+
+.invoiceMenuPopup h4 {
+  text-align: center;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 0.5rem;
+}
+
+.invoiceMenuPopup ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.invoiceMenuPopup li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+  font-size: 0.9rem;
+  text-align: right;
+  cursor: default;
+}
+
+.price {
+  color: #1a73e8;
+  font-weight: 600;
+}
+
+.totalAmount {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0;
+  font-weight: bold;
+  text-align: left;
+  color: #1a73e8;
+}
+
+.viewAllInvoices {
+  text-align: center;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: var(--dark-blue-color);
+  color: white;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.viewAllInvoices:hover {
+  background-color: #000814;
 }
 
 .subMenu {
   position: absolute;
   top: 150%; /* Position below the parent */
-  right: -150%; /* Align left with the parent */
-  width: 150px;
+  left: -151%; /* Align with the parent */
+  min-width: 280px;
+  max-width: 300px;
   background-color: #f8f8f8;
   box-shadow: 0 4px 12px 1px rgba(0, 0, 0, 0.3);
   list-style-type: none;
   border-radius: 6px;
-  overflow-x: hidden;
+  overflow: visible;
+  cursor: pointer;
+  z-index: 100;
+  padding: 0;
+}
+
+.invoiceOption {
+  position: relative;
+  padding: 0;
+  border-bottom: 1px solid #dddddd;
+}
+
+.invoiceOption.expanded {
+  background-color: #f0f0f0;
+}
+
+.invoiceOptionHeader {
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  width: 100%;
+}
+
+.invoiceTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.invoiceOptionHeader:hover {
+  background-color: #aceaff;
+  padding-right: 1.5rem;
+}
+
+.invoiceAmount {
+  font-size: 0.8rem;
+  color: #1a73e8;
+  font-weight: 500;
+}
+
+/* Expanded invoice styles */
+.expandedInvoice {
+  background-color: white;
+  overflow: hidden;
+  width: 100%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.expandedInvoice h4 {
+  text-align: center;
+  margin: 0;
+  padding: 0.8rem;
+  background-color: #003566;
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.expandedInvoiceContent {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.expandedInvoiceItem {
+  padding: 0.8rem;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.productDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.productName {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.logoutOption {
+  color: red;
+}
+
+.removeBtn {
+  border: none;
+  background-color: #f44336;
+  color: white;
+  border-radius: 4px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.9rem;
   cursor: pointer;
 }
 
-.subMenu * {
-  transition: all 0.2s ease-in-out;
-  font-size: 0.9rem;
+.removeBtn:hover {
+  background-color: #d32f2f;
 }
 
-.subMenu a,
-.subMenu li:last-child {
-  display: inline-block;
-  padding: 0.8rem 1rem;
+.expandedInvoiceFooter {
+  background-color: #f8f8f8;
+  padding: 1rem;
+  border-top: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.totalSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.totalLabel {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.totalAmount {
+  font-weight: bold;
+  color: #0077b6;
+  font-size: 1.1rem;
+}
+
+.checkoutBtn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.7rem;
   width: 100%;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.checkoutBtn:hover {
+  background-color: #388e3c;
+}
+
+.expandedInvoiceEmpty {
+  padding: 2rem;
+  text-align: center;
+  color: #888;
 }
 
 .subMenu li:last-child {
@@ -56,6 +309,32 @@
   .userIcon svg {
     font-size: 1.9rem;
   }
+
+  .invoiceBadge {
+    width: 16px;
+    height: 16px;
+    font-size: 0.65rem;
+  }
+
+  .invoiceItemsPopup {
+    width: 220px;
+  }
+
+  .invoiceMenuPopup {
+    right: -220px;
+    width: 200px;
+  }
+
+  .expandedInvoiceItemInfo,
+  .expandedInvoiceItemActions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+
+  .expandedInvoiceItemActions {
+    align-items: flex-end;
+  }
 }
 
 @media (min-width: 2000px) {
@@ -75,4 +354,142 @@
     color: #fff;
     background-color: rgb(255, 110, 110);
   }
+}
+
+.priceContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.originalPrice {
+  text-decoration: line-through;
+  color: #777;
+  font-size: 0.8rem;
+}
+
+.finalPrice {
+  color: #0077b6;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.quantityControls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.quantityButtons {
+  display: flex;
+  align-items: center;
+  direction: ltr;
+  background-color: #ececec;
+  border-radius: 6px;
+  padding: 0.2rem;
+}
+
+.quantityBtn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background-color: #f8f8f8;  
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.quantityBtn:hover {
+  background-color: #ffffff;
+}
+
+.quantity {
+  display: inline-block;
+  min-width: 30px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.removeBtn {
+  border: none;
+  background-color: #f44336;
+  color: white;
+  border-radius: 4px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.removeBtn:hover {
+  background-color: #d32f2f;
+}
+
+.expandedInvoiceFooter {
+  background-color: #f8f8f8;
+  padding-inline: 0.8rem;
+  padding-block: 0.5rem;
+  border-top: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.totalSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.totalLabel {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.totalAmount {
+  font-weight: bold;
+  color: #0077b6;
+  font-size: 1.1rem;
+}
+
+.checkoutBtn {
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.7rem;
+  width: 100%;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.checkoutBtn:hover {
+  background-color: var(--fourth-color);
+}
+
+.expandedInvoiceEmpty {
+  padding: 2rem;
+  text-align: center;
+  color: #888;
+}
+
+/* Add some general styles for links and menu items */
+.subMenu a,
+.subMenu li:last-child {
+  display: inline-block;
+  padding: 0.8rem 1rem;
+  width: 100%;
+}
+
+.subMenu li {
+  list-style-type: none;
+  border-bottom: 1px solid #dddddd;
+  transition: all 0.2s ease-in-out;
 }

@@ -114,7 +114,7 @@ export async function GET(): Promise<NextResponse> {
     // Fetch invoices and their details
     const invoices = await prisma.invoice.findMany({
       where: { UserId: userId },
-      orderBy: { Date: "desc" },
+      orderBy: { Date: "asc" },
       include: {
         Invoice_Details: true, // Include associated products
       },
