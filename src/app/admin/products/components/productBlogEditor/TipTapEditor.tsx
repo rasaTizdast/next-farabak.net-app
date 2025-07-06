@@ -341,13 +341,10 @@ const TipTapBlogEditor = ({
         )
 
         // Make sure videos have the right src path (keep the relative path)
-        .replace(
-          /<div data-type="video"[^>]*>([\s\S]*?)<\/div>/g,
-          (match) => {
-            // Preserve the video element as is - it will be processed on the frontend
-            return match;
-          }
-        )
+        .replace(/<div data-type="video"[^>]*>([\s\S]*?)<\/div>/g, (match) => {
+          // Preserve the video element as is - it will be processed on the frontend
+          return match;
+        })
 
         // Convert a tags to Next.js Link components
         .replace(
@@ -434,8 +431,8 @@ const TipTapBlogEditor = ({
         return;
       }
 
-      if (file.size > 500 * 1024 * 1024) {
-        alert("Video size should be less than 500MB");
+      if (file.size > 1.5 * 1024 * 1024 * 1024) {
+        alert("ویدیو باید کمتر از 1.5 گیگابایت باشد");
         return;
       }
 
@@ -885,14 +882,7 @@ const TipTapBlogEditor = ({
       </div>
 
       {/* Save Button */}
-      <div className="flex justify-between mt-4">
-        <button
-          type="button"
-          onClick={() => exportToMDX(false)}
-          className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-        >
-          ذخیره پیش‌نویس
-        </button>
+      <div className="flex justify-center my-4">
         <button
           type="button"
           onClick={() => exportToMDX(true)}
@@ -938,10 +928,7 @@ const TipTapBlogEditor = ({
 
       {/* Video Modal */}
       {isVideoModalOpen && (
-        <VideoUploadModal
-          onClose={toggleVideoModal}
-          onVideoUpload={addVideo}
-        />
+        <VideoUploadModal onClose={toggleVideoModal} onVideoUpload={addVideo} />
       )}
 
       {/* Video Loading Indicator */}

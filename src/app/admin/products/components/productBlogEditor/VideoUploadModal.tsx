@@ -23,7 +23,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
 
   const validateAndSetFile = (file: File | null) => {
     setError(null);
-    
+
     if (!file) {
       return;
     }
@@ -34,10 +34,10 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
       return;
     }
 
-    // Check file size (500MB max)
-    const maxSize = 500 * 1024 * 1024; // 500MB in bytes
+    // Check file size (1.5GB max)
+    const maxSize = 1.5 * 1024 * 1024 * 1024; // 1.5GB in bytes
     if (file.size > maxSize) {
-      setError("حجم فایل نباید بیشتر از 500 مگابایت باشد");
+      setError("حجم فایل نباید بیشتر از 1.5 گیگابایت باشد");
       return;
     }
 
@@ -56,17 +56,17 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     const file = e.dataTransfer.files[0];
     validateAndSetFile(file);
   };
 
   const handleUpload = async () => {
     if (!selectedFile) return;
-    
+
     setUploading(true);
     setError(null);
-    
+
     try {
       await onVideoUpload(selectedFile);
       onClose();
@@ -87,6 +87,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
             onClick={onClose}
             className="text-gray-300 hover:text-white"
             disabled={uploading}
+            type="button"
           >
             <X size={24} />
           </button>
@@ -94,7 +95,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
 
         <div className="mb-6">
           <p className="text-gray-300 mb-2">
-            حداکثر حجم مجاز برای آپلود ویدیو: 500 مگابایت
+            حداکثر حجم مجاز برای آپلود ویدیو: 1.5 گیگابایت
           </p>
           <p className="text-gray-400 text-sm mb-4">
             فرمت‌های مجاز: MP4, WebM, MOV
@@ -138,6 +139,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
               onClick={() => setSelectedFile(null)}
               className="text-gray-400 hover:text-white"
               disabled={uploading}
+              type="button"
             >
               <X size={18} />
             </button>
@@ -155,6 +157,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
             onClick={onClose}
             className="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition"
             disabled={uploading}
+            type="button"
           >
             انصراف
           </button>
@@ -162,6 +165,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
             onClick={handleUpload}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition flex items-center"
             disabled={!selectedFile || uploading}
+            type="button"
           >
             {uploading ? "در حال آپلود..." : "آپلود ویدیو"}
           </button>
@@ -171,4 +175,4 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
   );
 };
 
-export default VideoUploadModal; 
+export default VideoUploadModal;
