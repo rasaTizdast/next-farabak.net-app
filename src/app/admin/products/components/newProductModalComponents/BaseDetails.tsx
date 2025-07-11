@@ -69,8 +69,17 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
   };
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, "");
-    const numericValue = Number(value);
+    // Allow decimal numbers with up to 2 decimal places
+    const value = e.target.value;
+    
+    // If there are more than 2 decimal places, truncate
+    const parts = value.toString().split('.');
+    if (parts.length > 1 && parts[1].length > 2) {
+      // Don't process this change, as it would add more than 2 decimal places
+      return;
+    }
+    
+    const numericValue = parseFloat(value);
 
     if (!isNaN(numericValue)) {
       dispatch({
@@ -80,7 +89,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
       });
     }
 
-    if (!numericValue) {
+    if (!value || isNaN(numericValue)) {
       setLocalErrors((prev) => ({
         ...prev,
         price: "قیمت باید یک عدد معتبر باشد.",
@@ -91,8 +100,17 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
   };
 
   const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, "");
-    const numericValue = Number(value);
+    // Allow decimal numbers with up to 2 decimal places
+    const value = e.target.value;
+    
+    // If there are more than 2 decimal places, truncate
+    const parts = value.toString().split('.');
+    if (parts.length > 1 && parts[1].length > 2) {
+      // Don't process this change, as it would add more than 2 decimal places
+      return;
+    }
+    
+    const numericValue = parseFloat(value);
 
     if (!isNaN(numericValue)) {
       dispatch({
@@ -102,10 +120,10 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
       });
     }
 
-    if (!numericValue) {
+    if (!value || isNaN(numericValue)) {
       setLocalErrors((prev) => ({
         ...prev,
-        price: "تخفیف باید یک عدد معتبر باشد.",
+        discount: "تخفیف باید یک عدد معتبر باشد.",
       }));
     } else {
       setLocalErrors((prev) => ({ ...prev, discount: "" }));
@@ -295,8 +313,9 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         </label>
         <input
           id="price"
-          type="text"
-          value={state.price ? addCommas(state.price) : ""}
+          type="number"
+          step="0.01"
+          value={state.price}
           onChange={handlePriceChange}
           className="w-full p-2 rounded bg-gray-700 text-white"
           placeholder="قیمت محصول را به دلار وارد کنید."
@@ -313,14 +332,15 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         </label>
         <input
           id="discount"
-          type="text"
-          value={state.discount ? addCommas(state.discount) : ""}
+          type="number"
+          step="0.01"
+          value={state.discount}
           onChange={handleDiscountChange}
           className="w-full p-2 rounded bg-gray-700 text-white"
-          placeholder="تخفیف محصول را به تومان وارد کنید."
+          placeholder="تخفیف محصول را به دلار وارد کنید."
         />
         {localErrors.discount && (
-          <p className="text-red-500 mt-1">{localErrors.price}</p>
+          <p className="text-red-500 mt-1">{localErrors.discount}</p>
         )}
       </div>
 

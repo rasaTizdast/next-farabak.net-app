@@ -154,6 +154,21 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
       | { target: { name: string; value: string } }
   ) => {
     const { name, value } = e.target;
+    
+    // For price and discount fields, limit to 2 decimal places
+    if (name === "Price" || name === "Discount") {
+      // Check if the value has more than 2 decimal places
+      const parts = value.toString().split('.');
+      if (parts.length > 1 && parts[1].length > 2) {
+        // Truncate to 2 decimal places
+        const truncated = parseFloat(parseFloat(value).toFixed(2));
+        setFormState((prevState) =>
+          prevState ? { ...prevState, [name]: truncated } : null
+        );
+        return;
+      }
+    }
+    
     setFormState((prevState) =>
       prevState
         ? {
@@ -575,6 +590,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               value={formState.Price}
               onChange={handleInputChange}
               type="number"
+              step="0.01"
             />
             <InputField
               label="تخفیف (دلار)"
@@ -582,6 +598,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               value={formState.Discount}
               onChange={handleInputChange}
               type="number"
+              step="0.01"
             />
             <div className="block col-span-1 sm:col-span-2">
               <SelectField
@@ -705,6 +722,7 @@ type InputFieldProps = {
   ) => void;
   type?: string;
   disabled?: boolean;
+  step?: string;
 };
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -714,6 +732,7 @@ const InputField: React.FC<InputFieldProps> = ({
   onChange,
   type = "text",
   disabled = false,
+  step,
 }) => (
   <label className="block">
     {label}
@@ -722,6 +741,7 @@ const InputField: React.FC<InputFieldProps> = ({
       name={name}
       value={value}
       onChange={onChange}
+      step={step}
       className={`border border-gray-800 rounded w-full p-2 mt-2 ${
         disabled
           ? "bg-gray-600 text-gray-400 cursor-not-allowed opacity-75"
