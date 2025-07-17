@@ -86,13 +86,6 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
     if (!value.trim()) error = "ویژگی نمی‌تواند خالی باشد.";
     else if (value.length > 300)
       error = "ویژگی نمی‌تواند بیشتر از ۳۰۰ کاراکتر باشد.";
-    else if (
-      !/^[\u0600-\u06FFa-zA-Z0-9\s.,;:'"()<>[\]{}\\/@#$%^&*+=\-_!?]+$/.test(
-        value
-      )
-    )
-      error =
-        "ویژگی فقط می‌تواند شامل حروف فارسی، انگلیسی، اعداد و علائم نگارشی باشد.";
     return error;
   };
 

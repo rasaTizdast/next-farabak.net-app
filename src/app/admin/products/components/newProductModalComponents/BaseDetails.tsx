@@ -34,8 +34,6 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
     if (!value.trim()) return "نام محصول نمی‌تواند خالی باشد.";
     if (value.length > 100)
       return "نام محصول نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.";
-    if (!/^[a-zA-Z0-9\u0600-\u06FF\s_-]+$/.test(value))
-      return "نام محصول فقط می‌تواند شامل حروف فارسی یا انگلیسی، اعداد، خط فاصله و زیرخط باشد.";
     return "";
   };
 
