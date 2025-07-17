@@ -8,7 +8,7 @@ type Props = {
 const ProductBlog = ({ productBlog }: Props) => {
   const processContentWithImageAndVideoUrls = (content: string) => {
     const baseUrl = process.env.LIARA_BUCKET_URL || "";
-    
+
     // Process image URLs
     let processedContent = content.replace(
       /<Image([^>]*)src="([^"]*)"([^>]*)/g,
@@ -17,7 +17,7 @@ const ProductBlog = ({ productBlog }: Props) => {
         return `<Image${before}src="${baseUrl}/${src}"${after}`;
       }
     );
-    
+
     // Process regular video sources
     processedContent = processedContent.replace(
       /<video([^>]*)src="([^"]*)"([^>]*)/g,
@@ -26,7 +26,7 @@ const ProductBlog = ({ productBlog }: Props) => {
         return `<video${before}src="${baseUrl}/${src}"${after}`;
       }
     );
-    
+
     // Process TipTap video nodes - convert them to standard HTML5 video tags
     processedContent = processedContent.replace(
       /<div data-type="video"[^>]*>([\s\S]*?)<\/div>/g,
@@ -35,23 +35,24 @@ const ProductBlog = ({ productBlog }: Props) => {
         const srcMatch = match.match(/src="([^"]*)"/);
         if (srcMatch && srcMatch[1]) {
           const src = srcMatch[1];
-          const fullSrc = src.startsWith(baseUrl) || src.startsWith("http") 
-            ? src 
-            : `${baseUrl}/${src}`;
-          
+          const fullSrc =
+            src.startsWith(baseUrl) || src.startsWith("http")
+              ? src
+              : `${baseUrl}/${src}`;
+
           // Replace the entire div with a simple video element
           return `<video src="${fullSrc}" controls class="w-full max-w-4xl mx-auto rounded-md my-4"></video>`;
         }
         return match;
       }
     );
-    
+
     // Ensure videos have controls
     processedContent = processedContent.replace(
       /<video(?![^>]*controls)([^>]*)/g,
-      '<video$1 controls '
+      "<video$1 controls "
     );
-    
+
     return processedContent;
   };
 
@@ -70,7 +71,13 @@ const ProductBlog = ({ productBlog }: Props) => {
           توضیحات تکمیلی محصول
         </div>
         <div
-          className="prose-view max-w-none bg-gray-200 p-5 rounded-lg shadow-md"
+          className="prose-view max-w-none bg-gray-200 p-5 rounded-lg shadow-md overflow-wrap-break-word word-wrap-break-word word-break-break-word hyphens-auto"
+          style={{
+            overflowWrap: "break-word",
+            wordWrap: "break-word",
+            wordBreak: "break-word",
+            hyphens: "auto",
+          }}
           dangerouslySetInnerHTML={{
             __html: processContentWithImageAndVideoUrls(productBlog),
           }}
