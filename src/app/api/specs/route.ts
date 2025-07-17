@@ -66,6 +66,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    console.log("Processing specs for product: " + body[0]?.ProductId);
+
     // Batch insert the payload into the database
     const createdRecords = await prisma.productSpecs.createMany({
       data: body.map((spec) => ({
@@ -78,13 +80,19 @@ export async function POST(req: NextRequest) {
       skipDuplicates: true, // Prevent duplicate inserts
     });
 
+    console.log(`Successfully created ${createdRecords.count} specs`);
+
     return NextResponse.json({
       message: "Specifications created successfully!",
       createdRecords: createdRecords.count,
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error("Error creating specs:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      {
+        message: "Internal server error",
+        error: error.message || String(error),
+      },
       { status: 500 }
     );
   }

@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState, useCallback } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import { toast } from "react-hot-toast";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi"; // Import icons
 import BaseDetails from "./newProductModalComponents/BaseDetails";
@@ -110,11 +110,13 @@ const validateField = (field: keyof State, value: any): string => {
       if (!value) return "نام الزامی است";
       if (value.length > 100)
         return "نام محصول نمیتواند بیشتر از ۱۰۰ کارکتر باشد.";
+      return "";
     }
     case "slug": {
       if (!value) return "شناسه محصول الزامی است";
       if (value.length > 200)
         return "شناسه محصول نمیتواند بیشتر از ۲۰۰ کارکتر باشد.";
+      return "";
     }
     case "categoryID":
       return value !== null ? "" : "دسته‌بندی الزامی است";
@@ -127,20 +129,25 @@ const validateField = (field: keyof State, value: any): string => {
     case "transparentImage":
       return value ? "" : "تصویر بدون پسزمینه الزامی است";
     case "features":
+      // Let the ProductOverview component handle detailed feature validation
+      // Just check if there are any features at all
       return value.length > 0 ? "" : "حداقل یک ویژگی الزامی است";
     case "SEO_Title": {
       if (!value || value.length < 0) return "تیتر سئو الزامی است";
       if (value.length > 60) return "تیتر سئو نباید بیشتر از ۶۰ کارکتر باشد.";
+      return "";
     }
     case "SEO_Description": {
       if (!value || value.length < 0) return "توضیحات سئو الزامی است";
       if (value.length > 4000)
         return "توضیحات سئو نباید بیشتر از ۴۰۰۰ کارکتر باشد.";
+      return "";
     }
     case "keywords": {
       if (!value || value.length < 0) return "کلمات کلیدی الزامی است";
       if (value.length > 1000)
         return "کلمات کلیدی نمی‌توانند بیشتر از ۱۰۰۰ کارکتر باشند.";
+      return "";
     }
     default:
       return ""; // No validation needed
@@ -168,6 +175,9 @@ const NewProductModal = ({
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [touchedFields, setTouchedFields] = useState<{
+    [key: string]: boolean;
+  }>({});
   const [showNewOverviewDetailsModal, setShowNewOverviewDetailsModal] =
     useState(false);
 
@@ -175,25 +185,86 @@ const NewProductModal = ({
   const validatedDispatch = (action: any) => {
     dispatch(action);
 
-    // Dynamically validate the updated field
+    // If it's a field update, mark it as touched
     if (action.type === "SET_FIELD") {
+      setTouchedFields((prev) => ({
+        ...prev,
+        [action.field]: true,
+      }));
+
+      // Dynamically validate the updated field
       const fieldError = validateField(action.field, action.value);
       setErrors((prev) => {
-        const updatedErrors = { ...prev, [action.field]: fieldError };
+        const updatedErrors = { ...prev };
+        if (fieldError) {
+          updatedErrors[action.field] = fieldError;
+        } else {
+          delete updatedErrors[action.field];
+        }
         return updatedErrors;
       });
     }
   };
 
-  // Effect to clear error messages after correction
+  // Check if there are any validation errors - improved version
+  const hasErrors = () => {
+    // Check if there are any errors in the errors object
+    if (!errors) return false;
+
+    // For debugging
+    const errorEntries = Object.entries(errors).filter(
+      ([_, errorMessage]) =>
+        typeof errorMessage === "string" && errorMessage.trim() !== ""
+    );
+
+    if (errorEntries.length > 0) {
+      console.log("Current validation errors:", errorEntries);
+    }
+
+    // Check if any error exists (any non-empty string value)
+    return errorEntries.length > 0;
+  };
+
+  // Effect to validate fields and update errors
   useEffect(() => {
     const newErrors = validateAllFields(state);
-    setErrors(newErrors);
-  }, [state]);
+
+    // Use setTimeout to give inputs a chance to update their local errors
+    setTimeout(() => {
+      setErrors((currentErrors) => {
+        // Preserve validation errors from child components
+        const preservedErrors = Object.keys(currentErrors)
+          .filter(
+            (key) =>
+              key.startsWith("specs-") ||
+              key.startsWith("faq-") ||
+              key.startsWith("features-") ||
+              key === "features" ||
+              key.includes("-question-") ||
+              key.includes("-answer-")
+          )
+          .reduce((obj, key) => {
+            obj[key] = currentErrors[key];
+            return obj;
+          }, {} as { [key: string]: string });
+
+        // Don't show validation errors for untouched fields unless form was submitted
+        const filteredBaseErrors = Object.entries(newErrors)
+          .filter(([key]) => hasSubmitted || touchedFields[key])
+          .reduce((obj, [key, value]) => {
+            obj[key] = value;
+            return obj;
+          }, {} as { [key: string]: string });
+
+        // Combine preserved errors with filtered base errors
+        return { ...preservedErrors, ...filteredBaseErrors };
+      });
+    }, 100);
+  }, [state, touchedFields, hasSubmitted]);
 
   // Manage the collapse state for each section
   const [openSections, setOpenSections] = useState({
-    baseDetails: false,
+    baseDetails: true, // Start with baseDetails open
     productOverview: false,
     overviewDetails: false,
     productBlog: false,
@@ -214,24 +285,39 @@ const NewProductModal = ({
     e.preventDefault();
     setHasSubmitted(true);
 
-    // Perform final validation before submission
-    const newErrors = validateAllFields(state);
-    setErrors(newErrors);
+    // Force all validations to run again
+    const newBaseErrors = validateAllFields(state);
 
-    if (Object.keys(newErrors).length > 0) {
+    // Update the errors state with all errors
+    setErrors((prevErrors) => ({ ...prevErrors, ...newBaseErrors }));
+
+    // Check if there are any errors
+    if (hasErrors()) {
+      console.log("Preventing submission due to validation errors");
       toast.error("لطفاً تمام خطاها را برطرف کنید.");
       return;
     }
 
-    // Prepare the form data
+    // If we reach here, there are no errors - safe to submit
+    console.log("No validation errors found, proceeding with submission");
+    submitForm();
+  };
+
+  // Extracted the form submission logic to a separate function
+  const submitForm = async () => {
+    // Check if no overviewDetails are selected
     const selectedDetailsIds = state.overviewDetails
       .filter((detail) => detail.selected)
       .map((detail) => detail.ProductOverviewDetailsId);
 
+    // Prepare the form data
     const formData = {
       ...state,
       overviewDetails: selectedDetailsIds,
     };
+
+    // Log the data being sent for debugging
+    console.log("Sending product data:", formData);
 
     if (formData.price < formData.discount) {
       toast.error("تخفیف نمیتواند بیشتر از قیمت باشد.");
@@ -248,11 +334,17 @@ const NewProductModal = ({
         toast.success("محصول با موفقیت ایجاد شد!");
       }, 1000);
     } catch (error: any) {
+      console.error("Error creating product:", error);
       setModalVisible(false);
       toast.error(
         "محصولی مشابه این محصول وجود دارد یا خطایی به وجود آمده لطفاً دوباره تلاش کنید"
       );
     }
+  };
+
+  // Helper to determine if we should show an error for a field
+  const shouldShowError = (field: string): boolean => {
+    return (hasSubmitted || touchedFields[field]) && !!errors[field];
   };
 
   return (
@@ -381,6 +473,7 @@ const NewProductModal = ({
                   state={state}
                   dispatch={validatedDispatch}
                   setErrors={setErrors}
+                  hasSubmitted={hasSubmitted} // Pass hasSubmitted to Specs
                 />
               )}
             </div>
@@ -403,38 +496,142 @@ const NewProductModal = ({
                   state={state}
                   dispatch={validatedDispatch}
                   setErrors={setErrors}
+                  hasSubmitted={hasSubmitted}
                 />
               )}
             </div>
 
             {/* Submit Button */}
             <div className="flex flex-col items-center mt-6">
-              {hasSubmitted && (
+              {hasSubmitted && hasErrors() && (
                 <div className="flex flex-wrap justify-center gap-2 my-4">
-                  {Object.values(errors).map((error, index) =>
-                    error ? (
+                  {Object.entries(errors).map(([key, error], index) => {
+                    if (!error) return null;
+
+                    // Format the error message for better readability
+                    let errorMessage = error;
+                    let fieldName = "";
+
+                    // Extract field name for specs errors
+                    if (key.startsWith("specs-")) {
+                      const parts = key.split("-");
+                      if (parts.length >= 3) {
+                        const fieldType = parts[1]; // 'title' or 'description'
+                        const itemIndex = parseInt(parts[2]) + 1;
+                        fieldName = `مشخصات ${itemIndex} (${
+                          fieldType === "title" ? "عنوان" : "توضیحات"
+                        })`;
+                      }
+                    }
+                    // Extract field name for feature errors
+                    else if (key.startsWith("features-")) {
+                      const parts = key.split("-");
+                      if (parts.length >= 3) {
+                        const itemIndex = parseInt(parts[2]) + 1;
+                        fieldName = `ویژگی ${itemIndex}`;
+                      }
+                    }
+                    // General features error
+                    else if (key === "features") {
+                      fieldName = "ویژگی‌ها";
+                    }
+                    // Extract field name for FAQ errors
+                    else if (key.startsWith("faq-")) {
+                      const parts = key.split("-");
+                      if (parts.length >= 3) {
+                        const fieldType = parts[1]; // 'question' or 'answer'
+                        const itemIndex = parseInt(parts[2]) + 1;
+                        fieldName = `سوال ${itemIndex} (${
+                          fieldType === "question" ? "سوال" : "پاسخ"
+                        })`;
+                      }
+                    }
+                    // Legacy format for FAQ errors (for compatibility)
+                    else if (
+                      key.includes("-question-") ||
+                      key.includes("-answer-")
+                    ) {
+                      const isQuestion = key.includes("-question-");
+                      const itemIndex =
+                        parseInt(key.split("-").pop() || "0") + 1;
+                      fieldName = `سوال ${itemIndex} (${
+                        isQuestion ? "سوال" : "پاسخ"
+                      })`;
+                    }
+                    // Basic field names
+                    else if (key === "name") fieldName = "نام محصول";
+                    else if (key === "slug") fieldName = "شناسه محصول";
+                    else if (key === "categoryID") fieldName = "دسته‌بندی";
+                    else if (key === "subCategoryID")
+                      fieldName = "زیر دسته‌بندی";
+                    else if (key === "smallDesc") fieldName = "توضیح کوتاه";
+                    else if (key === "bannerImage") fieldName = "تصویر بنر";
+                    else if (key === "transparentImage")
+                      fieldName = "تصویر بدون پسزمینه";
+                    else if (key === "SEO_Title") fieldName = "تیتر سئو";
+                    else if (key === "SEO_Description")
+                      fieldName = "توضیحات سئو";
+                    else if (key === "keywords") fieldName = "کلمات کلیدی";
+                    else if (key === "features") fieldName = "ویژگی‌ها";
+
+                    return (
                       <div
                         key={index}
                         className="bg-red-500 rounded-lg text-center p-2"
                       >
-                        {error}
+                        {fieldName && (
+                          <span className="font-bold">{fieldName}: </span>
+                        )}
+                        {errorMessage}
                       </div>
-                    ) : null
-                  )}
+                    );
+                  })}
                 </div>
               )}
-              {/* Update the submit button to disable only if there are errors and submission hasn't been attempted */}
+
+              {/* Update the submit button to disable if there are errors */}
               <button
                 type="submit"
                 className={`py-2 px-6 rounded-lg ${
-                  hasSubmitted && Object.keys(errors).length > 0
+                  hasErrors()
                     ? "bg-gray-500 cursor-not-allowed"
                     : "bg-blue-500 hover:bg-blue-600"
                 } text-white`}
-                disabled={hasSubmitted && Object.keys(errors).length > 0}
+                disabled={hasErrors()}
+                onClick={(e) => {
+                  // This is a double-check to prevent submission if there are errors
+                  if (hasErrors()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Check specifically for feature errors to provide a targeted message
+                    const hasFeatureErrors = Object.keys(errors).some(
+                      (key) =>
+                        (key === "features" || key.startsWith("features-")) &&
+                        errors[key]
+                    );
+
+                    if (hasFeatureErrors) {
+                      console.log(
+                        "Submit prevented due to feature validation errors"
+                      );
+                      toast.error("لطفاً خطاهای ویژگی‌ها را برطرف کنید.");
+                    } else {
+                      console.log("Submit prevented due to validation errors");
+                      toast.error("لطفاً تمام خطاها را برطرف کنید.");
+                    }
+                  }
+                }}
               >
                 ایجاد محصول
               </button>
+
+              {/* Show error indicator when form has errors */}
+              {hasSubmitted && hasErrors() && (
+                <div className="mt-4 p-2 bg-red-500 text-white rounded-md text-sm text-center">
+                  فرم دارای خطا است. لطفا تمامی موارد خطا را اصلاح کنید.
+                </div>
+              )}
             </div>
           </form>
 

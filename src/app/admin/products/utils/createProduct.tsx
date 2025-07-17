@@ -109,61 +109,97 @@ const sendOverviews = async (
   });
 };
 
-// Function to send overview details to the API
-const sendOverviewDetails = async (
-  productId: number,
-  productName: string,
-  overviewDetailsIds: number[] // Adjusted to accept only selected IDs
-) => {
-  if (!overviewDetailsIds.length) return; // Skip if no overview details are selected
-
-  const payload = overviewDetailsIds.map((id) => ({
-    ProductOverviewDetailsId: id,
-    ProductName: productName,
-    ProductId: productId,
-  }));
-
-  return await retryRequest(async () => {
-    return await axios.post("/api/productOverviewDetails", payload);
-  });
-};
-
 // Function to send specifications data to the API
 const sendSpecs = async (
   ProductId: number,
   Name: string,
   specs: State["specs"]
 ) => {
-  if (!specs.length) return; // Skip if no specs are provided
+  if (!specs || !specs.length) {
+    console.log("No specs to send");
+    return;
+  } // Skip if no specs are provided
 
-  const payload = specs.map((spec) => ({
-    Name,
-    Title: spec.title, // Match the database model
-    Description: spec.description,
-    ProductId,
-    Available: true,
-  }));
+  try {
+    const payload = specs.map((spec) => ({
+      Name,
+      Title: spec.title,
+      Description: spec.description,
+      ProductId,
+      Available: true,
+    }));
 
-  return await retryRequest(async () => {
-    return await axios.post("/api/specs", payload);
-  });
+    console.log("Sending specs payload:", payload);
+
+    return await retryRequest(async () => {
+      const response = await axios.post("/api/specs", payload);
+      console.log("Specs API response:", response.data);
+      return response;
+    });
+  } catch (error) {
+    console.error("Error sending specs:", error);
+    throw error; // Re-throw to handle in the main function
+  }
 };
 
 // Function to send FAQs data to the API
 const sendFaqs = async (productId: number, faqs: State["faqs"]) => {
-  if (!faqs.length) return; // Skip if no FAQs are provided
+  if (!faqs || !faqs.length) {
+    console.log("No FAQs to send");
+    return;
+  } // Skip if no FAQs are provided
 
-  const payload = faqs.map((faq) => ({
-    Title: faq.question, // Map 'question' to 'Title'
-    Description: faq.answer, // Map 'answer' to 'Description'
-    ProductId: productId,
-    Available: true,
-    FilesAddress: "", // Set as empty since it's not part of incoming data
-  }));
+  try {
+    const payload = faqs.map((faq) => ({
+      Title: faq.question, // Maps to 'Title'
+      Description: faq.answer, // Maps to 'Description'
+      ProductId: productId,
+      Available: true,
+      FilesAddress: "", // Set as empty since it's not part of incoming data
+    }));
 
-  return await retryRequest(async () => {
-    return await axios.post("/api/faqs", payload);
-  });
+    console.log("Sending FAQs payload:", payload);
+
+    return await retryRequest(async () => {
+      const response = await axios.post("/api/faqs", payload);
+      console.log("FAQs API response:", response.data);
+      return response;
+    });
+  } catch (error) {
+    console.error("Error sending FAQs:", error);
+    throw error; // Re-throw to handle in the main function
+  }
+};
+
+// Function to send overview details to the API
+const sendOverviewDetails = async (
+  productId: number,
+  productName: string,
+  overviewDetailsIds: number[] // Adjusted to accept only selected IDs
+) => {
+  if (!overviewDetailsIds || !overviewDetailsIds.length) {
+    console.log("No overview details to send");
+    return;
+  } // Skip if no overview details are selected
+
+  try {
+    const payload = overviewDetailsIds.map((id) => ({
+      ProductOverviewDetailsId: id,
+      ProductName: productName,
+      ProductId: productId,
+    }));
+
+    console.log("Sending overview details payload:", payload);
+
+    return await retryRequest(async () => {
+      const response = await axios.post("/api/productOverviewDetails", payload);
+      console.log("Overview details API response:", response.data);
+      return response;
+    });
+  } catch (error) {
+    console.error("Error sending overview details:", error);
+    throw error; // Re-throw to handle in the main function
+  }
 };
 
 // Main function to create a product and send all associated details
@@ -192,6 +228,8 @@ export const createProduct = async (
       productBlog: state.productBlog,
     };
 
+    console.log("Creating product with payload:", productPayload);
+
     const productResponse = await retryRequest(async () => {
       return await axios.post(
         "/api/admin/products/createNewProduct",
@@ -204,40 +242,77 @@ export const createProduct = async (
     if (!productId) {
       throw new Error("ساخت محصول ناموفق بود: شناسه محصول دریافت نشد");
     }
+    console.log("Product created successfully with ID:", productId);
     setProgress(30);
 
     // Step 2: Upload images to S3
     setCurrentStep(2);
+    console.log("Uploading images...");
     const [img1, img2] = await Promise.all([
       ImageUploader(state.transparentImage, state.slug, "mini"),
       ImageUploader(state.bannerImage, state.slug, "banner"),
     ]);
+    console.log("Images uploaded successfully:", {
+      transparentImage: img1,
+      bannerImage: img2,
+    });
     setProgress(50);
 
     // Step 3: Update the product with image keys
+    console.log("Updating product with image keys...");
     await retryRequest(async () => {
       await axios.patch(`/api/admin/products/${productId}/updateImages`, {
         img1,
         img2,
       });
     });
+    console.log("Product updated with image keys successfully");
 
-    // Step 4: Send additional details
-    setCurrentStep(3);
-    await sendOverviews(productId, state.name, state.features);
-    setProgress(60);
+    // Step 4: Send additional details - wrap each in try/catch to prevent one failure from stopping others
+    try {
+      setCurrentStep(3);
+      console.log("Sending product overview features...");
+      await sendOverviews(productId, state.name, state.features);
+      setProgress(60);
+    } catch (error) {
+      console.error(
+        "Failed to send product features, continuing with other steps:",
+        error
+      );
+    }
 
-    setCurrentStep(4);
-    await sendOverviewDetails(productId, state.name, state.overviewDetails);
-    setProgress(70);
+    try {
+      setCurrentStep(4);
+      console.log("Sending product overview details...");
+      await sendOverviewDetails(productId, state.name, state.overviewDetails);
+      setProgress(70);
+    } catch (error) {
+      console.error(
+        "Failed to send overview details, continuing with other steps:",
+        error
+      );
+    }
 
-    setCurrentStep(5);
-    await sendSpecs(productId, state.name, state.specs);
-    setProgress(80);
+    try {
+      setCurrentStep(5);
+      console.log("Sending product specifications...");
+      await sendSpecs(productId, state.name, state.specs);
+      setProgress(80);
+    } catch (error) {
+      console.error(
+        "Failed to send specs, continuing with other steps:",
+        error
+      );
+    }
 
-    setCurrentStep(6);
-    await sendFaqs(productId, state.faqs);
-    setProgress(90);
+    try {
+      setCurrentStep(6);
+      console.log("Sending product FAQs...");
+      await sendFaqs(productId, state.faqs);
+      setProgress(90);
+    } catch (error) {
+      console.error("Failed to send FAQs, continuing with other steps:", error);
+    }
 
     setCurrentStep(7);
     setProgress(100);
@@ -245,6 +320,6 @@ export const createProduct = async (
     return productResponse.data;
   } catch (error) {
     console.error("خطا در ایجاد محصول:", error);
-    throw new Error("ایجاد محصول ناموفق بود");
+    throw error; // Let the caller handle the error
   }
 };

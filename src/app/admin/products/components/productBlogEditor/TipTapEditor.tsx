@@ -65,6 +65,7 @@ const TipTapBlogEditor = ({
   const editorContainerRef = useRef<HTMLDivElement>(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(false);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const calculateDimensions = async (url: string) => {
     if (typeof window === "undefined") {
@@ -137,6 +138,17 @@ const TipTapBlogEditor = ({
       }),
     ],
     content: blogData || "", // Initialize with blogData if provided
+    onUpdate: ({ editor }) => {
+      // Start a timer to auto-save after user stops typing for 1 second
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+
+      autoSaveTimerRef.current = setTimeout(() => {
+        const mdxContent = editor.getHTML();
+        onSave?.(mdxContent, false);
+      }, 1000);
+    },
   });
 
   // Update editor content when blogData changes
@@ -146,6 +158,15 @@ const TipTapBlogEditor = ({
       editor.commands.setContent(htmlContent);
     }
   }, [editor, blogData]);
+
+  // Add cleanup effect
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, []);
 
   const addImage = useCallback(
     async (file: File) => {
@@ -879,17 +900,6 @@ const TipTapBlogEditor = ({
             </button>
           </div>
         )}
-      </div>
-
-      {/* Save Button */}
-      <div className="flex justify-center my-4">
-        <button
-          type="button"
-          onClick={() => exportToMDX(true)}
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-        >
-          ذخیره
-        </button>
       </div>
 
       {/* Bubble Menu */}
