@@ -92,10 +92,8 @@ const prisma = new PrismaClient();
  *         description: Internal server error.
  */
 
-export async function GET(
-  req: Request,
-  { params }: { params: { slug: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const { slug } = params;
 
   try {

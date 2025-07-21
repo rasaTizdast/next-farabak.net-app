@@ -45,8 +45,9 @@ import { NextResponse } from "next/server";
 // Handler function for GET request
 export async function GET(
   request: Request,
-  { params }: { params: { productId: string } }
+  props: { params: Promise<{ productId: string }> }
 ) {
+  const params = await props.params;
   try {
     // Query to get product overview by product ID
     const result = await prisma.productOverview.findFirst({
@@ -64,7 +65,6 @@ export async function GET(
     // Return the product overview data as a JSON response
     return NextResponse.json(result);
   } catch (error) {
-
     // Return a server error response
     return new NextResponse("Failed to fetch product overview", {
       status: 500,

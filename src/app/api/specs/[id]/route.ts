@@ -4,8 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 // GET /api/specs/[id] - Get specs for a specific product
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
     const productId = parseInt(params.id);
 

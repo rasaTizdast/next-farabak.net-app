@@ -105,10 +105,8 @@ import { prisma } from "@/lib/prisma";
  *                   description: The error message.
  */
 
-export async function GET(
-  req: Request,
-  { params }: { params: { categorySlug: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ categorySlug: string }> }) {
+  const params = await props.params;
   try {
     const { categorySlug } = params;
 

@@ -3,6 +3,8 @@ import { verifyInvoiceData } from "@/utils/invoiceJwt";
 
 const COOKIE_NAME = "invoiceData";
 
+export const dynamic = "force-dynamic";
+
 /**
  * @swagger
  * /api/invoice/retrieve:

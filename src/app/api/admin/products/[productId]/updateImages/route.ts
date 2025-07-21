@@ -91,14 +91,12 @@ async function verifyToken(token: string) {
  *                   example: "Failed to update product images."
  */
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { productId: string } }
-) {
+export async function PATCH(request: Request, props: { params: Promise<{ productId: string }> }) {
+  const params = await props.params;
   const productId = parseInt(params.productId, 10);
 
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {

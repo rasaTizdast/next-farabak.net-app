@@ -82,8 +82,9 @@ function parseCategoryContentIds(product: ProductType): number[] {
 
 export async function GET(
   req: Request,
-  { params }: { params: { subCategoryName: string } }
+  props: { params: Promise<{ subCategoryName: string }> }
 ) {
+  const params = await props.params;
   const { searchParams } = new URL(req.url);
   const subCategoryName = params.subCategoryName;
 

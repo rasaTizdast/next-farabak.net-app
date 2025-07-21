@@ -55,8 +55,8 @@ function BranchesPageContent() {
   const searchParams = useSearchParams();
 
   // Create refs for the fetch functions to use in intervals
-  const fetchBranchesRef = useRef<() => Promise<void>>();
-  const fetchBranchProductsRef = useRef<(branchId: number) => Promise<void>>();
+  const fetchBranchesRef = useRef<() => Promise<void>>(undefined);
+  const fetchBranchProductsRef = useRef<(branchId: number) => Promise<void>>(undefined);
 
   // Check URL for productId param
   useEffect(() => {

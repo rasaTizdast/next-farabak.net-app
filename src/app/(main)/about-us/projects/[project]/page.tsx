@@ -7,7 +7,7 @@ import VideoPlayer from "@/app/_components/ui/VideoPlayer";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 
 type ParamsType = {
-  params: { project: string };
+  params: Promise<{ project: string }>;
 };
 
 type ProjectProps = {
@@ -41,9 +41,10 @@ async function getProjectData(slug: string) {
   }
 }
 
-export const generateMetadata = async ({
-  params,
-}: ParamsType): Promise<Metadata> => {
+export const generateMetadata = async (
+  props: ParamsType
+): Promise<Metadata> => {
+  const params = await props.params;
   const projectData = await getProjectData(params.project);
 
   if (!projectData) {
@@ -59,7 +60,8 @@ export const generateMetadata = async ({
   };
 };
 
-const ProjectPage = async ({ params }: ParamsType) => {
+const ProjectPage = async (props: ParamsType) => {
+  const params = await props.params;
   const projectData = await getProjectData(params.project);
 
   if (!projectData) {

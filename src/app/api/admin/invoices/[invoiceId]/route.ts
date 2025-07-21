@@ -13,10 +13,8 @@ async function verifyToken(token: string) {
   return payload;
 }
 
-export async function GET(
-  request: Request,
-  { params }: { params: { invoiceId: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ invoiceId: string }> }) {
+  const params = await props.params;
   try {
     const invoiceId = parseInt(params.invoiceId);
     

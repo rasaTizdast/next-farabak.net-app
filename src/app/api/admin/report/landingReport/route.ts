@@ -59,7 +59,7 @@ async function verifyToken(token: string) {
 export async function GET(): Promise<NextResponse> {
   try {
     // Get userRole from the HTTP-only cookie
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {

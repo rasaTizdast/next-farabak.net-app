@@ -37,7 +37,7 @@ const SALT_ROUNDS = 10;
 export async function PATCH(request: Request): Promise<NextResponse> {
   try {
     // Retrieve the access token from cookies
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {

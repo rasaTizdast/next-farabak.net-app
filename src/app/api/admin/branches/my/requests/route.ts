@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 // Helper function to verify the JWT token
 async function verifyCurrentUser() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {

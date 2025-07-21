@@ -7,12 +7,13 @@ import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import { Metadata } from "next";
 
 interface ProductsPageProps {
-  searchParams: { page?: string };
+  searchParams: Promise<{ page?: string }>;
 }
 
-export const generateMetadata = ({
-  searchParams,
-}: ProductsPageProps): Metadata => {
+export const generateMetadata = async (
+  props: ProductsPageProps
+): Promise<Metadata> => {
+  const searchParams = await props.searchParams;
   const currentPage = parseInt(searchParams.page || "1", 10);
 
   return {
@@ -25,7 +26,8 @@ export const generateMetadata = ({
   };
 };
 
-const ProductsPage = async ({ searchParams }: ProductsPageProps) => {
+const ProductsPage = async (props: ProductsPageProps) => {
+  const searchParams = await props.searchParams;
   const currentPage = parseInt(searchParams.page || "1", 10);
   const limit = 30;
 

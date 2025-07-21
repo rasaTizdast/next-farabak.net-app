@@ -21,10 +21,8 @@ import { prisma } from "@/lib/prisma";
  *       500:
  *         description: Server error
  */
-export async function GET(
-  request: Request,
-  { params }: { params: { branchId: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ branchId: string }> }) {
+  const params = await props.params;
   try {
     const branchId = parseInt(params.branchId);
 

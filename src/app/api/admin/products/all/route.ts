@@ -36,7 +36,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     // Get the access token from cookies
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {

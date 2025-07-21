@@ -8,12 +8,13 @@ import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 
 interface SearchPageProps {
-  searchParams: { q: string; page?: string };
+  searchParams: Promise<{ q: string; page?: string }>;
 }
 
-export async function generateMetadata({
-  searchParams,
-}: SearchPageProps): Promise<Metadata> {
+export async function generateMetadata(
+  props: SearchPageProps
+): Promise<Metadata> {
+  const searchParams = await props.searchParams;
   const query = searchParams.q || "";
   return {
     title: `نتایج جستجو برای "${query}"`,
@@ -25,7 +26,8 @@ export async function generateMetadata({
   };
 }
 
-export default async function SearchPage({ searchParams }: SearchPageProps) {
+export default async function SearchPage(props: SearchPageProps) {
+  const searchParams = await props.searchParams;
   const query = searchParams.q || "";
   const currentPage = parseInt(searchParams.page || "1", 10);
 

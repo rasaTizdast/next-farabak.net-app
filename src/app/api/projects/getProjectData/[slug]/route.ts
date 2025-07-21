@@ -3,8 +3,9 @@ import { prisma } from "@/lib/prisma"; // Ensure you have a Prisma client setup
 
 export async function GET(
   request: Request,
-  { params }: { params: { slug: string } }
+  props: { params: Promise<{ slug: string }> }
 ) {
+  const params = await props.params;
   const { slug } = params;
 
   try {

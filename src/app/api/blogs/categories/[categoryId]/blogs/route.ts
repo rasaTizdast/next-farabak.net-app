@@ -2,10 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // Add a new endpoint to fetch blogs using a specific category
-export async function GET(
-  request: Request,
-  { params }: { params: { categoryId: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ categoryId: string }> }) {
+  const params = await props.params;
   try {
     const categoryId = Number(params.categoryId);
 

@@ -5,13 +5,14 @@ import axios from "axios";
 import { notFound } from "next/navigation";
 
 interface CategoryPageProps {
-  params: { category: string; pageNumber: string };
+  params: Promise<{ category: string; pageNumber: string }>;
 }
 
 // Dynamic Metadata
-export const generateMetadata = async ({
-  params,
-}: CategoryPageProps): Promise<Metadata> => {
+export const generateMetadata = async (
+  props: CategoryPageProps
+): Promise<Metadata> => {
+  const params = await props.params;
   const categoryName = params.category;
 
   try {
@@ -48,7 +49,8 @@ export const generateMetadata = async ({
   }
 };
 
-const CategoryPage = async ({ params }: CategoryPageProps) => {
+const CategoryPage = async (props: CategoryPageProps) => {
+  const params = await props.params;
   const categoryName = params.category;
   const currentPage = parseInt(params.pageNumber || "1", 10);
   const limit = 30;

@@ -43,7 +43,7 @@ async function verifyToken(token: string) {
 export async function POST(request: Request) {
   const { phoneNumber, userId } = await request.json();
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {

@@ -9,10 +9,8 @@ const s3 = new S3({
   endpoint: process.env.LIARA_ENDPOINT!,
 });
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const blogId = parseInt(params.id);
     if (isNaN(blogId)) {

@@ -138,8 +138,9 @@ function parseCategoryContentIds(product: ProductType): number[] {
 
 export async function GET(
   req: Request,
-  { params }: { params: { categoryName: string } }
+  props: { params: Promise<{ categoryName: string }> }
 ) {
+  const params = await props.params;
   const categoryName = params.categoryName;
 
   try {

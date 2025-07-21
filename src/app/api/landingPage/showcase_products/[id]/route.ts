@@ -3,8 +3,9 @@ import { prisma } from "@/lib/prisma"; // Adjust the import based on your Prisma
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
     const { id } = params;
 
@@ -24,12 +25,13 @@ export async function DELETE(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
     const { id } = params;
     const data = await request.json();
-    
+
     // Update the showcase product in the database
     const updatedProduct = await prisma.showcase_products.update({
       where: { id: parseInt(id) },

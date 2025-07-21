@@ -41,8 +41,9 @@ import { prisma } from "@/lib/prisma";
  */
 export async function PUT(
   request: Request,
-  { params }: { params: { branchId: string; productId: string } }
+  props: { params: Promise<{ branchId: string; productId: string }> }
 ) {
+  const params = await props.params;
   try {
     const branchId = parseInt(params.branchId);
     const productId = parseInt(params.productId);
@@ -111,8 +112,9 @@ export async function PUT(
  */
 export async function DELETE(
   request: Request,
-  { params }: { params: { branchId: string; productId: string } }
+  props: { params: Promise<{ branchId: string; productId: string }> }
 ) {
+  const params = await props.params;
   try {
     const branchId = parseInt(params.branchId);
     const productId = parseInt(params.productId);

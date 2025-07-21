@@ -54,7 +54,7 @@ export async function GET(request: Request) {
     const offset = (page - 1) * limit;
 
     // Get the access token from cookies
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {

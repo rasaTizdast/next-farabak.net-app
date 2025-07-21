@@ -118,11 +118,10 @@ const BlogContent = ({ blogs }: { blogs: Blogs }) => {
   );
 };
 
-const BlogLandingPage = async ({
-  params,
-}: {
-  params: { blogCategory: string };
+const BlogLandingPage = async (props: {
+  params: Promise<{ blogCategory: string }>;
 }) => {
+  const params = await props.params;
   let blogData: Blogs | null = null;
 
   // Fetch blogs

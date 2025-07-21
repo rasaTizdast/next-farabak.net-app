@@ -51,8 +51,9 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   req: Request,
-  { params }: { params: { subCategoryName: string } }
+  props: { params: Promise<{ subCategoryName: string }> }
 ) {
+  const params = await props.params;
   const subCategoryNameSlug = params.subCategoryName;
   try {
     // Retrieve the subCategory name based on the slug from the Support.CategoryContent table

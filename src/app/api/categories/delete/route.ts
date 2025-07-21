@@ -154,7 +154,7 @@ async function deleteCategory(categoryId: number) {
 }
 
 export async function DELETE(request: Request) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {

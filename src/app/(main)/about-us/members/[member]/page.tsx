@@ -9,9 +9,9 @@ import { notFound } from "next/navigation";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 
 type Props = {
-  params: {
+  params: Promise<{
     member: string;
-  };
+  }>;
 };
 
 const getMemberData = async (slug: string) => {
@@ -29,9 +29,8 @@ const getMemberData = async (slug: string) => {
   return response.json();
 };
 
-export const generateMetadata = async ({
-  params,
-}: Props): Promise<Metadata> => {
+export const generateMetadata = async (props: Props): Promise<Metadata> => {
+  const params = await props.params;
   const memberData = await getMemberData(params.member);
 
   if (!memberData) {
@@ -47,7 +46,8 @@ export const generateMetadata = async ({
   };
 };
 
-const MemberPage = async ({ params }: Props) => {
+const MemberPage = async (props: Props) => {
+  const params = await props.params;
   const memberData = await getMemberData(params.member);
 
   if (!memberData) {

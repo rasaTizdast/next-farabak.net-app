@@ -81,13 +81,12 @@ const getBlog = async (
   }
 };
 
-export async function generateMetadata({
-  params,
-  searchParams,
-}: {
-  params: { blog: string };
-  searchParams: { key?: string };
+export async function generateMetadata(props: {
+  params: Promise<{ blog: string }>;
+  searchParams: Promise<{ key?: string }>;
 }) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const content = await getBlog(params.blog, searchParams);
 
   if (!content) {
@@ -103,13 +102,12 @@ export async function generateMetadata({
   };
 }
 
-export default async function BlogPage({
-  params,
-  searchParams,
-}: {
-  params: { blog: string };
-  searchParams: { key?: string };
+export default async function BlogPage(props: {
+  params: Promise<{ blog: string }>;
+  searchParams: Promise<{ key?: string }>;
 }) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const blogResponse = await getBlog(params.blog, searchParams);
 
   if (!blogResponse) {
@@ -140,7 +138,7 @@ export default async function BlogPage({
         return `<video${before}src="${baseUrl}/${src}"${after}`;
       }
     );
-    
+
     // Process TipTap video nodes - convert them to standard HTML5 video tags
     processedContent = processedContent.replace(
       /<div data-type="video"[^>]*>([\s\S]*?)<\/div>/g,
@@ -149,21 +147,22 @@ export default async function BlogPage({
         const srcMatch = match.match(/src="([^"]*)"/);
         if (srcMatch && srcMatch[1]) {
           const src = srcMatch[1];
-          const fullSrc = src.startsWith(baseUrl) || src.startsWith("http") 
-            ? src 
-            : `${baseUrl}/${src}`;
-          
+          const fullSrc =
+            src.startsWith(baseUrl) || src.startsWith("http")
+              ? src
+              : `${baseUrl}/${src}`;
+
           // Replace the entire div with a simple video element
           return `<video src="${fullSrc}" controls class="w-full max-w-4xl mx-auto rounded-md my-4"></video>`;
         }
         return match;
       }
     );
-    
+
     // Ensure videos have controls
     processedContent = processedContent.replace(
       /<video(?![^>]*controls)([^>]*)/g,
-      '<video$1 controls '
+      "<video$1 controls "
     );
 
     // Then handle the size classes. Make sure classes defined in the editor are preserved

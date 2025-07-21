@@ -23,10 +23,8 @@ export const dynamic = "force-dynamic";
  *       500:
  *         description: Server error
  */
-export async function GET(
-  request: Request,
-  { params }: { params: { branchId: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ branchId: string }> }) {
+  const params = await props.params;
   try {
     if (!params.branchId) {
       return NextResponse.json(
@@ -100,10 +98,8 @@ export async function GET(
  *       500:
  *         description: Server error
  */
-export async function PUT(
-  request: Request,
-  { params }: { params: { branchId: string } }
-) {
+export async function PUT(request: Request, props: { params: Promise<{ branchId: string }> }) {
+  const params = await props.params;
   try {
     const branchId = parseInt(params.branchId);
     const { name, location } = await request.json();
@@ -176,10 +172,8 @@ export async function PUT(
  *       500:
  *         description: Server error
  */
-export async function DELETE(
-  request: Request,
-  { params }: { params: { branchId: string } }
-) {
+export async function DELETE(request: Request, props: { params: Promise<{ branchId: string }> }) {
+  const params = await props.params;
   try {
     const branchId = parseInt(params.branchId);
 

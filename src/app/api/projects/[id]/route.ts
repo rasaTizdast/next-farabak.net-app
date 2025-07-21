@@ -11,8 +11,9 @@ const s3 = new S3({
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
     const formData = await request.formData();
     const projectId = parseInt(params.id);
@@ -174,8 +175,9 @@ export async function PUT(
 // Also add GET handler for fetching project data
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
     const project = await prisma.projects.findUnique({
       where: { ProjectID: parseInt(params.id) },
@@ -204,8 +206,9 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
     const projectId = parseInt(params.id);
 

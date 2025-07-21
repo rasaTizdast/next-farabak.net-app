@@ -38,12 +38,10 @@ async function verifyToken(token: string) {
   return payload;
 }
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: { productId: string } }
-): Promise<NextResponse> {
+export async function DELETE(req: Request, props: { params: Promise<{ productId: string }> }): Promise<NextResponse> {
+  const params = await props.params;
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
@@ -267,10 +265,8 @@ export async function DELETE(
  *                   example: "Failed to update product"
  */
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { productId: string } }
-) {
+export async function PATCH(request: Request, props: { params: Promise<{ productId: string }> }) {
+  const params = await props.params;
   const productId = parseInt(params.productId, 10);
 
   if (isNaN(productId)) {
@@ -278,7 +274,7 @@ export async function PATCH(
   }
 
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {

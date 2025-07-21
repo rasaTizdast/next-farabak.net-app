@@ -3,10 +3,13 @@ import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import { Metadata } from "next";
 
 interface ProductsPageProps {
-  params: { pageNumber: string };
+  params: Promise<{ pageNumber: string }>;
 }
 
-export const generateMetadata = ({ params }: ProductsPageProps): Metadata => {
+export const generateMetadata = async (
+  props: ProductsPageProps
+): Promise<Metadata> => {
+  const params = await props.params;
   const currentPage = parseInt(params.pageNumber || "1", 10);
 
   return {
@@ -25,7 +28,8 @@ export const generateMetadata = ({ params }: ProductsPageProps): Metadata => {
   };
 };
 
-const ProductsPage = async ({ params }: ProductsPageProps) => {
+const ProductsPage = async (props: ProductsPageProps) => {
+  const params = await props.params;
   const currentPage = parseInt(params.pageNumber, 10);
   const limit = 30;
 

@@ -5,13 +5,14 @@ import axios from "axios";
 import { notFound } from "next/navigation";
 
 interface SubcategoryPageProps {
-  params: { category: string; subcategory: string };
+  params: Promise<{ category: string; subcategory: string }>;
 }
 
 // Generate metadata for SEO
-export const generateMetadata = async ({
-  params,
-}: SubcategoryPageProps): Promise<Metadata> => {
+export const generateMetadata = async (
+  props: SubcategoryPageProps
+): Promise<Metadata> => {
+  const params = await props.params;
   const subCategoryName = params.subcategory;
 
   try {
@@ -30,7 +31,8 @@ export const generateMetadata = async ({
     const { seoDetails } = res.data;
 
     return {
-      title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${subCategoryName} | فرابک`,
+      title:
+        seoDetails.SEO_Title || `محصولات دسته‌بندی ${subCategoryName} | فرابک`,
       description:
         seoDetails.SEO_Description || `محصولات دسته‌بندی ${subCategoryName}`,
     };
@@ -42,7 +44,8 @@ export const generateMetadata = async ({
   }
 };
 
-const SubcategoryPage = async ({ params }: SubcategoryPageProps) => {
+const SubcategoryPage = async (props: SubcategoryPageProps) => {
+  const params = await props.params;
   const { category, subcategory } = params;
   const currentPage = parseInt("1", 10);
   const limit = 30;

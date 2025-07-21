@@ -85,7 +85,7 @@ type OverviewDetail = {
 export async function POST(req: Request) {
   try {
     // Verify admin token
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {

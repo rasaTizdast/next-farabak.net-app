@@ -38,13 +38,12 @@ interface ProductData {
 }
 
 // Metadata generation
-export async function generateMetadata({
-  params,
-  searchParams,
-}: {
-  params: { category: string; product: string };
-  searchParams: { key: string };
+export async function generateMetadata(props: {
+  params: Promise<{ category: string; product: string }>;
+  searchParams: Promise<{ key: string }>;
 }): Promise<Metadata> {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const product = await getProduct(params.product);
 
   // Check if the product data exists
@@ -115,13 +114,12 @@ async function getProduct(slug: string): Promise<ProductData | null> {
   }
 }
 
-export default async function ProductPage({
-  params,
-  searchParams,
-}: {
-  params: { category: string; product: string };
-  searchParams: { key: string };
+export default async function ProductPage(props: {
+  params: Promise<{ category: string; product: string }>;
+  searchParams: Promise<{ key: string }>;
 }) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const productData = await getProduct(params.product);
 
   // Check if the product data exists

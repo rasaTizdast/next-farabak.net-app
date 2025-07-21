@@ -2,10 +2,8 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: number } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ id: number }> }) {
+  const params = await props.params;
   const id = Number(params.id); // Convert to number
 
   try {

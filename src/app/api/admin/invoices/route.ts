@@ -426,7 +426,7 @@ export async function POST(request: Request) {
  */
 export async function PATCH(req: Request): Promise<NextResponse> {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
@@ -548,7 +548,7 @@ export async function PATCH(req: Request): Promise<NextResponse> {
  */
 export async function DELETE(req: Request): Promise<NextResponse> {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {

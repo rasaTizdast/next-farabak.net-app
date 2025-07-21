@@ -94,7 +94,7 @@ async function generateShortGuid(): Promise<string> {
  */
 export async function GET(): Promise<NextResponse> {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
@@ -292,7 +292,7 @@ export async function POST(request: Request) {
       Products: Product[];
     } = await request.json();
 
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
@@ -409,7 +409,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const { FactorGuid } = await request.json();
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {

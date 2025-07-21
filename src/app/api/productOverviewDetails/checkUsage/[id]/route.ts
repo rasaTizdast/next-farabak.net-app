@@ -5,16 +5,14 @@ const prisma = new PrismaClient();
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
     const detailId = parseInt(params.id);
 
     if (isNaN(detailId)) {
-      return NextResponse.json(
-        { error: "Invalid Detail ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid Detail ID" }, { status: 400 });
     }
 
     // Check if the overview detail is being used by any products
@@ -37,4 +35,4 @@ export async function GET(
   } finally {
     await prisma.$disconnect();
   }
-} 
+}

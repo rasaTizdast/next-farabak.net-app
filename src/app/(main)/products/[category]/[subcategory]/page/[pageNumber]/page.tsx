@@ -5,13 +5,18 @@ import axios from "axios";
 import { notFound } from "next/navigation";
 
 interface SubcategoryPageProps {
-  params: { category: string; subcategory: string; pageNumber: string };
+  params: Promise<{
+    category: string;
+    subcategory: string;
+    pageNumber: string;
+  }>;
 }
 
 // Generate metadata dynamically for the subcategory
-export const generateMetadata = async ({
-  params,
-}: SubcategoryPageProps): Promise<Metadata> => {
+export const generateMetadata = async (
+  props: SubcategoryPageProps
+): Promise<Metadata> => {
+  const params = await props.params;
   const { subcategory } = params;
 
   try {
@@ -48,7 +53,8 @@ export const generateMetadata = async ({
   }
 };
 
-const SubcategoryPage = async ({ params }: SubcategoryPageProps) => {
+const SubcategoryPage = async (props: SubcategoryPageProps) => {
+  const params = await props.params;
   const { category, subcategory } = params;
   const currentPage = parseInt(params.pageNumber || "1", 10);
   const limit = 30;

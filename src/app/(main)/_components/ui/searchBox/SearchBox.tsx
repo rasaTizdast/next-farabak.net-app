@@ -24,7 +24,10 @@ const normalizePersianText = (text: string) => {
 };
 
 // Format price function that uses a pre-fetched exchange rate
-const formatPriceWithRate = (price: number, exchangeRate: number | null): string => {
+const formatPriceWithRate = (
+  price: number,
+  exchangeRate: number | null
+): string => {
   if (!price) return "بدون قیمت";
   if (!exchangeRate || isNaN(exchangeRate) || exchangeRate <= 0) {
     return "برای دریافت قیمت تماس بگیرید";
@@ -97,7 +100,7 @@ const SearchInput = ({
   searchValue: string;
   onSearchClick: () => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
 }) => (
   <div className={styles.search_input}>
     <input
@@ -160,7 +163,10 @@ const SearchResults = ({
                     {formatPriceWithRate(+product.Price, exchangeRate)}
                   </span>
                   <span className="font-semibold">
-                    {formatPriceWithRate(+product.Price - +product.Discount, exchangeRate)}
+                    {formatPriceWithRate(
+                      +product.Price - +product.Discount,
+                      exchangeRate
+                    )}
                   </span>
                 </div>
               ) : (

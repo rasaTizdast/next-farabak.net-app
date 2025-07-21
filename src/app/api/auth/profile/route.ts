@@ -80,7 +80,7 @@ async function verifyToken(token: string) {
  */
 export async function GET(): Promise<NextResponse> {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
@@ -124,7 +124,7 @@ export async function GET(): Promise<NextResponse> {
 
 export async function PATCH(request: Request): Promise<NextResponse> {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {

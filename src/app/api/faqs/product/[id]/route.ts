@@ -26,10 +26,8 @@ const prisma = new PrismaClient();
  *       500:
  *         description: Server error
  */
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const productId = parseInt(params.id);
     
@@ -100,10 +98,8 @@ export async function GET(
  *       500:
  *         description: Server error
  */
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const productId = parseInt(params.id);
     

@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 // Helper function to verify the JWT token
 async function verifyToken() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
@@ -26,10 +26,8 @@ async function verifyToken() {
   }
 }
 
-export async function GET(
-  request: Request,
-  { params }: { params: { productId: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ productId: string }> }) {
+  const params = await props.params;
   try {
     // Verify authentication
     const tokenPayload = await verifyToken();

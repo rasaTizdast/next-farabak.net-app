@@ -50,8 +50,8 @@ export async function verifyInvoiceData(
 /**
  * Store invoice data in a cookie
  */
-export function storeInvoiceCookie(token: string) {
-  const cookieStore = cookies();
+export async function storeInvoiceCookie(token: string) {
+  const cookieStore = await cookies();
 
   cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
@@ -64,16 +64,16 @@ export function storeInvoiceCookie(token: string) {
 /**
  * Get invoice data from cookie
  */
-export function getInvoiceCookie(): string | undefined {
-  const cookieStore = cookies();
+export async function getInvoiceCookie(): Promise<string | undefined> {
+  const cookieStore = await cookies();
   return cookieStore.get(COOKIE_NAME)?.value;
 }
 
 /**
  * Delete invoice cookie
  */
-export function deleteInvoiceCookie() {
-  const cookieStore = cookies();
+export async function deleteInvoiceCookie() {
+  const cookieStore = await cookies();
   cookieStore.delete(COOKIE_NAME);
 }
 

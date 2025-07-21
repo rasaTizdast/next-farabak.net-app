@@ -53,8 +53,9 @@ export const revalidate = 60;
 
 export async function GET(
   req: Request,
-  { params }: { params: { productId: string } }
+  props: { params: Promise<{ productId: string }> }
 ) {
+  const params = await props.params;
   const productId = parseInt(params.productId, 10);
 
   if (isNaN(productId)) {

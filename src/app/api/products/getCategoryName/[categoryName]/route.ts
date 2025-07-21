@@ -51,8 +51,9 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   req: Request,
-  { params }: { params: { categoryName: string } }
+  props: { params: Promise<{ categoryName: string }> }
 ) {
+  const params = await props.params;
   const categoryNameSlug = params.categoryName;
 
   try {
