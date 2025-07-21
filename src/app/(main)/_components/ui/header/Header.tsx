@@ -3,7 +3,7 @@ import Image from "next/image"; // Next.js Image
 
 import HamburgerMenu from "../hambugerMenu/HamburgerMenu";
 
-import farabakLogo from "/public/Farabak_Logo.webp"; // Adjusted logo import for Next.js
+// import farabakLogo from "/public/Farabak_Logo.webp"; // Adjusted logo import for Next.js
 
 import NavBar from "../navbar/Navbar";
 import UserStatusIcon from "./UserStatusIcon";
@@ -21,8 +21,10 @@ const Header = () => {
             loading="eager"
             priority
             className={styles.header_logo}
-            src={farabakLogo}
+            src="/Farabak_Logo.webp"
             alt="Farabak logo"
+            width={150}
+            height={40}
           />
         </Link>
         <NavBar />
