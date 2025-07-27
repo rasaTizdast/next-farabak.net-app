@@ -96,8 +96,8 @@ model Client {
 
 model FaqDetails {
   FaqDetailsid Int       @id(map: "PK__FaqDetai__35A141347E7D7444") @default(autoincrement())
-  Q            String?   @db.VarChar(500)
-  A            String?   @db.VarChar(1000)
+  Q            String?   @db.VarChar(1000)
+  A            String?   @db.VarChar(3000)
   Available    Boolean?
   InsertDate   DateTime? @default(now()) @db.Timestamp(6)
   ModifyDate   DateTime? @default(now()) @db.Timestamp(6)

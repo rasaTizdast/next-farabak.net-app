@@ -14,9 +14,6 @@ import TextInput from "@/app/auth/_components/TextInput";
 import { signUpSchema } from "@/helpers/validationSchema"; // Import schema from helper
 import { useUser } from "@/context/UserContext";
 
-import signUpImage from "/public/signUp_image.svg"; // Adjust asset paths
-import farabakLogo from "/public/Farabak_Logo.webp"; // Logo path
-
 import styles from "../FormStyles.module.css"; // Adjust CSS import
 
 // Define the types for form fields
@@ -130,7 +127,7 @@ const SignUp = () => {
               <Image
                 width={2066}
                 height={182}
-                src={farabakLogo.src}
+                src="/Farabak_Logo.webp"
                 className={styles.logo}
                 alt="farabak logo"
               />
@@ -269,7 +266,7 @@ const SignUp = () => {
         </form>
         <div className={styles.view}>
           <Image
-            src={signUpImage.src}
+            src="/signUp_image.svg"
             alt="farabak-signUp-Image"
             width={552}
             height={412}

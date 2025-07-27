@@ -20,9 +20,25 @@ export async function GET() {
 
     return NextResponse.json({ faqs }, { status: 200 });
   } catch (error) {
+    // More detailed error logging
     console.error("Error fetching FAQs:", error);
+
+    // Determine if it's a Prisma error
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    const errorName =
+      error instanceof Error ? error.name : "Unknown error type";
+
+    console.error(
+      `FAQ fetching failed. Error type: ${errorName}, Message: ${errorMessage}`
+    );
+
     return NextResponse.json(
-      { error: "Failed to fetch FAQs" },
+      {
+        error: "خطا در دریافت سوالات متداول. لطفا مجددا تلاش کنید.",
+        details:
+          process.env.NODE_ENV !== "production" ? errorMessage : undefined,
+      },
       { status: 500 }
     );
   }
@@ -36,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     if (!Q || !A) {
       return NextResponse.json(
-        { error: "Question and answer are required" },
+        { error: "وارد کردن سوال و پاسخ الزامی است." },
         { status: 400 }
       );
     }
@@ -53,10 +69,26 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ faq: newFaq }, { status: 201 });
   } catch (error) {
+    // More detailed error logging
     console.error("Error creating FAQ:", error);
+
+    // Determine if it's a Prisma error
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    const errorName =
+      error instanceof Error ? error.name : "Unknown error type";
+
+    console.error(
+      `FAQ creation failed. Error type: ${errorName}, Message: ${errorMessage}`
+    );
+
     return NextResponse.json(
-      { error: "Failed to create FAQ" },
+      {
+        error: "خطا در ایجاد سوال متداول جدید. لطفا مجددا تلاش کنید.",
+        details:
+          process.env.NODE_ENV !== "production" ? errorMessage : undefined,
+      },
       { status: 500 }
     );
   }
-} 
+}

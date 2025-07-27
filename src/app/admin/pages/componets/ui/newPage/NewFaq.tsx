@@ -32,7 +32,7 @@ const NewFaq: React.FC<NewFaqProps> = ({ onClose }) => {
         body: JSON.stringify({
           Q: values.Q,
           A: values.A,
-          Available: values.Available,
+          Available: true,
         }),
       });
 

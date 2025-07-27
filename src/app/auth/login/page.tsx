@@ -16,13 +16,11 @@ import styles from "../FormStyles.module.css";
 
 import { useUser } from "@/context/UserContext";
 
-import signInImage from "/public/signIn_image.svg";
-import farabakLogo from "/public/Farabak_Logo.webp";
-
 const SignIn = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
+  const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] =
+    useState(false);
   const router = useRouter();
 
   const { updateUserContext } = useUser();
@@ -80,7 +78,9 @@ const SignIn = () => {
           <div className={styles.group}>
             <Link href="/">
               <Image
-                src={farabakLogo}
+                width={2066}
+                height={182}
+                src="/Farabak_Logo.webp"
                 className={styles.logo}
                 alt="farabak logo"
               />
@@ -111,8 +111,8 @@ const SignIn = () => {
               type="password"
               autoComplete="current-password"
             />
-            <button 
-              type="button" 
+            <button
+              type="button"
               className={styles.forgot}
               onClick={() => setIsForgotPasswordModalOpen(true)}
             >
@@ -143,7 +143,7 @@ const SignIn = () => {
 
         <div className={styles.view}>
           <Image
-            src={signInImage}
+            src="/signIn_image.svg"
             width={552}
             height={412}
             quality={100}
@@ -156,10 +156,10 @@ const SignIn = () => {
           </h3>
         </div>
       </div>
-      
-      <ForgotPasswordModal 
-        isOpen={isForgotPasswordModalOpen} 
-        onClose={() => setIsForgotPasswordModalOpen(false)} 
+
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordModalOpen}
+        onClose={() => setIsForgotPasswordModalOpen(false)}
       />
     </FormProvider>
   );
