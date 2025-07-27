@@ -53,6 +53,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   >(null);
   const [specs, setSpecs] = useState<Specs | null>(null);
   const [faqs, setFaqs] = useState<FAQItem[]>([]);
+  const [faqErrors, setFaqErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     axios
@@ -65,6 +66,17 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
       );
     setFormState(product);
   }, []);
+  
+  // Validate FAQs whenever they change
+  useEffect(() => {
+    // Only validate if we have FAQs
+    if (faqs.length > 0) {
+      validateFaqs();
+    } else {
+      // Clear error state if there are no FAQs
+      setFaqErrors({});
+    }
+  }, [faqs]);
 
   // Function to handle uploading images to S3
   const ImageUploader = async (
@@ -224,6 +236,33 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     );
   };
 
+  // Helper to check if there are any FAQ validation errors
+  const hasFaqErrors = () => {
+    return Object.keys(faqErrors).length > 0;
+  };
+
+  // Method to check if a FAQ has errors (content length validation)
+  const validateFaqs = () => {
+    const errors: { [key: string]: string } = {};
+    
+    faqs.forEach((faq, index) => {
+      if (!faq.question.trim()) {
+        errors[`question-${index}`] = "سوال نمی‌تواند خالی باشد.";
+      } else if (faq.question.length > 1000) {
+        errors[`question-${index}`] = "سوال نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
+      }
+
+      if (!faq.answer.trim()) {
+        errors[`answer-${index}`] = "پاسخ نمی‌تواند خالی باشد.";
+      } else if (faq.answer.length > 3000) {
+        errors[`answer-${index}`] = "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
+      }
+    });
+
+    setFaqErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formState) return;
@@ -273,11 +312,8 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     }
 
     // Validate FAQs
-    const hasInvalidFaqs = faqs.some(
-      (faq) => !faq.question.trim() || !faq.answer.trim()
-    );
-    if (hasInvalidFaqs) {
-      toast.error("لطفاً تمام سوالات و پاسخ‌ها را تکمیل کنید.");
+    if (!validateFaqs()) {
+      toast.error("لطفاً تمام سوالات و پاسخ‌ها را تکمیل کنید و طول مجاز را رعایت نمایید.");
       return;
     }
 
@@ -689,6 +725,20 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
 
             <EditModalFAQ productId={formState.ProductId} setFaqs={setFaqs} />
 
+            {/* Display FAQ errors if any */}
+            {Object.keys(faqErrors).length > 0 && (
+              <div className="col-span-1 sm:col-span-2 bg-red-500 p-3 rounded-md text-center mt-2 mb-4">
+                <p className="font-bold">خطاهای سوالات متداول:</p>
+                <ul className="list-disc list-inside">
+                  {Object.entries(faqErrors).map(([key, error], index) => (
+                    <li key={index}>
+                      {key.includes('question') ? 'سوال' : 'پاسخ'} {parseInt(key.split('-')[1]) + 1}: {error}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             <div className="col-span-1 sm:col-span-2 flex justify-end gap-6">
               <button
                 type="button"
@@ -699,7 +749,16 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               </button>
               <button
                 type="submit"
-                className="bg-blue-500 hover:bg-blue-600 transition-all text-white px-4 py-2 rounded"
+                className={`${
+                  hasFaqErrors() ? "bg-gray-500 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600"
+                } transition-all text-white px-4 py-2 rounded`}
+                disabled={hasFaqErrors()}
+                onClick={(e) => {
+                  if (hasFaqErrors()) {
+                    e.preventDefault();
+                    toast.error("لطفاً خطاهای سوالات متداول را برطرف کنید.");
+                  }
+                }}
               >
                 ذخیره
               </button>

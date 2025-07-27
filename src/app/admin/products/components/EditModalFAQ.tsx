@@ -16,6 +16,10 @@ type Props = {
 const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
   const [localFaqs, setLocalFaqs] = useState<FAQItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [localErrors, setLocalErrors] = useState<{ [key: string]: string }>({});
+  const [touchedFields, setTouchedFields] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   // Fetch existing FAQs when the component mounts
   useEffect(() => {
@@ -30,6 +34,14 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
         }));
         setLocalFaqs(mappedFaqs);
         setFaqs(mappedFaqs); // Update parent's state
+        
+        // Initialize validation for existing FAQs
+        const initialErrors: { [key: string]: string } = {};
+        mappedFaqs.forEach((faq, index) => {
+          initialErrors[`question-${index}`] = validateField("question", faq.question);
+          initialErrors[`answer-${index}`] = validateField("answer", faq.answer);
+        });
+        setLocalErrors(initialErrors);
       } catch (error) {
         console.error("Error fetching FAQs:", error);
         toast.error("در بارگذاری سوالات متداول مشکلی پیش آمد");
@@ -43,18 +55,65 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
     }
   }, [productId, setFaqs]);
 
+  const validateField = (field: string, value: string) => {
+    let error = "";
+    if (field === "question") {
+      if (!value.trim()) error = "سوال نمی‌تواند خالی باشد.";
+      else if (value.length > 1000)
+        error = "سوال نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
+    } else if (field === "answer") {
+      if (!value.trim()) error = "پاسخ نمی‌تواند خالی باشد.";
+      else if (value.length > 3000)
+        error = "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
+    }
+    return error;
+  };
+
+  // Helper to determine if we should show an error for a field
+  const shouldShowError = (field: string, index: number): boolean => {
+    const fieldKey = `${field}-${index}`;
+    return touchedFields[fieldKey] && !!localErrors[fieldKey];
+  };
+
   const handleFAQChange = (index: number, field: string, value: string) => {
+    // Mark field as touched
+    setTouchedFields((prev) => ({
+      ...prev,
+      [`${field}-${index}`]: true,
+    }));
+
+    // Validate field
+    const error = validateField(field, value);
+    setLocalErrors((prev) => ({ ...prev, [`${field}-${index}`]: error }));
+
     const updatedFAQs = [...localFaqs];
     updatedFAQs[index] = { ...updatedFAQs[index], [field]: value };
     setLocalFaqs(updatedFAQs);
-    setFaqs(updatedFAQs); // Update parent's state
+    
+    // Always update parent to ensure validation is triggered
+    setFaqs(updatedFAQs);
   };
 
   const handleAddFAQ = () => {
     if (localFaqs.length < 12) {
+      const newIndex = localFaqs.length;
       const updatedFAQs = [...localFaqs, { question: "", answer: "" }];
       setLocalFaqs(updatedFAQs);
       setFaqs(updatedFAQs); // Update parent's state
+      
+      // Add validation errors for the new empty fields
+      setLocalErrors((prev) => ({
+        ...prev,
+        [`question-${newIndex}`]: "سوال نمی‌تواند خالی باشد.",
+        [`answer-${newIndex}`]: "پاسخ نمی‌تواند خالی باشد.",
+      }));
+
+      // Mark new fields as untouched initially
+      setTouchedFields((prev) => ({
+        ...prev,
+        [`question-${newIndex}`]: false,
+        [`answer-${newIndex}`]: false,
+      }));
     }
   };
 
@@ -62,6 +121,45 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
     const updatedFAQs = localFaqs.filter((_, i) => i !== index);
     setLocalFaqs(updatedFAQs);
     setFaqs(updatedFAQs); // Update parent's state
+    
+    // Remove validation errors for the deleted fields
+    const updatedErrors = { ...localErrors };
+    delete updatedErrors[`question-${index}`];
+    delete updatedErrors[`answer-${index}`];
+    setLocalErrors(updatedErrors);
+
+    // Update error keys for remaining items after the deleted index
+    const newErrors = { ...updatedErrors };
+    for (let i = index + 1; i < localFaqs.length; i++) {
+      if (updatedErrors[`question-${i}`]) {
+        newErrors[`question-${i - 1}`] = updatedErrors[`question-${i}`];
+        delete newErrors[`question-${i}`];
+      }
+      if (updatedErrors[`answer-${i}`]) {
+        newErrors[`answer-${i - 1}`] = updatedErrors[`answer-${i}`];
+        delete newErrors[`answer-${i}`];
+      }
+    }
+    setLocalErrors(newErrors);
+
+    // Also update touched fields
+    const updatedTouched = { ...touchedFields };
+    delete updatedTouched[`question-${index}`];
+    delete updatedTouched[`answer-${index}`];
+
+    // Reindex touched fields
+    const newTouched = { ...updatedTouched };
+    for (let i = index + 1; i < localFaqs.length; i++) {
+      if (updatedTouched[`question-${i}`] !== undefined) {
+        newTouched[`question-${i - 1}`] = updatedTouched[`question-${i}`];
+        delete newTouched[`question-${i}`];
+      }
+      if (updatedTouched[`answer-${i}`] !== undefined) {
+        newTouched[`answer-${i - 1}`] = updatedTouched[`answer-${i}`];
+        delete newTouched[`answer-${i}`];
+      }
+    }
+    setTouchedFields(newTouched);
   };
 
   return (
@@ -98,15 +196,26 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
                   className="bg-gray-800 p-4 rounded-md shadow-md"
                 >
                   <div className="flex items-center gap-4 mb-3">
-                    <input
-                      type="text"
-                      value={faq.question}
-                      onChange={(e) =>
-                        handleFAQChange(index, "question", e.target.value)
-                      }
-                      className="flex-1 p-2 rounded-md bg-gray-700 border border-gray-600 text-white"
-                      placeholder={`سوال ${index + 1}`}
-                    />
+                    <div className="flex-1 flex flex-col">
+                      <input
+                        type="text"
+                        value={faq.question}
+                        onChange={(e) =>
+                          handleFAQChange(index, "question", e.target.value)
+                        }
+                        className={`w-full p-2 rounded-md bg-gray-700 border ${
+                          shouldShowError("question", index)
+                            ? "border-red-500"
+                            : "border-gray-600"
+                        } text-white`}
+                        placeholder={`سوال ${index + 1}`}
+                      />
+                      {shouldShowError("question", index) && (
+                        <p className="text-red-500 mt-1 text-sm">
+                          {localErrors[`question-${index}`]}
+                        </p>
+                      )}
+                    </div>
                     <button
                       type="button"
                       onClick={() => handleRemoveFAQ(index)}
@@ -115,14 +224,25 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
                       <FaTrashAlt size={18} />
                     </button>
                   </div>
-                  <textarea
-                    value={faq.answer}
-                    onChange={(e) =>
-                      handleFAQChange(index, "answer", e.target.value)
-                    }
-                    className="w-full p-2 rounded-md bg-gray-700 border border-gray-600 text-white min-h-[100px]"
-                    placeholder={`پاسخ ${index + 1}`}
-                  />
+                  <div className="flex flex-col">
+                    <textarea
+                      value={faq.answer}
+                      onChange={(e) =>
+                        handleFAQChange(index, "answer", e.target.value)
+                      }
+                      className={`w-full p-2 rounded-md bg-gray-700 border ${
+                        shouldShowError("answer", index)
+                          ? "border-red-500"
+                          : "border-gray-600"
+                      } text-white min-h-[100px]`}
+                      placeholder={`پاسخ ${index + 1}`}
+                    />
+                    {shouldShowError("answer", index) && (
+                      <p className="text-red-500 mt-1 text-sm">
+                        {localErrors[`answer-${index}`]}
+                      </p>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
