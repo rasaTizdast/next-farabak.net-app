@@ -3,6 +3,7 @@ import Footer from "./_components/ui/footer/Footer";
 import BackToTop from "../_components/ui/BackToTop";
 import Script from "next/script";
 import { Metadata } from "next";
+import WhatsAppContactButton from "./_components/ui/WhatsAppContactButton";
 
 export const metadata: Metadata = {
   other: {
@@ -27,6 +28,10 @@ const Layout = ({
       <Footer />
       {/* Include the client-side BackToTop component */}
       <BackToTop />
+      <WhatsAppContactButton
+        phoneNumber="989905677477"
+        initialMessage="سلام وقت بخیر، من سوالی درباره ..."
+      />
     </>
   );
 };
