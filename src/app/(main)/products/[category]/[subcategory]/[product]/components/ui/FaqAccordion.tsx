@@ -49,7 +49,7 @@ const FaqAccordion: React.FC<FaqAccordionProps> = ({ faqs }) => {
           <div
             id={`faq-content-${faq.FAQsId}`}
             className={`overflow-hidden transition-all duration-300 ease-in-out ${
-              expandedId === faq.FAQsId ? "max-h-96 p-4" : "max-h-0"
+              expandedId === faq.FAQsId ? "p-4" : "max-h-0"
             }`}
             aria-hidden={expandedId !== faq.FAQsId}
           >
