@@ -29,7 +29,7 @@ const Layout = ({
       {/* Include the client-side BackToTop component */}
       <BackToTop />
       <WhatsAppContactButton
-        phoneNumber="989905677477"
+        phoneNumber={process.env.NEXT_PUBLIC_SUPPORT_NUMBER!}
         initialMessage="سلام وقت بخیر، من سوالی درباره ..."
       />
     </>
