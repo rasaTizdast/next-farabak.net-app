@@ -976,8 +976,7 @@ function MyBranchContent() {
             {checked ? (
               <Tag
                 color="success"
-                className="cursor-pointer flex items-center justify-center px-4 py-1.5 min-w-[120px]"
-                onClick={() => updateInvoiceStatus(invoice, false)}
+                className="flex items-center justify-center px-4 py-1.5 min-w-[120px]"
                 style={{ fontFamily: "inherit", fontWeight: 500 }}
               >
                 <span>بررسی شده</span>
@@ -985,7 +984,7 @@ function MyBranchContent() {
             ) : (
               <Tag
                 color="warning"
-                className="cursor-pointer flex items-center justify-center px-4 py-1.5 min-w-[120px]"
+                className="flex items-center justify-center px-4 py-1.5 min-w-[120px]"
                 onClick={() => updateInvoiceStatus(invoice, true)}
                 style={{
                   fontFamily: "inherit",
