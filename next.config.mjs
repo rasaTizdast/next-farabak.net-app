@@ -8,6 +8,9 @@ const allowedHostnames = [
 ].filter(Boolean);
 
 const nextConfig = {
+  experimental: {
+    reactCompiler: true,
+  },
   logging: {
     fetches: {
       fullUrl: true,
