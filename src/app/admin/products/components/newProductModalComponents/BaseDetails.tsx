@@ -32,15 +32,15 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
 
   const validateName = (value: string) => {
     if (!value.trim()) return "نام محصول نمی‌تواند خالی باشد.";
-    if (value.length > 100)
-      return "نام محصول نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.";
+    if (value.length > 1000)
+      return "نام محصول نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
     return "";
   };
 
   const validateSlug = (value: string) => {
     if (!value.trim()) return "شناسه محصول نمی‌تواند خالی باشد.";
-    if (value.length > 200)
-      return "شناسه محصول نمی‌تواند بیشتر از ۲۰۰ کاراکتر باشد.";
+    if (value.length > 1200)
+      return "شناسه محصول نمی‌تواند بیشتر از ۱۲۰۰ کاراکتر باشد.";
     if (!/^[a-zA-Z0-9_-]+$/.test(value))
       return "شناسه محصول فقط می‌تواند شامل حروف انگلیسی، اعداد، خط فاصله و زیرخط باشد.";
     return "";
@@ -55,10 +55,11 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
 
   const validateSeoTitle = (value: string) => {
     if (!value.trim()) return "تیتر سئو نمی‌تواند خالی باشد.";
-    if (value.length > 50)
-      return "تیتر سئو نمی‌تواند بیشتر از ۵۰ کاراکتر باشد.";
+    if (value.length > 60)
+      return "تیتر سئو نمی‌تواند بیشتر از ۶۰ کاراکتر باشد.";
     return "";
   };
+
   const validateSeoDesc = (value: string) => {
     if (!value.trim()) return "توضیحات سئو نمی‌تواند خالی باشد.";
     if (value.length > 4000)
@@ -69,14 +70,23 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Allow decimal numbers with up to 2 decimal places
     const value = e.target.value;
-    
+
     // If there are more than 2 decimal places, truncate
-    const parts = value.toString().split('.');
+    const parts = value.toString().split(".");
     if (parts.length > 1 && parts[1].length > 2) {
       // Don't process this change, as it would add more than 2 decimal places
       return;
     }
-    
+
+    // Check max length of 20 characters based on Prisma schema
+    if (value.length > 20) {
+      setLocalErrors((prev) => ({
+        ...prev,
+        price: "قیمت نمیتواند بیشتر از ۲۰ کارکتر باشد.",
+      }));
+      return;
+    }
+
     const numericValue = parseFloat(value);
 
     if (!isNaN(numericValue)) {
@@ -100,30 +110,52 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
   const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Allow decimal numbers with up to 2 decimal places
     const value = e.target.value;
-    
+
     // If there are more than 2 decimal places, truncate
-    const parts = value.toString().split('.');
+    const parts = value.toString().split(".");
     if (parts.length > 1 && parts[1].length > 2) {
       // Don't process this change, as it would add more than 2 decimal places
       return;
     }
-    
+
+    // Check max length of 20 characters based on Prisma schema
+    if (value.length > 20) {
+      setLocalErrors((prev) => ({
+        ...prev,
+        discount: "تخفیف نمیتواند بیشتر از ۲۰ کارکتر باشد.",
+      }));
+      return;
+    }
+
     const numericValue = parseFloat(value);
 
     if (!isNaN(numericValue)) {
-      dispatch({
-        type: "SET_FIELD",
-        field: "discount",
-        value: numericValue,
-      });
-    }
-
-    if (!value || isNaN(numericValue)) {
+      // Additional validation for discount vs price
+      if (numericValue > state.price) {
+        setLocalErrors((prev) => ({
+          ...prev,
+          discount: "تخفیف نمیتواند بیشتر از قیمت باشد.",
+        }));
+      } else {
+        dispatch({
+          type: "SET_FIELD",
+          field: "discount",
+          value: numericValue,
+        });
+        setLocalErrors((prev) => ({ ...prev, discount: "" }));
+      }
+    } else if (value && isNaN(numericValue)) {
       setLocalErrors((prev) => ({
         ...prev,
         discount: "تخفیف باید یک عدد معتبر باشد.",
       }));
     } else {
+      // Empty value is okay for discount
+      dispatch({
+        type: "SET_FIELD",
+        field: "discount",
+        value: 0,
+      });
       setLocalErrors((prev) => ({ ...prev, discount: "" }));
     }
   };
@@ -142,8 +174,8 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
 
   const validateKeywords = (value: string) => {
     if (!value.trim()) return "کلمات کلیدی نمی‌تواند خالی باشد.";
-    if (value.length > 500)
-      return "کلمات کلیدی نمی‌تواند بیشتر از ۵۰۰ کاراکتر باشد.";
+    if (value.length > 2000)
+      return "کلمات کلیدی نمی‌تواند بیشتر از ۲۰۰۰ کاراکتر باشد.";
     return "";
   };
 
@@ -163,8 +195,11 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
             dispatch({ type: "SET_FIELD", field: "name", value });
             handleValidation("name", value);
           }}
-          className="w-full p-2 rounded bg-gray-700 text-white"
+          className={`w-full p-2 rounded bg-gray-700 text-white ${
+            localErrors.name ? "border border-red-500" : ""
+          }`}
           placeholder="نام محصول را وارد کنید"
+          maxLength={1000}
         />
         {localErrors.name && (
           <p className="text-red-500 mt-1">{localErrors.name}</p>
@@ -181,12 +216,17 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
           type="text"
           value={state.slug}
           onChange={(e) => {
-            const value = e.target.value.replace(/\s+/g, "-");
+            const value = e.target.value
+              .replace(/\s+/g, "-")
+              .replace(/[^a-zA-Z0-9_-]/g, "");
             dispatch({ type: "SET_FIELD", field: "slug", value });
             handleValidation("slug", value);
           }}
-          className="w-full p-2 rounded bg-gray-700 text-white"
+          className={`w-full p-2 rounded bg-gray-700 text-white ${
+            localErrors.slug ? "border border-red-500" : ""
+          }`}
           placeholder="شناسه محصول را وارد کنید"
+          maxLength={1200}
         />
         {localErrors.slug && (
           <p className="text-red-500 mt-1">{localErrors.slug}</p>
@@ -315,8 +355,12 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
           step="0.01"
           value={state.price}
           onChange={handlePriceChange}
-          className="w-full p-2 rounded bg-gray-700 text-white"
+          className={`w-full p-2 rounded bg-gray-700 text-white ${
+            localErrors.price ? "border border-red-500" : ""
+          }`}
           placeholder="قیمت محصول را به دلار وارد کنید."
+          min="0"
+          max="99999999"
         />
         {localErrors.price && (
           <p className="text-red-500 mt-1">{localErrors.price}</p>
@@ -334,8 +378,12 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
           step="0.01"
           value={state.discount}
           onChange={handleDiscountChange}
-          className="w-full p-2 rounded bg-gray-700 text-white"
+          className={`w-full p-2 rounded bg-gray-700 text-white ${
+            localErrors.discount ? "border border-red-500" : ""
+          }`}
           placeholder="تخفیف محصول را به دلار وارد کنید."
+          min="0"
+          max={state.price}
         />
         {localErrors.discount && (
           <p className="text-red-500 mt-1">{localErrors.discount}</p>
@@ -356,8 +404,11 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
             dispatch({ type: "SET_FIELD", field: "smallDesc", value });
             handleValidation("smallDesc", value);
           }}
-          className="w-full p-2 rounded bg-gray-700 text-white"
+          className={`w-full p-2 rounded bg-gray-700 text-white ${
+            localErrors.smallDesc ? "border border-red-500" : ""
+          }`}
           placeholder="توضیحات کوتاه برای محصول را وارد کنید"
+          maxLength={1000}
         />
         {localErrors.smallDesc && (
           <p className="text-red-500 mt-1">{localErrors.smallDesc}</p>
@@ -366,7 +417,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
 
       {/* SEO Title */}
       <div className="mb-4">
-        <label htmlFor="smallDesc" className="block mb-2">
+        <label htmlFor="SEO_Title" className="block mb-2">
           تیتر سئو
         </label>
         <input
@@ -378,34 +429,46 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
             dispatch({ type: "SET_FIELD", field: "SEO_Title", value });
             handleValidation("SEO_Title", value);
           }}
-          className="w-full p-2 rounded bg-gray-700 text-white"
-          placeholder="توضیحات کوتاه برای محصول را وارد کنید"
+          className={`w-full p-2 rounded bg-gray-700 text-white ${
+            localErrors.SEO_Title ? "border border-red-500" : ""
+          }`}
+          placeholder="تیتر سئو محصول را وارد کنید"
+          maxLength={60}
         />
-        {localErrors.smallDesc && (
-          <p className="text-red-500 mt-1">{localErrors.smallDesc}</p>
+        {localErrors.SEO_Title && (
+          <p className="text-red-500 mt-1">{localErrors.SEO_Title}</p>
         )}
+        <div className="mt-1 text-gray-400 text-sm">
+          {state.SEO_Title.length}/60
+        </div>
       </div>
 
       {/* SEO Description */}
       <div className="mb-4">
-        <label htmlFor="smallDesc" className="block mb-2">
+        <label htmlFor="SEO_Description" className="block mb-2">
           توضیحات سئو
         </label>
-        <input
+        <textarea
           id="SEO_Description"
-          type="text"
           value={state.SEO_Description}
           onChange={(e) => {
             const value = e.target.value;
             dispatch({ type: "SET_FIELD", field: "SEO_Description", value });
             handleValidation("SEO_Description", value);
           }}
-          className="w-full p-2 rounded bg-gray-700 text-white"
-          placeholder="توضیحات کوتاه برای محصول را وارد کنید"
+          className={`w-full p-2 rounded bg-gray-700 text-white ${
+            localErrors.SEO_Description ? "border border-red-500" : ""
+          }`}
+          placeholder="توضیحات سئو محصول را وارد کنید"
+          maxLength={4000}
+          rows={4}
         />
-        {localErrors.smallDesc && (
-          <p className="text-red-500 mt-1">{localErrors.smallDesc}</p>
+        {localErrors.SEO_Description && (
+          <p className="text-red-500 mt-1">{localErrors.SEO_Description}</p>
         )}
+        <div className="mt-1 text-gray-400 text-sm">
+          {state.SEO_Description.length}/4000
+        </div>
       </div>
 
       {/* Keywords */}
@@ -426,6 +489,16 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
                 ? `${state.keywords} ${newKeyword}`
                 : newKeyword;
 
+              // Check if adding this keyword would exceed the max length
+              if (updatedKeywords.length > 2000) {
+                setLocalErrors((prev) => ({
+                  ...prev,
+                  keywords:
+                    "کلمات کلیدی نمی‌توانند بیشتر از ۲۰۰۰ کاراکتر باشند.",
+                }));
+                return;
+              }
+
               dispatch({
                 type: "SET_FIELD",
                 field: "keywords",
@@ -436,8 +509,11 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
               input.value = ""; // Clear input field
             }
           }}
-          className="w-full p-2 rounded bg-gray-700 text-white"
+          className={`w-full p-2 rounded bg-gray-700 text-white ${
+            localErrors.keywords ? "border border-red-500" : ""
+          }`}
           placeholder="کلمات کلیدی را تایپ کنید و Enter را فشار دهید"
+          maxLength={100} // Limit individual keyword length
         />
 
         {/* Display Keywords Below the Input */}
@@ -467,6 +543,11 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
             ))}
         </div>
 
+        {/* Display keywords count */}
+        <div className="mt-1 text-gray-400 text-sm">
+          {state.keywords?.length || 0}/2000
+        </div>
+
         {/* Validation Error */}
         {localErrors.keywords && (
           <p className="text-red-500 mt-1">{localErrors.keywords}</p>
@@ -482,13 +563,25 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
           id="bannerImage"
           accept="image/*"
           type="file"
-          onChange={(e) =>
+          onChange={(e) => {
+            const file = e.target.files?.[0] || null;
+
             dispatch({
               type: "SET_FIELD",
               field: "bannerImage",
-              value: e.target.files?.[0] || null,
-            })
-          }
+              value: file,
+            });
+
+            // Clear errors if a file is selected
+            if (file) {
+              setLocalErrors((prev) => ({ ...prev, bannerImage: "" }));
+              setErrors((prev) => {
+                const updated = { ...prev };
+                delete updated.bannerImage;
+                return updated;
+              });
+            }
+          }}
           className="w-full p-2 rounded bg-gray-700 text-white"
         />
       </div>
@@ -501,13 +594,25 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
           id="transparentImage"
           type="file"
           accept="image/*"
-          onChange={(e) =>
+          onChange={(e) => {
+            const file = e.target.files?.[0] || null;
+
             dispatch({
               type: "SET_FIELD",
               field: "transparentImage",
-              value: e.target.files?.[0] || null,
-            })
-          }
+              value: file,
+            });
+
+            // Clear errors if a file is selected
+            if (file) {
+              setLocalErrors((prev) => ({ ...prev, transparentImage: "" }));
+              setErrors((prev) => {
+                const updated = { ...prev };
+                delete updated.transparentImage;
+                return updated;
+              });
+            }
+          }}
           className="w-full p-2 rounded bg-gray-700 text-white"
         />
       </div>

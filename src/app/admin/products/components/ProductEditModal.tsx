@@ -33,6 +33,84 @@ type FAQItem = {
   answer: string;
 };
 
+// Validation types and rules
+type ValidationRule = {
+  required: boolean;
+  maxLength?: number;
+  regex?: RegExp | null;
+  errorMsg: {
+    required: string;
+    maxLength?: string;
+    regex?: string;
+  };
+};
+
+const validationRules: Record<string, ValidationRule> = {
+  Name: {
+    required: true,
+    maxLength: 1000,
+    regex: null,
+    errorMsg: {
+      required: "نام الزامی است",
+      maxLength: "نام محصول نمیتواند بیشتر از ۱۰۰۰ کارکتر باشد.",
+    },
+  },
+  productSlug: {
+    required: true,
+    maxLength: 1200,
+    regex: /^[a-zA-Z0-9_-]+$/,
+    errorMsg: {
+      required: "شناسه محصول الزامی است",
+      maxLength: "شناسه محصول نمیتواند بیشتر از ۱۲۰۰ کارکتر باشد.",
+      regex:
+        "شناسه محصول فقط می‌تواند شامل حروف انگلیسی، اعداد، خط فاصله و زیرخط باشد.",
+    },
+  },
+  Description: {
+    required: true,
+    maxLength: 1000,
+    regex: null,
+    errorMsg: {
+      required: "توضیح کوتاه الزامی است",
+      maxLength: "توضیح کوتاه نمیتواند بیشتر از ۱۰۰۰ کارکتر باشد.",
+    },
+  },
+  SEO_Title: {
+    required: true,
+    maxLength: 60,
+    regex: null,
+    errorMsg: {
+      required: "تیتر سئو الزامی است",
+      maxLength: "تیتر سئو نباید بیشتر از ۶۰ کارکتر باشد.",
+    },
+  },
+  SEO_Description: {
+    required: true,
+    maxLength: 4000,
+    regex: null,
+    errorMsg: {
+      required: "توضیحات سئو الزامی است",
+      maxLength: "توضیحات سئو نباید بیشتر از ۴۰۰۰ کارکتر باشد.",
+    },
+  },
+  Price: {
+    required: true,
+    regex: /^\d+(\.\d{1,2})?$/,
+    errorMsg: {
+      required: "قیمت الزامی است",
+      regex: "قیمت باید یک عدد معتبر باشد (حداکثر ۲ رقم اعشار).",
+    },
+  },
+  Discount: {
+    required: false,
+    regex: /^\d+(\.\d{1,2})?$/,
+    errorMsg: {
+      required: "",
+      regex: "تخفیف باید یک عدد معتبر باشد (حداکثر ۲ رقم اعشار).",
+    },
+  },
+};
+
 const ProductEditModal: React.FC<ProductEditModalProps> = ({
   product,
   onClose,
@@ -66,7 +144,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
       );
     setFormState(product);
   }, []);
-  
+
   // Validate FAQs whenever they change
   useEffect(() => {
     // Only validate if we have FAQs
@@ -166,11 +244,17 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
       | { target: { name: string; value: string } }
   ) => {
     const { name, value } = e.target;
-    
-    // For price and discount fields, limit to 2 decimal places
+
+    // For price and discount fields, limit to 2 decimal places and validate
     if (name === "Price" || name === "Discount") {
+      // Check if the value is a valid number format
+      if (value && !validationRules[name].regex?.test(value)) {
+        toast.error(validationRules[name].errorMsg.regex);
+        return;
+      }
+
       // Check if the value has more than 2 decimal places
-      const parts = value.toString().split('.');
+      const parts = value.toString().split(".");
       if (parts.length > 1 && parts[1].length > 2) {
         // Truncate to 2 decimal places
         const truncated = parseFloat(parseFloat(value).toFixed(2));
@@ -180,12 +264,33 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
         return;
       }
     }
-    
+
+    // For productSlug, validate against regex and show error if invalid
+    if (name === "productSlug") {
+      const sanitizedValue = value.replace(/\s+/g, "-");
+      if (!validationRules.productSlug.regex?.test(sanitizedValue)) {
+        toast.error(validationRules.productSlug.errorMsg.regex);
+      }
+
+      setFormState((prevState) =>
+        prevState ? { ...prevState, [name]: sanitizedValue } : null
+      );
+      return;
+    }
+
+    // For fields with maxLength, show warning when approaching limit
+    const rule = validationRules[name];
+    if (rule?.maxLength && value.length > rule.maxLength * 0.9) {
+      toast.error(
+        `نزدیک به حد مجاز هستید (${value.length}/${rule.maxLength} کارکتر)`
+      );
+    }
+
     setFormState((prevState) =>
       prevState
         ? {
             ...prevState,
-            [name]: name === "productSlug" ? value.replace(/\s+/g, "-") : value,
+            [name]: value,
           }
         : null
     );
@@ -241,21 +346,84 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     return Object.keys(faqErrors).length > 0;
   };
 
+  const validateField = (fieldName: string, value: any): string | null => {
+    const rule = validationRules[fieldName];
+    if (!rule) return null;
+
+    // Skip validation for non-string/number values or arrays/objects
+    if (
+      typeof value === "object" ||
+      Array.isArray(value) ||
+      typeof value === "boolean"
+    ) {
+      return null;
+    }
+
+    if (rule.required && (!value || value.toString().trim() === "")) {
+      return rule.errorMsg.required;
+    }
+
+    if (value) {
+      const stringValue = value.toString();
+
+      if (rule.maxLength && stringValue.length > rule.maxLength) {
+        return rule.errorMsg.maxLength || null;
+      }
+
+      if (rule.regex && !rule.regex.test(stringValue)) {
+        return rule.errorMsg.regex || null;
+      }
+    }
+
+    return null;
+  };
+
+  const validateForm = (): string | null => {
+    if (!formState) return "فرم خالی است";
+
+    // Validate required fields first
+    for (const [fieldName, rule] of Object.entries(validationRules)) {
+      const value = formState[fieldName as keyof Product];
+      const error = validateField(fieldName, value);
+      if (error) return error;
+    }
+
+    // Additional business logic validations
+    if (+formState.Price < +formState.Discount) {
+      return "مقدار تخفیف نباید بیشتر از قیمت محصول باشد.";
+    }
+
+    if (formState.CategoryContentIds.length === 0) {
+      return "محصول باید حداقل یک زیر دسته‌بندی داشته باشد.";
+    }
+
+    const isValidSubcategories = formState.CategoryContentIds.every(
+      (subcategory) => subcategory.CategoryContentId !== 0
+    );
+    if (!isValidSubcategories) {
+      return "یک یا چند زیر دسته‌بندی معتبر انتخاب نشده است.";
+    }
+
+    return null;
+  };
+
   // Method to check if a FAQ has errors (content length validation)
   const validateFaqs = () => {
     const errors: { [key: string]: string } = {};
-    
+
     faqs.forEach((faq, index) => {
       if (!faq.question.trim()) {
         errors[`question-${index}`] = "سوال نمی‌تواند خالی باشد.";
       } else if (faq.question.length > 1000) {
-        errors[`question-${index}`] = "سوال نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
+        errors[`question-${index}`] =
+          "سوال نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
       }
 
       if (!faq.answer.trim()) {
         errors[`answer-${index}`] = "پاسخ نمی‌تواند خالی باشد.";
       } else if (faq.answer.length > 3000) {
-        errors[`answer-${index}`] = "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
+        errors[`answer-${index}`] =
+          "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
       }
     });
 
@@ -267,53 +435,18 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     e.preventDefault();
     if (!formState) return;
 
-    if (formState.CategoryContentIds.length === 0) {
-      toast.error("محصول باید حداقل یک زیر دسته‌بندی داشته باشد.");
-      return;
-    }
-
-    const isValidSubcategories = formState.CategoryContentIds.every(
-      (subcategory) => subcategory.CategoryContentId !== 0
-    );
-
-    if (+formState.Price < +formState.Discount) {
-      toast.error("مقدار تخفیف نباید بیشتر از قیمت محصول باشد.");
-      return;
-    }
-
-    if (!/^[a-zA-Z0-9_-]+$/.test(formState.productSlug)) {
-      toast.error("شناسه محصول باید انگلیسی و بدون فاصله باشد.");
-      return;
-    }
-
-    if (formState.Name.length > 1000) {
-      toast.error("نام محصول نباید بیشتر از ۱۰۰۰ کارکتر باشد.");
-      return;
-    }
-
-    if (formState.Description.length > 1000) {
-      toast.error("توضیح مصحول نباید بیشتر از ۱۰۰۰ کارکتر باشد.");
-      return;
-    }
-
-    if (formState.SEO_Title.length > 60) {
-      toast.error("تیتر سئو نباید بیشتر از ۶۰ کارکتر باشد.");
-      return;
-    }
-
-    if (formState.SEO_Description.length > 4000) {
-      toast.error("توضیحات سئو نباید بیشتر از ۴۰۰۰ کارکتر باشد.");
-      return;
-    }
-
-    if (!isValidSubcategories) {
-      toast.error("یک یا چند زیر دسته‌بندی معتبر انتخاب نشده است.");
+    // Validate form
+    const formError = validateForm();
+    if (formError) {
+      toast.error(formError);
       return;
     }
 
     // Validate FAQs
     if (!validateFaqs()) {
-      toast.error("لطفاً تمام سوالات و پاسخ‌ها را تکمیل کنید و طول مجاز را رعایت نمایید.");
+      toast.error(
+        "لطفاً تمام سوالات و پاسخ‌ها را تکمیل کنید و طول مجاز را رعایت نمایید."
+      );
       return;
     }
 
@@ -732,7 +865,8 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
                 <ul className="list-disc list-inside">
                   {Object.entries(faqErrors).map(([key, error], index) => (
                     <li key={index}>
-                      {key.includes('question') ? 'سوال' : 'پاسخ'} {parseInt(key.split('-')[1]) + 1}: {error}
+                      {key.includes("question") ? "سوال" : "پاسخ"}{" "}
+                      {parseInt(key.split("-")[1]) + 1}: {error}
                     </li>
                   ))}
                 </ul>
@@ -750,7 +884,9 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               <button
                 type="submit"
                 className={`${
-                  hasFaqErrors() ? "bg-gray-500 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600"
+                  hasFaqErrors()
+                    ? "bg-gray-500 cursor-not-allowed"
+                    : "bg-blue-500 hover:bg-blue-600"
                 } transition-all text-white px-4 py-2 rounded`}
                 disabled={hasFaqErrors()}
                 onClick={(e) => {

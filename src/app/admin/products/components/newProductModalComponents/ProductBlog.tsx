@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useRef } from "react";
 import TipTapBlogEditor from "../productBlogCreator/TipTapEditor";
 
 type Props = {
@@ -7,25 +7,34 @@ type Props = {
 };
 
 const ProductBlog = ({ dispatch, slug }: Props) => {
-  const editorContentRef = useRef<string>("");
+  const contentRef = useRef<string>("");
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Function to capture content changes from the editor
-  const handleContentChange = (content: string) => {
-    editorContentRef.current = content;
-  };
+  const handleContentChange = useCallback(
+    (contentObj: { productBlog: string }) => {
+      const content = contentObj.productBlog;
 
-  // Save the content when component unmounts or when user moves away from this step
-  useEffect(() => {
-    return () => {
-      // Only dispatch if we have content and a valid slug
-      if (editorContentRef.current && slug) {
+      // Avoid unnecessary updates if content hasn't changed
+      if (content === contentRef.current) return;
+
+      // Update our reference immediately
+      contentRef.current = content;
+
+      // Clear any pending debounce timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      // Set up a new debounce timer for dispatch
+      debounceTimerRef.current = setTimeout(() => {
         dispatch({
           type: "SET_PRODUCT_BLOG",
-          productBlog: editorContentRef.current,
+          productBlog: content,
         });
-      }
-    };
-  }, [dispatch, slug]);
+      }, 1000); // 1 second debounce
+    },
+    [dispatch]
+  );
 
   return (
     <div>
@@ -38,15 +47,7 @@ const ProductBlog = ({ dispatch, slug }: Props) => {
           <h1 className="my-3 text-center text-red-300 font-extrabold">
             محتوای مقاله به صورت خودکار ذخیره خواهد شد
           </h1>
-          <TipTapBlogEditor
-            slug={slug}
-            onSave={(contentObj) => {
-              // Store content in ref for auto-save
-              handleContentChange(contentObj.productBlog);
-              // Also dispatch immediately when manual save is clicked
-              dispatch(contentObj);
-            }}
-          />
+          <TipTapBlogEditor slug={slug} onSave={handleContentChange} />
         </>
       )}
     </div>

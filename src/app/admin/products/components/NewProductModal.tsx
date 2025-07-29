@@ -104,65 +104,213 @@ type Section =
   | "specs"
   | "faq";
 
+// Validation regexes and constraints from Prisma schema
+type ValidationRule = {
+  required: boolean;
+  maxLength?: number;
+  regex?: RegExp | null;
+  errorMsg: {
+    required: string;
+    maxLength?: string;
+    regex?: string;
+  };
+};
+
+const validationRules: Record<string, ValidationRule> = {
+  name: {
+    required: true,
+    maxLength: 1000, // Based on Prisma schema line 268
+    regex: null,
+    errorMsg: {
+      required: "نام الزامی است",
+      maxLength: "نام محصول نمیتواند بیشتر از ۱۰۰۰ کارکتر باشد.",
+      regex: "",
+    },
+  },
+  slug: {
+    required: true,
+    maxLength: 1200, // Based on Prisma schema line 277
+    regex: /^[a-zA-Z0-9_-]+$/, // Allow only alphanumeric, hyphens, and underscores
+    errorMsg: {
+      required: "شناسه محصول الزامی است",
+      maxLength: "شناسه محصول نمیتواند بیشتر از ۱۲۰۰ کارکتر باشد.",
+      regex:
+        "شناسه محصول فقط می‌تواند شامل حروف انگلیسی، اعداد، خط فاصله و زیرخط باشد.",
+    },
+  },
+  smallDesc: {
+    required: true,
+    maxLength: 1000, // Based on Prisma schema line 275
+    regex: null,
+    errorMsg: {
+      required: "توضیح کوتاه الزامی است",
+      maxLength: "توضیح کوتاه نمیتواند بیشتر از ۱۰۰۰ کارکتر باشد.",
+      regex: "",
+    },
+  },
+  SEO_Title: {
+    required: true,
+    maxLength: 60, // Based on Prisma schema line 278
+    regex: null,
+    errorMsg: {
+      required: "تیتر سئو الزامی است",
+      maxLength: "تیتر سئو نباید بیشتر از ۶۰ کارکتر باشد.",
+      regex: "",
+    },
+  },
+  SEO_Description: {
+    required: true,
+    maxLength: 4000, // Based on Prisma schema line 279
+    regex: null,
+    errorMsg: {
+      required: "توضیحات سئو الزامی است",
+      maxLength: "توضیحات سئو نباید بیشتر از ۴۰۰۰ کارکتر باشد.",
+      regex: "",
+    },
+  },
+  keywords: {
+    required: true,
+    maxLength: 2000, // Using a reasonable limit based on SEO_Keywords in SEO_Category model
+    regex: null,
+    errorMsg: {
+      required: "کلمات کلیدی الزامی است",
+      maxLength: "کلمات کلیدی نمی‌توانند بیشتر از ۲۰۰۰ کارکتر باشند.",
+      regex: "",
+    },
+  },
+  price: {
+    required: true,
+    maxLength: 20, // Based on Prisma schema line 269
+    regex: /^\d+(\.\d{1,2})?$/, // Allow numbers with up to 2 decimal places
+    errorMsg: {
+      required: "قیمت الزامی است",
+      maxLength: "قیمت نمیتواند بیشتر از ۲۰ کارکتر باشد.",
+      regex: "قیمت باید یک عدد معتبر باشد (حداکثر ۲ رقم اعشار).",
+    },
+  },
+  discount: {
+    required: false,
+    maxLength: 20, // Based on Prisma schema line 270
+    regex: /^\d+(\.\d{1,2})?$/, // Allow numbers with up to 2 decimal places
+    errorMsg: {
+      required: "",
+      maxLength: "تخفیف نمیتواند بیشتر از ۲۰ کارکتر باشد.",
+      regex: "تخفیف باید یک عدد معتبر باشد (حداکثر ۲ رقم اعشار).",
+    },
+  },
+  categoryID: {
+    required: true,
+    errorMsg: {
+      required: "دسته‌بندی الزامی است",
+    },
+  },
+  subCategoryID: {
+    required: true,
+    errorMsg: {
+      required: "زیر دسته‌بندی الزامی است",
+    },
+  },
+  bannerImage: {
+    required: true,
+    errorMsg: {
+      required: "تصویر بنر الزامی است",
+    },
+  },
+  transparentImage: {
+    required: true,
+    errorMsg: {
+      required: "تصویر بدون پسزمینه الزامی است",
+    },
+  },
+  features: {
+    required: true,
+    errorMsg: {
+      required: "حداقل یک ویژگی الزامی است",
+    },
+  },
+  productBlog: {
+    required: false,
+    errorMsg: {
+      required: "",
+    },
+  },
+};
+
 const validateField = (field: keyof State, value: any): string => {
-  switch (field) {
-    case "name": {
-      if (!value) return "نام الزامی است";
-      if (value.length > 100)
-        return "نام محصول نمیتواند بیشتر از ۱۰۰ کارکتر باشد.";
-      return "";
-    }
-    case "slug": {
-      if (!value) return "شناسه محصول الزامی است";
-      if (value.length > 200)
-        return "شناسه محصول نمیتواند بیشتر از ۲۰۰ کارکتر باشد.";
-      return "";
-    }
-    case "categoryID":
-      return value !== null ? "" : "دسته‌بندی الزامی است";
-    case "subCategoryID":
-      return value !== null ? "" : "زیر دسته‌بندی الزامی است";
-    case "smallDesc":
-      return value ? "" : "توضیح کوتاه الزامی است";
-    case "bannerImage":
-      return value ? "" : "تصویر بنر الزامی است";
-    case "transparentImage":
-      return value ? "" : "تصویر بدون پسزمینه الزامی است";
-    case "features":
-      // Let the ProductOverview component handle detailed feature validation
-      // Just check if there are any features at all
-      return value.length > 0 ? "" : "حداقل یک ویژگی الزامی است";
-    case "SEO_Title": {
-      if (!value || value.length < 0) return "تیتر سئو الزامی است";
-      if (value.length > 60) return "تیتر سئو نباید بیشتر از ۶۰ کارکتر باشد.";
-      return "";
-    }
-    case "SEO_Description": {
-      if (!value || value.length < 0) return "توضیحات سئو الزامی است";
-      if (value.length > 4000)
-        return "توضیحات سئو نباید بیشتر از ۴۰۰۰ کارکتر باشد.";
-      return "";
-    }
-    case "keywords": {
-      if (!value || value.length < 0) return "کلمات کلیدی الزامی است";
-      if (value.length > 1000)
-        return "کلمات کلیدی نمی‌توانند بیشتر از ۱۰۰۰ کارکتر باشند.";
-      return "";
-    }
-    default:
-      return ""; // No validation needed
+  // Get validation rules for the field
+  const rules = validationRules[field as keyof typeof validationRules];
+  if (!rules) return ""; // No validation rules for this field
+
+  // Check if field is required
+  if (
+    rules.required &&
+    (!value ||
+      (typeof value === "string" && !value.trim()) ||
+      (Array.isArray(value) && value.length === 0))
+  ) {
+    return rules.errorMsg.required;
   }
+
+  // For string values, check length and pattern
+  if (typeof value === "string" && value) {
+    // Check max length
+    if (rules.maxLength && value.length > rules.maxLength) {
+      return rules.errorMsg.maxLength || "";
+    }
+
+    // Check regex pattern if defined
+    if (rules.regex && !rules.regex.test(value)) {
+      return rules.errorMsg.regex || "";
+    }
+  }
+
+  // For numerical fields with string representation
+  if ((field === "price" || field === "discount") && value !== 0 && !value) {
+    return field === "price" ? rules.errorMsg.required : "";
+  }
+
+  // For price and discount, validate they're proper numbers
+  if (
+    (field === "price" || field === "discount") &&
+    rules.regex &&
+    (isNaN(parseFloat(value.toString())) || !rules.regex.test(value.toString()))
+  ) {
+    return rules.errorMsg.regex || "";
+  }
+
+  // For arrays
+  if (Array.isArray(value)) {
+    if (field === "features" && rules.required && value.length === 0) {
+      return rules.errorMsg.required;
+    }
+  }
+
+  return "";
 };
 
 const validateAllFields = (state: State): { [key: string]: string } => {
   const errors: { [key: string]: string } = {};
+
+  // Validate each field in the state against the validation rules
   Object.entries(state).forEach(([field, value]) => {
     const error = validateField(field as keyof State, value);
     if (error) errors[field] = error;
   });
+
+  // Special validation for price and discount
+  if (
+    parseFloat(state.price.toString()) < parseFloat(state.discount.toString())
+  ) {
+    errors.discount = "تخفیف نمیتواند بیشتر از قیمت باشد.";
+  }
+
   return errors;
 };
 
+// Fixed tab state persistence issues by rendering all section components
+// and conditionally showing/hiding them based on the section's open state.
+// This approach ensures that component state is preserved when sections are closed/reopened.
+// We use CSS classes (block/hidden) for toggling visibility instead of conditional rendering.
 const NewProductModal = ({
   setShowNewProductModal,
   categories,
@@ -229,6 +377,14 @@ const NewProductModal = ({
   useEffect(() => {
     const newErrors = validateAllFields(state);
 
+    // Debug logs to help identify update loops
+    console.debug(
+      "State update in NewProductModal",
+      Object.keys(state).filter((key) => key === "productBlog").length > 0
+        ? "productBlog length:" + state.productBlog.length
+        : ""
+    );
+
     // Use setTimeout to give inputs a chance to update their local errors
     setTimeout(() => {
       setErrors((currentErrors) => {
@@ -264,7 +420,7 @@ const NewProductModal = ({
 
   // Manage the collapse state for each section
   const [openSections, setOpenSections] = useState({
-    baseDetails: true, // Start with baseDetails open
+    baseDetails: false, // Start with baseDetails open
     productOverview: false,
     overviewDetails: false,
     productBlog: false,
@@ -274,6 +430,19 @@ const NewProductModal = ({
 
   // Handle the toggling of each section
   const toggleSection = (section: Section) => {
+    // If opening the productBlog section, give editor a chance to initialize first
+    if (section === "productBlog" && !openSections.productBlog) {
+      // Open the section
+      setOpenSections((prevState) => ({
+        ...prevState,
+        [section]: true,
+      }));
+
+      // Allow the ProductBlog component to fully initialize
+      return;
+    }
+
+    // Normal toggle behavior for other sections
     setOpenSections((prevState) => ({
       ...prevState,
       [section]: !prevState[section],
@@ -295,12 +464,84 @@ const NewProductModal = ({
     if (hasErrors()) {
       console.log("Preventing submission due to validation errors");
       toast.error("لطفاً تمام خطاها را برطرف کنید.");
+
+      // Automatically open the first section with errors
+      const sectionsWithErrors = findSectionsWithErrors();
+      if (sectionsWithErrors.length > 0) {
+        setOpenSections((prevState) => ({
+          ...prevState,
+          [sectionsWithErrors[0]]: true,
+        }));
+      }
+
       return;
     }
 
     // If we reach here, there are no errors - safe to submit
     console.log("No validation errors found, proceeding with submission");
     submitForm();
+  };
+
+  // Find sections that contain errors
+  const findSectionsWithErrors = (): Section[] => {
+    const sectionsWithErrors: Section[] = [];
+
+    // Base details section
+    const baseDetailFields = [
+      "name",
+      "slug",
+      "categoryID",
+      "subCategoryID",
+      "price",
+      "discount",
+      "smallDesc",
+      "bannerImage",
+      "transparentImage",
+      "SEO_Title",
+      "SEO_Description",
+      "keywords",
+    ];
+
+    if (baseDetailFields.some((field) => errors[field])) {
+      sectionsWithErrors.push("baseDetails");
+    }
+
+    // Product overview section
+    if (
+      errors.features ||
+      Object.keys(errors).some((key) => key.startsWith("features-"))
+    ) {
+      sectionsWithErrors.push("productOverview");
+    }
+
+    // Overview details section
+    if (Object.keys(errors).some((key) => key.startsWith("overviewDetails-"))) {
+      sectionsWithErrors.push("overviewDetails");
+    }
+
+    // Product blog section
+    if (errors.productBlog) {
+      sectionsWithErrors.push("productBlog");
+    }
+
+    // Specs section
+    if (Object.keys(errors).some((key) => key.startsWith("specs-"))) {
+      sectionsWithErrors.push("specs");
+    }
+
+    // FAQ section
+    if (
+      Object.keys(errors).some(
+        (key) =>
+          key.startsWith("faq-") ||
+          key.includes("-question-") ||
+          key.includes("-answer-")
+      )
+    ) {
+      sectionsWithErrors.push("faq");
+    }
+
+    return sectionsWithErrors;
   };
 
   // Extracted the form submission logic to a separate function
@@ -375,14 +616,14 @@ const NewProductModal = ({
                   <FiChevronDown size={20} />
                 )}
               </div>
-              {openSections.baseDetails && (
+              <div className={openSections.baseDetails ? "block" : "hidden"}>
                 <BaseDetails
                   state={state}
                   dispatch={validatedDispatch}
                   categories={categories}
-                  setErrors={setErrors} // Pass setErrors to child components
+                  setErrors={setErrors}
                 />
-              )}
+              </div>
             </div>
 
             {/* Product Overview */}
@@ -398,13 +639,15 @@ const NewProductModal = ({
                   <FiChevronDown size={20} />
                 )}
               </div>
-              {openSections.productOverview && (
+              <div
+                className={openSections.productOverview ? "block" : "hidden"}
+              >
                 <ProductOverview
                   state={state}
                   dispatch={validatedDispatch}
                   setErrors={setErrors}
                 />
-              )}
+              </div>
             </div>
 
             {/* Overview Details */}
@@ -420,20 +663,20 @@ const NewProductModal = ({
                   <FiChevronDown size={20} />
                 )}
               </div>
-              {openSections.overviewDetails && (
-                <>
-                  <div
-                    onClick={() => setShowNewOverviewDetailsModal(true)}
-                    className="flex items-center justify-center gap-4 p-4 mt-4 mx-4 border rounded-lg bg-blue-600 hover:bg-blue-700 cursor-pointer border-blue-700 transition-all"
-                  >
-                    ساخت توضیحات محصول جدید
-                  </div>
-                  <OverviewDetails
-                    dispatch={validatedDispatch}
-                    setErrors={setErrors}
-                  />
-                </>
-              )}
+              <div
+                className={openSections.overviewDetails ? "block" : "hidden"}
+              >
+                <div
+                  onClick={() => setShowNewOverviewDetailsModal(true)}
+                  className="flex items-center justify-center gap-4 p-4 mt-4 mx-4 border rounded-lg bg-blue-600 hover:bg-blue-700 cursor-pointer border-blue-700 transition-all"
+                >
+                  ساخت توضیحات محصول جدید
+                </div>
+                <OverviewDetails
+                  dispatch={validatedDispatch}
+                  setErrors={setErrors}
+                />
+              </div>
             </div>
 
             <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
@@ -450,9 +693,9 @@ const NewProductModal = ({
                   <FiChevronDown size={20} />
                 )}
               </div>
-              {openSections.productBlog && (
+              <div className={openSections.productBlog ? "block" : "hidden"}>
                 <ProductBlog dispatch={validatedDispatch} slug={state.slug} />
-              )}
+              </div>
             </div>
 
             {/* Specs Section */}
@@ -468,14 +711,14 @@ const NewProductModal = ({
                   <FiChevronDown size={20} />
                 )}
               </div>
-              {openSections.specs && (
+              <div className={openSections.specs ? "block" : "hidden"}>
                 <Specs
                   state={state}
                   dispatch={validatedDispatch}
                   setErrors={setErrors}
-                  hasSubmitted={hasSubmitted} // Pass hasSubmitted to Specs
+                  hasSubmitted={hasSubmitted}
                 />
-              )}
+              </div>
             </div>
 
             {/* FAQ Section */}
@@ -491,14 +734,14 @@ const NewProductModal = ({
                   <FiChevronDown size={20} />
                 )}
               </div>
-              {openSections.faq && (
+              <div className={openSections.faq ? "block" : "hidden"}>
                 <FAQ
                   state={state}
                   dispatch={validatedDispatch}
                   setErrors={setErrors}
                   hasSubmitted={hasSubmitted}
                 />
-              )}
+              </div>
             </div>
 
             {/* Submit Button */}

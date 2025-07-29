@@ -42,16 +42,19 @@ import { CustomImage } from "./Image";
 import { CustomVideo } from "../productBlogEditor/Video";
 import VideoUploadModal from "../productBlogEditor/VideoUploadModal";
 
+// Update the interface to include initialContent prop
 interface TipTapBlogEditorProps {
   onSave?: React.Dispatch<{ type: string; productBlog: string }>;
   blogData?: string; // Add prop for initial content
   slug: string;
+  initialContent?: string; // Add new prop for initial content
 }
 
 const TipTapBlogEditor = ({
   onSave,
   blogData,
   slug,
+  initialContent = "",
 }: TipTapBlogEditorProps) => {
   const [isLinkMenuOpen, setIsLinkMenuOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
@@ -65,6 +68,10 @@ const TipTapBlogEditor = ({
   const editorContainerRef = useRef<HTMLDivElement>(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(false);
+
+  // Add refs to track content changes and prevent infinite loops
+  const prevContentRef = useRef<string>("");
+  const isUpdatingContentRef = useRef(false);
 
   const calculateDimensions = async (url: string) => {
     if (typeof window === "undefined") {
@@ -95,6 +102,27 @@ const TipTapBlogEditor = ({
       };
     });
   };
+
+  // Define convertMDXToHTML before using it in useEffects
+  const convertMDXToHTML = useCallback((mdxContent: string) => {
+    return (
+      mdxContent
+        // Convert Next.js Image components to regular img tags
+        .replace(
+          /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*\/?>/g,
+          '<img src="$1" alt="$2" width="$3" height="$4" class="rounded-lg max-w-full my-4" />'
+        )
+        // Convert Next.js Link components to regular a tags
+        .replace(
+          /<Link\s+href="([^"]+)">\s*([\s\S]*?)\s*<\/Link>/g,
+          '<a href="$1">$2</a>'
+        )
+        // Convert table with className to plain HTML table
+        .replace(/<table className="[^"]*">/g, "<table>")
+        .replace(/<th className="[^"]*">/g, "<th>")
+        .replace(/<td className="[^"]*">/g, "<td>")
+    );
+  }, []);
 
   const editor = useEditor({
     extensions: [
@@ -136,8 +164,11 @@ const TipTapBlogEditor = ({
         HTMLAttributes: { class: "w-full my-4" },
       }),
     ],
-    content: blogData || "", // Initialize with blogData if provided
+    content: blogData || "", // Initialize with blogData
     onUpdate: ({ editor }) => {
+      // Only process updates if we're not currently updating from external source
+      if (isUpdatingContentRef.current) return;
+      
       // Start a timer to auto-save after user stops typing for 1 second
       if (autoSaveTimerRef.current) {
         clearTimeout(autoSaveTimerRef.current);
@@ -152,11 +183,35 @@ const TipTapBlogEditor = ({
 
   // Update editor content when blogData changes
   useEffect(() => {
-    if (editor && blogData) {
-      const htmlContent = convertMDXToHTML(blogData);
-      editor.commands.setContent(htmlContent);
+    // Only update editor content when both editor is ready and we have blogData
+    if (editor && blogData && !isUpdatingContentRef.current) {
+      // Only update on first render or if blogData has significantly changed
+      if (prevContentRef.current === "" || (blogData !== prevContentRef.current)) {
+        isUpdatingContentRef.current = true;
+        
+        try {
+          const htmlContent = convertMDXToHTML(blogData);
+          if (htmlContent !== editor.getHTML()) {
+            // Use a timeout to avoid React rendering conflicts
+            setTimeout(() => {
+              editor.commands.setContent(htmlContent);
+              prevContentRef.current = blogData;
+              
+              // Release the lock after a delay
+              setTimeout(() => {
+                isUpdatingContentRef.current = false;
+              }, 200);
+            }, 0);
+          } else {
+            isUpdatingContentRef.current = false;
+          }
+        } catch (e) {
+          console.error("Error updating editor content:", e);
+          isUpdatingContentRef.current = false;
+        }
+      }
     }
-  }, [editor, blogData]);
+  }, [editor, blogData, convertMDXToHTML]);
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -334,26 +389,6 @@ const TipTapBlogEditor = ({
     const mdxContent = convertToMDX(editor.getHTML());
     onSave?.({ type: "SET_PRODUCT_BLOG", productBlog: mdxContent });
   }, [editor, onSave, convertToMDX]);
-
-  const convertMDXToHTML = (mdxContent: string) => {
-    return (
-      mdxContent
-        // Convert Next.js Image components to regular img tags
-        .replace(
-          /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*\/?>/g,
-          '<img src="$1" alt="$2" width="$3" height="$4" class="rounded-lg max-w-full my-4" />'
-        )
-        // Convert Next.js Link components to regular a tags
-        .replace(
-          /<Link\s+href="([^"]+)">\s*([\s\S]*?)\s*<\/Link>/g,
-          '<a href="$1">$2</a>'
-        )
-        // Convert table with className to plain HTML table
-        .replace(/<table className="[^"]*">/g, "<table>")
-        .replace(/<th className="[^"]*">/g, "<th>")
-        .replace(/<td className="[^"]*">/g, "<td>")
-    );
-  };
 
   const addVideo = useCallback(
     async (file: File) => {
