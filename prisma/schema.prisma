@@ -274,8 +274,8 @@ model Product {
   Available         Boolean?
   Description       String?  @db.VarChar(1000)
   CategoryId        Int?
-  Slug              String?  @db.VarChar(200)
-  SEO_Title         String?  @db.VarChar(50)
+  Slug              String?  @db.VarChar(1200)
+  SEO_Title         String?  @db.VarChar(60)
   SEO_Description   String?  @db.VarChar(4000)
   QrCode_Key        String?  @db.VarChar(100)
   QrCode_expiryDays String?  @db.VarChar(50)
@@ -291,7 +291,7 @@ model Product {
 
 model ProductOverview {
   ProductOverviewId Int       @id(map: "PK__ProductO__2C6062D2C1D11FB4") @default(autoincrement())
-  ProductName       String?   @db.VarChar(100)
+  ProductName       String?   @db.VarChar(1200)
   ProductId         Int?
   Property1         String?   @db.VarChar(300)
   Property2         String?   @db.VarChar(300)
