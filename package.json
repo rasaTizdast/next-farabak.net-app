@@ -7,7 +7,10 @@
     "build": "prisma generate && next build --turbopack",
     "prisma:generate": "prisma generate",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint --ext .js,.jsx,.ts,.tsx .",
+    "lint:fix": "next lint --ext .js,.jsx,.ts,.tsx . --fix",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\""
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
@@ -42,6 +45,7 @@
     "nodemailer": "^6.9.16",
     "npm-check": "^6.0.1",
     "pg": "^8.13.1",
+    "prettier-plugin-tailwindcss": "^0.6.14",
     "prisma": "^6.1.0",
     "qrcode.react": "^4.2.0",
     "react": "19.1.0",
@@ -72,11 +76,16 @@
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-react": "^4.18.3",
     "@types/validator": "^13.12.2",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
     "eslint": "^9.16.0",
     "eslint-config-next": "15.4.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.3",
     "postcss": "^8.4.49",
+    "prettier": "^3.6.2",
     "tailwindcss": "^3.4.16",
-    "typescript": "^5.7.2"
+    "typescript": "~5.6.0"
   },
   "overrides": {
     "@types/react": "19.1.8",
