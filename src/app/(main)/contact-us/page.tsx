@@ -1,12 +1,12 @@
 export const dynamic = "force-dynamic";
 
 import { Metadata } from "next";
+
 import styles from "./ContactUsPage.module.css";
 
 export const metadata: Metadata = {
   title: "تماس با ما | فرابک",
-  description:
-    "راه های تماس با شرکت فرابک را میتوانید از این صفحه مشاهده کنید.",
+  description: "راه های تماس با شرکت فرابک را میتوانید از این صفحه مشاهده کنید.",
   robots: {
     index: false, // This sets the noindex directive
     follow: false, // Allows crawling of links on the page if needed
@@ -15,12 +15,9 @@ export const metadata: Metadata = {
 
 const ContactUsPage = async () => {
   // Fetch data from the API
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/contact-us`,
-    {
-      cache: "no-store", // Ensure the data is always fresh
-    }
-  );
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/contact-us`, {
+    cache: "no-store", // Ensure the data is always fresh
+  });
 
   if (!response.ok) {
     throw new Error("خطایی در دریافت اطلاعات رخ داد.");
@@ -57,16 +54,14 @@ const ContactUsPage = async () => {
       <div className={styles.section}>
         <h1>آدرس‌های ایمیل</h1>
         <ul>
-          {emails.map(
-            (email: { id: number; title: string; address: string }) => (
-              <li key={email.id}>
-                <a href={`mailto:${email.address}`}>
-                  <div className={styles.bold}>{email.title}:</div>
-                  <span>{email.address}</span>
-                </a>
-              </li>
-            )
-          )}
+          {emails.map((email: { id: number; title: string; address: string }) => (
+            <li key={email.id}>
+              <a href={`mailto:${email.address}`}>
+                <div className={styles.bold}>{email.title}:</div>
+                <span>{email.address}</span>
+              </a>
+            </li>
+          ))}
         </ul>
       </div>
     </main>

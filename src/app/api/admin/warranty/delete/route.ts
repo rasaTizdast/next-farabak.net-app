@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -19,10 +19,7 @@ export async function POST(request: Request) {
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { error: "Authorization token required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Authorization token required" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
@@ -43,10 +40,7 @@ export async function POST(request: Request) {
       `;
 
       if (!branch || (branch as any[]).length === 0) {
-        return NextResponse.json(
-          { error: "No branch found for this user" },
-          { status: 403 }
-        );
+        return NextResponse.json({ error: "No branch found for this user" }, { status: 403 });
       }
 
       branchId = (branch as any[])[0].branchid;
@@ -58,10 +52,7 @@ export async function POST(request: Request) {
 
     // Validate required fields
     if (!warrantyId) {
-      return NextResponse.json(
-        { error: "Warranty ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Warranty ID is required" }, { status: 400 });
     }
 
     // Check if the warranty exists
@@ -76,10 +67,7 @@ export async function POST(request: Request) {
     });
 
     if (!existingWarranty) {
-      return NextResponse.json(
-        { error: "Warranty not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Warranty not found" }, { status: 404 });
     }
 
     // For branch users, verify they can only delete warranties for their own branch
@@ -113,4 +101,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-} 
+}

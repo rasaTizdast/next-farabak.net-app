@@ -92,10 +92,7 @@ export async function POST(request: Request) {
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "Authorization token required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
@@ -138,14 +135,9 @@ export async function POST(request: Request) {
       }
     } else if (type === "overviewDetails") {
       parentFolder = "overview-details-images";
-      key = `${parentFolder}/${sanitizedFolderName}.${
-        contentType.split("/")[1]
-      }`;
+      key = `${parentFolder}/${sanitizedFolderName}.${contentType.split("/")[1]}`;
     } else {
-      return NextResponse.json(
-        { error: "Invalid type provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid type provided" }, { status: 400 });
     }
 
     // Generate a presigned URL for uploading
@@ -164,7 +156,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to generate upload URL" },
+      { error: `Failed to generate upload URL, ${error!}` },
       { status: 500 }
     );
   }

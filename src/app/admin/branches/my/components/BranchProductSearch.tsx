@@ -1,18 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import {
-  Button,
-  Table,
-  Empty,
-  Spin,
-  message,
-  Select,
-  Card,
-  Alert,
-  Tag,
-} from "antd";
 import { SearchOutlined, ShopOutlined } from "@ant-design/icons";
+import { Button, Table, Empty, Spin, message, Select, Card, Alert, Tag } from "antd";
+import { useState, useEffect } from "react";
+
 import { Product } from "../../components/types";
 
 interface BranchProduct {
@@ -28,9 +19,7 @@ interface BranchProductSearchProps {
   isTabActive: boolean;
 }
 
-const BranchProductSearch: React.FC<BranchProductSearchProps> = ({
-  isTabActive,
-}) => {
+const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
@@ -57,18 +46,12 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({
         setProducts(data.data);
       } else {
         // Fallback to standard endpoint if new one fails
-        const fallbackResponse = await fetch(
-          "/api/admin/products?page=1&limit=1000"
-        );
+        const fallbackResponse = await fetch("/api/admin/products?page=1&limit=1000");
         if (!fallbackResponse.ok) {
           throw new Error("Failed to fetch products");
         }
         const fallbackData = await fallbackResponse.json();
-        if (
-          fallbackData &&
-          fallbackData.data &&
-          Array.isArray(fallbackData.data)
-        ) {
+        if (fallbackData && fallbackData.data && Array.isArray(fallbackData.data)) {
           setProducts(fallbackData.data);
         }
       }
@@ -110,15 +93,12 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({
             branchName: branch.name,
             location: branch.location,
             ProductId: selectedProduct,
-            ProductType:
-              products.find((p) => p.ProductId === selectedProduct)?.Type || "",
+            ProductType: products.find((p) => p.ProductId === selectedProduct)?.Type || "",
             quantity: branch.quantity || 0,
           }));
       } else if (data && Array.isArray(data.branches)) {
         // Original response format from our custom endpoint
-        processedData = data.branches.filter(
-          (branch) => branch && branch.branchid
-        );
+        processedData = data.branches.filter((branch) => branch && branch.branchid);
       }
 
       setBranchProducts(processedData);
@@ -138,9 +118,7 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({
       dataIndex: "branchName",
       key: "branchName",
       width: "65%",
-      render: (text: string) => (
-        <span className="text-blue-400 font-medium">{text}</span>
-      ),
+      render: (text: string) => <span className="font-medium text-blue-400">{text}</span>,
     },
     {
       title: "موجودی",
@@ -149,10 +127,8 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({
       width: "35%",
       render: (quantity: number) => (
         <Tag
-          color={
-            quantity > 10 ? "success" : quantity > 0 ? "blue-inverse" : "error"
-          }
-          className="text-center px-2 py-0.5"
+          color={quantity > 10 ? "success" : quantity > 0 ? "blue-inverse" : "error"}
+          className="px-2 py-0.5 text-center"
         >
           {quantity} عدد
         </Tag>
@@ -164,7 +140,7 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({
     <div className="branch-product-search">
       <Card
         title="جستجوی محصول در شعبه‌های دیگر"
-        className="bg-gray-800 border-0 h-full"
+        className="h-full border-0 bg-gray-800"
         headStyle={{
           backgroundColor: "#19202b",
           color: "white",
@@ -187,9 +163,9 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({
           />
         </div>
 
-        <div className="flex flex-col gap-3 mb-4">
+        <div className="mb-4 flex flex-col gap-3">
           <div>
-            <label className="block text-gray-300 mb-2">انتخاب محصول</label>
+            <label className="mb-2 block text-gray-300">انتخاب محصول</label>
             <Select
               showSearch
               placeholder="محصول مورد نظر را انتخاب کنید"
@@ -197,12 +173,10 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({
               onChange={(value) => setSelectedProduct(value)}
               value={selectedProduct}
               loading={loading}
-              className="w-full bg-gray-700 border-gray-600 text-white"
+              className="w-full border-gray-600 bg-gray-700 text-white"
               popupClassName="custom-dropdown enhanced-dropdown"
               filterOption={(input, option) =>
-                (option?.label?.toString() || "")
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
+                (option?.label?.toString() || "").toLowerCase().includes(input.toLowerCase())
               }
               options={products.map((product) => ({
                 value: product.ProductId,
@@ -217,7 +191,7 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({
               onClick={handleSearch}
               loading={loading}
               icon={<SearchOutlined />}
-              className="bg-blue-600 hover:bg-blue-700 w-full"
+              className="w-full bg-blue-600 hover:bg-blue-700"
             >
               جستجو در شعبه‌ها
             </Button>
@@ -226,26 +200,21 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({
 
         {/* Results section */}
         {searchPerformed && (
-          <div className="flex-grow overflow-auto mt-2">
-            <div className="border-t border-gray-600 pt-4 mb-3">
-              <div className="flex items-center mb-3">
+          <div className="mt-2 flex-grow overflow-auto">
+            <div className="mb-3 border-t border-gray-600 pt-4">
+              <div className="mb-3 flex items-center">
                 <ShopOutlined className="ml-2 text-blue-400" />
-                <span className="text-lg font-medium text-gray-200">
-                  نتایج جستجو
-                </span>
+                <span className="text-lg font-medium text-gray-200">نتایج جستجو</span>
                 {selectedProduct && (
                   <Tag color="blue" className="mr-3">
-                    {
-                      products.find((p) => p.ProductId === selectedProduct)
-                        ?.Type
-                    }
+                    {products.find((p) => p.ProductId === selectedProduct)?.Type}
                   </Tag>
                 )}
               </div>
             </div>
 
             {loading ? (
-              <div className="flex justify-center items-center p-6">
+              <div className="flex items-center justify-center p-6">
                 <Spin size="large" tip="در حال جستجو..." />
               </div>
             ) : branchProducts.length > 0 ? (

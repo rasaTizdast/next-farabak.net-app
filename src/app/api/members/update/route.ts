@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { S3 } from "aws-sdk";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 const s3 = new S3({
   accessKeyId: process.env.LIARA_ACCESS_KEY,
@@ -20,10 +21,7 @@ export async function PUT(request: Request) {
     const slug = formData.get("slug") as string;
 
     if (!id) {
-      return NextResponse.json(
-        { error: "شناسه عضو الزامی است." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "شناسه عضو الزامی است." }, { status: 400 });
     }
 
     // Fetch the existing member data
@@ -82,9 +80,6 @@ export async function PUT(request: Request) {
     return NextResponse.json(updatedMember);
   } catch (error) {
     console.error("Error updating member:", error);
-    return NextResponse.json(
-      { error: "خطا در به‌روزرسانی عضو." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در به‌روزرسانی عضو." }, { status: 500 });
   }
 }

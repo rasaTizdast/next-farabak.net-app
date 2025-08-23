@@ -35,35 +35,27 @@ const WhatsAppContactButton = ({
     // Remove any non-numeric characters from the phone number
     const cleanNumber = phoneNumber.replace(/\D/g, "");
     // Create the WhatsApp URL with the encoded message
-    const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(
-      initialMessage
-    )}`;
+    const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(initialMessage)}`;
     window.open(whatsappUrl, "_blank");
   };
 
   return (
     <div
-      className={`fixed bottom-4 left-4 z-50 flex items-center rounded-full shadow-md transition-all duration-500 ease-in-out cursor-pointer translate-x-0
-        ${isHovered && !isMobile ? "bg-green-600" : "bg-green-500"}
-      `}
+      className={`fixed bottom-4 left-4 z-50 flex translate-x-0 cursor-pointer items-center rounded-full shadow-md transition-all duration-500 ease-in-out ${isHovered && !isMobile ? "bg-green-600" : "bg-green-500"} `}
       onClick={openWhatsApp}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       aria-label="Contact support via WhatsApp"
     >
       <div
-        className={`text-white overflow-hidden transition-all duration-500 ease-in-out whitespace-nowrap
-          ${
-            isHovered && !isMobile
-              ? "max-w-32 opacity-100 pr-4"
-              : "max-w-0 opacity-0 px-0"
-          }
-        `}
+        className={`overflow-hidden whitespace-nowrap text-white transition-all duration-500 ease-in-out ${
+          isHovered && !isMobile ? "max-w-32 pr-4 opacity-100" : "max-w-0 px-0 opacity-0"
+        } `}
       >
         پیام به پشتیبانی
       </div>
       <div className="p-3">
-        <FaWhatsapp className="w-5 h-5 text-white" />
+        <FaWhatsapp className="h-5 w-5 text-white" />
       </div>
     </div>
   );

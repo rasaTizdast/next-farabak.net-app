@@ -1,8 +1,9 @@
 // ProductsMegaMenu.tsx (Server + Client)
 
-import Link from "next/link";
-import styles from "./ProductsMegaMenu.module.css";
 import axios from "axios";
+import Link from "next/link";
+
+import styles from "./ProductsMegaMenu.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -38,9 +39,7 @@ export interface Category {
 // Fetch data on the server
 async function fetchCategories(): Promise<Category[]> {
   try {
-    const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/getAll`
-    );
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/getAll`);
 
     if (!res.status) {
       console.error("Fetch failed with status");
@@ -83,13 +82,13 @@ const ProductsMegaMenu = async () => {
               <Link href={category.Link}>{category.Name}</Link>
             </h3>
             <ul>
-              {category.Subcategories.filter(
-                (subCategory) => subCategory.Available
-              ).map((subCategory) => (
-                <li key={subCategory.CategoryContentId}>
-                  <Link href={subCategory.Link}>{subCategory.Name}</Link>
-                </li>
-              ))}
+              {category.Subcategories.filter((subCategory) => subCategory.Available).map(
+                (subCategory) => (
+                  <li key={subCategory.CategoryContentId}>
+                    <Link href={subCategory.Link}>{subCategory.Name}</Link>
+                  </li>
+                )
+              )}
             </ul>
           </div>
         ))}

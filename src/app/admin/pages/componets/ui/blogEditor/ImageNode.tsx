@@ -1,8 +1,8 @@
 // src/components/ImageNode.tsx
 
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import { Trash2, Maximize2, Minimize2 } from "lucide-react";
 import Image from "next/image";
-import { Trash2, Maximize2, Minimize2, MousePointer } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
 interface ImageAttributes {
@@ -17,12 +17,7 @@ interface ImageAttributes {
 const DEFAULT_WIDTH = 500;
 const DEFAULT_HEIGHT = 400;
 
-const ImageNode = ({
-  node,
-  editor,
-  getPos,
-  updateAttributes,
-}: NodeViewProps) => {
+const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showResizeOptions, setShowResizeOptions] = useState(false);
   const [customWidth, setCustomWidth] = useState(DEFAULT_WIDTH.toString());
@@ -121,8 +116,7 @@ const ImageNode = ({
     let newHeight = safeHeight;
 
     // Calculate aspect ratio from safe values, with fallback
-    const aspectRatio =
-      safeHeight > 0 ? safeWidth / safeHeight : DEFAULT_WIDTH / DEFAULT_HEIGHT;
+    const aspectRatio = safeHeight > 0 ? safeWidth / safeHeight : DEFAULT_WIDTH / DEFAULT_HEIGHT;
 
     // Calculate new dimensions based on preset
     try {
@@ -209,7 +203,7 @@ const ImageNode = ({
   };
 
   // Handle the start of resize operation
-  const handleResizeStart = (e: React.MouseEvent, corner: string) => {
+  const handleResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -240,10 +234,10 @@ const ImageNode = ({
           : DEFAULT_WIDTH / DEFAULT_HEIGHT;
 
       // Calculate new width with a minimum size
-      let newWidth = Math.max(100, startDimensions.width + deltaX);
+      const newWidth = Math.max(100, startDimensions.width + deltaX);
 
       // Calculate height based on aspect ratio
-      let newHeight = Math.round(newWidth / aspectRatio);
+      const newHeight = Math.round(newWidth / aspectRatio);
 
       // Update form values and visual feedback
       setCustomWidth(newWidth.toString());
@@ -296,10 +290,10 @@ const ImageNode = ({
 
   return (
     <NodeViewWrapper>
-      <div className="relative group" draggable={!isResizing}>
+      <div className="group relative" draggable={!isResizing}>
         <div
           ref={imageRef}
-          className={`relative inline-block max-w-full cursor-move my-4 ${
+          className={`relative my-4 inline-block max-w-full cursor-move ${
             isResizing ? "border-2 border-blue-500" : ""
           }`}
           data-drag-handle
@@ -313,12 +307,12 @@ const ImageNode = ({
         >
           {isExternalUrl(node.attrs.src) ? (
             // Use regular img tag for external URLs to avoid Next.js domain restrictions
-            <img
+            <Image
               src={node.attrs.src}
               alt={node.attrs.alt || "Image"}
               width={safeWidth}
               height={safeHeight}
-              className="rounded-lg pointer-events-none max-w-full max-h-[500px] object-contain"
+              className="pointer-events-none max-h-[500px] max-w-full rounded-lg object-contain"
               style={{ width: "100%", height: "auto" }}
             />
           ) : (
@@ -330,14 +324,14 @@ const ImageNode = ({
               height={safeHeight}
               layout="responsive"
               objectFit="contain"
-              className="rounded-lg pointer-events-none max-w-full max-h-[500px]"
+              className="pointer-events-none max-h-[500px] max-w-full rounded-lg"
             />
           )}
 
           {isDeleting && (
-            <div className="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center rounded-lg">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-              <span className="text-white mr-2">در حال حذف...</span>
+            <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-gray-900 bg-opacity-75">
+              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-white"></div>
+              <span className="mr-2 text-white">در حال حذف...</span>
             </div>
           )}
 
@@ -346,8 +340,8 @@ const ImageNode = ({
             <>
               {/* Bottom-right resize handle */}
               <div
-                className="absolute bottom-0 right-0 w-6 h-6 bg-blue-600 opacity-0 group-hover:opacity-70 rounded-tl cursor-se-resize z-10 flex items-center justify-center"
-                onMouseDown={(e) => handleResizeStart(e, "bottom-right")}
+                className="absolute bottom-0 right-0 z-10 flex h-6 w-6 cursor-se-resize items-center justify-center rounded-tl bg-blue-600 opacity-0 group-hover:opacity-70"
+                onMouseDown={(e) => handleResizeStart(e)}
               >
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="white">
                   <path
@@ -361,8 +355,8 @@ const ImageNode = ({
 
               {/* Bottom-left resize handle */}
               <div
-                className="absolute bottom-0 left-0 w-6 h-6 bg-blue-600 opacity-0 group-hover:opacity-70 rounded-tr cursor-sw-resize z-10 flex items-center justify-center"
-                onMouseDown={(e) => handleResizeStart(e, "bottom-left")}
+                className="absolute bottom-0 left-0 z-10 flex h-6 w-6 cursor-sw-resize items-center justify-center rounded-tr bg-blue-600 opacity-0 group-hover:opacity-70"
+                onMouseDown={(e) => handleResizeStart(e)}
               >
                 <svg
                   width="10"
@@ -382,7 +376,7 @@ const ImageNode = ({
 
               {/* Size indicator that appears when resizing */}
               {isResizing && (
-                <div className="absolute top-0 left-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-br z-20">
+                <div className="absolute left-0 top-0 z-20 rounded-br bg-blue-600 px-2 py-1 text-xs text-white">
                   {customWidth} × {customHeight}
                 </div>
               )}
@@ -391,25 +385,21 @@ const ImageNode = ({
         </div>
 
         {/* Controls overlay */}
-        <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute right-2 top-2 flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
           {/* Resize button */}
           <button
             onClick={toggleResizeOptions}
-            className="p-1 bg-blue-600 rounded-md hover:bg-blue-700 text-white"
+            className="rounded-md bg-blue-600 p-1 text-white hover:bg-blue-700"
             title="تغییر اندازه"
             type="button"
           >
-            {showResizeOptions ? (
-              <Minimize2 size={20} />
-            ) : (
-              <Maximize2 size={20} />
-            )}
+            {showResizeOptions ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
           </button>
 
           {/* Delete button */}
           <button
             onClick={handleDelete}
-            className="p-1 bg-red-600 rounded-md hover:bg-red-700 text-white"
+            className="rounded-md bg-red-600 p-1 text-white hover:bg-red-700"
             disabled={isDeleting}
             title="حذف تصویر"
             type="button"
@@ -420,77 +410,67 @@ const ImageNode = ({
 
         {/* Resize options panel */}
         {showResizeOptions && (
-          <div className="absolute top-12 right-2 bg-gray-800 border border-gray-600 rounded-md p-3 shadow-lg z-10 text-white">
-            <div className="text-right mb-2 font-bold">تغییر اندازه تصویر</div>
+          <div className="absolute right-2 top-12 z-10 rounded-md border border-gray-600 bg-gray-800 p-3 text-white shadow-lg">
+            <div className="mb-2 text-right font-bold">تغییر اندازه تصویر</div>
 
-            <div className="flex flex-col gap-2 mb-5">
+            <div className="mb-5 flex flex-col gap-2">
               <button
                 onClick={() => handleResize("full")}
-                className={`px-3 py-1 rounded-md text-right ${
-                  attrs.size === "full"
-                    ? "bg-blue-600"
-                    : "bg-gray-700 hover:bg-gray-600"
+                className={`rounded-md px-3 py-1 text-right ${
+                  attrs.size === "full" ? "bg-blue-600" : "bg-gray-700 hover:bg-gray-600"
                 }`}
               >
                 عرض کامل صفحه
               </button>
               <button
                 onClick={() => handleResize("half")}
-                className={`px-3 py-1 rounded-md text-right ${
-                  attrs.size === "half"
-                    ? "bg-blue-600"
-                    : "bg-gray-700 hover:bg-gray-600"
+                className={`rounded-md px-3 py-1 text-right ${
+                  attrs.size === "half" ? "bg-blue-600" : "bg-gray-700 hover:bg-gray-600"
                 }`}
               >
                 نصف عرض صفحه
               </button>
               <button
                 onClick={() => handleResize("third")}
-                className={`px-3 py-1 rounded-md text-right ${
-                  attrs.size === "third"
-                    ? "bg-blue-600"
-                    : "bg-gray-700 hover:bg-gray-600"
+                className={`rounded-md px-3 py-1 text-right ${
+                  attrs.size === "third" ? "bg-blue-600" : "bg-gray-700 hover:bg-gray-600"
                 }`}
               >
                 یک سوم عرض صفحه
               </button>
             </div>
 
-            <div className="text-center bg-blue-600 text-white text-xs p-1.5 rounded mb-2">
+            <div className="mb-2 rounded bg-blue-600 p-1.5 text-center text-xs text-white">
               برای تغییر اندازه مستقیم، گوشه های تصویر را بکشید
             </div>
 
-            <div className="border-t border-gray-600 pt-2 mb-2">
-              <div className="text-right mb-1 text-sm">اندازه سفارشی:</div>
-              <div className="flex gap-3 items-center">
+            <div className="mb-2 border-t border-gray-600 pt-2">
+              <div className="mb-1 text-right text-sm">اندازه سفارشی:</div>
+              <div className="flex items-center gap-3">
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs text-gray-400 block text-right">
-                    عرض (پیکسل)
-                  </label>
+                  <label className="block text-right text-xs text-gray-400">عرض (پیکسل)</label>
                   <input
                     type="number"
                     value={customWidth}
                     onChange={(e) => setCustomWidth(e.target.value)}
-                    className="w-20 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-right"
+                    className="w-20 rounded border border-gray-600 bg-gray-700 px-2 py-1 text-right"
                     min="100"
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs text-gray-400 block text-right">
-                    ارتفاع (پیکسل)
-                  </label>
+                  <label className="block text-right text-xs text-gray-400">ارتفاع (پیکسل)</label>
                   <input
                     type="number"
                     value={customHeight}
                     onChange={(e) => setCustomHeight(e.target.value)}
-                    className="w-20 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-right"
+                    className="w-20 rounded border border-gray-600 bg-gray-700 px-2 py-1 text-right"
                     min="100"
                   />
                 </div>
               </div>
               <button
                 onClick={applyCustomSize}
-                className="mt-2 px-3 py-1 bg-green-600 hover:bg-green-700 rounded-md w-full text-center"
+                className="mt-2 w-full rounded-md bg-green-600 px-3 py-1 text-center hover:bg-green-700"
               >
                 اعمال اندازه سفارشی
               </button>

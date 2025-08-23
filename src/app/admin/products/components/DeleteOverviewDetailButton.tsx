@@ -1,5 +1,5 @@
-import { useState } from "react";
 import axios from "axios";
+import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { FiTrash2 } from "react-icons/fi";
 import { IoIosClose } from "react-icons/io";
@@ -25,9 +25,7 @@ const DeleteOverviewDetailButton = ({
   const checkIfInUse = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(
-        `/api/productOverviewDetails/checkUsage/${detailId}`
-      );
+      const response = await axios.get(`/api/productOverviewDetails/checkUsage/${detailId}`);
       setInUseInfo({
         isInUse: response.data.isInUse,
         productsCount: response.data.productsCount,
@@ -35,6 +33,7 @@ const DeleteOverviewDetailButton = ({
       setShowConfirmModal(true);
     } catch (error) {
       toast.error("بررسی وضعیت استفاده با خطا مواجه شد");
+      throw new Error("Failed to fetch categories:", error!);
     } finally {
       setIsLoading(false);
     }
@@ -48,6 +47,7 @@ const DeleteOverviewDetailButton = ({
       setShowConfirmModal(false);
       onSuccess(); // Refresh the list after deletion
     } catch (error) {
+      console.error(error);
       toast.error("حذف توضیحات محصول با خطا مواجه شد");
     } finally {
       setIsLoading(false);
@@ -60,7 +60,7 @@ const DeleteOverviewDetailButton = ({
         type="button"
         onClick={checkIfInUse}
         disabled={isLoading}
-        className="py-1 px-3 bg-red-500 hover:bg-red-600 text-white rounded-md flex items-center gap-1"
+        className="flex items-center gap-1 rounded-md bg-red-500 px-3 py-1 text-white hover:bg-red-600"
       >
         <FiTrash2 size={16} />
         <span>حذف</span>
@@ -69,37 +69,35 @@ const DeleteOverviewDetailButton = ({
       {/* Confirmation Modal */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
-          <div className="bg-gray-800 text-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+          <div className="relative w-full max-w-md rounded-lg bg-gray-800 p-6 text-white shadow-lg">
             <button
               onClick={() => setShowConfirmModal(false)}
-              className="absolute top-3 right-3 text-red-400 hover:text-red-500"
+              className="absolute right-3 top-3 text-red-400 hover:text-red-500"
               disabled={isLoading}
             >
               <IoIosClose size={35} />
             </button>
 
-            <h2 className="text-xl text-center font-bold mt-2 mb-4">
-              حذف توضیحات محصول
-            </h2>
+            <h2 className="mb-4 mt-2 text-center text-xl font-bold">حذف توضیحات محصول</h2>
 
-            <p className="text-center mb-4">
-              آیا از حذف توضیحات "{detailTitle}" اطمینان دارید؟
+            <p className="mb-4 text-center">
+              آیا از حذف توضیحات &quot;{detailTitle}&quot; اطمینان دارید؟
             </p>
 
             {inUseInfo.isInUse && (
-              <div className="bg-yellow-600 bg-opacity-30 border border-yellow-500 rounded-lg p-3 mb-4">
-                <p className="text-yellow-300 text-sm">
-                  هشدار: این توضیحات در {inUseInfo.productsCount} محصول استفاده شده است.
-                  حذف آن باعث حذف این ویژگی از تمام محصولات خواهد شد.
+              <div className="mb-4 rounded-lg border border-yellow-500 bg-yellow-600 bg-opacity-30 p-3">
+                <p className="text-sm text-yellow-300">
+                  هشدار: این توضیحات در {inUseInfo.productsCount} محصول استفاده شده است. حذف آن باعث
+                  حذف این ویژگی از تمام محصولات خواهد شد.
                 </p>
               </div>
             )}
 
-            <div className="flex gap-3 justify-center">
+            <div className="flex justify-center gap-3">
               <button
                 type="button"
                 onClick={() => setShowConfirmModal(false)}
-                className="py-2 px-4 bg-gray-600 hover:bg-gray-700 rounded-lg text-white"
+                className="rounded-lg bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
                 disabled={isLoading}
               >
                 انصراف
@@ -107,12 +105,12 @@ const DeleteOverviewDetailButton = ({
               <button
                 type="button"
                 onClick={handleDelete}
-                className="py-2 px-4 bg-red-500 hover:bg-red-600 rounded-lg text-white flex items-center gap-2"
+                className="flex items-center gap-2 rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600"
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <>
-                    <span className="animate-spin inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
                     <span>در حال حذف...</span>
                   </>
                 ) : (
@@ -130,4 +128,4 @@ const DeleteOverviewDetailButton = ({
   );
 };
 
-export default DeleteOverviewDetailButton; 
+export default DeleteOverviewDetailButton;

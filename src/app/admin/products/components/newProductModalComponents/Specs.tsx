@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { IoIosClose } from "react-icons/io";
 import { FiPlus } from "react-icons/fi";
+import { IoIosClose } from "react-icons/io";
+
 import SpecTemplateManager from "../SpecTemplateManager";
 
 type State = {
@@ -14,12 +15,7 @@ type SpecsProps = {
   hasSubmitted?: boolean; // Add a prop to know if form was submitted
 };
 
-const Specs: React.FC<SpecsProps> = ({
-  state,
-  dispatch,
-  setErrors,
-  hasSubmitted = false,
-}) => {
+const Specs: React.FC<SpecsProps> = ({ state, dispatch, setErrors, hasSubmitted = false }) => {
   const [showTemplateManager, setShowTemplateManager] = useState(false);
   const [localErrors, setLocalErrors] = useState<{ [key: string]: string }>({});
   const [touchedFields, setTouchedFields] = useState<{
@@ -27,18 +23,13 @@ const Specs: React.FC<SpecsProps> = ({
   }>({});
 
   // IMPORTANT: Validate fields with length restrictions
-  const validateField = (
-    field: "title" | "description",
-    value: string
-  ): string => {
+  const validateField = (field: "title" | "description", value: string): string => {
     if (field === "title") {
       if (!value.trim()) return "عنوان نمی‌تواند خالی باشد.";
-      if (value.length > 100)
-        return "عنوان نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.";
+      if (value.length > 100) return "عنوان نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.";
     } else if (field === "description") {
       if (!value.trim()) return "توضیحات نمی‌تواند خالی باشد.";
-      if (value.length > 200)
-        return "توضیحات نمی‌تواند بیشتر از ۲۰۰ کاراکتر باشد.";
+      if (value.length > 200) return "توضیحات نمی‌تواند بیشتر از ۲۰۰ کاراکتر باشد.";
     }
     return "";
   };
@@ -151,8 +142,7 @@ const Specs: React.FC<SpecsProps> = ({
         }
 
         if (updatedErrors[`description-${oldIndex}`]) {
-          finalErrors[`description-${newIndex}`] =
-            updatedErrors[`description-${oldIndex}`];
+          finalErrors[`description-${newIndex}`] = updatedErrors[`description-${oldIndex}`];
         }
       });
 
@@ -178,8 +168,7 @@ const Specs: React.FC<SpecsProps> = ({
         }
 
         if (updated[`description-${oldIndex}`] !== undefined) {
-          finalTouched[`description-${newIndex}`] =
-            updated[`description-${oldIndex}`];
+          finalTouched[`description-${newIndex}`] = updated[`description-${oldIndex}`];
         }
       });
 
@@ -188,11 +177,7 @@ const Specs: React.FC<SpecsProps> = ({
   };
 
   // Handle change in spec fields
-  const handleSpecChange = (
-    index: number,
-    field: "title" | "description",
-    value: string
-  ) => {
+  const handleSpecChange = (index: number, field: "title" | "description", value: string) => {
     // Mark field as touched
     setTouchedFields((prev) => ({
       ...prev,
@@ -218,9 +203,7 @@ const Specs: React.FC<SpecsProps> = ({
   };
 
   // Handle template selection
-  const handleTemplateSelect = (
-    templateSpecs: { title: string; description: string }[]
-  ) => {
+  const handleTemplateSelect = (templateSpecs: { title: string; description: string }[]) => {
     // Merge existing specs with template specs
     const newSpecs = [...state.specs, ...templateSpecs];
     dispatch({ type: "SET_SPECS", specs: newSpecs });
@@ -289,19 +272,19 @@ const Specs: React.FC<SpecsProps> = ({
       )}
 
       <div className="p-4" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">مشخصات محصول</h2>
           <div className="flex gap-2">
             <button
               type="button"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm flex items-center gap-1"
+              className="flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
               onClick={openTemplateManager}
             >
               مدیریت قالب‌ها
             </button>
             <button
               type="button"
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white text-sm flex items-center gap-1"
+              className="flex items-center gap-1 rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700"
               onClick={addSpec}
             >
               <FiPlus size={18} />
@@ -312,20 +295,16 @@ const Specs: React.FC<SpecsProps> = ({
 
         {/* Display overall validation status only after submission */}
         {hasSubmitted && hasSpecsErrors() && (
-          <div className="mb-4 p-2 bg-red-500 text-white rounded-md text-sm text-center">
+          <div className="mb-4 rounded-md bg-red-500 p-2 text-center text-sm text-white">
             لطفاً خطاهای مشخصات محصول را برطرف کنید.
           </div>
         )}
 
         <div className="space-y-4">
           {state.specs.map((spec, index) => (
-            <div
-              key={index}
-              className="flex gap-4"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div key={index} className="flex gap-4" onClick={(e) => e.stopPropagation()}>
               <div className="flex-1">
-                <label className="block mb-1 text-sm">عنوان</label>
+                <label className="mb-1 block text-sm">عنوان</label>
                 <input
                   type="text"
                   value={spec.title}
@@ -333,22 +312,18 @@ const Specs: React.FC<SpecsProps> = ({
                     e.stopPropagation();
                     handleSpecChange(index, "title", e.target.value);
                   }}
-                  className={`w-full p-2 rounded bg-gray-700 border ${
-                    shouldShowError("title", index)
-                      ? "border-red-500"
-                      : "border-gray-600"
+                  className={`w-full rounded border bg-gray-700 p-2 ${
+                    shouldShowError("title", index) ? "border-red-500" : "border-gray-600"
                   }`}
                   placeholder="مثال: وزن، ابعاد، مواد، و غیره"
                   onClick={(e) => e.stopPropagation()}
                 />
                 {shouldShowError("title", index) && (
-                  <p className="text-red-500 mt-1 text-xs">
-                    {localErrors[`title-${index}`]}
-                  </p>
+                  <p className="mt-1 text-xs text-red-500">{localErrors[`title-${index}`]}</p>
                 )}
               </div>
               <div className="flex-1">
-                <label className="block mb-1 text-sm">توضیحات</label>
+                <label className="mb-1 block text-sm">توضیحات</label>
                 <input
                   type="text"
                   value={spec.description}
@@ -356,21 +331,17 @@ const Specs: React.FC<SpecsProps> = ({
                     e.stopPropagation();
                     handleSpecChange(index, "description", e.target.value);
                   }}
-                  className={`w-full p-2 rounded bg-gray-700 border ${
-                    shouldShowError("description", index)
-                      ? "border-red-500"
-                      : "border-gray-600"
+                  className={`w-full rounded border bg-gray-700 p-2 ${
+                    shouldShowError("description", index) ? "border-red-500" : "border-gray-600"
                   }`}
                   placeholder="مثال: 100 گرم، 10×5 سانتی‌متر، فلزی، و غیره"
                   onClick={(e) => e.stopPropagation()}
                 />
                 {shouldShowError("description", index) && (
-                  <p className="text-red-500 mt-1 text-xs">
-                    {localErrors[`description-${index}`]}
-                  </p>
+                  <p className="mt-1 text-xs text-red-500">{localErrors[`description-${index}`]}</p>
                 )}
               </div>
-              <div className="flex items-end mb-1">
+              <div className="mb-1 flex items-end">
                 <button
                   type="button"
                   onClick={(e) => removeSpec(e, index)}
@@ -383,9 +354,9 @@ const Specs: React.FC<SpecsProps> = ({
           ))}
 
           {state.specs.length === 0 && (
-            <div className="text-center py-4 text-gray-400">
-              هیچ مشخصاتی وجود ندارد. لطفاً با کلیک بر روی «افزودن مشخصات» یا
-              انتخاب یک قالب، مشخصات را اضافه کنید.
+            <div className="py-4 text-center text-gray-400">
+              هیچ مشخصاتی وجود ندارد. لطفاً با کلیک بر روی «افزودن مشخصات» یا انتخاب یک قالب، مشخصات
+              را اضافه کنید.
             </div>
           )}
         </div>

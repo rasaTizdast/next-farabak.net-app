@@ -1,12 +1,12 @@
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-
+import { notFound } from "next/navigation";
 import { FaPhoneAlt, FaWhatsapp } from "react-icons/fa";
 
-import styles from "./MemberPage.module.css";
-import { notFound } from "next/navigation";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+
+import styles from "./MemberPage.module.css";
 
 type Props = {
   params: Promise<{
@@ -15,12 +15,9 @@ type Props = {
 };
 
 const getMemberData = async (slug: string) => {
-  const response = await fetch(
-    `${process.env.BASE_URL}/api/members/memberPage/${slug}`,
-    {
-      next: { revalidate: 120 },
-    }
-  );
+  const response = await fetch(`${process.env.BASE_URL}/api/members/memberPage/${slug}`, {
+    next: { revalidate: 120 },
+  });
 
   if (!response.ok) {
     return null;
@@ -74,7 +71,7 @@ const MemberPage = async (props: Props) => {
           {desc ? (
             <p>{desc}</p>
           ) : (
-            <p className="p-3 bg-blue-100 w-full text-center rounded-lg">
+            <p className="w-full rounded-lg bg-blue-100 p-3 text-center">
               برای این عضو اطلاعاتی یافت نشد، مجددا بعدا تلاش کنید
             </p>
           )}
@@ -89,7 +86,7 @@ const MemberPage = async (props: Props) => {
               quality={100}
             />
           ) : (
-            <div className="h-96 w-full p-3 bg-blue-100 rounded-lg flex items-center justify-center">
+            <div className="flex h-96 w-full items-center justify-center rounded-lg bg-blue-100 p-3">
               تصویری برای این عضو یافت نشد
             </div>
           )}

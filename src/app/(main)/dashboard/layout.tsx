@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { Metadata } from "next";
+
 import DashboardLayoutContent from "./DashboardLayoutContent";
 
 export const metadata: Metadata = {

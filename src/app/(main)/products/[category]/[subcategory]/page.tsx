@@ -1,17 +1,16 @@
+import axios from "axios";
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
+
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
-import axios from "axios";
-import { notFound } from "next/navigation";
 
 interface SubcategoryPageProps {
   params: Promise<{ category: string; subcategory: string }>;
 }
 
 // Generate metadata for SEO
-export const generateMetadata = async (
-  props: SubcategoryPageProps
-): Promise<Metadata> => {
+export const generateMetadata = async (props: SubcategoryPageProps): Promise<Metadata> => {
   const params = await props.params;
   const subCategoryName = params.subcategory;
 
@@ -31,12 +30,11 @@ export const generateMetadata = async (
     const { seoDetails } = res.data;
 
     return {
-      title:
-        seoDetails.SEO_Title || `محصولات دسته‌بندی ${subCategoryName} | فرابک`,
-      description:
-        seoDetails.SEO_Description || `محصولات دسته‌بندی ${subCategoryName}`,
+      title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${subCategoryName} | فرابک`,
+      description: seoDetails.SEO_Description || `محصولات دسته‌بندی ${subCategoryName}`,
     };
   } catch (error) {
+    console.error(error);
     return {
       title: "دسته بندی یافت نشد!",
       description: "دسته بندی مورد نظر یافت نشد!",
@@ -63,6 +61,7 @@ const SubcategoryPage = async (props: SubcategoryPageProps) => {
 
     subCategoryTitle = res.data.subCategoryName;
   } catch (error) {
+    console.error(error);
     notFound();
   }
 

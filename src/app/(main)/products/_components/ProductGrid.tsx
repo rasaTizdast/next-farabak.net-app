@@ -1,8 +1,10 @@
 // src/app/(main)/products/_components/ProductGrid.tsx
 
 import { Suspense } from "react";
-import { GridContentServer } from "./GridContentServer"; // Server component for products
+
 import SkeletonLoader from "@/app/_components/ui/SkeletonLoader";
+
+import { GridContentServer } from "./GridContentServer"; // Server component for products
 import styles from "./ProductGrid.module.css";
 
 interface ProductGridProps {

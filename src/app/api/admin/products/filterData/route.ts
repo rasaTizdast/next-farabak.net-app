@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -76,19 +77,15 @@ export async function GET() {
     const formattedCategories = categories.map((category: Category) => ({
       CategoryID: category.CategoryID,
       Name: category.Name,
-      subCategories: category.CategoryContent.map(
-        (subCategory: CategoryContent) => ({
-          CategoryContentID: subCategory.CategoryContentId,
-          Name: subCategory.Name,
-        })
-      ),
+      subCategories: category.CategoryContent.map((subCategory: CategoryContent) => ({
+        CategoryContentID: subCategory.CategoryContentId,
+        Name: subCategory.Name,
+      })),
     }));
 
     return NextResponse.json({ categories: formattedCategories });
   } catch (error) {
-    return NextResponse.json(
-      { message: "Internal Server Error" },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }

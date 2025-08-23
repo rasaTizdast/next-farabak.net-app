@@ -1,18 +1,18 @@
-import { useState, useEffect } from "react";
-import { usePrint } from "@/app/utils/usePrint";
-import PrintButton from "@/app/components/ui/PrintButton";
-import { ExpandedInvoiceItem } from "./BranchInvoiceDetailsModal";
 import { Spin } from "antd";
+import Image from "next/image";
+import { useState, useEffect } from "react";
+
+import PrintButton from "@/app/components/ui/PrintButton";
+import { usePrint } from "@/app/utils/usePrint";
+
+import { ExpandedInvoiceItem } from "./BranchInvoiceDetailsModal";
 
 type BranchWarrantyViewModalProps = {
   item: ExpandedInvoiceItem;
   onClose: () => void;
 };
 
-const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({
-  item,
-  onClose,
-}) => {
+const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item, onClose }) => {
   // Use the print hook for printing
   const { componentRef, handlePrint } = usePrint();
   const [branchName, setBranchName] = useState<string>("");
@@ -68,10 +68,7 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({
             setBranchName("خطا در پردازش پاسخ");
           }
         } else {
-          console.error(
-            "Failed to fetch branch name, status:",
-            response.status
-          );
+          console.error("Failed to fetch branch name, status:", response.status);
           setBranchName("خطا در دریافت اطلاعات شعبه");
         }
       } catch (error) {
@@ -196,33 +193,28 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
       onClick={(e) => e.stopPropagation()}
     >
-      <div
-        className="bg-slate-900 rounded-lg w-full max-w-md"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-6 border-b border-slate-700">
-          <h2 className="text-xl font-bold text-white text-center">
-            مشاهده گارانتی
-          </h2>
+      <div className="w-full max-w-md rounded-lg bg-slate-900" onClick={(e) => e.stopPropagation()}>
+        <div className="border-b border-slate-700 p-6">
+          <h2 className="text-center text-xl font-bold text-white">مشاهده گارانتی</h2>
         </div>
 
         {/* Main form view - only visible when not printing */}
         <div className={showPrintView ? "hidden" : ""}>
-          <div className="p-6 space-y-4">
+          <div className="space-y-4 p-6">
             <div className="space-y-2 text-right">
               <label
                 htmlFor="productName"
-                className="block text-sm font-medium text-gray-300 no-print"
+                className="no-print block text-sm font-medium text-gray-300"
               >
                 محصول
               </label>
               <input
                 type="text"
                 id="productName"
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 text-white disabled:opacity-70 text-right no-print"
+                className="no-print w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70"
                 value={item.Name || `محصول #${item.ProductId}`}
                 disabled
                 readOnly
@@ -236,7 +228,7 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({
             <div className="space-y-2 text-right">
               <label
                 htmlFor="warrantycode"
-                className="block text-sm font-medium text-gray-300 no-print"
+                className="no-print block text-sm font-medium text-gray-300"
               >
                 کد گارانتی
               </label>
@@ -244,21 +236,20 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({
                 type="text"
                 id="warrantycode"
                 name="warrantycode"
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 text-white disabled:bg-slate-700 text-right no-print"
+                className="no-print w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:bg-slate-700"
                 value={warranty.warrantycode || "بدون گارانتی"}
                 disabled
                 readOnly
               />
               <div className="print-only">
-                <span className="font-semibold">کد گارانتی:</span>{" "}
-                {warranty.warrantycode}
+                <span className="font-semibold">کد گارانتی:</span> {warranty.warrantycode}
               </div>
             </div>
 
             <div className="space-y-2 text-right">
               <label
                 htmlFor="branchname"
-                className="block text-sm font-medium text-gray-300 no-print"
+                className="no-print block text-sm font-medium text-gray-300"
               >
                 شعبه مسئول گارانتی
               </label>
@@ -267,35 +258,31 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({
                   type="text"
                   id="branchname"
                   name="branchname"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 text-white disabled:bg-slate-700 text-right no-print"
+                  className="no-print w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:bg-slate-700"
                   value={loading ? "در حال بارگذاری..." : displayBranchName}
                   disabled
                   readOnly
                 />
                 {loading && (
-                  <div className="absolute top-1/2 transform -translate-y-1/2 left-3">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 transform">
                     <Spin size="small" />
                   </div>
                 )}
               </div>
               <div className="print-only">
-                <span className="font-semibold">شعبه مسئول:</span>{" "}
-                {displayBranchName}
+                <span className="font-semibold">شعبه مسئول:</span> {displayBranchName}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 no-print">
+            <div className="no-print grid grid-cols-2 gap-4">
               <div className="space-y-2 text-right">
-                <label
-                  htmlFor="startdate"
-                  className="block text-sm font-medium text-gray-300"
-                >
+                <label htmlFor="startdate" className="block text-sm font-medium text-gray-300">
                   تاریخ شروع
                 </label>
                 <input
                   type="text"
                   id="startdate"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 text-white disabled:opacity-70 text-right"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70"
                   value={formatDate(warranty.startdate)}
                   disabled
                   readOnly
@@ -303,16 +290,13 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({
               </div>
 
               <div className="space-y-2 text-right">
-                <label
-                  htmlFor="expirydate"
-                  className="block text-sm font-medium text-gray-300"
-                >
+                <label htmlFor="expirydate" className="block text-sm font-medium text-gray-300">
                   تاریخ انقضا
                 </label>
                 <input
                   type="text"
                   id="expirydate"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 text-white disabled:opacity-70 text-right"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70"
                   value={formatDate(warranty.expirydate)}
                   disabled
                   readOnly
@@ -321,34 +305,34 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({
             </div>
 
             <div className="print-only">
-              <div className="flex justify-between items-center border-b border-gray-200 py-1">
+              <div className="flex items-center justify-between border-b border-gray-200 py-1">
                 <span className="font-semibold">تاریخ شروع:</span>
                 <span dir="ltr">{formatDate(warranty.startdate)}</span>
               </div>
-              <div className="flex justify-between items-center border-b border-gray-200 py-1">
+              <div className="flex items-center justify-between border-b border-gray-200 py-1">
                 <span className="font-semibold">تاریخ انقضا:</span>
                 <span dir="ltr">{formatDate(warranty.expirydate)}</span>
               </div>
-              <div className="flex justify-between items-center py-1">
+              <div className="flex items-center justify-between py-1">
                 <span className="font-semibold">مدت گارانتی:</span>
                 <span>{durationText}</span>
               </div>
             </div>
 
-            <div className="text-center mt-4 no-print">
-              <span className="text-gray-300 text-xs">وضعیت گارانتی: </span>
+            <div className="no-print mt-4 text-center">
+              <span className="text-xs text-gray-300">وضعیت گارانتی: </span>
               {!hasValidWarranty ? (
-                <span className="text-amber-400 text-xs">بدون گارانتی</span>
+                <span className="text-xs text-amber-400">بدون گارانتی</span>
               ) : isExpired ? (
-                <span className="text-red-400 text-xs">منقضی شده</span>
+                <span className="text-xs text-red-400">منقضی شده</span>
               ) : (
-                <span className="text-green-400 text-xs">فعال</span>
+                <span className="text-xs text-green-400">فعال</span>
               )}
             </div>
 
             {durationText && hasValidWarranty && (
               <div
-                className={`text-center p-2 rounded mt-2 no-print ${
+                className={`no-print mt-2 rounded p-2 text-center ${
                   durationText.includes("باید") || durationText.includes("خطا")
                     ? "bg-red-900/40 text-red-300"
                     : "bg-blue-900/40 text-blue-300"
@@ -359,18 +343,18 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({
             )}
           </div>
 
-          <div className="flex justify-between gap-4 p-6 no-print">
+          <div className="no-print flex justify-between gap-4 p-6">
             {hasValidWarranty && (
               <PrintButton
                 onPrint={handleWarrantyPrint}
-                className="px-3 py-2 bg-green-700 hover:bg-green-600 text-white rounded-lg text-sm flex gap-2 items-center"
+                className="flex items-center gap-2 rounded-lg bg-green-700 px-3 py-2 text-sm text-white hover:bg-green-600"
               />
             )}
 
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white ml-auto"
+              className="ml-auto rounded-lg bg-gray-700 px-4 py-2 text-white hover:bg-gray-600"
             >
               بستن
             </button>
@@ -384,8 +368,8 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({
           dir="rtl"
         >
           <div className="warranty-certificate">
-            <div className="text-center mb-1">
-              <img
+            <div className="mb-1 text-center">
+              <Image
                 src="/Farabak_Logo.webp"
                 alt="Farabak Logo"
                 width={100}
@@ -396,39 +380,37 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({
             </div>
 
             <div className="mt-1">
-              <div className="flex justify-between items-center border-b border-gray-200">
-                <span className="font-semibold text-sm">کد گارانتی:</span>
+              <div className="flex items-center justify-between border-b border-gray-200">
+                <span className="text-sm font-semibold">کد گارانتی:</span>
                 <span className="text-sm">{warranty.warrantycode}</span>
               </div>
 
-              <div className="flex justify-between items-center border-b border-gray-200">
-                <span className="font-semibold text-sm">محصول:</span>
-                <span className="text-sm">
-                  {item.Name || `محصول #${item.ProductId}`}
-                </span>
+              <div className="flex items-center justify-between border-b border-gray-200">
+                <span className="text-sm font-semibold">محصول:</span>
+                <span className="text-sm">{item.Name || `محصول #${item.ProductId}`}</span>
               </div>
 
-              <div className="flex justify-between items-center border-b border-gray-200">
-                <span className="font-semibold text-sm">تاریخ شروع:</span>
+              <div className="flex items-center justify-between border-b border-gray-200">
+                <span className="text-sm font-semibold">تاریخ شروع:</span>
                 <span className="text-sm" dir="ltr">
                   {formatDate(warranty.startdate)}
                 </span>
               </div>
 
-              <div className="flex justify-between items-center border-b border-gray-200">
-                <span className="font-semibold text-sm">تاریخ انقضا:</span>
+              <div className="flex items-center justify-between border-b border-gray-200">
+                <span className="text-sm font-semibold">تاریخ انقضا:</span>
                 <span className="text-sm" dir="ltr">
                   {formatDate(warranty.expirydate)}
                 </span>
               </div>
 
-              <div className="flex justify-between items-center">
-                <span className="font-semibold text-sm">مدت گارانتی:</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold">مدت گارانتی:</span>
                 <span className="text-sm">{durationText}</span>
               </div>
             </div>
 
-            <div className="text-xs text-center border-t border-gray-200 mt-2 pt-1">
+            <div className="mt-2 border-t border-gray-200 pt-1 text-center text-xs">
               <p>www.farabak.net</p>
             </div>
           </div>

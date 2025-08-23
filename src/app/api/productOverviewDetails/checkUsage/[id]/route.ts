@@ -1,12 +1,9 @@
-import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-export async function GET(
-  req: Request,
-  props: { params: Promise<{ id: string }> }
-) {
+export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   try {
     const detailId = parseInt(params.id);
@@ -28,10 +25,7 @@ export async function GET(
     });
   } catch (error) {
     console.error("Error checking overview detail usage:", error);
-    return NextResponse.json(
-      { error: "Failed to check overview detail usage" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to check overview detail usage" }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }

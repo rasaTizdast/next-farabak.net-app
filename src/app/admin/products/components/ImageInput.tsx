@@ -7,11 +7,7 @@ interface ImageInputProps {
   onChange: (file: File) => void;
 }
 
-const ImageInput: React.FC<ImageInputProps> = ({
-  label,
-  imageUrl,
-  onChange,
-}) => {
+const ImageInput: React.FC<ImageInputProps> = ({ label, imageUrl, onChange }) => {
   const [preview, setPreview] = useState(imageUrl);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,7 +21,7 @@ const ImageInput: React.FC<ImageInputProps> = ({
   return (
     <div className="flex flex-col gap-2">
       <div>{label}</div>
-      <div className="relative w-full h-64">
+      <div className="relative h-64 w-full">
         {/* Image */}
         <Image
           width={1920}
@@ -33,19 +29,14 @@ const ImageInput: React.FC<ImageInputProps> = ({
           quality={100}
           src={preview}
           alt="Upload"
-          className="w-full h-full object-contain rounded-lg bg-gray-900 transition-all"
+          className="h-full w-full rounded-lg bg-gray-900 object-contain transition-all"
         />
 
         {/* Hover overlay */}
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-all duration-300 rounded-lg">
-          <label className="cursor-pointer text-white px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-700 transition-all">
+        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black bg-opacity-50 opacity-0 transition-all duration-300 hover:opacity-100">
+          <label className="cursor-pointer rounded-md bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-700">
             آپلود عکس
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileChange}
-            />
+            <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
           </label>
         </div>
       </div>

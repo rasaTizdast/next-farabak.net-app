@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { jwtVerify, SignJWT } from "jose"; // Using jose for JWT handling
+import { NextResponse } from "next/server";
 
 /**
  * Interface for the decoded token payload.
@@ -10,8 +10,7 @@ interface DecodedToken {
   role: string;
 }
 
-const REFRESH_TOKEN_SECRET =
-  process.env.REFRESH_TOKEN_SECRET || "your_refresh_token_secret";
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "your_refresh_token_secret";
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
 // Token expiration times (in seconds)
@@ -24,10 +23,7 @@ const ACCESS_TOKEN_EXPIRATION = 15 * 60; // 15 minutes
  * @param {Uint8Array} secret - The secret key to verify the token.
  * @returns {Promise<DecodedToken>} - A promise that resolves with the decoded token or rejects with an error.
  */
-async function verifyToken(
-  token: string,
-  secret: Uint8Array
-): Promise<DecodedToken> {
+async function verifyToken(token: string, secret: Uint8Array): Promise<DecodedToken> {
   try {
     const { payload } = await jwtVerify(token, secret);
 
@@ -128,6 +124,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       const body = await request.json();
       refreshToken = body.refreshToken;
     } catch (e) {
+      console.error(e);
       // If request body parsing fails, check for refresh token in cookies
       const cookies = request.headers.get("cookie");
       if (cookies) {
@@ -142,10 +139,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     if (!refreshToken) {
-      return NextResponse.json(
-        { message: "توکن بازیابی الزامی است" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "توکن بازیابی الزامی است" }, { status: 400 });
     }
 
     // Decode the refresh token using jose
@@ -156,10 +150,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         new TextEncoder().encode(REFRESH_TOKEN_SECRET)
       );
     } catch (error) {
-      return NextResponse.json(
-        { message: (error as Error).message },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: (error as Error).message }, { status: 401 });
     }
 
     // Generate a new access token
@@ -194,9 +185,6 @@ export async function POST(request: Request): Promise<NextResponse> {
     return response;
   } catch (error) {
     console.error("خطا در بازیابی توکن:", error);
-    return NextResponse.json(
-      { message: "خطای داخلی سرور", success: false },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "خطای داخلی سرور", success: false }, { status: 500 });
   }
 }

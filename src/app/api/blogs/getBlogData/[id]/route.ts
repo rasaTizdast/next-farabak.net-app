@@ -68,9 +68,6 @@ export async function GET(req: Request, props: { params: Promise<{ id: number }>
     return NextResponse.json(response);
   } catch (error) {
     console.error("خطا در دریافت جزئیات مقاله:", error);
-    return NextResponse.json(
-      { message: "خطای داخلی سرور" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
   }
 }

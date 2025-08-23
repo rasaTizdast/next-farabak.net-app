@@ -84,8 +84,7 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
   const validateField = (value: string) => {
     let error = "";
     if (!value.trim()) error = "ویژگی نمی‌تواند خالی باشد.";
-    else if (value.length > 300)
-      error = "ویژگی نمی‌تواند بیشتر از ۳۰۰ کاراکتر باشد.";
+    else if (value.length > 300) error = "ویژگی نمی‌تواند بیشتر از ۳۰۰ کاراکتر باشد.";
     return error;
   };
 
@@ -137,31 +136,25 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
 
   return (
     <div className="mb-6 p-4">
-      <div
-        className={`${localFeatures.length ? "mb-10 flex flex-col gap-5" : ""}`}
-      >
+      <div className={`${localFeatures.length ? "mb-10 flex flex-col gap-5" : ""}`}>
         {localFeatures.map((feature, index) => (
           <div key={index} className="flex items-center gap-4">
             <input
               type="text"
               value={feature}
               onChange={(e) => handleFeatureChange(index, e.target.value)}
-              className={`w-full p-3 rounded-lg bg-gray-700 border ${
-                localErrors[`feature-${index}`]
-                  ? "border-red-500"
-                  : "border-gray-300"
+              className={`w-full rounded-lg border bg-gray-700 p-3 ${
+                localErrors[`feature-${index}`] ? "border-red-500" : "border-gray-300"
               }`}
               placeholder={`ویژگی ${index + 1}`}
             />
             {localErrors[`feature-${index}`] && (
-              <p className="text-red-500 mt-1">
-                {localErrors[`feature-${index}`]}
-              </p>
+              <p className="mt-1 text-red-500">{localErrors[`feature-${index}`]}</p>
             )}
             <button
               type="button"
               onClick={() => handleFeatureRemove(index)}
-              className="text-red-500 hover:text-red-600 transition-all"
+              className="text-red-500 transition-all hover:text-red-600"
             >
               <FaTrashAlt size={20} />
             </button>
@@ -169,14 +162,12 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
         ))}
       </div>
       {localFeatures.length === 0 && (
-        <div className="text-red-500 mb-4 text-center">
-          حداقل یک ویژگی الزامی است
-        </div>
+        <div className="mb-4 text-center text-red-500">حداقل یک ویژگی الزامی است</div>
       )}
       <button
         type="button"
         onClick={handleFeatureAdd}
-        className="bg-blue-600 text-white py-2 px-4 w-full rounded-md hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-700"
+        className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-700"
         disabled={localFeatures.length >= 4}
       >
         افزودن ویژگی جدید

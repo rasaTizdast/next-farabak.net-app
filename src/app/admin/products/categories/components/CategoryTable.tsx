@@ -1,42 +1,26 @@
-import React, { useState, useMemo } from "react";
-import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import axios from "axios";
+import React, { useState, useMemo } from "react";
 import toast from "react-hot-toast";
+import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 
-import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import CategoryRow from "./CategoryRow";
-import SubcategoryRow from "./SubcategoryRow";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import EditModal from "./EditModal";
+import SubcategoryRow from "./SubcategoryRow";
+import { Category, CategoryTableProps, SortKey, Subcategory } from "../types/types";
 
-import {
-  Category,
-  CategoryTableProps,
-  SortKey,
-  Subcategory,
-} from "../types/types";
-
-const CategoryTable = ({
-  categories,
-  isLoading,
-  refetchCategories,
-}: CategoryTableProps) => {
+const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTableProps) => {
   const [sortConfig, setSortConfig] = useState<{
     key: SortKey;
     direction: "ascending" | "descending";
   }>({ key: "Name", direction: "ascending" });
 
-  const [expandedCategories, setExpandedCategories] = useState<Set<number>>(
-    new Set()
-  );
-  const [editCategory, setEditCategory] = useState<
-    Category | Subcategory | null
-  >(null);
+  const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
+  const [editCategory, setEditCategory] = useState<Category | Subcategory | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  const [deleteItem, setDeleteItem] = useState<Category | Subcategory | null>(
-    null
-  );
+  const [deleteItem, setDeleteItem] = useState<Category | Subcategory | null>(null);
   const [confirmationText, setConfirmationText] = useState(""); // State for the confirmation input
 
   // Sorting function
@@ -58,9 +42,7 @@ const CategoryTable = ({
     setSortConfig((prevConfig) => ({
       key,
       direction:
-        prevConfig.key === key && prevConfig.direction === "ascending"
-          ? "descending"
-          : "ascending",
+        prevConfig.key === key && prevConfig.direction === "ascending" ? "descending" : "ascending",
     }));
   };
 
@@ -76,10 +58,7 @@ const CategoryTable = ({
     });
   };
 
-  const handleEditClick = (
-    item: Category | Subcategory,
-    e: React.MouseEvent
-  ) => {
+  const handleEditClick = (item: Category | Subcategory, e: React.MouseEvent) => {
     e.stopPropagation();
     setEditCategory(item);
     setIsEditModalOpen(true); // Open the edit modal
@@ -104,28 +83,24 @@ const CategoryTable = ({
       return;
     }
 
-    const isCategoryItem =
-      "CategoryID" in deleteItem && !("CategoryContentId" in deleteItem);
+    const isCategoryItem = "CategoryID" in deleteItem && !("CategoryContentId" in deleteItem);
 
     const requestBody = {
       categoryId: isCategoryItem ? deleteItem.CategoryID : undefined,
-      subCategoryId: !isCategoryItem
-        ? deleteItem.CategoryContentId.toString()
-        : undefined,
+      subCategoryId: !isCategoryItem ? deleteItem.CategoryContentId.toString() : undefined,
     };
 
     try {
       await axios.delete("/api/categories/delete", { data: requestBody });
       toast.success(
-        `${
-          isCategoryItem ? "دسته‌بندی" : "زیرمجموعه"
-        } با موفقیت حذف شد، و محصولات مرتبط پاک شدند.`
+        `${isCategoryItem ? "دسته‌بندی" : "زیرمجموعه"} با موفقیت حذف شد، و محصولات مرتبط پاک شدند.`
       );
       refetchCategories();
       setDeleteItem(null); // Reset the delete item state
       setIsDeleteModalOpen(false); // Close the modal
       setConfirmationText(""); // Clear the confirmation text
     } catch (error) {
+      console.error(error);
       toast.error("خطا در حذف، لطفاً دوباره تلاش کنید.");
     }
   };
@@ -138,7 +113,7 @@ const CategoryTable = ({
     sortKey: SortKey;
   }) => (
     <th
-      className="px-6 py-3 text-gray-300 hover:text-gray-100 transition-colors"
+      className="px-6 py-3 text-gray-300 transition-colors hover:text-gray-100"
       onClick={() => handleSort(sortKey)}
     >
       <div className="flex items-center justify-center gap-2">
@@ -156,10 +131,10 @@ const CategoryTable = ({
 
   return (
     <>
-      <div className="flex flex-col items-center mt-10 p-4">
+      <div className="mt-10 flex flex-col items-center p-4">
         <div className="w-full max-w-[1800px] overflow-auto rounded-lg">
-          <table className="w-full table-auto overflow-hidden rounded-xl text-xs lg:text-sm text-center text-gray-100 border-spacing-0 border-collapse whitespace-nowrap">
-            <thead className="text-gray-100 uppercase bg-slate-900">
+          <table className="w-full table-auto border-collapse border-spacing-0 overflow-hidden whitespace-nowrap rounded-xl text-center text-xs text-gray-100 lg:text-sm">
+            <thead className="bg-slate-900 uppercase text-gray-100">
               <tr>
                 <SortableHeader sortKey="Name">دسته بندی</SortableHeader>
                 <SortableHeader sortKey="Slug">شناسه</SortableHeader>
@@ -173,10 +148,10 @@ const CategoryTable = ({
               {isLoading
                 ? [...Array(20)].map((_, index) => (
                     <tr key={index} className="animate-pulse">
-                      <td className="px-6 py-4 bg-slate-700"></td>
-                      <td className="px-6 py-4 bg-slate-700"></td>
-                      <td className="px-6 py-4 bg-slate-700"></td>
-                      <td className="px-6 py-4 bg-slate-700"></td>
+                      <td className="bg-slate-700 px-6 py-4"></td>
+                      <td className="bg-slate-700 px-6 py-4"></td>
+                      <td className="bg-slate-700 px-6 py-4"></td>
+                      <td className="bg-slate-700 px-6 py-4"></td>
                     </tr>
                   ))
                 : sortedCategories.map((category, index) => (

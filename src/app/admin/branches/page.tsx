@@ -2,22 +2,24 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useRef, Suspense } from "react";
-import { Button, Form, message, Input, AutoComplete, Tabs, Card } from "antd";
 import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
+import { Button, Form, message, Input, AutoComplete, Tabs, Card } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Branch, User, Product } from "./components/types";
+import { useState, useEffect, useRef, Suspense } from "react";
+
+import { useUser } from "@/context/UserContext";
+
 import BranchTable from "./components/BranchTable";
 import CreateBranchModal from "./components/CreateBranchModal";
 import EditBranchModal from "./components/EditBranchModal";
-import ProductDrawer from "./components/ProductDrawer";
-import LoadingSkeleton from "./components/LoadingSkeleton";
-import Styles from "./components/Styles";
 import InvoiceModal from "./components/invoice/InvoiceModal";
+import LoadingSkeleton from "./components/LoadingSkeleton";
+import ProductDrawer from "./components/ProductDrawer";
 import ProductSearchSummary from "./components/ProductSearchSummary";
-import WarrantyStats from "./components/WarrantyStats";
+import Styles from "./components/Styles";
+import { Branch, User, Product } from "./components/types";
 import WarrantyRequests from "./components/WarrantyRequests";
-import { useUser } from "@/context/UserContext";
+import WarrantyStats from "./components/WarrantyStats";
 
 const { TabPane } = Tabs;
 
@@ -144,8 +146,7 @@ function BranchesPageContent() {
 
   // Store the fetchBranches function in the ref to use in the interval
   useEffect(() => {
-    fetchBranchesRef.current = () =>
-      fetchBranches(pagination.current, pagination.pageSize);
+    fetchBranchesRef.current = () => fetchBranches(pagination.current, pagination.pageSize);
   }, [searchProductId, pagination.current, pagination.pageSize]);
 
   const fetchUsers = async () => {
@@ -198,9 +199,7 @@ function BranchesPageContent() {
       const pageSize = 100; // Fetch more per page
 
       while (hasMorePages) {
-        const response = await fetch(
-          `/api/admin/products?page=${currentPage}&limit=${pageSize}`
-        );
+        const response = await fetch(`/api/admin/products?page=${currentPage}&limit=${pageSize}`);
 
         if (!response.ok) {
           break;
@@ -262,8 +261,8 @@ function BranchesPageContent() {
         responseData.data && Array.isArray(responseData.data)
           ? responseData.data
           : Array.isArray(responseData)
-          ? responseData
-          : [];
+            ? responseData
+            : [];
 
       setProducts(productsArray);
     } catch (error) {
@@ -310,16 +309,13 @@ function BranchesPageContent() {
     if (!currentBranch) return;
 
     try {
-      const response = await fetch(
-        `/api/admin/branches/${currentBranch.branchid}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
-        }
-      );
+      const response = await fetch(`/api/admin/branches/${currentBranch.branchid}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -372,19 +368,16 @@ function BranchesPageContent() {
     if (!currentBranch || !selectedProduct) return;
 
     try {
-      const response = await fetch(
-        `/api/admin/branches/${currentBranch.branchid}/products`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            productId: selectedProduct,
-            quantity: productQuantity,
-          }),
-        }
-      );
+      const response = await fetch(`/api/admin/branches/${currentBranch.branchid}/products`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productId: selectedProduct,
+          quantity: productQuantity,
+        }),
+      });
 
       if (!response.ok) throw new Error("خطا در افزودن محصول");
 
@@ -404,10 +397,7 @@ function BranchesPageContent() {
     }
   };
 
-  const handleUpdateProductQuantity = async (
-    productId: number,
-    quantity: number
-  ) => {
+  const handleUpdateProductQuantity = async (productId: number, quantity: number) => {
     if (!currentBranch) return;
 
     try {
@@ -482,16 +472,13 @@ function BranchesPageContent() {
 
     // Try to find an exact match first
     let foundProduct = allProducts.find(
-      (product) =>
-        product.Type && product.Type.toLowerCase() === value.toLowerCase()
+      (product) => product.Type && product.Type.toLowerCase() === value.toLowerCase()
     );
 
     // If no exact match, try a partial match
     if (!foundProduct) {
       foundProduct = allProducts.find(
-        (product) =>
-          product.Type &&
-          product.Type.toLowerCase().includes(value.toLowerCase())
+        (product) => product.Type && product.Type.toLowerCase().includes(value.toLowerCase())
       );
     }
 
@@ -515,9 +502,9 @@ function BranchesPageContent() {
       return allProducts.map((product) => ({
         value: product.Type || "",
         label: (
-          <div className="flex justify-between items-center">
-            <span className="text-white font-medium">{product.Type}</span>
-            <span className="text-blue-300 text-xs bg-blue-900/30 px-2 py-0.5 rounded-md">
+          <div className="flex items-center justify-between">
+            <span className="font-medium text-white">{product.Type}</span>
+            <span className="rounded-md bg-blue-900/30 px-2 py-0.5 text-xs text-blue-300">
               کد: {product.ProductId}
             </span>
           </div>
@@ -529,16 +516,13 @@ function BranchesPageContent() {
 
     // Don't filter too strictly, show any product that contains the search text
     return allProducts
-      .filter(
-        (product) =>
-          product.Type && product.Type.toLowerCase().includes(lowerCaseSearch)
-      )
+      .filter((product) => product.Type && product.Type.toLowerCase().includes(lowerCaseSearch))
       .map((product) => ({
         value: product.Type,
         label: (
-          <div className="flex justify-between items-center">
-            <span className="text-white font-medium">{product.Type}</span>
-            <span className="text-blue-300 text-xs bg-blue-900/30 px-2 py-0.5 rounded-md">
+          <div className="flex items-center justify-between">
+            <span className="font-medium text-white">{product.Type}</span>
+            <span className="rounded-md bg-blue-900/30 px-2 py-0.5 text-xs text-blue-300">
               کد: {product.ProductId}
             </span>
           </div>
@@ -552,19 +536,19 @@ function BranchesPageContent() {
 
   return (
     <div
-      className="bg-gray-950 rounded-lg text-white p-4 sm:p-6 space-y-6"
+      className="space-y-6 rounded-lg bg-gray-950 p-4 text-white sm:p-6"
       style={{ direction: "rtl" }}
     >
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold">مدیریت شعبه‌ها</h1>
-          <p className="text-gray-400 text-sm">
+          <h1 className="text-xl font-bold sm:text-2xl">مدیریت شعبه‌ها</h1>
+          <p className="text-sm text-gray-400">
             از اینجا می‌توانید شعبه‌ها و محصولات آنها را مدیریت کنید
           </p>
         </div>
 
         {/* Search and Add Branch Controls */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+        <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
           <div className="relative w-full sm:w-72">
             <AutoComplete
               placeholder="جستجوی محصول در شعبه‌ها..."
@@ -591,7 +575,7 @@ function BranchesPageContent() {
               filterOption={false}
             >
               <Input
-                className="search-input bg-[#1e293b] text-white border-[#384152] hover:border-[#4b5563] pl-12"
+                className="search-input border-[#384152] bg-[#1e293b] pl-12 text-white hover:border-[#4b5563]"
                 style={{
                   height: "32px",
                   direction: "rtl",
@@ -611,7 +595,7 @@ function BranchesPageContent() {
                   clearSearch();
                 }
               }}
-              className="absolute left-0 top-0 h-full bg-blue-600 hover:bg-blue-700 border-0 rounded-r-none rounded-l-md flex items-center justify-center"
+              className="absolute left-0 top-0 flex h-full items-center justify-center rounded-l-md rounded-r-none border-0 bg-blue-600 hover:bg-blue-700"
               style={{ width: "40px" }}
             />
           </div>
@@ -620,31 +604,27 @@ function BranchesPageContent() {
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => setModalVisible(true)}
-            className="bg-blue-600 hover:bg-blue-700 border-blue-700 w-full sm:w-auto"
+            className="w-full border-blue-700 bg-blue-600 hover:bg-blue-700 sm:w-auto"
           >
             ایجاد شعبه
           </Button>
         </div>
       </div>
       {/* Product Search Summary if search is active */}
-      {searchProductId &&
-        allProducts.length > 0 &&
-        !initialLoading &&
-        !loading && (
-          <ProductSearchSummary
-            productName={
-              allProducts.find((p) => p.ProductId === searchProductId)?.Type ||
-              "محصول نامشخص"
-            }
-            productId={searchProductId}
-            branches={branches}
-            clearSearch={clearSearch}
-            totalBranchCount={totalBranchCount}
-          />
-        )}
+      {searchProductId && allProducts.length > 0 && !initialLoading && !loading && (
+        <ProductSearchSummary
+          productName={
+            allProducts.find((p) => p.ProductId === searchProductId)?.Type || "محصول نامشخص"
+          }
+          productId={searchProductId}
+          branches={branches}
+          clearSearch={clearSearch}
+          totalBranchCount={totalBranchCount}
+        />
+      )}
       <Tabs
         activeKey={activeTab}
-        className="mt-4 branches-tabs"
+        className="branches-tabs mt-4"
         onChange={(key) => {
           setActiveTab(key);
 
@@ -656,12 +636,9 @@ function BranchesPageContent() {
           }
         }}
       >
-        <TabPane
-          tab={<span className="tab-label">شعبه‌ها</span>}
-          key="branches"
-        >
+        <TabPane tab={<span className="tab-label">شعبه‌ها</span>} key="branches">
           {/* Branches Table */}
-          <div className="bg-gray-800 rounded-lg shadow overflow-hidden">
+          <div className="overflow-hidden rounded-lg bg-gray-800 shadow">
             <BranchTable
               branches={branches}
               loading={loading || refreshing}
@@ -687,17 +664,14 @@ function BranchesPageContent() {
           </div>
         </TabPane>
 
-        <TabPane
-          tab={<span className="tab-label">آمار گارانتی</span>}
-          key="warranty-stats"
-        >
+        <TabPane tab={<span className="tab-label">آمار گارانتی</span>} key="warranty-stats">
           <Card
             title="آمار گارانتی‌ها"
             bordered={false}
             className="bg-gray-800 text-white"
             headStyle={{ color: "white", borderBottom: "1px solid #4b5563" }}
           >
-            <p className="text-gray-400 mb-4">
+            <p className="mb-4 text-gray-400">
               آمار گارانتی‌های فعال، منقضی شده و درخواست‌های بررسی
             </p>
             <WarrantyStats
@@ -707,19 +681,14 @@ function BranchesPageContent() {
           </Card>
         </TabPane>
 
-        <TabPane
-          tab={<span className="tab-label">درخواست‌های بررسی</span>}
-          key="warranty-requests"
-        >
+        <TabPane tab={<span className="tab-label">درخواست‌های بررسی</span>} key="warranty-requests">
           <Card
             title="درخواست‌های بررسی گارانتی"
             bordered={false}
             className="bg-gray-800 text-white"
             headStyle={{ color: "white", borderBottom: "1px solid #4b5563" }}
           >
-            <p className="text-gray-400 mb-4">
-              لیست درخواست‌های بررسی گارانتی از تمام شعبه‌ها
-            </p>
+            <p className="mb-4 text-gray-400">لیست درخواست‌های بررسی گارانتی از تمام شعبه‌ها</p>
             <WarrantyRequests
               key={`requests-${new Date().getTime()}`}
               isTabActive={activeTab === "warranty-requests"}
@@ -1155,15 +1124,12 @@ function BranchesPageContent() {
           color: #e5e7eb !important;
         }
 
-        .ant-select-dropdown
-          .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+        .ant-select-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
           background-color: #374151 !important;
         }
 
         .ant-select-dropdown
-          .ant-select-item-option-selected:not(
-            .ant-select-item-option-disabled
-          ) {
+          .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
           background-color: #3b82f6 !important;
           color: white !important;
         }

@@ -1,5 +1,6 @@
 // app/api/admins/route.ts
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma"; // Assuming you have a prisma client setup
 
 // Fetch all admins

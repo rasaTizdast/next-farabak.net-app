@@ -1,6 +1,7 @@
 import { writeFile } from "fs/promises";
-import { NextRequest, NextResponse } from "next/server";
 import { join } from "path";
+
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * @swagger

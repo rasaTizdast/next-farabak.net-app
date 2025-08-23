@@ -1,6 +1,6 @@
 // app/api/manageBlog/upload/route.ts
-import { NextResponse } from "next/server";
 import { S3 } from "aws-sdk";
+import { NextResponse } from "next/server";
 
 const s3 = new S3({
   accessKeyId: process.env.LIARA_ACCESS_KEY,
@@ -19,23 +19,15 @@ export async function POST(request: Request) {
     }
 
     if (!slug) {
-      return NextResponse.json(
-        { error: "Blog slug is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Blog slug is required" }, { status: 400 });
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: "File size exceeds 2MB limit" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "File size exceeds 2MB limit" }, { status: 400 });
     }
 
     // Sanitize filename and create unique name
-    const originalName = file.name
-      .replace(/\s+/g, "-")
-      .replace(/[^a-zA-Z0-9-.]/g, "");
+    const originalName = file.name.replace(/\s+/g, "-").replace(/[^a-zA-Z0-9-.]/g, "");
 
     const key = `blogImages/${slug}/${originalName}`;
 
@@ -55,9 +47,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ url });
   } catch (error) {
     console.error("Upload error:", error);
-    return NextResponse.json(
-      { error: "Failed to upload file" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
   }
 }

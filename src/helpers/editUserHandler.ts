@@ -13,9 +13,7 @@ interface EditUserFormData {
   city?: string;
 }
 
-export const editUserHandler = async (
-  data: EditUserFormData
-): Promise<UpdateUserResponse> => {
+export const editUserHandler = async (data: EditUserFormData): Promise<UpdateUserResponse> => {
   try {
     const response = await axios.patch("/api/auth/profile", data);
     return response.data;
@@ -28,9 +26,7 @@ export const editUserHandler = async (
     // Check if the error is an instance of Error
     if (axios.isAxiosError(error)) {
       // Axios errors have a response property that can be checked
-      return Promise.reject(
-        error.response?.data?.message || "Update profile failed"
-      );
+      return Promise.reject(error.response?.data?.message || "Update profile failed");
     } else if (error instanceof Error) {
       // If it's a general error, just throw its message
       return Promise.reject(error.message || "Update profile failed");

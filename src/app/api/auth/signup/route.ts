@@ -1,25 +1,16 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // Ensure you have a prisma client instance
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma"; // Ensure you have a prisma client instance
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
-const REFRESH_TOKEN_SECRET =
-  process.env.REFRESH_TOKEN_SECRET || "your_refresh_token_secret";
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "your_refresh_token_secret";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const {
-      username,
-      firstName,
-      lastName,
-      phoneNumber,
-      email,
-      city,
-      job,
-      password,
-    } = body;
+    const { username, firstName, lastName, phoneNumber, email, city, job, password } = body;
 
     // Validate required fields
     if (
@@ -117,9 +108,7 @@ export async function POST(request: Request) {
 
     return response;
   } catch (error) {
-    return NextResponse.json(
-      { message: "خطای داخلی سرور رخ داده است" },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ message: "خطای داخلی سرور رخ داده است" }, { status: 500 });
   }
 }

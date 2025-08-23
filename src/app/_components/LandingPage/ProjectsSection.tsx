@@ -1,5 +1,6 @@
-import Link from "next/link"; // Use Next.js Link for routing
 import Image from "next/image"; // Import Image from Next.js
+import Link from "next/link"; // Use Next.js Link for routing
+
 import styles from "./ProjectsSection.module.css";
 
 // Function to fetch projects from the API
@@ -30,11 +31,7 @@ const ProjectsSection = async () => {
         <div className={styles.projects}>
           {projects.length > 0 ? (
             projects.map((p) => (
-              <Link
-                key={p.id}
-                href={`/about-us/projects/${p.slug}`}
-                className={styles.project}
-              >
+              <Link key={p.id} href={`/about-us/projects/${p.slug}`} className={styles.project}>
                 <Image
                   src={`${process.env.LIARA_BUCKET_URL}/${p.mainImg}`}
                   loading="lazy"

@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Table, Button, Popconfirm, InputNumber, Empty, Spin } from 'antd';
 import { DeleteOutlined } from "@ant-design/icons";
-import { Product } from './types';
+import { Table, Button, Popconfirm, InputNumber, Empty, Spin } from "antd";
+import React, { useState, useRef, useEffect } from "react";
+
+import { Product } from "./types";
 
 interface ProductTableProps {
   products: Product[];
@@ -16,16 +17,16 @@ const ProductTable: React.FC<ProductTableProps> = ({
   loading,
   onUpdateQuantity,
   onRemove,
-  showRemoveButton = true
+  showRemoveButton = true,
 }) => {
   // Keep track of debounced values per product
-  const [debouncedValues, setDebouncedValues] = useState<{[key: number]: number}>({});
-  const timersRef = useRef<{[key: number]: NodeJS.Timeout}>({});
+  const [debouncedValues, setDebouncedValues] = useState<{ [key: number]: number }>({});
+  const timersRef = useRef<{ [key: number]: NodeJS.Timeout }>({});
 
   // Populate initial values when products change
   useEffect(() => {
-    const initialValues: {[key: number]: number} = {};
-    products.forEach(product => {
+    const initialValues: { [key: number]: number } = {};
+    products.forEach((product) => {
       initialValues[product.ProductId] = product.quantity;
     });
     setDebouncedValues(initialValues);
@@ -39,9 +40,9 @@ const ProductTable: React.FC<ProductTableProps> = ({
     }
 
     // Update local state immediately for UI
-    setDebouncedValues(prev => ({
+    setDebouncedValues((prev) => ({
       ...prev,
-      [productId]: value
+      [productId]: value,
     }));
 
     // Set a new timer for this product
@@ -53,7 +54,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
   // Clean up timers on unmount
   useEffect(() => {
     return () => {
-      Object.values(timersRef.current).forEach(timer => clearTimeout(timer));
+      Object.values(timersRef.current).forEach((timer) => clearTimeout(timer));
     };
   }, []);
 
@@ -86,7 +87,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
               onUpdateQuantity(record.ProductId, debouncedValues[record.ProductId]);
             }
           }}
-          className="w-20 dark-input-number"
+          className="dark-input-number w-20"
           style={{
             backgroundColor: "#374151",
             borderColor: "#4b5563",
@@ -98,44 +99,46 @@ const ProductTable: React.FC<ProductTableProps> = ({
   ];
 
   // Add actions column if remove button should be shown
-  const columns = showRemoveButton ? [
-    ...baseColumns,
-    {
-      title: "عملیات",
-      key: "actions",
-      width: "20%",
-      render: (_: any, product: Product) => (
-        <Popconfirm
-          title="حذف محصول"
-          description="آیا از حذف این محصول از شعبه اطمینان دارید؟"
-          onConfirm={() => onRemove(product.ProductId)}
-          okText="بله"
-          cancelText="خیر"
-          okButtonProps={{ className: "bg-red-600 hover:bg-red-700" }}
-        >
-          <Button
-            icon={<DeleteOutlined />}
-            danger
-            size="small"
-            className="!bg-red-500 !text-white !border-none hover:!bg-red-600"
-          >
-            حذف
-          </Button>
-        </Popconfirm>
-      ),
-    },
-  ] : baseColumns;
+  const columns = showRemoveButton
+    ? [
+        ...baseColumns,
+        {
+          title: "عملیات",
+          key: "actions",
+          width: "20%",
+          render: (_: any, product: Product) => (
+            <Popconfirm
+              title="حذف محصول"
+              description="آیا از حذف این محصول از شعبه اطمینان دارید؟"
+              onConfirm={() => onRemove(product.ProductId)}
+              okText="بله"
+              cancelText="خیر"
+              okButtonProps={{ className: "bg-red-600 hover:bg-red-700" }}
+            >
+              <Button
+                icon={<DeleteOutlined />}
+                danger
+                size="small"
+                className="!border-none !bg-red-500 !text-white hover:!bg-red-600"
+              >
+                حذف
+              </Button>
+            </Popconfirm>
+          ),
+        },
+      ]
+    : baseColumns;
 
   if (loading) {
     return (
-      <div className="flex justify-center my-8">
+      <div className="my-8 flex justify-center">
         <Spin />
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4">
+    <div className="rounded-lg bg-gray-800 p-4">
       <Table
         columns={columns}
         dataSource={products}
@@ -156,4 +159,4 @@ const ProductTable: React.FC<ProductTableProps> = ({
   );
 };
 
-export default ProductTable; 
+export default ProductTable;

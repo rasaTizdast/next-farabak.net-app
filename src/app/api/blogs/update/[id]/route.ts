@@ -1,5 +1,6 @@
 // app/api/blogs/update/[id]/route.ts
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
@@ -19,10 +20,7 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
     return NextResponse.json(blog);
   } catch (error) {
     console.error("خطا در بروزرسانی محتوای وبلاگ:", error);
-    return NextResponse.json(
-      { error: "خطا در بروزرسانی محتوای وبلاگ" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در بروزرسانی محتوای وبلاگ" }, { status: 500 });
   }
 }
 
@@ -63,9 +61,6 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
     return NextResponse.json(updatedBlog);
   } catch (error) {
     console.error("خطا در بروزرسانی اطلاعات وبلاگ:", error);
-    return NextResponse.json(
-      { error: "خطا در بروزرسانی اطلاعات وبلاگ" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در بروزرسانی اطلاعات وبلاگ" }, { status: 500 });
   }
 }

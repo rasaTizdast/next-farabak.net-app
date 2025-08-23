@@ -1,23 +1,8 @@
 "use client";
 
+import { LoadingOutlined, ReloadOutlined } from "@ant-design/icons";
+import { Card, Spin, Alert, Typography, Empty } from "antd";
 import { useState, useEffect } from "react";
-import {
-  Card,
-  Spin,
-  Alert,
-  Statistic,
-  Row,
-  Col,
-  Typography,
-  Empty,
-} from "antd";
-import {
-  LoadingOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  SyncOutlined,
-  ReloadOutlined,
-} from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 
@@ -33,9 +18,7 @@ interface WarrantyStatsProps {
   isTabActive?: boolean;
 }
 
-export default function WarrantyStats({
-  isTabActive = true,
-}: WarrantyStatsProps) {
+export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [statistics, setStatistics] = useState<BranchStats[]>([]);
@@ -55,9 +38,7 @@ export default function WarrantyStats({
       });
 
       if (!response.ok) {
-        throw new Error(
-          `Failed to fetch warranty statistics: ${response.status}`
-        );
+        throw new Error(`Failed to fetch warranty statistics: ${response.status}`);
       }
 
       const data = await response.json();
@@ -86,17 +67,6 @@ export default function WarrantyStats({
     }
   }, [isTabActive, dataFetched]);
 
-  // Calculate total statistics for the branch
-  const totalStats = statistics.reduce(
-    (acc, branch) => {
-      acc.active += branch.active_count || 0;
-      acc.expired += branch.expired_count || 0;
-      acc.requested += branch.requested_count || 0;
-      return acc;
-    },
-    { active: 0, expired: 0, requested: 0 }
-  );
-
   const handleRetry = () => {
     setDataFetched(false);
     fetchWarrantyStats();
@@ -108,7 +78,7 @@ export default function WarrantyStats({
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center p-8">
+      <div className="flex items-center justify-center p-8">
         <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
       </div>
     );
@@ -123,7 +93,7 @@ export default function WarrantyStats({
             <p>{error}</p>
             <button
               onClick={handleRetry}
-              className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded flex items-center w-fit"
+              className="flex w-fit items-center rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700"
             >
               <ReloadOutlined className="ml-1" /> تلاش مجدد
             </button>
@@ -140,7 +110,7 @@ export default function WarrantyStats({
   }
 
   return (
-    <div className="space-y-6 bg-gray-900 p-6 rounded-lg border border-gray-800 shadow-xl warranty-stats-wrapper">
+    <div className="warranty-stats-wrapper space-y-6 rounded-lg border border-gray-800 bg-gray-900 p-6 shadow-xl">
       {/* Total Statistics Summary - Row Layout */}
 
       {/* Detailed breakdown for each period */}
@@ -149,13 +119,13 @@ export default function WarrantyStats({
           className="border-0 shadow-md"
           style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
           title={
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
               <Title level={5} className="!text-white">
                 جزئیات آماری شعبه {statistics[0].branch_name}
               </Title>
               <button
                 onClick={handleRetry}
-                className="text-blue-400 hover:text-blue-300 flex items-center"
+                className="flex items-center text-blue-400 hover:text-blue-300"
               >
                 <ReloadOutlined className="ml-1" /> بروزرسانی
               </button>
@@ -164,24 +134,20 @@ export default function WarrantyStats({
         >
           <div className="grid grid-cols-3 gap-6 text-center">
             <div>
-              <Text className="text-gray-300 block mb-2">گارانتی‌های فعال</Text>
-              <Text className="text-green-500 text-3xl font-bold block">
+              <Text className="mb-2 block text-gray-300">گارانتی‌های فعال</Text>
+              <Text className="block text-3xl font-bold text-green-500">
                 {statistics[0]?.active_count || 0}
               </Text>
             </div>
             <div>
-              <Text className="text-gray-300 block mb-2">
-                گارانتی‌های منقضی شده
-              </Text>
-              <Text className="text-red-500 text-3xl font-bold block">
+              <Text className="mb-2 block text-gray-300">گارانتی‌های منقضی شده</Text>
+              <Text className="block text-3xl font-bold text-red-500">
                 {statistics[0]?.expired_count || 0}
               </Text>
             </div>
             <div>
-              <Text className="text-gray-300 block mb-2">
-                درخواست‌های بررسی
-              </Text>
-              <Text className="text-yellow-500 text-3xl font-bold block">
+              <Text className="mb-2 block text-gray-300">درخواست‌های بررسی</Text>
+              <Text className="block text-3xl font-bold text-yellow-500">
                 {statistics[0]?.requested_count || 0}
               </Text>
             </div>

@@ -1,7 +1,8 @@
+import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
-import { jwtVerify } from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -64,10 +65,7 @@ export async function POST(req: Request) {
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
-    return NextResponse.json(
-      { message: "Authorization token required" },
-      { status: 401 }
-    );
+    return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
   }
 
   const decoded = await verifyToken(token);
@@ -80,15 +78,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { type, data } = body;
-    const {
-      name,
-      slug,
-      available,
-      parentCategoryId,
-      seoTitle,
-      seoDescription,
-      seoKeywords,
-    } = data;
+    const { name, slug, available, parentCategoryId, seoTitle, seoDescription, seoKeywords } = data;
 
     if (type !== "Category" || !name || !slug || available === undefined) {
       return NextResponse.json({ message: "Invalid data" }, { status: 400 });
@@ -116,9 +106,7 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (error) {
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }

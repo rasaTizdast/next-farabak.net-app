@@ -1,4 +1,5 @@
 import React from "react";
+
 import Modal from "./Modal";
 
 type ConfirmationAction = {
@@ -20,9 +21,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   onConfirm,
   onClose,
 }) => {
-  const productNames = Array.isArray(action.name)
-    ? action.name
-    : [action.name];
+  const productNames = Array.isArray(action.name) ? action.name : [action.name];
 
   const modalMessage = () => {
     switch (action.type) {
@@ -38,18 +37,13 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   const isDangerAction = action.type === "delete" || action.type === "bulk-delete";
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={modalMessage()}
-      size="md"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title={modalMessage()} size="md">
       {/* Product List */}
-      <div className="max-h-56 overflow-y-auto border border-gray-700 rounded-lg p-4 bg-gray-900">
+      <div className="max-h-56 overflow-y-auto rounded-lg border border-gray-700 bg-gray-900 p-4">
         {productNames.map((productName, index) => (
           <p
             key={index}
-            className="text-sm text-gray-300 truncate hover:text-clip hover:whitespace-normal"
+            className="truncate text-sm text-gray-300 hover:text-clip hover:whitespace-normal"
             title={typeof productName === "string" ? productName : ""}
           >
             {index + 1}. {productName}
@@ -58,20 +52,18 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       </div>
 
       {/* Actions */}
-      <div className="flex justify-center gap-4 mt-6">
+      <div className="mt-6 flex justify-center gap-4">
         <button
           onClick={onConfirm}
-          className={`px-6 py-2 text-white rounded-lg focus:outline-none transition-all ${
-            isDangerAction
-              ? "bg-red-600 hover:bg-red-700"
-              : "bg-blue-600 hover:bg-blue-700"
+          className={`rounded-lg px-6 py-2 text-white transition-all focus:outline-none ${
+            isDangerAction ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
           }`}
         >
           تایید
         </button>
         <button
           onClick={onClose}
-          className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg focus:outline-none transition-all"
+          className="rounded-lg bg-gray-600 px-6 py-2 text-white transition-all hover:bg-gray-700 focus:outline-none"
         >
           لغو
         </button>
@@ -80,4 +72,4 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   );
 };
 
-export default ConfirmationModal; 
+export default ConfirmationModal;

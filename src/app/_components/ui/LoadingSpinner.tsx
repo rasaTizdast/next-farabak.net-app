@@ -1,8 +1,8 @@
 const LoadingSpinner: React.FC = () => {
   return (
-    <div className="flex items-center justify-center h-full">
-      <div className="bg-white rounded-lg shadow-md p-6 flex items-center justify-center w-24 h-24">
-        <div className="w-10 h-10 border-4 border-[#0e6aff] border-t-transparent rounded-full animate-spin"></div>
+    <div className="flex h-full items-center justify-center">
+      <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-white p-6 shadow-md">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#0e6aff] border-t-transparent"></div>
       </div>
     </div>
   );

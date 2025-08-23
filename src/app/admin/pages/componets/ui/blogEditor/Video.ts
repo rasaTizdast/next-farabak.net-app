@@ -1,12 +1,13 @@
-import { Node, mergeAttributes } from '@tiptap/core';
-import { ReactNodeViewRenderer } from '@tiptap/react';
-import VideoNode from './VideoNode';
+import { Node, mergeAttributes } from "@tiptap/core";
+import { ReactNodeViewRenderer } from "@tiptap/react";
+
+import VideoNode from "./VideoNode";
 
 export interface VideoOptions {
   HTMLAttributes: Record<string, any>;
 }
 
-declare module '@tiptap/core' {
+declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     video: {
       /**
@@ -18,24 +19,24 @@ declare module '@tiptap/core' {
 }
 
 export const CustomVideo = Node.create<VideoOptions>({
-  name: 'video',
-  
-  group: 'block',
-  
+  name: "video",
+
+  group: "block",
+
   atom: true,
-  
+
   draggable: true,
 
   addAttributes() {
     return {
       src: {
-        default: '',
+        default: "",
       },
       title: {
-        default: '',
+        default: "",
       },
       slug: {
-        default: '',
+        default: "",
       },
     };
   },
@@ -50,19 +51,16 @@ export const CustomVideo = Node.create<VideoOptions>({
 
   renderHTML({ HTMLAttributes }) {
     return [
-      'div',
-      mergeAttributes(
-        { 'data-type': 'video' },
-        this.options.HTMLAttributes,
-        HTMLAttributes
-      ),
+      "div",
+      mergeAttributes({ "data-type": "video" }, this.options.HTMLAttributes, HTMLAttributes),
     ];
   },
 
   addCommands() {
     return {
       setVideo:
-        (options) => ({ commands }) => {
+        (options) =>
+        ({ commands }) => {
           return commands.insertContent({
             type: this.name,
             attrs: options,
@@ -74,4 +72,4 @@ export const CustomVideo = Node.create<VideoOptions>({
   addNodeView() {
     return ReactNodeViewRenderer(VideoNode);
   },
-}); 
+});

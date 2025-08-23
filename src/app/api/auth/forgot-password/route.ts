@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { SignJWT } from "jose";
+import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
@@ -9,10 +9,7 @@ function generateVerificationCode(): string {
 }
 
 // Function to create a signed JWT token that can be validated later
-async function createResetCodeToken(
-  email: string,
-  code: string
-): Promise<string> {
+async function createResetCodeToken(email: string, code: string): Promise<string> {
   // Create a JWT with the email and code that expires in 15 minutes
   const secret = new TextEncoder().encode(
     process.env.JWT_SECRET || "farabak-reset-password-secret-key-2024"
@@ -29,11 +26,7 @@ async function createResetCodeToken(
 }
 
 // Function to send an email with retry logic
-async function sendEmailWithRetry(
-  email: string,
-  code: string,
-  maxRetries = 2
-): Promise<boolean> {
+async function sendEmailWithRetry(email: string, code: string, maxRetries = 2): Promise<boolean> {
   let retries = 0;
 
   while (retries <= maxRetries) {
@@ -81,10 +74,7 @@ export async function POST(request: Request) {
     const { email } = await request.json();
 
     if (!email) {
-      return NextResponse.json(
-        { error: "آدرس ایمیل الزامی است" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "آدرس ایمیل الزامی است" }, { status: 400 });
     }
 
     // In a real application, verify if the email exists in your database

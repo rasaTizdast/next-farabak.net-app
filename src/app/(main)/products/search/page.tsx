@@ -11,9 +11,7 @@ interface SearchPageProps {
   searchParams: Promise<{ q: string; page?: string }>;
 }
 
-export async function generateMetadata(
-  props: SearchPageProps
-): Promise<Metadata> {
+export async function generateMetadata(props: SearchPageProps): Promise<Metadata> {
   const searchParams = await props.searchParams;
   const query = searchParams.q || "";
   return {
@@ -42,11 +40,7 @@ export default async function SearchPage(props: SearchPageProps) {
       <Breadcrumb breadcrumbs={breadcrumbs} />
 
       {/* Product Grid with Pagination */}
-      <ProductGrid
-        title={`نتایج جستجو برای: ${query}`}
-        apiUrl={apiUrl}
-        currentPage={currentPage}
-      />
+      <ProductGrid title={`نتایج جستجو برای: ${query}`} apiUrl={apiUrl} currentPage={currentPage} />
     </div>
   );
 }

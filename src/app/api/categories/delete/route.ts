@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -149,7 +150,7 @@ async function deleteCategory(categoryId: number) {
       where: { CategoryID: categoryId },
     });
   } catch (error) {
-    throw new Error("Failed to delete category.");
+    throw new Error("Failed to delete category.", error!);
   }
 }
 
@@ -158,10 +159,7 @@ export async function DELETE(request: Request) {
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
-    return NextResponse.json(
-      { message: "Authorization token required" },
-      { status: 401 }
-    );
+    return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
   }
 
   const decoded = await verifyToken(token);

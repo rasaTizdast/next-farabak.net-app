@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -50,10 +51,7 @@ export async function GET(request: Request) {
     const invoiceId = url.searchParams.get("invoiceId");
 
     if (!branchId || !productId || !invoiceId) {
-      return NextResponse.json(
-        { error: "برخی پارامترهای لازم ارسال نشده اند" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "برخی پارامترهای لازم ارسال نشده اند" }, { status: 400 });
     }
 
     const cookieStore = await cookies();
@@ -69,10 +67,7 @@ export async function GET(request: Request) {
 
     try {
       // Verify JWT
-      const { payload } = await jwtVerify(
-        accessToken,
-        new TextEncoder().encode(JWT_SECRET)
-      );
+      const { payload } = await jwtVerify(accessToken, new TextEncoder().encode(JWT_SECRET));
 
       // Get userId from payload
       const userId = payload.userId || payload.id || payload.sub;
@@ -122,8 +117,7 @@ export async function GET(request: Request) {
         `;
 
         // If there's an existing warranty for this product with this branch, that's even better validation
-        const hasWarranty =
-          ((existingWarranty as any[])[0].count as number) > 0;
+        const hasWarranty = ((existingWarranty as any[])[0].count as number) > 0;
 
         // Either way, we'll return true if product is in invoice
         hasProduct = hasProduct || hasWarranty;

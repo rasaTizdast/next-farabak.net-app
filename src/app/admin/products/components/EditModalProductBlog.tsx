@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+
 import TipTapBlogEditor from "./productBlogEditor/TipTapEditor";
 
 type Props = {
@@ -24,12 +25,12 @@ const EditModalProductBlog = ({ blog, onSave, slug }: Props) => {
     <div>
       <div>توضیحات تکمیلی محصول</div>
       {slug === "" ? (
-        <h1 className="my-3 text-center text-red-300 font-extrabold">
+        <h1 className="my-3 text-center font-extrabold text-red-300">
           ابتدا جزئیات پایه را وارد کنید، سپس مقاله را بنویسید.
         </h1>
       ) : (
         <>
-          <h1 className="my-3 text-center text-red-300 font-extrabold">
+          <h1 className="my-3 text-center font-extrabold text-red-300">
             محتوای مقاله به صورت خودکار ذخیره خواهد شد
           </h1>
           <TipTapBlogEditor

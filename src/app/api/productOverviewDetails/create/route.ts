@@ -48,11 +48,12 @@
  *         description: Server error
  */
 
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { S3 } from "aws-sdk";
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 // Ensure S3 bucket name is always a string
 const BUCKET_NAME = process.env.LIARA_BUCKET_NAME || "";
@@ -89,10 +90,7 @@ export async function POST(req: Request) {
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "Authorization token required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
@@ -108,15 +106,8 @@ export async function POST(req: Request) {
     };
 
     // Validate input
-    if (
-      !overviewDetails ||
-      !Array.isArray(overviewDetails) ||
-      overviewDetails.length === 0
-    ) {
-      return NextResponse.json(
-        { error: "Invalid or empty overview details" },
-        { status: 400 }
-      );
+    if (!overviewDetails || !Array.isArray(overviewDetails) || overviewDetails.length === 0) {
+      return NextResponse.json({ error: "Invalid or empty overview details" }, { status: 400 });
     }
 
     // Find the last ProductOverviewDetailsId
@@ -126,9 +117,7 @@ export async function POST(req: Request) {
     });
 
     // Start with 1 if no previous records, otherwise increment the last ID
-    let currentProductOverviewDetailsId = lastRecord
-      ? lastRecord.ProductOverviewDetailsId + 1
-      : 1;
+    let currentProductOverviewDetailsId = lastRecord ? lastRecord.ProductOverviewDetailsId + 1 : 1;
 
     // Process each overview detail
     const processedDetails = await Promise.all(
@@ -166,14 +155,12 @@ export async function POST(req: Request) {
         };
 
         // Upload to S3 and wait for the result
-        const uploadResult = await new Promise<AWS.S3.ManagedUpload.SendData>(
-          (resolve, reject) => {
-            s3.upload(uploadParams, (err, data) => {
-              if (err) reject(err);
-              else resolve(data);
-            });
-          }
-        );
+        await new Promise<AWS.S3.ManagedUpload.SendData>((resolve, reject) => {
+          s3.upload(uploadParams, (err, data) => {
+            if (err) reject(err);
+            else resolve(data);
+          });
+        });
 
         // Get and increment the ProductOverviewDetailsId for this record
         const productOverviewDetailsId = currentProductOverviewDetailsId++;
@@ -207,8 +194,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         error: "Failed to process overview details",
-        message:
-          error instanceof Error ? error.message : "Unknown error occurred",
+        message: error instanceof Error ? error.message : "Unknown error occurred",
       },
       { status: 500 }
     );

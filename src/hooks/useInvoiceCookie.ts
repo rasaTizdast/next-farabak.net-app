@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+
 import { InvoiceData } from "@/utils/invoiceJwt";
 
 /**
@@ -13,39 +14,35 @@ export function useInvoiceCookie() {
   /**
    * Save invoice data to secure cookie via API
    */
-  const saveInvoiceToCookie = useCallback(
-    async (invoiceData: Omit<InvoiceData, "timestamp">) => {
-      setIsLoading(true);
-      setError(null);
+  const saveInvoiceToCookie = useCallback(async (invoiceData: Omit<InvoiceData, "timestamp">) => {
+    setIsLoading(true);
+    setError(null);
 
-      try {
-        const response = await fetch("/api/invoice/save", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(invoiceData),
-        });
+    try {
+      const response = await fetch("/api/invoice/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(invoiceData),
+      });
 
-        const result = await response.json();
+      const result = await response.json();
 
-        if (!response.ok) {
-          throw new Error(result.message || "Failed to save invoice data");
-        }
-
-        return result;
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Unknown error occurred";
-        setError(errorMessage);
-        console.error("Error saving invoice data:", err);
-        return null;
-      } finally {
-        setIsLoading(false);
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to save invoice data");
       }
-    },
-    []
-  );
+
+      return result;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+      setError(errorMessage);
+      console.error("Error saving invoice data:", err);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   /**
    * Retrieve invoice data from secure cookie via API
@@ -74,8 +71,7 @@ export function useInvoiceCookie() {
 
       return result.data;
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Unknown error occurred";
+      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
       setError(errorMessage);
       console.error("Error retrieving invoice data:", err);
       return null;
@@ -107,8 +103,7 @@ export function useInvoiceCookie() {
 
       return result;
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Unknown error occurred";
+      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
       setError(errorMessage);
       console.error("Error clearing invoice data:", err);
       return null;

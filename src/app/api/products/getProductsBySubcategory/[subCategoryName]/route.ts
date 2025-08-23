@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -80,10 +81,7 @@ function parseCategoryContentIds(product: ProductType): number[] {
     .filter((id) => !isNaN(id));
 }
 
-export async function GET(
-  req: Request,
-  props: { params: Promise<{ subCategoryName: string }> }
-) {
+export async function GET(req: Request, props: { params: Promise<{ subCategoryName: string }> }) {
   const params = await props.params;
   const { searchParams } = new URL(req.url);
   const subCategoryName = params.subCategoryName;
@@ -183,9 +181,7 @@ export async function GET(
     let allProcessedProducts: ProductType[] = [];
 
     // Process categories in ascending order by ID
-    const categoryIds = Object.keys(productsByCategory).sort(
-      (a, b) => Number(a) - Number(b)
-    );
+    const categoryIds = Object.keys(productsByCategory).sort((a, b) => Number(a) - Number(b));
 
     for (const categoryId of categoryIds) {
       const productsInCategory = productsByCategory[categoryId];
@@ -216,8 +212,7 @@ export async function GET(
         .filter((sub) => sub !== undefined);
 
       // Use the first subcategory for the link
-      const firstSubCategory =
-        subcategories.length > 0 ? subcategories[0] : null;
+      const firstSubCategory = subcategories.length > 0 ? subcategories[0] : null;
 
       return {
         ...product,

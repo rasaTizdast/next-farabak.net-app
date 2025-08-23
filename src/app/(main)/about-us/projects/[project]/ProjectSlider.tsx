@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import React, { useState, useEffect, useCallback } from "react";
-
 import { BsChevronCompactLeft, BsChevronCompactRight } from "react-icons/bs";
 import { RxDotFilled } from "react-icons/rx";
 
@@ -22,9 +21,7 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
   const [isPaused, setIsPaused] = useState(false);
 
   const nextSlide = useCallback(() => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === slides.length - 1 ? 0 : prevIndex + 1
-    );
+    setCurrentIndex((prevIndex) => (prevIndex === slides.length - 1 ? 0 : prevIndex + 1));
   }, [slides.length]);
 
   const prevSlide = () => {
@@ -44,12 +41,12 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
 
   return (
     <div
-      className="max-w-[calc(1900px-20rem)] h-auto max-h-[500px] w-full m-auto relative group overflow-hidden"
+      className="group relative m-auto h-auto max-h-[500px] w-full max-w-[calc(1900px-20rem)] overflow-hidden"
       onMouseEnter={() => setIsPaused(true)} // Pause autoplay on hover
       onMouseLeave={() => setIsPaused(false)} // Resume autoplay on mouse leave
     >
       <div
-        className="flex transition-transform duration-700 ease-in-out max-h-[500px] w-full"
+        className="flex max-h-[500px] w-full transition-transform duration-700 ease-in-out"
         style={{
           transform: `translateX(${currentIndex * 100}%)`,
         }}
@@ -69,32 +66,30 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
       {/* Left Arrow */}
       <div
         onClick={prevSlide}
-        className="hidden group-hover:block absolute top-[45.5%] -translate-x-0 left-5 text-2xl rounded-full p-2 bg-black/30 text-white cursor-pointer"
+        className="absolute left-5 top-[45.5%] hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
       >
         <BsChevronCompactLeft size={30} />
       </div>
       {/* Right Arrow */}
       <div
         onClick={nextSlide}
-        className="hidden group-hover:block absolute top-[45.5%] -translate-x-0 right-5 text-2xl rounded-full p-2 bg-black/30 text-white cursor-pointer"
+        className="absolute right-5 top-[45.5%] hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
       >
         <BsChevronCompactRight size={30} />
       </div>
 
       {/* Slider Pagination */}
-      <div className="flex justify-center py-1 px-2 gap-1 absolute left-[50%] -translate-x-[50%] -translate-y-10 bg-[#f0f0f0] rounded-tl-2xl rounded-tr-2xl">
+      <div className="absolute left-[50%] flex -translate-x-[50%] -translate-y-10 justify-center gap-1 rounded-tl-2xl rounded-tr-2xl bg-[#f0f0f0] px-2 py-1">
         {slides.map((slide, slideIndex) => (
           <div
-            className="text-2xl cursor-pointer"
+            className="cursor-pointer text-2xl"
             key={slideIndex}
             onClick={() => setCurrentIndex(slideIndex)}
           >
             <RxDotFilled
               size={33}
               className={`transition-all ${
-                slideIndex === currentIndex
-                  ? "text-[#000000]"
-                  : "text-[#0e8bff]"
+                slideIndex === currentIndex ? "text-[#000000]" : "text-[#0e8bff]"
               }`}
             />
           </div>

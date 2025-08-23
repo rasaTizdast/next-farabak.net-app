@@ -1,8 +1,9 @@
-import Header from "./_components/ui/header/Header";
-import Footer from "./_components/ui/footer/Footer";
-import BackToTop from "../_components/ui/BackToTop";
-import Script from "next/script";
 import { Metadata } from "next";
+import Script from "next/script";
+
+import BackToTop from "../_components/ui/BackToTop";
+import Footer from "./_components/ui/footer/Footer";
+import Header from "./_components/ui/header/Header";
 import WhatsAppContactButton from "./_components/ui/WhatsAppContactButton";
 
 export const metadata: Metadata = {

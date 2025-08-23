@@ -60,10 +60,7 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
     const initialErrors: { [key: string]: string } = {};
 
     localFAQs.forEach((faq, index) => {
-      initialErrors[`question-${index}`] = validateField(
-        "question",
-        faq.question
-      );
+      initialErrors[`question-${index}`] = validateField("question", faq.question);
       initialErrors[`answer-${index}`] = validateField("answer", faq.answer);
     });
 
@@ -74,12 +71,10 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
     let error = "";
     if (field === "question") {
       if (!value.trim()) error = "سوال نمی‌تواند خالی باشد.";
-      else if (value.length > 1000)
-        error = "سوال نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
+      else if (value.length > 1000) error = "سوال نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
     } else if (field === "answer") {
       if (!value.trim()) error = "پاسخ نمی‌تواند خالی باشد.";
-      else if (value.length > 3000)
-        error = "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
+      else if (value.length > 3000) error = "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
     }
     return error;
   };
@@ -177,33 +172,24 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
   return (
     <div className="mb-6 p-4">
       {localFAQs.map((faq, index) => (
-        <div
-          key={index}
-          className="mb-10 flex flex-col gap-5 bg-gray-800 p-4 rounded-md shadow-lg"
-        >
+        <div key={index} className="mb-10 flex flex-col gap-5 rounded-md bg-gray-800 p-4 shadow-lg">
           <div className="flex items-center gap-4">
             <input
               type="text"
               value={faq.question}
-              onChange={(e) =>
-                handleFAQChange(index, "question", e.target.value)
-              }
-              className={`w-full p-3 rounded-lg bg-gray-700 border ${
-                shouldShowError("question", index)
-                  ? "border-red-500"
-                  : "border-gray-300"
+              onChange={(e) => handleFAQChange(index, "question", e.target.value)}
+              className={`w-full rounded-lg border bg-gray-700 p-3 ${
+                shouldShowError("question", index) ? "border-red-500" : "border-gray-300"
               }`}
               placeholder={`سوال ${index + 1}`}
             />
             {shouldShowError("question", index) && (
-              <p className="text-red-500 mt-1">
-                {localErrors[`question-${index}`]}
-              </p>
+              <p className="mt-1 text-red-500">{localErrors[`question-${index}`]}</p>
             )}
             <button
               type="button"
               onClick={() => handleRemoveFAQ(index)}
-              className="text-red-500 hover:text-red-600 transition-all"
+              className="text-red-500 transition-all hover:text-red-600"
             >
               <FaTrashAlt size={20} />
             </button>
@@ -211,24 +197,20 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
           <textarea
             value={faq.answer}
             onChange={(e) => handleFAQChange(index, "answer", e.target.value)}
-            className={`w-full p-3 rounded-lg bg-gray-700 border ${
-              shouldShowError("answer", index)
-                ? "border-red-500"
-                : "border-gray-300"
+            className={`w-full rounded-lg border bg-gray-700 p-3 ${
+              shouldShowError("answer", index) ? "border-red-500" : "border-gray-300"
             }`}
             placeholder={`پاسخ ${index + 1}`}
           />
           {shouldShowError("answer", index) && (
-            <p className="text-red-500 mt-1">
-              {localErrors[`answer-${index}`]}
-            </p>
+            <p className="mt-1 text-red-500">{localErrors[`answer-${index}`]}</p>
           )}
         </div>
       ))}
       <button
         type="button"
         onClick={handleAddFAQ}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-700"
+        className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-700"
         disabled={localFAQs.length >= 12}
       >
         افزودن سوال جدید

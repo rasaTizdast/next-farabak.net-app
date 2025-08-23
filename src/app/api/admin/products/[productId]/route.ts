@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -38,17 +39,17 @@ async function verifyToken(token: string) {
   return payload;
 }
 
-export async function DELETE(req: Request, props: { params: Promise<{ productId: string }> }): Promise<NextResponse> {
+export async function DELETE(
+  req: Request,
+  props: { params: Promise<{ productId: string }> }
+): Promise<NextResponse> {
   const params = await props.params;
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "Authorization token required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
@@ -61,10 +62,7 @@ export async function DELETE(req: Request, props: { params: Promise<{ productId:
     const { productId } = params;
 
     if (!productId) {
-      return NextResponse.json(
-        { message: "Product ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Product ID is required" }, { status: 400 });
     }
 
     // Check if the product exists in the database
@@ -73,10 +71,7 @@ export async function DELETE(req: Request, props: { params: Promise<{ productId:
     });
 
     if (!productExists) {
-      return NextResponse.json(
-        { message: "Product not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "Product not found" }, { status: 404 });
     }
 
     // Start a transaction to delete from multiple tables
@@ -104,16 +99,15 @@ export async function DELETE(req: Request, props: { params: Promise<{ productId:
         { status: 200 }
       );
     } catch (error) {
+      console.error(error);
       return NextResponse.json(
         { message: "Failed to remove product and related data" },
         { status: 500 }
       );
     }
   } catch (error) {
-    return NextResponse.json(
-      { message: "An unexpected error occurred." },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ message: "An unexpected error occurred." }, { status: 500 });
   }
 }
 
@@ -278,10 +272,7 @@ export async function PATCH(request: Request, props: { params: Promise<{ product
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "Authorization token required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
@@ -312,19 +303,19 @@ export async function PATCH(request: Request, props: { params: Promise<{ product
     ];
 
     // Filter out only valid fields to update
-    const updateData = Object.keys(body).reduce((acc, key) => {
-      if (validFields.includes(key)) {
-        acc[key] = body[key];
-      }
-      return acc;
-    }, {} as Record<string, unknown>);
+    const updateData = Object.keys(body).reduce(
+      (acc, key) => {
+        if (validFields.includes(key)) {
+          acc[key] = body[key];
+        }
+        return acc;
+      },
+      {} as Record<string, unknown>
+    );
 
     // If no valid fields are provided, return an error
     if (Object.keys(updateData).length === 0) {
-      return NextResponse.json(
-        { error: "No valid fields provided for update" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No valid fields provided for update" }, { status: 400 });
     }
 
     const updatedProduct = await prisma.product.update({
@@ -333,10 +324,8 @@ export async function PATCH(request: Request, props: { params: Promise<{ product
     });
 
     return NextResponse.json(updatedProduct);
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: "Failed to update product" },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
   }
 }

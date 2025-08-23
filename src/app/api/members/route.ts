@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -44,18 +45,12 @@ export async function GET() {
     });
 
     if (!member) {
-      return NextResponse.json(
-        { message: "Members not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "Members not found" }, { status: 404 });
     }
 
     return NextResponse.json(member, { status: 200 });
   } catch (error) {
     console.error("Error fetching members details:", error);
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { S3 } from "aws-sdk";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 const s3 = new S3({
   accessKeyId: process.env.LIARA_ACCESS_KEY,

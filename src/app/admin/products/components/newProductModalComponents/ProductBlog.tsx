@@ -1,4 +1,5 @@
 import React, { useCallback, useRef } from "react";
+
 import TipTapBlogEditor from "../productBlogCreator/TipTapEditor";
 
 type Props = {
@@ -39,12 +40,12 @@ const ProductBlog = ({ dispatch, slug }: Props) => {
   return (
     <div>
       {slug === "" ? (
-        <h1 className="my-3 text-center text-red-300 font-extrabold">
+        <h1 className="my-3 text-center font-extrabold text-red-300">
           ابتدا جزئیات پایه را وارد کنید، سپس مقاله را بنویسید.
         </h1>
       ) : (
         <>
-          <h1 className="my-3 text-center text-red-300 font-extrabold">
+          <h1 className="my-3 text-center font-extrabold text-red-300">
             محتوای مقاله به صورت خودکار ذخیره خواهد شد
           </h1>
           <TipTapBlogEditor slug={slug} onSave={handleContentChange} />

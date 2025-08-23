@@ -1,5 +1,6 @@
-import React from "react";
 import { Modal } from "antd";
+import React from "react";
+
 import BranchForm from "./BranchForm";
 import { User } from "./types";
 
@@ -26,8 +27,8 @@ const CreateBranchModal: React.FC<CreateBranchModalProps> = ({
   };
 
   // Filter out the current user from the users list
-  const filteredUsers = currentUserId 
-    ? users.filter(user => user.UserID !== currentUserId)
+  const filteredUsers = currentUserId
+    ? users.filter((user) => user.UserID !== currentUserId)
     : users;
 
   return (

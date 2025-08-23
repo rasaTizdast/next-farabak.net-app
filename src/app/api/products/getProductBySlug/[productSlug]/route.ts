@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -61,10 +62,7 @@ import { prisma } from "@/lib/prisma";
  *       500:
  *         description: Internal server error
  */
-export async function GET(
-  request: Request,
-  props: { params: Promise<{ productSlug: string }> }
-) {
+export async function GET(request: Request, props: { params: Promise<{ productSlug: string }> }) {
   const params = await props.params;
   try {
     const { productSlug } = params;
@@ -131,6 +129,7 @@ export async function GET(
 
     return NextResponse.json(responseData);
   } catch (error) {
+    console.error(error);
     return new NextResponse("Failed to fetch product", { status: 500 });
   }
 }

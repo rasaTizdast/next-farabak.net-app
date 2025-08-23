@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -58,10 +59,7 @@ export async function GET(request: Request, props: { params: Promise<{ branchId:
     return NextResponse.json(branchProducts);
   } catch (error) {
     console.error("Error fetching branch products:", error);
-    return NextResponse.json(
-      { error: "خطا در بارگذاری محصولات شعبه" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در بارگذاری محصولات شعبه" }, { status: 500 });
   }
 }
 
@@ -105,10 +103,7 @@ export async function POST(request: Request, props: { params: Promise<{ branchId
     const { productId, quantity } = await request.json();
 
     if (!productId || quantity === undefined) {
-      return NextResponse.json(
-        { error: "شناسه محصول و تعداد الزامی است" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "شناسه محصول و تعداد الزامی است" }, { status: 400 });
     }
 
     // Check if branch exists
@@ -159,9 +154,6 @@ export async function POST(request: Request, props: { params: Promise<{ branchId
     return NextResponse.json((newBranchProduct as any[])[0], { status: 201 });
   } catch (error) {
     console.error("Error adding product to branch:", error);
-    return NextResponse.json(
-      { error: "خطا در افزودن محصول به شعبه" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در افزودن محصول به شعبه" }, { status: 500 });
   }
 }

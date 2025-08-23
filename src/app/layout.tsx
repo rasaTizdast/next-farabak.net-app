@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+
 import "./globals.css";
-import { UserProvider } from "@/context/UserContext";
 import { InvoiceProvider } from "@/context/InvoiceContext";
+import { UserProvider } from "@/context/UserContext";
 
 // Importing the custom iran yekan font
 const iranYekanFont = localFont({

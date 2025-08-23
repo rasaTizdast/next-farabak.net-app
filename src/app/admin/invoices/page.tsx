@@ -2,17 +2,18 @@
 
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
-import { Input, Button, Select } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
+import { Input, Button, Select } from "antd";
+import axios from "axios";
+import jalaali from "jalali-moment";
+import { useEffect, useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
+
 import AdminInvoiceDetailsModal from "./components/ui/AdminInvoiceDetailsModal";
 import AdminPhoneNumberModal from "./components/ui/AdminPhoneNumberModal";
 import ChangeStatusModal from "./components/ui/ChangeStatusModal";
 import DeleteInvoiceModal from "./components/ui/DeleteInvoiceModal";
-import axios from "axios";
 import { AdminInvoice } from "./type";
-import toast, { Toaster } from "react-hot-toast";
-import jalaali from "jalali-moment";
 
 const { Option } = Select;
 
@@ -21,20 +22,14 @@ const AdminInvoicesPage = () => {
   const [filteredInvoices, setFilteredInvoices] = useState<AdminInvoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedInvoice, setSelectedInvoice] = useState<AdminInvoice | null>(
-    null
-  );
-  const [showPhoneNumberModal, setShowPhoneNumberModal] =
-    useState<AdminInvoice | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<AdminInvoice | null>(null);
+  const [showPhoneNumberModal, setShowPhoneNumberModal] = useState<AdminInvoice | null>(null);
 
-  const [statusModalInvoice, setStatusModalInvoice] =
-    useState<AdminInvoice | null>(null);
-  const [deleteModalInvoice, setDeleteModalInvoice] =
-    useState<AdminInvoice | null>(null);
+  const [statusModalInvoice, setStatusModalInvoice] = useState<AdminInvoice | null>(null);
+  const [deleteModalInvoice, setDeleteModalInvoice] = useState<AdminInvoice | null>(null);
   const [searchText, setSearchText] = useState("");
   const [searchMode, setSearchMode] = useState<"basic" | "warranty">("basic");
   const [isCheckingWarranties, setIsCheckingWarranties] = useState(false);
-  const [currentTime, setCurrentTime] = useState(jalaali());
 
   // Function to fetch invoices
   const fetchInvoices = async () => {
@@ -53,15 +48,6 @@ const AdminInvoicesPage = () => {
       setLoading(false);
     }
   };
-
-  // Update current time every minute
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(jalaali());
-    }, 60000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   // Initial data fetch
   useEffect(() => {
@@ -297,10 +283,7 @@ const AdminInvoicesPage = () => {
       // Search by warranty code
       filtered = invoices.filter((invoice) => {
         // Check if the invoice has details with warranty
-        if (
-          !invoice.Invoice_Details ||
-          !Array.isArray(invoice.Invoice_Details)
-        ) {
+        if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
           return false;
         }
 
@@ -330,10 +313,7 @@ const AdminInvoicesPage = () => {
     const payload = { checked: status };
 
     try {
-      const response = await axios.patch(
-        `/api/admin/invoices?id=${Invoiceid}`,
-        payload
-      );
+      const response = await axios.patch(`/api/admin/invoices?id=${Invoiceid}`, payload);
 
       if (!response) {
         throw new Error("Failed to update invoice status.");
@@ -341,6 +321,7 @@ const AdminInvoicesPage = () => {
       await fetchInvoices(); // Refresh the invoice list
       toast.success("وضعیت با موفقیت آپدیت شد");
     } catch (error) {
+      console.error(error);
       toast.error("آپدیت فاکتور با شکست مواجه شد");
     }
   };
@@ -348,15 +329,14 @@ const AdminInvoicesPage = () => {
   // Handler to delete an invoice
   const handleDelete = async (Invoiceid: string) => {
     try {
-      const response = await axios.delete(
-        `/api/admin/invoices?invoiceId=${Invoiceid}`
-      );
+      const response = await axios.delete(`/api/admin/invoices?invoiceId=${Invoiceid}`);
       if (!response) {
         throw new Error("Failed to delete invoice.");
       }
       await fetchInvoices(); // Refresh the invoice list
       toast.success("فاکتور با موفقیت حذف شد");
     } catch (error) {
+      console.error(error);
       toast.error("حذف فاکتور با شکست مواجه شد");
     }
   };
@@ -372,29 +352,27 @@ const AdminInvoicesPage = () => {
   };
 
   return (
-    <div className="bg-gray-950 rounded-lg text-white p-4 sm:p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-6 rounded-lg bg-gray-950 p-4 text-white sm:p-6">
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold">مدیریت فاکتورها</h1>
-          <p className="text-gray-400 text-sm">
-            از اینجا می‌توانید فاکتورهای فروش را مدیریت کنید
-          </p>
+          <h1 className="text-xl font-bold sm:text-2xl">مدیریت فاکتورها</h1>
+          <p className="text-sm text-gray-400">از اینجا می‌توانید فاکتورهای فروش را مدیریت کنید</p>
         </div>
 
         {/* Search and Warranty Check Controls */}
         {loading ? (
           // Search UI skeleton during loading
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-            <div className="flex w-full sm:w-96 items-center">
-              <div className="w-[105px] h-[32px] bg-gray-800 rounded-r-md animate-pulse"></div>
-              <div className="flex-1 h-[32px] bg-gray-800 animate-pulse"></div>
-              <div className="w-[32px] h-[32px] bg-blue-700 rounded-l-md animate-pulse"></div>
+          <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
+            <div className="flex w-full items-center sm:w-96">
+              <div className="h-[32px] w-[105px] animate-pulse rounded-r-md bg-gray-800"></div>
+              <div className="h-[32px] flex-1 animate-pulse bg-gray-800"></div>
+              <div className="h-[32px] w-[32px] animate-pulse rounded-l-md bg-blue-700"></div>
             </div>
-            <div className="w-full sm:w-[120px] h-[32px] bg-blue-700 rounded-md animate-pulse"></div>
+            <div className="h-[32px] w-full animate-pulse rounded-md bg-blue-700 sm:w-[120px]"></div>
           </div>
         ) : (
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-            <div className="flex w-full sm:w-96 items-center">
+          <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
+            <div className="flex w-full items-center sm:w-96">
               {/* Filter Options - Right side */}
               <Select
                 value={searchMode}
@@ -477,7 +455,7 @@ const AdminInvoicesPage = () => {
             <Button
               onClick={checkWarrantyStatus}
               loading={isCheckingWarranties}
-              className="w-full sm:w-auto px-3 bg-blue-700 hover:bg-blue-600 text-white border-blue-800"
+              className="w-full border-blue-800 bg-blue-700 px-3 text-white hover:bg-blue-600 sm:w-auto"
               style={{ height: "32px" }}
             >
               بررسی گارانتی‌ها
@@ -488,8 +466,8 @@ const AdminInvoicesPage = () => {
 
       <div className="w-full overflow-auto rounded-lg bg-gray-800 shadow-md">
         {loading ? (
-          <table className="w-full table-auto border-collapse text-gray-100 whitespace-nowrap">
-            <thead className="uppercase bg-slate-900">
+          <table className="w-full table-auto border-collapse whitespace-nowrap text-gray-100">
+            <thead className="bg-slate-900 uppercase">
               <tr>
                 <th scope="col" className="px-6 py-3">
                   شناسه فاکتور
@@ -512,28 +490,23 @@ const AdminInvoicesPage = () => {
               {Array.from({ length: 15 }).map((_, index) => (
                 <tr
                   key={index}
-                  className={`animate-pulse ${
-                    index % 2 === 0 ? "bg-slate-700" : "bg-slate-800"
-                  }`}
+                  className={`animate-pulse ${index % 2 === 0 ? "bg-slate-700" : "bg-slate-800"}`}
                 >
                   <td className="w-full px-6 py-4">
-                    <div className="w-full h-4 bg-slate-600 rounded"></div>
+                    <div className="h-4 w-full rounded bg-slate-600"></div>
                   </td>
                   <td className="w-full px-6 py-4">
-                    <div className="w-24 h-4 bg-slate-600 rounded"></div>
+                    <div className="h-4 w-24 rounded bg-slate-600"></div>
                   </td>
                   <td className="w-full px-6 py-4">
-                    <div className="w-20 h-4 bg-slate-600 rounded"></div>
+                    <div className="h-4 w-20 rounded bg-slate-600"></div>
                   </td>
                   <td className="w-full px-6 py-4">
-                    <div className="w-32 h-4 bg-slate-600 rounded"></div>
+                    <div className="h-4 w-32 rounded bg-slate-600"></div>
                   </td>
-                  <td className="w-full px-6 py-4 flex justify-center gap-3">
+                  <td className="flex w-full justify-center gap-3 px-6 py-4">
                     {Array.from({ length: 4 }).map((_, i) => (
-                      <div
-                        key={i}
-                        className="w-20 h-8 bg-slate-600 rounded"
-                      ></div>
+                      <div key={i} className="h-8 w-20 rounded bg-slate-600"></div>
                     ))}
                   </td>
                 </tr>
@@ -541,15 +514,13 @@ const AdminInvoicesPage = () => {
             </tbody>
           </table>
         ) : error ? (
-          <div className="text-red-500 p-4">خطا: {error}</div>
+          <div className="p-4 text-red-500">خطا: {error}</div>
         ) : filteredInvoices.length === 0 ? (
-          <div className="text-center p-8 text-gray-400">
-            هیچ فاکتوری با این مشخصات یافت نشد
-          </div>
+          <div className="p-8 text-center text-gray-400">هیچ فاکتوری با این مشخصات یافت نشد</div>
         ) : (
           <>
-            <table className="w-full table-auto border-collapse text-gray-100 whitespace-nowrap">
-              <thead className="uppercase bg-slate-900">
+            <table className="w-full table-auto border-collapse whitespace-nowrap text-gray-100">
+              <thead className="bg-slate-900 uppercase">
                 <tr>
                   <th scope="col" className="px-6 py-3">
                     شناسه فاکتور
@@ -572,76 +543,66 @@ const AdminInvoicesPage = () => {
                 {filteredInvoices.map((invoice, index) => (
                   <tr
                     key={invoice.Invoiceid}
-                    className={
-                      index % 2 === 0 ? "bg-slate-700" : "bg-slate-800"
-                    }
+                    className={index % 2 === 0 ? "bg-slate-700" : "bg-slate-800"}
                   >
                     <td className="px-6 py-4">{invoice.FactorGuid}</td>
                     <td className="px-6 py-4">{invoice.Fullname}</td>
                     <td className="px-6 py-4">
                       {invoice.Checked ? (
-                        <span className="px-2 py-1 rounded-full bg-green-900 text-green-300">
+                        <span className="rounded-full bg-green-900 px-2 py-1 text-green-300">
                           بررسی شده
                         </span>
                       ) : (
-                        <span className="px-2 py-1 rounded-full bg-yellow-900 text-yellow-300">
+                        <span className="rounded-full bg-yellow-900 px-2 py-1 text-yellow-300">
                           در انتظار بررسی
                         </span>
                       )}
                     </td>
 
                     <td className="px-6 py-4">
-                      <div className="relative group cursor-help">
-                        <span
-                          className={getTimeRemainingClass(
-                            invoice.Date,
-                            invoice.Checked
-                          )}
-                        >
+                      <div className="group relative cursor-help">
+                        <span className={getTimeRemainingClass(invoice.Date, invoice.Checked)}>
                           {getTimeRemainingText(invoice.Date, invoice.Checked)}
                         </span>
                         <div
-                          className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gray-800 text-white text-xs rounded py-1 px-2 bottom-full left-1/2 transform -translate-x-1/2 mb-1 whitespace-nowrap z-10 pointer-events-none"
+                          className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                           dir="ltr"
                         >
                           {formatPersianDate(invoice.Date)}
                           <svg
-                            className="absolute text-gray-800 h-2 w-full left-0 top-full"
+                            className="absolute left-0 top-full h-2 w-full text-gray-800"
                             x="0px"
                             y="0px"
                             viewBox="0 0 255 255"
                             xmlSpace="preserve"
                           >
-                            <polygon
-                              className="fill-current"
-                              points="0,0 127.5,127.5 255,0"
-                            />
+                            <polygon className="fill-current" points="0,0 127.5,127.5 255,0" />
                           </svg>
                         </div>
                       </div>
                     </td>
 
-                    <td className="px-6 py-4 flex justify-center flex-wrap gap-2">
+                    <td className="flex flex-wrap justify-center gap-2 px-6 py-4">
                       <button
                         onClick={() => handleViewInvoice(invoice)}
-                        className="flex items-center justify-center py-1 px-2 rounded-lg bg-blue-700 hover:bg-blue-600 transition-all text-white"
+                        className="flex items-center justify-center rounded-lg bg-blue-700 px-2 py-1 text-white transition-all hover:bg-blue-600"
                       >
                         مشاهده فاکتور
                       </button>
                       <button
-                        className="flex items-center justify-center py-1 px-2 rounded-lg bg-green-700 hover:bg-green-600 transition-all text-white"
+                        className="flex items-center justify-center rounded-lg bg-green-700 px-2 py-1 text-white transition-all hover:bg-green-600"
                         onClick={() => handlePhoneNumberClick(invoice)}
                       >
                         تماس با مشتری
                       </button>
                       <button
-                        className="flex items-center justify-center py-1 px-2 rounded-lg bg-orange-700 hover:bg-orange-600 transition-all text-white"
+                        className="flex items-center justify-center rounded-lg bg-orange-700 px-2 py-1 text-white transition-all hover:bg-orange-600"
                         onClick={() => setStatusModalInvoice(invoice)}
                       >
                         تغییر وضعیت
                       </button>
                       <button
-                        className="flex items-center justify-center py-1 px-2 rounded-lg bg-red-700 hover:bg-red-600 transition-all text-white"
+                        className="flex items-center justify-center rounded-lg bg-red-700 px-2 py-1 text-white transition-all hover:bg-red-600"
                         onClick={() => setDeleteModalInvoice(invoice)}
                       >
                         حذف فاکتور
@@ -670,16 +631,12 @@ const AdminInvoicesPage = () => {
                       // Also update the invoice in the invoices list
                       setInvoices((prev) =>
                         prev.map((inv) =>
-                          inv.Invoiceid === updatedInvoice.Invoiceid
-                            ? updatedInvoice
-                            : inv
+                          inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv
                         )
                       );
                       setFilteredInvoices((prev) =>
                         prev.map((inv) =>
-                          inv.Invoiceid === updatedInvoice.Invoiceid
-                            ? updatedInvoice
-                            : inv
+                          inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv
                         )
                       );
                     }

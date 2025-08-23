@@ -1,8 +1,9 @@
 // app/auth/layout.tsx
 
 import { Metadata } from "next";
-import styles from "./AuthLayout.module.css";
 import Script from "next/script";
+
+import styles from "./AuthLayout.module.css";
 
 export const metadata: Metadata = {
   robots: {
@@ -14,11 +15,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Script

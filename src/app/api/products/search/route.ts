@@ -1,7 +1,7 @@
-import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
-import { escape } from "validator";
 import { Prisma } from "@prisma/client";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -165,10 +165,7 @@ export async function GET(request: Request) {
   const limit = limitParam !== null ? parseInt(limitParam, 10) : 0; // Default to 0 for no limit
 
   if (!query || query.trim().length === 0) {
-    return NextResponse.json(
-      { error: "Invalid search query" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid search query" }, { status: 400 });
   }
 
   try {
@@ -241,7 +238,6 @@ export async function GET(request: Request) {
     // Calculate correct pagination values
     const totalPages = Math.ceil(totalCount / (limit > 0 ? limit : totalCount));
     const currentPageToUse = page > totalPages ? 1 : page; // Reset to page 1 if current page exceeds total pages
-    const offsetToUse = (currentPageToUse - 1) * (limit > 0 ? limit : 0);
 
     // STEP 1: Get all categories in ascending order by ID
     const allCategories = await prisma.category.findMany({
@@ -315,16 +311,12 @@ export async function GET(request: Request) {
           };
         }
 
-        structuredData[categoryId].subcategories[subcatId].products.push(
-          product
-        );
+        structuredData[categoryId].subcategories[subcatId].products.push(product);
       }
     }
 
     // STEP 5: Flatten the structured data into a list, preserving order
-    for (const categoryId of Object.keys(structuredData).sort(
-      (a, b) => Number(a) - Number(b)
-    )) {
+    for (const categoryId of Object.keys(structuredData).sort((a, b) => Number(a) - Number(b))) {
       const categoryData = structuredData[categoryId];
 
       // Skip empty categories
@@ -351,19 +343,14 @@ export async function GET(request: Request) {
       // Add any products directly associated with the category (not in any subcategory)
       const productsNotInSubcats = categoryData.products.filter((p: any) => {
         // Product is not in any subcategory we processed
-        return !parseCategoryContentIds(p).some(
-          (id) => categoryData.subcategories[id]
-        );
+        return !parseCategoryContentIds(p).some((id) => categoryData.subcategories[id]);
       });
 
       if (productsNotInSubcats.length > 0) {
         const sortedDirectProducts = productsNotInSubcats.sort(
           (a: any, b: any) => b.ProductId - a.ProductId
         );
-        allProcessedProducts = [
-          ...allProcessedProducts,
-          ...sortedDirectProducts,
-        ];
+        allProcessedProducts = [...allProcessedProducts, ...sortedDirectProducts];
       }
     }
 
@@ -387,12 +374,8 @@ export async function GET(request: Request) {
     scoredProducts.sort((a, b) => b.score - a.score);
 
     // STEP 6: Apply pagination AFTER organizing and scoring
-    const startIndex =
-      (currentPageToUse - 1) * (limit > 0 ? limit : totalCount);
-    const endIndex = Math.min(
-      startIndex + (limit > 0 ? limit : totalCount),
-      scoredProducts.length
-    );
+    const startIndex = (currentPageToUse - 1) * (limit > 0 ? limit : totalCount);
+    const endIndex = Math.min(startIndex + (limit > 0 ? limit : totalCount), scoredProducts.length);
     const paginatedProducts = scoredProducts.slice(startIndex, endIndex);
 
     // Process the products to include links and subcategory information
@@ -409,17 +392,14 @@ export async function GET(request: Request) {
           .filter((sub: any) => sub !== undefined);
 
         // Use the first subcategory for the link
-        const firstSubCategory =
-          subcategories.length > 0 ? subcategories[0] : null;
+        const firstSubCategory = subcategories.length > 0 ? subcategories[0] : null;
 
         return {
           ...product,
           productSlug: product.Slug,
           categorySlug,
           subCategorySlug: firstSubCategory?.Slug || null,
-          link: `${categorySlug}/${firstSubCategory?.Slug || ""}/${
-            product.Slug
-          }`,
+          link: `${categorySlug}/${firstSubCategory?.Slug || ""}/${product.Slug}`,
           _relevanceScore: score, // For debugging
         };
       })

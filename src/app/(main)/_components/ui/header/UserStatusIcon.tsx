@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { PiUserCircleDashedFill } from "react-icons/pi"; // Icons remain the same
-import UserDropDown from "../userDropDown/UserDropDown";
-import { useUser } from "@/context/UserContext"; // Access the context directly
 import { useEffect, useState } from "react"; // Import useEffect and useState for state management
+import { PiUserCircleDashedFill } from "react-icons/pi"; // Icons remain the same
+
+import { useUser } from "@/context/UserContext"; // Access the context directly
+
 import styles from "./Header.module.css"; // CSS module remains unchanged
+import UserDropDown from "../userDropDown/UserDropDown";
 
 const UserStatusIcon = () => {
   const router = useRouter();

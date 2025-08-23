@@ -1,9 +1,11 @@
-import { fetchProducts } from "../_utils/fetchProducts";
-import Link from "next/link";
 import Image from "next/image";
-import styles from "./ProductGrid.module.css";
+import Link from "next/link";
+
 import Pagination from "@/app/_components/ui/Pagination";
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+
+import styles from "./ProductGrid.module.css";
+import { fetchProducts } from "../_utils/fetchProducts";
 
 interface Product {
   ProductId: number;
@@ -38,9 +40,7 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
   const isValidRate = usdRate && !isNaN(usdRate) && usdRate > 0;
 
   // Filter the products to only include those that are available
-  const availableProducts = products.filter(
-    (product: Product) => product.Available
-  );
+  const availableProducts = products.filter((product: Product) => product.Available);
 
   return (
     <>
@@ -60,34 +60,24 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
               loading="eager"
             />
             <h2>{product.Type}</h2>
-            <div className="font-extralight mt-3">
-              {product.Price === null ||
-              product.Price === undefined ||
-              +product.Price === 0 ? (
-                <span className="text-gray-600">
-                  برای ثبت سفارش با بخش فروش تماس بگیرید
-                </span>
+            <div className="mt-3 font-extralight">
+              {product.Price === null || product.Price === undefined || +product.Price === 0 ? (
+                <span className="text-gray-600">برای ثبت سفارش با بخش فروش تماس بگیرید</span>
               ) : !isValidRate ? (
-                <span className="text-gray-600 font-medium">
-                  برای دریافت قیمت تماس بگیرید
-                </span>
+                <span className="font-medium text-gray-600">برای دریافت قیمت تماس بگیرید</span>
               ) : product.Discount && +product.Discount > 0 ? (
-                <div className="flex flex-col gap-1 items-center text-lg">
-                  <span className="text-gray-500 font-light line-through">
-                    {(+product.Price * usdRate).toLocaleString("fa-IR") +
-                      " تومان"}
+                <div className="flex flex-col items-center gap-1 text-lg">
+                  <span className="font-light text-gray-500 line-through">
+                    {(+product.Price * usdRate).toLocaleString("fa-IR") + " تومان"}
                   </span>
                   <span className="font-semibold">
-                    {(
-                      (+product.Price - +product.Discount) *
-                      usdRate
-                    ).toLocaleString("fa-IR") + " تومان"}
+                    {((+product.Price - +product.Discount) * usdRate).toLocaleString("fa-IR") +
+                      " تومان"}
                   </span>
                 </div>
               ) : (
-                <span className="text-white text-lg font-semibold">
-                  {(+product.Price * usdRate).toLocaleString("fa-IR") +
-                    " تومان"}
+                <span className="text-lg font-semibold text-white">
+                  {(+product.Price * usdRate).toLocaleString("fa-IR") + " تومان"}
                 </span>
               )}
             </div>

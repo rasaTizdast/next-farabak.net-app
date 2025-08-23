@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { v4 as uuidv4 } from "uuid";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
 import moment from "jalali-moment";
+import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+import { v4 as uuidv4 } from "uuid";
+
+import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -98,10 +99,7 @@ export async function GET(): Promise<NextResponse> {
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "توکن احراز هویت مورد نیاز است" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "توکن احراز هویت مورد نیاز است" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
@@ -143,13 +141,13 @@ export async function GET(): Promise<NextResponse> {
 
         // Parse the date string, ensuring we handle Jalali date format correctly
         let invoiceDate;
-        
+
         // If date includes 'T', it's in ISO format - parse directly as it's already in correct format
-        if (invoice.Date.includes('T')) {
-          const [datePart, timePart] = invoice.Date.split('T');
-          const [year, month, day] = datePart.split('-').map(Number);
-          const [hour, minute, second] = timePart ? timePart.split(':').map(Number) : [0, 0, 0];
-          
+        if (invoice.Date.includes("T")) {
+          const [datePart, timePart] = invoice.Date.split("T");
+          const [year, month, day] = datePart.split("-").map(Number);
+          const [hour, minute, second] = timePart ? timePart.split(":").map(Number) : [0, 0, 0];
+
           // Create a moment object with correct Jalali date components
           invoiceDate = moment();
           invoiceDate.jYear(year);
@@ -162,21 +160,14 @@ export async function GET(): Promise<NextResponse> {
           // Use default parsing for other formats, but be cautious
           invoiceDate = moment(invoice.Date);
         }
-        
+
         // Calculate expiry (48 hours after creation)
-        const expiryDate = invoiceDate.clone().add(48, 'hours');
-        
-        // Debug info to help troubleshoot
-        console.log(`Invoice ${invoice.Invoiceid} - Created: ${invoiceDate.format('YYYY-MM-DD HH:mm:ss')}, Expires: ${expiryDate.format('YYYY-MM-DD HH:mm:ss')}, Now: ${now.format('YYYY-MM-DD HH:mm:ss')}, Expired: ${now.isAfter(expiryDate)}`);
-        
+        const expiryDate = invoiceDate.clone().add(48, "hours");
+
         // Check if the invoice is expired (current time is AFTER expiry time)
         if (now.isAfter(expiryDate)) {
-          // Invoice is expired, add to deletion list
-          console.log(`Adding invoice ${invoice.Invoiceid} to delete list - expired`);
           deletedInvoiceIds.push(invoice.Invoiceid);
         } else {
-          // Invoice is still valid
-          console.log(`Keeping invoice ${invoice.Invoiceid} - still valid`);
           validInvoices.push(invoice);
         }
       } catch (error) {
@@ -192,21 +183,19 @@ export async function GET(): Promise<NextResponse> {
       await prisma.invoice_Details.deleteMany({
         where: {
           Invoiceid: {
-            in: deletedInvoiceIds
-          }
-        }
+            in: deletedInvoiceIds,
+          },
+        },
       });
 
       // Then delete the invoices
       await prisma.invoice.deleteMany({
         where: {
           Invoiceid: {
-            in: deletedInvoiceIds
-          }
-        }
+            in: deletedInvoiceIds,
+          },
+        },
       });
-
-      console.log(`Deleted ${deletedInvoiceIds.length} expired invoices for user ${userId}`);
     }
 
     // Sort Invoice_Details by ProductId for each invoice to group them
@@ -224,10 +213,8 @@ export async function GET(): Promise<NextResponse> {
 
     return NextResponse.json(sortedInvoices, { status: 200 });
   } catch (error) {
-    return NextResponse.json(
-      { message: "خطا در دریافت فاکتورها" },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ message: "خطا در دریافت فاکتورها" }, { status: 500 });
   }
 }
 
@@ -296,26 +283,14 @@ export async function POST(request: Request) {
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "توکن احراز هویت مورد نیاز است" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "توکن احراز هویت مورد نیاز است" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
     const userId = decoded.userId as number; // Convert to BigInt
 
-    if (
-      !Fullname ||
-      !Phonenumber ||
-      !TotalAmount ||
-      !Products ||
-      Products.length === 0
-    ) {
-      return NextResponse.json(
-        { message: "اطلاعات درخواست نامعتبر است" },
-        { status: 400 }
-      );
+    if (!Fullname || !Phonenumber || !TotalAmount || !Products || Products.length === 0) {
+      return NextResponse.json({ message: "اطلاعات درخواست نامعتبر است" }, { status: 400 });
     }
 
     // Generate shorter, unique GUID
@@ -372,10 +347,8 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
-    return NextResponse.json(
-      { message: "خطا در ایجاد فاکتور" },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ message: "خطا در ایجاد فاکتور" }, { status: 500 });
   }
 }
 
@@ -413,20 +386,14 @@ export async function PATCH(request: Request) {
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "توکن احراز هویت مورد نیاز است" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "توکن احراز هویت مورد نیاز است" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
     const userId = decoded.userId;
 
     if (!FactorGuid || !userId) {
-      return NextResponse.json(
-        { message: "اطلاعات درخواست نامعتبر است" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "اطلاعات درخواست نامعتبر است" }, { status: 400 });
     }
 
     // Check if the invoice exists and belongs to the user
@@ -447,14 +414,9 @@ export async function PATCH(request: Request) {
       data: { Checked: true },
     });
 
-    return NextResponse.json(
-      { message: "وضعیت فاکتور با موفقیت بروزرسانی شد" },
-      { status: 200 }
-    );
+    return NextResponse.json({ message: "وضعیت فاکتور با موفقیت بروزرسانی شد" }, { status: 200 });
   } catch (error) {
-    return NextResponse.json(
-      { message: "خطا در بروزرسانی فاکتور" },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ message: "خطا در بروزرسانی فاکتور" }, { status: 500 });
   }
 }

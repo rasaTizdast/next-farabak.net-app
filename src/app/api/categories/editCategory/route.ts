@@ -1,6 +1,7 @@
+import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { jwtVerify } from "jose";
+
 import { prisma } from "@/lib/prisma"; // Assuming prisma is set up in this path
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -64,10 +65,7 @@ export async function PATCH(req: Request) {
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
-    return NextResponse.json(
-      { message: "Authorization token required" },
-      { status: 401 }
-    );
+    return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
   }
 
   const decoded = await verifyToken(token);
@@ -79,28 +77,11 @@ export async function PATCH(req: Request) {
 
   try {
     const body = await req.json();
-    const {
-      Type,
-      CategoryID,
-      CategoryContentId,
-      Name,
-      Slug,
-      Available,
-      SEO_Details,
-    } = body;
+    const { Type, CategoryID, CategoryContentId, Name, Slug, Available, SEO_Details } = body;
 
     if (Type === "category") {
-      if (
-        !CategoryID ||
-        !Name ||
-        !Slug ||
-        Available === undefined ||
-        !SEO_Details
-      ) {
-        return NextResponse.json(
-          { message: "Invalid data for category" },
-          { status: 400 }
-        );
+      if (!CategoryID || !Name || !Slug || Available === undefined || !SEO_Details) {
+        return NextResponse.json({ message: "Invalid data for category" }, { status: 400 });
       }
 
       const updatedCategory = await prisma.category.update({
@@ -143,10 +124,7 @@ export async function PATCH(req: Request) {
         Available === undefined ||
         !SEO_Details
       ) {
-        return NextResponse.json(
-          { message: "Invalid data for subcategory" },
-          { status: 400 }
-        );
+        return NextResponse.json({ message: "Invalid data for subcategory" }, { status: 400 });
       }
 
       const updatedSubcategory = await prisma.categoryContent.update({

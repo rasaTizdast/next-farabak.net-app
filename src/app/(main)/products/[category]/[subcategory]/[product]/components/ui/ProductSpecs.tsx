@@ -1,5 +1,6 @@
 // app/products/[category]/[product]/components/ProductSpecs.tsx
 import axios from "axios";
+
 import styles from "./ProductSpecs.module.css";
 
 interface Spec {
@@ -17,15 +18,12 @@ async function getProductSpecs(productId: number) {
     if (!res) throw new Error("Failed to fetch specs");
     return res.data.data;
   } catch (error) {
+    console.error(error);
     return [];
   }
 }
 
-export default async function ProductSpecs({
-  productId,
-}: {
-  productId: number;
-}) {
+export default async function ProductSpecs({ productId }: { productId: number }) {
   const specsData = await getProductSpecs(productId);
 
   return (
@@ -34,9 +32,7 @@ export default async function ProductSpecs({
       <div className={styles.specs}>
         {specsData.map((item: Spec, index: number) => (
           <div
-            className={`${index % 2 ? styles.oddSpec : styles.evenSpec} ${
-              styles.spec
-            }`}
+            className={`${index % 2 ? styles.oddSpec : styles.evenSpec} ${styles.spec}`}
             key={item.productSpecsId}
           >
             <div className={styles.key}>{item.Title}</div>

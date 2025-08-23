@@ -61,9 +61,7 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
     }
   }, [id]);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     // Clear errors when the user starts typing
@@ -87,8 +85,7 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
     if (!formData.name.trim()) newErrors.name = "نام الزامی است.";
     if (!formData.role.trim()) newErrors.role = "نقش الزامی است.";
     if (!formData.desc.trim()) newErrors.desc = "توضیحات الزامی است.";
-    if (formData.desc.trim().length > 4000)
-      newErrors.desc = "توضیحات باید زیر ۴۰۰۰ کاراکتر باشد";
+    if (formData.desc.trim().length > 4000) newErrors.desc = "توضیحات باید زیر ۴۰۰۰ کاراکتر باشد";
     if (!formData.phone.trim()) newErrors.phone = "شماره تماس الزامی است.";
     if (!formData.slug.trim()) newErrors.slug = "اسلاگ الزامی است.";
     setErrors(newErrors);
@@ -138,31 +135,31 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
         <div
-          className="bg-gray-700 text-gray-200 p-6 rounded-lg shadow-lg w-full max-w-7xl max-h-[95dvh] overflow-auto"
+          className="max-h-[95dvh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg"
           dir="rtl"
         >
-          <h2 className="text-2xl font-bold mb-4">
-            <div className="h-8 bg-gray-600 rounded w-1/3 animate-pulse"></div>
+          <h2 className="mb-4 text-2xl font-bold">
+            <div className="h-8 w-1/3 animate-pulse rounded bg-gray-600"></div>
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {[...Array(2)].map((_, index) => (
               <div key={index}>
-                <div className="h-6 bg-gray-600 rounded w-1/4 mb-2 animate-pulse"></div>
-                <div className="h-10 bg-gray-600 rounded w-full animate-pulse"></div>
+                <div className="mb-2 h-6 w-1/4 animate-pulse rounded bg-gray-600"></div>
+                <div className="h-10 w-full animate-pulse rounded bg-gray-600"></div>
               </div>
             ))}
             <div className="col-span-2">
-              <div className="h-6 bg-gray-600 rounded w-1/4 mb-2 animate-pulse"></div>
-              <div className="h-32 bg-gray-600 rounded w-full animate-pulse"></div>
+              <div className="mb-2 h-6 w-1/4 animate-pulse rounded bg-gray-600"></div>
+              <div className="h-32 w-full animate-pulse rounded bg-gray-600"></div>
             </div>
             <div className="col-span-2">
-              <div className="h-6 bg-gray-600 rounded w-1/4 mb-2 animate-pulse"></div>
-              <div className="h-48 bg-gray-600 rounded w-full animate-pulse"></div>
+              <div className="mb-2 h-6 w-1/4 animate-pulse rounded bg-gray-600"></div>
+              <div className="h-48 w-full animate-pulse rounded bg-gray-600"></div>
             </div>
           </div>
           <div className="mt-6 flex justify-end gap-4">
-            <div className="h-10 bg-gray-600 rounded w-24 animate-pulse"></div>
-            <div className="h-10 bg-gray-600 rounded w-24 animate-pulse"></div>
+            <div className="h-10 w-24 animate-pulse rounded bg-gray-600"></div>
+            <div className="h-10 w-24 animate-pulse rounded bg-gray-600"></div>
           </div>
         </div>
       </div>
@@ -172,12 +169,9 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
   if (error) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-        <div className="bg-gray-700 text-gray-200 p-6 rounded-lg shadow-lg">
+        <div className="rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg">
           <p>{error}</p>
-          <button
-            onClick={onClose}
-            className="mt-4 px-4 py-2 bg-red-600 rounded-lg"
-          >
+          <button onClick={onClose} className="mt-4 rounded-lg bg-red-600 px-4 py-2">
             بستن
           </button>
         </div>
@@ -188,12 +182,9 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
   if (!member) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-        <div className="bg-gray-700 text-gray-200 p-6 rounded-lg shadow-lg">
+        <div className="rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg">
           <p>عضو یافت نشد.</p>
-          <button
-            onClick={onClose}
-            className="mt-4 px-4 py-2 bg-red-600 rounded-lg"
-          >
+          <button onClick={onClose} className="mt-4 rounded-lg bg-red-600 px-4 py-2">
             بستن
           </button>
         </div>
@@ -204,89 +195,79 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
       <div
-        className="bg-gray-700 text-gray-200 p-6 rounded-lg shadow-lg w-full max-w-7xl max-h-[95dvh] overflow-auto"
+        className="max-h-[95dvh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg"
         dir="rtl"
       >
-        <h2 className="text-2xl font-bold mb-4">ویرایش عضو {member.Name}</h2>
+        <h2 className="mb-4 text-2xl font-bold">ویرایش عضو {member.Name}</h2>
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block mb-2">نام:</label>
+              <label className="mb-2 block">نام:</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className={`w-full p-2 bg-gray-600 rounded-lg ${
+                className={`w-full rounded-lg bg-gray-600 p-2 ${
                   errors.name ? "border border-red-500" : ""
                 }`}
               />
-              {errors.name && (
-                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-              )}
+              {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
             </div>
             <div>
-              <label className="block mb-2">نقش:</label>
+              <label className="mb-2 block">نقش:</label>
               <input
                 type="text"
                 name="role"
                 value={formData.role}
                 onChange={handleInputChange}
-                className={`w-full p-2 bg-gray-600 rounded-lg ${
+                className={`w-full rounded-lg bg-gray-600 p-2 ${
                   errors.role ? "border border-red-500" : ""
                 }`}
               />
-              {errors.role && (
-                <p className="text-red-500 text-sm mt-1">{errors.role}</p>
-              )}
+              {errors.role && <p className="mt-1 text-sm text-red-500">{errors.role}</p>}
             </div>
             <div className="col-span-2">
-              <label className="block mb-2">توضیحات:</label>
+              <label className="mb-2 block">توضیحات:</label>
               <textarea
                 name="desc"
                 value={formData.desc}
                 onChange={handleInputChange}
-                className={`w-full p-2 bg-gray-600 rounded-lg ${
+                className={`w-full rounded-lg bg-gray-600 p-2 ${
                   errors.desc ? "border border-red-500" : ""
                 }`}
                 rows={5}
               />
-              {errors.desc && (
-                <p className="text-red-500 text-sm mt-1">{errors.desc}</p>
-              )}
+              {errors.desc && <p className="mt-1 text-sm text-red-500">{errors.desc}</p>}
             </div>
             <div>
-              <label className="block mb-2">شماره تماس:</label>
+              <label className="mb-2 block">شماره تماس:</label>
               <input
                 type="text"
                 name="phone"
                 value={formData.phone}
                 onChange={handleInputChange}
-                className={`w-full p-2 bg-gray-600 rounded-lg ${
+                className={`w-full rounded-lg bg-gray-600 p-2 ${
                   errors.phone ? "border border-red-500" : ""
                 }`}
               />
-              {errors.phone && (
-                <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-              )}
+              {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
             </div>
             <div>
-              <label className="block mb-2">اسلاگ:</label>
+              <label className="mb-2 block">اسلاگ:</label>
               <input
                 type="text"
                 name="slug"
                 value={formData.slug}
                 onChange={handleInputChange}
-                className={`w-full p-2 bg-gray-600 rounded-lg ${
+                className={`w-full rounded-lg bg-gray-600 p-2 ${
                   errors.slug ? "border border-red-500" : ""
                 }`}
               />
-              {errors.slug && (
-                <p className="text-red-500 text-sm mt-1">{errors.slug}</p>
-              )}
+              {errors.slug && <p className="mt-1 text-sm text-red-500">{errors.slug}</p>}
             </div>
             <div className="col-span-2">
-              <label className="block mb-2">تصویر پروفایل:</label>
+              <label className="mb-2 block">تصویر پروفایل:</label>
               {member.main_pic && (
                 <div className="mb-4">
                   <Image
@@ -303,10 +284,10 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
-                className="w-full p-2 bg-gray-600 rounded-lg"
+                className="w-full rounded-lg bg-gray-600 p-2"
               />
               {imageFile && (
-                <p className="text-sm text-gray-400 mt-2">
+                <p className="mt-2 text-sm text-gray-400">
                   تصویر جدید انتخاب شده: {imageFile.name}
                 </p>
               )}
@@ -316,7 +297,7 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 transition-all rounded-lg"
+              className="rounded-lg bg-red-600 px-4 py-2 transition-all hover:bg-red-700"
             >
               بستن
             </button>
@@ -324,10 +305,8 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
               type="submit"
               disabled={loading}
               className={`px-4 py-2 ${
-                loading
-                  ? "bg-green-700 cursor-not-allowed"
-                  : "bg-green-600 hover:bg-green-700"
-              } transition-all text-gray-100 rounded-lg`}
+                loading ? "cursor-not-allowed bg-green-700" : "bg-green-600 hover:bg-green-700"
+              } rounded-lg text-gray-100 transition-all`}
             >
               {loading ? "در حال ذخیره کردن" : "ذخیره تغییرات"}
             </button>

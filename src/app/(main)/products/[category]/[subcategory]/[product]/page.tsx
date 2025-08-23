@@ -1,21 +1,22 @@
-import { Metadata } from "next";
-import { Suspense } from "react";
-import Image from "next/image";
-import styles from "./ProductPage.module.css";
-
 // Components
+import axios from "axios";
+import { Metadata } from "next";
+import Image from "next/image";
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
+
+import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import { formatTitle } from "@/helpers/formatTitle";
+
+import ClientInvoiceSection from "./components/ui/ClientInvoiceSection";
+import ProductBlog from "./components/ui/ProductBlog";
+import ProductFaq from "./components/ui/ProductFaq";
 import ProductFeatures from "./components/ui/ProductFeatures";
 import ProductOverview from "./components/ui/ProductOverviewDetails";
 import ProductSpecs from "./components/ui/ProductSpecs";
-import ProductFaq from "./components/ui/ProductFaq";
-import { SkeletonFeatures } from "./components/ui/Skeletons";
-import { notFound } from "next/navigation";
-import axios from "axios";
-import ClientInvoiceSection from "./components/ui/ClientInvoiceSection";
 import ProductTabs from "./components/ui/ProductTabs";
-import Breadcrumb from "@/app/_components/ui/Breadcrumb";
-import { formatTitle } from "@/helpers/formatTitle";
-import ProductBlog from "./components/ui/ProductBlog";
+import { SkeletonFeatures } from "./components/ui/Skeletons";
+import styles from "./ProductPage.module.css";
 
 // Types
 interface ProductData {
@@ -110,6 +111,7 @@ async function getProduct(slug: string): Promise<ProductData | null> {
     const product = res.data;
     return product;
   } catch (error) {
+    console.error(error);
     return null;
   }
 }
@@ -196,7 +198,7 @@ export default async function ProductPage(props: {
       <section id="overview" className={styles.section}>
         <Suspense
           fallback={
-            <div className="w-full py-4 bg-gray-200 animate-pulse flex justify-center text-slate-800 rounded-lg mt-6 sm:mt-0 text-sm md:text-base font-semibold">
+            <div className="mt-6 flex w-full animate-pulse justify-center rounded-lg bg-gray-200 py-4 text-sm font-semibold text-slate-800 sm:mt-0 md:text-base">
               درحال بارگذاری توضیحات
             </div>
           }
@@ -208,7 +210,7 @@ export default async function ProductPage(props: {
       <section id="blog" className={styles.section}>
         <Suspense
           fallback={
-            <div className="w-full py-4 bg-gray-200 animate-pulse flex justify-center text-slate-800 rounded-lg mt-6 sm:mt-0 text-sm md:text-base font-semibold">
+            <div className="mt-6 flex w-full animate-pulse justify-center rounded-lg bg-gray-200 py-4 text-sm font-semibold text-slate-800 sm:mt-0 md:text-base">
               درحال بارگذاری توضیحات تکمیلی
             </div>
           }
@@ -220,7 +222,7 @@ export default async function ProductPage(props: {
       <section id="specs" className={`${styles.section} mt-8`}>
         <Suspense
           fallback={
-            <div className="w-full py-4 bg-gray-200 animate-pulse flex justify-center text-slate-800 rounded-lg mt-6 sm:mt-0 text-sm md:text-base font-semibold">
+            <div className="mt-6 flex w-full animate-pulse justify-center rounded-lg bg-gray-200 py-4 text-sm font-semibold text-slate-800 sm:mt-0 md:text-base">
               درحال بارگذاری مشخصات
             </div>
           }
@@ -232,7 +234,7 @@ export default async function ProductPage(props: {
       <section id="faq" className={`${styles.section} mt-8`}>
         <Suspense
           fallback={
-            <div className="w-full py-4 bg-gray-200 animate-pulse flex justify-center text-slate-800 rounded-lg mt-6 sm:mt-0 text-sm md:text-base font-semibold">
+            <div className="mt-6 flex w-full animate-pulse justify-center rounded-lg bg-gray-200 py-4 text-sm font-semibold text-slate-800 sm:mt-0 md:text-base">
               درحال بارگذاری سوالات
             </div>
           }

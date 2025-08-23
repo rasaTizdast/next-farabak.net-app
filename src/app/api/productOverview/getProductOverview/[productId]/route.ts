@@ -1,6 +1,7 @@
 // app/api/productOverview/getProductOverview/[productId]/route.ts
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -43,10 +44,7 @@ import { NextResponse } from "next/server";
  */
 
 // Handler function for GET request
-export async function GET(
-  request: Request,
-  props: { params: Promise<{ productId: string }> }
-) {
+export async function GET(request: Request, props: { params: Promise<{ productId: string }> }) {
   const params = await props.params;
   try {
     // Query to get product overview by product ID
@@ -56,15 +54,13 @@ export async function GET(
 
     // If no matching product overviews found, return a "No product found" message
     if (!result) {
-      return NextResponse.json(
-        { message: "No product found for the given ID" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "No product found for the given ID" }, { status: 404 });
     }
 
     // Return the product overview data as a JSON response
     return NextResponse.json(result);
   } catch (error) {
+    console.error(error);
     // Return a server error response
     return new NextResponse("Failed to fetch product overview", {
       status: 500,

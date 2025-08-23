@@ -1,15 +1,13 @@
 import Link from "next/link";
 import { BsFillSignpostSplitFill } from "react-icons/bs";
 import { FaInstagram, FaPhoneSquare, FaWhatsapp } from "react-icons/fa";
+
 import styles from "./Footer.module.css";
 
 const Footer = async () => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/contact-us`,
-    {
-      next: { revalidate: 3600 },
-    }
-  );
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/contact-us`, {
+    next: { revalidate: 3600 },
+  });
   const { phone_numbers, address } = await response.json();
 
   return (
@@ -86,19 +84,14 @@ const Footer = async () => {
             <div className={styles.cTitle}>آدرس دفتر مرکزی</div>
             {address && (
               <>
-                <div className={`${styles.cItem} ${styles.address}`}>
-                  {address.address}
-                </div>
+                <div className={`${styles.cItem} ${styles.address}`}>{address.address}</div>
                 <div className={styles.details}>
                   <div className={`${styles.cItem} ${styles.addressItem}`}>
                     <BsFillSignpostSplitFill />
                     <span>{address.postal_code}</span>
                   </div>
                   {phone_numbers.map((phone) => (
-                    <div
-                      key={phone.id}
-                      className={`${styles.cItem} ${styles.addressItem}`}
-                    >
+                    <div key={phone.id} className={`${styles.cItem} ${styles.addressItem}`}>
                       <FaPhoneSquare />
                       <Link href={`tel:${phone.number}`}>{phone.number}</Link>
                     </div>

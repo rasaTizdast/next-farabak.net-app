@@ -1,7 +1,8 @@
-import { prisma } from "@/lib/prisma";
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -160,10 +161,7 @@ export async function POST(request: Request) {
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "Authorization token required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
@@ -205,10 +203,7 @@ export async function POST(request: Request) {
       !SEO_Title ||
       !SEO_Description
     ) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     const existingProduct = await prisma.product.findFirst({
@@ -243,9 +238,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

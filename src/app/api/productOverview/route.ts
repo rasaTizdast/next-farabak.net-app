@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -47,8 +48,7 @@ export async function POST(req: NextRequest) {
     if (!ProductId || !ProductName || !Array.isArray(Features)) {
       return NextResponse.json(
         {
-          error:
-            "Invalid input. Ensure ProductId, ProductName, and Features are provided.",
+          error: "Invalid input. Ensure ProductId, ProductName, and Features are provided.",
         },
         { status: 400 }
       );
@@ -98,6 +98,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { error: "Internal server error. Please try again later." },
       { status: 500 }

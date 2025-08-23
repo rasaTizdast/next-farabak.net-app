@@ -13,10 +13,7 @@ type UserType = {
 };
 
 // Add new invoice
-export const addNewInvoice = async (
-  invoice: Invoice,
-  user: UserType | null
-) => {
+export const addNewInvoice = async (invoice: Invoice, user: UserType | null) => {
   try {
     const res = await axios.post("/api/invoice", {
       Fullname: `${user?.firstName} ${user?.lastName}`,
@@ -31,9 +28,7 @@ export const addNewInvoice = async (
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.message || "Error adding invoice");
     } else if (error instanceof Error) {
-      throw new Error(
-        error.message || "Unknown error occurred while adding invoice"
-      );
+      throw new Error(error.message || "Unknown error occurred while adding invoice");
     }
     throw new Error("Unknown error occurred while adding invoice");
   }
@@ -48,14 +43,8 @@ export const getUserInvoices = async () => {
     // Validate Invoice_Details structure in each invoice
     if (Array.isArray(res.data)) {
       res.data.forEach((invoice, index) => {
-        if (
-          !invoice.Invoice_Details ||
-          !Array.isArray(invoice.Invoice_Details)
-        ) {
-          console.warn(
-            `Invoice at index ${index} has invalid Invoice_Details`,
-            invoice
-          );
+        if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
+          console.warn(`Invoice at index ${index} has invalid Invoice_Details`, invoice);
         } else {
           invoice.Invoice_Details.forEach((detail, detailIndex) => {
             if (!detail.Invoice_Details) {
@@ -73,13 +62,9 @@ export const getUserInvoices = async () => {
   } catch (error: unknown) {
     // Handle error and check for AxiosError structure
     if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.message || "Error fetching invoices"
-      );
+      throw new Error(error.response?.data?.message || "Error fetching invoices");
     } else if (error instanceof Error) {
-      throw new Error(
-        error.message || "Unknown error occurred while fetching invoices"
-      );
+      throw new Error(error.message || "Unknown error occurred while fetching invoices");
     }
     throw new Error("Unknown error occurred while fetching invoices");
   }
@@ -95,13 +80,9 @@ export const checkUserInvoice = async (guid: string) => {
   } catch (error: unknown) {
     // Handle error and check for AxiosError structure
     if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.message || "Error checking invoice"
-      );
+      throw new Error(error.response?.data?.message || "Error checking invoice");
     } else if (error instanceof Error) {
-      throw new Error(
-        error.message || "Unknown error occurred while checking invoice"
-      );
+      throw new Error(error.message || "Unknown error occurred while checking invoice");
     }
     throw new Error("Unknown error occurred while checking invoice");
   }

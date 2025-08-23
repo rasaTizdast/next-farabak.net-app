@@ -1,26 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { yupResolver } from "@hookform/resolvers/yup";
+import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
+import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import axios from "axios";
-
-import { signInSchema } from "@/helpers/validationSchema";
-import TextInput from "../_components/TextInput";
-import ForgotPasswordModal from "../_components/ForgotPasswordModal";
-import styles from "../FormStyles.module.css";
 
 import { useUser } from "@/context/UserContext";
+import { signInSchema } from "@/helpers/validationSchema";
+
+import ForgotPasswordModal from "../_components/ForgotPasswordModal";
+import TextInput from "../_components/TextInput";
+import styles from "../FormStyles.module.css";
 
 const SignIn = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] =
-    useState(false);
+  const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
   const router = useRouter();
 
   const { updateUserContext } = useUser();
@@ -150,10 +148,7 @@ const SignIn = () => {
             alt="farabak-signIn-Image"
             style={{ display: "block" }}
           />
-          <h3>
-            با ورود به حساب کاربری خود، میتوانید از تمامی امکانات وبسایت استفاده
-            کنید.
-          </h3>
+          <h3>با ورود به حساب کاربری خود، میتوانید از تمامی امکانات وبسایت استفاده کنید.</h3>
         </div>
       </div>
 

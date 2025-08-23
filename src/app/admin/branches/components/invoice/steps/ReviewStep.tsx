@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
 import { Card, Descriptions, Table, Divider, Alert } from "antd";
+import React from "react";
+
 import { Invoice } from "../../types";
 
 interface ReviewStepProps {
@@ -9,15 +10,10 @@ interface ReviewStepProps {
   productsWithWarranty: any[];
 }
 
-const ReviewStep: React.FC<ReviewStepProps> = ({
-  invoice,
-  productsWithWarranty,
-}) => {
+const ReviewStep: React.FC<ReviewStepProps> = ({ invoice, productsWithWarranty }) => {
   // Check if all products have valid warranty settings
   const hasInvalidWarranty = productsWithWarranty.some(
-    (item) =>
-      item.warranty.hasWarranty &&
-      (!item.warranty.startdate || !item.warranty.expirydate)
+    (item) => item.warranty.hasWarranty && (!item.warranty.startdate || !item.warranty.expirydate)
   );
 
   const columns = [
@@ -33,9 +29,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
 
         // Only show product name for the first occurrence
         const isFirstOccurrence =
-          sameProductItems.findIndex(
-            (item) => item.singleItemId === record.singleItemId
-          ) === 0;
+          sameProductItems.findIndex((item) => item.singleItemId === record.singleItemId) === 0;
 
         if (isFirstOccurrence) {
           // Get color based on ProductId
@@ -44,9 +38,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
           return (
             <div className="flex items-start gap-2">
               <span>{text}</span>
-              <span
-                className={`${colorClass} text-xs text-white px-2 py-0.5 rounded-full`}
-              >
+              <span className={`${colorClass} rounded-full px-2 py-0.5 text-xs text-white`}>
                 {sameProductItems.length}×
               </span>
             </div>
@@ -58,8 +50,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
     {
       title: "قیمت واحد (تومان)",
       key: "price",
-      render: (text, record) =>
-        new Intl.NumberFormat("fa-IR").format(record.price),
+      render: (text, record) => new Intl.NumberFormat("fa-IR").format(record.price),
     },
     {
       title: "گارانتی",
@@ -94,13 +85,8 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
             </span>
             {record.warranty.startdate && record.warranty.expirydate && (
               <span className="text-xs text-gray-400">
-                {new Date(record.warranty.startdate).toLocaleDateString(
-                  "fa-IR"
-                )}{" "}
-                تا{" "}
-                {new Date(record.warranty.expirydate).toLocaleDateString(
-                  "fa-IR"
-                )}
+                {new Date(record.warranty.startdate).toLocaleDateString("fa-IR")} تا{" "}
+                {new Date(record.warranty.expirydate).toLocaleDateString("fa-IR")}
               </span>
             )}
           </div>
@@ -110,10 +96,8 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
   ];
 
   return (
-    <Card className="bg-gray-900 border-0 shadow-md">
-      <h3 className="text-lg font-medium text-white mb-4">
-        بررسی نهایی فاکتور
-      </h3>
+    <Card className="border-0 bg-gray-900 shadow-md">
+      <h3 className="mb-4 text-lg font-medium text-white">بررسی نهایی فاکتور</h3>
 
       {hasInvalidWarranty && (
         <Alert
@@ -129,22 +113,18 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
         title={<span className="text-white">اطلاعات خریدار</span>}
         bordered
         column={1}
-        className="mb-4 custom-dark-descriptions"
+        className="custom-dark-descriptions mb-4"
         labelStyle={{ color: "#d1d5db", backgroundColor: "#1f2937" }}
         contentStyle={{ color: "white", backgroundColor: "#111827" }}
       >
-        <Descriptions.Item label="نام و نام خانوادگی">
-          {invoice.Fullname}
-        </Descriptions.Item>
-        <Descriptions.Item label="شماره تماس">
-          {invoice.Phonenumber}
-        </Descriptions.Item>
+        <Descriptions.Item label="نام و نام خانوادگی">{invoice.Fullname}</Descriptions.Item>
+        <Descriptions.Item label="شماره تماس">{invoice.Phonenumber}</Descriptions.Item>
       </Descriptions>
 
       <Divider className="bg-gray-700" />
 
-      <h4 className="text-white mb-4">محصولات</h4>
-      <div className="overflow-auto max-h-[500px]">
+      <h4 className="mb-4 text-white">محصولات</h4>
+      <div className="max-h-[500px] overflow-auto">
         <Table
           dataSource={productsWithWarranty}
           columns={columns}
@@ -188,9 +168,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
           footer={() => (
             <div className="text-right">
               <span className="text-lg font-bold text-white">
-                مجموع کل:{" "}
-                {new Intl.NumberFormat("fa-IR").format(invoice.TotalAmount)}{" "}
-                تومان
+                مجموع کل: {new Intl.NumberFormat("fa-IR").format(invoice.TotalAmount)} تومان
               </span>
             </div>
           )}
@@ -199,11 +177,8 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
 
       <Divider className="bg-gray-700" />
 
-      <div className="text-white text-right mt-4">
-        <p>
-          با ثبت فاکتور، این اطلاعات ذخیره شده و قابل مشاهده در بخش فاکتورها
-          خواهد بود.
-        </p>
+      <div className="mt-4 text-right text-white">
+        <p>با ثبت فاکتور، این اطلاعات ذخیره شده و قابل مشاهده در بخش فاکتورها خواهد بود.</p>
       </div>
 
       <style jsx global>{`
@@ -382,9 +357,7 @@ const getProductColorIndex = (productId: string | number): number => {
     numValue = parseInt(numbers[0], 10);
   } else {
     // If no numbers, use the sum of char codes
-    numValue = productIdStr
-      .split("")
-      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    numValue = productIdStr.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
   }
 
   // Return color index (0-7)
@@ -399,16 +372,7 @@ const getProductColor = (productId: string | number): string => {
 
 // Get color name by index
 const getColorNameByIndex = (index: number): string => {
-  const colorNames = [
-    "blue",
-    "green",
-    "purple",
-    "orange",
-    "pink",
-    "cyan",
-    "red",
-    "lime",
-  ];
+  const colorNames = ["blue", "green", "purple", "orange", "pink", "cyan", "red", "lime"];
 
   return colorNames[index];
 };

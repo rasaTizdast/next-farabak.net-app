@@ -1,7 +1,17 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
+
+type warranty = {
+  expirydate: Date;
+  startdate: Date;
+  status: string;
+  customer_name: string;
+  customer_phone: string;
+  warrantyid: number;
+};
 
 /**
  * Public endpoint for checking warranty status and updating it to "Requested"
@@ -11,17 +21,10 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(request: Request) {
   try {
-    const {
-      warrantycode,
-      checkOnly = false,
-      confirm = false,
-    } = await request.json();
+    const { warrantycode, checkOnly = false, confirm = false } = await request.json();
 
     if (!warrantycode) {
-      return NextResponse.json(
-        { error: "کد گارانتی نمی‌تواند خالی باشد" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "کد گارانتی نمی‌تواند خالی باشد" }, { status: 400 });
     }
 
     // Check if warranty exists and get its details
@@ -34,14 +37,11 @@ export async function POST(request: Request) {
       LIMIT 1
     `;
 
-    if ((warranty as any[]).length === 0) {
-      return NextResponse.json(
-        { error: "کد گارانتی وارد شده معتبر نیست" },
-        { status: 404 }
-      );
+    if ((warranty as warranty[]).length === 0) {
+      return NextResponse.json({ error: "کد گارانتی وارد شده معتبر نیست" }, { status: 404 });
     }
 
-    const warrantyData = (warranty as any[])[0];
+    const warrantyData = (warranty as warranty[])[0];
 
     // Check if warranty is expired
     const today = new Date();
@@ -192,9 +192,6 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error("Error checking warranty status:", error);
-    return NextResponse.json(
-      { error: "خطا در بررسی وضعیت گارانتی" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در بررسی وضعیت گارانتی" }, { status: 500 });
   }
 }

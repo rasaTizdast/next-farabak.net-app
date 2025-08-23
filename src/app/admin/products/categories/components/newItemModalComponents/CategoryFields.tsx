@@ -36,8 +36,7 @@ const CategoryFields = ({
     if (pattern && !pattern.test(value)) {
       setErrors((prev) => ({
         ...prev,
-        [field]:
-          errorMessages[field as keyof typeof errorMessages] || "خطای نامشخص",
+        [field]: errorMessages[field as keyof typeof errorMessages] || "خطای نامشخص",
       }));
     } else {
       setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -67,10 +66,10 @@ const CategoryFields = ({
           value={name}
           onChange={(e) => handleInputChange("Name", e.target.value)}
           disabled={!editable}
-          className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 disabled:bg-gray-500"
+          className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-500"
           placeholder="نام دسته‌بندی را وارد کنید"
         />
-        {errors.Name && <p className="text-red-500 text-sm">{errors.Name}</p>}
+        {errors.Name && <p className="text-sm text-red-500">{errors.Name}</p>}
       </div>
 
       {/* Slug */}
@@ -81,10 +80,10 @@ const CategoryFields = ({
           value={slug}
           onChange={handleSlugChange} // Use the space-to-dash handler
           disabled={!editable}
-          className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 disabled:bg-gray-500"
+          className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-500"
           placeholder="شناسه دسته‌بندی"
         />
-        {errors.Slug && <p className="text-red-500 text-sm">{errors.Slug}</p>}
+        {errors.Slug && <p className="text-sm text-red-500">{errors.Slug}</p>}
       </div>
 
       {/* Availability */}
@@ -94,7 +93,7 @@ const CategoryFields = ({
           value={available ? "true" : "false"}
           onChange={(e) => setAvailable(e.target.value === "true")}
           disabled={!editable}
-          className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 disabled:bg-gray-400 disabled:text-slate-300"
+          className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:text-slate-300"
         >
           <option value="true">بله</option>
           <option value="false">خیر</option>

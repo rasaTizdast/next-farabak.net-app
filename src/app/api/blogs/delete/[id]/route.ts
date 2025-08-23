@@ -1,7 +1,8 @@
 // app/api/blogs/delete/[id]/route.ts
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { S3 } from "aws-sdk";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 const s3 = new S3({
   accessKeyId: process.env.LIARA_ACCESS_KEY!,
@@ -14,18 +15,12 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
   try {
     const blogId = parseInt(params.id);
     if (isNaN(blogId)) {
-      return NextResponse.json(
-        { error: "شناسه وبلاگ معتبر نیست." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "شناسه وبلاگ معتبر نیست." }, { status: 400 });
     }
 
     const blog = await prisma.blogs.findUnique({ where: { id: blogId } });
     if (!blog) {
-      return NextResponse.json(
-        { error: "وبلاگ مورد نظر پیدا نشد." },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "وبلاگ مورد نظر پیدا نشد." }, { status: 404 });
     }
 
     // Delete relationships first
@@ -67,9 +62,7 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
     return NextResponse.json({
       message:
         "وبلاگ با موفقیت حذف شد" +
-        (imageDeletionSuccess
-          ? ""
-          : "، اما ممکن است برخی تصاویر همچنان باقی مانده باشند."),
+        (imageDeletionSuccess ? "" : "، اما ممکن است برخی تصاویر همچنان باقی مانده باشند."),
     });
   } catch (error) {
     console.error("Delete error:", error);

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 const COOKIE_NAME = "invoiceData";
 
@@ -14,7 +14,7 @@ const COOKIE_NAME = "invoiceData";
  *       500:
  *         description: Internal server error
  */
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function POST(): Promise<NextResponse> {
   try {
     // Create response with deleted cookie
     const response = NextResponse.json({

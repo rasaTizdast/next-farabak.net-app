@@ -1,9 +1,10 @@
 // app/api/admin/users/route.ts
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // Assuming you have a prisma client setup
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
 import { PrismaClient } from "@prisma/client";
+import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma"; // Assuming you have a prisma client setup
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const prismaClient = new PrismaClient();
@@ -47,10 +48,7 @@ export async function POST(request: Request) {
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
-    return NextResponse.json(
-      { message: "Authorization token required" },
-      { status: 401 }
-    );
+    return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
   }
 
   const decoded = await verifyToken(token);
@@ -119,16 +117,11 @@ export async function GET() {
     );
 
     // Remove the has_branch property from the response
-    const cleanedUsers = usersWithoutBranches.map(
-      ({ has_branch, ...user }) => user
-    );
+    const cleanedUsers = usersWithoutBranches.map(({ has_branch, ...user }) => user);
 
     return NextResponse.json(cleanedUsers);
   } catch (error) {
     console.error("Error fetching users:", error);
-    return NextResponse.json(
-      { error: "خطا در بارگذاری کاربران" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در بارگذاری کاربران" }, { status: 500 });
   }
 }

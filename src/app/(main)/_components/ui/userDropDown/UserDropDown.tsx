@@ -1,10 +1,13 @@
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { PiUserCircleDashedFill } from "react-icons/pi";
-import Link from "next/link";
-import styles from "./UserDropDown.module.css";
-import { useUser } from "@/context/UserContext";
+
 import { useInvoice } from "@/context/InvoiceContext";
-import { useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
+
+import styles from "./UserDropDown.module.css";
+
 // import { useAuth } from "../hooks/useAuth";
 
 const UserDropDown = () => {
@@ -12,8 +15,7 @@ const UserDropDown = () => {
   const [isVis, setIsVis] = useState(false);
   const [expandedInvoice, setExpandedInvoice] = useState(true);
   const { isAdmin, isBranch, logout } = useUser();
-  const { invoice, removeProductFromInvoice, updateProductQuantity } =
-    useInvoice();
+  const { invoice, removeProductFromInvoice, updateProductQuantity } = useInvoice();
 
   const dropdownRef = useRef<HTMLUListElement | null>(null); // Ref to track the dropdown element
   const iconRef = useRef<HTMLDivElement | null>(null); // Ref to track the icon element
@@ -99,9 +101,7 @@ const UserDropDown = () => {
             if (
               expandedInvoice &&
               e.target instanceof Node &&
-              dropdownRef.current
-                ?.querySelector(`.${styles.expandedInvoice}`)
-                ?.contains(e.target)
+              dropdownRef.current?.querySelector(`.${styles.expandedInvoice}`)?.contains(e.target)
             ) {
               e.stopPropagation();
             } else if (!e.defaultPrevented) {
@@ -127,9 +127,7 @@ const UserDropDown = () => {
           {!isAdmin && !isBranch && (
             <>
               <li
-                className={`${styles.invoiceOption} ${
-                  expandedInvoice ? styles.expanded : ""
-                }`}
+                className={`${styles.invoiceOption} ${expandedInvoice ? styles.expanded : ""}`}
                 ref={invoiceMenuItemRef}
                 onClick={(e) => {
                   if (expandedInvoice) {
@@ -137,25 +135,17 @@ const UserDropDown = () => {
                   }
                 }}
               >
-                <div
-                  className={styles.invoiceOptionHeader}
-                  onClick={toggleExpandedInvoice}
-                >
+                <div className={styles.invoiceOptionHeader} onClick={toggleExpandedInvoice}>
                   <div className={styles.invoiceTitle}>
                     فاکتور فعلی
                     {invoice.products.length > 0 && (
-                      <span className={styles.invoiceAmount}>
-                        {formattedAmount} تومان
-                      </span>
+                      <span className={styles.invoiceAmount}>{formattedAmount} تومان</span>
                     )}
                   </div>
                 </div>
 
                 {expandedInvoice && (
-                  <div
-                    className={styles.expandedInvoice}
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <div className={styles.expandedInvoice} onClick={(e) => e.stopPropagation()}>
                     <h4>فاکتور فعلی</h4>
                     {invoice.products.length > 0 ? (
                       <>
@@ -164,40 +154,25 @@ const UserDropDown = () => {
                             const itemPrice = product.Price || 0;
                             const itemDiscount = product.Discount || 0;
                             const finalUnitPrice = itemPrice - itemDiscount;
-                            const finalPrice =
-                              finalUnitPrice * product.Quantity;
 
                             return (
-                              <div
-                                key={product.ProductId}
-                                className={styles.expandedInvoiceItem}
-                              >
+                              <div key={product.ProductId} className={styles.expandedInvoiceItem}>
                                 <div className={styles.productDetails}>
-                                  <div className={styles.productName}>
-                                    {product.ProductName}
-                                  </div>
+                                  <div className={styles.productName}>{product.ProductName}</div>
                                   <div className={styles.priceContainer}>
                                     {itemDiscount > 0 ? (
                                       <>
                                         <span className={styles.originalPrice}>
-                                          {new Intl.NumberFormat(
-                                            "fa-IR"
-                                          ).format(itemPrice)}{" "}
-                                          تومان
+                                          {new Intl.NumberFormat("fa-IR").format(itemPrice)} تومان
                                         </span>
                                         <span className={styles.finalPrice}>
-                                          {new Intl.NumberFormat(
-                                            "fa-IR"
-                                          ).format(finalUnitPrice)}{" "}
+                                          {new Intl.NumberFormat("fa-IR").format(finalUnitPrice)}{" "}
                                           تومان
                                         </span>
                                       </>
                                     ) : (
                                       <span className={styles.finalPrice}>
-                                        {new Intl.NumberFormat("fa-IR").format(
-                                          itemPrice
-                                        )}{" "}
-                                        تومان
+                                        {new Intl.NumberFormat("fa-IR").format(itemPrice)} تومان
                                       </span>
                                     )}
                                   </div>
@@ -206,11 +181,7 @@ const UserDropDown = () => {
                                 <div className={styles.quantityControls}>
                                   <button
                                     className={styles.removeBtn}
-                                    onClick={() =>
-                                      removeProductFromInvoice(
-                                        product.ProductId
-                                      )
-                                    }
+                                    onClick={() => removeProductFromInvoice(product.ProductId)}
                                   >
                                     حذف
                                   </button>
@@ -226,9 +197,7 @@ const UserDropDown = () => {
                                     >
                                       +
                                     </button>
-                                    <span className={styles.quantity}>
-                                      {product.Quantity}
-                                    </span>
+                                    <span className={styles.quantity}>{product.Quantity}</span>
                                     <button
                                       className={styles.quantityBtn}
                                       onClick={() =>
@@ -249,9 +218,7 @@ const UserDropDown = () => {
                         <div className={styles.expandedInvoiceFooter}>
                           <div className={styles.totalSection}>
                             <span className={styles.totalLabel}>مجموع:</span>
-                            <span className={styles.totalAmount}>
-                              {formattedAmount} تومان
-                            </span>
+                            <span className={styles.totalAmount}>{formattedAmount} تومان</span>
                           </div>
                           <button
                             className={styles.checkoutBtn}
@@ -266,9 +233,7 @@ const UserDropDown = () => {
                         </div>
                       </>
                     ) : (
-                      <div className={styles.expandedInvoiceEmpty}>
-                        فاکتور شما خالی است
-                      </div>
+                      <div className={styles.expandedInvoiceEmpty}>فاکتور شما خالی است</div>
                     )}
                   </div>
                 )}

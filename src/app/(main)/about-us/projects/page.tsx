@@ -1,16 +1,16 @@
 export const dynamic = "force-dynamic"; // To ensure this page isn't statically generated
 
-import Link from "next/link";
-import Image from "next/image";
 import { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+
+import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 
 import styles from "./page.module.css";
-import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 
 export const metadata: Metadata = {
   title: "گالری تصاویر پروژه ها | فرابک",
-  description:
-    "شما در این صفحه میتوانید اطلاعاتی درباره پروژه های شرکت فرابک مشاهده کنید.",
+  description: "شما در این صفحه میتوانید اطلاعاتی درباره پروژه های شرکت فرابک مشاهده کنید.",
   robots: {
     index: false,
     follow: false,
@@ -69,9 +69,7 @@ type CardProps = {
 const Card = ({ data }: CardProps) => {
   // Truncate description to 160 characters
   const truncatedDescription =
-    data.smallDesc.length > 160
-      ? `${data.smallDesc.substring(0, 160)}...`
-      : data.smallDesc;
+    data.smallDesc.length > 160 ? `${data.smallDesc.substring(0, 160)}...` : data.smallDesc;
 
   return (
     <div className={styles.card}>
@@ -83,9 +81,7 @@ const Card = ({ data }: CardProps) => {
         quality={100}
       />
       <h2>{data.title}</h2>
-      <div className={styles.date}>
-        {new Date(data.date).toLocaleDateString("fa")}
-      </div>
+      <div className={styles.date}>{new Date(data.date).toLocaleDateString("fa")}</div>
       <div className={styles.location}>{data.location}</div>
       <p>{truncatedDescription}</p>
       <Link href={`projects/${data.slug}`}>مشاهده</Link>

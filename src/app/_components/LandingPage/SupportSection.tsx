@@ -1,6 +1,7 @@
 import Link from "next/link"; // Use Next.js Link for routing
-import supportData from "../../../constants/supportData.json";
+
 import styles from "./SupportSection.module.css";
+import supportData from "../../../constants/supportData.json";
 
 const SupportSection = () => {
   return (
@@ -8,12 +9,7 @@ const SupportSection = () => {
       <h2>پشتیبانی</h2>
       <div className={styles.cards}>
         {supportData.map((item) => (
-          <Card
-            key={item.id}
-            title={item.title}
-            desc={item.desc}
-            link={item.link}
-          />
+          <Card key={item.id} title={item.title} desc={item.desc} link={item.link} />
         ))}
       </div>
     </div>

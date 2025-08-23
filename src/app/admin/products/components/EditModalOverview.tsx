@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { Overview } from "../types";
 import axios from "axios";
+import React, { useEffect, useState } from "react";
+
+import { Overview } from "../types";
 
 type Props = {
   ProductId: number;
@@ -12,20 +13,18 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
   const [existingOverviews, setExistingOverviews] = useState<string[]>([]);
 
   useEffect(() => {
-    axios
-      .get(`/api/productOverview/getProductOverview/${+ProductId}`)
-      .then((data) => {
-        SetOverviews(data.data);
-        // Initialize existingOverviews with non-empty properties
-        const overviews = data.data;
-        const nonEmptyOverviews = [
-          overviews.Property1,
-          overviews.Property2,
-          overviews.Property3,
-          overviews.Property4,
-        ].filter(Boolean);
-        setExistingOverviews(nonEmptyOverviews);
-      });
+    axios.get(`/api/productOverview/getProductOverview/${+ProductId}`).then((data) => {
+      SetOverviews(data.data);
+      // Initialize existingOverviews with non-empty properties
+      const overviews = data.data;
+      const nonEmptyOverviews = [
+        overviews.Property1,
+        overviews.Property2,
+        overviews.Property3,
+        overviews.Property4,
+      ].filter(Boolean);
+      setExistingOverviews(nonEmptyOverviews);
+    });
   }, []);
 
   const inputHandler = (
@@ -39,9 +38,9 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
         isChanged: true,
       };
       SetOverviews(updatedOverviews);
-      
+
       // Update existingOverviews state
-      const propertyIndex = parseInt(name.replace('Property', '')) - 1;
+      const propertyIndex = parseInt(name.replace("Property", "")) - 1;
       const newExistingOverviews = [...existingOverviews];
       newExistingOverviews[propertyIndex] = value;
       setExistingOverviews(newExistingOverviews);
@@ -50,7 +49,7 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
 
   const addNewOverview = () => {
     if (existingOverviews.length >= 4) return;
-    
+
     const newPropertyName = `Property${existingOverviews.length + 1}`;
     if (overviews) {
       const updatedOverviews = {
@@ -86,18 +85,18 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
   };
 
   return (
-    <div className="flex flex-col gap-5 col-span-1 sm:col-span-2 border-y-4 border-y-gray-200 my-5 py-5">
-      <h3 className="font-bold mb-2">ویژگی‌های محصول</h3>
-      
+    <div className="col-span-1 my-5 flex flex-col gap-5 border-y-4 border-y-gray-200 py-5 sm:col-span-2">
+      <h3 className="mb-2 font-bold">ویژگی‌های محصول</h3>
+
       {existingOverviews.map((overview, index) => (
-        <div key={index} className="flex gap-2 items-center">
+        <div key={index} className="flex items-center gap-2">
           <label className="block flex-1">
             <input
               type="text"
               name={`Property${index + 1}`}
               value={overviews?.[`Property${index + 1}`] || ""}
               onChange={inputHandler}
-              className="bg-gray-700 border border-gray-800 rounded w-full p-2 mt-2"
+              className="mt-2 w-full rounded border border-gray-800 bg-gray-700 p-2"
               placeholder={`ویژگی ${index + 1} محصول را وارد کنید`}
             />
           </label>
@@ -105,7 +104,7 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
             <button
               type="button"
               onClick={() => removeOverview(index)}
-              className="mt-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded"
+              className="mt-2 rounded bg-red-600 px-3 py-2 text-white hover:bg-red-700"
             >
               حذف
             </button>
@@ -117,7 +116,7 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
         <button
           type="button"
           onClick={addNewOverview}
-          className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-white mt-2"
+          className="mt-2 w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
         >
           افزودن ویژگی جدید
         </button>

@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // Assuming you have a Prisma client setup
 import { S3 } from "aws-sdk";
+import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
+
+import { prisma } from "@/lib/prisma"; // Assuming you have a Prisma client setup
 
 export async function GET() {
   try {
@@ -12,10 +13,8 @@ export async function GET() {
     });
     return NextResponse.json(products);
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to fetch showcase products" },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ error: "Failed to fetch showcase products" }, { status: 500 });
   }
 }
 
@@ -35,10 +34,7 @@ export async function POST(request: Request) {
     const link = formData.get("link") as string;
 
     if (!file || !title || !description || isNaN(order) || !link) {
-      return NextResponse.json(
-        { error: "داده‌های ورودی نامعتبر هستند." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "داده‌های ورودی نامعتبر هستند." }, { status: 400 });
     }
 
     // Upload the file to S3
@@ -69,9 +65,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(newShowcaseProduct);
   } catch (error) {
-    return NextResponse.json(
-      { error: "خطا در آپلود فایل یا ذخیره داده." },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ error: "خطا در آپلود فایل یا ذخیره داده." }, { status: 500 });
   }
 }

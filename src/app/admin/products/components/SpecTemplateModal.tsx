@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { IoIosClose } from "react-icons/io";
-import { toast } from "react-hot-toast";
 import axios from "axios";
+import React, { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 import { CgSpinnerTwo } from "react-icons/cg";
+import { IoIosClose } from "react-icons/io";
 
 type SpecTemplate = {
   SpecTemplateId: number;
@@ -114,28 +114,28 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
       onClick={(e) => e.stopPropagation()}
     >
       <div
-        className="bg-gray-800 text-white rounded-xl shadow-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative animate-fade-in"
+        className="relative max-h-[90vh] w-full max-w-2xl animate-fade-in overflow-y-auto rounded-xl bg-gray-800 p-6 text-white shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-xl font-bold mb-6 text-center">
+        <h2 className="mb-6 text-center text-xl font-bold">
           {templateToEdit ? "ویرایش قالب مشخصات" : "ایجاد قالب مشخصات جدید"}
         </h2>
 
         <div onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block mb-2">نام قالب</label>
+            <label className="mb-2 block">نام قالب</label>
             <input
               type="text"
               value={templateName}
               onChange={(e) => setTemplateName(e.target.value)}
-              className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white"
+              className="w-full rounded-md border border-gray-600 bg-gray-700 p-2 text-white"
               placeholder="نام قالب را وارد کنید"
               disabled={isLoading}
             />
           </div>
 
           <div className="mb-6">
-            <div className="flex justify-between mb-2">
+            <div className="mb-2 flex justify-between">
               <label>موارد مشخصات</label>
               <button
                 type="button"
@@ -154,7 +154,7 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
                     type="text"
                     value={item.Title}
                     onChange={(e) => handleItemChange(index, e.target.value)}
-                    className="flex-grow p-2 bg-gray-700 border border-gray-600 rounded-md text-white"
+                    className="flex-grow rounded-md border border-gray-600 bg-gray-700 p-2 text-white"
                     placeholder="عنوان مشخصات را وارد کنید"
                     disabled={isLoading}
                   />
@@ -178,7 +178,7 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
                 e.stopPropagation();
                 onClose();
               }}
-              className="px-4 py-2 bg-gray-600 rounded-lg hover:bg-gray-500 transition-colors"
+              className="rounded-lg bg-gray-600 px-4 py-2 transition-colors hover:bg-gray-500"
               disabled={isLoading}
             >
               انصراف
@@ -186,7 +186,7 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
             <button
               type="button"
               onClick={handleSubmit}
-              className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-500 transition-colors flex items-center gap-2"
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 transition-colors hover:bg-blue-500"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -204,7 +204,7 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
         </div>
 
         <button
-          className="absolute top-2 right-2 text-gray-400 hover:text-white"
+          className="absolute right-2 top-2 text-gray-400 hover:text-white"
           onClick={(e) => {
             e.stopPropagation();
             onClose();

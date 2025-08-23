@@ -1,16 +1,17 @@
 import React, { useEffect, useReducer, useState } from "react";
 import { toast } from "react-hot-toast";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi"; // Import icons
-import BaseDetails from "./newProductModalComponents/BaseDetails";
-import ProductOverview from "./newProductModalComponents/ProductOverview";
-import OverviewDetails from "./newProductModalComponents/OverviewDetails";
-import Specs from "./newProductModalComponents/Specs";
-import FAQ from "./newProductModalComponents/FAQ";
 import { IoIosClose } from "react-icons/io";
+
+import NewOverviewDetailsModal from "./NewOverviewDetailsModal";
+import BaseDetails from "./newProductModalComponents/BaseDetails";
+import FAQ from "./newProductModalComponents/FAQ";
+import OverviewDetails from "./newProductModalComponents/OverviewDetails";
+import ProductBlog from "./newProductModalComponents/ProductBlog";
+import ProductOverview from "./newProductModalComponents/ProductOverview";
+import Specs from "./newProductModalComponents/Specs";
 import { createProduct } from "../utils/createProduct";
 import ProgressModal from "./newProductModalComponents/ProgressModal";
-import ProductBlog from "./newProductModalComponents/ProductBlog";
-import NewOverviewDetailsModal from "./NewOverviewDetailsModal";
 
 // Types
 type Category = {
@@ -134,8 +135,7 @@ const validationRules: Record<string, ValidationRule> = {
     errorMsg: {
       required: "شناسه محصول الزامی است",
       maxLength: "شناسه محصول نمیتواند بیشتر از ۱۲۰۰ کارکتر باشد.",
-      regex:
-        "شناسه محصول فقط می‌تواند شامل حروف انگلیسی، اعداد، خط فاصله و زیرخط باشد.",
+      regex: "شناسه محصول فقط می‌تواند شامل حروف انگلیسی، اعداد، خط فاصله و زیرخط باشد.",
     },
   },
   smallDesc: {
@@ -298,9 +298,7 @@ const validateAllFields = (state: State): { [key: string]: string } => {
   });
 
   // Special validation for price and discount
-  if (
-    parseFloat(state.price.toString()) < parseFloat(state.discount.toString())
-  ) {
+  if (parseFloat(state.price.toString()) < parseFloat(state.discount.toString())) {
     errors.discount = "تخفیف نمیتواند بیشتر از قیمت باشد.";
   }
 
@@ -311,11 +309,7 @@ const validateAllFields = (state: State): { [key: string]: string } => {
 // and conditionally showing/hiding them based on the section's open state.
 // This approach ensures that component state is preserved when sections are closed/reopened.
 // We use CSS classes (block/hidden) for toggling visibility instead of conditional rendering.
-const NewProductModal = ({
-  setShowNewProductModal,
-  categories,
-  refetchProducts,
-}: Props) => {
+const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }: Props) => {
   // Add a new state to track if the user has tried to submit
   const [state, dispatch] = useReducer(productReducer, initialState);
   const [progress, setProgress] = useState(0);
@@ -326,8 +320,7 @@ const NewProductModal = ({
   const [touchedFields, setTouchedFields] = useState<{
     [key: string]: boolean;
   }>({});
-  const [showNewOverviewDetailsModal, setShowNewOverviewDetailsModal] =
-    useState(false);
+  const [showNewOverviewDetailsModal, setShowNewOverviewDetailsModal] = useState(false);
 
   // Custom dispatch function to validate on state update
   const validatedDispatch = (action: any) => {
@@ -361,8 +354,7 @@ const NewProductModal = ({
 
     // For debugging
     const errorEntries = Object.entries(errors).filter(
-      ([_, errorMessage]) =>
-        typeof errorMessage === "string" && errorMessage.trim() !== ""
+      ([_, errorMessage]) => typeof errorMessage === "string" && errorMessage.trim() !== ""
     );
 
     if (errorEntries.length > 0) {
@@ -399,18 +391,24 @@ const NewProductModal = ({
               key.includes("-question-") ||
               key.includes("-answer-")
           )
-          .reduce((obj, key) => {
-            obj[key] = currentErrors[key];
-            return obj;
-          }, {} as { [key: string]: string });
+          .reduce(
+            (obj, key) => {
+              obj[key] = currentErrors[key];
+              return obj;
+            },
+            {} as { [key: string]: string }
+          );
 
         // Don't show validation errors for untouched fields unless form was submitted
         const filteredBaseErrors = Object.entries(newErrors)
           .filter(([key]) => hasSubmitted || touchedFields[key])
-          .reduce((obj, [key, value]) => {
-            obj[key] = value;
-            return obj;
-          }, {} as { [key: string]: string });
+          .reduce(
+            (obj, [key, value]) => {
+              obj[key] = value;
+              return obj;
+            },
+            {} as { [key: string]: string }
+          );
 
         // Combine preserved errors with filtered base errors
         return { ...preservedErrors, ...filteredBaseErrors };
@@ -507,10 +505,7 @@ const NewProductModal = ({
     }
 
     // Product overview section
-    if (
-      errors.features ||
-      Object.keys(errors).some((key) => key.startsWith("features-"))
-    ) {
+    if (errors.features || Object.keys(errors).some((key) => key.startsWith("features-"))) {
       sectionsWithErrors.push("productOverview");
     }
 
@@ -532,10 +527,7 @@ const NewProductModal = ({
     // FAQ section
     if (
       Object.keys(errors).some(
-        (key) =>
-          key.startsWith("faq-") ||
-          key.includes("-question-") ||
-          key.includes("-answer-")
+        (key) => key.startsWith("faq-") || key.includes("-question-") || key.includes("-answer-")
       )
     ) {
       sectionsWithErrors.push("faq");
@@ -577,44 +569,29 @@ const NewProductModal = ({
     } catch (error: any) {
       console.error("Error creating product:", error);
       setModalVisible(false);
-      toast.error(
-        "محصولی مشابه این محصول وجود دارد یا خطایی به وجود آمده لطفاً دوباره تلاش کنید"
-      );
+      toast.error("محصولی مشابه این محصول وجود دارد یا خطایی به وجود آمده لطفاً دوباره تلاش کنید");
     }
-  };
-
-  // Helper to determine if we should show an error for a field
-  const shouldShowError = (field: string): boolean => {
-    return (hasSubmitted || touchedFields[field]) && !!errors[field];
   };
 
   return (
     <>
-      {isModalVisible && (
-        <ProgressModal progress={progress} currentStep={currentStep} />
-      )}
+      {isModalVisible && <ProgressModal progress={progress} currentStep={currentStep} />}
       {showNewOverviewDetailsModal && (
-        <NewOverviewDetailsModal
-          onClose={() => setShowNewOverviewDetailsModal(false)}
-        />
+        <NewOverviewDetailsModal onClose={() => setShowNewOverviewDetailsModal(false)} />
       )}
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity">
-        <div className="bg-gray-800 text-white rounded-xl shadow-lg p-6 w-full max-w-6xl max-h-[90dvh] overflow-y-scroll relative animate-fade-in">
-          <h1 className="text-center font-bold mb-10 text-2xl">محصول جدید</h1>
+        <div className="relative max-h-[90dvh] w-full max-w-6xl animate-fade-in overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg">
+          <h1 className="mb-10 text-center text-2xl font-bold">محصول جدید</h1>
 
           <form onSubmit={handleSubmit}>
             {/* Base Details */}
-            <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
+            <div className="mb-4 overflow-hidden rounded-md bg-gray-900">
               <div
                 onClick={() => toggleSection("baseDetails")}
-                className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
+                className="flex cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
               >
                 <span className="text-lg font-semibold">جزئیات پایه</span>
-                {openSections.baseDetails ? (
-                  <FiChevronUp size={20} />
-                ) : (
-                  <FiChevronDown size={20} />
-                )}
+                {openSections.baseDetails ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
               </div>
               <div className={openSections.baseDetails ? "block" : "hidden"}>
                 <BaseDetails
@@ -627,10 +604,10 @@ const NewProductModal = ({
             </div>
 
             {/* Product Overview */}
-            <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
+            <div className="mb-4 overflow-hidden rounded-md bg-gray-900">
               <div
                 onClick={() => toggleSection("productOverview")}
-                className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
+                className="flex cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
               >
                 <span className="text-lg font-semibold">بررسی محصول</span>
                 {openSections.productOverview ? (
@@ -639,22 +616,16 @@ const NewProductModal = ({
                   <FiChevronDown size={20} />
                 )}
               </div>
-              <div
-                className={openSections.productOverview ? "block" : "hidden"}
-              >
-                <ProductOverview
-                  state={state}
-                  dispatch={validatedDispatch}
-                  setErrors={setErrors}
-                />
+              <div className={openSections.productOverview ? "block" : "hidden"}>
+                <ProductOverview state={state} dispatch={validatedDispatch} setErrors={setErrors} />
               </div>
             </div>
 
             {/* Overview Details */}
-            <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
+            <div className="mb-4 overflow-hidden rounded-md bg-gray-900">
               <div
                 onClick={() => toggleSection("overviewDetails")}
-                className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
+                className="flex cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
               >
                 <span className="text-lg font-semibold">توضیحات محصول</span>
                 {openSections.overviewDetails ? (
@@ -663,35 +634,24 @@ const NewProductModal = ({
                   <FiChevronDown size={20} />
                 )}
               </div>
-              <div
-                className={openSections.overviewDetails ? "block" : "hidden"}
-              >
+              <div className={openSections.overviewDetails ? "block" : "hidden"}>
                 <div
                   onClick={() => setShowNewOverviewDetailsModal(true)}
-                  className="flex items-center justify-center gap-4 p-4 mt-4 mx-4 border rounded-lg bg-blue-600 hover:bg-blue-700 cursor-pointer border-blue-700 transition-all"
+                  className="mx-4 mt-4 flex cursor-pointer items-center justify-center gap-4 rounded-lg border border-blue-700 bg-blue-600 p-4 transition-all hover:bg-blue-700"
                 >
                   ساخت توضیحات محصول جدید
                 </div>
-                <OverviewDetails
-                  dispatch={validatedDispatch}
-                  setErrors={setErrors}
-                />
+                <OverviewDetails dispatch={validatedDispatch} setErrors={setErrors} />
               </div>
             </div>
 
-            <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
+            <div className="mb-4 overflow-hidden rounded-md bg-gray-900">
               <div
                 onClick={() => toggleSection("productBlog")}
-                className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
+                className="flex cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
               >
-                <span className="text-lg font-semibold">
-                  توضیحات تکمیلی (مقاله محصول)
-                </span>
-                {openSections.productBlog ? (
-                  <FiChevronUp size={20} />
-                ) : (
-                  <FiChevronDown size={20} />
-                )}
+                <span className="text-lg font-semibold">توضیحات تکمیلی (مقاله محصول)</span>
+                {openSections.productBlog ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
               </div>
               <div className={openSections.productBlog ? "block" : "hidden"}>
                 <ProductBlog dispatch={validatedDispatch} slug={state.slug} />
@@ -699,17 +659,13 @@ const NewProductModal = ({
             </div>
 
             {/* Specs Section */}
-            <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
+            <div className="mb-4 overflow-hidden rounded-md bg-gray-900">
               <div
                 onClick={() => toggleSection("specs")}
-                className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
+                className="flex cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
               >
                 <span className="text-lg font-semibold">مشخصات محصول</span>
-                {openSections.specs ? (
-                  <FiChevronUp size={20} />
-                ) : (
-                  <FiChevronDown size={20} />
-                )}
+                {openSections.specs ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
               </div>
               <div className={openSections.specs ? "block" : "hidden"}>
                 <Specs
@@ -722,17 +678,13 @@ const NewProductModal = ({
             </div>
 
             {/* FAQ Section */}
-            <div className="mb-4 bg-gray-900 rounded-md overflow-hidden">
+            <div className="mb-4 overflow-hidden rounded-md bg-gray-900">
               <div
                 onClick={() => toggleSection("faq")}
-                className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-950 transition-all"
+                className="flex cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
               >
                 <span className="text-lg font-semibold">سوالات متداول</span>
-                {openSections.faq ? (
-                  <FiChevronUp size={20} />
-                ) : (
-                  <FiChevronDown size={20} />
-                )}
+                {openSections.faq ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
               </div>
               <div className={openSections.faq ? "block" : "hidden"}>
                 <FAQ
@@ -745,14 +697,14 @@ const NewProductModal = ({
             </div>
 
             {/* Submit Button */}
-            <div className="flex flex-col items-center mt-6">
+            <div className="mt-6 flex flex-col items-center">
               {hasSubmitted && hasErrors() && (
-                <div className="flex flex-wrap justify-center gap-2 my-4">
+                <div className="my-4 flex flex-wrap justify-center gap-2">
                   {Object.entries(errors).map(([key, error], index) => {
                     if (!error) return null;
 
                     // Format the error message for better readability
-                    let errorMessage = error;
+                    const errorMessage = error;
                     let fieldName = "";
 
                     // Extract field name for specs errors
@@ -790,41 +742,27 @@ const NewProductModal = ({
                       }
                     }
                     // Legacy format for FAQ errors (for compatibility)
-                    else if (
-                      key.includes("-question-") ||
-                      key.includes("-answer-")
-                    ) {
+                    else if (key.includes("-question-") || key.includes("-answer-")) {
                       const isQuestion = key.includes("-question-");
-                      const itemIndex =
-                        parseInt(key.split("-").pop() || "0") + 1;
-                      fieldName = `سوال ${itemIndex} (${
-                        isQuestion ? "سوال" : "پاسخ"
-                      })`;
+                      const itemIndex = parseInt(key.split("-").pop() || "0") + 1;
+                      fieldName = `سوال ${itemIndex} (${isQuestion ? "سوال" : "پاسخ"})`;
                     }
                     // Basic field names
                     else if (key === "name") fieldName = "نام محصول";
                     else if (key === "slug") fieldName = "شناسه محصول";
                     else if (key === "categoryID") fieldName = "دسته‌بندی";
-                    else if (key === "subCategoryID")
-                      fieldName = "زیر دسته‌بندی";
+                    else if (key === "subCategoryID") fieldName = "زیر دسته‌بندی";
                     else if (key === "smallDesc") fieldName = "توضیح کوتاه";
                     else if (key === "bannerImage") fieldName = "تصویر بنر";
-                    else if (key === "transparentImage")
-                      fieldName = "تصویر بدون پسزمینه";
+                    else if (key === "transparentImage") fieldName = "تصویر بدون پسزمینه";
                     else if (key === "SEO_Title") fieldName = "تیتر سئو";
-                    else if (key === "SEO_Description")
-                      fieldName = "توضیحات سئو";
+                    else if (key === "SEO_Description") fieldName = "توضیحات سئو";
                     else if (key === "keywords") fieldName = "کلمات کلیدی";
                     else if (key === "features") fieldName = "ویژگی‌ها";
 
                     return (
-                      <div
-                        key={index}
-                        className="bg-red-500 rounded-lg text-center p-2"
-                      >
-                        {fieldName && (
-                          <span className="font-bold">{fieldName}: </span>
-                        )}
+                      <div key={index} className="rounded-lg bg-red-500 p-2 text-center">
+                        {fieldName && <span className="font-bold">{fieldName}: </span>}
                         {errorMessage}
                       </div>
                     );
@@ -835,10 +773,8 @@ const NewProductModal = ({
               {/* Update the submit button to disable if there are errors */}
               <button
                 type="submit"
-                className={`py-2 px-6 rounded-lg ${
-                  hasErrors()
-                    ? "bg-gray-500 cursor-not-allowed"
-                    : "bg-blue-500 hover:bg-blue-600"
+                className={`rounded-lg px-6 py-2 ${
+                  hasErrors() ? "cursor-not-allowed bg-gray-500" : "bg-blue-500 hover:bg-blue-600"
                 } text-white`}
                 disabled={hasErrors()}
                 onClick={(e) => {
@@ -849,15 +785,11 @@ const NewProductModal = ({
 
                     // Check specifically for feature errors to provide a targeted message
                     const hasFeatureErrors = Object.keys(errors).some(
-                      (key) =>
-                        (key === "features" || key.startsWith("features-")) &&
-                        errors[key]
+                      (key) => (key === "features" || key.startsWith("features-")) && errors[key]
                     );
 
                     if (hasFeatureErrors) {
-                      console.log(
-                        "Submit prevented due to feature validation errors"
-                      );
+                      console.log("Submit prevented due to feature validation errors");
                       toast.error("لطفاً خطاهای ویژگی‌ها را برطرف کنید.");
                     } else {
                       console.log("Submit prevented due to validation errors");
@@ -871,7 +803,7 @@ const NewProductModal = ({
 
               {/* Show error indicator when form has errors */}
               {hasSubmitted && hasErrors() && (
-                <div className="mt-4 p-2 bg-red-500 text-white rounded-md text-sm text-center">
+                <div className="mt-4 rounded-md bg-red-500 p-2 text-center text-sm text-white">
                   فرم دارای خطا است. لطفا تمامی موارد خطا را اصلاح کنید.
                 </div>
               )}
@@ -879,7 +811,7 @@ const NewProductModal = ({
           </form>
 
           <div
-            className="absolute top-4 right-4 text-red-400 hover:text-red-500 transition-all cursor-pointer"
+            className="absolute right-4 top-4 cursor-pointer text-red-400 transition-all hover:text-red-500"
             onClick={() => setShowNewProductModal(false)}
           >
             <IoIosClose size={50} />

@@ -13,12 +13,7 @@ export const usePrint = () => {
   const handlePrint = (options: PrintOptions = {}) => {
     if (!componentRef.current) return;
 
-    const {
-      hideElements = [],
-      printTitle,
-      compactMode = false,
-      stickerMode = false,
-    } = options;
+    const { hideElements = [], printTitle, compactMode = false, stickerMode = false } = options;
 
     // Store original title to restore later
     const originalTitle = document.title;
@@ -98,9 +93,7 @@ export const usePrint = () => {
           }
           
           /* Custom hide elements */
-          ${hideElements
-            .map((selector) => `${selector} { display: none !important; }`)
-            .join("\n")}
+          ${hideElements.map((selector) => `${selector} { display: none !important; }`).join("\n")}
           
           /* Default hide elements for all print templates */
           button, .no-print {

@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
 import axios from "axios";
 import Image from "next/image";
-import { IoIosClose } from "react-icons/io";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { OverviewDetail } from "../types";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { IoIosClose } from "react-icons/io";
+
+import { OverviewDetail } from "../types";
 import DeleteOverviewDetailButton from "./DeleteOverviewDetailButton";
 
 type Props = {
@@ -12,16 +13,9 @@ type Props = {
   setProductOverviewDetails: (arg0: OverviewDetail[]) => void;
 };
 
-const EditModalOverviewDetails = ({
-  productId,
-  setProductOverviewDetails,
-}: Props) => {
-  const [allOverviewDetails, setAllOverviewDetails] = useState<
-    OverviewDetail[]
-  >([]);
-  const [selectedDetail, setSelectedDetail] = useState<OverviewDetail | null>(
-    null
-  );
+const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Props) => {
+  const [allOverviewDetails, setAllOverviewDetails] = useState<OverviewDetail[]>([]);
+  const [selectedDetail, setSelectedDetail] = useState<OverviewDetail | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -34,12 +28,14 @@ const EditModalOverviewDetails = ({
     const fetchAllDetailsPromise = axios
       .get("/api/productOverviewDetails/getAll")
       .catch((error) => {
+        console.error(error);
         return { data: [] }; // Return an empty array to avoid breaking the mapping logic
       });
 
     const fetchProductDetailsPromise = axios
       .get(`/api/productOverviewDetails/getProductOverviewDetails/${productId}`)
       .catch((error) => {
+        console.error(error);
         return { data: [] }; // Return an empty array if it fails
       });
 
@@ -52,8 +48,7 @@ const EditModalOverviewDetails = ({
         const updatedDetails = allDetails.map((detail: OverviewDetail) => ({
           ...detail,
           selected: productDetails.some(
-            (pd: OverviewDetail) =>
-              pd.ProductOverviewDetailsId === detail.ProductOverviewDetailsId
+            (pd: OverviewDetail) => pd.ProductOverviewDetailsId === detail.ProductOverviewDetailsId
           ),
         }));
 
@@ -61,6 +56,7 @@ const EditModalOverviewDetails = ({
         setProductOverviewDetails(productDetails); // Ensure parent state is updated
       })
       .catch((error) => {
+        console.error(error);
         toast.error("در دریافت اطلاعات بررسی محصول مشکلی وجود دارد");
       });
   };
@@ -114,14 +110,14 @@ const EditModalOverviewDetails = ({
   const hasMoreItems = allOverviewDetails.length > COLLAPSED_ITEM_COUNT;
 
   return (
-    <div className="flex flex-col gap-5 col-span-1 sm:col-span-2 border-t-4 border-t-gray-200 pt-5 mt-3">
-      <div className="flex justify-between items-center">
+    <div className="col-span-1 mt-3 flex flex-col gap-5 border-t-4 border-t-gray-200 pt-5 sm:col-span-2">
+      <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">توضیحات محصول</h3>
         {hasMoreItems && (
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center text-blue-400 hover:text-blue-500 transition-colors"
+            className="flex items-center text-blue-400 transition-colors hover:text-blue-500"
           >
             {isExpanded ? (
               <>
@@ -130,10 +126,7 @@ const EditModalOverviewDetails = ({
               </>
             ) : (
               <>
-                <span>
-                  نمایش {allOverviewDetails.length - COLLAPSED_ITEM_COUNT} مورد
-                  بیشتر
-                </span>
+                <span>نمایش {allOverviewDetails.length - COLLAPSED_ITEM_COUNT} مورد بیشتر</span>
                 <FiChevronDown className="ml-1" />
               </>
             )}
@@ -146,9 +139,9 @@ const EditModalOverviewDetails = ({
         {displayedDetails.map((detail) => (
           <div
             key={detail.ProductOverviewDetailsId}
-            className="bg-gray-900 p-4 rounded-lg shadow-md flex flex-col gap-2"
+            className="flex flex-col gap-2 rounded-lg bg-gray-900 p-4 shadow-md"
           >
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
               <h4 className="font-medium">{detail.Title}</h4>
               <div className="flex gap-2">
                 <DeleteOverviewDetailButton
@@ -158,13 +151,9 @@ const EditModalOverviewDetails = ({
                 />
                 <button
                   type="button"
-                  onClick={() =>
-                    toggleSelection(detail.ProductOverviewDetailsId)
-                  }
-                  className={`px-3 py-1 rounded-md ${
-                    detail.selected
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-200 text-gray-700"
+                  onClick={() => toggleSelection(detail.ProductOverviewDetailsId)}
+                  className={`rounded-md px-3 py-1 ${
+                    detail.selected ? "bg-green-500 text-white" : "bg-gray-200 text-gray-700"
                   }`}
                 >
                   {detail.selected ? "انتخاب شده" : "انتخاب"}
@@ -174,7 +163,7 @@ const EditModalOverviewDetails = ({
             <button
               type="button"
               onClick={() => openDetailModal(detail)}
-              className="text-end text-sm mt-2 hover:underline"
+              className="mt-2 text-end text-sm hover:underline"
             >
               مشاهده جزئیات
             </button>
@@ -187,19 +176,16 @@ const EditModalOverviewDetails = ({
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="mt-2 py-2 text-center text-blue-400 hover:text-blue-500 bg-gray-900 rounded-lg transition-colors"
+          className="mt-2 rounded-lg bg-gray-900 py-2 text-center text-blue-400 transition-colors hover:text-blue-500"
         >
           {isExpanded ? (
-            <div className="flex justify-center items-center">
+            <div className="flex items-center justify-center">
               <span>نمایش کمتر</span>
               <FiChevronUp className="ml-1" />
             </div>
           ) : (
-            <div className="flex justify-center items-center">
-              <span>
-                نمایش {allOverviewDetails.length - COLLAPSED_ITEM_COUNT} مورد
-                بیشتر
-              </span>
+            <div className="flex items-center justify-center">
+              <span>نمایش {allOverviewDetails.length - COLLAPSED_ITEM_COUNT} مورد بیشتر</span>
               <FiChevronDown className="ml-1" />
             </div>
           )}
@@ -209,25 +195,23 @@ const EditModalOverviewDetails = ({
       {/* Detail Modal */}
       {showDetailModal && selectedDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
-          <div className="bg-gray-800 text-white rounded-lg shadow-lg p-6 w-full max-w-lg relative max-h-[700px] overflow-y-scroll">
+          <div className="relative max-h-[700px] w-full max-w-lg overflow-y-scroll rounded-lg bg-gray-800 p-6 text-white shadow-lg">
             <button
               onClick={closeDetailModal}
-              className="absolute top-3 right-3 text-red-400 hover:text-red-500"
+              className="absolute right-3 top-3 text-red-400 hover:text-red-500"
             >
               <IoIosClose size={35} />
             </button>
-            <h2 className="text-xl text-center font-bold mt-7 mb-4">
-              {selectedDetail.Title}
-            </h2>
-            <p className="text-gray-400 mb-4">{selectedDetail.Description}</p>
+            <h2 className="mb-4 mt-7 text-center text-xl font-bold">{selectedDetail.Title}</h2>
+            <p className="mb-4 text-gray-400">{selectedDetail.Description}</p>
 
-            <div className="relative w-full h-64 bg-gray-700 rounded-md overflow-hidden">
+            <div className="relative h-64 w-full overflow-hidden rounded-md bg-gray-700">
               <div
                 className={`absolute inset-0 flex items-center justify-center ${
                   !imageLoaded ? "opacity-100" : "opacity-0"
                 } transition-opacity duration-300`}
               >
-                <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
               </div>
               <Image
                 height={1920}
@@ -235,7 +219,7 @@ const EditModalOverviewDetails = ({
                 quality={100}
                 src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/overview-details-images${selectedDetail.Img}`}
                 alt={selectedDetail.Title}
-                className={`w-full h-full object-cover transition-opacity duration-300 ${
+                className={`h-full w-full object-cover transition-opacity duration-300 ${
                   imageLoaded ? "opacity-100" : "opacity-0"
                 }`}
                 onLoad={() => setImageLoaded(true)}
@@ -256,7 +240,7 @@ const EditModalOverviewDetails = ({
                   toggleSelection(selectedDetail.ProductOverviewDetailsId);
                   closeDetailModal();
                 }}
-                className="flex-1 py-2 px-6 bg-blue-500 hover:bg-blue-600 rounded-lg text-white"
+                className="flex-1 rounded-lg bg-blue-500 px-6 py-2 text-white hover:bg-blue-600"
               >
                 {selectedDetail.selected ? "لغو انتخاب" : "انتخاب"}
               </button>

@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import { Input, Button, Modal, Table, Tooltip, Space, Badge } from "antd";
-import { FaEdit, FaTrash, FaPlus, FaEye, FaEyeSlash } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
+import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
 
 const { TextArea } = Input;
@@ -52,9 +52,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
   }, []);
 
   // Handle form input changes
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -151,11 +149,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
       }
 
       if (response.ok) {
-        toast.success(
-          editingFaq
-            ? "سوال با موفقیت بروزرسانی شد"
-            : "سوال جدید با موفقیت ایجاد شد"
-        );
+        toast.success(editingFaq ? "سوال با موفقیت بروزرسانی شد" : "سوال جدید با موفقیت ایجاد شد");
         setModalVisible(false);
         fetchFaqs();
       } else {
@@ -225,16 +219,12 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
   ];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col border border-gray-700">
-        <div className="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4">
+      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-gray-700 bg-gray-800 shadow-xl">
+        <div className="flex items-center justify-between border-b border-gray-700 bg-gray-900 p-4">
           <div>
-            <h2 className="text-xl font-bold text-gray-100">
-              مدیریت سوالات متداول
-            </h2>
-            <p className="text-sm text-gray-400 mt-1">
-              {totalFaqsCount} سوال موجود
-            </p>
+            <h2 className="text-xl font-bold text-gray-100">مدیریت سوالات متداول</h2>
+            <p className="mt-1 text-sm text-gray-400">{totalFaqsCount} سوال موجود</p>
           </div>
           <Button
             type="text"
@@ -244,23 +234,17 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
           />
         </div>
 
-        <div className="p-4 flex-1 overflow-auto bg-gray-800">
-          <div className="mb-6 flex justify-between items-center">
+        <div className="flex-1 overflow-auto bg-gray-800 p-4">
+          <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h3 className="text-lg font-semibold text-gray-200">
-                لیست سوالات متداول
-              </h3>
-              <Badge 
-                count={totalFaqsCount} 
-                showZero 
-                style={{ backgroundColor: '#1668dc' }}
-              />
+              <h3 className="text-lg font-semibold text-gray-200">لیست سوالات متداول</h3>
+              <Badge count={totalFaqsCount} showZero style={{ backgroundColor: "#1668dc" }} />
             </div>
             <Button
               type="primary"
               icon={<FaPlus />}
               onClick={handleCreate}
-              className="bg-blue-600 hover:bg-blue-700 text-white border-none"
+              className="border-none bg-blue-600 text-white hover:bg-blue-700"
             >
               افزودن سوال جدید
             </Button>
@@ -298,23 +282,23 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
             borderRadius: "0.75rem",
             border: "1px solid #374151", // border-gray-700
             padding: 0,
-            overflow: "hidden"
+            overflow: "hidden",
           },
           mask: {
             backgroundColor: "rgba(0, 0, 0, 0.7)",
-          }
+          },
         }}
       >
-        <div className="bg-gray-900 px-6 py-5 rounded-lg">
+        <div className="rounded-lg bg-gray-900 px-6 py-5">
           <div className="mb-4">
-            <h3 className="text-xl font-semibold text-gray-100 mb-4">
+            <h3 className="mb-4 text-xl font-semibold text-gray-100">
               {editingFaq ? "ویرایش سوال" : "افزودن سوال جدید"}
             </h3>
           </div>
-          
+
           <div className="space-y-4">
             <div>
-              <label className="block text-gray-300 mb-1">سوال</label>
+              <label className="mb-1 block text-gray-300">سوال</label>
               <Input
                 name="Q"
                 value={formData.Q}
@@ -322,17 +306,17 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
                 placeholder="سوال را وارد کنید"
                 maxLength={500}
                 showCount
-                className="bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400"
-                style={{ 
-                  backgroundColor: '#1F2937', 
-                  borderColor: '#4B5563', 
-                  color: '#E5E7EB' 
+                className="border-gray-600 bg-gray-700 text-gray-200 placeholder-gray-400"
+                style={{
+                  backgroundColor: "#1F2937",
+                  borderColor: "#4B5563",
+                  color: "#E5E7EB",
                 }}
               />
             </div>
 
             <div>
-              <label className="block text-gray-300 mb-1">پاسخ</label>
+              <label className="mb-1 block text-gray-300">پاسخ</label>
               <TextArea
                 name="A"
                 value={formData.A}
@@ -341,26 +325,26 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
                 maxLength={1000}
                 showCount
                 rows={6}
-                className="bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400 resize-none"
-                style={{ 
-                  backgroundColor: '#1F2937', 
-                  borderColor: '#4B5563', 
-                  color: '#E5E7EB' 
+                className="resize-none border-gray-600 bg-gray-700 text-gray-200 placeholder-gray-400"
+                style={{
+                  backgroundColor: "#1F2937",
+                  borderColor: "#4B5563",
+                  color: "#E5E7EB",
                 }}
               />
             </div>
-            
-            <div className="flex justify-end gap-2 mt-6">
-              <Button 
+
+            <div className="mt-6 flex justify-end gap-2">
+              <Button
                 onClick={() => setModalVisible(false)}
-                className="border-gray-600 text-gray-300 hover:text-white hover:border-gray-500 bg-gray-800"
+                className="border-gray-600 bg-gray-800 text-gray-300 hover:border-gray-500 hover:text-white"
               >
                 انصراف
               </Button>
               <Button
                 type="primary"
                 onClick={handleSubmit}
-                className="bg-blue-600 hover:bg-blue-700 border-none"
+                className="border-none bg-blue-600 hover:bg-blue-700"
               >
                 ذخیره
               </Button>
@@ -375,30 +359,30 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
           background-color: #1f2937 !important;
           color: #e5e7eb !important;
         }
-        
+
         .dark-table .ant-table-thead > tr > th {
           background-color: #111827 !important;
           color: #e5e7eb !important;
           border-bottom: 1px solid #374151 !important;
         }
-        
+
         .dark-table .ant-table-tbody > tr > td {
           border-bottom: 1px solid #374151 !important;
           color: #e5e7eb !important;
         }
-        
+
         .dark-table .ant-table-tbody > tr:hover > td {
           background-color: #374151 !important;
         }
-        
+
         .dark-table .ant-empty-description {
           color: #9ca3af !important;
         }
-        
+
         .dark-table .ant-table-cell-scrollbar {
           box-shadow: none !important;
         }
-        
+
         .dark-modal .ant-input-affix-wrapper:focus,
         .dark-modal .ant-input-affix-wrapper-focused,
         .dark-modal .ant-input:focus,
@@ -406,16 +390,16 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
           border-color: #3b82f6 !important;
           box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
         }
-        
+
         .dark-modal .ant-modal-content {
           background-color: transparent !important;
           box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
         }
-        
+
         .dark-modal .ant-modal-body {
           padding: 0 !important;
         }
-        
+
         .dark-modal .ant-input,
         .dark-modal .ant-input-number,
         .dark-modal .ant-input-affix-wrapper,
@@ -426,49 +410,49 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
         .dark-modal .ant-select-selection-placeholder,
         .dark-modal .ant-input-textarea-show-count::after {
           background-color: #374151 !important;
-          border-color: #4B5563 !important;
-          color: #E5E7EB !important;
+          border-color: #4b5563 !important;
+          color: #e5e7eb !important;
         }
-        
+
         .dark-modal .ant-input::placeholder,
         .dark-modal .ant-input-affix-wrapper input::placeholder,
         .dark-modal .ant-input-number-input::placeholder {
-          color: #9CA3AF !important;
+          color: #9ca3af !important;
         }
-        
+
         .dark-modal .ant-input:hover,
         .dark-modal .ant-input-affix-wrapper:hover,
         .dark-modal .ant-select-selector:hover {
-          border-color: #6B7280 !important;
+          border-color: #6b7280 !important;
         }
-        
+
         .dark-modal .ant-btn {
           background-color: #374151;
-          border-color: #4B5563;
-          color: #E5E7EB;
+          border-color: #4b5563;
+          color: #e5e7eb;
         }
-        
+
         .dark-modal .ant-btn:hover,
         .dark-modal .ant-btn:focus {
-          background-color: #4B5563;
-          border-color: #6B7280;
-          color: #F9FAFB;
+          background-color: #4b5563;
+          border-color: #6b7280;
+          color: #f9fafb;
         }
-        
+
         .dark-modal .ant-btn-primary {
-          background-color: #2563EB;
-          border-color: #2563EB;
+          background-color: #2563eb;
+          border-color: #2563eb;
           color: white;
         }
-        
+
         .dark-modal .ant-btn-primary:hover,
         .dark-modal .ant-btn-primary:focus {
-          background-color: #1D4ED8;
-          border-color: #1D4ED8;
+          background-color: #1d4ed8;
+          border-color: #1d4ed8;
         }
       `}</style>
     </div>
   );
 };
 
-export default FaqEditor; 
+export default FaqEditor;

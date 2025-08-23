@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -6,19 +7,13 @@ export const dynamic = "force-dynamic";
 /**
  * Fetches warranty information for a specific invoice detail ID
  */
-export async function GET(
-  request: Request,
-  props: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   try {
     const invoiceDetailId = parseInt(params.id);
 
     if (isNaN(invoiceDetailId)) {
-      return NextResponse.json(
-        { error: "شناسه جزئیات فاکتور نامعتبر است" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "شناسه جزئیات فاکتور نامعتبر است" }, { status: 400 });
     }
 
     // Get warranty information for this invoice detail

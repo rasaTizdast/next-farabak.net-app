@@ -1,7 +1,8 @@
-import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
@@ -40,10 +41,7 @@ export async function GET() {
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { error: "Authorization token required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Authorization token required" }, { status: 401 });
     }
 
     // Verify and decode the token
@@ -54,8 +52,7 @@ export async function GET() {
     if (!userRole || (userRole !== "Admin" && userRole !== "Branch")) {
       return NextResponse.json(
         {
-          error:
-            "Unauthorized: Only admin and branch users can access this endpoint",
+          error: "Unauthorized: Only admin and branch users can access this endpoint",
         },
         { status: 401 }
       );
@@ -116,9 +113,6 @@ export async function GET() {
     return NextResponse.json(response);
   } catch (error) {
     console.error("[PRODUCTS-ALL-API] Error fetching all products:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch products" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
   }
 }

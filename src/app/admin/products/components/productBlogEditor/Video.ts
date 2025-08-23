@@ -1,5 +1,6 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
+
 import VideoNode from "./VideoNode";
 
 export interface VideoOptions {
@@ -12,11 +13,7 @@ declare module "@tiptap/core" {
       /**
        * Add a video
        */
-      setVideo: (options: {
-        src: string;
-        title?: string;
-        slug: string;
-      }) => ReturnType;
+      setVideo: (options: { src: string; title?: string; slug: string }) => ReturnType;
     };
   }
 }
@@ -55,11 +52,7 @@ export const CustomVideo = Node.create<VideoOptions>({
   renderHTML({ HTMLAttributes }) {
     return [
       "div",
-      mergeAttributes(
-        { "data-type": "video" },
-        this.options.HTMLAttributes,
-        HTMLAttributes
-      ),
+      mergeAttributes({ "data-type": "video" }, this.options.HTMLAttributes, HTMLAttributes),
     ];
   },
 

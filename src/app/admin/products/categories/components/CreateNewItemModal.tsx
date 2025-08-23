@@ -1,6 +1,7 @@
+import axios from "axios";
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
-import axios from "axios";
+
 import { Category } from "../types/types";
 import CategoryFields from "./newItemModalComponents/CategoryFields";
 import SeoFields from "./newItemModalComponents/SeoFields";
@@ -16,13 +17,9 @@ const checkIfUnique = (
     return !categories.some((category) => category.Name === name);
   }
 
-  const parentCategory = categories.find(
-    (category) => category.CategoryID === parentCategoryId
-  );
+  const parentCategory = categories.find((category) => category.CategoryID === parentCategoryId);
   if (!parentCategory) return true;
-  return !parentCategory.Subcategories.some(
-    (subcategory) => subcategory.Name === name
-  );
+  return !parentCategory.Subcategories.some((subcategory) => subcategory.Name === name);
 };
 
 const CreateNewItemModal = ({
@@ -40,9 +37,7 @@ const CreateNewItemModal = ({
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [available, setAvailable] = useState(true);
-  const [parentCategoryId, setParentCategoryId] = useState<number | undefined>(
-    undefined
-  );
+  const [parentCategoryId, setParentCategoryId] = useState<number | undefined>(undefined);
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
   const [seoKeywords, setSeoKeywords] = useState<string[]>([]);
@@ -64,11 +59,7 @@ const CreateNewItemModal = ({
   }, [isOpen, activeTab]); // Trigger the effect when `isOpen` changes
 
   const addKeyword = (e: React.KeyboardEvent) => {
-    if (
-      e.key === "Enter" &&
-      keywordInput.trim() &&
-      !seoKeywords.includes(keywordInput.trim())
-    ) {
+    if (e.key === "Enter" && keywordInput.trim() && !seoKeywords.includes(keywordInput.trim())) {
       setSeoKeywords([...seoKeywords, keywordInput.trim()]);
       setKeywordInput("");
     }
@@ -135,8 +126,7 @@ const CreateNewItemModal = ({
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorMessage =
-          error.response?.data?.message ||
-          "خطا در ثبت آیتم. لطفاً دوباره تلاش کنید.";
+          error.response?.data?.message || "خطا در ثبت آیتم. لطفاً دوباره تلاش کنید.";
         setError(errorMessage);
       } else {
         setError("خطای ناشناخته‌ای رخ داده است. لطفاً دوباره تلاش کنید.");
@@ -162,15 +152,15 @@ const CreateNewItemModal = ({
 
   return (
     <div
-      className={`fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 backdrop-blur-lg z-50 ${
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-lg ${
         !isOpen ? "hidden" : ""
       }`}
     >
       <div className="w-full max-w-3xl animate-fade-in">
-        <div className="flex justify-center gap-6 rtl">
+        <div className="rtl flex justify-center gap-6">
           <button
             onClick={() => setActiveTab("Category")}
-            className={`px-6 py-3 rounded-t-xl font-medium transition-all ${
+            className={`rounded-t-xl px-6 py-3 font-medium transition-all ${
               activeTab === "Category"
                 ? "bg-gray-800 text-gray-200"
                 : "bg-blue-800 text-white hover:animate-pulse"
@@ -180,7 +170,7 @@ const CreateNewItemModal = ({
           </button>
           <button
             onClick={() => setActiveTab("Subcategory")}
-            className={`px-6 py-3 rounded-t-xl font-medium transition-all ${
+            className={`rounded-t-xl px-6 py-3 font-medium transition-all ${
               activeTab === "Subcategory"
                 ? "bg-gray-800 text-gray-200"
                 : "bg-blue-800 text-white hover:animate-pulse"
@@ -190,7 +180,7 @@ const CreateNewItemModal = ({
           </button>
         </div>
 
-        <div className="p-6 pr-9 bg-gray-800 shadow-xl rounded-2xl text-white max-h-[90dvh] overflow-y-scroll">
+        <div className="max-h-[90dvh] overflow-y-scroll rounded-2xl bg-gray-800 p-6 pr-9 text-white shadow-xl">
           {activeTab === "Category" ? (
             <CategoryFields
               name={name}
@@ -204,22 +194,17 @@ const CreateNewItemModal = ({
           ) : (
             <div>
               <div className="mb-4">
-                <label className="block text-sm font-medium">
-                  دسته‌بندی اصلی
-                </label>
+                <label className="block text-sm font-medium">دسته‌بندی اصلی</label>
                 <select
                   value={parentCategoryId ?? ""}
                   onChange={(e) => setParentCategoryId(Number(e.target.value))}
-                  className="w-full bg-gray-700 p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="" disabled>
                     انتخاب دسته‌بندی
                   </option>
                   {categories.map((category) => (
-                    <option
-                      key={category.CategoryID}
-                      value={category.CategoryID}
-                    >
+                    <option key={category.CategoryID} value={category.CategoryID}>
                       {category.Name}
                     </option>
                   ))}
@@ -248,23 +233,21 @@ const CreateNewItemModal = ({
             setKeywordInput={setKeywordInput}
             addKeyword={addKeyword}
             removeKeyword={removeKeyword}
-            editable={
-              activeTab === "Category" || parentCategoryId !== undefined
-            }
+            editable={activeTab === "Category" || parentCategoryId !== undefined}
           />
 
-          {error && <div className="text-red-500 text-sm mt-4">{error}</div>}
-          <div className="flex justify-between items-center mt-5">
+          {error && <div className="mt-4 text-sm text-red-500">{error}</div>}
+          <div className="mt-5 flex items-center justify-between">
             <button
               onClick={onClose}
-              className="px-6 py-3 rounded-xl font-medium bg-white text-gray-700"
+              className="rounded-xl bg-white px-6 py-3 font-medium text-gray-700"
             >
               انصراف
             </button>
             <button
               onClick={handleSubmit}
               disabled={isSubmitDisabled() || loading} // Disable the button if loading
-              className={`px-6 py-3 rounded-xl font-medium bg-blue-500 text-white disabled:bg-gray-400 disabled:cursor-not-allowed ${
+              className={`rounded-xl bg-blue-500 px-6 py-3 font-medium text-white disabled:cursor-not-allowed disabled:bg-gray-400 ${
                 loading ? "cursor-not-allowed" : ""
               }`}
             >

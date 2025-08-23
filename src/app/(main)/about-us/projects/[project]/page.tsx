@@ -1,10 +1,11 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import VideoPlayer from "@/app/_components/ui/VideoPlayer";
+
 import styles from "./ProjectPage.module.css";
 import ProjectSlider from "./ProjectSlider";
-import VideoPlayer from "@/app/_components/ui/VideoPlayer";
-import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 
 type ParamsType = {
   params: Promise<{ project: string }>;
@@ -23,12 +24,9 @@ type ProjectProps = {
 // Fetch project data from the API
 async function getProjectData(slug: string) {
   try {
-    const response = await fetch(
-      `${process.env.BASE_URL}/api/projects/getProjectData/${slug}`,
-      {
-        next: { revalidate: 3600 },
-      }
-    );
+    const response = await fetch(`${process.env.BASE_URL}/api/projects/getProjectData/${slug}`, {
+      next: { revalidate: 3600 },
+    });
 
     if (!response.ok) {
       throw new Error("Failed to fetch project data");
@@ -41,9 +39,7 @@ async function getProjectData(slug: string) {
   }
 }
 
-export const generateMetadata = async (
-  props: ParamsType
-): Promise<Metadata> => {
+export const generateMetadata = async (props: ParamsType): Promise<Metadata> => {
   const params = await props.params;
   const projectData = await getProjectData(params.project);
 
@@ -68,17 +64,14 @@ const ProjectPage = async (props: ParamsType) => {
     notFound();
   }
 
-  const { title, date, images, largeDesc, location, video }: ProjectProps =
-    projectData;
+  const { title, date, images, largeDesc, location, video }: ProjectProps = projectData;
 
   const breadcrumbs = ["/", "/about-us", "/about-us/projects"];
   return (
     <section className={styles.content}>
       <Breadcrumb breadcrumbs={breadcrumbs} />
       <h1>{title}</h1>
-      <h3 aria-label="date of the project">
-        {new Date(date).toLocaleDateString("fa")}
-      </h3>
+      <h3 aria-label="date of the project">{new Date(date).toLocaleDateString("fa")}</h3>
       <h4 aria-label="location of the project">{location}</h4>
       <p>{largeDesc}</p>
 

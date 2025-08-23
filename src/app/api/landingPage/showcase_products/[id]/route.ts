@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma"; // Adjust the import based on your Prisma setup
 
-export async function DELETE(
-  request: Request,
-  props: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   try {
     const { id } = params;
@@ -16,17 +14,12 @@ export async function DELETE(
 
     return NextResponse.json({ message: "محصول نمایشی با موفقیت حذف شد." });
   } catch (error) {
-    return NextResponse.json(
-      { error: "خطا در حذف محصول نمایشی." },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ error: "خطا در حذف محصول نمایشی." }, { status: 500 });
   }
 }
 
-export async function PATCH(
-  request: Request,
-  props: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   try {
     const { id } = params;
@@ -43,9 +36,7 @@ export async function PATCH(
 
     return NextResponse.json(updatedProduct);
   } catch (error) {
-    return NextResponse.json(
-      { error: "خطا در بروزرسانی محصول نمایشی." },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ error: "خطا در بروزرسانی محصول نمایشی." }, { status: 500 });
   }
 }

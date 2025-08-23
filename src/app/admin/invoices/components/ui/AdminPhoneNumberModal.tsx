@@ -1,4 +1,5 @@
 import { useRef } from "react";
+
 import { AdminInvoice } from "../../type";
 
 type Props = {
@@ -12,25 +13,25 @@ const AdminPhoneNumberModal = ({ invoice, onClose }: Props) => {
   if (!invoice) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-slate-900 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 backdrop-blur-sm sm:p-4">
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-slate-900">
         <div ref={componentRef} className="p-3 sm:p-6">
           <div className="text-gray-100">
             {/* Header */}
             <div className="mb-4 sm:mb-8">
-              <h2 className="text-xl sm:text-2xl font-bold text-center">
+              <h2 className="text-center text-xl font-bold sm:text-2xl">
                 شماره تماس مشتری {invoice.Fullname}
               </h2>
             </div>
 
             <div className="space-y-4 sm:space-y-6" dir="rtl">
               {/* Phone Number */}
-              <div className="space-y-3 sm:space-y-4 bg-slate-800 p-3 sm:p-4 rounded-lg text-sm sm:text-base">
-                <div className="flex justify-between items-center">
+              <div className="space-y-3 rounded-lg bg-slate-800 p-3 text-sm sm:space-y-4 sm:p-4 sm:text-base">
+                <div className="flex items-center justify-between">
                   <span className="text-gray-300">شماره تماس:</span>
                   <span className="font-medium">{invoice.Phonenumber}</span>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex items-center justify-between">
                   <span className="text-gray-300">تماس با مشتری:</span>
                   <a
                     href={`tel:${invoice.Phonenumber}`}
@@ -45,10 +46,10 @@ const AdminPhoneNumberModal = ({ invoice, onClose }: Props) => {
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-4 p-3 sm:p-6 border-t border-slate-700">
+        <div className="flex justify-end gap-4 border-t border-slate-700 p-3 sm:p-6">
           <button
             onClick={onClose}
-            className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors duration-200 text-gray-100 text-sm sm:text-base"
+            className="w-full rounded-lg bg-slate-700 px-4 py-2 text-sm text-gray-100 transition-colors duration-200 hover:bg-slate-600 sm:w-auto sm:px-6 sm:text-base"
           >
             بستن
           </button>

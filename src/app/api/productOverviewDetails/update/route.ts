@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma"; // Adjust path to your Prisma instance
 
 /**
@@ -76,20 +77,17 @@ export async function PUT(req: Request) {
     if (!productId || !Array.isArray(selectedDetails) || !ProductName) {
       return NextResponse.json(
         {
-          error:
-            "Invalid input. 'productId' and 'selectedDetails' are required.",
+          error: "Invalid input. 'productId' and 'selectedDetails' are required.",
         },
         { status: 400 }
       );
     }
 
     // Fetch current overview details for the product
-    const currentDetails = await prisma.details_ProductOverviewDetails.findMany(
-      {
-        where: { productid: productId },
-        select: { ProductOverviewDetailsId: true },
-      }
-    );
+    const currentDetails = await prisma.details_ProductOverviewDetails.findMany({
+      where: { productid: productId },
+      select: { ProductOverviewDetailsId: true },
+    });
 
     const currentDetailIds = currentDetails
       .map((detail) => detail.ProductOverviewDetailsId)
@@ -97,21 +95,14 @@ export async function PUT(req: Request) {
 
     // Extract IDs from selectedDetails
     const selectedDetailIds = selectedDetails
-      .map(
-        (detail: { ProductOverviewDetailsId: number | null }) =>
-          detail.ProductOverviewDetailsId
-      )
+      .map((detail: { ProductOverviewDetailsId: number | null }) => detail.ProductOverviewDetailsId)
       .filter((id): id is number => id !== null); // Ensure non-null values
 
     // Determine new details to add
-    const detailsToAdd = selectedDetailIds.filter(
-      (id) => !currentDetailIds.includes(id)
-    );
+    const detailsToAdd = selectedDetailIds.filter((id) => !currentDetailIds.includes(id));
 
     // Determine details to remove
-    const detailsToRemove = currentDetailIds.filter(
-      (id) => !selectedDetailIds.includes(id)
-    );
+    const detailsToRemove = currentDetailIds.filter((id) => !selectedDetailIds.includes(id));
 
     // Perform database updates
     const addPromises = detailsToAdd.map((id) =>
@@ -139,6 +130,7 @@ export async function PUT(req: Request) {
       message: "Product overview details updated successfully",
     });
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { error: "Internal server error. Please try again later." },
       { status: 500 }

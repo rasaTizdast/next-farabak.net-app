@@ -41,6 +41,7 @@ export async function POST(): Promise<NextResponse> {
 
     return response;
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
   }
 }

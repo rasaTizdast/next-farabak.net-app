@@ -1,29 +1,18 @@
 "use client";
 
+import { Card, Table, Button, Space, Modal, Switch, message, Form, Spin, Input } from "antd";
 import React, { useState, useEffect } from "react";
-import {
-  Card,
-  Table,
-  Button,
-  Space,
-  Modal,
-  Switch,
-  message,
-  Form,
-  Spin,
-  Input,
-} from "antd";
 import { DatePicker } from "zaman";
-import { Branch } from "../../types";
+
 import { useUser } from "@/context/UserContext";
+
+import { Branch } from "../../types";
 
 // Format a Date object to YYYY-MM-DD string
 const formatDateToISOString = (date: Date | null): string | null => {
   if (!date) return null;
   // Use a fixed timezone (Tehran) for consistency
-  const tehranDate = new Date(
-    date.toLocaleString("en-US", { timeZone: "Asia/Tehran" })
-  );
+  const tehranDate = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Tehran" }));
   return tehranDate.toISOString().split("T")[0];
 };
 
@@ -64,7 +53,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
   productsWithWarranty,
   setProductsWithWarranty,
 }) => {
-  const { isAdmin, isBranch } = useUser();
+  const { isBranch } = useUser();
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
@@ -99,10 +88,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
       return Array(count)
         .fill(null)
         .map(() => {
-          const randomCode = Math.random()
-            .toString(36)
-            .substring(2, 8)
-            .toUpperCase();
+          const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
           return `${branchCode}-${yearMonth}-${randomCode}`;
         });
     }
@@ -177,10 +163,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
           const existingCodes = existingProduct?.warranty?.warrantycodes || [];
 
           // Calculate codes needed for this product
-          const codesNeeded = Math.max(
-            0,
-            product.quantity - existingCodes.length
-          );
+          const codesNeeded = Math.max(0, product.quantity - existingCodes.length);
 
           totalCodesNeeded += codesNeeded;
 
@@ -194,11 +177,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
         // Generate all needed codes in a single request
         let allNewCodes: string[] = [];
         if (totalCodesNeeded > 0) {
-          allNewCodes = await generateBatchWarrantyCodes(
-            branchCode,
-            yearMonth,
-            totalCodesNeeded
-          );
+          allNewCodes = await generateBatchWarrantyCodes(branchCode, yearMonth, totalCodesNeeded);
         }
 
         // Create expanded items with individual warranties
@@ -210,10 +189,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
           const { existingCodes, codesNeeded } = productCodeNeeds[i];
 
           // Get the slice of new codes for this product
-          const productNewCodes = allNewCodes.slice(
-            usedCodesCount,
-            usedCodesCount + codesNeeded
-          );
+          const productNewCodes = allNewCodes.slice(usedCodesCount, usedCodesCount + codesNeeded);
           usedCodesCount += codesNeeded;
 
           // Combine existing and new codes
@@ -371,10 +347,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
       });
   };
 
-  const calculateDuration = (
-    startDate: Date | string | null,
-    endDate: Date | string | null
-  ) => {
+  const calculateDuration = (startDate: Date | string | null, endDate: Date | string | null) => {
     if (!startDate || !endDate) return null;
 
     try {
@@ -498,9 +471,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
 
         // Only show product name for the first occurrence
         const isFirstOccurrence =
-          sameProductItems.findIndex(
-            (item) => item.singleItemId === record.singleItemId
-          ) === 0;
+          sameProductItems.findIndex((item) => item.singleItemId === record.singleItemId) === 0;
 
         if (isFirstOccurrence) {
           // Get color based on ProductId
@@ -509,9 +480,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
           return (
             <div className="flex items-start gap-2">
               <span>{text}</span>
-              <span
-                className={`${colorClass} text-xs text-white px-2 py-0.5 rounded-full`}
-              >
+              <span className={`${colorClass} rounded-full px-2 py-0.5 text-xs text-white`}>
                 {sameProductItems.length}×
               </span>
             </div>
@@ -557,8 +526,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
       key: "warrantyDuration",
       render: (_, record) => {
         if (record.warranty?.hasWarranty === false) return "بدون گارانتی";
-        if (!record.warranty?.startdate || !record.warranty?.expirydate)
-          return "-";
+        if (!record.warranty?.startdate || !record.warranty?.expirydate) return "-";
 
         const startDate = record.warranty.startdate;
         const expiryDate = record.warranty.expirydate;
@@ -571,11 +539,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
       key: "action",
       render: (_, record) => (
         <Space size="middle">
-          <Button
-            type="primary"
-            size="small"
-            onClick={() => handleEdit(record)}
-          >
+          <Button type="primary" size="small" onClick={() => handleEdit(record)}>
             تنظیم گارانتی
           </Button>
         </Space>
@@ -584,16 +548,12 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
   ];
 
   return (
-    <Card className="bg-gray-900 border-0 shadow-md">
-      <h3 className="text-lg font-medium text-white mb-4">
-        تنظیم گارانتی برای محصولات
-      </h3>
+    <Card className="border-0 bg-gray-900 shadow-md">
+      <h3 className="mb-4 text-lg font-medium text-white">تنظیم گارانتی برای محصولات</h3>
 
       {isGeneratingCodes ? (
-        <div className="flex justify-center items-center p-8">
-          <div className="text-white">
-            در حال ایجاد کدهای گارانتی برای محصولات...
-          </div>
+        <div className="flex items-center justify-center p-8">
+          <div className="text-white">در حال ایجاد کدهای گارانتی برای محصولات...</div>
         </div>
       ) : (
         <Table
@@ -602,7 +562,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
           rowKey="singleItemId"
           pagination={false}
           className="custom-dark-table"
-          rowClassName={(record, index) => {
+          rowClassName={(record) => {
             // Find all items with same product ID
             const sameProductItems = productsWithWarranty.filter(
               (item) => item.ProductId === record.ProductId
@@ -649,7 +609,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
         zIndex={1000}
       >
         {isDatePickerLoading ? (
-          <div className="flex justify-center my-10">
+          <div className="my-10 flex justify-center">
             <Spin size="large" />
           </div>
         ) : (
@@ -685,19 +645,13 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
               {({ getFieldValue }) => {
                 const hasWarranty = getFieldValue("hasWarranty");
                 return (
-                  <div
-                    className={
-                      hasWarranty
-                        ? "opacity-100"
-                        : "opacity-50 pointer-events-none"
-                    }
-                  >
+                  <div className={hasWarranty ? "opacity-100" : "pointer-events-none opacity-50"}>
                     <Form.Item
                       name="warrantycode"
                       label={<span className="text-white">کد گارانتی</span>}
                     >
                       <Input
-                        className="w-full p-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none !text-gray-300"
+                        className="w-full rounded-lg bg-gray-700 p-2 !text-gray-300 outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="کد گارانتی"
                         readOnly
                         disabled
@@ -710,9 +664,9 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
                         <span className="text-white">
                           تاریخ شروع گارانتی
                           {isBranch && (
-                            <span className="mr-2 text-xs inline-flex items-center px-2 py-0.5 rounded-full bg-blue-900 text-blue-200 border border-blue-700">
+                            <span className="mr-2 inline-flex items-center rounded-full border border-blue-700 bg-blue-900 px-2 py-0.5 text-xs text-blue-200">
                               <svg
-                                className="w-3 h-3 ml-1"
+                                className="ml-1 h-3 w-3"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                                 xmlns="http://www.w3.org/2000/svg"
@@ -741,9 +695,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
                     >
                       <div className={isBranch ? "pointer-events-none" : ""}>
                         <DatePicker
-                          defaultValue={
-                            form.getFieldValue("startdate") || new Date()
-                          }
+                          defaultValue={form.getFieldValue("startdate") || new Date()}
                           weekends={[5, 6]}
                           round="x2"
                           accentColor="#226bff"
@@ -766,16 +718,13 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
 
                     <Form.Item
                       name="expirydate"
-                      label={
-                        <span className="text-white">تاریخ پایان گارانتی</span>
-                      }
+                      label={<span className="text-white">تاریخ پایان گارانتی</span>}
                       rules={
                         hasWarranty
                           ? [
                               {
                                 required: true,
-                                message:
-                                  "لطفا تاریخ پایان گارانتی را وارد کنید",
+                                message: "لطفا تاریخ پایان گارانتی را وارد کنید",
                               },
                             ]
                           : undefined
@@ -810,7 +759,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
 
             {durationText && (
               <div
-                className={`text-center p-2 rounded mb-4 mt-4 ${
+                className={`mb-4 mt-4 rounded p-2 text-center ${
                   durationText.includes("باید") || durationText.includes("خطا")
                     ? "bg-red-900 text-red-200"
                     : "bg-blue-900 text-blue-200"
@@ -1007,9 +956,7 @@ const getProductColorIndex = (productId: string | number): number => {
     numValue = parseInt(numbers[0], 10);
   } else {
     // If no numbers, use the sum of char codes
-    numValue = productIdStr
-      .split("")
-      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    numValue = productIdStr.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
   }
 
   // Return color index (0-7)
@@ -1024,16 +971,7 @@ const getProductColor = (productId: string | number): string => {
 
 // Get color name by index
 const getColorNameByIndex = (index: number): string => {
-  const colorNames = [
-    "blue",
-    "green",
-    "purple",
-    "orange",
-    "pink",
-    "cyan",
-    "red",
-    "lime",
-  ];
+  const colorNames = ["blue", "green", "purple", "orange", "pink", "cyan", "red", "lime"];
 
   return colorNames[index];
 };

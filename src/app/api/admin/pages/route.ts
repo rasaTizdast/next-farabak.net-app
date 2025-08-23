@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -167,7 +168,7 @@ export async function GET() {
     ];
 
     // Subpages for multipage sections
-    const subPages: Record<string, any[]> = {
+    const subPages: SubPage[] = {
       "/support/blog": blogs.map((blog) => ({
         id: blog.id,
         name: blog.title,
@@ -191,9 +192,6 @@ export async function GET() {
     return NextResponse.json({ rowNames, subPages });
   } catch (error) {
     console.error("Error fetching page data:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch page data" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch page data" }, { status: 500 });
   }
 }

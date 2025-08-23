@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 interface SpecTemplate {
   SpecTemplateId: number;
@@ -24,7 +25,7 @@ export async function GET() {
     const templates = await prisma.$queryRaw<SpecTemplate[]>`
       SELECT * FROM "support"."SpecTemplate"
     `;
-    
+
     // For each template, get its items
     for (const template of templates) {
       const items = await prisma.$queryRaw<SpecTemplateItem[]>`
@@ -37,10 +38,7 @@ export async function GET() {
     return NextResponse.json(templates);
   } catch (error) {
     console.error("Error fetching spec templates:", error);
-    return NextResponse.json(
-      { message: "Error fetching spec templates" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Error fetching spec templates" }, { status: 500 });
   }
 }
 
@@ -51,10 +49,7 @@ export async function POST(request: NextRequest) {
     const { Name, Items } = body;
 
     if (!Name) {
-      return NextResponse.json(
-        { message: "Template name is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Template name is required" }, { status: 400 });
     }
 
     // Create the template using raw SQL
@@ -88,15 +83,12 @@ export async function POST(request: NextRequest) {
 
     const completeTemplate = {
       ...template[0],
-      Items: items
+      Items: items,
     };
 
     return NextResponse.json(completeTemplate);
   } catch (error) {
     console.error("Error creating spec template:", error);
-    return NextResponse.json(
-      { message: "Error creating spec template" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Error creating spec template" }, { status: 500 });
   }
 }

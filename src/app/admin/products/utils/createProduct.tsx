@@ -35,26 +35,18 @@ const retryRequest = async <T,>(
       return await requestFn();
     } catch (error) {
       lastError = error as Error;
-      console.error(
-        `Attempt ${attempt} failed | تلاش ${attempt} ناموفق بود:`,
-        error
-      );
+      console.error(`Attempt ${attempt} failed | تلاش ${attempt} ناموفق بود:`, error);
 
       if (attempt < maxRetries) {
         // Wait with exponential backoff before retrying
         const waitTime = delay * Math.pow(2, attempt - 1);
-        console.log(
-          `Retrying in ${waitTime}ms... | در حال تلاش مجدد در ${waitTime} میلی‌ثانیه...`
-        );
+        console.log(`Retrying in ${waitTime}ms... | در حال تلاش مجدد در ${waitTime} میلی‌ثانیه...`);
         await new Promise((resolve) => setTimeout(resolve, waitTime));
       }
     }
   }
 
-  throw (
-    lastError ||
-    new Error("All retry attempts failed | تمام تلاش‌های مجدد ناموفق بودند")
-  );
+  throw lastError || new Error("All retry attempts failed | تمام تلاش‌های مجدد ناموفق بودند");
 };
 
 // Function to handle uploading images to S3
@@ -91,11 +83,7 @@ const ImageUploader = async (
 };
 
 // Function to send features data to the API
-const sendOverviews = async (
-  ProductId: number,
-  ProductName: string,
-  Features: string[]
-) => {
+const sendOverviews = async (ProductId: number, ProductName: string, Features: string[]) => {
   if (!Features.length) return; // Skip if no features are provided
 
   const payload = {
@@ -110,11 +98,7 @@ const sendOverviews = async (
 };
 
 // Function to send specifications data to the API
-const sendSpecs = async (
-  ProductId: number,
-  Name: string,
-  specs: State["specs"]
-) => {
+const sendSpecs = async (ProductId: number, Name: string, specs: State["specs"]) => {
   if (!specs || !specs.length) {
     console.log("No specs to send");
     return;
@@ -231,10 +215,7 @@ export const createProduct = async (
     console.log("Creating product with payload:", productPayload);
 
     const productResponse = await retryRequest(async () => {
-      return await axios.post(
-        "/api/admin/products/createNewProduct",
-        productPayload
-      );
+      return await axios.post("/api/admin/products/createNewProduct", productPayload);
     });
 
     const productId = productResponse.data.ProductId;
@@ -275,10 +256,7 @@ export const createProduct = async (
       await sendOverviews(productId, state.name, state.features);
       setProgress(60);
     } catch (error) {
-      console.error(
-        "Failed to send product features, continuing with other steps:",
-        error
-      );
+      console.error("Failed to send product features, continuing with other steps:", error);
     }
 
     try {
@@ -287,10 +265,7 @@ export const createProduct = async (
       await sendOverviewDetails(productId, state.name, state.overviewDetails);
       setProgress(70);
     } catch (error) {
-      console.error(
-        "Failed to send overview details, continuing with other steps:",
-        error
-      );
+      console.error("Failed to send overview details, continuing with other steps:", error);
     }
 
     try {
@@ -299,10 +274,7 @@ export const createProduct = async (
       await sendSpecs(productId, state.name, state.specs);
       setProgress(80);
     } catch (error) {
-      console.error(
-        "Failed to send specs, continuing with other steps:",
-        error
-      );
+      console.error("Failed to send specs, continuing with other steps:", error);
     }
 
     try {

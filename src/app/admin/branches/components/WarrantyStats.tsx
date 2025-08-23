@@ -1,17 +1,5 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import {
-  Card,
-  Spin,
-  Alert,
-  Statistic,
-  Row,
-  Col,
-  Typography,
-  Empty,
-  Button,
-} from "antd";
 import {
   LoadingOutlined,
   CheckCircleOutlined,
@@ -20,6 +8,8 @@ import {
   TeamOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
+import { Card, Spin, Alert, Statistic, Row, Col, Typography, Empty, Button } from "antd";
+import { useState, useEffect, useCallback } from "react";
 
 const { Title, Text } = Typography;
 
@@ -35,9 +25,7 @@ interface WarrantyStatsProps {
   isTabActive?: boolean;
 }
 
-export default function WarrantyStats({
-  isTabActive = true,
-}: WarrantyStatsProps) {
+export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [statistics, setStatistics] = useState<BranchStats[]>([]);
@@ -65,10 +53,7 @@ export default function WarrantyStats({
         const data = await response.json();
 
         // Use either allBranches or myBranches, whichever has data
-        const stats =
-          data.allBranches?.length > 0
-            ? data.allBranches
-            : data.myBranches || [];
+        const stats = data.allBranches?.length > 0 ? data.allBranches : data.myBranches || [];
         setStatistics(stats);
         setDataFetched(true);
         setLastFetchTime(now);
@@ -128,21 +113,21 @@ export default function WarrantyStats({
   }
 
   return (
-    <div className="space-y-6 bg-gray-900 p-6 rounded-lg border border-gray-800 shadow-xl warranty-stats-wrapper">
+    <div className="warranty-stats-wrapper space-y-6 rounded-lg border border-gray-800 bg-gray-900 p-6 shadow-xl">
       {/* Refresh Button */}
-      <div className="flex justify-end mb-2">
+      <div className="mb-2 flex justify-end">
         <Button
           onClick={() => fetchWarrantyStats(true)}
           icon={<ReloadOutlined />}
           loading={loading}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          className="bg-blue-600 text-white hover:bg-blue-700"
         >
           بروزرسانی
         </Button>
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center p-8">
+        <div className="flex items-center justify-center p-8">
           <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
         </div>
       ) : statistics.length === 0 ? (
@@ -151,7 +136,7 @@ export default function WarrantyStats({
         <>
           {/* Total Statistics Summary - Row Layout */}
           <Card
-            className="border-0 shadow-lg mb-6"
+            className="mb-6 border-0 shadow-lg"
             style={{ backgroundColor: "#121f3b", borderColor: "#374151" }}
             title={
               <Title level={4} className="!text-white">
@@ -162,13 +147,11 @@ export default function WarrantyStats({
             <Row gutter={[16, 16]} justify="center">
               <Col xs={24} md={8}>
                 <Card
-                  className="text-center h-full border-0"
+                  className="h-full border-0 text-center"
                   style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
                 >
                   <Statistic
-                    title={
-                      <Text className="text-gray-300">گارانتی‌های فعال</Text>
-                    }
+                    title={<Text className="text-gray-300">گارانتی‌های فعال</Text>}
                     value={totalStats.active}
                     valueStyle={{ color: "#10B981", fontWeight: "bold" }}
                     prefix={<CheckCircleOutlined />}
@@ -177,15 +160,11 @@ export default function WarrantyStats({
               </Col>
               <Col xs={24} md={8}>
                 <Card
-                  className="text-center h-full border-0"
+                  className="h-full border-0 text-center"
                   style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
                 >
                   <Statistic
-                    title={
-                      <Text className="text-gray-300">
-                        گارانتی‌های منقضی شده
-                      </Text>
-                    }
+                    title={<Text className="text-gray-300">گارانتی‌های منقضی شده</Text>}
                     value={totalStats.expired}
                     valueStyle={{ color: "#EF4444", fontWeight: "bold" }}
                     prefix={<CloseCircleOutlined />}
@@ -194,13 +173,11 @@ export default function WarrantyStats({
               </Col>
               <Col xs={24} md={8}>
                 <Card
-                  className="text-center h-full border-0"
+                  className="h-full border-0 text-center"
                   style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
                 >
                   <Statistic
-                    title={
-                      <Text className="text-gray-300">درخواست‌های بررسی</Text>
-                    }
+                    title={<Text className="text-gray-300">درخواست‌های بررسی</Text>}
                     value={totalStats.requested}
                     valueStyle={{ color: "#F59E0B", fontWeight: "bold" }}
                     prefix={<SyncOutlined spin />}
@@ -211,13 +188,13 @@ export default function WarrantyStats({
           </Card>
 
           {/* Individual Branch Statistics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {statistics.map((branch) => (
               <Card
                 key={branch.branchid}
                 title={
                   <div className="flex items-center">
-                    <TeamOutlined className="text-blue-500 ml-2" />
+                    <TeamOutlined className="ml-2 text-blue-500" />
                     <Text strong className="text-white">
                       {branch.branch_name}
                     </Text>
@@ -229,24 +206,16 @@ export default function WarrantyStats({
               >
                 <div className="grid grid-cols-3 gap-2">
                   <div className="text-center">
-                    <Text className="text-gray-300 block text-sm">فعال</Text>
-                    <Text className="text-green-500 text-lg font-bold">
-                      {branch.active_count}
-                    </Text>
+                    <Text className="block text-sm text-gray-300">فعال</Text>
+                    <Text className="text-lg font-bold text-green-500">{branch.active_count}</Text>
                   </div>
                   <div className="text-center">
-                    <Text className="text-gray-300 block text-sm">
-                      منقضی شده
-                    </Text>
-                    <Text className="text-red-500 text-lg font-bold">
-                      {branch.expired_count}
-                    </Text>
+                    <Text className="block text-sm text-gray-300">منقضی شده</Text>
+                    <Text className="text-lg font-bold text-red-500">{branch.expired_count}</Text>
                   </div>
                   <div className="text-center">
-                    <Text className="text-gray-300 block text-sm">
-                      درخواست‌ها
-                    </Text>
-                    <Text className="text-yellow-500 text-lg font-bold">
+                    <Text className="block text-sm text-gray-300">درخواست‌ها</Text>
+                    <Text className="text-lg font-bold text-yellow-500">
                       {branch.requested_count}
                     </Text>
                   </div>

@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
@@ -84,10 +85,7 @@ export async function GET(): Promise<NextResponse> {
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "توکن احراز هویت الزامی است" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "توکن احراز هویت الزامی است" }, { status: 401 });
     }
 
     // Verify the token
@@ -118,6 +116,7 @@ export async function GET(): Promise<NextResponse> {
       role: user.Role,
     });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
   }
 }
@@ -128,10 +127,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "توکن احراز هویت الزامی است" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "توکن احراز هویت الزامی است" }, { status: 401 });
     }
 
     // Use jose to verify the token
@@ -167,6 +163,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
 
     return NextResponse.json({ message: "پروفایل با موفقیت به‌روزرسانی شد" });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
   }
 }

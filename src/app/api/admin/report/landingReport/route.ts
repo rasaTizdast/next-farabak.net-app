@@ -1,9 +1,10 @@
 export const dynamic = "force-dynamic";
 
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -63,10 +64,7 @@ export async function GET(): Promise<NextResponse> {
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "Authorization token required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
@@ -102,6 +100,7 @@ export async function GET(): Promise<NextResponse> {
       invoiceStatusCount,
     });
   } catch (error) {
+    console.error(error);
     return new NextResponse("Failed to fetch landing report", { status: 500 });
   }
 }

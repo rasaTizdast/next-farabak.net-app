@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -27,18 +28,12 @@ export async function GET(request: Request, props: { params: Promise<{ branchId:
   const params = await props.params;
   try {
     if (!params.branchId) {
-      return NextResponse.json(
-        { error: "Branch ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Branch ID is required" }, { status: 400 });
     }
 
     const branchId = parseInt(params.branchId);
     if (isNaN(branchId)) {
-      return NextResponse.json(
-        { error: "Invalid branch ID format" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid branch ID format" }, { status: 400 });
     }
 
     const branch = await prisma.$queryRaw`
@@ -53,10 +48,7 @@ export async function GET(request: Request, props: { params: Promise<{ branchId:
     return NextResponse.json(branch[0]);
   } catch (error) {
     console.error("Error fetching branch:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch branch information" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch branch information" }, { status: 500 });
   }
 }
 
@@ -105,10 +97,7 @@ export async function PUT(request: Request, props: { params: Promise<{ branchId:
     const { name, location } = await request.json();
 
     if (!name || !location) {
-      return NextResponse.json(
-        { error: "نام و کد مکان شعبه الزامی هستند" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "نام و کد مکان شعبه الزامی هستند" }, { status: 400 });
     }
 
     // Check if branch exists
@@ -128,10 +117,7 @@ export async function PUT(request: Request, props: { params: Promise<{ branchId:
     `;
 
     if ((existingBranch as any[]).length > 0) {
-      return NextResponse.json(
-        { error: "این نام شعبه قبلاً استفاده شده است" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "این نام شعبه قبلاً استفاده شده است" }, { status: 400 });
     }
 
     // Update branch
@@ -145,10 +131,7 @@ export async function PUT(request: Request, props: { params: Promise<{ branchId:
     return NextResponse.json((updatedBranch as any[])[0]);
   } catch (error) {
     console.error("Error updating branch:", error);
-    return NextResponse.json(
-      { error: "خطا در بروزرسانی شعبه" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در بروزرسانی شعبه" }, { status: 500 });
   }
 }
 
@@ -207,8 +190,7 @@ export async function DELETE(request: Request, props: { params: Promise<{ branch
         WHERE "UserID" = ${userId}
       `;
 
-      const hasOtherBranches =
-        parseInt(String((otherBranches as any[])[0].count), 10) > 0;
+      const hasOtherBranches = parseInt(String((otherBranches as any[])[0].count), 10) > 0;
 
       // Only reset role if user has no other branches
       if (!hasOtherBranches) {

@@ -1,16 +1,15 @@
+import axios from "axios";
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
+
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
-import axios from "axios";
-import { notFound } from "next/navigation";
 
 interface CategoryPageProps {
   params: Promise<{ category: string }>;
 }
 
-export const generateMetadata = async (
-  props: CategoryPageProps
-): Promise<Metadata> => {
+export const generateMetadata = async (props: CategoryPageProps): Promise<Metadata> => {
   const params = await props.params;
   const categoryName = params.category;
 
@@ -31,10 +30,10 @@ export const generateMetadata = async (
 
     return {
       title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${categoryName}`,
-      description:
-        seoDetails.SEO_Description || `محصولات دسته‌بندی ${categoryName}`,
+      description: seoDetails.SEO_Description || `محصولات دسته‌بندی ${categoryName}`,
     };
   } catch (error) {
+    console.error(error);
     return {
       title: "دسته‌بندی یافت نشد!",
       description: "دسته‌بندی مورد نظر یافت نشد!",
@@ -65,6 +64,7 @@ const CategoryPage = async (props: CategoryPageProps) => {
 
     categoryTitle = res.data.categoryName;
   } catch (error) {
+    console.error(error);
     notFound();
   }
 

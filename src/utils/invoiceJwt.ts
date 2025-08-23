@@ -31,14 +31,9 @@ export async function signInvoiceData(data: InvoiceData): Promise<string> {
 /**
  * Verify and decode invoice data from JWT token
  */
-export async function verifyInvoiceData(
-  token: string
-): Promise<InvoiceData | null> {
+export async function verifyInvoiceData(token: string): Promise<InvoiceData | null> {
   try {
-    const { payload } = await jwtVerify(
-      token,
-      new TextEncoder().encode(INVOICE_SECRET)
-    );
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(INVOICE_SECRET));
 
     return payload as unknown as InvoiceData;
   } catch (error) {

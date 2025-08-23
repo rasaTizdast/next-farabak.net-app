@@ -1,8 +1,8 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { createContext, useContext, useState, useEffect } from "react";
 
 interface User {
   userId: string;
@@ -28,9 +28,7 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // Start with loading
   const router = useRouter();
@@ -42,7 +40,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await axios.get("/api/auth/profile");
       setUser(response.data); // Set the user data in context
     } catch (error) {
-      throw new Error("Error fetching user data");
+      throw new Error("Error fetching user data", error!);
     } finally {
       setLoading(false); // Stop loading once the fetch is complete
     }

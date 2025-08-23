@@ -5,12 +5,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import {
-  Controller,
-  FormProvider,
-  useForm,
-  useFormContext,
-} from "react-hook-form";
+import { Controller, FormProvider, useForm, useFormContext } from "react-hook-form";
 import toast, { Toaster } from "react-hot-toast";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { changePasswordSchema } from "@/helpers/validationSchema";
@@ -45,8 +40,7 @@ const ChangePassword = () => {
       toast.success("کلمه عبور شما با موفقیت تغییر پیدا کرد!");
     } catch (error: any) {
       const errorMessage =
-        error.response?.data?.message ||
-        "خطایی رخ داد. لطفا دوباره امتحان کنید.";
+        error.response?.data?.message || "خطایی رخ داد. لطفا دوباره امتحان کنید.";
       toast.error(errorMessage);
     }
   };
@@ -143,9 +137,7 @@ const InputGroup = ({
               id={name}
               placeholder={placeholder}
               value={value ?? ""}
-              className={
-                errors[name] ? styles.not_valid : value ? styles.valid : ""
-              }
+              className={errors[name] ? styles.not_valid : value ? styles.valid : ""}
             />
           )}
         />

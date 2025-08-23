@@ -2,6 +2,7 @@
 
 import { Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
+
 import ImageNode from "./ImageNode";
 
 export interface ImageOptions {

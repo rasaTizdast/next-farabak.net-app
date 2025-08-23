@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -39,9 +40,6 @@ export async function GET(request: Request, props: { params: Promise<{ productId
     });
   } catch (error) {
     console.error("Error getting product quantity:", error);
-    return NextResponse.json(
-      { error: "خطا در دریافت تعداد محصول" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در دریافت تعداد محصول" }, { status: 500 });
   }
 }

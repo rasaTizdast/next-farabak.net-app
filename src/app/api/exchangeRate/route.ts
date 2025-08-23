@@ -7,7 +7,7 @@ export const dynamic = "force-static";
 export const revalidate = 60;
 
 // Cache object to store the exchange rate and timestamp
-let cache = {
+const cache = {
   rate: null as number | null,
   timestamp: 0,
 };
@@ -26,9 +26,7 @@ async function fetchExchangeRateFromApi() {
     }
 
     const data = await response.json();
-    const usdRate = data.currency.find(
-      (item: any) => item.symbol === "USD"
-    )?.price;
+    const usdRate = data.currency.find((item: any) => item.symbol === "USD")?.price;
 
     if (!usdRate) {
       throw new Error("نرخ دلار در پاسخ دریافتی یافت نشد");
@@ -65,9 +63,6 @@ export async function GET() {
     return NextResponse.json({ rate });
   } catch (error) {
     console.error("خطا در API نرخ ارز:", error);
-    return NextResponse.json(
-      { error: "خطا در دریافت نرخ ارز" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در دریافت نرخ ارز" }, { status: 500 });
   }
 }

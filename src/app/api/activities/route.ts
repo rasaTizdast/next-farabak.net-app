@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -66,8 +67,7 @@ export async function PUT(req: NextRequest) {
     const deletedActivities = existingActivities.filter(
       (existingActivity: MasterActivity) =>
         !updatedActivities.some(
-          (updatedActivity: MasterActivity) =>
-            updatedActivity.id === existingActivity.id
+          (updatedActivity: MasterActivity) => updatedActivity.id === existingActivity.id
         )
     );
 
@@ -123,10 +123,7 @@ export async function PUT(req: NextRequest) {
       }
     }
 
-    return NextResponse.json(
-      { message: "Updated successfully" },
-      { status: 200 }
-    );
+    return NextResponse.json({ message: "Updated successfully" }, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Failed to update" }, { status: 500 });

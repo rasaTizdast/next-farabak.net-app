@@ -1,28 +1,16 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
 export const dynamic = "force-dynamic";
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
 
 export async function GET(request: Request, props: { params: Promise<{ invoiceId: string }> }) {
   const params = await props.params;
   try {
     const invoiceId = parseInt(params.invoiceId);
-    
+
     if (isNaN(invoiceId)) {
-      return NextResponse.json(
-        { error: "Invalid invoice ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid invoice ID" }, { status: 400 });
     }
 
     // Fetch the specific invoice
@@ -35,15 +23,12 @@ export async function GET(request: Request, props: { params: Promise<{ invoiceId
       WHERE
         i."Invoiceid" = ${invoiceId}
     `;
-    
+
     // Check if invoice exists
     if (!invoiceData || (invoiceData as any[]).length === 0) {
-      return NextResponse.json(
-        { error: "Invoice not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
     }
-    
+
     const invoice = (invoiceData as any[])[0];
 
     // Get invoice details
@@ -71,21 +56,21 @@ export async function GET(request: Request, props: { params: Promise<{ invoiceId
     `;
 
     // Process warranty status
-    const processedWarranties = (warranties as any[]).map(warranty => {
+    const processedWarranties = (warranties as any[]).map((warranty) => {
       const today = new Date();
       const expiryDate = new Date(warranty.expirydate);
-      
+
       // Add a display status without modifying the database
       let displayStatus = warranty.status;
       if (today > expiryDate) {
-        displayStatus = 'Expired';
+        displayStatus = "Expired";
       } else {
-        displayStatus = 'Active';
+        displayStatus = "Active";
       }
-      
+
       return {
         ...warranty,
-        displayStatus
+        displayStatus,
       };
     });
 
@@ -95,12 +80,14 @@ export async function GET(request: Request, props: { params: Promise<{ invoiceId
       if (!acc[key]) {
         acc[key] = {
           ...warranty,
-          warrantycodes: [{
-            code: warranty.warrantycode,
-            startdate: warranty.startdate,
-            expirydate: warranty.expirydate,
-            status: warranty.status
-          }]
+          warrantycodes: [
+            {
+              code: warranty.warrantycode,
+              startdate: warranty.startdate,
+              expirydate: warranty.expirydate,
+              status: warranty.status,
+            },
+          ],
         };
       } else {
         // Add this warranty code to the existing entry
@@ -108,19 +95,19 @@ export async function GET(request: Request, props: { params: Promise<{ invoiceId
           code: warranty.warrantycode,
           startdate: warranty.startdate,
           expirydate: warranty.expirydate,
-          status: warranty.status
+          status: warranty.status,
         });
       }
       return acc;
     }, {});
-      
+
     // Map warranty data to invoice details
     const detailsWithWarranty = (details as any[]).map((detail) => {
       const warranty = warrantiesByDetail[detail.Invoice_Details];
-      
+
       return {
         ...detail,
-        warranty: warranty || null
+        warranty: warranty || null,
       };
     });
 
@@ -140,9 +127,6 @@ export async function GET(request: Request, props: { params: Promise<{ invoiceId
     });
   } catch (error) {
     console.error("Error fetching invoice:", error);
-    return NextResponse.json(
-      { error: "خطا در بارگذاری فاکتور" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در بارگذاری فاکتور" }, { status: 500 });
   }
-} 
+}

@@ -1,14 +1,13 @@
+import { Metadata } from "next";
+
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
-import { Metadata } from "next";
 
 interface ProductsPageProps {
   params: Promise<{ pageNumber: string }>;
 }
 
-export const generateMetadata = async (
-  props: ProductsPageProps
-): Promise<Metadata> => {
+export const generateMetadata = async (props: ProductsPageProps): Promise<Metadata> => {
   const params = await props.params;
   const currentPage = parseInt(params.pageNumber || "1", 10);
 
@@ -41,11 +40,7 @@ const ProductsPage = async (props: ProductsPageProps) => {
   return (
     <div>
       <Breadcrumb breadcrumbs={breadcrumbs} />
-      <ProductGrid
-        title="تمامی محصولات"
-        apiUrl={apiUrl}
-        currentPage={currentPage}
-      />
+      <ProductGrid title="تمامی محصولات" apiUrl={apiUrl} currentPage={currentPage} />
     </div>
   );
 };

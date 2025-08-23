@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { IoIosClose } from "react-icons/io";
 import axios from "axios";
 import Image from "next/image";
+import React, { useState, useEffect } from "react";
+import { IoIosClose } from "react-icons/io";
+
 import DeleteOverviewDetailButton from "../DeleteOverviewDetailButton";
 
 type OverviewDetail = {
@@ -23,9 +24,7 @@ const truncateText = (text: string, maxLength: number): string =>
 
 const OverviewDetails = ({ dispatch, setErrors }: Props) => {
   const [overviewDetails, setOverviewDetails] = useState<OverviewDetail[]>([]);
-  const [selectedDetail, setSelectedDetail] = useState<OverviewDetail | null>(
-    null
-  );
+  const [selectedDetail, setSelectedDetail] = useState<OverviewDetail | null>(null);
   const [loading, setLoading] = useState(true); // Loading state
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showAll, setShowAll] = useState(false); // State to toggle between showing limited or all details
@@ -44,6 +43,7 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
         dispatch({ type: "SET_OVERVIEW_DETAILS", details: data });
       })
       .catch((error) => {
+        console.error(error);
         setErrors({ apiError: "خطا در بارگذاری اطلاعات" });
       })
       .finally(() => {
@@ -74,9 +74,7 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
   // Toggle selection
   const toggleSelection = (id: number) => {
     const updatedDetails = overviewDetails.map((detail) =>
-      detail.ProductOverviewDetailsId === id
-        ? { ...detail, selected: !detail.selected }
-        : detail
+      detail.ProductOverviewDetailsId === id ? { ...detail, selected: !detail.selected } : detail
     );
     setOverviewDetails(updatedDetails);
     dispatch({ type: "SET_OVERVIEW_DETAILS", details: updatedDetails });
@@ -94,9 +92,7 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
   };
 
   // Determine which items to show based on `showAll` state
-  const displayedDetails = showAll
-    ? overviewDetails
-    : overviewDetails.slice(0, 6);
+  const displayedDetails = showAll ? overviewDetails : overviewDetails.slice(0, 6);
 
   return (
     <div className="relative mb-6 p-4">
@@ -106,12 +102,12 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
           {Array.from({ length: 6 }).map((_, index) => (
             <div
               key={index}
-              className="mb-4 flex items-center justify-between gap-4 p-4 border rounded-lg bg-gray-800 border-gray-700 animate-pulse"
+              className="mb-4 flex animate-pulse items-center justify-between gap-4 rounded-lg border border-gray-700 bg-gray-800 p-4"
             >
-              <div className="h-8 w-full bg-gray-600 rounded"></div>
+              <div className="h-8 w-full rounded bg-gray-600"></div>
               <div className="flex gap-3">
-                <div className="h-8 w-24 bg-gray-600 rounded"></div>
-                <div className="h-8 w-24 bg-gray-600 rounded"></div>
+                <div className="h-8 w-24 rounded bg-gray-600"></div>
+                <div className="h-8 w-24 rounded bg-gray-600"></div>
               </div>
             </div>
           ))}
@@ -128,7 +124,7 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
               {displayedDetails.map((detail) => (
                 <div
                   key={detail.ProductOverviewDetailsId}
-                  className="flex items-center justify-between gap-4 p-4 border rounded-lg bg-gray-800 border-gray-700"
+                  className="flex items-center justify-between gap-4 rounded-lg border border-gray-700 bg-gray-800 p-4"
                 >
                   {/* Truncated Title */}
                   <span>{truncateText(detail.Title, 60)}</span>
@@ -141,16 +137,14 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
                     <button
                       type="button"
                       onClick={() => openDetailModal(detail)}
-                      className="py-1 px-3 bg-blue-500 hover:bg-blue-600 text-white rounded-md"
+                      className="rounded-md bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
                     >
                       مشاهده
                     </button>
                     <button
                       type="button"
-                      onClick={() =>
-                        toggleSelection(detail.ProductOverviewDetailsId)
-                      }
-                      className={`py-1 px-3 rounded-md ${
+                      onClick={() => toggleSelection(detail.ProductOverviewDetailsId)}
+                      className={`rounded-md px-3 py-1 ${
                         detail.selected
                           ? "bg-green-500 hover:bg-green-600"
                           : "bg-gray-500 hover:bg-gray-600"
@@ -165,7 +159,7 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
 
             {/* Gradient Fade Effect */}
             {!showAll && (
-              <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none"></div>
+              <div className="pointer-events-none absolute bottom-0 left-0 h-24 w-full bg-gradient-to-t from-gray-900 to-transparent"></div>
             )}
           </div>
 
@@ -175,7 +169,7 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
               <button
                 type="button"
                 onClick={() => setShowAll((prev) => !prev)}
-                className="py-2 px-6 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md"
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white shadow-md hover:bg-blue-600"
               >
                 {showAll ? "نمایش کمتر" : "نمایش همه"}
               </button>
@@ -187,27 +181,25 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
       {/* Detail Modal */}
       {selectedDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
-          <div className="bg-gray-800 text-white rounded-lg shadow-lg p-6 w-full max-w-lg relative max-h-[700px] overflow-y-scroll">
+          <div className="relative max-h-[700px] w-full max-w-lg overflow-y-scroll rounded-lg bg-gray-800 p-6 text-white shadow-lg">
             <button
               onClick={closeDetailModal}
-              className="absolute top-3 right-3 text-red-400 hover:text-red-500"
+              className="absolute right-3 top-3 text-red-400 hover:text-red-500"
             >
               <IoIosClose size={35} />
             </button>
             {/* Full Title */}
-            <h2 className="text-xl text-center font-bold mt-7 mb-4">
-              {selectedDetail.Title}
-            </h2>
-            <p className="text-gray-400 mb-4">{selectedDetail.Description}</p>
+            <h2 className="mb-4 mt-7 text-center text-xl font-bold">{selectedDetail.Title}</h2>
+            <p className="mb-4 text-gray-400">{selectedDetail.Description}</p>
 
             {/* Image with Loading State */}
-            <div className="relative w-full h-64 bg-gray-700 rounded-md overflow-hidden">
+            <div className="relative h-64 w-full overflow-hidden rounded-md bg-gray-700">
               <div
                 className={`absolute inset-0 flex items-center justify-center ${
                   !imageLoaded ? "opacity-100" : "opacity-0"
                 } transition-opacity duration-300`}
               >
-                <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
               </div>
               <Image
                 height={1920}
@@ -215,7 +207,7 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
                 quality={100}
                 src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/overview-details-images${selectedDetail.Img}`}
                 alt={selectedDetail.Title}
-                className={`w-full h-full object-cover transition-opacity duration-300 ${
+                className={`h-full w-full object-cover transition-opacity duration-300 ${
                   imageLoaded ? "opacity-100" : "opacity-0"
                 }`}
                 onLoad={() => setImageLoaded(true)} // Update loading state when the image is loaded
@@ -236,7 +228,7 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
                   toggleSelection(selectedDetail.ProductOverviewDetailsId);
                   closeDetailModal();
                 }}
-                className="flex-1 py-2 px-6 bg-blue-500 hover:bg-blue-600 rounded-lg text-white"
+                className="flex-1 rounded-lg bg-blue-500 px-6 py-2 text-white hover:bg-blue-600"
               >
                 {selectedDetail.selected ? "لغو انتخاب" : "انتخاب"}
               </button>

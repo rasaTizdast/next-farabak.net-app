@@ -1,17 +1,29 @@
 // app/activity/page.tsx
 export const dynamic = "force-dynamic";
 
-import styles from "./ActivityPage.module.css";
 import { Metadata } from "next";
+
+import styles from "./ActivityPage.module.css";
 
 export const metadata: Metadata = {
   title: "فعالیت های شرکت فرابک | فرابک",
-  description:
-    "شما در این صفحه میتوانید اطلاعاتی درباره فعالیت های شرکت فرابک مشاهده کنید.",
+  description: "شما در این صفحه میتوانید اطلاعاتی درباره فعالیت های شرکت فرابک مشاهده کنید.",
   robots: {
     index: false,
     follow: false,
   },
+};
+
+type DetailsActivity = {
+  id: number;
+  activityID: number;
+  description: string;
+};
+
+type MasterActivity = {
+  id: number;
+  title: string;
+  Details_activity: DetailsActivity[]; // Use `Details_activity` instead of `details`
 };
 
 const ActivityPage = async () => {
@@ -23,14 +35,12 @@ const ActivityPage = async () => {
 
   return (
     <div className={styles.parent}>
-      {activities.map((activity: any) => (
+      {activities.map((activity: MasterActivity) => (
         <Card
           key={activity.id}
           data={{
             title: activity.title,
-            items: activity.Details_activity.map(
-              (detail: any) => detail.description
-            ),
+            items: activity.Details_activity.map((detail) => detail.description),
           }}
         />
       ))}

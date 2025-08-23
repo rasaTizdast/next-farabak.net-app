@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -55,9 +56,7 @@ export async function GET(request: Request) {
         FROM "support"."branch" b
         WHERE EXISTS (
           SELECT 1 FROM "support"."branchproduct" bp2 
-          WHERE bp2."branchid" = b."branchid" AND bp2."ProductId" = ${parseInt(
-            productId
-          )}
+          WHERE bp2."branchid" = b."branchid" AND bp2."ProductId" = ${parseInt(productId)}
         )
       `;
 
@@ -83,9 +82,7 @@ export async function GET(request: Request) {
         WHERE 
           EXISTS (
             SELECT 1 FROM "support"."branchproduct" bp2 
-            WHERE bp2."branchid" = b."branchid" AND bp2."ProductId" = ${parseInt(
-              productId
-            )}
+            WHERE bp2."branchid" = b."branchid" AND bp2."ProductId" = ${parseInt(productId)}
           )
         GROUP BY 
           b."branchid", b."UserID", b."name", b."location", b."createdat"
@@ -156,10 +153,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("Error fetching branches:", error);
-    return NextResponse.json(
-      { error: "خطا در بارگذاری شعبه‌ها" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در بارگذاری شعبه‌ها" }, { status: 500 });
   }
 }
 
@@ -204,10 +198,7 @@ export async function POST(request: Request) {
     const { userId, name, location } = body;
 
     if (!userId || !name || !location) {
-      return NextResponse.json(
-        { error: "تمامی فیلدها الزامی هستند" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "تمامی فیلدها الزامی هستند" }, { status: 400 });
     }
 
     // Check if user exists in info schema
@@ -217,10 +208,7 @@ export async function POST(request: Request) {
     `;
 
     if (!user || (user as any[]).length === 0) {
-      return NextResponse.json(
-        { error: "کاربر مورد نظر پیدا نشد" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "کاربر مورد نظر پیدا نشد" }, { status: 404 });
     }
 
     // Check if branch name is already taken in support schema
@@ -230,10 +218,7 @@ export async function POST(request: Request) {
     `;
 
     if ((existingBranch as any[]).length > 0) {
-      return NextResponse.json(
-        { error: "این نام شعبه قبلاً استفاده شده است" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "این نام شعبه قبلاً استفاده شده است" }, { status: 400 });
     }
 
     // Create new branch in support schema

@@ -1,15 +1,15 @@
-import React from "react";
-import { Button, Popconfirm, Empty, Tooltip, Tag, Space, TablePaginationConfig } from "antd";
 import {
   DeleteOutlined,
   EditOutlined,
   ShoppingOutlined,
   FileTextOutlined,
 } from "@ant-design/icons";
-import { Branch } from "./types";
-import StatusBadge from "./StatusBadge";
-import { toPersianDate } from "./types";
+import { Button, Popconfirm, Empty, Tooltip, Tag, Space, TablePaginationConfig } from "antd";
+import React from "react";
+
 import PersianTable from "./PersianTable";
+import StatusBadge from "./StatusBadge";
+import { Branch, toPersianDate } from "./types";
 
 interface BranchTableProps {
   branches: Branch[];
@@ -63,9 +63,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
       key: "createdat",
       width: "15%",
       className: "text-right",
-      render: (date: string) => (
-        <span>{date ? toPersianDate(date) : "تاریخ نامشخص"}</span>
-      ),
+      render: (date: string) => <span>{date ? toPersianDate(date) : "تاریخ نامشخص"}</span>,
     },
     {
       title: "محصولات",
@@ -75,28 +73,25 @@ const BranchTable: React.FC<BranchTableProps> = ({
       className: "text-right",
       render: (count: number, record: Branch) => (
         <div className="flex flex-col gap-1">
-          <StatusBadge
-            productCount={count}
-            totalQuantity={record.totalQuantity}
-          />
+          <StatusBadge productCount={count} totalQuantity={record.totalQuantity} />
 
           {isSearching && record.specificProductQuantity !== undefined && (
-            <div 
+            <div
               className={
                 record.specificProductQuantity > 0
-                  ? "bg-green-900/30 border border-green-700 px-3 py-1.5 rounded-lg text-center transition-all mt-2"
-                  : "bg-gray-800/80 border border-gray-700 px-3 py-1.5 rounded-lg text-center transition-all mt-2"
+                  ? "mt-2 rounded-lg border border-green-700 bg-green-900/30 px-3 py-1.5 text-center transition-all"
+                  : "mt-2 rounded-lg border border-gray-700 bg-gray-800/80 px-3 py-1.5 text-center transition-all"
               }
             >
               {record.specificProductQuantity > 0 ? (
                 <div className="flex items-center justify-between">
-                  <span className="text-green-400 text-sm">تعداد:</span>
-                  <span className="text-white font-bold bg-green-800/50 px-2 py-0.5 rounded text-sm">
+                  <span className="text-sm text-green-400">تعداد:</span>
+                  <span className="rounded bg-green-800/50 px-2 py-0.5 text-sm font-bold text-white">
                     {record.specificProductQuantity} عدد
                   </span>
                 </div>
               ) : (
-                <div className="text-gray-400 text-sm">ناموجود</div>
+                <div className="text-sm text-gray-400">ناموجود</div>
               )}
             </div>
           )}
@@ -117,7 +112,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
                 onClick={() => onEdit(branch)}
                 type="primary"
                 size="middle"
-                className="bg-blue-600 hover:bg-blue-700 border-blue-700"
+                className="border-blue-700 bg-blue-600 hover:bg-blue-700"
               >
                 ویرایش
               </Button>
@@ -129,9 +124,13 @@ const BranchTable: React.FC<BranchTableProps> = ({
                 onClick={() => onViewProducts(branch)}
                 type="default"
                 size="middle"
-                className={isSearching && branch.specificProductQuantity && branch.specificProductQuantity > 0 
-                  ? "bg-green-700 text-white border-green-600 hover:bg-green-600" 
-                  : "bg-gray-700 text-gray-100 border-gray-600 hover:bg-gray-600"}
+                className={
+                  isSearching &&
+                  branch.specificProductQuantity &&
+                  branch.specificProductQuantity > 0
+                    ? "border-green-600 bg-green-700 text-white hover:bg-green-600"
+                    : "border-gray-600 bg-gray-700 text-gray-100 hover:bg-gray-600"
+                }
               >
                 محصولات
               </Button>
@@ -143,7 +142,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
                 onClick={() => onCreateInvoice(branch)}
                 type="default"
                 size="middle"
-                className="bg-green-700 text-gray-100 border-green-600 hover:bg-green-600"
+                className="border-green-600 bg-green-700 text-gray-100 hover:bg-green-600"
               >
                 فاکتور
               </Button>
@@ -167,7 +166,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
                 <Button
                   icon={<DeleteOutlined />}
                   danger
-                  className="hover:!bg-red-600 text-red-400 hover:!text-white hover:!border-red-700"
+                  className="text-red-400 hover:!border-red-700 hover:!bg-red-600 hover:!text-white"
                   style={{
                     transition: "all 0.2s ease",
                   }}
@@ -183,7 +182,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
   ];
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <div className="overflow-hidden rounded-lg bg-gray-800 shadow-md">
       <div className="overflow-x-auto">
         <PersianTable
           columns={columns}
@@ -199,7 +198,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
             showQuickJumper: false,
             pageSizeOptions: ["10", "20", "50"],
             position: ["bottomCenter"],
-            className: "pagination-dark"
+            className: "pagination-dark",
           }}
           scroll={{ x: "max-content" }}
           className="branch-table dark-table rtl-table"
@@ -214,11 +213,11 @@ const BranchTable: React.FC<BranchTableProps> = ({
           }}
           rowClassName={(record) => {
             if (isSearching && record.specificProductQuantity !== undefined) {
-              return record.specificProductQuantity > 0 
-                ? 'searched-product-found-row' 
-                : 'searched-product-not-found-row';
+              return record.specificProductQuantity > 0
+                ? "searched-product-found-row"
+                : "searched-product-not-found-row";
             }
-            return '';
+            return "";
           }}
           direction="rtl"
         />

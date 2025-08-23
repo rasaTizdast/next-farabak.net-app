@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -160,9 +161,6 @@ export async function GET(req: Request, props: { params: Promise<{ categorySlug:
     return NextResponse.json({ blogs: formattedBlogs });
   } catch (error) {
     console.error("خطا در دریافت مقالات:", error);
-    return NextResponse.json(
-      { error: "دریافت مقالات با مشکل مواجه شد" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "دریافت مقالات با مشکل مواجه شد" }, { status: 500 });
   }
 }

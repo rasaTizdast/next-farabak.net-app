@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -60,13 +61,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     if (!Array.isArray(body) || body.length === 0) {
-      return NextResponse.json(
-        { message: "Invalid or missing payload" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Invalid or missing payload" }, { status: 400 });
     }
-
-    console.log("Processing specs for product: " + body[0]?.ProductId);
 
     // Batch insert the payload into the database
     const createdRecords = await prisma.productSpecs.createMany({
@@ -80,18 +76,16 @@ export async function POST(req: NextRequest) {
       skipDuplicates: true, // Prevent duplicate inserts
     });
 
-    console.log(`Successfully created ${createdRecords.count} specs`);
-
     return NextResponse.json({
       message: "Specifications created successfully!",
       createdRecords: createdRecords.count,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating specs:", error);
     return NextResponse.json(
       {
         message: "Internal server error",
-        error: error.message || String(error),
+        error: String(error),
       },
       { status: 500 }
     );

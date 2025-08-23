@@ -3,5 +3,5 @@ interface ParagraphProps {
 }
 
 export const Paragraph: React.FC<ParagraphProps> = ({ children }) => (
-  <p className="text-sm mobile:text-lg text-gray-700 leading-relaxed my-4">{children}</p>
+  <p className="my-4 text-sm leading-relaxed text-gray-700 mobile:text-lg">{children}</p>
 );

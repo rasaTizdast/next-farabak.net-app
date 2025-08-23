@@ -1,5 +1,6 @@
 import { S3 } from "aws-sdk";
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
 
 /**
@@ -103,10 +104,7 @@ export async function DELETE(req: Request): Promise<NextResponse> {
     const { type, productId, imageKey, productImageType } = body;
 
     if (!type || !productId) {
-      return NextResponse.json(
-        { message: "Type and productId are required." },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Type and productId are required." }, { status: 400 });
     }
 
     // Fetch the product's slug and image fields from the database
@@ -165,11 +163,7 @@ export async function DELETE(req: Request): Promise<NextResponse> {
             { status: 200 }
           );
         } catch (error) {
-
-          return NextResponse.json(
-            { message: "Failed to delete image.", error },
-            { status: 500 }
-          );
+          return NextResponse.json({ message: "Failed to delete image.", error }, { status: 500 });
         }
       } else {
         const folderKey = `productImages/${slug}/`;
@@ -242,21 +236,12 @@ export async function DELETE(req: Request): Promise<NextResponse> {
           );
         }
       } catch (error) {
-        return NextResponse.json(
-          { message: "Failed to delete image.", error },
-          { status: 500 }
-        );
+        return NextResponse.json({ message: "Failed to delete image.", error }, { status: 500 });
       }
     } else {
-      return NextResponse.json(
-        { message: "Invalid type provided." },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Invalid type provided." }, { status: 400 });
     }
   } catch (error) {
-    return NextResponse.json(
-      { message: "An unexpected error occurred.", error },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "An unexpected error occurred.", error }, { status: 500 });
   }
 }

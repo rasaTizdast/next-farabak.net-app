@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
-import { Category, Subcategory } from "../types/types";
 import axios from "axios";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+
+import { Category, Subcategory } from "../types/types";
 
 interface EditModalProps {
   isOpen: boolean;
@@ -39,6 +40,7 @@ const EditModal: React.FC<EditModalProps> = ({
           parsedKeywords = JSON.parse(seoDetails.SEO_Keywords);
         } catch (e) {
           parsedKeywords = [];
+          console.error(e);
         }
       }
       setSeoKeywords(parsedKeywords);
@@ -68,8 +70,7 @@ const EditModal: React.FC<EditModalProps> = ({
     Slug: "شناسه فقط باید حروف انگلیسی کوچک، اعداد و خط تیره باشد و حداکثر ۲۰۰ کاراکتر باشد.",
     SEO_Title: "عنوان سئو باید حداکثر ۵۰ کاراکتر باشد.",
     SEO_Description: "توضیحات سئو باید حداکثر ۴۰۰۰ کاراکتر باشد.",
-    SEO_Keywords:
-      "کلمه کلیدی نمی‌تواند شامل کاما باشد و حداکثر ۴۰۰۰ کاراکتر باشد.",
+    SEO_Keywords: "کلمه کلیدی نمی‌تواند شامل کاما باشد و حداکثر ۴۰۰۰ کاراکتر باشد.",
   };
 
   // Generic input change handler
@@ -103,8 +104,7 @@ const EditModal: React.FC<EditModalProps> = ({
     if (pattern && !pattern.test(value)) {
       setErrors((prev) => ({
         ...prev,
-        [field]:
-          errorMessages[field as keyof typeof errorMessages] || "خطای نامشخص",
+        [field]: errorMessages[field as keyof typeof errorMessages] || "خطای نامشخص",
       }));
     } else {
       setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -158,8 +158,7 @@ const EditModal: React.FC<EditModalProps> = ({
   };
 
   const handleItemUpdate = async (updatedItem: Category | Subcategory) => {
-    const isCategory =
-      "CategoryID" in updatedItem && !("CategoryContentId" in updatedItem);
+    const isCategory = "CategoryID" in updatedItem && !("CategoryContentId" in updatedItem);
     const endpoint = `/api/categories/editCategory`;
     const payload = isCategory
       ? {
@@ -195,6 +194,7 @@ const EditModal: React.FC<EditModalProps> = ({
       setEditCategory(null);
       setIsEditModalOpen(false);
     } catch (error) {
+      console.error(error);
       toast.error("خطا در بروزرسانی، لطفا مجددا تلاش کنید.");
     }
   };
@@ -220,113 +220,107 @@ const EditModal: React.FC<EditModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 backdrop-blur-sm">
-      <div className="bg-gray-800 text-white p-6 pr-8 rounded-lg shadow-lg w-96 max-h-[95dvh] overflow-y-scroll">
-        <h3 className="text-xl text-center mb-4">ویرایش</h3>
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+      <div className="max-h-[95dvh] w-96 overflow-y-scroll rounded-lg bg-gray-800 p-6 pr-8 text-white shadow-lg">
+        <h3 className="mb-4 text-center text-xl">ویرایش</h3>
         {/* Name Field */}
         <div className="mb-4">
-          <label className="block text-sm mb-2">نام</label>
+          <label className="mb-2 block text-sm">نام</label>
           <input
             type="text"
             value={item.Name || ""}
             onChange={(e) => handleInputChange("Name", e.target.value)}
-            className={`w-full p-2 border bg-gray-700 ${
+            className={`w-full border bg-gray-700 p-2 ${
               errors.Name ? "border-red-500" : "border-gray-900"
             } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
             placeholder="نام را وارد کنید"
           />
-          {errors.Name && <p className="text-red-500 text-sm">{errors.Name}</p>}
+          {errors.Name && <p className="text-sm text-red-500">{errors.Name}</p>}
         </div>
 
         {/* Slug Field */}
         <div className="mb-4">
-          <label className="block text-sm mb-2">شناسه</label>
+          <label className="mb-2 block text-sm">شناسه</label>
           <input
             type="text"
             value={item.Slug}
             onChange={(e) => handleInputChange("Slug", e.target.value)}
-            className={`w-full p-2 border bg-gray-700 ${
+            className={`w-full border bg-gray-700 p-2 ${
               errors.Slug ? "border-red-500" : "border-gray-900"
             } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
           />
-          {errors.Slug && <p className="text-red-500 text-sm">{errors.Slug}</p>}
+          {errors.Slug && <p className="text-sm text-red-500">{errors.Slug}</p>}
         </div>
 
         {/* Available Field */}
         <div className="mb-4">
-          <label className="block text-sm mb-2">فعال</label>
+          <label className="mb-2 block text-sm">فعال</label>
           <select
             value={item.Available ? "true" : "false"} // Convert boolean to string for select value
             onChange={(e) => handleInputChange("Available", e.target.value)}
-            className={`w-full p-2 border bg-gray-700 ${
+            className={`w-full border bg-gray-700 p-2 ${
               errors.Slug ? "border-red-500" : "border-gray-900"
             } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
           >
             <option value="true">بله</option>
             <option value="false">خیر</option>
           </select>
-          {errors.Slug && <p className="text-red-500 text-sm">{errors.Slug}</p>}
+          {errors.Slug && <p className="text-sm text-red-500">{errors.Slug}</p>}
         </div>
 
         {/* SEO Title Field */}
         <div className="mb-4">
-          <label className="block text-sm mb-2">عنوان سئو</label>
+          <label className="mb-2 block text-sm">عنوان سئو</label>
           <input
             type="text"
             value={seoDetails.SEO_Title || ""} // Ensure fallback to an empty string
             onChange={(e) => handleInputChange("SEO_Title", e.target.value)}
-            className={`w-full p-2 border bg-gray-700 ${
+            className={`w-full border bg-gray-700 p-2 ${
               errors.SEO_Title ? "border-red-500" : "border-gray-900"
             } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
             placeholder="عنوان سئو را وارد کنید"
           />
-          {errors.SEO_Title && (
-            <p className="text-red-500 text-sm">{errors.SEO_Title}</p>
-          )}
+          {errors.SEO_Title && <p className="text-sm text-red-500">{errors.SEO_Title}</p>}
         </div>
 
         {/* SEO Description Field */}
         <div className="mb-4">
-          <label className="block text-sm mb-2">توضیحات سئو</label>
+          <label className="mb-2 block text-sm">توضیحات سئو</label>
           <textarea
             value={seoDetails.SEO_Description || ""} // Ensure fallback to an empty string
-            onChange={(e) =>
-              handleInputChange("SEO_Description", e.target.value)
-            }
-            className={`w-full p-3 border bg-gray-700 ${
+            onChange={(e) => handleInputChange("SEO_Description", e.target.value)}
+            className={`w-full border bg-gray-700 p-3 ${
               errors.SEO_Description ? "border-red-500" : "border-gray-900"
             } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
             rows={3}
             placeholder="توضیحات سئو را وارد کنید"
           />
           {errors.SEO_Description && (
-            <p className="text-red-500 text-sm">{errors.SEO_Description}</p>
+            <p className="text-sm text-red-500">{errors.SEO_Description}</p>
           )}
         </div>
 
         {/* SEO Keywords Field */}
         <div className="mb-4">
-          <label className="block text-sm mb-2">کلمات کلیدی سئو</label>
+          <label className="mb-2 block text-sm">کلمات کلیدی سئو</label>
           <input
             type="text"
             value={keywordInput}
             onChange={(e) => setKeywordInput(e.target.value)}
             onKeyDown={addKeyword}
             placeholder="کلمه کلیدی را وارد کنید و Enter بزنید"
-            className={`w-full p-2 border bg-gray-700 ${
+            className={`w-full border bg-gray-700 p-2 ${
               errors.SEO_Keywords ? "border-red-500" : "border-gray-900"
             } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
           />
 
-          {errors.SEO_Keywords && (
-            <p className="text-red-500 text-sm">{errors.SEO_Keywords}</p>
-          )}
+          {errors.SEO_Keywords && <p className="text-sm text-red-500">{errors.SEO_Keywords}</p>}
 
-          <div className="flex gap-2 flex-wrap mt-3 mb-10">
+          <div className="mb-10 mt-3 flex flex-wrap gap-2">
             {seoKeywords.map((keyword: string) => (
               <button
                 key={keyword}
-                className="bg-green-700 px-4 py-1 rounded-lg flex items-center gap-2 hover:bg-red-700 hover:text-white animate-fade-in transition-all"
+                className="flex animate-fade-in items-center gap-2 rounded-lg bg-green-700 px-4 py-1 transition-all hover:bg-red-700 hover:text-white"
                 onClick={() => removeKeyword(keyword)}
               >
                 {keyword}
@@ -338,13 +332,13 @@ const EditModal: React.FC<EditModalProps> = ({
         <div className="flex justify-end gap-2">
           <button
             onClick={handleClose}
-            className="px-4 py-2 bg-gray-50 text-black rounded hover:bg-gray-100"
+            className="rounded bg-gray-50 px-4 py-2 text-black hover:bg-gray-100"
           >
             بستن
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
             ذخیره تغییرات
           </button>

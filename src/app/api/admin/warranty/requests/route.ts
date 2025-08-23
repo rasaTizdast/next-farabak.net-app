@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -96,9 +97,7 @@ export async function GET(req: NextRequest) {
     // Validate userID is a valid number
     const numericUserId = parseInt(currentUser.id, 10);
     if (isNaN(numericUserId)) {
-      console.error(
-        `[REQUESTS API] UserID is not a valid number: ${currentUser.id}`
-      );
+      console.error(`[REQUESTS API] UserID is not a valid number: ${currentUser.id}`);
       return NextResponse.json(
         {
           error: "Invalid user ID",
@@ -251,20 +250,14 @@ export async function PUT(req: NextRequest) {
     }
 
     if (currentUser.role !== "Admin" && currentUser.role !== "Branch") {
-      return NextResponse.json(
-        { error: "Unauthorized access" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
     const body = await req.json();
     const { warrantyId, action } = body;
 
     if (!warrantyId || !action) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     if (action === "resolve") {
@@ -282,24 +275,15 @@ export async function PUT(req: NextRequest) {
         `;
       } catch (error) {
         console.error("[REQUESTS API] Error fetching warranty details:", error);
-        return NextResponse.json(
-          { error: "Error retrieving warranty details" },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: "Error retrieving warranty details" }, { status: 500 });
       }
 
       if (!Array.isArray(warrantyRecord) || warrantyRecord.length === 0) {
-        return NextResponse.json(
-          { error: "Warranty not found" },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: "Warranty not found" }, { status: 404 });
       }
 
       // Branch users can only resolve warranties for their own branches
-      if (
-        currentUser.role === "Branch" &&
-        warrantyRecord[0].branch_user_id !== currentUser.id
-      ) {
+      if (currentUser.role === "Branch" && warrantyRecord[0].branch_user_id !== currentUser.id) {
         return NextResponse.json(
           { error: "You can only resolve warranty requests for your branch" },
           { status: 403 }
@@ -320,10 +304,7 @@ export async function PUT(req: NextRequest) {
         `;
       } catch (error) {
         console.error("[REQUESTS API] Error updating warranty status:", error);
-        return NextResponse.json(
-          { error: "Error updating warranty status" },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: "Error updating warranty status" }, { status: 500 });
       }
 
       return NextResponse.json({
@@ -335,9 +316,6 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (error) {
     console.error("[REQUESTS API] Error updating warranty request:", error);
-    return NextResponse.json(
-      { error: "Failed to update warranty request" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to update warranty request" }, { status: 500 });
   }
 }

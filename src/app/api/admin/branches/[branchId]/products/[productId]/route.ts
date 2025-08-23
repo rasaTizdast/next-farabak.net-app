@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -60,10 +61,7 @@ export async function PUT(
     `;
 
     if ((branchProductResult as any[]).length === 0) {
-      return NextResponse.json(
-        { error: "محصول در این شعبه یافت نشد" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "محصول در این شعبه یافت نشد" }, { status: 404 });
     }
 
     // Update product quantity
@@ -77,10 +75,7 @@ export async function PUT(
     return NextResponse.json((updatedProduct as any[])[0]);
   } catch (error) {
     console.error("Error updating branch product:", error);
-    return NextResponse.json(
-      { error: "خطا در بروزرسانی محصول شعبه" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در بروزرسانی محصول شعبه" }, { status: 500 });
   }
 }
 
@@ -126,10 +121,7 @@ export async function DELETE(
     `;
 
     if ((branchProductResult as any[]).length === 0) {
-      return NextResponse.json(
-        { error: "محصول در این شعبه یافت نشد" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "محصول در این شعبه یافت نشد" }, { status: 404 });
     }
 
     // Delete branch product
@@ -141,9 +133,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting branch product:", error);
-    return NextResponse.json(
-      { error: "خطا در حذف محصول از شعبه" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در حذف محصول از شعبه" }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
-import React from "react";
-import { Form, Select, InputNumber, Button } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
+import { Form, Select, InputNumber, Button } from "antd";
+import React from "react";
+
 import { Product } from "./types";
 
 interface ProductFormProps {
@@ -19,21 +20,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
   onQuantityChange,
 }) => {
   return (
-    <div className="mb-6 bg-gray-800 p-4 rounded-lg">
-      <h3 className="text-lg font-medium mb-3 text-gray-200">
-        افزودن محصول جدید
-      </h3>
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={onFinish}
-        className="text-gray-100"
-      >
+    <div className="mb-6 rounded-lg bg-gray-800 p-4">
+      <h3 className="mb-3 text-lg font-medium text-gray-200">افزودن محصول جدید</h3>
+      <Form form={form} layout="vertical" onFinish={onFinish} className="text-gray-100">
         <div className="flex flex-wrap gap-3">
           <Form.Item
             name="productId"
             label={<span className="text-gray-300">محصول</span>}
-            className="flex-1 min-w-[200px]"
+            className="min-w-[200px] flex-1"
             rules={[{ required: true, message: "لطفاً یک محصول انتخاب کنید" }]}
           >
             <Select
@@ -41,15 +35,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
               onChange={onSelectProduct}
               showSearch
               filterOption={(input, option) =>
-                (option?.label?.toString().toLowerCase() ?? "").includes(
-                  input.toLowerCase()
-                )
+                (option?.label?.toString().toLowerCase() ?? "").includes(input.toLowerCase())
               }
               options={allProducts.map((product) => ({
                 value: product.ProductId,
                 label: product.Type,
               }))}
-              className="text-right dark-select"
+              className="dark-select text-right"
               popupClassName="dark-dropdown"
             />
           </Form.Item>
@@ -67,7 +59,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   onQuantityChange(value);
                 }
               }}
-              className="w-full text-right dark-input-number"
+              className="dark-input-number w-full text-right"
               style={{
                 backgroundColor: "#374151",
                 borderColor: "#4b5563",
@@ -82,7 +74,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             type="primary"
             htmlType="submit"
             icon={<PlusOutlined />}
-            className="bg-blue-600 hover:bg-blue-700 border-blue-700"
+            className="border-blue-700 bg-blue-600 hover:bg-blue-700"
           >
             افزودن محصول
           </Button>

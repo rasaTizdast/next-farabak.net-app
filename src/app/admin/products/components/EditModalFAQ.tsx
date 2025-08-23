@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { FaTrashAlt } from "react-icons/fa";
 import axios from "axios";
+import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { FaTrashAlt } from "react-icons/fa";
 
 type FAQItem = {
   question: string;
@@ -34,7 +34,7 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
         }));
         setLocalFaqs(mappedFaqs);
         setFaqs(mappedFaqs); // Update parent's state
-        
+
         // Initialize validation for existing FAQs
         const initialErrors: { [key: string]: string } = {};
         mappedFaqs.forEach((faq, index) => {
@@ -59,12 +59,10 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
     let error = "";
     if (field === "question") {
       if (!value.trim()) error = "سوال نمی‌تواند خالی باشد.";
-      else if (value.length > 1000)
-        error = "سوال نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
+      else if (value.length > 1000) error = "سوال نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
     } else if (field === "answer") {
       if (!value.trim()) error = "پاسخ نمی‌تواند خالی باشد.";
-      else if (value.length > 3000)
-        error = "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
+      else if (value.length > 3000) error = "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
     }
     return error;
   };
@@ -89,7 +87,7 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
     const updatedFAQs = [...localFaqs];
     updatedFAQs[index] = { ...updatedFAQs[index], [field]: value };
     setLocalFaqs(updatedFAQs);
-    
+
     // Always update parent to ensure validation is triggered
     setFaqs(updatedFAQs);
   };
@@ -100,7 +98,7 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
       const updatedFAQs = [...localFaqs, { question: "", answer: "" }];
       setLocalFaqs(updatedFAQs);
       setFaqs(updatedFAQs); // Update parent's state
-      
+
       // Add validation errors for the new empty fields
       setLocalErrors((prev) => ({
         ...prev,
@@ -121,7 +119,7 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
     const updatedFAQs = localFaqs.filter((_, i) => i !== index);
     setLocalFaqs(updatedFAQs);
     setFaqs(updatedFAQs); // Update parent's state
-    
+
     // Remove validation errors for the deleted fields
     const updatedErrors = { ...localErrors };
     delete updatedErrors[`question-${index}`];
@@ -163,55 +161,48 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
   };
 
   return (
-    <div className="col-span-1 sm:col-span-2 border-b-4 border-b-gray-200 pb-5 mb-5">
+    <div className="col-span-1 mb-5 border-b-4 border-b-gray-200 pb-5 sm:col-span-2">
       <div className="mb-4">
         <h3 className="text-lg font-semibold">سوالات متداول</h3>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8">
+        <div className="py-8 text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-blue-500 motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
           <p className="mt-2">در حال بارگذاری سوالات متداول...</p>
         </div>
       ) : (
         <>
           {localFaqs.length === 0 ? (
-            <div className="text-center py-8 bg-gray-800 rounded-md mb-4">
-              <p className="text-gray-400 mb-4">
+            <div className="mb-4 rounded-md bg-gray-800 py-8 text-center">
+              <p className="mb-4 text-gray-400">
                 هنوز هیچ سوال متداولی برای این محصول ثبت نشده است
               </p>
               <button
                 type="button"
                 onClick={handleAddFAQ}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-all"
+                className="rounded-md bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-700"
               >
                 افزودن اولین سوال
               </button>
             </div>
           ) : (
-            <div className="space-y-4 mb-4">
+            <div className="mb-4 space-y-4">
               {localFaqs.map((faq, index) => (
-                <div
-                  key={index}
-                  className="bg-gray-800 p-4 rounded-md shadow-md"
-                >
-                  <div className="flex items-center gap-4 mb-3">
-                    <div className="flex-1 flex flex-col">
+                <div key={index} className="rounded-md bg-gray-800 p-4 shadow-md">
+                  <div className="mb-3 flex items-center gap-4">
+                    <div className="flex flex-1 flex-col">
                       <input
                         type="text"
                         value={faq.question}
-                        onChange={(e) =>
-                          handleFAQChange(index, "question", e.target.value)
-                        }
-                        className={`w-full p-2 rounded-md bg-gray-700 border ${
-                          shouldShowError("question", index)
-                            ? "border-red-500"
-                            : "border-gray-600"
+                        onChange={(e) => handleFAQChange(index, "question", e.target.value)}
+                        className={`w-full rounded-md border bg-gray-700 p-2 ${
+                          shouldShowError("question", index) ? "border-red-500" : "border-gray-600"
                         } text-white`}
                         placeholder={`سوال ${index + 1}`}
                       />
                       {shouldShowError("question", index) && (
-                        <p className="text-red-500 mt-1 text-sm">
+                        <p className="mt-1 text-sm text-red-500">
                           {localErrors[`question-${index}`]}
                         </p>
                       )}
@@ -219,7 +210,7 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
                     <button
                       type="button"
                       onClick={() => handleRemoveFAQ(index)}
-                      className="text-red-500 hover:text-red-600 transition-all"
+                      className="text-red-500 transition-all hover:text-red-600"
                     >
                       <FaTrashAlt size={18} />
                     </button>
@@ -227,20 +218,14 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
                   <div className="flex flex-col">
                     <textarea
                       value={faq.answer}
-                      onChange={(e) =>
-                        handleFAQChange(index, "answer", e.target.value)
-                      }
-                      className={`w-full p-2 rounded-md bg-gray-700 border ${
-                        shouldShowError("answer", index)
-                          ? "border-red-500"
-                          : "border-gray-600"
-                      } text-white min-h-[100px]`}
+                      onChange={(e) => handleFAQChange(index, "answer", e.target.value)}
+                      className={`w-full rounded-md border bg-gray-700 p-2 ${
+                        shouldShowError("answer", index) ? "border-red-500" : "border-gray-600"
+                      } min-h-[100px] text-white`}
                       placeholder={`پاسخ ${index + 1}`}
                     />
                     {shouldShowError("answer", index) && (
-                      <p className="text-red-500 mt-1 text-sm">
-                        {localErrors[`answer-${index}`]}
-                      </p>
+                      <p className="mt-1 text-sm text-red-500">{localErrors[`answer-${index}`]}</p>
                     )}
                   </div>
                 </div>
@@ -252,7 +237,7 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
             <button
               type="button"
               onClick={handleAddFAQ}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-all"
+              className="w-full rounded-md bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-700"
             >
               افزودن سوال جدید
             </button>

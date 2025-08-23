@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma"; // Ensure your Prisma client is set up correctly
 
 /**
@@ -64,10 +65,7 @@ export async function POST(request: NextRequest) {
     const { productId, specs } = body;
 
     if (!productId) {
-      return NextResponse.json(
-        { message: "Product ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Product ID is required" }, { status: 400 });
     }
 
     // Update existing and add new specs
@@ -113,9 +111,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Specs updated successfully" });
   } catch (error) {
     console.error("Error updating product specs:", error);
-    return NextResponse.json(
-      { message: "Error updating product specs" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Error updating product specs" }, { status: 500 });
   }
 }

@@ -8,11 +8,7 @@ type Props = {
   setIsModalOpen: (arg0: boolean) => void;
 };
 
-const ProductDeletionModal = ({
-  currentAction,
-  handleModalConfirm,
-  setIsModalOpen,
-}: Props) => {
+const ProductDeletionModal = ({ currentAction, handleModalConfirm, setIsModalOpen }: Props) => {
   const productNames = Array.isArray(currentAction.name)
     ? currentAction.name
     : [currentAction.name];
@@ -46,27 +42,25 @@ const ProductDeletionModal = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-opacity">
       <div
-        className={`relative rounded-lg shadow-lg p-8 max-w-md w-full animate-fade-in ${modalStyles}`}
+        className={`relative w-full max-w-md animate-fade-in rounded-lg p-8 shadow-lg ${modalStyles}`}
       >
         {/* Close Button */}
         <button
           onClick={() => setIsModalOpen(false)}
-          className="absolute top-4 right-4 font-bold text-gray-900 hover:text-gray-600 focus:outline-none"
+          className="absolute right-4 top-4 font-bold text-gray-900 hover:text-gray-600 focus:outline-none"
         >
           ✕
         </button>
 
         {/* Modal Header */}
-        <p className="text-center text-lg font-medium text-gray-700 mb-4">
-          {modalMessage()}
-        </p>
+        <p className="mb-4 text-center text-lg font-medium text-gray-700">{modalMessage()}</p>
 
         {/* Product List */}
-        <div className="max-h-56 overflow-y-auto border rounded-lg p-4 bg-gray-50">
+        <div className="max-h-56 overflow-y-auto rounded-lg border bg-gray-50 p-4">
           {productNames.map((productName, index) => (
             <p
               key={index}
-              className="text-sm text-gray-800 truncate hover:text-clip hover:whitespace-normal"
+              className="truncate text-sm text-gray-800 hover:text-clip hover:whitespace-normal"
               title={typeof productName === "string" ? productName : ""}
             >
               {index + 1}. {productName}
@@ -75,16 +69,16 @@ const ProductDeletionModal = ({
         </div>
 
         {/* Actions */}
-        <div className="flex justify-center gap-4 mt-6">
+        <div className="mt-6 flex justify-center gap-4">
           <button
             onClick={handleModalConfirm}
-            className={`px-6 py-2 text-white rounded-lg focus:outline-none transition-all ${buttonStyles}`}
+            className={`rounded-lg px-6 py-2 text-white transition-all focus:outline-none ${buttonStyles}`}
           >
             تایید
           </button>
           <button
             onClick={() => setIsModalOpen(false)}
-            className={`px-6 py-2 text-gray-800 rounded-lg focus:outline-none transition-all ${cancelButtonStyles}`}
+            className={`rounded-lg px-6 py-2 text-gray-800 transition-all focus:outline-none ${cancelButtonStyles}`}
           >
             لغو
           </button>
@@ -94,4 +88,4 @@ const ProductDeletionModal = ({
   );
 };
 
-export default ProductDeletionModal; 
+export default ProductDeletionModal;

@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { BiCategory } from "react-icons/bi";
 import {
   FiHome,
   FiSettings,
@@ -10,11 +12,10 @@ import {
   FiFile,
   FiBarChart2,
 } from "react-icons/fi";
-import { BiCategory } from "react-icons/bi";
 import { IoReturnDownForward } from "react-icons/io5";
-import { useUser } from "@/context/UserContext";
-import { useState } from "react";
 import { MdOutlineStorefront } from "react-icons/md";
+
+import { useUser } from "@/context/UserContext";
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -60,22 +61,22 @@ const Sidebar = () => {
     <>
       {/* Blur Layer */}
       <div
-        className={`fixed inset-0 bg-black/30 backdrop-blur-md transition-opacity z-40 ${
-          isCollapsed ? "opacity-0 pointer-events-none" : "opacity-100"
+        className={`fixed inset-0 z-40 bg-black/30 backdrop-blur-md transition-opacity ${
+          isCollapsed ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
         onClick={() => setIsCollapsed(true)}
       ></div>
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full bg-[#0074e0] text-gray-200 transition-all flex flex-col z-50 ${
+        className={`fixed right-0 top-0 z-50 flex h-full flex-col bg-[#0074e0] text-gray-200 transition-all ${
           isCollapsed ? "w-16" : "w-64"
         }`}
         onMouseEnter={() => setIsCollapsed(false)}
         onMouseLeave={() => setIsCollapsed(true)}
       >
         {/* Logo */}
-        <div className="flex items-center justify-center h-16">
+        <div className="flex h-16 items-center justify-center">
           <h1
             className={`text-xl font-bold transition-all ${
               isCollapsed ? "opacity-0" : "opacity-100"
@@ -86,20 +87,18 @@ const Sidebar = () => {
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 mt-4">
+        <nav className="mt-4 flex-1">
           {sidebarItems.map((item, index) => (
             <Link
               key={index}
               href={item.href}
-              className={`text-white flex items-center px-4 py-3 hover:bg-[#2797ff] transition-colors ${
+              className={`flex items-center px-4 py-3 text-white transition-colors hover:bg-[#2797ff] ${
                 isCollapsed ? "justify-center" : "gap-4"
               }`}
               onClick={() => setIsCollapsed(true)}
             >
               {item.icon}
-              <span className={`${isCollapsed ? "hidden" : "block"}`}>
-                {item.name}
-              </span>
+              <span className={`${isCollapsed ? "hidden" : "block"}`}>{item.name}</span>
             </Link>
           ))}
         </nav>
@@ -107,20 +106,18 @@ const Sidebar = () => {
         {/* Back to Main Website Button */}
         <Link
           href="/"
-          className={`flex items-center px-4 py-2 bg-blue-800 hover:bg-blue-900 text-white transition-colors mt-auto ${
+          className={`mt-auto flex items-center bg-blue-800 px-4 py-2 text-white transition-colors hover:bg-blue-900 ${
             isCollapsed ? "justify-center" : "gap-4"
           }`}
         >
           <IoReturnDownForward size={20} />
-          <span className={`${isCollapsed ? "hidden" : "block"}`}>
-            برگشت به سایت
-          </span>
+          <span className={`${isCollapsed ? "hidden" : "block"}`}>برگشت به سایت</span>
         </Link>
 
         {/* Logout Button */}
         <button
           onClick={logout}
-          className={`flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white transition-colors ${
+          className={`flex items-center bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 ${
             isCollapsed ? "justify-center" : "gap-4"
           }`}
         >

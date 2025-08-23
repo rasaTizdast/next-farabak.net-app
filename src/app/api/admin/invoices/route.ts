@@ -1,9 +1,10 @@
+import moment from "jalali-moment";
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { v4 as uuidv4 } from "uuid";
-import moment from "jalali-moment";
+
+import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -96,9 +97,7 @@ export async function GET() {
         if (invoice.Date.includes("T")) {
           const [datePart, timePart] = invoice.Date.split("T");
           const [year, month, day] = datePart.split("-").map(Number);
-          const [hour, minute, second] = timePart
-            ? timePart.split(":").map(Number)
-            : [0, 0, 0];
+          const [hour, minute, second] = timePart ? timePart.split(":").map(Number) : [0, 0, 0];
 
           // Create a moment object with correct Jalali date components
           invoiceDate = moment();
@@ -123,6 +122,7 @@ export async function GET() {
           validInvoices.push(invoice);
         }
       } catch (error) {
+        console.error(error);
         validInvoices.push(invoice);
       }
     }
@@ -198,36 +198,33 @@ export async function GET() {
         });
 
         // Group warranties by invoice detail and product
-        const warrantiesByDetail = processedWarranties.reduce(
-          (acc, warranty) => {
-            const key = warranty.invoicedetailid;
-            if (!acc[key]) {
-              acc[key] = {
-                ...warranty,
-                warrantycodes: [
-                  {
-                    code: warranty.warrantycode,
-                    startdate: warranty.startdate,
-                    expirydate: warranty.expirydate,
-                    status: warranty.status,
-                    branchid: warranty.branchid,
-                  },
-                ],
-              };
-            } else {
-              // Add this warranty code to the existing entry
-              acc[key].warrantycodes.push({
-                code: warranty.warrantycode,
-                startdate: warranty.startdate,
-                expirydate: warranty.expirydate,
-                status: warranty.status,
-                branchid: warranty.branchid,
-              });
-            }
-            return acc;
-          },
-          {}
-        );
+        const warrantiesByDetail = processedWarranties.reduce((acc, warranty) => {
+          const key = warranty.invoicedetailid;
+          if (!acc[key]) {
+            acc[key] = {
+              ...warranty,
+              warrantycodes: [
+                {
+                  code: warranty.warrantycode,
+                  startdate: warranty.startdate,
+                  expirydate: warranty.expirydate,
+                  status: warranty.status,
+                  branchid: warranty.branchid,
+                },
+              ],
+            };
+          } else {
+            // Add this warranty code to the existing entry
+            acc[key].warrantycodes.push({
+              code: warranty.warrantycode,
+              startdate: warranty.startdate,
+              expirydate: warranty.expirydate,
+              status: warranty.status,
+              branchid: warranty.branchid,
+            });
+          }
+          return acc;
+        }, {});
 
         // Map warranty data to invoice details
         const detailsWithWarranty = (details as any[]).map((detail) => {
@@ -259,10 +256,7 @@ export async function GET() {
     return NextResponse.json(invoicesWithDetails);
   } catch (error) {
     console.error("Error fetching invoices:", error);
-    return NextResponse.json(
-      { error: "خطا در بارگذاری فاکتورها" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در بارگذاری فاکتورها" }, { status: 500 });
   }
 }
 
@@ -300,16 +294,8 @@ export async function POST(request: Request) {
     const { branchId, invoiceData } = await request.json();
 
     // Validation
-    if (
-      !branchId ||
-      !invoiceData ||
-      !invoiceData.Fullname ||
-      !invoiceData.Phonenumber
-    ) {
-      return NextResponse.json(
-        { error: "Invalid request data" },
-        { status: 400 }
-      );
+    if (!branchId || !invoiceData || !invoiceData.Fullname || !invoiceData.Phonenumber) {
+      return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
     }
 
     // Generate shorter, unique GUID
@@ -430,10 +416,7 @@ export async function PATCH(req: Request): Promise<NextResponse> {
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "Authorization token required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
@@ -483,10 +466,7 @@ export async function PATCH(req: Request): Promise<NextResponse> {
       `;
 
       if (!branch || (branch as any[]).length === 0) {
-        return NextResponse.json(
-          { message: "No branch found for this user" },
-          { status: 403 }
-        );
+        return NextResponse.json({ message: "No branch found for this user" }, { status: 403 });
       }
 
       // Check if the invoice is associated with this branch through warranties
@@ -516,10 +496,7 @@ export async function PATCH(req: Request): Promise<NextResponse> {
     return NextResponse.json(updatedInvoice, { status: 200 });
   } catch (error) {
     console.error("Error updating invoice:", error);
-    return NextResponse.json(
-      { message: "Failed to update invoice" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Failed to update invoice" }, { status: 500 });
   }
 }
 
@@ -552,10 +529,7 @@ export async function DELETE(req: Request): Promise<NextResponse> {
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "Authorization token required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
@@ -569,10 +543,7 @@ export async function DELETE(req: Request): Promise<NextResponse> {
     const invoiceId = searchParams.get("invoiceId");
 
     if (!invoiceId) {
-      return NextResponse.json(
-        { message: "Invoice ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Invoice ID is required" }, { status: 400 });
     }
 
     // Delete Invoice and associated details
@@ -586,9 +557,7 @@ export async function DELETE(req: Request): Promise<NextResponse> {
       { status: 200 }
     );
   } catch (error) {
-    return NextResponse.json(
-      { message: "Failed to delete invoice" },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ message: "Failed to delete invoice" }, { status: 500 });
   }
 }

@@ -2,17 +2,16 @@ export const dynamic = "force-dynamic";
 
 // src/app/products/page.tsx
 
+import { Metadata } from "next";
+
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
-import { Metadata } from "next";
 
 interface ProductsPageProps {
   searchParams: Promise<{ page?: string }>;
 }
 
-export const generateMetadata = async (
-  props: ProductsPageProps
-): Promise<Metadata> => {
+export const generateMetadata = async (props: ProductsPageProps): Promise<Metadata> => {
   const searchParams = await props.searchParams;
   const currentPage = parseInt(searchParams.page || "1", 10);
 
@@ -39,11 +38,7 @@ const ProductsPage = async (props: ProductsPageProps) => {
   return (
     <div>
       <Breadcrumb breadcrumbs={breadcrumbs} />
-      <ProductGrid
-        title="تمامی محصولات"
-        apiUrl={apiUrl}
-        currentPage={currentPage}
-      />
+      <ProductGrid title="تمامی محصولات" apiUrl={apiUrl} currentPage={currentPage} />
     </div>
   );
 };

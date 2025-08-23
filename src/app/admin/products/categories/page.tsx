@@ -3,9 +3,9 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
+import { Toaster } from "react-hot-toast";
 
 import CategoryTable from "./components/CategoryTable";
-import { Toaster } from "react-hot-toast";
 import CreateNewItem from "./components/CreateNewItem";
 import { Category } from "./types/types";
 
@@ -22,7 +22,7 @@ const ProductCategories = () => {
       const data = await res.json();
       setCategories(data);
     } catch (error) {
-      throw new Error("Failed to fetch categories:");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }

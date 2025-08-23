@@ -1,10 +1,4 @@
-const ProgressModal = ({
-  progress,
-  currentStep,
-}: {
-  progress: number;
-  currentStep: number;
-}) => {
+const ProgressModal = ({ progress, currentStep }: { progress: number; currentStep: number }) => {
   const steps = [
     "ساخت محصول",
     "آپلود تصاویر محصول",
@@ -16,9 +10,9 @@ const ProgressModal = ({
   ];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-[55] backdrop-blur-sm">
-      <div className="bg-gray-800 shadow-2xl rounded-xl p-8 w-full max-w-md text-white animate-fade-in">
-        <div className="flex items-center justify-between mb-6">
+    <div className="fixed inset-0 z-[55] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm">
+      <div className="w-full max-w-md animate-fade-in rounded-xl bg-gray-800 p-8 text-white shadow-2xl">
+        <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-bold">در حال ایجاد محصول</h2>
           <span className="text-sm font-medium">
             مرحله {currentStep} از {steps.length}
@@ -26,17 +20,15 @@ const ProgressModal = ({
         </div>
 
         {/* Progress Bar */}
-        <div className="relative w-full bg-gray-700 rounded-full h-2 overflow-hidden mb-6">
+        <div className="relative mb-6 h-2 w-full overflow-hidden rounded-full bg-gray-700">
           <div
-            className={`bg-blue-500 h-2 transition-all duration-700 ease-in-out`}
+            className={`h-2 bg-blue-500 transition-all duration-700 ease-in-out`}
             style={{ width: `${progress}%` }}
           />
         </div>
 
         {/* Current Step Description */}
-        <p className="text-center font-medium text-gray-300">
-          {steps[currentStep - 1]}
-        </p>
+        <p className="text-center font-medium text-gray-300">{steps[currentStep - 1]}</p>
 
         {/* Steps List */}
         <div className="mt-8">
@@ -49,7 +41,7 @@ const ProgressModal = ({
                 }`}
               >
                 <span
-                  className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-semibold transition-all duration-300 ${
+                  className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold transition-all duration-300 ${
                     index + 1 <= currentStep
                       ? "bg-blue-500 text-white"
                       : "bg-gray-300 text-gray-700"

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 // GET: Fetch all FAQs
@@ -24,20 +25,15 @@ export async function GET() {
     console.error("Error fetching FAQs:", error);
 
     // Determine if it's a Prisma error
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    const errorName =
-      error instanceof Error ? error.name : "Unknown error type";
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorName = error instanceof Error ? error.name : "Unknown error type";
 
-    console.error(
-      `FAQ fetching failed. Error type: ${errorName}, Message: ${errorMessage}`
-    );
+    console.error(`FAQ fetching failed. Error type: ${errorName}, Message: ${errorMessage}`);
 
     return NextResponse.json(
       {
         error: "خطا در دریافت سوالات متداول. لطفا مجددا تلاش کنید.",
-        details:
-          process.env.NODE_ENV !== "production" ? errorMessage : undefined,
+        details: process.env.NODE_ENV !== "production" ? errorMessage : undefined,
       },
       { status: 500 }
     );
@@ -51,10 +47,7 @@ export async function POST(req: NextRequest) {
     const { Q, A, Available } = body;
 
     if (!Q || !A) {
-      return NextResponse.json(
-        { error: "وارد کردن سوال و پاسخ الزامی است." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "وارد کردن سوال و پاسخ الزامی است." }, { status: 400 });
     }
 
     const newFaq = await prisma.faqDetails.create({
@@ -73,20 +66,15 @@ export async function POST(req: NextRequest) {
     console.error("Error creating FAQ:", error);
 
     // Determine if it's a Prisma error
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    const errorName =
-      error instanceof Error ? error.name : "Unknown error type";
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorName = error instanceof Error ? error.name : "Unknown error type";
 
-    console.error(
-      `FAQ creation failed. Error type: ${errorName}, Message: ${errorMessage}`
-    );
+    console.error(`FAQ creation failed. Error type: ${errorName}, Message: ${errorMessage}`);
 
     return NextResponse.json(
       {
         error: "خطا در ایجاد سوال متداول جدید. لطفا مجددا تلاش کنید.",
-        details:
-          process.env.NODE_ENV !== "production" ? errorMessage : undefined,
+        details: process.env.NODE_ENV !== "production" ? errorMessage : undefined,
       },
       { status: 500 }
     );

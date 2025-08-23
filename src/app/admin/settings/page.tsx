@@ -1,8 +1,9 @@
 "use client";
 
-import { useUser } from "@/context/UserContext";
 import React, { useState, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
+
+import { useUser } from "@/context/UserContext";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +37,8 @@ const SettingsPage = () => {
         const response = await fetch("/api/admin/users/admins");
         const data = await response.json();
         setAdmins(data);
-      } catch (err) {
+      } catch (error) {
+        console.error(error);
         toast.error("خطا در دریافت اطلاعات ادمین‌ها.");
       }
     };
@@ -86,7 +88,8 @@ const SettingsPage = () => {
       } else {
         toast.error(data.message || "خطا در تغییر رمز عبور.");
       }
-    } catch (err) {
+    } catch (error) {
+      console.error(error);
       toast.error("خطا در ارتباط با سرور.");
     } finally {
       setChangingPassword(false);
@@ -116,7 +119,9 @@ const SettingsPage = () => {
       } else {
         setSearchResults(data);
       }
-    } catch (err) {
+    } catch (error) {
+      console.error(error);
+
       toast.error("خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.");
     } finally {
       setLoading(false);
@@ -147,7 +152,8 @@ const SettingsPage = () => {
           const adminsData = await adminsResponse.json();
           setAdmins(adminsData);
         }
-      } catch (err) {
+      } catch (error) {
+        console.error(error);
         toast.error("خطا در بروزرسانی نقش کاربر.");
       } finally {
         setLoading(false);
@@ -175,7 +181,8 @@ const SettingsPage = () => {
         const adminsData = await adminsResponse.json();
         setAdmins(adminsData);
       }
-    } catch (err) {
+    } catch (error) {
+      console.error(error);
       toast.error("خطا در بروزرسانی نقش کاربر.");
     } finally {
       setLoading(false);
@@ -185,51 +192,49 @@ const SettingsPage = () => {
   return (
     <>
       <Toaster position="bottom-center" />
-      <div className="flex flex-col items-center w-full max-w-[1800px] overflow-auto p-6 rounded-lg bg-gray-800 text-gray-100">
-        <h1 className="text-2xl font-bold mb-6">تنظیمات</h1>
+      <div className="flex w-full max-w-[1800px] flex-col items-center overflow-auto rounded-lg bg-gray-800 p-6 text-gray-100">
+        <h1 className="mb-6 text-2xl font-bold">تنظیمات</h1>
 
         {/* Main Grid Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+        <div className="grid w-full max-w-4xl grid-cols-1 gap-6 md:grid-cols-2">
           {/* Password Change Section */}
-          <div className="bg-gray-700 p-6 rounded-lg shadow-md">
-            <h2 className="text-lg font-semibold mb-4">تغییر رمز عبور</h2>
+          <div className="rounded-lg bg-gray-700 p-6 shadow-md">
+            <h2 className="mb-4 text-lg font-semibold">تغییر رمز عبور</h2>
             <div className="flex flex-col space-y-4">
               <input
                 type="password"
                 placeholder="رمز عبور فعلی"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full p-2 bg-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="password"
                 placeholder="رمز عبور جدید"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full p-2 bg-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="password"
                 placeholder="تکرار رمز عبور جدید"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full p-2 bg-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
                 onClick={handlePasswordChange}
                 disabled={changingPassword}
-                className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:bg-green-300"
+                className="rounded-lg bg-green-500 p-2 text-white transition-colors hover:bg-green-600 disabled:bg-green-300"
               >
-                {changingPassword
-                  ? "در حال تغییر رمز عبور..."
-                  : "تغییر رمز عبور"}
+                {changingPassword ? "در حال تغییر رمز عبور..." : "تغییر رمز عبور"}
               </button>
             </div>
           </div>
 
           {/* Search Section */}
-          <div className="bg-gray-700 p-6 rounded-lg shadow-md">
-            <h2 className="text-lg font-semibold mb-4">مدیریت کاربران</h2>
+          <div className="rounded-lg bg-gray-700 p-6 shadow-md">
+            <h2 className="mb-4 text-lg font-semibold">مدیریت کاربران</h2>
 
             {/* Phone Number Input */}
             <div className="flex flex-col space-y-4">
@@ -238,14 +243,14 @@ const SettingsPage = () => {
                 placeholder="شماره تلفن کاربر را وارد کنید"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                className="w-full p-2 bg-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
 
               {/* Search Button */}
               <button
                 onClick={handleSearch}
                 disabled={loading}
-                className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-blue-300"
+                className="rounded-lg bg-blue-500 p-2 text-white transition-colors hover:bg-blue-600 disabled:bg-blue-300"
               >
                 {loading ? "در حال جستجو..." : "جستجو"}
               </button>
@@ -254,12 +259,12 @@ const SettingsPage = () => {
             {/* Search Results */}
             {searchResults.length > 0 && (
               <div className="mt-6">
-                <h3 className="text-md font-semibold mb-2">نتایج جستجو:</h3>
+                <h3 className="text-md mb-2 font-semibold">نتایج جستجو:</h3>
                 <ul className="space-y-2">
                   {searchResults.map((user) => (
                     <li
                       key={user.UserID}
-                      className="flex items-center justify-between p-2 bg-gray-600 rounded-lg"
+                      className="flex items-center justify-between rounded-lg bg-gray-600 p-2"
                     >
                       <label className="flex items-center space-x-2">
                         <input
@@ -282,7 +287,7 @@ const SettingsPage = () => {
                   <button
                     onClick={handleMakeAdmin}
                     disabled={loading}
-                    className="mt-4 p-2 bg-green-500 text-white rounded-lg w-full hover:bg-green-600 transition-colors disabled:bg-green-300"
+                    className="mt-4 w-full rounded-lg bg-green-500 p-2 text-white transition-colors hover:bg-green-600 disabled:bg-green-300"
                   >
                     {loading ? "در حال پردازش..." : "تبدیل به ادمین"}
                   </button>
@@ -292,30 +297,28 @@ const SettingsPage = () => {
           </div>
 
           {/* Admins Section */}
-          <div className="bg-gray-700 p-6 rounded-lg shadow-md md:col-span-2">
-            <h2 className="text-lg font-semibold mb-4">لیست ادمین‌ها</h2>
+          <div className="rounded-lg bg-gray-700 p-6 shadow-md md:col-span-2">
+            <h2 className="mb-4 text-lg font-semibold">لیست ادمین‌ها</h2>
 
             {admins.length === 0 ? (
-              <p className="text-gray-400 text-right">هیچ ادمینی یافت نشد.</p>
+              <p className="text-right text-gray-400">هیچ ادمینی یافت نشد.</p>
             ) : (
               <ul className="space-y-2">
                 {admins.map((admin) => (
                   <li
                     key={admin.UserID}
-                    className="flex items-center justify-between p-2 bg-gray-600 rounded-lg"
+                    className="flex items-center justify-between rounded-lg bg-gray-600 p-2"
                   >
                     <div className="text-right">
                       <p>
                         {admin.FirstName} {admin.LastName}
                       </p>
-                      <p className="text-sm text-gray-400">
-                        {admin.PhoneNumber}
-                      </p>
+                      <p className="text-sm text-gray-400">{admin.PhoneNumber}</p>
                     </div>
                     <button
                       onClick={() => handleDemoteAdmin(admin.UserID)}
                       disabled={loading}
-                      className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:bg-red-300"
+                      className="rounded-lg bg-red-500 p-2 text-white transition-colors hover:bg-red-600 disabled:bg-red-300"
                     >
                       {loading ? "در حال پردازش..." : "تبدیل به کاربر عادی"}
                     </button>

@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -44,10 +45,7 @@ export async function POST() {
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "Authorization token required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
@@ -59,7 +57,7 @@ export async function POST() {
 
     // Get current date
     const currentDate = new Date();
-    
+
     // Find all active warranties that have expired
     const expiredWarranties = await prisma.$queryRaw`
       SELECT "warrantyid"
@@ -70,13 +68,11 @@ export async function POST() {
 
     // Update expired warranties
     let updatedCount = 0;
-    
+
     if (expiredWarranties && Array.isArray(expiredWarranties) && expiredWarranties.length > 0) {
       // Build array of warranty IDs to update
-      const warrantyIds = (expiredWarranties as any[]).map(
-        (w) => w.warrantyid
-      );
-      
+      const warrantyIds = (expiredWarranties as any[]).map((w) => w.warrantyid);
+
       // Perform update
       for (const id of warrantyIds) {
         await prisma.$queryRaw`
@@ -91,15 +87,12 @@ export async function POST() {
     return NextResponse.json(
       {
         message: `Warranty status check completed. ${updatedCount} warranties updated to Expired.`,
-        updatedCount
+        updatedCount,
       },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error checking warranty status:", error);
-    return NextResponse.json(
-      { message: "Failed to check warranty status" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Failed to check warranty status" }, { status: 500 });
   }
-} 
+}

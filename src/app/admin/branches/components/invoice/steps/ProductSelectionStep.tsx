@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+
 import { useUser } from "@/context/UserContext";
 
 // Extended Product interface with additional properties
@@ -40,14 +41,10 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
   const [rawProducts, setRawProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [localSelectedProducts, setLocalSelectedProducts] = useState<any[]>([]);
-  const [manualExchangeRate, setManualExchangeRate] = useState<number | null>(
-    null
-  );
-  const [activeTab, setActiveTab] = useState<"products" | "selected">(
-    "products"
-  );
+  const [manualExchangeRate, setManualExchangeRate] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<"products" | "selected">("products");
   const [searchTerm, setSearchTerm] = useState("");
-  const { isAdmin, isBranch } = useUser();
+  const { isBranch } = useUser();
 
   // Determine which exchange rate to use (automatic or manual)
   const effectiveRate = useMemo(() => {
@@ -71,9 +68,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `/api/admin/branches/${branchId}/products`
-        );
+        const response = await fetch(`/api/admin/branches/${branchId}/products`);
 
         if (!response.ok) {
           throw new Error("خطا در دریافت محصولات");
@@ -106,9 +101,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
       const priceInRials = effectiveRate ? finalPrice * effectiveRate : 0;
 
       // Check if product is already selected
-      const existingProduct = localSelectedProducts.find(
-        (p) => p.ProductId === product.ProductId
-      );
+      const existingProduct = localSelectedProducts.find((p) => p.ProductId === product.ProductId);
 
       return {
         ...product,
@@ -116,9 +109,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
         currentQuantity: product.quantity || 0,
         selectedQuantity: existingProduct ? existingProduct.quantity : 0,
         isSelected: !!existingProduct,
-        total_price: existingProduct
-          ? existingProduct.quantity * priceInRials
-          : 0,
+        total_price: existingProduct ? existingProduct.quantity * priceInRials : 0,
       };
     });
 
@@ -127,17 +118,11 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     // Update selected products with new prices based on new rate
     if (effectiveRate && localSelectedProducts.length > 0) {
       const updatedSelectedProducts = localSelectedProducts.map((product) => {
-        const originalProduct = rawProducts.find(
-          (p) => p.ProductId === product.ProductId
-        );
+        const originalProduct = rawProducts.find((p) => p.ProductId === product.ProductId);
         if (!originalProduct) return product;
 
-        const price = originalProduct.Price
-          ? parseFloat(originalProduct.Price)
-          : 0;
-        const discount = originalProduct.Discount
-          ? parseFloat(originalProduct.Discount)
-          : 0;
+        const price = originalProduct.Price ? parseFloat(originalProduct.Price) : 0;
+        const discount = originalProduct.Discount ? parseFloat(originalProduct.Discount) : 0;
         const finalPrice = Math.max(0, price - discount);
         const priceInRials = finalPrice * effectiveRate;
 
@@ -183,9 +168,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
 
       setLocalSelectedProducts((prevSelected) => {
         // Find if product is already in the selected list
-        const existingIndex = prevSelected.findIndex(
-          (p) => p.ProductId === productId
-        );
+        const existingIndex = prevSelected.findIndex((p) => p.ProductId === productId);
 
         const updatedProducts = [...prevSelected];
 
@@ -220,10 +203,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
         }
 
         // Calculate total amount
-        const totalAmount = updatedProducts.reduce(
-          (sum, p) => sum + p.total_price,
-          0
-        );
+        const totalAmount = updatedProducts.reduce((sum, p) => sum + p.total_price, 0);
 
         // Update parent component
         setSelectedProducts(updatedProducts);
@@ -264,55 +244,47 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white"></div>
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-white"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-900/20 border border-red-800/30 text-red-100 p-4 rounded-md">
+      <div className="rounded-md border border-red-800/30 bg-red-900/20 p-4 text-red-100">
         {error}
       </div>
     );
   }
 
-  const isValidAutoRate =
-    usdToRialRate && !isNaN(usdToRialRate) && usdToRialRate > 0;
-  const totalAmount = localSelectedProducts.reduce(
-    (sum, p) => sum + p.total_price,
-    0
-  );
+  const isValidAutoRate = usdToRialRate && !isNaN(usdToRialRate) && usdToRialRate > 0;
+  const totalAmount = localSelectedProducts.reduce((sum, p) => sum + p.total_price, 0);
 
   return (
-    <div className="bg-gray-900 border-0 rounded-md shadow-md p-6">
-      <h3 className="text-lg font-medium text-white mb-4">
-        محصولات مورد نظر را انتخاب کنید
-      </h3>
+    <div className="rounded-md border-0 bg-gray-900 p-6 shadow-md">
+      <h3 className="mb-4 text-lg font-medium text-white">محصولات مورد نظر را انتخاب کنید</h3>
 
       {isValidAutoRate ? (
-        <div className="mb-4 p-3 bg-blue-900/20 border border-blue-800/30 rounded-md">
-          <p className="text-blue-100 text-sm">
+        <div className="mb-4 rounded-md border border-blue-800/30 bg-blue-900/20 p-3">
+          <p className="text-sm text-blue-100">
             نرخ تبدیل دلار به تومان:{" "}
-            <span className="font-bold">
-              {formatNumber(usdToRialRate)} تومان
-            </span>
+            <span className="font-bold">{formatNumber(usdToRialRate)} تومان</span>
           </p>
         </div>
       ) : isBranch ? (
-        <div className="mb-4 p-4 bg-red-900/20 border border-red-800/30 rounded-md">
-          <p className="text-red-100 mb-2">
+        <div className="mb-4 rounded-md border border-red-800/30 bg-red-900/20 p-4">
+          <p className="mb-2 text-red-100">
             <span className="font-bold">خطا در دریافت نرخ ارز</span>
           </p>
-          <p className="text-red-100 text-sm">
-            در حال حاضر امکان ایجاد فاکتور وجود ندارد. لطفا با مدیر سیستم تماس
-            بگیرید تا برای شما فاکتور ایجاد کند.
+          <p className="text-sm text-red-100">
+            در حال حاضر امکان ایجاد فاکتور وجود ندارد. لطفا با مدیر سیستم تماس بگیرید تا برای شما
+            فاکتور ایجاد کند.
           </p>
         </div>
       ) : (
-        <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-800/30 rounded-md">
-          <p className="text-yellow-100 text-sm mb-2">
+        <div className="mb-4 rounded-md border border-yellow-800/30 bg-yellow-900/20 p-3">
+          <p className="mb-2 text-sm text-yellow-100">
             خطا در دریافت نرخ ارز. لطفا نرخ تبدیل دلار به تومان را وارد کنید:
           </p>
           <div className="flex items-center">
@@ -321,22 +293,18 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
               min={1}
               value={manualExchangeRate ? formatNumber(manualExchangeRate) : ""}
               onChange={(e) => handleManualRateChange(e.target.value)}
-              className="bg-gray-800 border border-gray-700 text-white rounded-md px-3 py-2 w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-48 rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="نرخ ارز را وارد کنید"
             />
-            <span className="text-white mr-2">تومان</span>
+            <span className="mr-2 text-white">تومان</span>
           </div>
         </div>
       )}
 
       {!effectiveRate ? (
         isBranch ? (
-          <div className="bg-red-900/20 border border-red-800/30 text-red-100 p-4 rounded-md mb-4 flex items-center">
-            <svg
-              className="h-5 w-5 mr-2"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
+          <div className="mb-4 flex items-center rounded-md border border-red-800/30 bg-red-900/20 p-4 text-red-100">
+            <svg className="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-1 9a1 1 0 100-2 1 1 0 000 2z"
@@ -346,33 +314,28 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
             امکان ایجاد فاکتور تا زمان رفع مشکل نرخ ارز وجود ندارد.
           </div>
         ) : (
-          <div className="bg-red-900/20 border border-red-800/30 text-red-100 p-4 rounded-md mb-4 flex items-center">
-            <svg
-              className="h-5 w-5 mr-2"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
+          <div className="mb-4 flex items-center rounded-md border border-red-800/30 bg-red-900/20 p-4 text-red-100">
+            <svg className="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-1 9a1 1 0 100-2 1 1 0 000 2z"
                 clipRule="evenodd"
               />
             </svg>
-            لطفا برای مشاهده و انتخاب محصولات، نرخ تبدیل دلار به تومان را وارد
-            کنید.
+            لطفا برای مشاهده و انتخاب محصولات، نرخ تبدیل دلار به تومان را وارد کنید.
           </div>
         )
       ) : (
         <>
           {/* Custom Tabs */}
           <div className="mb-6 border-b border-gray-700">
-            <ul className="flex flex-wrap -mb-px">
+            <ul className="-mb-px flex flex-wrap">
               <li className="mr-4">
                 <button
-                  className={`inline-block py-3 px-4 rounded-t-lg ${
+                  className={`inline-block rounded-t-lg px-4 py-3 ${
                     activeTab === "products"
-                      ? "text-white border-b-2 border-blue-500 font-medium"
-                      : "text-gray-400 hover:text-gray-300 border-b-2 border-transparent hover:border-gray-700"
+                      ? "border-b-2 border-blue-500 font-medium text-white"
+                      : "border-b-2 border-transparent text-gray-400 hover:border-gray-700 hover:text-gray-300"
                   }`}
                   onClick={() => setActiveTab("products")}
                 >
@@ -381,16 +344,15 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
               </li>
               <li>
                 <button
-                  className={`inline-block py-3 px-4 rounded-t-lg ${
+                  className={`inline-block rounded-t-lg px-4 py-3 ${
                     activeTab === "selected"
-                      ? "text-white border-b-2 border-blue-500 font-medium"
-                      : "text-gray-400 hover:text-gray-300 border-b-2 border-transparent hover:border-gray-700"
+                      ? "border-b-2 border-blue-500 font-medium text-white"
+                      : "border-b-2 border-transparent text-gray-400 hover:border-gray-700 hover:text-gray-300"
                   }`}
                   onClick={() => setActiveTab("selected")}
                 >
                   محصولات انتخاب شده{" "}
-                  {localSelectedProducts.length > 0 &&
-                    `(${localSelectedProducts.length})`}
+                  {localSelectedProducts.length > 0 && `(${localSelectedProducts.length})`}
                 </button>
               </li>
             </ul>
@@ -404,9 +366,9 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                 {/* Search Input */}
                 <div className="mb-4">
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                       <svg
-                        className="w-4 h-4 text-gray-400"
+                        className="h-4 w-4 text-gray-400"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -423,7 +385,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                     </div>
                     <input
                       type="search"
-                      className="block w-full p-2.5 pl-10 text-sm rounded-lg bg-gray-800 border border-gray-700 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="block w-full rounded-lg border border-gray-700 bg-gray-800 p-2.5 pl-10 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="جستجوی محصول..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -433,28 +395,28 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
 
                 {filteredProducts.length > 0 ? (
                   <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-right text-gray-200 rounded-lg overflow-hidden border border-gray-700">
-                      <thead className="text-xs uppercase bg-gray-800 text-gray-200">
+                    <table className="w-full overflow-hidden rounded-lg border border-gray-700 text-right text-sm text-gray-200">
+                      <thead className="bg-gray-800 text-xs uppercase text-gray-200">
                         <tr>
-                          <th scope="col" className="py-3 px-4">
+                          <th scope="col" className="px-4 py-3">
                             نام محصول
                           </th>
-                          <th scope="col" className="py-3 px-4">
+                          <th scope="col" className="px-4 py-3">
                             موجودی
                           </th>
-                          <th scope="col" className="py-3 px-4">
+                          <th scope="col" className="px-4 py-3">
                             قیمت اصلی (تومان)
                           </th>
-                          <th scope="col" className="py-3 px-4">
+                          <th scope="col" className="px-4 py-3">
                             تخفیف (تومان)
                           </th>
-                          <th scope="col" className="py-3 px-4">
+                          <th scope="col" className="px-4 py-3">
                             قیمت نهایی (تومان)
                           </th>
-                          <th scope="col" className="py-3 px-4">
+                          <th scope="col" className="px-4 py-3">
                             تعداد
                           </th>
-                          <th scope="col" className="py-3 px-4">
+                          <th scope="col" className="px-4 py-3">
                             قیمت کل (تومان)
                           </th>
                         </tr>
@@ -469,8 +431,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                             ? parseFloat(product.Price) * (effectiveRate || 1)
                             : 0;
                           const discount = product.Discount
-                            ? parseFloat(product.Discount) *
-                              (effectiveRate || 1)
+                            ? parseFloat(product.Discount) * (effectiveRate || 1)
                             : 0;
 
                           return (
@@ -478,31 +439,26 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                               key={product.ProductId}
                               className="border-b border-gray-700 hover:bg-gray-950"
                             >
-                              <td className="py-3 px-4">{product.Type}</td>
-                              <td className="py-3 px-4">
-                                {product.currentQuantity || 0}
+                              <td className="px-4 py-3">{product.Type}</td>
+                              <td className="px-4 py-3">{product.currentQuantity || 0}</td>
+                              <td className="px-4 py-3">
+                                {originalPrice ? formatNumber(originalPrice) : "بدون قیمت"}
                               </td>
-                              <td className="py-3 px-4">
-                                {originalPrice
-                                  ? formatNumber(originalPrice)
-                                  : "بدون قیمت"}
-                              </td>
-                              <td className="py-3 px-4">
+                              <td className="px-4 py-3">
                                 {discount ? formatNumber(discount) : "0"}
                               </td>
-                              <td className="py-3 px-4">
+                              <td className="px-4 py-3">
                                 {product.priceInRials
                                   ? formatNumber(product.priceInRials)
                                   : "بدون قیمت"}
                               </td>
-                              <td className="py-3 px-4">
+                              <td className="px-4 py-3">
                                 <div className="flex items-center">
-                                  <div className="flex h-8 items-stretch rounded-md overflow-hidden border border-gray-700 bg-gray-800">
+                                  <div className="flex h-8 items-stretch overflow-hidden rounded-md border border-gray-700 bg-gray-800">
                                     <button
                                       type="button"
                                       onClick={() => {
-                                        const currentQuantity =
-                                          selectedProduct?.quantity || 0;
+                                        const currentQuantity = selectedProduct?.quantity || 0;
                                         if (currentQuantity > 0) {
                                           handleQuantityChange(
                                             product.ProductId,
@@ -510,10 +466,8 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                                           );
                                         }
                                       }}
-                                      disabled={
-                                        (selectedProduct?.quantity || 0) <= 0
-                                      }
-                                      className="flex items-center justify-center w-8 h-full bg-gray-900 hover:bg-gray-800 text-white disabled:opacity-20 disabled:hover:bg-gray-800 focus:outline-none"
+                                      disabled={(selectedProduct?.quantity || 0) <= 0}
+                                      className="flex h-full w-8 items-center justify-center bg-gray-900 text-white hover:bg-gray-800 focus:outline-none disabled:opacity-20 disabled:hover:bg-gray-800"
                                     >
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -544,22 +498,15 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                                           inputValue,
                                           product.currentQuantity
                                         );
-                                        handleQuantityChange(
-                                          product.ProductId,
-                                          validQuantity
-                                        );
+                                        handleQuantityChange(product.ProductId, validQuantity);
                                       }}
-                                      className="w-10 text-center h-full bg-gray-950 text-white focus:outline-none focus:ring-0 border-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                      className="h-full w-10 border-0 bg-gray-950 text-center text-white [appearance:textfield] focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                     />
                                     <button
                                       type="button"
                                       onClick={() => {
-                                        const currentQuantity =
-                                          selectedProduct?.quantity || 0;
-                                        if (
-                                          currentQuantity <
-                                          product.currentQuantity
-                                        ) {
+                                        const currentQuantity = selectedProduct?.quantity || 0;
+                                        if (currentQuantity < product.currentQuantity) {
                                           handleQuantityChange(
                                             product.ProductId,
                                             currentQuantity + 1
@@ -567,10 +514,9 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                                         }
                                       }}
                                       disabled={
-                                        (selectedProduct?.quantity || 0) >=
-                                        product.currentQuantity
+                                        (selectedProduct?.quantity || 0) >= product.currentQuantity
                                       }
-                                      className="flex items-center justify-center w-8 h-full bg-gray-900 hover:bg-gray-800 text-white disabled:opacity-20 disabled:hover:bg-gray-800 focus:outline-none"
+                                      className="flex h-full w-8 items-center justify-center bg-gray-900 text-white hover:bg-gray-800 focus:outline-none disabled:opacity-20 disabled:hover:bg-gray-800"
                                     >
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -590,10 +536,8 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                                   </div>
                                 </div>
                               </td>
-                              <td className="py-3 px-4">
-                                {selectedProduct
-                                  ? formatNumber(selectedProduct.total_price)
-                                  : "-"}
+                              <td className="px-4 py-3">
+                                {selectedProduct ? formatNumber(selectedProduct.total_price) : "-"}
                               </td>
                             </tr>
                           );
@@ -602,9 +546,9 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                     </table>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center p-6 text-gray-400 bg-gray-800/50 border border-gray-700 rounded-md">
+                  <div className="flex flex-col items-center justify-center rounded-md border border-gray-700 bg-gray-800/50 p-6 text-gray-400">
                     <svg
-                      className="w-12 h-12 mb-3"
+                      className="mb-3 h-12 w-12"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -617,9 +561,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                       />
                     </svg>
                     <p className="text-center text-lg">محصولی یافت نشد</p>
-                    <p className="text-center text-sm mt-1">
-                      لطفا عبارت دیگری را جستجو کنید
-                    </p>
+                    <p className="mt-1 text-center text-sm">لطفا عبارت دیگری را جستجو کنید</p>
                   </div>
                 )}
               </div>
@@ -630,19 +572,19 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
               <div>
                 {localSelectedProducts.length > 0 ? (
                   <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-right text-gray-200 rounded-lg overflow-hidden border border-gray-700">
-                      <thead className="text-xs uppercase bg-gray-800 text-gray-200">
+                    <table className="w-full overflow-hidden rounded-lg border border-gray-700 text-right text-sm text-gray-200">
+                      <thead className="bg-gray-800 text-xs uppercase text-gray-200">
                         <tr>
-                          <th scope="col" className="py-3 px-6">
+                          <th scope="col" className="px-6 py-3">
                             نام محصول
                           </th>
-                          <th scope="col" className="py-3 px-6">
+                          <th scope="col" className="px-6 py-3">
                             تعداد
                           </th>
-                          <th scope="col" className="py-3 px-6">
+                          <th scope="col" className="px-6 py-3">
                             قیمت واحد (تومان)
                           </th>
-                          <th scope="col" className="py-3 px-6">
+                          <th scope="col" className="px-6 py-3">
                             قیمت کل (تومان)
                           </th>
                         </tr>
@@ -653,23 +595,19 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                             key={product.ProductId}
                             className="border-b border-gray-700 hover:bg-gray-700"
                           >
-                            <td className="py-3 px-6">{product.Name}</td>
-                            <td className="py-3 px-6">{product.quantity}</td>
-                            <td className="py-3 px-6">
-                              {formatNumber(product.price)}
-                            </td>
-                            <td className="py-3 px-6">
-                              {formatNumber(product.total_price)}
-                            </td>
+                            <td className="px-6 py-3">{product.Name}</td>
+                            <td className="px-6 py-3">{product.quantity}</td>
+                            <td className="px-6 py-3">{formatNumber(product.price)}</td>
+                            <td className="px-6 py-3">{formatNumber(product.total_price)}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center p-6 text-gray-400 bg-gray-800/50 border border-gray-700 rounded-md">
+                  <div className="flex flex-col items-center justify-center rounded-md border border-gray-700 bg-gray-800/50 p-6 text-gray-400">
                     <svg
-                      className="w-12 h-12 mb-3"
+                      className="mb-3 h-12 w-12"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -688,10 +626,8 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
             )}
           </div>
 
-          <div className="mt-6 text-white text-right">
-            <p className="text-lg font-bold">
-              مجموع: {formatNumber(totalAmount)} تومان
-            </p>
+          <div className="mt-6 text-right text-white">
+            <p className="text-lg font-bold">مجموع: {formatNumber(totalAmount)} تومان</p>
           </div>
         </>
       )}

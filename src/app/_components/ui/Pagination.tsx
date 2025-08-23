@@ -52,16 +52,15 @@ const Pagination: React.FC<PaginationProps> = ({
     subcategorySlug ? `/${subcategorySlug}` : ""
   }/page`;
   return (
-    <div className="flex flex-wrap justify-center items-center mt-16 gap-2">
+    <div className="mt-16 flex flex-wrap items-center justify-center gap-2">
       {/* First Button */}
       <Link href={`${path}/1`} passHref>
         <button
-          className={`px-2 py-1 sm:px-3 sm:py-2 rounded transition duration-200 text-xs sm:text-base 
-            ${
-              currentPage === 1
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-blue-500 text-white hover:bg-blue-600"
-            }`}
+          className={`rounded px-2 py-1 text-xs transition duration-200 sm:px-3 sm:py-2 sm:text-base ${
+            currentPage === 1
+              ? "cursor-not-allowed bg-gray-300 text-gray-500"
+              : "bg-blue-500 text-white hover:bg-blue-600"
+          }`}
           disabled={currentPage === 1}
         >
           اولین
@@ -71,12 +70,11 @@ const Pagination: React.FC<PaginationProps> = ({
       {/* Previous Button */}
       <Link href={`${path}/${currentPage - 1}`} passHref>
         <button
-          className={`px-2 py-1 sm:px-3 sm:py-2 rounded transition duration-200 text-xs sm:text-base 
-            ${
-              currentPage === 1
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-blue-500 text-white hover:bg-blue-600"
-            }`}
+          className={`rounded px-2 py-1 text-xs transition duration-200 sm:px-3 sm:py-2 sm:text-base ${
+            currentPage === 1
+              ? "cursor-not-allowed bg-gray-300 text-gray-500"
+              : "bg-blue-500 text-white hover:bg-blue-600"
+          }`}
           disabled={currentPage === 1}
           rel="prev"
         >
@@ -89,12 +87,11 @@ const Pagination: React.FC<PaginationProps> = ({
         typeof page === "number" ? (
           <Link key={index} href={`${path}/${page}`}>
             <button
-              className={`px-2 py-1 sm:px-3 sm:py-2 rounded transition duration-200 text-xs sm:text-base
-                ${
-                  page === currentPage
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                }`}
+              className={`rounded px-2 py-1 text-xs transition duration-200 sm:px-3 sm:py-2 sm:text-base ${
+                page === currentPage
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+              }`}
             >
               {page}
             </button>
@@ -102,7 +99,7 @@ const Pagination: React.FC<PaginationProps> = ({
         ) : (
           <span
             key={index}
-            className="px-2 py-1 sm:px-3 sm:py-2 text-gray-500 text-xs sm:text-base"
+            className="px-2 py-1 text-xs text-gray-500 sm:px-3 sm:py-2 sm:text-base"
           >
             ...
           </span>
@@ -112,12 +109,11 @@ const Pagination: React.FC<PaginationProps> = ({
       {/* Next Button */}
       <Link href={`${path}/${currentPage + 1}`} passHref>
         <button
-          className={`px-2 py-1 sm:px-3 sm:py-2 rounded transition duration-200 text-xs sm:text-base 
-            ${
-              currentPage === totalPages
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-blue-500 text-white hover:bg-blue-600"
-            }`}
+          className={`rounded px-2 py-1 text-xs transition duration-200 sm:px-3 sm:py-2 sm:text-base ${
+            currentPage === totalPages
+              ? "cursor-not-allowed bg-gray-300 text-gray-500"
+              : "bg-blue-500 text-white hover:bg-blue-600"
+          }`}
           disabled={currentPage === totalPages}
           rel="next"
         >
@@ -128,12 +124,11 @@ const Pagination: React.FC<PaginationProps> = ({
       {/* Last Button */}
       <Link href={`${path}/${totalPages}`} passHref>
         <button
-          className={`px-2 py-1 sm:px-3 sm:py-2 rounded transition duration-200 text-xs sm:text-base 
-            ${
-              currentPage === totalPages
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-blue-500 text-white hover:bg-blue-600"
-            }`}
+          className={`rounded px-2 py-1 text-xs transition duration-200 sm:px-3 sm:py-2 sm:text-base ${
+            currentPage === totalPages
+              ? "cursor-not-allowed bg-gray-300 text-gray-500"
+              : "bg-blue-500 text-white hover:bg-blue-600"
+          }`}
           disabled={currentPage === totalPages}
         >
           آخرین

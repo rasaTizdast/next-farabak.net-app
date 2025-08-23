@@ -1,6 +1,7 @@
+import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { jwtVerify } from "jose";
+
 import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -63,10 +64,7 @@ export async function POST(req: Request) {
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
-    return NextResponse.json(
-      { message: "Authorization token required" },
-      { status: 401 }
-    );
+    return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
   }
 
   const decoded = await verifyToken(token);
@@ -87,15 +85,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const {
-      name,
-      slug,
-      available,
-      parentCategoryId,
-      seoTitle,
-      seoDescription,
-      seoKeywords,
-    } = data;
+    const { name, slug, available, parentCategoryId, seoTitle, seoDescription, seoKeywords } = data;
 
     if (
       !name ||
@@ -145,9 +135,7 @@ export async function POST(req: Request) {
       subcategory,
     });
   } catch (error) {
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }

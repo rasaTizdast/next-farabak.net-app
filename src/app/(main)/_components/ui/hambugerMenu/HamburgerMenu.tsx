@@ -1,14 +1,14 @@
 "use client";
 
+import { Divide } from "hamburger-react";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-
-import { Divide } from "hamburger-react";
-import { PiUserCircleDashedFill } from "react-icons/pi";
 import { IoIosArrowRoundBack } from "react-icons/io";
+import { PiUserCircleDashedFill } from "react-icons/pi";
+
+import { useUser } from "@/context/UserContext";
 
 import styles from "./HamburgerMenu.module.css";
-import { useUser } from "@/context/UserContext";
 
 const HamburgerMenu = () => {
   const [isOpen, setOpen] = useState(false);

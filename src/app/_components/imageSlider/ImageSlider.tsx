@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useEffect, useCallback } from "react";
-
 import { BsChevronCompactLeft, BsChevronCompactRight } from "react-icons/bs";
 import { RxDotFilled } from "react-icons/rx";
 
@@ -38,15 +37,11 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
   };
 
   const nextSlide = useCallback(() => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === slides.length - 1 ? 0 : prevIndex + 1
-    );
+    setCurrentIndex((prevIndex) => (prevIndex === slides.length - 1 ? 0 : prevIndex + 1));
   }, [slides.length]);
 
   const prevSlide = useCallback(() => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? slides.length - 1 : prevIndex - 1
-    );
+    setCurrentIndex((prevIndex) => (prevIndex === 0 ? slides.length - 1 : prevIndex - 1));
   }, [slides.length]);
 
   // Autoplay logic
@@ -62,25 +57,21 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
 
   return (
     <div
-      className="h-auto max-h-[calc(100vh-64px)] w-full m-auto relative group overflow-hidden"
+      className="group relative m-auto h-auto max-h-[calc(100vh-64px)] w-full overflow-hidden"
       onMouseEnter={() => setIsPaused(true)} // Pause autoplay on hover
       onMouseLeave={() => setIsPaused(false)} // Resume autoplay on mouse leave
     >
       <div
-        className="flex transition-transform duration-700 ease-in-out w-full"
+        className="flex w-full transition-transform duration-700 ease-in-out"
         style={{
           transform: `translateX(${currentIndex * 100}%)`,
         }}
       >
         {slides.map((slide, index) => (
-          <Link
-            href={slide.link}
-            key={slide.id}
-            className="w-full flex-shrink-0 relative"
-          >
+          <Link href={slide.link} key={slide.id} className="relative w-full flex-shrink-0">
             {/* Skeleton Loader */}
             {!imageLoaded[index] && (
-              <div className="absolute inset-0 bg-gray-400 animate-pulse"></div>
+              <div className="absolute inset-0 animate-pulse bg-gray-400"></div>
             )}
 
             {/* Image */}
@@ -101,31 +92,29 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
       {/* Left Arrow */}
       <div
         onClick={nextSlide}
-        className="hidden group-hover:block absolute top-[45.5%] -translate-x-0 left-5 text-2xl rounded-full p-2 bg-black/30 text-white cursor-pointer"
+        className="absolute left-5 top-[45.5%] hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
       >
         <BsChevronCompactLeft size={30} />
       </div>
       {/* Right Arrow */}
       <div
         onClick={prevSlide}
-        className="hidden group-hover:block absolute top-[45.5%] -translate-x-0 right-5 text-2xl rounded-full p-2 bg-black/30 text-white cursor-pointer"
+        className="absolute right-5 top-[45.5%] hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
       >
         <BsChevronCompactRight size={30} />
       </div>
 
       {/* Slider Pagination */}
-      <div className="hidden sm:flex justify-center py-1 px-2 gap-1 absolute left-[50%] -translate-x-[50%] bottom-0 xl bg-[#f0f0f0] rounded-tl-2xl rounded-tr-2xl">
+      <div className="xl absolute bottom-0 left-[50%] hidden -translate-x-[50%] justify-center gap-1 rounded-tl-2xl rounded-tr-2xl bg-[#f0f0f0] px-2 py-1 sm:flex">
         {slides.map((_, slideIndex) => (
           <div
-            className="text-xl md:text-2xl lg:text-3xl cursor-pointer"
+            className="cursor-pointer text-xl md:text-2xl lg:text-3xl"
             key={slideIndex}
             onClick={() => setCurrentIndex(slideIndex)}
           >
             <RxDotFilled
               className={`transition-all ${
-                slideIndex === currentIndex
-                  ? "text-[#000000]"
-                  : "text-[#0e8bff]"
+                slideIndex === currentIndex ? "text-[#000000]" : "text-[#0e8bff]"
               }`}
             />
           </div>

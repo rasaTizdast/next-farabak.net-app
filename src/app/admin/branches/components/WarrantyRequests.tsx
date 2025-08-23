@@ -1,27 +1,17 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import {
-  Table,
-  Spin,
-  Alert,
-  Tag,
-  Typography,
-  Pagination,
-  Modal,
-  Button,
-  Space,
-} from "antd";
 import {
   LoadingOutlined,
   CheckCircleOutlined,
   PhoneOutlined,
   UserOutlined,
   ReloadOutlined,
+  ExclamationCircleFilled,
 } from "@ant-design/icons";
-import { ExclamationCircleFilled } from "@ant-design/icons";
+import { Table, Spin, Alert, Tag, Typography, Pagination, Modal, Button } from "antd";
+import { useState, useEffect, useCallback } from "react";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 const { confirm } = Modal;
 
 interface WarrantyRequest {
@@ -40,9 +30,7 @@ interface WarrantyRequestsProps {
   isTabActive?: boolean;
 }
 
-export default function WarrantyRequests({
-  isTabActive = true,
-}: WarrantyRequestsProps) {
+export default function WarrantyRequests({ isTabActive = true }: WarrantyRequestsProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [requests, setRequests] = useState<WarrantyRequest[]>([]);
@@ -66,9 +54,7 @@ export default function WarrantyRequests({
 
       try {
         setLoading(true);
-        const response = await fetch(
-          `/api/admin/warranty/requests?page=${page}&limit=${pageSize}`
-        );
+        const response = await fetch(`/api/admin/warranty/requests?page=${page}&limit=${pageSize}`);
 
         if (!response.ok) {
           throw new Error("Failed to fetch warranty requests");
@@ -144,6 +130,7 @@ export default function WarrantyRequests({
       const date = new Date(dateString);
       return new Intl.DateTimeFormat("fa-IR").format(date);
     } catch (error) {
+      console.error(error);
       return dateString;
     }
   };
@@ -174,9 +161,7 @@ export default function WarrantyRequests({
       dataIndex: "warrantycode",
       key: "warrantycode",
       className: "font-medium",
-      render: (text: string) => (
-        <span className="font-mono text-blue-400">{text}</span>
-      ),
+      render: (text: string) => <span className="font-mono text-blue-400">{text}</span>,
     },
     {
       title: "مشتری",
@@ -184,18 +169,16 @@ export default function WarrantyRequests({
       className: "font-medium",
       render: (_, record: WarrantyRequest) => (
         <div>
-          <div className="flex items-center mb-1">
+          <div className="mb-1 flex items-center">
             <UserOutlined className="ml-1 text-blue-500" />
-            <Text className="text-white">
-              {record.customer_name || "نامشخص"}
-            </Text>
+            <Text className="text-white">{record.customer_name || "نامشخص"}</Text>
           </div>
           {record.customer_phone && (
             <div className="flex items-center">
               <PhoneOutlined className="ml-1 text-green-500" />
               <a
                 href={`tel:${record.customer_phone}`}
-                className="text-green-500 hover:text-green-400 transition-colors"
+                className="text-green-500 transition-colors hover:text-green-400"
               >
                 {record.customer_phone}
               </a>
@@ -238,7 +221,7 @@ export default function WarrantyRequests({
           type="primary"
           onClick={() => handleResolveRequest(record.warrantyid)}
           icon={<CheckCircleOutlined />}
-          className="bg-green-600 hover:bg-green-700 border-green-600"
+          className="border-green-600 bg-green-600 hover:bg-green-700"
         >
           حل درخواست
         </Button>
@@ -253,17 +236,13 @@ export default function WarrantyRequests({
   return (
     <div className="space-y-4">
       {/* Header with refresh button */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-white">
-          درخواست‌های بررسی گارانتی
-        </h2>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-xl font-bold text-white">درخواست‌های بررسی گارانتی</h2>
         <Button
-          onClick={() =>
-            fetchRequests(pagination.current, pagination.pageSize, true)
-          }
+          onClick={() => fetchRequests(pagination.current, pagination.pageSize, true)}
           icon={<ReloadOutlined />}
           loading={loading}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          className="bg-blue-600 text-white hover:bg-blue-700"
         >
           بروزرسانی
         </Button>
@@ -277,9 +256,7 @@ export default function WarrantyRequests({
               <p>{error}</p>
               <Button
                 type="primary"
-                onClick={() =>
-                  fetchRequests(pagination.current, pagination.pageSize, true)
-                }
+                onClick={() => fetchRequests(pagination.current, pagination.pageSize, true)}
                 icon={<ReloadOutlined />}
                 className="mt-4"
               >
@@ -291,7 +268,7 @@ export default function WarrantyRequests({
           showIcon
         />
       ) : loading ? (
-        <div className="flex justify-center items-center p-8">
+        <div className="flex items-center justify-center p-8">
           <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
         </div>
       ) : requests.length === 0 ? (
@@ -314,7 +291,7 @@ export default function WarrantyRequests({
           </div>
 
           {pagination.total > pagination.pageSize && (
-            <div className="flex justify-center mt-4">
+            <div className="mt-4 flex justify-center">
               <Pagination
                 current={pagination.current}
                 pageSize={pagination.pageSize}
@@ -356,10 +333,7 @@ export default function WarrantyRequests({
           background-color: #263144;
         }
 
-        .warranty-requests-table
-          .ant-table-tbody
-          > tr.ant-table-row:hover
-          > td {
+        .warranty-requests-table .ant-table-tbody > tr.ant-table-row:hover > td {
           background-color: #374151;
         }
 
