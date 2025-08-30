@@ -66,7 +66,6 @@ const Specs: React.FC<SpecsProps> = ({ state, dispatch, setErrors, hasSubmitted 
 
     // Log current errors if needed
     if (Object.keys(specsErrors).length > 0) {
-      console.log("Specs validation errors:", specsErrors);
     }
   }, [localErrors, setErrors]);
 

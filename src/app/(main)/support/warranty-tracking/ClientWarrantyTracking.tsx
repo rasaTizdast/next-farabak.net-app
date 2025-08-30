@@ -22,7 +22,19 @@ const WarrantyTrackingPage = () => {
   const [warrantyCode, setWarrantyCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [result, setResult] = useState<any>(null);
+  type WarrantyResult = {
+    status: "success" | "expired" | "already_requested";
+    data?: {
+      productType?: string;
+      startDate: string;
+      expiryDate: string;
+      status: "Active" | "Expired" | "Requested";
+      customerPhone?: string;
+    };
+    error?: string;
+  };
+
+  const [result, setResult] = useState<WarrantyResult | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [confirmLoading, setConfirmLoading] = useState(false);
 
@@ -48,8 +60,9 @@ const WarrantyTrackingPage = () => {
 
       setResult(data);
       setCurrentStep(1); // Move to confirmation step
-    } catch (err: any) {
-      setError(err.message || "خطا در بررسی گارانتی");
+    } catch (err) {
+      setError("خطا در بررسی گارانتی");
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -75,8 +88,9 @@ const WarrantyTrackingPage = () => {
 
       setResult(data);
       setCurrentStep(2); // Move to the final step after confirmation
-    } catch (err: any) {
-      setError(err.message || "خطا در ثبت درخواست گارانتی");
+    } catch (err) {
+      setError("خطا در ثبت درخواست گارانتی");
+      throw err;
     } finally {
       setConfirmLoading(false);
     }

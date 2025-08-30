@@ -179,9 +179,9 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
       } else {
         handleClose(); // Only close if onSuccess is not provided
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating invoice:", error);
-      message.error(error.message || "خطا در ثبت فاکتور");
+      message.error("خطا در ثبت فاکتور");
     } finally {
       setIsLoading(false);
     }

@@ -1,11 +1,12 @@
 import { Form, Input, Select, Button } from "antd";
+import { FormInstance } from "antd/es/form";
 import React from "react";
 
 import { User } from "./types";
 
 interface BranchFormProps {
-  form: any;
-  onFinish: (values: any) => void;
+  form: FormInstance;
+  onFinish: (values: Record<string, unknown>) => void;
   onCancel: () => void;
   users?: User[];
   isEdit?: boolean;

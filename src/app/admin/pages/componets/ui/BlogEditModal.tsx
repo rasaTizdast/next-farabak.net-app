@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { BiTrash } from "react-icons/bi";
@@ -630,12 +631,14 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
 
                       {previewImage && (
                         <div className="group relative">
-                          <img
+                          <Image
                             src={
                               previewImage?.startsWith("blob:")
                                 ? previewImage
                                 : `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${previewImage}`
                             }
+                            height={144}
+                            width={250}
                             alt="Preview"
                             className="h-36 rounded-lg border-2 border-gray-600 object-cover"
                           />

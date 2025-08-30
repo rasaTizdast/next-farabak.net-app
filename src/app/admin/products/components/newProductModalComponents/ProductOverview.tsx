@@ -58,11 +58,6 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
       // Then add the current feature errors
       return { ...newErrors, ...formattedErrors };
     });
-
-    // Log errors if needed
-    if (Object.keys(formattedErrors).length > 0) {
-      console.log("Feature validation errors:", formattedErrors);
-    }
   }, [localErrors, localFeatures, setErrors]);
 
   // Initialize validation on component mount and when features change from parent

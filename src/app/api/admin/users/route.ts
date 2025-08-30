@@ -112,13 +112,20 @@ export async function GET() {
     `;
 
     // Filter out users that already have branches
-    const usersWithoutBranches = (usersWithBranches as any[]).filter(
-      (user) => user.has_branch === 0
-    );
+    const usersWithoutBranches = (
+      usersWithBranches as {
+        UserID: number;
+        Username: string;
+        FirstName: string;
+        LastName: string;
+        PhoneNumber: string;
+        Email: string;
+        has_branch: number;
+      }[]
+    ).filter((user) => user.has_branch === 0);
 
     // Remove the has_branch property from the response
-    const cleanedUsers = usersWithoutBranches.map(({ has_branch, ...user }) => user);
-
+    const cleanedUsers = usersWithoutBranches.map(({ has_branch: _has_branch, ...user }) => user);
     return NextResponse.json(cleanedUsers);
   } catch (error) {
     console.error("Error fetching users:", error);

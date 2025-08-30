@@ -149,7 +149,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       );
     }
 
-    const updatedUser = await prisma.client.update({
+    await prisma.client.update({
       where: { UserID: decoded.userId as number },
       data: {
         FirstName: updates.firstName,

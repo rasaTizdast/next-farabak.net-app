@@ -1,6 +1,7 @@
 // src/components/NewBlog.tsx
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { BiTrash } from "react-icons/bi";
@@ -530,7 +531,9 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
                       {previewImage && (
                         <div className="group relative">
-                          <img
+                          <Image
+                            height={128}
+                            width={128}
                             src={previewImage}
                             alt="Preview"
                             className="h-32 w-32 rounded-lg border-2 border-gray-600 object-cover"

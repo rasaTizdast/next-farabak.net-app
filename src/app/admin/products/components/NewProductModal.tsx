@@ -71,7 +71,25 @@ const initialState: State = {
 };
 
 // Reducer function
-const productReducer = (state: State, action: any): State => {
+const productReducer = (
+  state: State,
+  action: {
+    type: string;
+    field: string;
+    value: string;
+    features: string[];
+    details: {
+      ProductOverviewDetailsId: number;
+      Title: string;
+      Img: string;
+      Description: string;
+      selected: boolean;
+    }[];
+    productBlog: string;
+    specs: { title: string; description: string }[];
+    faqs: { question: string; answer: string }[];
+  }
+): State => {
   switch (action.type) {
     case "SET_FIELD":
       return { ...state, [action.field]: action.value };
@@ -357,10 +375,6 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
       ([_, errorMessage]) => typeof errorMessage === "string" && errorMessage.trim() !== ""
     );
 
-    if (errorEntries.length > 0) {
-      console.log("Current validation errors:", errorEntries);
-    }
-
     // Check if any error exists (any non-empty string value)
     return errorEntries.length > 0;
   };
@@ -368,14 +382,6 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
   // Effect to validate fields and update errors
   useEffect(() => {
     const newErrors = validateAllFields(state);
-
-    // Debug logs to help identify update loops
-    console.debug(
-      "State update in NewProductModal",
-      Object.keys(state).filter((key) => key === "productBlog").length > 0
-        ? "productBlog length:" + state.productBlog.length
-        : ""
-    );
 
     // Use setTimeout to give inputs a chance to update their local errors
     setTimeout(() => {
@@ -460,7 +466,6 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
 
     // Check if there are any errors
     if (hasErrors()) {
-      console.log("Preventing submission due to validation errors");
       toast.error("لطفاً تمام خطاها را برطرف کنید.");
 
       // Automatically open the first section with errors
@@ -475,8 +480,6 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
       return;
     }
 
-    // If we reach here, there are no errors - safe to submit
-    console.log("No validation errors found, proceeding with submission");
     submitForm();
   };
 
@@ -549,9 +552,6 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
       overviewDetails: selectedDetailsIds,
     };
 
-    // Log the data being sent for debugging
-    console.log("Sending product data:", formData);
-
     if (formData.price < formData.discount) {
       toast.error("تخفیف نمیتواند بیشتر از قیمت باشد.");
       return;
@@ -566,8 +566,8 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
         refetchProducts();
         toast.success("محصول با موفقیت ایجاد شد!");
       }, 1000);
-    } catch (error: any) {
-      console.error("Error creating product:", error);
+    } catch (error) {
+      console.error("مشکلی در ساخت محصول جدید", error);
       setModalVisible(false);
       toast.error("محصولی مشابه این محصول وجود دارد یا خطایی به وجود آمده لطفاً دوباره تلاش کنید");
     }
@@ -789,10 +789,8 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
                     );
 
                     if (hasFeatureErrors) {
-                      console.log("Submit prevented due to feature validation errors");
                       toast.error("لطفاً خطاهای ویژگی‌ها را برطرف کنید.");
                     } else {
-                      console.log("Submit prevented due to validation errors");
                       toast.error("لطفاً تمام خطاها را برطرف کنید.");
                     }
                   }

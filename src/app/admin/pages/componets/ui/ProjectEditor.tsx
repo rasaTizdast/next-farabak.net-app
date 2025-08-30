@@ -10,10 +10,6 @@ import { useDropzone } from "react-dropzone";
 import { BiTrash } from "react-icons/bi";
 import { DatePicker } from "zaman";
 
-type NewProjectProps = {
-  onClose: () => void;
-};
-
 const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({

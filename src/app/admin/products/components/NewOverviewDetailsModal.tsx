@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React, { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-hot-toast";
@@ -77,7 +78,7 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
           return new Promise<{
             title: string;
             description: string;
-            image: any;
+            image: string | { base64: string; contentType: string; fileName: string };
           }>((resolve) => {
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -316,7 +317,13 @@ const ItemForm = ({
 
         {item.preview && (
           <div className="relative mt-4 h-48 w-full overflow-hidden rounded-md bg-gray-700">
-            <img src={item.preview} alt="پیش‌نمایش" className="h-full w-full object-contain" />
+            <Image
+              height={192}
+              width={250}
+              src={item.preview}
+              alt="پیش‌نمایش"
+              className="h-full w-full object-contain"
+            />
           </div>
         )}
       </div>

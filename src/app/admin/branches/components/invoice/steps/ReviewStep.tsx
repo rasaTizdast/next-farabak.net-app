@@ -21,7 +21,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ invoice, productsWithWarranty }
       title: "نام محصول",
       dataIndex: "Name",
       key: "name",
-      render: (text, record) => {
+      render: (text: string, record: { ProductId: number; singleItemId: number }) => {
         // Find all items with the same product ID
         const sameProductItems = productsWithWarranty.filter(
           (item) => item.ProductId === record.ProductId

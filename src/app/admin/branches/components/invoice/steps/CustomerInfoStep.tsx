@@ -22,7 +22,7 @@ const CustomerInfoStep: React.FC<CustomerInfoStepProps> = ({ invoice, onUpdate }
   }, [form, invoice]);
 
   // Handle form value changes
-  const handleValuesChange = (changedValues: any) => {
+  const handleValuesChange = (changedValues: Partial<Invoice>) => {
     onUpdate(changedValues);
   };
 

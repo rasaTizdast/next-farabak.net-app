@@ -1,4 +1,4 @@
-import { Modal } from "antd";
+import { FormInstance, Modal } from "antd";
 import React, { useEffect } from "react";
 
 import BranchForm from "./BranchForm";
@@ -7,8 +7,8 @@ import { Branch, User } from "./types";
 interface EditBranchModalProps {
   visible: boolean;
   onClose: () => void;
-  onFinish: (values: any) => void;
-  form: any;
+  onFinish: (values: Record<string, unknown>) => void;
+  form: FormInstance;
   branch: Branch;
   users: User[];
 }

@@ -40,7 +40,6 @@ const retryRequest = async <T,>(
       if (attempt < maxRetries) {
         // Wait with exponential backoff before retrying
         const waitTime = delay * Math.pow(2, attempt - 1);
-        console.log(`Retrying in ${waitTime}ms... | در حال تلاش مجدد در ${waitTime} میلی‌ثانیه...`);
         await new Promise((resolve) => setTimeout(resolve, waitTime));
       }
     }
@@ -100,7 +99,6 @@ const sendOverviews = async (ProductId: number, ProductName: string, Features: s
 // Function to send specifications data to the API
 const sendSpecs = async (ProductId: number, Name: string, specs: State["specs"]) => {
   if (!specs || !specs.length) {
-    console.log("No specs to send");
     return;
   } // Skip if no specs are provided
 
@@ -113,11 +111,8 @@ const sendSpecs = async (ProductId: number, Name: string, specs: State["specs"])
       Available: true,
     }));
 
-    console.log("Sending specs payload:", payload);
-
     return await retryRequest(async () => {
       const response = await axios.post("/api/specs", payload);
-      console.log("Specs API response:", response.data);
       return response;
     });
   } catch (error) {
@@ -129,7 +124,6 @@ const sendSpecs = async (ProductId: number, Name: string, specs: State["specs"])
 // Function to send FAQs data to the API
 const sendFaqs = async (productId: number, faqs: State["faqs"]) => {
   if (!faqs || !faqs.length) {
-    console.log("No FAQs to send");
     return;
   } // Skip if no FAQs are provided
 
@@ -142,11 +136,8 @@ const sendFaqs = async (productId: number, faqs: State["faqs"]) => {
       FilesAddress: "", // Set as empty since it's not part of incoming data
     }));
 
-    console.log("Sending FAQs payload:", payload);
-
     return await retryRequest(async () => {
       const response = await axios.post("/api/faqs", payload);
-      console.log("FAQs API response:", response.data);
       return response;
     });
   } catch (error) {
@@ -162,7 +153,6 @@ const sendOverviewDetails = async (
   overviewDetailsIds: number[] // Adjusted to accept only selected IDs
 ) => {
   if (!overviewDetailsIds || !overviewDetailsIds.length) {
-    console.log("No overview details to send");
     return;
   } // Skip if no overview details are selected
 
@@ -173,11 +163,8 @@ const sendOverviewDetails = async (
       ProductId: productId,
     }));
 
-    console.log("Sending overview details payload:", payload);
-
     return await retryRequest(async () => {
       const response = await axios.post("/api/productOverviewDetails", payload);
-      console.log("Overview details API response:", response.data);
       return response;
     });
   } catch (error) {
@@ -212,8 +199,6 @@ export const createProduct = async (
       productBlog: state.productBlog,
     };
 
-    console.log("Creating product with payload:", productPayload);
-
     const productResponse = await retryRequest(async () => {
       return await axios.post("/api/admin/products/createNewProduct", productPayload);
     });
@@ -223,36 +208,27 @@ export const createProduct = async (
     if (!productId) {
       throw new Error("ساخت محصول ناموفق بود: شناسه محصول دریافت نشد");
     }
-    console.log("Product created successfully with ID:", productId);
     setProgress(30);
 
     // Step 2: Upload images to S3
     setCurrentStep(2);
-    console.log("Uploading images...");
     const [img1, img2] = await Promise.all([
       ImageUploader(state.transparentImage, state.slug, "mini"),
       ImageUploader(state.bannerImage, state.slug, "banner"),
     ]);
-    console.log("Images uploaded successfully:", {
-      transparentImage: img1,
-      bannerImage: img2,
-    });
     setProgress(50);
 
     // Step 3: Update the product with image keys
-    console.log("Updating product with image keys...");
     await retryRequest(async () => {
       await axios.patch(`/api/admin/products/${productId}/updateImages`, {
         img1,
         img2,
       });
     });
-    console.log("Product updated with image keys successfully");
 
     // Step 4: Send additional details - wrap each in try/catch to prevent one failure from stopping others
     try {
       setCurrentStep(3);
-      console.log("Sending product overview features...");
       await sendOverviews(productId, state.name, state.features);
       setProgress(60);
     } catch (error) {
@@ -261,7 +237,6 @@ export const createProduct = async (
 
     try {
       setCurrentStep(4);
-      console.log("Sending product overview details...");
       await sendOverviewDetails(productId, state.name, state.overviewDetails);
       setProgress(70);
     } catch (error) {
@@ -270,7 +245,6 @@ export const createProduct = async (
 
     try {
       setCurrentStep(5);
-      console.log("Sending product specifications...");
       await sendSpecs(productId, state.name, state.specs);
       setProgress(80);
     } catch (error) {
@@ -279,7 +253,6 @@ export const createProduct = async (
 
     try {
       setCurrentStep(6);
-      console.log("Sending product FAQs...");
       await sendFaqs(productId, state.faqs);
       setProgress(90);
     } catch (error) {

@@ -1,4 +1,4 @@
-import { Modal } from "antd";
+import { FormInstance, Modal } from "antd";
 import React from "react";
 
 import BranchForm from "./BranchForm";
@@ -7,8 +7,8 @@ import { User } from "./types";
 interface CreateBranchModalProps {
   visible: boolean;
   onClose: () => void;
-  onFinish: (values: any) => void;
-  form: any;
+  onFinish: (values: Record<string, unknown>) => void;
+  form: FormInstance;
   users: User[];
   currentUserId?: number;
 }

@@ -4,25 +4,10 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-// Define the response type
-type PageRow = {
-  name: string;
-  pages: number;
-  link: string;
-  multiPage?: boolean;
-  editorType: string;
-  newType?: string | null;
-};
-
 type SubPage = {
   id: number;
   name: string;
   link: string;
-};
-
-type ApiResponse = {
-  rowNames: PageRow[];
-  subPages: Record<string, SubPage[]>;
 };
 
 /**

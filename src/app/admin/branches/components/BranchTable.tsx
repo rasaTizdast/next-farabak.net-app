@@ -103,7 +103,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
       key: "actions",
       width: "30%",
       className: "text-center",
-      render: (_: any, branch: Branch) => (
+      render: (_: string, branch: Branch) => (
         <div className="flex justify-center" style={{ direction: "rtl" }}>
           <Space size="small" wrap className="flex justify-center">
             <Tooltip title="ویرایش اطلاعات شعبه" placement="top">

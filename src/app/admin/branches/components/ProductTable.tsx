@@ -53,8 +53,9 @@ const ProductTable: React.FC<ProductTableProps> = ({
 
   // Clean up timers on unmount
   useEffect(() => {
+    const currentTimers = timersRef.current;
     return () => {
-      Object.values(timersRef.current).forEach((timer) => clearTimeout(timer));
+      Object.values(currentTimers).forEach((timer) => clearTimeout(timer));
     };
   }, []);
 
