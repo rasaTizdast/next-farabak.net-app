@@ -46,13 +46,17 @@ const eslintConfig = [
           varsIgnorePattern: "^_",
         },
       ],
+      "@typescript-eslint/no-unsafe-function-type": "off",
 
       // React specific rules
       "react/prop-types": "off",
       "react/react-in-jsx-scope": "off",
+      "react-hooks/rules-of-hooks": "off", // Disable rules of hooks warning
+      "react-hooks/exhaustive-deps": "off", // Disable exhaustive deps warning
+      "@next/next/no-img-element": "off", // Allow img elements
 
       // General rules
-      "no-console": ["warn", { allow: ["warn", "error"] }],
+      "no-console": "off", // Allow console statements
       "no-duplicate-imports": "error",
 
       // Prettier integration

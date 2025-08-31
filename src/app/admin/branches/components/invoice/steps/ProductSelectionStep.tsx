@@ -88,9 +88,8 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     fetchProducts();
   }, [branchId]); // Only depends on branchId, not on rate changes
 
-  // This effect processes the raw products with the current exchange rate
-  // without triggering API calls
-  useEffect(() => {
+  // Process products and update prices when dependencies change
+  const processProducts = useCallback(() => {
     if (rawProducts.length === 0) return;
 
     const processedProducts = rawProducts.map((product: Product) => {
@@ -146,7 +145,12 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
         );
       }
     }
-  }, [rawProducts, effectiveRate]);
+  }, [rawProducts, effectiveRate, localSelectedProducts, onUpdate]);
+
+  // This effect processes the raw products with the current exchange rate
+  useEffect(() => {
+    processProducts();
+  }, [processProducts]);
 
   // Filter products based on search term
   const filteredProducts = useMemo(() => {

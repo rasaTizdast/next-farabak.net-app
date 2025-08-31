@@ -9,7 +9,7 @@ import {
   ExclamationCircleFilled,
 } from "@ant-design/icons";
 import { Table, Spin, Alert, Tag, Typography, Pagination, Modal, Button, Empty } from "antd";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 const { Title, Text } = Typography;
 const { confirm } = Modal;
@@ -44,60 +44,63 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
   const [retryCount, setRetryCount] = useState(0);
   const [resolveLoading, setResolveLoading] = useState<number | null>(null);
 
-  const fetchRequests = async (page: number = 1, pageSize: number = 10, retry: boolean = false) => {
-    if (!isTabActive && dataFetched) return;
+  const fetchRequests = useCallback(
+    async (page: number = 1, pageSize: number = 10, retry: boolean = false) => {
+      if (!isTabActive && dataFetched) return;
 
-    try {
-      setLoading(true);
-      setError("");
-      const response = await fetch(
-        `/api/admin/branches/my/requests?page=${page}&limit=${pageSize}`,
-        {
-          cache: "no-cache",
-          headers: {
-            "Cache-Control": "no-cache",
-          },
+      try {
+        setLoading(true);
+        setError("");
+        const response = await fetch(
+          `/api/admin/branches/my/requests?page=${page}&limit=${pageSize}`,
+          {
+            cache: "no-cache",
+            headers: {
+              "Cache-Control": "no-cache",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`خطا در دریافت درخواست‌ها: ${response.status}`);
         }
-      );
 
-      if (!response.ok) {
-        throw new Error(`خطا در دریافت درخواست‌ها: ${response.status}`);
+        const data = await response.json();
+        // Make sure we have an array of requests
+        const requestsData = Array.isArray(data.requests) ? data.requests : [];
+        setRequests(requestsData);
+
+        // Set pagination with safe defaults
+        setPagination({
+          current: data.pagination?.currentPage || page,
+          pageSize: data.pagination?.pageSize || pageSize,
+          total: data.pagination?.totalCount || requestsData.length,
+          totalPages: data.pagination?.totalPages || Math.ceil(requestsData.length / pageSize),
+        });
+
+        setDataFetched(true);
+      } catch (err: any) {
+        console.error("Error fetching warranty requests:", err);
+        setError(err.message || "خطا در دریافت درخواست‌های گارانتی");
+
+        // If this is the first error, retry once automatically
+        if (!retry && retryCount < 2) {
+          setRetryCount((prev) => prev + 1);
+          setTimeout(() => fetchRequests(page, pageSize, true), 2000);
+        }
+      } finally {
+        setLoading(false);
       }
-
-      const data = await response.json();
-      // Make sure we have an array of requests
-      const requestsData = Array.isArray(data.requests) ? data.requests : [];
-      setRequests(requestsData);
-
-      // Set pagination with safe defaults
-      setPagination({
-        current: data.pagination?.currentPage || page,
-        pageSize: data.pagination?.pageSize || pageSize,
-        total: data.pagination?.totalCount || requestsData.length,
-        totalPages: data.pagination?.totalPages || Math.ceil(requestsData.length / pageSize),
-      });
-
-      setDataFetched(true);
-    } catch (err: any) {
-      console.error("Error fetching warranty requests:", err);
-      setError(err.message || "خطا در دریافت درخواست‌های گارانتی");
-
-      // If this is the first error, retry once automatically
-      if (!retry && retryCount < 2) {
-        setRetryCount((prev) => prev + 1);
-        setTimeout(() => fetchRequests(page, pageSize, true), 2000);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [isTabActive, dataFetched, retryCount]
+  );
 
   // Initial fetch
   useEffect(() => {
     if (isTabActive && !dataFetched) {
       fetchRequests();
     }
-  }, [isTabActive, dataFetched]);
+  }, [isTabActive, dataFetched, fetchRequests]);
 
   const handleResolveRequest = (warrantyId: number) => {
     confirm({

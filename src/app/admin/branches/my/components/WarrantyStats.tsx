@@ -2,7 +2,7 @@
 
 import { LoadingOutlined, ReloadOutlined } from "@ant-design/icons";
 import { Card, Spin, Alert, Typography, Empty } from "antd";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 const { Title, Text } = Typography;
 
@@ -25,47 +25,50 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
   const [dataFetched, setDataFetched] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
-  const fetchWarrantyStats = async (retry: boolean = false) => {
-    if (!isTabActive && dataFetched) return;
+  const fetchWarrantyStats = useCallback(
+    async (retry: boolean = false) => {
+      if (!isTabActive && dataFetched) return;
 
-    try {
-      setLoading(true);
-      const response = await fetch("/api/admin/warranty/statistics", {
-        cache: "no-cache",
-        headers: {
-          "Cache-Control": "no-cache",
-        },
-      });
+      try {
+        setLoading(true);
+        const response = await fetch("/api/admin/warranty/statistics", {
+          cache: "no-cache",
+          headers: {
+            "Cache-Control": "no-cache",
+          },
+        });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch warranty statistics: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch warranty statistics: ${response.status}`);
+        }
+
+        const data = await response.json();
+        // Check if data.myBranches exists and is an array
+        const stats = Array.isArray(data.myBranches) ? data.myBranches : [];
+        setStatistics(stats);
+        setDataFetched(true);
+        setError("");
+      } catch (err: any) {
+        console.error("Error fetching warranty stats:", err);
+        setError(err.message || "خطا در دریافت آمار گارانتی‌ها");
+
+        // If this is the first error, retry once automatically
+        if (!retry && retryCount < 2) {
+          setRetryCount((prev) => prev + 1);
+          setTimeout(() => fetchWarrantyStats(true), 2000);
+        }
+      } finally {
+        setLoading(false);
       }
-
-      const data = await response.json();
-      // Check if data.myBranches exists and is an array
-      const stats = Array.isArray(data.myBranches) ? data.myBranches : [];
-      setStatistics(stats);
-      setDataFetched(true);
-      setError("");
-    } catch (err: any) {
-      console.error("Error fetching warranty stats:", err);
-      setError(err.message || "خطا در دریافت آمار گارانتی‌ها");
-
-      // If this is the first error, retry once automatically
-      if (!retry && retryCount < 2) {
-        setRetryCount((prev) => prev + 1);
-        setTimeout(() => fetchWarrantyStats(true), 2000);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [isTabActive, dataFetched, retryCount]
+  );
 
   useEffect(() => {
     if (isTabActive && !dataFetched) {
       fetchWarrantyStats();
     }
-  }, [isTabActive, dataFetched]);
+  }, [isTabActive, dataFetched, fetchWarrantyStats]);
 
   const handleRetry = () => {
     setDataFetched(false);

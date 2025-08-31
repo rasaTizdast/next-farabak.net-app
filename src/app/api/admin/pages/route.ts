@@ -153,7 +153,7 @@ export async function GET() {
     ];
 
     // Subpages for multipage sections
-    const subPages: SubPage[] = {
+    const subPages: { [key: string]: SubPage[] } = {
       "/support/blog": blogs.map((blog) => ({
         id: blog.id,
         name: blog.title,

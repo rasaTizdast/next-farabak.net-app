@@ -86,7 +86,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
     if (isTabActive) {
       fetchRequests(pagination.current, pagination.pageSize, false);
     }
-  }, [isTabActive, fetchRequests, pagination.current, pagination.pageSize]);
+  }, [isTabActive, fetchRequests, pagination]);
 
   const handleResolveRequest = (warrantyId: number) => {
     confirm({

@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, Table, Button, Space, Modal, Switch, message, Form, Spin, Input } from "antd";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { DatePicker } from "zaman";
 
 import { useUser } from "@/context/UserContext";
@@ -94,20 +94,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
     }
   };
 
-  // Use effect to update expanded items list when products change
-  useEffect(() => {
-    // Only transform the products if needed
-    if (selectedProducts.length > 0 && !isGeneratingCodes) {
-      try {
-        // First, let's add individual warranty codes to each product
-        updateWarranties();
-      } catch (error) {
-        console.error("Error processing individual items:", error);
-      }
-    }
-  }, [selectedProducts]);
-
-  const updateWarranties = async () => {
+  const updateWarranties = useCallback(async () => {
     if (selectedProducts.length > 0 && !isGeneratingCodes) {
       try {
         setIsGeneratingCodes(true);
@@ -234,7 +221,18 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
         setIsGeneratingCodes(false);
       }
     }
-  };
+  }, [selectedProducts, isGeneratingCodes, branch, productsWithWarranty, setProductsWithWarranty]);
+
+  // Use effect to trigger warranty update when products change
+  useEffect(() => {
+    if (selectedProducts.length > 0 && !isGeneratingCodes) {
+      try {
+        updateWarranties();
+      } catch (error) {
+        console.error("Error processing individual items:", error);
+      }
+    }
+  }, [selectedProducts, isGeneratingCodes, updateWarranties]);
 
   const handleEdit = (item: any) => {
     setEditingProduct(item);

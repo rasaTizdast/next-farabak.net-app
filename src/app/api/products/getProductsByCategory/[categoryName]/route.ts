@@ -210,7 +210,11 @@ export async function GET(req: Request, props: { params: Promise<{ categoryName:
     }
 
     // Create structured data organized by subcategory and product
-    const structuredData = {
+    const structuredData: {
+      category: typeof category;
+      subcategories: { [key: string]: { subcategory: any; products: ProductType[] } };
+      products: ProductType[];
+    } = {
       category: category,
       subcategories: {},
       products: [],

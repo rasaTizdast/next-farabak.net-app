@@ -36,6 +36,20 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
 
   // Reset all state when modal becomes visible or is closed
   useEffect(() => {
+    const resetForm = () => {
+      setCurrentStep(0);
+      setInvoice({
+        Fullname: "",
+        Phonenumber: "",
+        UserId: branch?.UserID,
+        TotalAmount: 0,
+        Checked: true,
+        Date: moment().locale("fa").format("YYYY-MM-DDTHH:mm:ss"),
+      });
+      setSelectedProducts([]);
+      setProductsWithWarranty([]);
+    };
+
     if (visible) {
       // Only fetch exchange rate when modal opens
       getExchangeRate();
@@ -48,20 +62,6 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
   const getExchangeRate = async () => {
     const rate = await fetchUsdToRialRate();
     setUsdToRialRate(rate);
-  };
-
-  const resetForm = () => {
-    setCurrentStep(0);
-    setInvoice({
-      Fullname: "",
-      Phonenumber: "",
-      UserId: branch?.UserID,
-      TotalAmount: 0,
-      Checked: true,
-      Date: moment().locale("fa").format("YYYY-MM-DDTHH:mm:ss"),
-    });
-    setSelectedProducts([]);
-    setProductsWithWarranty([]);
   };
 
   const handleClose = () => {

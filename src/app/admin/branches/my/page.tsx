@@ -331,7 +331,7 @@ function MyBranchContent() {
   };
 
   // Enhanced date formatting function with better error handling
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | Date | number) => {
     if (!dateString) return "-";
 
     try {
