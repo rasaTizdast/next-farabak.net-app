@@ -42,6 +42,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [localSelectedProducts, setLocalSelectedProducts] = useState<any[]>([]);
   const [manualExchangeRate, setManualExchangeRate] = useState<number | null>(null);
+  const [rawInput, setRawInput] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"products" | "selected">("products");
   const [searchTerm, setSearchTerm] = useState("");
   const { isBranch } = useUser();
@@ -88,8 +89,9 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     fetchProducts();
   }, [branchId]); // Only depends on branchId, not on rate changes
 
-  // Process products and update prices when dependencies change
-  const processProducts = useCallback(() => {
+  // This effect processes the raw products with the current exchange rate
+  // without triggering API calls
+  useEffect(() => {
     if (rawProducts.length === 0) return;
 
     const processedProducts = rawProducts.map((product: Product) => {
@@ -145,12 +147,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
         );
       }
     }
-  }, [rawProducts, effectiveRate, localSelectedProducts, onUpdate]);
-
-  // This effect processes the raw products with the current exchange rate
-  useEffect(() => {
-    processProducts();
-  }, [processProducts]);
+  }, [rawProducts, effectiveRate]);
 
   // Filter products based on search term
   const filteredProducts = useMemo(() => {
@@ -234,14 +231,23 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     [products, setSelectedProducts, onUpdate]
   );
 
-  // Handle manual exchange rate change without full re-renders
+  // Handle manual exchange rate change
   const handleManualRateChange = useCallback((value: string) => {
-    const numValue = value ? parseFloat(value.replace(/,/g, "")) : null;
-    if (numValue === null) return;
-    setManualExchangeRate(numValue);
+    // Keep what the user types
+    setRawInput(value);
+
+    // Convert Persian digits to English before parsing
+    const englishValue = value.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)));
+
+    const numValue = englishValue ? parseFloat(englishValue.replace(/,/g, "")) : null;
+    if (numValue !== null && !isNaN(numValue)) {
+      setManualExchangeRate(numValue);
+    } else {
+      setManualExchangeRate(null);
+    }
   }, []);
 
-  // Format number with Persian digits
+  // Format number with Persian digits (for later display, not during typing)
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat("fa-IR").format(num);
   };
@@ -295,11 +301,12 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
             <input
               type="text"
               min={1}
-              value={manualExchangeRate ? formatNumber(manualExchangeRate) : ""}
+              value={rawInput}
               onChange={(e) => handleManualRateChange(e.target.value)}
               className="w-48 rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="نرخ ارز را وارد کنید"
             />
+
             <span className="mr-2 text-white">تومان</span>
           </div>
         </div>
