@@ -95,6 +95,7 @@ export async function GET(): Promise<NextResponse> {
       where: { UserID: decoded.userId as number },
       select: {
         UserID: true,
+        Username: true,
         FirstName: true,
         LastName: true,
         Email: true,
@@ -109,6 +110,7 @@ export async function GET(): Promise<NextResponse> {
 
     return NextResponse.json({
       userId: user.UserID,
+      username: user.Username,
       firstName: user.FirstName,
       lastName: user.LastName,
       email: user.Email,

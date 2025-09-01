@@ -176,6 +176,7 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
           <div className="flex items-center gap-4">
             <input
               type="text"
+              data-testid={`faq-question-${index}`}
               value={faq.question}
               onChange={(e) => handleFAQChange(index, "question", e.target.value)}
               className={`w-full rounded-lg border bg-gray-700 p-3 ${
@@ -188,6 +189,7 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
             )}
             <button
               type="button"
+              data-testid={`remove-faq-${index}`}
               onClick={() => handleRemoveFAQ(index)}
               className="text-red-500 transition-all hover:text-red-600"
             >
@@ -195,6 +197,7 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
             </button>
           </div>
           <textarea
+            data-testid={`faq-answer-${index}`}
             value={faq.answer}
             onChange={(e) => handleFAQChange(index, "answer", e.target.value)}
             className={`w-full rounded-lg border bg-gray-700 p-3 ${
@@ -209,6 +212,7 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
       ))}
       <button
         type="button"
+        data-testid="add-faq-button"
         onClick={handleAddFAQ}
         className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-700"
         disabled={localFAQs.length >= 12}

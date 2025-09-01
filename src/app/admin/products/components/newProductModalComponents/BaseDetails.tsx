@@ -181,6 +181,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         </label>
         <input
           id="name"
+          data-testid="product-name"
           type="text"
           value={state.name}
           onChange={(e) => {
@@ -204,6 +205,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         </label>
         <input
           id="slug"
+          data-testid="product-slug"
           type="text"
           value={state.slug}
           onChange={(e) => {
@@ -227,6 +229,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         </label>
         <select
           id="category"
+          data-testid="product-category"
           value={state.categoryID || ""}
           onChange={(e) => {
             const newCategoryID = Number(e.target.value);
@@ -325,6 +328,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         </label>
         <input
           id="price"
+          data-testid="product-price"
           type="number"
           step="0.01"
           value={state.price}
@@ -346,6 +350,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         </label>
         <input
           id="discount"
+          data-testid="product-discount"
           type="number"
           step="0.01"
           value={state.discount}
@@ -367,6 +372,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         </label>
         <input
           id="smallDesc"
+          data-testid="product-small-desc"
           type="text"
           value={state.smallDesc}
           onChange={(e) => {
@@ -390,6 +396,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         </label>
         <input
           id="SEO_Title"
+          data-testid="product-seo-title"
           type="text"
           value={state.SEO_Title}
           onChange={(e) => {
@@ -414,6 +421,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         </label>
         <textarea
           id="SEO_Description"
+          data-testid="product-seo-desc"
           value={state.SEO_Description}
           onChange={(e) => {
             const value = e.target.value;
@@ -440,6 +448,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         </label>
         <input
           id="keywords"
+          data-testid="product-keywords"
           type="text"
           onKeyDown={(e) => {
             const input = e.target as HTMLInputElement; // Type assertion
@@ -518,6 +527,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         </label>
         <input
           id="bannerImage"
+          data-testid="product-banner-image"
           accept="image/*"
           type="file"
           onChange={(e) => {
@@ -549,6 +559,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
         </label>
         <input
           id="transparentImage"
+          data-testid="product-transparent-image"
           type="file"
           accept="image/*"
           onChange={(e) => {
@@ -596,6 +607,7 @@ const SubCategoryButton: React.FC<SubCategoryButtonProps> = ({
   return (
     <button
       type="button"
+      data-testid={`subcategory-button-${subCategory.CategoryContentId}`}
       onClick={onClick}
       className={`rounded border px-3 py-1 text-center ${
         isSelected

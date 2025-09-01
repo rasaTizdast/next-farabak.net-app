@@ -248,6 +248,7 @@ const AdminProductsPage = () => {
           </div>
           {/* New Product Button */}
           <button
+            data-testid="new-product-button"
             className="mt-4 w-full rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700 lg:mt-0 lg:w-auto"
             onClick={() => setShowNewProductModal(true)}
           >

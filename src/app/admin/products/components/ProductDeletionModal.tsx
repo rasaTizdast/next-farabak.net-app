@@ -40,7 +40,10 @@ const ProductDeletionModal = ({ currentAction, handleModalConfirm, setIsModalOpe
       : "bg-gray-600 hover:bg-gray-700 focus:ring-gray-400 text-white";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-opacity">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+      data-testid="delete-confirmation-modal"
+    >
       <div
         className={`relative w-full max-w-md animate-fade-in rounded-lg p-8 shadow-lg ${modalStyles}`}
       >

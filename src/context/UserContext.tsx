@@ -40,7 +40,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await axios.get("/api/auth/profile");
       setUser(response.data); // Set the user data in context
     } catch (error) {
-      throw new Error("Error fetching user data", error!);
+      console.error("Error fetching user data:", error);
+      // Don't throw the error, just log it and set user to null
+      setUser(null);
+      // If it's an authentication error (401), redirect to login
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        router.push("/auth/login");
+      }
     } finally {
       setLoading(false); // Stop loading once the fetch is complete
     }

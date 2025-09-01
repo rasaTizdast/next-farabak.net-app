@@ -284,7 +284,10 @@ const ProductsTable = ({
             </div>
           </div>
         )}
-        <table className="w-full table-auto border-separate border-spacing-0 whitespace-nowrap text-center text-xs text-gray-300 lg:text-sm">
+        <table
+          className="w-full table-auto border-separate border-spacing-0 whitespace-nowrap text-center text-xs text-gray-300 lg:text-sm"
+          data-testid="products-table"
+        >
           <thead className="bg-slate-800 uppercase text-gray-100">
             <tr>
               <th scope="col" className="w-12 px-6 py-3">
@@ -443,6 +446,7 @@ const ProductsTable = ({
                             });
                           }}
                           className="rounded-lg bg-red-600 px-2 py-1 text-white transition-all hover:bg-red-700"
+                          data-testid="delete-product-button"
                         >
                           حذف
                         </button>

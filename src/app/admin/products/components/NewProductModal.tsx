@@ -590,7 +590,9 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
                 onClick={() => toggleSection("baseDetails")}
                 className="flex cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
               >
-                <span className="text-lg font-semibold">جزئیات پایه</span>
+                <span className="text-lg font-semibold" data-testid="basic-details">
+                  جزئیات پایه
+                </span>
                 {openSections.baseDetails ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
               </div>
               <div className={openSections.baseDetails ? "block" : "hidden"}>
@@ -773,6 +775,7 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
               {/* Update the submit button to disable if there are errors */}
               <button
                 type="submit"
+                data-testid="create-product-button"
                 className={`rounded-lg px-6 py-2 ${
                   hasErrors() ? "cursor-not-allowed bg-gray-500" : "bg-blue-500 hover:bg-blue-600"
                 } text-white`}

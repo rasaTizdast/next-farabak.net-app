@@ -29,7 +29,7 @@ const Specs: React.FC<SpecsProps> = ({ state, dispatch, setErrors, hasSubmitted 
       if (value.length > 100) return "عنوان نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.";
     } else if (field === "description") {
       if (!value.trim()) return "توضیحات نمی‌تواند خالی باشد.";
-      if (value.length > 200) return "توضیحات نمی‌تواند بیشتر از ۲۰۰ کاراکتر باشد.";
+      if (value.length > 4000) return "توضیحات نمی‌تواند بیشتر از 4000 کاراکتر باشد.";
     }
     return "";
   };
@@ -283,6 +283,7 @@ const Specs: React.FC<SpecsProps> = ({ state, dispatch, setErrors, hasSubmitted 
             </button>
             <button
               type="button"
+              data-testid="add-spec-button"
               className="flex items-center gap-1 rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700"
               onClick={addSpec}
             >
@@ -306,6 +307,7 @@ const Specs: React.FC<SpecsProps> = ({ state, dispatch, setErrors, hasSubmitted 
                 <label className="mb-1 block text-sm">عنوان</label>
                 <input
                   type="text"
+                  data-testid={`spec-title-${index}`}
                   value={spec.title}
                   onChange={(e) => {
                     e.stopPropagation();
@@ -325,6 +327,7 @@ const Specs: React.FC<SpecsProps> = ({ state, dispatch, setErrors, hasSubmitted 
                 <label className="mb-1 block text-sm">توضیحات</label>
                 <input
                   type="text"
+                  data-testid={`spec-description-${index}`}
                   value={spec.description}
                   onChange={(e) => {
                     e.stopPropagation();
@@ -343,6 +346,7 @@ const Specs: React.FC<SpecsProps> = ({ state, dispatch, setErrors, hasSubmitted 
               <div className="mb-1 flex items-end">
                 <button
                   type="button"
+                  data-testid={`remove-spec-${index}`}
                   onClick={(e) => removeSpec(e, index)}
                   className="p-2 text-red-400 hover:text-red-300"
                 >

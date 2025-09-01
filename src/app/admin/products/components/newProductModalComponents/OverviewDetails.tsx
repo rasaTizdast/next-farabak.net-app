@@ -143,6 +143,7 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
                     </button>
                     <button
                       type="button"
+                      data-testid={`overview-detail-select-${detail.ProductOverviewDetailsId}`}
                       onClick={() => toggleSelection(detail.ProductOverviewDetailsId)}
                       className={`rounded-md px-3 py-1 ${
                         detail.selected

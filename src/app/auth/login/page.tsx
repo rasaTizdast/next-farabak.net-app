@@ -44,7 +44,16 @@ const SignIn = () => {
     try {
       const response = await axios.post("/api/auth/login", data);
       if (response.data.message === "ورود با موفقیت انجام شد") {
-        updateUserContext();
+        // Add a small delay to ensure cookies are set
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        try {
+          await updateUserContext();
+        } catch (userError) {
+          console.error("Error updating user context:", userError);
+          // Continue with redirect even if user context update fails
+        }
+        
         // Redirect based on user role
         const userRole = response.data.role;
         if (userRole === "Admin") {
@@ -99,6 +108,7 @@ const SignIn = () => {
               control={methods.control}
               errors={errors}
               autoComplete="username"
+              data-testid="username-input"
             />
             <TextInput
               name="password"
@@ -108,6 +118,7 @@ const SignIn = () => {
               errors={errors}
               type="password"
               autoComplete="current-password"
+              data-testid="password-input"
             />
             <button
               type="button"
@@ -121,6 +132,7 @@ const SignIn = () => {
               type="submit"
               value={isSubmitting ? "در حال ورود..." : "ورود به حساب کاربری"}
               disabled={isSubmitting}
+              data-testid="submit-button"
             />
           </div>
 

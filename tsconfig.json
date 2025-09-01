@@ -25,6 +25,7 @@
     }
   },
   "include": [
+    "cypress",
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
