@@ -159,6 +159,7 @@ const CreateNewItemModal = ({
       <div className="w-full max-w-3xl animate-fade-in">
         <div className="rtl flex justify-center gap-6">
           <button
+            data-testid="newCategoryButton"
             onClick={() => setActiveTab("Category")}
             className={`rounded-t-xl px-6 py-3 font-medium transition-all ${
               activeTab === "Category"
@@ -169,6 +170,7 @@ const CreateNewItemModal = ({
             دسته‌بندی جدید
           </button>
           <button
+            data-testid="newSubCategoryButton"
             onClick={() => setActiveTab("Subcategory")}
             className={`rounded-t-xl px-6 py-3 font-medium transition-all ${
               activeTab === "Subcategory"
