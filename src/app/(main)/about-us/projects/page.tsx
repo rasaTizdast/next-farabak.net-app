@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   title: "گالری تصاویر پروژه ها | فرابک",
   description: "شما در این صفحه میتوانید اطلاعاتی درباره پروژه های شرکت فرابک مشاهده کنید.",
   robots: {
-    index: false,
-    follow: false,
+    index: true,
+    follow: true,
   },
 };
 

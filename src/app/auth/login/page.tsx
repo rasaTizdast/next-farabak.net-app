@@ -45,15 +45,15 @@ const SignIn = () => {
       const response = await axios.post("/api/auth/login", data);
       if (response.data.message === "ورود با موفقیت انجام شد") {
         // Add a small delay to ensure cookies are set
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         try {
           await updateUserContext();
         } catch (userError) {
           console.error("Error updating user context:", userError);
           // Continue with redirect even if user context update fails
         }
-        
+
         // Redirect based on user role
         const userRole = response.data.role;
         if (userRole === "Admin") {

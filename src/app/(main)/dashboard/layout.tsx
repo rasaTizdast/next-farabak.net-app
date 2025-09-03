@@ -6,8 +6,8 @@ import DashboardLayoutContent from "./DashboardLayoutContent";
 
 export const metadata: Metadata = {
   robots: {
-    index: false, // This sets the noindex directive
-    follow: false, // Allows crawling of links on the page if needed
+    index: true, // This sets the noindex directive
+    follow: true, // Allows crawling of links on the page if needed
   },
 };
 
