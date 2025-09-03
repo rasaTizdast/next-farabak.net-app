@@ -166,6 +166,13 @@ export default function AdminPartnerPricesPage() {
         />
       </div>
 
+      {!usdRate && (
+        <div className="mb-4 rounded-md bg-red-700/80 p-3 text-sm">
+          <strong>توجه:</strong> نرخ دلار به ریال قابل دریافت نیست. قیمت‌ها به دلار نمایش داده
+          می‌شوند.
+        </div>
+      )}
+
       <div className="overflow-x-auto rounded-lg bg-slate-700">
         <table className="w-full table-auto text-sm">
           <thead className="sticky top-0 z-10 bg-slate-800 text-gray-100">

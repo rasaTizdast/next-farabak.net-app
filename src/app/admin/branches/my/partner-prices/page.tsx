@@ -130,6 +130,13 @@ export default function BranchPartnerPricesPage() {
         />
       </div>
 
+      {!usdRate && (
+        <div className="mb-4 rounded-md bg-red-700/80 p-3 text-sm">
+          <strong>توجه:</strong> نرخ دلار به ریال قابل دریافت نیست. قیمت‌ها به دلار نمایش داده
+          می‌شوند.
+        </div>
+      )}
+
       <div className="overflow-x-auto rounded-lg bg-slate-700">
         <table className="w-full table-auto text-sm">
           <thead className="sticky top-0 z-10 bg-slate-800 text-gray-100">
@@ -192,9 +199,15 @@ export default function BranchPartnerPricesPage() {
                         const discountedUsd = Math.max(price - discount, 0);
                         return (
                           <div className="flex flex-col items-center gap-0.5">
-                            <span className="text-red-300 line-through">{formatRial(price)}</span>
+                            <span className="text-red-300 line-through">
+                              {formatRial(price) === "-"
+                                ? `${price.toLocaleString("fa-IR")} دلار`
+                                : formatRial(price)}
+                            </span>
                             <span className="font-semibold text-green-400">
-                              {formatRial(discountedUsd)}
+                              {formatRial(discountedUsd) === "-"
+                                ? `${discountedUsd.toLocaleString("fa-IR")} دلار`
+                                : formatRial(discountedUsd)}
                             </span>
                           </div>
                         );
@@ -204,8 +217,12 @@ export default function BranchPartnerPricesPage() {
                   </td>
                   <td className="px-4 py-3 text-center">
                     <div className="flex flex-col items-center gap-0.5">
-                      <span className="text-gray-200">
-                        {p.Partner_Price ? formatRial(parseFloat(p.Partner_Price)) : "-"}
+                      <span className="font-semibold text-gray-200">
+                        {!p.Partner_Price
+                          ? "بدون قیمت"
+                          : usdRate
+                            ? formatRial(parseFloat(p.Partner_Price))
+                            : `${parseFloat(p.Partner_Price).toLocaleString("fa-IR")} دلار`}
                       </span>
                     </div>
                   </td>
