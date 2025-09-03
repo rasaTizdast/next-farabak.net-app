@@ -300,6 +300,7 @@ export async function PATCH(request: Request, props: { params: Promise<{ product
       "SEO_Title",
       "SEO_Description",
       "productBlog",
+      "Partner_Price",
     ];
 
     // Filter out only valid fields to update

@@ -11,6 +11,7 @@ import {
   FiFileText,
   FiFile,
   FiBarChart2,
+  FiTag,
 } from "react-icons/fi";
 import { IoReturnDownForward } from "react-icons/io5";
 import { MdOutlineStorefront } from "react-icons/md";
@@ -25,6 +26,7 @@ const Sidebar = () => {
   const adminSidebarItems = [
     { name: "داشبورد", href: "/admin", icon: <FiHome size={20} /> },
     { name: "محصولات", href: "/admin/products", icon: <FiBox size={20} /> },
+    { name: "قیمت‌های همکار", href: "/admin/partner-prices", icon: <FiTag size={20} /> },
     {
       name: "دسته‌بندی‌ها",
       href: "/admin/products/categories",
@@ -51,6 +53,11 @@ const Sidebar = () => {
 
   const branchSidebarItems = [
     { name: "شعبه من", href: "/admin/branches/my", icon: <MdOutlineStorefront size={20} /> },
+    {
+      name: "قیمت‌های همکار",
+      href: "/admin/branches/my/partner-prices",
+      icon: <FiTag size={20} />,
+    },
   ];
 
   // Select the sidebar items based on user role

@@ -280,6 +280,7 @@ model Product {
   QrCode_Key        String?  @db.VarChar(100)
   QrCode_expiryDays String?  @db.VarChar(50)
   productBlog       String?
+  Partner_Price     String?  @db.VarChar(20)
 
   // new added field
   Category      Category?       @relation(fields: [CategoryId], references: [CategoryID])

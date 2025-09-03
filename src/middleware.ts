@@ -125,8 +125,8 @@ export async function middleware(req: ExtendedNextRequest) {
           // Allow branch users only to access their specific branch page and related pages
           if (
             req.nextUrl.pathname === "/admin/branches/my" ||
-            req.nextUrl.pathname === "/admin/branches/my/invoices" ||
-            req.nextUrl.pathname.startsWith("/admin/branches/my/invoices/")
+            req.nextUrl.pathname === "/admin/branches/my/partner-prices" ||
+            req.nextUrl.pathname.startsWith("/admin/branches/my/partner-prices/")
           ) {
             return NextResponse.next();
           } else if (req.nextUrl.pathname === "/admin" || req.nextUrl.pathname === "/admin/") {
