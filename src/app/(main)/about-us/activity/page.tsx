@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   title: "فعالیت های شرکت فرابک | فرابک",
   description: "شما در این صفحه میتوانید اطلاعاتی درباره فعالیت های شرکت فرابک مشاهده کنید.",
   robots: {
-    index: false,
-    follow: false,
+    index: true,
+    follow: true,
   },
 };
 

@@ -8,8 +8,8 @@ export const metadata: Metadata = {
   title: "تماس با ما | فرابک",
   description: "راه های تماس با شرکت فرابک را میتوانید از این صفحه مشاهده کنید.",
   robots: {
-    index: false, // This sets the noindex directive
-    follow: false, // Allows crawling of links on the page if needed
+    index: true, // This sets the noindex directive
+    follow: true, // Allows crawling of links on the page if needed
   },
 };
 
