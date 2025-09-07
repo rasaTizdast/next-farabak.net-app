@@ -94,7 +94,7 @@ export async function generateMetadata(props: {
       images: [`/productImages/${product.img2}`],
     },
     robots: {
-      index: false, // This sets the noindex directive
+      index: true, // This sets the noindex directive
       follow: true, // Allows crawling of links on the page if needed
     },
   };
