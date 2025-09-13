@@ -67,18 +67,80 @@ const ProjectPage = async (props: ParamsType) => {
   const { title, date, images, largeDesc, location, video }: ProjectProps = projectData;
 
   const breadcrumbs = ["/", "/about-us", "/about-us/projects"];
+
+  // Prepare structured data for Schema.org
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: title,
+    description: largeDesc,
+    image: images.map((img) => `${process.env.LIARA_BUCKET_URL}/${img.img}`),
+    datePublished: date,
+    url: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/projects/${params.project}`,
+    publisher: {
+      "@type": "Organization",
+      name: "فرابک",
+      url: process.env.NEXT_PUBLIC_BASE_URL,
+    },
+    locationCreated: {
+      "@type": "Place",
+      name: location,
+    },
+    video: video
+      ? {
+          "@type": "VideoObject",
+          url: video,
+          name: `ویدیو پروژه ${title}`,
+        }
+      : undefined,
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "صفحه اصلی",
+          item: process.env.NEXT_PUBLIC_BASE_URL,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "درباره ما",
+          item: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us`,
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: "گالری تصاویر پروژه ها",
+          item: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/projects`,
+        },
+        {
+          "@type": "ListItem",
+          position: 4,
+          name: title,
+          item: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/projects/${params.project}`,
+        },
+      ],
+    },
+  };
   return (
-    <section className={styles.content}>
-      <Breadcrumb breadcrumbs={breadcrumbs} />
-      <h1>{title}</h1>
-      <h3 aria-label="date of the project">{new Date(date).toLocaleDateString("fa")}</h3>
-      <h4 aria-label="location of the project">{location}</h4>
-      <p>{largeDesc}</p>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <section className={styles.content}>
+        <Breadcrumb breadcrumbs={breadcrumbs} />
+        <h1>{title}</h1>
+        <h3 aria-label="date of the project">{new Date(date).toLocaleDateString("fa")}</h3>
+        <h4 aria-label="location of the project">{location}</h4>
+        <p>{largeDesc}</p>
 
-      <ProjectSlider slides={images} />
+        <ProjectSlider slides={images} />
 
-      {video && <VideoPlayer url={video} />}
-    </section>
+        {video && <VideoPlayer url={video} />}
+      </section>
+    </>
   );
 };
 

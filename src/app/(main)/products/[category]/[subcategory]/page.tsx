@@ -1,6 +1,7 @@
 import axios from "axios";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Script from "next/script";
 
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
@@ -74,17 +75,93 @@ const SubcategoryPage = async (props: SubcategoryPageProps) => {
     `/products/${category}/${subcategory}`,
   ];
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": `https://farabak.net/products/${category}/${subcategory}`,
+        url: `https://farabak.net/products/${category}/${subcategory}`,
+        name: `محصولات ${subCategoryTitle} | فرابک`,
+        description: `مجموعه‌ای از محصولات ${subCategoryTitle} با کیفیت بالا و گارانتی معتبر از فرابک`,
+        isPartOf: {
+          "@id": "https://farabak.net/#website",
+        },
+        about: {
+          "@id": "https://farabak.net",
+        },
+        breadcrumb: {
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "خانه",
+              item: "https://farabak.net",
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "محصولات",
+              item: "https://farabak.net/products",
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: category,
+              item: `https://farabak.net/products/${category}`,
+            },
+            {
+              "@type": "ListItem",
+              position: 4,
+              name: subCategoryTitle,
+              item: `https://farabak.net/products/${category}/${subcategory}`,
+            },
+          ],
+        },
+        mainEntity: {
+          "@type": "ItemList",
+          name: `محصولات ${subCategoryTitle}`,
+          description: `مجموعه‌ای از محصولات ${subCategoryTitle} شامل دوربین‌های مداربسته، سیستم‌های نظارتی و محصولات امنیتی`,
+          numberOfItems: "30+",
+          itemListElement: {
+            "@type": "Product",
+            name: `محصولات ${subCategoryTitle}`,
+            description: `محصولات ${subCategoryTitle} با کیفیت بالا و گارانتی معتبر`,
+            category: subCategoryTitle,
+            offers: {
+              "@type": "AggregateOffer",
+              priceCurrency: "IRR",
+              availability: "https://schema.org/InStock",
+              seller: {
+                "@id": "https://farabak.net",
+              },
+            },
+          },
+        },
+        inLanguage: "fa-IR",
+      },
+    ],
+  };
+
   return (
-    <div>
-      <Breadcrumb breadcrumbs={breadcrumbs} />
-      <ProductGrid
-        title={subCategoryTitle}
-        apiUrl={apiUrl}
-        currentPage={currentPage}
-        categorySlug={category}
-        subcategorySlug={subcategory}
+    <>
+      <Script
+        id="json-ld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-    </div>
+      <div>
+        <Breadcrumb breadcrumbs={breadcrumbs} />
+        <ProductGrid
+          title={subCategoryTitle}
+          apiUrl={apiUrl}
+          currentPage={currentPage}
+          categorySlug={category}
+          subcategorySlug={subcategory}
+        />
+      </div>
+    </>
   );
 };
 

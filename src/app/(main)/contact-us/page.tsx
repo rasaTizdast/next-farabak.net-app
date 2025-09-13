@@ -27,44 +27,94 @@ const ContactUsPage = async () => {
 
   const { address, emails, phone_numbers } = data;
 
+  // Prepare structured data for Schema.org
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    name: "تماس با فرابک",
+    description: "راه های تماس با شرکت فرابک",
+    url: `${process.env.NEXT_PUBLIC_BASE_URL}/contact-us`,
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "صفحه اصلی",
+          item: process.env.NEXT_PUBLIC_BASE_URL,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "تماس با ما",
+          item: `${process.env.NEXT_PUBLIC_BASE_URL}/contact-us`,
+        },
+      ],
+    },
+    mainEntity: {
+      "@type": "Organization",
+      name: "فرابک",
+      url: process.env.NEXT_PUBLIC_BASE_URL,
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: address?.address,
+        postalCode: address?.postal_code,
+        addressCountry: "IR",
+      },
+      email: emails.map((email) => email.address),
+      telephone: phone_numbers.map((phone) => phone.number),
+      contactPoint: emails.map((email) => ({
+        "@type": "ContactPoint",
+        email: email.address,
+        contactType: email.title,
+      })),
+    },
+  };
+
   return (
-    <main className={styles.main}>
-      <div className={styles.section}>
-        <h1>آدرس</h1>
-        <div className={styles.para}>
-          <div className={styles.bold}>آدرس: </div>
-          {address?.address}
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <main className={styles.main}>
+        <div className={styles.section}>
+          <h1>آدرس</h1>
+          <div className={styles.para}>
+            <div className={styles.bold}>آدرس: </div>
+            {address?.address}
+          </div>
+          <div className={styles.para}>
+            <div className={styles.bold}>کدپستی: </div>
+            {address?.postal_code}
+          </div>
+          <p>{address?.alt_text}</p>
         </div>
-        <div className={styles.para}>
-          <div className={styles.bold}>کدپستی: </div>
-          {address?.postal_code}
+        <div className={styles.section}>
+          <h1>شماره‌های تماس</h1>
+          <ul>
+            {phone_numbers.map((phone: { id: number; number: string }) => (
+              <li key={phone.id}>
+                <a href={`tel:${phone.number}`}>{phone.number}</a>
+              </li>
+            ))}
+          </ul>
         </div>
-        <p>{address?.alt_text}</p>
-      </div>
-      <div className={styles.section}>
-        <h1>شماره‌های تماس</h1>
-        <ul>
-          {phone_numbers.map((phone: { id: number; number: string }) => (
-            <li key={phone.id}>
-              <a href={`tel:${phone.number}`}>{phone.number}</a>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className={styles.section}>
-        <h1>آدرس‌های ایمیل</h1>
-        <ul>
-          {emails.map((email: { id: number; title: string; address: string }) => (
-            <li key={email.id}>
-              <a href={`mailto:${email.address}`}>
-                <div className={styles.bold}>{email.title}:</div>
-                <span>{email.address}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </main>
+        <div className={styles.section}>
+          <h1>آدرس‌های ایمیل</h1>
+          <ul>
+            {emails.map((email: { id: number; title: string; address: string }) => (
+              <li key={email.id}>
+                <a href={`mailto:${email.address}`}>
+                  <div className={styles.bold}>{email.title}:</div>
+                  <span>{email.address}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </main>
+    </>
   );
 };
 

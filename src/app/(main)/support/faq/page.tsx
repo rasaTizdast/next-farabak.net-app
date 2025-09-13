@@ -20,8 +20,26 @@ export const revalidate = 60; // Revalidate every 1 minute
 const FaqPage = async () => {
   const faqs = await fetchFaqs();
 
+  // Prepare structured data for Schema.org
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.Q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.A,
+      },
+    })),
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       {/* Hero section */}
       <section className="relative w-full overflow-hidden rounded-lg bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400 py-6 shadow-lg md:rounded-xl md:py-10 lg:py-14">
         {/* Decorative elements - hidden on mobile for better performance */}
