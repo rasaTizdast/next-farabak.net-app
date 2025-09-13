@@ -46,7 +46,7 @@ const ProductsPage = async (props: ProductsPageProps) => {
         name: `تمامی محصولات - صفحه ${currentPage} | فرابک`,
         description: `با مرور در صفحه ${currentPage} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
         isPartOf: {
-          "@id": "https://farabak.net/#website",
+          "@id": "https://farabak.net",
         },
         about: {
           "@id": "https://farabak.net",
@@ -93,14 +93,6 @@ const ProductsPage = async (props: ProductsPageProps) => {
               },
             ],
             category: "Security Equipment",
-            offers: {
-              "@type": "AggregateOffer",
-              priceCurrency: "IRR",
-              availability: "https://schema.org/InStock",
-              seller: {
-                "@id": "https://farabak.net",
-              },
-            },
           },
         },
         inLanguage: "fa-IR",

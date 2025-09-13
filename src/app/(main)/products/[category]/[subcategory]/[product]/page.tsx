@@ -172,68 +172,6 @@ export default async function ProductPage(props: {
       "@type": "Brand",
       name: "فرابک",
     },
-    offers:
-      productData.Discount && productData.Discount !== "0"
-        ? {
-            "@type": "Offer",
-            price: productData.Price,
-            priceCurrency: "IRR",
-            availability: productData.Available
-              ? "https://schema.org/InStock"
-              : "https://schema.org/OutOfStock",
-            priceValidUntil: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days from now
-            seller: {
-              "@type": "Organization",
-              name: "فرابک",
-            },
-          }
-        : {
-            "@type": "Offer",
-            price: productData.Price,
-            priceCurrency: "IRR",
-            availability: productData.Available
-              ? "https://schema.org/InStock"
-              : "https://schema.org/OutOfStock",
-            seller: {
-              "@type": "Organization",
-              name: "فرابک",
-            },
-          },
-    breadcrumb: {
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "صفحه اصلی",
-          item: process.env.NEXT_PUBLIC_BASE_URL,
-        },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: "محصولات",
-          item: `${process.env.NEXT_PUBLIC_BASE_URL}/products`,
-        },
-        {
-          "@type": "ListItem",
-          position: 3,
-          name: productData.categorySlug,
-          item: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}`,
-        },
-        {
-          "@type": "ListItem",
-          position: 4,
-          name: productData.subCategorySlug,
-          item: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}`,
-        },
-        {
-          "@type": "ListItem",
-          position: 5,
-          name: productData.Name,
-          item: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
-        },
-      ],
-    },
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,

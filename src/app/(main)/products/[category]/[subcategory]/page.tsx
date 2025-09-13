@@ -85,7 +85,7 @@ const SubcategoryPage = async (props: SubcategoryPageProps) => {
         name: `محصولات ${subCategoryTitle} | فرابک`,
         description: `مجموعه‌ای از محصولات ${subCategoryTitle} با کیفیت بالا و گارانتی معتبر از فرابک`,
         isPartOf: {
-          "@id": "https://farabak.net/#website",
+          "@id": "https://farabak.net",
         },
         about: {
           "@id": "https://farabak.net",
@@ -129,14 +129,6 @@ const SubcategoryPage = async (props: SubcategoryPageProps) => {
             name: `محصولات ${subCategoryTitle}`,
             description: `محصولات ${subCategoryTitle} با کیفیت بالا و گارانتی معتبر`,
             category: subCategoryTitle,
-            offers: {
-              "@type": "AggregateOffer",
-              priceCurrency: "IRR",
-              availability: "https://schema.org/InStock",
-              seller: {
-                "@id": "https://farabak.net",
-              },
-            },
           },
         },
         inLanguage: "fa-IR",
