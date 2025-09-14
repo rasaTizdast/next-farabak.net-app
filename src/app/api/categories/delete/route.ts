@@ -96,7 +96,32 @@ async function deleteSubCategory(subCategoryId: number) {
     },
   });
 
+  // Delete product images from S3 before deleting from database
   for (const product of products) {
+    try {
+      // Delete product images from S3
+      const baseUrl = process.env.BASE_URL || process.env.NEXT_PUBLIC_BASE_URL;
+      const s3Response = await fetch(`${baseUrl}/api/s3/delete`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "productImages",
+          productId: product.ProductId,
+        }),
+      });
+
+      if (s3Response.status !== 200) {
+        console.error(
+          `Failed to delete images for product ${product.ProductId}:`,
+          await s3Response.text()
+        );
+      }
+    } catch (error) {
+      console.error(`Error deleting images for product ${product.ProductId}:`, error);
+    }
+
     // Delete product overview
     await prisma.productOverview.deleteMany({
       where: { ProductId: product.ProductId },

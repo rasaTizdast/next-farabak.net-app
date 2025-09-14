@@ -102,20 +102,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const lastIdResult = await prisma.categoryContent.findFirst({
-      orderBy: {
-        CategoryContentId: "desc",
-      },
-      select: {
-        CategoryContentId: true,
-      },
-    });
-
-    const nextCategoryContentId = (lastIdResult?.CategoryContentId || 0) + 1;
-
     const subcategory = await prisma.categoryContent.create({
       data: {
-        CategoryContentId: nextCategoryContentId,
         Name: name,
         Slug: slug,
         Available: available,
