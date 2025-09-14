@@ -78,7 +78,18 @@ export async function GET() {
         // Blogs
         prisma.blogs.findMany({
           where: { status: "Published" },
-          select: { slug: true },
+          select: {
+            slug: true,
+            BlogCategories: {
+              select: {
+                Categories: {
+                  select: {
+                    slug: true,
+                  },
+                },
+              },
+            },
+          },
         }),
 
         // Blog Categories
@@ -125,7 +136,17 @@ export async function GET() {
       .map((content) => `https://farabak.net/products/${content.Category?.Slug}/${content.Slug}`);
 
     // Generate blog URLs
-    const blogUrls = blogs.map((blog) => `https://farabak.net/support/blog/${blog.slug}`);
+    const blogUrls = blogs.flatMap((blog) => {
+      // If blog has categories, create URLs for each category
+      if (blog.BlogCategories && blog.BlogCategories.length > 0) {
+        return blog.BlogCategories.map(
+          (blogCategory) =>
+            `https://farabak.net/support/blog/${blogCategory.Categories.slug}/${blog.slug}`
+        );
+      }
+      // If no categories, create URL without category (fallback)
+      return [`https://farabak.net/support/blog/${blog.slug}`];
+    });
 
     // Generate blog category URLs
     const blogCategoryUrls = blogCategories.map(
