@@ -160,27 +160,95 @@ export default async function ProductPage(props: {
   // Prepare structured data for Schema.org
   const structuredData = {
     "@context": "https://schema.org",
-    "@type": "Product",
-    name: productData.Name,
-    description: productData.Description,
-    image: `${process.env.LIARA_BUCKET_URL}/productImages/${productData.img2}`,
-    url: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
-    category: `${productData.categorySlug}/${productData.subCategorySlug}`,
-    model: productData.Type,
-    sku: `FAR-${productData.ProductId}`,
-    brand: {
-      "@type": "Brand",
-      name: "فرابک",
-    },
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
-    },
-    manufacturer: {
-      "@type": "Organization",
-      name: "فرابک",
-      url: process.env.NEXT_PUBLIC_BASE_URL,
-    },
+    "@graph": [
+      {
+        "@type": "Product",
+        "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
+        name: productData.Name,
+        description: productData.Description,
+        image: `${process.env.LIARA_BUCKET_URL}/productImages/${productData.img2}`,
+        url: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
+        category: `${productData.categorySlug}/${productData.subCategorySlug}`,
+        model: productData.Type,
+        sku: `FAR-${productData.ProductId}`,
+        brand: {
+          "@type": "Brand",
+          name: "فرابک",
+        },
+        manufacturer: {
+          "@type": "Organization",
+          "@id": "https://farabak.net",
+          name: "فرابک",
+          url: "https://farabak.net",
+        },
+        offers: {
+          "@type": "Offer",
+          price: productData.Price,
+          priceCurrency: "IRR",
+          availability: productData.Available
+            ? "https://schema.org/InStock"
+            : "https://schema.org/OutOfStock",
+          seller: {
+            "@id": "https://farabak.net",
+          },
+        },
+        mainEntityOfPage: {
+          "@type": "WebPage",
+          "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
+        },
+      },
+      {
+        "@type": "WebPage",
+        "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
+        url: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
+        name: productData.SEO_Title || productData.Name,
+        description: productData.SEO_Description || productData.Description,
+        isPartOf: {
+          "@type": "WebSite",
+          "@id": "https://farabak.net",
+        },
+        about: {
+          "@type": "Product",
+          "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
+        },
+        breadcrumb: {
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "خانه",
+              item: "https://farabak.net",
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "محصولات",
+              item: "https://farabak.net/products",
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: productData.categorySlug,
+              item: `https://farabak.net/products/${productData.categorySlug}`,
+            },
+            {
+              "@type": "ListItem",
+              position: 4,
+              name: productData.subCategorySlug,
+              item: `https://farabak.net/products/${productData.categorySlug}/${productData.subCategorySlug}`,
+            },
+            {
+              "@type": "ListItem",
+              position: 5,
+              name: productData.Name,
+              item: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
+            },
+          ],
+        },
+        inLanguage: "fa-IR",
+      },
+    ],
   };
 
   return (

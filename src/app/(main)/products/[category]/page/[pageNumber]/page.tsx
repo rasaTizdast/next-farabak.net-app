@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 import Script from "next/script";
 
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
+import { fetchProducts } from "@/app/(main)/products/_utils/fetchProducts";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import { calculateProductPricing, formatPriceForSchema } from "@/helpers/pricingHelper";
 
 interface CategoryPageProps {
   params: Promise<{ category: string; pageNumber: string }>;
@@ -76,6 +78,32 @@ const CategoryPage = async (props: CategoryPageProps) => {
     notFound(); // Trigger 404 page if category not found
   }
 
+  // Fetch products to calculate pricing
+  const { data: products } = await fetchProducts(apiUrl);
+  const availableProducts = products.filter((product: any) => product.Available);
+
+  // Calculate pricing for JSON-LD
+  let minPrice = "0";
+  let maxPrice = "0";
+  let hasValidPricing = false;
+
+  if (availableProducts.length > 0) {
+    const pricingPromises = availableProducts.map(async (product: any) => {
+      return await calculateProductPricing(product.Price, product.Discount);
+    });
+
+    const pricingResults = await Promise.all(pricingPromises);
+    const validPrices = pricingResults
+      .filter((pricing) => pricing.isValidRate && pricing.originalPrice !== null)
+      .map((pricing) => pricing.originalPrice!);
+
+    if (validPrices.length > 0) {
+      minPrice = formatPriceForSchema(Math.min(...validPrices));
+      maxPrice = formatPriceForSchema(Math.max(...validPrices));
+      hasValidPricing = true;
+    }
+  }
+
   // Breadcrumbs for navigation
   const breadcrumbs = ["/", "/products", `/products/${categoryName}`];
 
@@ -89,9 +117,11 @@ const CategoryPage = async (props: CategoryPageProps) => {
         name: `محصولات دسته‌بندی ${categoryTitle} - صفحه ${currentPage} | فرابک`,
         description: `صفحه ${currentPage} از محصولات ${categoryTitle} با کیفیت بالا و گارانتی معتبر از فرابک`,
         isPartOf: {
+          "@type": "WebSite",
           "@id": "https://farabak.net",
         },
         about: {
+          "@type": "Organization",
           "@id": "https://farabak.net",
         },
         breadcrumb: {
@@ -132,7 +162,36 @@ const CategoryPage = async (props: CategoryPageProps) => {
             "@type": "Product",
             name: `محصولات ${categoryTitle}`,
             description: `محصولات ${categoryTitle} با کیفیت بالا و گارانتی معتبر`,
+            image: "https://farabak.net/Farabak_Logo.webp",
+            brand: {
+              "@type": "Brand",
+              name: "فرابک",
+            },
             category: categoryTitle,
+            offers: {
+              "@type": "Offer",
+              priceSpecification: hasValidPricing
+                ? {
+                    "@type": "PriceSpecification",
+                    price: minPrice,
+                    priceCurrency: "IRR",
+                    minPrice: minPrice,
+                    maxPrice: maxPrice,
+                    valueAddedTaxIncluded: true,
+                  }
+                : {
+                    "@type": "PriceSpecification",
+                    price: "0",
+                    priceCurrency: "IRR",
+                    valueAddedTaxIncluded: true,
+                  },
+              availability: "https://schema.org/InStock",
+              seller: {
+                "@type": "Organization",
+                "@id": "https://farabak.net",
+                name: "فرابک",
+              },
+            },
           },
         },
         inLanguage: "fa-IR",

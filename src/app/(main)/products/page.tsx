@@ -6,7 +6,9 @@ import { Metadata } from "next";
 import Script from "next/script";
 
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
+import { fetchProducts } from "@/app/(main)/products/_utils/fetchProducts";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import { calculateProductPricing, formatPriceForSchema } from "@/helpers/pricingHelper";
 
 interface ProductsPageProps {
   searchParams: Promise<{ page?: string }>;
@@ -33,6 +35,32 @@ const ProductsPage = async (props: ProductsPageProps) => {
 
   const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getAllProducts?page=${currentPage}&limit=${limit}`;
 
+  // Fetch products to calculate pricing
+  const { data: products } = await fetchProducts(apiUrl);
+  const availableProducts = products.filter((product: any) => product.Available);
+
+  // Calculate pricing for JSON-LD
+  let minPrice = "0";
+  let maxPrice = "0";
+  let hasValidPricing = false;
+
+  if (availableProducts.length > 0) {
+    const pricingPromises = availableProducts.map(async (product: any) => {
+      return await calculateProductPricing(product.Price, product.Discount);
+    });
+
+    const pricingResults = await Promise.all(pricingPromises);
+    const validPrices = pricingResults
+      .filter((pricing) => pricing.isValidRate && pricing.originalPrice !== null)
+      .map((pricing) => pricing.originalPrice!);
+
+    if (validPrices.length > 0) {
+      minPrice = formatPriceForSchema(Math.min(...validPrices));
+      maxPrice = formatPriceForSchema(Math.max(...validPrices));
+      hasValidPricing = true;
+    }
+  }
+
   // Pass paths instead of Persian names
   const breadcrumbs = ["/", "/products"];
 
@@ -46,9 +74,11 @@ const ProductsPage = async (props: ProductsPageProps) => {
         name: `تمامی محصولات - صفحه ${currentPage} | فرابک`,
         description: `با مرور در صفحه ${currentPage} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
         isPartOf: {
+          "@type": "WebSite",
           "@id": "https://farabak.net",
         },
         about: {
+          "@type": "Organization",
           "@id": "https://farabak.net",
         },
         breadcrumb: {
@@ -78,21 +108,36 @@ const ProductsPage = async (props: ProductsPageProps) => {
             "@type": "Product",
             name: "محصولات نظارتی و امنیتی",
             description: "دوربین‌های مداربسته، سیستم‌های نظارتی و محصولات امنیتی با کیفیت بالا",
-            brand: [
-              {
-                "@type": "Brand",
-                name: "Reolink",
-              },
-              {
-                "@type": "Brand",
-                name: "Smiths Detection",
-              },
-              {
-                "@type": "Brand",
-                name: "Ceia",
-              },
-            ],
+            image: "https://farabak.net/Farabak_Logo.webp",
+            brand: {
+              "@type": "Brand",
+              name: "فرابک",
+            },
             category: "Security Equipment",
+            offers: {
+              "@type": "Offer",
+              priceSpecification: hasValidPricing
+                ? {
+                    "@type": "PriceSpecification",
+                    price: minPrice,
+                    priceCurrency: "IRR",
+                    minPrice: minPrice,
+                    maxPrice: maxPrice,
+                    valueAddedTaxIncluded: true,
+                  }
+                : {
+                    "@type": "PriceSpecification",
+                    price: "0",
+                    priceCurrency: "IRR",
+                    valueAddedTaxIncluded: true,
+                  },
+              availability: "https://schema.org/InStock",
+              seller: {
+                "@type": "Organization",
+                "@id": "https://farabak.net",
+                name: "فرابک",
+              },
+            },
           },
         },
         inLanguage: "fa-IR",
