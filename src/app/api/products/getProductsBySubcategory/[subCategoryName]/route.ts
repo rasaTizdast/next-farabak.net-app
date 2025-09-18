@@ -104,12 +104,15 @@ export async function GET(req: Request, props: { params: Promise<{ subCategoryNa
 
     const subCategoryId = subCategory.CategoryContentId.toString();
 
-    // Count total products for pagination
+    // Count total products for pagination - match whole IDs within comma-separated string
     const totalCount = await prisma.product.count({
       where: {
-        CategoryContentId: {
-          contains: subCategoryId,
-        },
+        OR: [
+          { CategoryContentId: { equals: subCategoryId } },
+          { CategoryContentId: { startsWith: `${subCategoryId},` } },
+          { CategoryContentId: { endsWith: `,${subCategoryId}` } },
+          { CategoryContentId: { contains: `,${subCategoryId},` } },
+        ],
       },
     });
 
@@ -136,12 +139,15 @@ export async function GET(req: Request, props: { params: Promise<{ subCategoryNa
       subcategoryMap.set(sub.CategoryContentId, sub);
     });
 
-    // Get ALL products for this subcategory (no pagination yet)
+    // Get ALL products for this subcategory (no pagination yet) - exact match within comma-separated list
     const products = await prisma.product.findMany({
       where: {
-        CategoryContentId: {
-          contains: subCategoryId,
-        },
+        OR: [
+          { CategoryContentId: { equals: subCategoryId } },
+          { CategoryContentId: { startsWith: `${subCategoryId},` } },
+          { CategoryContentId: { endsWith: `,${subCategoryId}` } },
+          { CategoryContentId: { contains: `,${subCategoryId},` } },
+        ],
       },
       include: {
         Category: {
@@ -218,8 +224,9 @@ export async function GET(req: Request, props: { params: Promise<{ subCategoryNa
         ...product,
         productSlug: product.Slug,
         categorySlug,
-        subCategorySlug: firstSubCategory?.Slug || null,
-        link: `${categorySlug}/${firstSubCategory?.Slug || ""}/${product.Slug}`,
+        // Prefer the requested subcategory slug to avoid cross-category linking
+        subCategorySlug: subCategory?.Slug || firstSubCategory?.Slug || null,
+        link: `${categorySlug}/${subCategory?.Slug || firstSubCategory?.Slug || ""}/${product.Slug}`,
       };
     });
 
