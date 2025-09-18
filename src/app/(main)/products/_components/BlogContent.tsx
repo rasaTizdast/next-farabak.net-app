@@ -123,7 +123,7 @@ const BlogContent = async ({ html, text }: BlogContentProps) => {
 
   return (
     <section className="mx-auto mb-5 w-full rounded-xl border border-gray-900 bg-gray-800 p-5 shadow-sm backdrop-blur md:p-7">
-      <article className="prose prose-neutral prose-invert max-w-none leading-relaxed prose-headings:scroll-mt-24 prose-h1:text-3xl prose-h1:font-extrabold prose-h2:mt-8 prose-h2:text-2xl prose-p:text-[15px] prose-a:inline-block prose-a:rounded-lg prose-a:border prose-a:border-blue-800/40 prose-a:bg-blue-900/30 prose-a:px-3 prose-a:py-1 prose-a:text-blue-100 prose-a:no-underline md:prose-p:text-base">
+      <article className="prose prose-neutral prose-invert max-w-none overflow-x-auto break-words leading-relaxed prose-headings:scroll-mt-24 prose-h1:text-3xl prose-h1:font-extrabold prose-h2:mt-8 prose-h2:text-2xl prose-p:text-[15px] prose-a:inline-block prose-a:rounded-lg prose-a:border prose-a:border-blue-800/40 prose-a:bg-blue-900/30 prose-a:px-3 prose-a:py-1 prose-a:text-blue-100 prose-a:no-underline prose-table:block prose-table:overflow-x-auto prose-img:h-auto prose-img:max-w-full md:prose-p:text-base">
         {content}
       </article>
     </section>
