@@ -1,7 +1,7 @@
 // app/products/[category]/[product]/components/ProductOverview.tsx
 import axios from "axios";
-import Image from "next/image";
 
+import ImageWithFallback from "./ImageWithFallback";
 import styles from "./ProductOverviewDetails.module.css";
 
 interface OverviewDetail {
@@ -41,17 +41,15 @@ function Overview({
         {title && <h3>{title}</h3>}
         {description && <p>{description}</p>}
       </div>
-      {img && (
-        <Image
-          src={`${process.env.LIARA_BUCKET_URL}/overview-details-images${img}`}
-          alt={title || "Product image"}
-          width={1920}
-          height={1080}
-          quality={100}
-          loading="lazy"
-          className={styles.overviewImage}
-        />
-      )}
+      <ImageWithFallback
+        src={img ? `${process.env.LIARA_BUCKET_URL}/overview-details-images${img}` : null}
+        alt={title || "Product image"}
+        width={1920}
+        height={1080}
+        quality={100}
+        loading="lazy"
+        className={styles.overviewImage}
+      />
     </div>
   );
 }
