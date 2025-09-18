@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-
 import "./globals.css";
+import Script from "next/script";
+import { Suspense } from "react";
+
 import { InvoiceProvider } from "@/context/InvoiceContext";
 import { UserProvider } from "@/context/UserContext";
+
+import { AnalyticsProvider } from "./providers/AnalyticsProvider";
 
 // Importing the custom iran yekan font
 const iranYekanFont = localFont({
@@ -35,9 +39,29 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl">
+      <head>
+        {/* Google Analytics Script */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.GOOGLE_ANALYTICS_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${process.env.GOOGLE_ANALYTICS_ID}');
+          `}
+        </Script>
+      </head>
       <body className={`${iranYekanFont.variable}`}>
         <UserProvider>
-          <InvoiceProvider>{children}</InvoiceProvider>
+          <InvoiceProvider>
+            {children}
+            <Suspense fallback={null}>
+              <AnalyticsProvider />
+            </Suspense>
+          </InvoiceProvider>
         </UserProvider>
       </body>
     </html>
