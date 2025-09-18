@@ -1,5 +1,5 @@
-import React from "react";
 import Link from "next/link";
+import React from "react";
 
 export function parseBlogTextToElements(text: string): React.ReactNode[] {
   const lines = text.split(/\r?\n/);
@@ -7,11 +7,12 @@ export function parseBlogTextToElements(text: string): React.ReactNode[] {
 
   const flushList = (current: { type: "ul" | "ol" | null; items: React.ReactNode[] }) => {
     if (current.type && current.items.length) {
-      const list = current.type === "ul" ? (
-        <ul key={`ul-${elements.length}`}>{current.items}</ul>
-      ) : (
-        <ol key={`ol-${elements.length}`}>{current.items}</ol>
-      );
+      const list =
+        current.type === "ul" ? (
+          <ul key={`ul-${elements.length}`}>{current.items}</ul>
+        ) : (
+          <ol key={`ol-${elements.length}`}>{current.items}</ol>
+        );
       elements.push(list);
       current.type = null;
       current.items = [];
@@ -31,7 +32,11 @@ export function parseBlogTextToElements(text: string): React.ReactNode[] {
       const label = match[1];
       const href = match[2];
       parts.push(
-        <Link key={`${key}-lnk-${start}`} href={href} className="text-blue-600 underline hover:text-blue-700">
+        <Link
+          key={`${key}-lnk-${start}`}
+          href={href}
+          className="text-blue-600 underline hover:text-blue-700"
+        >
           {label}
         </Link>
       );
@@ -87,5 +92,3 @@ export function parseBlogTextToElements(text: string): React.ReactNode[] {
   flushList(currentList);
   return elements;
 }
-
-
