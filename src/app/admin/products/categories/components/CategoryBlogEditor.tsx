@@ -137,7 +137,9 @@ export default function CategoryBlogEditor({
           <TableIcon className="inline h-4 w-4" />
         </button>
       </div>
-      <EditorContent editor={editor} />
+      <div className="tiptap-editor">
+        <EditorContent editor={editor} />
+      </div>
       {placeholder && !value && <p className="mt-1 text-xs text-gray-400">{placeholder}</p>}
       {isTableModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -223,7 +225,7 @@ export default function CategoryBlogEditor({
       {editor?.isActive("table") && (
         <div className="mt-2 flex flex-wrap gap-2">
           <button
-            onClick={() => editor.chain().focus().addColumnBefore().run()}
+            onClick={() => editor.chain().focus().addColumnAfter().run()}
             className="rounded bg-blue-600 px-2 py-1 text-sm"
           >
             ستون +
@@ -254,6 +256,20 @@ export default function CategoryBlogEditor({
           </button>
         </div>
       )}
+      <style jsx>{`
+        .tiptap-editor :global(.ProseMirror table) {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .tiptap-editor :global(.ProseMirror th),
+        .tiptap-editor :global(.ProseMirror td) {
+          border: 1px solid #374151; /* tailwind gray-700 */
+          padding: 0.5rem;
+        }
+        .tiptap-editor :global(.ProseMirror th) {
+          background-color: #1f2937; /* tailwind gray-800 */
+        }
+      `}</style>
     </div>
   );
 }
