@@ -142,51 +142,6 @@ const HomePage = async () => {
         priceRange: "$$",
         paymentAccepted: "Cash, Credit Card, Bank Transfer",
         currenciesAccepted: "IRR",
-        hasOfferCatalog: {
-          "@type": "OfferCatalog",
-          name: "محصولات نظارتی و امنیتی",
-          itemListElement: [
-            {
-              "@type": "Offer",
-              itemOffered: {
-                "@type": "Product",
-                name: "دوربین مداربسته ریولینک",
-                description: "واردات رسمی دوربین‌های مداربسته ریولینک با گارانتی معتبر",
-                brand: {
-                  "@type": "Brand",
-                  name: "Reolink",
-                },
-                category: "Security Cameras",
-              },
-            },
-            {
-              "@type": "Offer",
-              itemOffered: {
-                "@type": "Product",
-                name: "محصولات امنیتی Smiths Detection",
-                description: "واردات رسمی محصولات امنیتی Smiths Detection با گارانتی معتبر",
-                brand: {
-                  "@type": "Brand",
-                  name: "Smiths Detection",
-                },
-                category: "Security Equipment",
-              },
-            },
-            {
-              "@type": "Offer",
-              itemOffered: {
-                "@type": "Product",
-                name: "محصولات امنیتی Ceia",
-                description: "واردات رسمی محصولات امنیتی Ceia با گارانتی معتبر",
-                brand: {
-                  "@type": "Brand",
-                  name: "Ceia",
-                },
-                category: "Security Equipment",
-              },
-            },
-          ],
-        },
         areaServed: {
           "@type": "Country",
           name: "Iran",
@@ -226,49 +181,6 @@ const HomePage = async () => {
           "@type": "Country",
           name: "Iran",
         },
-        makesOffer: [
-          {
-            "@type": "Offer",
-            itemOffered: {
-              "@type": "Product",
-              name: "Reolink Security Cameras",
-              brand: {
-                "@type": "Brand",
-                name: "Reolink",
-              },
-            },
-            seller: {
-              "@id": "https://farabak.net",
-            },
-          },
-          {
-            "@type": "Offer",
-            itemOffered: {
-              "@type": "Product",
-              name: "Smiths Detection Security Products",
-              brand: {
-                "@type": "Brand",
-                name: "Smiths Detection",
-              },
-              category: "Security Equipment",
-            },
-            seller: {
-              "@id": "https://farabak.net",
-            },
-          },
-          {
-            "@type": "Offer",
-            itemOffered: {
-              "@type": "Product",
-              name: "Ceia Security Products",
-              brand: {
-                "@type": "Brand",
-                name: "Ceia",
-              },
-              category: "Security Equipment",
-            },
-          },
-        ],
       },
     ],
   };
