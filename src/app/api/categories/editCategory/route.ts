@@ -77,7 +77,17 @@ export async function PATCH(req: Request) {
 
   try {
     const body = await req.json();
-    const { Type, CategoryID, CategoryContentId, Name, Slug, Available, SEO_Details } = body;
+    const {
+      Type,
+      CategoryID,
+      CategoryContentId,
+      Name,
+      Slug,
+      Available,
+      SEO_Details,
+      TopBlog,
+      BottomBlog,
+    } = body;
 
     if (Type === "category") {
       if (!CategoryID || !Name || !Slug || Available === undefined || !SEO_Details) {
@@ -91,6 +101,8 @@ export async function PATCH(req: Request) {
           Slug,
           Available,
           ModifyDate: new Date(),
+          TopBlog: TopBlog ?? null,
+          BottomBlog: BottomBlog ?? null,
           SEO_Category: {
             upsert: {
               where: { CategoryID }, // Use CategoryID for the SEO_Category upsert
@@ -134,6 +146,8 @@ export async function PATCH(req: Request) {
           Slug,
           Available,
           ModifyDate: new Date(),
+          TopBlog: TopBlog ?? null,
+          BottomBlog: BottomBlog ?? null,
           SEO_CategoryContent: {
             upsert: {
               where: { CategoryContentId }, // Use CategoryContentId here

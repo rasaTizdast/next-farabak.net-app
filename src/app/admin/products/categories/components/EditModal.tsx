@@ -2,6 +2,7 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
+import CategoryBlogEditor from "./CategoryBlogEditor";
 import { Category, Subcategory } from "../types/types";
 
 interface EditModalProps {
@@ -28,6 +29,8 @@ const EditModal: React.FC<EditModalProps> = ({
   const [keywordInput, setKeywordInput] = useState("");
   const [seoKeywords, setSeoKeywords] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({}); // Store errors for all fields
+  const [topBlog, setTopBlog] = useState<string>("");
+  const [bottomBlog, setBottomBlog] = useState<string>("");
 
   useEffect(() => {
     if (item && item.SEO_Details) {
@@ -44,6 +47,10 @@ const EditModal: React.FC<EditModalProps> = ({
         }
       }
       setSeoKeywords(parsedKeywords);
+    }
+    if (item) {
+      setTopBlog((item as any).TopBlog || "");
+      setBottomBlog((item as any).BottomBlog || "");
     }
   }, [item]);
 
@@ -167,6 +174,8 @@ const EditModal: React.FC<EditModalProps> = ({
           Name: updatedItem.Name,
           Slug: updatedItem.Slug,
           Available: updatedItem.Available,
+          TopBlog: topBlog || null,
+          BottomBlog: bottomBlog || null,
           SEO_Details: {
             SEO_Title: updatedItem.SEO_Details.SEO_Title,
             SEO_Description: updatedItem.SEO_Details.SEO_Description,
@@ -180,6 +189,8 @@ const EditModal: React.FC<EditModalProps> = ({
           Name: updatedItem.Name,
           Slug: updatedItem.Slug,
           Available: updatedItem.Available,
+          TopBlog: topBlog || null,
+          BottomBlog: bottomBlog || null,
           SEO_Details: {
             SEO_Title: updatedItem.SEO_Details.SEO_Title,
             SEO_Description: updatedItem.SEO_Details.SEO_Description,
@@ -216,12 +227,14 @@ const EditModal: React.FC<EditModalProps> = ({
   const handleClose = () => {
     setErrors({}); // Reset errors
     setKeywordInput(""); // Clear the keyword input
+    setTopBlog("");
+    setBottomBlog("");
     onClose(); // Call the passed onClose handler
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-      <div className="max-h-[95dvh] w-96 overflow-y-scroll rounded-lg bg-gray-800 p-6 pr-8 text-white shadow-lg">
+      <div className="max-h-[95dvh] w-[420px] overflow-y-scroll rounded-lg bg-gray-800 p-6 pr-8 text-white shadow-lg">
         <h3 className="mb-4 text-center text-xl">ویرایش</h3>
         {/* Name Field */}
         <div className="mb-4">
@@ -328,6 +341,20 @@ const EditModal: React.FC<EditModalProps> = ({
             ))}
           </div>
         </div>
+
+        <CategoryBlogEditor
+          label="بلاگ بالای صفحه (ویرایشگر)"
+          value={topBlog}
+          onChange={setTopBlog}
+          placeholder="این بخش اختیاری است. از تیترها، لیست و لینک پشتیبانی می‌شود."
+        />
+
+        <CategoryBlogEditor
+          label="بلاگ پایین صفحه (ویرایشگر)"
+          value={bottomBlog}
+          onChange={setBottomBlog}
+          placeholder="این بخش اختیاری است. از تیترها، لیست و لینک پشتیبانی می‌شود."
+        />
 
         <div className="flex justify-end gap-2">
           <button

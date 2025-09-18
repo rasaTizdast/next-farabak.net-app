@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import SkeletonLoader from "@/app/_components/ui/SkeletonLoader";
 
+import BlogContent from "./BlogContent";
 import { GridContentServer } from "./GridContentServer"; // Server component for products
 import styles from "./ProductGrid.module.css";
 
@@ -22,9 +23,45 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   categorySlug,
   subcategorySlug,
 }) => {
+  async function fetchBlogs() {
+    try {
+      const url = new URL("/api/products/blogs", process.env.NEXT_PUBLIC_BASE_URL);
+      if (categorySlug) url.searchParams.set("categorySlug", categorySlug);
+      if (subcategorySlug) url.searchParams.set("subcategorySlug", subcategorySlug);
+      url.searchParams.set("page", String(currentPage));
+      const res = await fetch(url.toString(), { next: { revalidate: 60 } });
+      if (!res.ok)
+        return { topBlog: null, bottomBlog: null } as {
+          topBlog: string | null;
+          bottomBlog: string | null;
+        };
+      return (await res.json()) as {
+        topBlog: string | null;
+        bottomBlog: string | null;
+      };
+    } catch {
+      return { topBlog: null, bottomBlog: null } as {
+        topBlog: string | null;
+        bottomBlog: string | null;
+      };
+    }
+  }
+
+  const blogsPromise = fetchBlogs();
+
   return (
     <div className={styles.gridContainer}>
-      <h1 className={styles.gridTitle}>{title}</h1>
+      {/* Top Blog replaces current H1 when present */}
+      <Suspense fallback={<h1 className={styles.gridTitle}>{title}</h1>}>
+        {/** Render top blog or fallback to H1 */}
+        {(async () => {
+          const { topBlog } = await blogsPromise;
+          if (topBlog) {
+            return <BlogContent text={topBlog} as="h1" />;
+          }
+          return <h1 className={styles.gridTitle}>{title}</h1>;
+        })()}
+      </Suspense>
 
       <Suspense fallback={<SkeletonLoader amount={15} />}>
         <GridContentServer
@@ -33,6 +70,19 @@ const ProductGrid: React.FC<ProductGridProps> = ({
           categorySlug={categorySlug}
           subcategorySlug={subcategorySlug}
         />
+      </Suspense>
+
+      {/* Bottom Blog after grid */}
+      <Suspense>
+        {(async () => {
+          const { bottomBlog } = await blogsPromise;
+          if (!bottomBlog) return null;
+          return (
+            <div className="mt-10">
+              <BlogContent text={bottomBlog} as="h2" />
+            </div>
+          );
+        })()}
       </Suspense>
     </div>
   );
