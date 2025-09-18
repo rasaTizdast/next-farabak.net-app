@@ -234,7 +234,7 @@ const EditModal: React.FC<EditModalProps> = ({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-      <div className="max-h-[95dvh] w-[420px] overflow-y-scroll rounded-lg bg-gray-800 p-6 pr-8 text-white shadow-lg">
+      <div className="max-h-[95dvh] w-[60dvw] overflow-y-scroll rounded-lg bg-gray-800 p-6 pr-8 text-white shadow-lg">
         <h3 className="mb-4 text-center text-xl">ویرایش</h3>
         {/* Name Field */}
         <div className="mb-4">
