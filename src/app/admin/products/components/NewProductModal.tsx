@@ -197,7 +197,7 @@ const validationRules: Record<string, ValidationRule> = {
     },
   },
   price: {
-    required: true,
+    required: false,
     maxLength: 20, // Based on Prisma schema line 269
     regex: /^\d+(\.\d{1,2})?$/, // Allow numbers with up to 2 decimal places
     errorMsg: {
@@ -283,15 +283,22 @@ const validateField = (field: keyof State, value: any): string => {
   }
 
   // For numerical fields with string representation
-  if ((field === "price" || field === "discount") && value !== 0 && !value) {
-    return field === "price" ? rules.errorMsg.required : "";
+  if (field === "price" || field === "discount") {
+    // Allow empty string for price/discount (treat as 0); do not raise required error
+    if (value === "" || value === null || typeof value === "undefined") {
+      return "";
+    }
   }
 
   // For price and discount, validate they're proper numbers
   if (
     (field === "price" || field === "discount") &&
     rules.regex &&
-    (isNaN(parseFloat(value.toString())) || !rules.regex.test(value.toString()))
+    (() => {
+      const stringValue = value?.toString?.() ?? "";
+      if (stringValue === "") return false; // allow empty (treated as 0)
+      return isNaN(parseFloat(stringValue)) || !rules.regex.test(stringValue);
+    })()
   ) {
     return rules.errorMsg.regex || "";
   }
@@ -547,12 +554,17 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
       .map((detail) => detail.ProductOverviewDetailsId);
 
     // Prepare the form data
+    const normalizedPrice = Number(state.price ?? 0);
+    const normalizedDiscount = Number(state.discount ?? 0);
+
     const formData = {
       ...state,
+      price: isNaN(normalizedPrice) ? 0 : normalizedPrice,
+      discount: isNaN(normalizedDiscount) ? 0 : normalizedDiscount,
       overviewDetails: selectedDetailsIds,
     };
 
-    if (formData.price < formData.discount) {
+    if (Number(formData.price) < Number(formData.discount)) {
       toast.error("تخفیف نمیتواند بیشتر از قیمت باشد.");
       return;
     }

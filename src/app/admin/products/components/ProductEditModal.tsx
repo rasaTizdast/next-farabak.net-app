@@ -94,7 +94,7 @@ const validationRules: Record<string, ValidationRule> = {
     },
   },
   Price: {
-    required: true,
+    required: false,
     regex: /^\d+(\.\d{1,2})?$/,
     errorMsg: {
       required: "قیمت الزامی است",
