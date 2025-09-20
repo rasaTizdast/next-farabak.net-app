@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import { Metadata } from "next";
 import Script from "next/script";
 
 import ImageSlider from "../_components/imageSlider/ImageSlider";
@@ -12,6 +13,14 @@ type slider = {
   image_URL: string;
   link: string;
   image_alt: string | null;
+};
+
+export const generateMetadata = async (): Promise<Metadata> => {
+  return {
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_BASE_URL}`,
+    },
+  };
 };
 
 const HomePage = async () => {

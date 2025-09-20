@@ -15,17 +15,17 @@ interface SubcategoryPageProps {
 // Generate metadata for SEO
 export const generateMetadata = async (props: SubcategoryPageProps): Promise<Metadata> => {
   const params = await props.params;
-  const subCategoryName = params.subcategory;
+  const { category, subcategory } = params;
 
   try {
     // Fetch category data from the API for metadata
     const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsBySubcategory/${subCategoryName}?page=1&limit=1`
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsBySubcategory/${subcategory}?page=1&limit=1`
     );
 
     if (!res || !res.data || !res.data.seoDetails) {
       return {
-        title: subCategoryName,
+        title: subcategory,
         description: "دسته بندی مورد نظر یافت نشد!",
       };
     }
@@ -33,8 +33,11 @@ export const generateMetadata = async (props: SubcategoryPageProps): Promise<Met
     const { seoDetails } = res.data;
 
     return {
-      title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${subCategoryName} | فرابک`,
-      description: seoDetails.SEO_Description || `محصولات دسته‌بندی ${subCategoryName}`,
+      title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${subcategory} | فرابک`,
+      description: seoDetails.SEO_Description || `محصولات دسته‌بندی ${subcategory}`,
+      alternates: {
+        canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${category}/${subcategory}`,
+      },
     };
   } catch (error) {
     console.error(error);

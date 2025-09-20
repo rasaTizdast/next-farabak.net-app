@@ -32,14 +32,16 @@ export const generateMetadata = async (props: CategoryPageProps): Promise<Metada
 
     const { seoDetails } = res.data;
 
+    const canonicalUrl =
+      params.pageNumber === "1"
+        ? `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}`
+        : `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/page/${params.pageNumber}`;
+
     return {
       title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${categoryName}`,
       description: seoDetails.SEO_Description || `محصولات دسته‌بندی ${categoryName}`,
       alternates: {
-        canonical:
-          params.pageNumber === "1"
-            ? `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}`
-            : `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/page/${params.pageNumber}`,
+        canonical: canonicalUrl,
       },
     };
   } catch (error) {

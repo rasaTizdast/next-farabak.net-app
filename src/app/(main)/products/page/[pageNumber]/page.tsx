@@ -14,6 +14,11 @@ export const generateMetadata = async (props: ProductsPageProps): Promise<Metada
   const params = await props.params;
   const currentPage = parseInt(params.pageNumber || "1", 10);
 
+  const canonicalUrl =
+    params.pageNumber === "1"
+      ? `${process.env.NEXT_PUBLIC_BASE_URL}/products`
+      : `${process.env.NEXT_PUBLIC_BASE_URL}/products/page/${params.pageNumber}`;
+
   return {
     title: `تمامی محصولات - صفحه ${currentPage} | فرابک`,
     description: `با مرور در صفحه ${currentPage} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
@@ -22,10 +27,7 @@ export const generateMetadata = async (props: ProductsPageProps): Promise<Metada
       description: `با مرور در صفحه ${currentPage} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
     },
     alternates: {
-      canonical:
-        params.pageNumber === "1"
-          ? `${process.env.NEXT_PUBLIC_BASE_URL}/products`
-          : `${process.env.NEXT_PUBLIC_BASE_URL}/products/page/${params.pageNumber}`,
+      canonical: canonicalUrl,
     },
   };
 };

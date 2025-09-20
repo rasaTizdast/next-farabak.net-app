@@ -34,6 +34,9 @@ export const generateMetadata = async (props: CategoryPageProps): Promise<Metada
     return {
       title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${categoryName}`,
       description: seoDetails.SEO_Description || `محصولات دسته‌بندی ${categoryName}`,
+      alternates: {
+        canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${categoryName}`,
+      },
     };
   } catch (error) {
     console.error(error);

@@ -40,7 +40,7 @@ interface ProductData {
 
 // Metadata generation
 export async function generateMetadata(props: {
-  params: Promise<{ category: string; product: string }>;
+  params: Promise<{ category: string; subcategory: string; product: string }>;
   searchParams: Promise<{ key: string }>;
 }): Promise<Metadata> {
   const searchParams = await props.searchParams;
@@ -93,9 +93,12 @@ export async function generateMetadata(props: {
       description: product.SEO_Description,
       images: [`/productImages/${product.img2}`],
     },
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${product.subCategorySlug}/${params.product}`,
+    },
     robots: {
-      index: true, // This sets the noindex directive
-      follow: true, // Allows crawling of links on the page if needed
+      index: true,
+      follow: true,
     },
   };
 }

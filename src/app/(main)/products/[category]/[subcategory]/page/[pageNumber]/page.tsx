@@ -36,14 +36,16 @@ export const generateMetadata = async (props: SubcategoryPageProps): Promise<Met
 
     const { seoDetails } = res.data;
 
+    const canonicalUrl =
+      params.pageNumber === "1"
+        ? `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${params.subcategory}`
+        : `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${params.subcategory}/page/${params.pageNumber}`;
+
     return {
       title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${subcategory} | فرابک`,
       description: seoDetails.SEO_Description || `محصولات دسته‌بندی ${subcategory}`,
       alternates: {
-        canonical:
-          params.pageNumber === "1"
-            ? `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${params.subcategory}`
-            : `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${params.subcategory}/page/${params.pageNumber}`,
+        canonical: canonicalUrl,
       },
     };
   } catch (error) {
