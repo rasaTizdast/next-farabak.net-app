@@ -108,6 +108,10 @@ export async function GET(req: Request, props: { params: Promise<{ slug: string 
         },
         Comments: true, // Fetch comments related to the blog
         Likes: true, // Fetch likes related to the blog
+        BlogFAQs: {
+          where: { available: true },
+          orderBy: { order: "asc" },
+        },
       },
     });
 
@@ -154,6 +158,12 @@ export async function GET(req: Request, props: { params: Promise<{ slug: string 
         media_type: item.media_type,
         media_URL: item.media_URL,
         media_alt: item.media_alt,
+      })),
+      faqs: blog.BlogFAQs.map((faq) => ({
+        id: faq.id,
+        question: faq.question,
+        answer: faq.answer,
+        order: faq.order,
       })),
     };
 

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Script from "next/script";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import BlogFaqAccordion from "@/components/BlogFaqAccordion";
 
 interface BlogResponse {
   blog: {
@@ -22,6 +23,7 @@ interface BlogResponse {
   comments: { content: string; created_at: string }[];
   likes: number;
   media: { media_URL: string; media_alt: string }[];
+  faqs: { id: number; question: string; answer: string; order: number }[];
 }
 
 const getBlog = async (
@@ -112,7 +114,7 @@ export default async function BlogPage(props: {
     notFound();
   }
 
-  const { blog } = blogResponse;
+  const { blog, faqs } = blogResponse;
 
   const readingTime = calculateReadingTime(blog.content);
 
@@ -221,6 +223,18 @@ export default async function BlogPage(props: {
           }}
         />
       </article>
+
+      {/* FAQ Section */}
+      {faqs && faqs.length > 0 && (
+        <section className="mx-auto mt-8 w-full max-w-[1580px] rounded-lg bg-white p-5 shadow-sm sm:p-10">
+          <BlogFaqAccordion
+            faqs={faqs}
+            blogTitle={blog.title}
+            blogSlug={params.blog}
+            description={`پاسخ سوالات رایج درباره "${blog.title}"`}
+          />
+        </section>
+      )}
 
       <Script
         id="blogContent"
