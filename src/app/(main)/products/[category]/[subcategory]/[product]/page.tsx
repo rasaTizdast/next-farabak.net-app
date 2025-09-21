@@ -167,7 +167,7 @@ export default async function ProductPage(props: {
       {
         "@type": "Product",
         "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
-        name: productData.Name,
+        name: productData.Type,
         description: productData.Description,
         image: `${process.env.LIARA_BUCKET_URL}/productImages/${productData.img2}`,
         url: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
@@ -204,7 +204,7 @@ export default async function ProductPage(props: {
         "@type": "WebPage",
         "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
         url: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
-        name: productData.SEO_Title || productData.Name,
+        name: productData.SEO_Title || productData.Type,
         description: productData.SEO_Description || productData.Description,
         isPartOf: {
           "@type": "WebSite",
@@ -244,7 +244,7 @@ export default async function ProductPage(props: {
             {
               "@type": "ListItem",
               position: 5,
-              name: productData.Name,
+              name: productData.Type,
               item: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
             },
           ],
