@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 
+import { getCurrentJalaliDate } from "@/utils/jalaliDate";
+
 const prisma = new PrismaClient();
 
 /**
@@ -57,6 +59,11 @@ export async function GET(req: Request, props: { params: Promise<{ blogId: strin
       orderBy: { order: "asc" },
     });
 
+    console.log(
+      `Fetched ${faqs.length} FAQs for blog ${blogId}:`,
+      faqs.map((f) => ({ id: f.id, order: f.order, question: f.question.substring(0, 30) + "..." }))
+    );
+
     return NextResponse.json({ faqs });
   } catch (error) {
     console.error("Error fetching blog FAQs:", error);
@@ -89,6 +96,8 @@ export async function POST(req: Request, props: { params: Promise<{ blogId: stri
       return NextResponse.json({ message: "بلاگ مورد نظر یافت نشد" }, { status: 404 });
     }
 
+    console.log(`Creating FAQ for blog ${blogId} with order: ${order}`);
+
     const faq = await prisma.blogFAQs.create({
       data: {
         blog_id: blogId,
@@ -96,10 +105,12 @@ export async function POST(req: Request, props: { params: Promise<{ blogId: stri
         answer,
         order,
         available,
-        created_at: new Date().toISOString().split("T")[0], // YYYY-MM-DD format
-        updated_at: new Date().toISOString().split("T")[0],
+        created_at: getCurrentJalaliDate(), // Jalali date format (e.g., "1404-06-23")
+        updated_at: getCurrentJalaliDate(),
       },
     });
+
+    console.log(`Created FAQ with ID ${faq.id} and order ${faq.order}`);
 
     return NextResponse.json({ faq }, { status: 201 });
   } catch (error) {

@@ -4,12 +4,16 @@ import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { BiTrash, BiEdit, BiPlus, BiCheck, BiX, BiMenu } from "react-icons/bi";
 
+import { formatJalaliDate } from "@/utils/jalaliDate";
+
 interface FaqItem {
   id?: number;
   question: string;
   answer: string;
   order: number;
   available: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface FaqManagerProps {
@@ -43,6 +47,14 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
       const response = await fetch(`/api/blogs/manage/${blogId}/faqs`);
       if (response.ok) {
         const data = await response.json();
+        console.log(
+          "Fetched FAQs from database:",
+          data.faqs?.map((f: any) => ({
+            id: f.id,
+            order: f.order,
+            question: f.question.substring(0, 30) + "...",
+          }))
+        );
         setFaqs(data.faqs || []);
       }
     } catch (error) {
@@ -64,11 +76,14 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
       return;
     }
 
-    // Calculate the next order value
-    const nextOrder = faqs.length > 0 ? Math.max(...faqs.map((faq) => faq.order)) + 1 : 0;
+    // Calculate the next order value - get the maximum order from current FAQs
+    const maxOrder = faqs.length > 0 ? Math.max(...faqs.map((faq) => faq.order || 0)) : -1;
+    const nextOrder = maxOrder + 1;
     console.log(
       "Creating new FAQ with order:",
       nextOrder,
+      "Max order in current FAQs:",
+      maxOrder,
       "Current FAQs:",
       faqs.map((f) => ({ id: f.id, order: f.order }))
     );
@@ -84,8 +99,8 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        setFaqs([...faqs, data.faq]);
+        // Refresh the FAQs list to ensure correct order
+        await fetchFaqs();
         setNewFaq({ question: "", answer: "", order: 0, available: true });
         toast.success("سوال متداول با موفقیت اضافه شد");
       } else {
@@ -191,20 +206,39 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
     // Update UI immediately
     setFaqs(updatedFaqs);
 
-    // Update order in database - only update the moved item
+    // Update order in database - update all FAQs that have changed order
     try {
-      const movedFaqUpdated = updatedFaqs.find((faq) => faq.id === draggedItem);
-      if (movedFaqUpdated && movedFaqUpdated.id) {
-        const response = await fetch(`/api/blogs/faqs/${movedFaqUpdated.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ order: movedFaqUpdated.order }),
-        });
+      // Find all FAQs that have different order values
+      const faqsToUpdate = updatedFaqs.filter((updatedFaq) => {
+        const originalFaq = faqs.find((f) => f.id === updatedFaq.id);
+        return originalFaq && originalFaq.order !== updatedFaq.order;
+      });
 
-        if (!response.ok) {
-          throw new Error("Failed to update FAQ order");
-        }
-      }
+      console.log(
+        "Updating order for FAQs:",
+        faqsToUpdate.map((f) => ({
+          id: f.id,
+          oldOrder: faqs.find((orig) => orig.id === f.id)?.order,
+          newOrder: f.order,
+        }))
+      );
+
+      // Update all changed FAQs
+      await Promise.all(
+        faqsToUpdate.map(async (faq) => {
+          if (faq.id) {
+            const response = await fetch(`/api/blogs/faqs/${faq.id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ order: faq.order }),
+            });
+
+            if (!response.ok) {
+              throw new Error(`Failed to update FAQ ${faq.id} order`);
+            }
+          }
+        })
+      );
 
       // Refresh the FAQs from database to ensure consistency
       await fetchFaqs();
@@ -347,6 +381,21 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
                           </div>
                           <h4 className="mb-2 font-semibold text-gray-200">{faq.question}</h4>
                           <p className="text-sm text-gray-300">{faq.answer}</p>
+                          {(faq.created_at || faq.updated_at) && (
+                            <div className="mt-2 text-xs text-gray-400">
+                              {faq.created_at && (
+                                <span>ایجاد: {formatJalaliDate(faq.created_at)}</span>
+                              )}
+                              {faq.created_at &&
+                                faq.updated_at &&
+                                faq.created_at !== faq.updated_at && (
+                                  <span className="mx-2">•</span>
+                                )}
+                              {faq.updated_at && faq.created_at !== faq.updated_at && (
+                                <span>بروزرسانی: {formatJalaliDate(faq.updated_at)}</span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
 
