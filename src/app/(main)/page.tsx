@@ -1,12 +1,28 @@
-export const dynamic = "force-dynamic";
-
 import { Metadata } from "next";
+import dynamicImport from "next/dynamic";
 import Script from "next/script";
 
-import ImageSlider from "../_components/imageSlider/ImageSlider";
-import ProductsShowCase from "../_components/LandingPage/ProductsShowCase";
-import ProjectsSection from "../_components/LandingPage/ProjectsSection";
-import SupportSection from "../_components/LandingPage/SupportSection";
+export const dynamic = "force-dynamic";
+
+// Dynamic imports for better performance
+const ImageSlider = dynamicImport(() => import("../_components/imageSlider/ImageSlider"), {
+  loading: () => <div className="h-96 animate-pulse bg-gray-200" />,
+});
+
+const ProductsShowCase = dynamicImport(
+  () => import("../_components/LandingPage/ProductsShowCase"),
+  {
+    loading: () => <div className="h-96 animate-pulse bg-gray-200" />,
+  }
+);
+
+const ProjectsSection = dynamicImport(() => import("../_components/LandingPage/ProjectsSection"), {
+  loading: () => <div className="h-96 animate-pulse bg-gray-200" />,
+});
+
+const SupportSection = dynamicImport(() => import("../_components/LandingPage/SupportSection"), {
+  loading: () => <div className="h-96 animate-pulse bg-gray-200" />,
+});
 
 type slider = {
   id: number;

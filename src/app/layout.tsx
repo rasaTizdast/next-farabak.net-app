@@ -14,7 +14,9 @@ const iranYekanFont = localFont({
   src: "./fonts/IRANYekanXVF.woff",
   variable: "--font-iran-yekan", // Define a CSS variable for the font
   weight: "100 1000", // Specify the range of font weights
-  display: "swap", // Optional: To improve performance, use 'swap' display behavior
+  display: "swap", // Improve performance with font swap
+  preload: true, // Preload the font for better performance
+  fallback: ["system-ui", "arial"], // Fallback fonts
 });
 
 export const metadata: Metadata = {
@@ -40,6 +42,26 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl">
       <head>
+        {/* Preconnect to external domains for better performance */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+
+        {/* Preload critical resources */}
+        <link
+          rel="preload"
+          href="/fonts/IRANYekanXVF.woff"
+          as="font"
+          type="font/woff"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/fonts/Vazirmatn-VariableFont_wght.ttf"
+          as="font"
+          type="font/ttf"
+          crossOrigin="anonymous"
+        />
+
         {/* Google Analytics Script */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${process.env.GOOGLE_ANALYTICS_ID}`}

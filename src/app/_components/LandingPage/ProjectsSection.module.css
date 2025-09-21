@@ -44,6 +44,8 @@
 .project img {
   height: 250px;
   width: 100%;
+  object-fit: cover;
+  image-rendering: -webkit-optimize-contrast; /* Better image rendering */
 }
 
 .details {

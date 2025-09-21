@@ -1,6 +1,6 @@
 "use client";
 
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useState, useEffect } from "react";
 
@@ -40,7 +40,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await axios.get("/api/auth/profile");
       setUser(response.data); // Set the user data in context
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      // Only log error if it's not a 401 (unauthorized) or 404 (not found)
+      if (
+        error instanceof AxiosError &&
+        error.response?.status !== 401 &&
+        error.response?.status !== 404
+      ) {
+        console.error("Error fetching user data:", error);
+      }
+      // Silently handle authentication errors as they're expected when user is not logged in
+      setUser(null);
     } finally {
       setLoading(false); // Stop loading once the fetch is complete
     }

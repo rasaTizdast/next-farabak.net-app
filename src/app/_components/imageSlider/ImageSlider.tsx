@@ -50,7 +50,7 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
 
     const autoplay = setInterval(() => {
       nextSlide();
-    }, interval || 3000);
+    }, interval || 5000);
 
     return () => clearInterval(autoplay); // Clear interval on cleanup
   }, [isPaused, interval, nextSlide]);
@@ -83,9 +83,12 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
               alt={slide.alt}
               width={1920}
               height={900}
-              quality={100}
+              quality={75}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
               onLoad={() => handleImageLoad(index)}
-              priority={true}
+              priority={index === 0}
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
             />
           </Link>
         ))}

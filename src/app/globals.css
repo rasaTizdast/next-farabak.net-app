@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Critical CSS - Above the fold styles */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    background-color: #f0f0f0;
+    font-display: swap; /* Improve font loading performance */
+  }
+}
+
 :root {
   --primary-color: #00bfff;
   --secondary-color: #318ce7;
