@@ -27,7 +27,7 @@ type card = {
 const Card = ({ title, desc, link }: card) => {
   return (
     <div className={styles.card}>
-      <h4>{title}</h4>
+      <h5>{title}</h5>
       <p>{desc}</p>
       <Link href={`support/${link}`}>مشاهده</Link>
     </div>

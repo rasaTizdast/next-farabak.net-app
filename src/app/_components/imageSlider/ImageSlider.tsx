@@ -85,6 +85,7 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
               height={900}
               quality={100}
               onLoad={() => handleImageLoad(index)}
+              priority={true}
             />
           </Link>
         ))}
