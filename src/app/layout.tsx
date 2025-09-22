@@ -45,8 +45,15 @@ export default function RootLayout({
         {/* Preconnect to external domains for better performance */}
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+        {/* Preconnect to image CDN to speed up slider image fetch */}
+        {process.env.LIARA_BUCKET_URL && (
+          <>
+            <link rel="preconnect" href={process.env.LIARA_BUCKET_URL} crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href={process.env.LIARA_BUCKET_URL} />
+          </>
+        )}
 
-        {/* Preload critical resources */}
+        {/* Preload only essential font; load others via font-face to reduce FCP cost */}
         <link
           rel="preload"
           href="/fonts/IRANYekanXVF.woff"
@@ -54,20 +61,13 @@ export default function RootLayout({
           type="font/woff"
           crossOrigin="anonymous"
         />
-        <link
-          rel="preload"
-          href="/fonts/Vazirmatn-VariableFont_wght.ttf"
-          as="font"
-          type="font/ttf"
-          crossOrigin="anonymous"
-        />
 
-        {/* Google Analytics Script */}
+        {/* Google Analytics Script - lazy load to reduce TBT */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${process.env.GOOGLE_ANALYTICS_ID}`}
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script id="google-analytics" strategy="lazyOnload">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}

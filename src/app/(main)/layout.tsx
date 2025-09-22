@@ -20,10 +20,10 @@ const Layout = ({
   return (
     <>
       <Script
-        defer
         src="https://cloud.umami.is/script.js"
         data-website-id={process.env.UMAMI_WEBSITE_ID}
-      ></Script>
+        strategy="lazyOnload"
+      />
       <Header />
       {children}
       <Footer />

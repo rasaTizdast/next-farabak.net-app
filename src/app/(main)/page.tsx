@@ -2,26 +2,24 @@ import { Metadata } from "next";
 import dynamicImport from "next/dynamic";
 import Script from "next/script";
 
-export const dynamic = "force-dynamic";
-
 // Dynamic imports for better performance
 const ImageSlider = dynamicImport(() => import("../_components/imageSlider/ImageSlider"), {
-  loading: () => <div className="h-96 animate-pulse bg-gray-200" />,
+  loading: () => <div className="h-48 bg-gray-100" />,
 });
 
 const ProductsShowCase = dynamicImport(
   () => import("../_components/LandingPage/ProductsShowCase"),
   {
-    loading: () => <div className="h-96 animate-pulse bg-gray-200" />,
+    loading: () => <div className="h-48 bg-gray-100" />,
   }
 );
 
 const ProjectsSection = dynamicImport(() => import("../_components/LandingPage/ProjectsSection"), {
-  loading: () => <div className="h-96 animate-pulse bg-gray-200" />,
+  loading: () => <div className="h-48 bg-gray-100" />,
 });
 
 const SupportSection = dynamicImport(() => import("../_components/LandingPage/SupportSection"), {
-  loading: () => <div className="h-96 animate-pulse bg-gray-200" />,
+  loading: () => <div className="h-48 bg-gray-100" />,
 });
 
 type slider = {
@@ -215,13 +213,20 @@ const HomePage = async () => {
       <Script
         id="json-ld"
         type="application/ld+json"
+        strategy="afterInteractive"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div>
         <ImageSlider slides={sliderLinks} />
-        <ProductsShowCase />
-        <ProjectsSection />
-        <SupportSection />
+        <div style={{ contentVisibility: "auto", containIntrinsicSize: "800px 600px" }}>
+          <ProductsShowCase />
+        </div>
+        <div style={{ contentVisibility: "auto", containIntrinsicSize: "800px 600px" }}>
+          <ProjectsSection />
+        </div>
+        <div style={{ contentVisibility: "auto", containIntrinsicSize: "800px 600px" }}>
+          <SupportSection />
+        </div>
       </div>
     </>
   );

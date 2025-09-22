@@ -68,11 +68,14 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
         }}
       >
         {slides.map((slide, index) => (
-          <Link href={slide.link} key={slide.id} className="relative w-full flex-shrink-0">
+          <Link
+            href={slide.link}
+            prefetch={false}
+            key={slide.id}
+            className="relative w-full flex-shrink-0"
+          >
             {/* Skeleton Loader */}
-            {!imageLoaded[index] && (
-              <div className="absolute inset-0 animate-pulse bg-gray-400"></div>
-            )}
+            {!imageLoaded[index] && <div className="absolute inset-0 bg-gray-100"></div>}
 
             {/* Image */}
             <Image
@@ -83,10 +86,12 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
               alt={slide.alt}
               width={1920}
               height={900}
-              quality={75}
+              quality={90}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
               onLoad={() => handleImageLoad(index)}
               priority={index === 0}
+              fetchPriority={index === 0 ? "high" : "auto"}
+              decoding="async"
               placeholder="blur"
               blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
             />

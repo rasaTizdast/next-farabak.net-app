@@ -7,6 +7,7 @@
     "build": "prisma generate && next build --turbopack",
     "prisma:generate": "prisma generate",
     "start": "next start",
+    "preview": "prisma generate && next build --turbopack && next start",
     "lint": "next lint --ext .js,.jsx,.ts,.tsx .",
     "lint:fix": "next lint --ext .js,.jsx,.ts,.tsx . --fix",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",

@@ -14,13 +14,13 @@ const Header = () => {
         <HamburgerMenu />
         <Link href="/" passHref>
           <Image
-            loading="eager"
-            priority
             className={styles.header_logo}
             src="/Farabak_Logo.webp"
             alt="Farabak logo"
             width={150}
             height={40}
+            loading="lazy"
+            fetchPriority="low"
           />
         </Link>
         <NavBar />
