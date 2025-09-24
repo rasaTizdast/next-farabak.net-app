@@ -87,6 +87,7 @@ export async function PATCH(req: Request) {
       SEO_Details,
       TopBlog,
       BottomBlog,
+      Banner,
     } = body;
 
     if (Type === "category") {
@@ -103,6 +104,7 @@ export async function PATCH(req: Request) {
           ModifyDate: new Date(),
           TopBlog: TopBlog ?? null,
           BottomBlog: BottomBlog ?? null,
+          Banner: Banner ?? null,
           SEO_Category: {
             upsert: {
               where: { CategoryID }, // Use CategoryID for the SEO_Category upsert
@@ -148,6 +150,7 @@ export async function PATCH(req: Request) {
           ModifyDate: new Date(),
           TopBlog: TopBlog ?? null,
           BottomBlog: BottomBlog ?? null,
+          Banner: Banner ?? null,
           SEO_CategoryContent: {
             upsert: {
               where: { CategoryContentId }, // Use CategoryContentId here

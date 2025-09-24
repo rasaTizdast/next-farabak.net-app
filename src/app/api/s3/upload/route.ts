@@ -32,8 +32,8 @@ async function verifyToken(token: string) {
  *             properties:
  *               type:
  *                 type: string
- *                 description: The type of the upload, e.g., "productImage" or "overviewDetails".
- *                 enum: [productImage, overviewDetails]
+ *                 description: The type of the upload, e.g., "productImage", "overviewDetails", or "categoryBanner".
+ *                 enum: [productImage, overviewDetails, categoryBanner]
  *               folderName:
  *                 type: string
  *                 description: The name of the folder where the file will be uploaded.
@@ -43,6 +43,12 @@ async function verifyToken(token: string) {
  *               imageType:
  *                 type: string
  *                 description: Specifies the type of image if `type` is "productImage". Possible values are "banner" or "mini".
+ *               categorySlug:
+ *                 type: string
+ *                 description: Required when `type` is "categoryBanner". The slug of the category.
+ *               subcategorySlug:
+ *                 type: string
+ *                 description: Optional when `type` is "categoryBanner". The slug of the subcategory.
  *     responses:
  *       200:
  *         description: Successfully generated the presigned upload URL.
@@ -102,21 +108,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { type, folderName, contentType, imageType } = await request.json();
+    const { type, folderName, contentType, imageType, categorySlug, subcategorySlug } =
+      await request.json();
 
     // Validate the required parameters
-    if (!type || !folderName || !contentType) {
-      return NextResponse.json(
-        { error: "Type, folderName, and contentType are required" },
-        { status: 400 }
-      );
+    if (!type || !contentType) {
+      return NextResponse.json({ error: "Type and contentType are required" }, { status: 400 });
     }
 
-    // Sanitize folder name but preserve case
-    const sanitizedFolderName = folderName
-      .trim()
-      .replace(/[^a-zA-Z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
+    // Sanitize helpers (preserve hyphens)
+    const sanitize = (value: string) =>
+      value
+        .trim()
+        .replace(/[^a-zA-Z0-9-]+/g, "-")
+        .replace(/^-+|-+$/g, "");
 
     // Define the parent folder based on the type
     let parentFolder = "";
@@ -125,17 +130,34 @@ export async function POST(request: Request) {
     if (type === "productImage") {
       parentFolder = "productImages";
       if (imageType === "banner") {
+        const sanitizedFolderName = sanitize(folderName);
         key = `${parentFolder}/${sanitizedFolderName}/${sanitizedFolderName}-banner.${
           contentType.split("/")[1]
         }`;
       } else if (imageType === "mini") {
+        const sanitizedFolderName = sanitize(folderName);
         key = `${parentFolder}/${sanitizedFolderName}/${sanitizedFolderName}-mini.${
           contentType.split("/")[1]
         }`;
       }
     } else if (type === "overviewDetails") {
       parentFolder = "overview-details-images";
+      const sanitizedFolderName = sanitize(folderName);
       key = `${parentFolder}/${sanitizedFolderName}.${contentType.split("/")[1]}`;
+    } else if (type === "categoryBanner") {
+      // Path: /category or /category/subcategory at bucket root
+      if (!categorySlug || typeof categorySlug !== "string") {
+        return NextResponse.json(
+          { error: "categorySlug is required for categoryBanner" },
+          { status: 400 }
+        );
+      }
+
+      const cat = sanitize(categorySlug);
+      const sub = subcategorySlug ? sanitize(subcategorySlug) : null;
+      const fileExt = contentType.split("/")[1];
+      const fileName = "banner";
+      key = sub ? `${cat}/${sub}/${fileName}.${fileExt}` : `${cat}/${fileName}.${fileExt}`;
     } else {
       return NextResponse.json({ error: "Invalid type provided" }, { status: 400 });
     }
@@ -147,13 +169,11 @@ export async function POST(request: Request) {
       ContentType: contentType,
     });
 
-    // Remove the parent folder part from the key for the response
-    const responseKey = key.substring(key.indexOf("/") + 1);
+    // For productImage and overviewDetails we strip the first folder for consistency with existing clients.
+    // For categoryBanner we return the full key since it's at bucket root folder(s).
+    const responseKey = type === "categoryBanner" ? key : key.substring(key.indexOf("/") + 1);
 
-    return NextResponse.json({
-      uploadUrl,
-      key: responseKey, // Only return the sanitized portion of the key
-    });
+    return NextResponse.json({ uploadUrl, key: responseKey });
   } catch (error) {
     return NextResponse.json(
       { error: `Failed to generate upload URL, ${error!}` },

@@ -204,6 +204,7 @@ model Category {
   ModifyDate       DateTime?         @default(now()) @db.Timestamp(6)
   Category_groupId Int?
   Slug             String?           @db.VarChar(200)
+  Banner           String?           @db.VarChar(4000)
   // SEO/AEO/AIO blogs for category pages
   TopBlog          String?           @db.Text
   BottomBlog       String?           @db.Text
@@ -222,6 +223,7 @@ model CategoryContent {
   Available           Boolean?
   InsertDate          DateTime?            @default(now()) @db.Timestamp(6)
   ModifyDate          DateTime?            @default(now()) @db.Timestamp(6)
+  Banner              String?              @db.VarChar(4000)
   // SEO/AEO/AIO blogs for subcategory pages
   TopBlog             String?              @db.Text
   BottomBlog          String?              @db.Text

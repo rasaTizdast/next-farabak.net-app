@@ -1,5 +1,6 @@
 import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
 
 import CategoryBlogEditor from "./CategoryBlogEditor";
@@ -31,6 +32,31 @@ const EditModal: React.FC<EditModalProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({}); // Store errors for all fields
   const [topBlog, setTopBlog] = useState<string>("");
   const [bottomBlog, setBottomBlog] = useState<string>("");
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string>("");
+  const [bannerDeleteRequested, setBannerDeleteRequested] = useState<boolean>(false);
+
+  // Retry helper for 401 errors
+  const withRetry401 = async <T,>(
+    requestFn: () => Promise<T>,
+    options: { retries?: number; baseDelayMs?: number } = {}
+  ): Promise<T> => {
+    const { retries = 3, baseDelayMs = 300 } = options;
+    let lastError: unknown;
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        return await requestFn();
+      } catch (error) {
+        lastError = error;
+        if (axios.isAxiosError(error) && error.response?.status === 401 && attempt < retries - 1) {
+          await new Promise((r) => setTimeout(r, baseDelayMs * (attempt + 1)));
+          continue;
+        }
+        throw error;
+      }
+    }
+    throw lastError as Error;
+  };
 
   useEffect(() => {
     if (item && item.SEO_Details) {
@@ -51,8 +77,30 @@ const EditModal: React.FC<EditModalProps> = ({
     if (item) {
       setTopBlog((item as any).TopBlog || "");
       setBottomBlog((item as any).BottomBlog || "");
+      const existingBanner = (item as any).Banner as string | undefined;
+      if (existingBanner) {
+        setBannerPreview(`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${existingBanner}`);
+      } else {
+        setBannerPreview("");
+      }
     }
   }, [item]);
+
+  // Banner drop handlers MUST be declared before any conditional return to avoid hook order changes
+  const onDrop = useCallback((accepted: File[]) => {
+    if (accepted.length > 0) {
+      const f = accepted[0];
+      setBannerFile(f);
+      setBannerPreview(URL.createObjectURL(f));
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
+    onDrop,
+    accept: { "image/*": [] },
+    maxFiles: 1,
+    multiple: false,
+  });
 
   if (!isOpen || !item) return null;
 
@@ -167,6 +215,39 @@ const EditModal: React.FC<EditModalProps> = ({
   const handleItemUpdate = async (updatedItem: Category | Subcategory) => {
     const isCategory = "CategoryID" in updatedItem && !("CategoryContentId" in updatedItem);
     const endpoint = `/api/categories/editCategory`;
+    // Upload banner if selected
+    let bannerKey: string | undefined = undefined;
+    const existingKey = (item as any).Banner as string | undefined;
+    if (bannerFile) {
+      try {
+        const payloadForUpload = isCategory
+          ? {
+              type: "categoryBanner",
+              contentType: bannerFile.type,
+              categorySlug: updatedItem.Slug,
+            }
+          : {
+              type: "categoryBanner",
+              contentType: bannerFile.type,
+              categorySlug:
+                (updatedItem as any).ParentSlug ||
+                (updatedItem as any).CategorySlug ||
+                updatedItem.Slug,
+              subcategorySlug: updatedItem.Slug,
+            };
+        const { data: presign } = await withRetry401(() =>
+          axios.post(`/api/s3/upload`, payloadForUpload)
+        );
+        await axios.put(presign.uploadUrl, bannerFile, {
+          headers: { "Content-Type": bannerFile.type },
+        });
+        bannerKey = presign.key;
+      } catch (e) {
+        console.error(e);
+        toast.error("خطا در آپلود بنر");
+      }
+    }
+
     const payload = isCategory
       ? {
           Type: "category",
@@ -176,6 +257,7 @@ const EditModal: React.FC<EditModalProps> = ({
           Available: updatedItem.Available,
           TopBlog: topBlog || null,
           BottomBlog: bottomBlog || null,
+          Banner: bannerDeleteRequested && !bannerKey ? null : (bannerKey ?? existingKey ?? null),
           SEO_Details: {
             SEO_Title: updatedItem.SEO_Details.SEO_Title,
             SEO_Description: updatedItem.SEO_Details.SEO_Description,
@@ -191,6 +273,7 @@ const EditModal: React.FC<EditModalProps> = ({
           Available: updatedItem.Available,
           TopBlog: topBlog || null,
           BottomBlog: bottomBlog || null,
+          Banner: bannerDeleteRequested && !bannerKey ? null : (bannerKey ?? existingKey ?? null),
           SEO_Details: {
             SEO_Title: updatedItem.SEO_Details.SEO_Title,
             SEO_Description: updatedItem.SEO_Details.SEO_Description,
@@ -199,7 +282,18 @@ const EditModal: React.FC<EditModalProps> = ({
         };
 
     try {
-      await axios.patch(endpoint, payload);
+      await withRetry401(() => axios.patch(endpoint, payload));
+      if (bannerDeleteRequested && existingKey && !bannerKey) {
+        try {
+          await withRetry401(() =>
+            axios.delete("/api/s3/delete", {
+              data: { type: "categoryBanner", key: existingKey },
+            })
+          );
+        } catch (e) {
+          console.error(e);
+        }
+      }
       toast.success("تغییرات با موفقیت اعمال شدند!");
       refetchCategories();
       setEditCategory(null);
@@ -249,6 +343,66 @@ const EditModal: React.FC<EditModalProps> = ({
             placeholder="نام را وارد کنید"
           />
           {errors.Name && <p className="text-sm text-red-500">{errors.Name}</p>}
+        </div>
+
+        {/* Banner Field */}
+        <div className="mb-4">
+          <label className="mb-2 block text-sm">بنر</label>
+          <div
+            {...getRootProps()}
+            className={`cursor-pointer rounded-md border-2 border-dashed p-4 text-center transition-colors ${
+              isDragActive
+                ? "border-blue-400 bg-blue-900/20"
+                : isDragReject
+                  ? "border-red-400 bg-red-900/20"
+                  : "border-gray-600 hover:border-blue-400 hover:bg-blue-900/10"
+            } ${bannerPreview ? "border-green-500" : ""}`}
+          >
+            <input {...getInputProps()} />
+            {bannerPreview ? (
+              <div className="space-y-2">
+                <p className="text-green-400">تصویر انتخاب شد</p>
+                <p className="text-xs text-gray-400">
+                  اندازه پیشنهادی: 1920x600 (16:5) | حداکثر 2MB
+                </p>
+              </div>
+            ) : isDragActive ? (
+              <p>فایل را اینجا رها کنید ...</p>
+            ) : isDragReject ? (
+              <p className="text-red-400">فقط فایل تصویر مجاز است!</p>
+            ) : (
+              <div className="space-y-2">
+                <p>برای انتخاب تصویر کلیک کنید یا تصویر را به اینجا بکشید</p>
+                <p className="text-xs text-gray-400">
+                  اندازه پیشنهادی: 1920x600 (16:5) | حداکثر 2MB
+                </p>
+              </div>
+            )}
+          </div>
+          {bannerPreview && (
+            <div
+              className="relative mt-4 w-full overflow-hidden rounded-md bg-gray-700"
+              style={{ aspectRatio: "16/5" }}
+            >
+              <img src={bannerPreview} alt="پیش‌نمایش بنر" className="h-full w-full object-cover" />
+            </div>
+          )}
+          {bannerPreview && (
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                className="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
+                onClick={() => {
+                  setBannerDeleteRequested(true);
+                  setBannerFile(null);
+                  setBannerPreview("");
+                  onChange({ Banner: null } as any);
+                }}
+              >
+                حذف بنر
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Slug Field */}

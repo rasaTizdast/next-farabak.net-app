@@ -95,6 +95,7 @@ export async function POST(req: Request) {
       seoKeywords,
       topBlog,
       bottomBlog,
+      banner,
     } = data;
 
     if (
@@ -120,6 +121,7 @@ export async function POST(req: Request) {
         CategoryID: parentCategoryId,
         TopBlog: topBlog ?? null,
         BottomBlog: bottomBlog ?? null,
+        Banner: banner ?? null,
         SEO_CategoryContent: {
           create: {
             SEO_Title: seoTitle,

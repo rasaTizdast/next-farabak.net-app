@@ -88,6 +88,7 @@ export async function POST(req: Request) {
       seoKeywords,
       topBlog,
       bottomBlog,
+      banner,
     } = data;
 
     if (type !== "Category" || !name || !slug || available === undefined) {
@@ -103,6 +104,7 @@ export async function POST(req: Request) {
         Category_groupId: parentCategoryId,
         TopBlog: topBlog ?? null,
         BottomBlog: bottomBlog ?? null,
+        Banner: banner ?? null,
         SEO_Category: {
           create: {
             SEO_Title: seoTitle,

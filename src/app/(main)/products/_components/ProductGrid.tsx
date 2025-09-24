@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import SkeletonLoader from "@/app/_components/ui/SkeletonLoader";
 
+import BannerImage from "./BannerImage";
 import BlogContent from "./BlogContent";
 import { GridContentServer } from "./GridContentServer"; // Server component for products
 import styles from "./ProductGrid.module.css";
@@ -31,18 +32,21 @@ const ProductGrid: React.FC<ProductGridProps> = ({
       url.searchParams.set("page", String(currentPage));
       const res = await fetch(url.toString(), { next: { revalidate: 60 } });
       if (!res.ok)
-        return { topBlog: null, bottomBlog: null } as {
+        return { topBlog: null, bottomBlog: null, banner: null } as {
           topBlog: string | null;
           bottomBlog: string | null;
+          banner: string | null;
         };
       return (await res.json()) as {
         topBlog: string | null;
         bottomBlog: string | null;
+        banner: string | null;
       };
     } catch {
-      return { topBlog: null, bottomBlog: null } as {
+      return { topBlog: null, bottomBlog: null, banner: null } as {
         topBlog: string | null;
         bottomBlog: string | null;
+        banner: string | null;
       };
     }
   }
@@ -60,6 +64,16 @@ const ProductGrid: React.FC<ProductGridProps> = ({
             return <BlogContent text={topBlog} as="h1" />;
           }
           return <h1 className={styles.gridTitle}>{title}</h1>;
+        })()}
+      </Suspense>
+
+      {/** Banner under title and first blog section (full-width) */}
+      <Suspense>
+        {(async () => {
+          const { banner } = await blogsPromise;
+          if (!banner) return null;
+          const src = `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${banner}`;
+          return <BannerImage src={src} alt="banner" />;
         })()}
       </Suspense>
 
