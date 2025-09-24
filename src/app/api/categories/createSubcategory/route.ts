@@ -85,7 +85,17 @@ export async function POST(req: Request) {
       );
     }
 
-    const { name, slug, available, parentCategoryId, seoTitle, seoDescription, seoKeywords } = data;
+    const {
+      name,
+      slug,
+      available,
+      parentCategoryId,
+      seoTitle,
+      seoDescription,
+      seoKeywords,
+      topBlog,
+      bottomBlog,
+    } = data;
 
     if (
       !name ||
@@ -108,6 +118,8 @@ export async function POST(req: Request) {
         Slug: slug,
         Available: available,
         CategoryID: parentCategoryId,
+        TopBlog: topBlog ?? null,
+        BottomBlog: bottomBlog ?? null,
         SEO_CategoryContent: {
           create: {
             SEO_Title: seoTitle,

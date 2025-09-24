@@ -78,7 +78,17 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { type, data } = body;
-    const { name, slug, available, parentCategoryId, seoTitle, seoDescription, seoKeywords } = data;
+    const {
+      name,
+      slug,
+      available,
+      parentCategoryId,
+      seoTitle,
+      seoDescription,
+      seoKeywords,
+      topBlog,
+      bottomBlog,
+    } = data;
 
     if (type !== "Category" || !name || !slug || available === undefined) {
       return NextResponse.json({ message: "Invalid data" }, { status: 400 });
@@ -91,6 +101,8 @@ export async function POST(req: Request) {
         Slug: slug,
         Available: available,
         Category_groupId: parentCategoryId,
+        TopBlog: topBlog ?? null,
+        BottomBlog: bottomBlog ?? null,
         SEO_Category: {
           create: {
             SEO_Title: seoTitle,

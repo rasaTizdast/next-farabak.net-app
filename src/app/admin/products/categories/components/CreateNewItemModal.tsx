@@ -2,6 +2,7 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 
+import CategoryBlogEditor from "./CategoryBlogEditor";
 import { Category } from "../types/types";
 import CategoryFields from "./newItemModalComponents/CategoryFields";
 import SeoFields from "./newItemModalComponents/SeoFields";
@@ -44,6 +45,8 @@ const CreateNewItemModal = ({
   const [keywordInput, setKeywordInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false); // Loading state for submission
+  const [topBlog, setTopBlog] = useState("");
+  const [bottomBlog, setBottomBlog] = useState("");
 
   // Reset the form fields when the modal is opened (when `isOpen` changes)
   useEffect(() => {
@@ -56,6 +59,8 @@ const CreateNewItemModal = ({
     setSeoKeywords([]);
     setKeywordInput("");
     setError(null); // Clear any previous error messages
+    setTopBlog("");
+    setBottomBlog("");
   }, [isOpen, activeTab]); // Trigger the effect when `isOpen` changes
 
   const addKeyword = (e: React.KeyboardEvent) => {
@@ -97,6 +102,8 @@ const CreateNewItemModal = ({
         seoTitle,
         seoDescription,
         seoKeywords,
+        topBlog,
+        bottomBlog,
       },
     };
 
@@ -123,6 +130,8 @@ const CreateNewItemModal = ({
       setSeoDescription("");
       setSeoKeywords([]);
       setKeywordInput("");
+      setTopBlog("");
+      setBottomBlog("");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorMessage =
@@ -237,6 +246,21 @@ const CreateNewItemModal = ({
             removeKeyword={removeKeyword}
             editable={activeTab === "Category" || parentCategoryId !== undefined}
           />
+
+          <div className="mt-6 rounded-md bg-gray-900 p-4">
+            <CategoryBlogEditor
+              label="متن بالای صفحه"
+              value={topBlog}
+              onChange={setTopBlog}
+              placeholder="متن یا جدول دلخواه برای بالای صفحه دسته/زیردسته"
+            />
+            <CategoryBlogEditor
+              label="متن پایین صفحه"
+              value={bottomBlog}
+              onChange={setBottomBlog}
+              placeholder="متن یا جدول دلخواه برای پایین صفحه دسته/زیردسته"
+            />
+          </div>
 
           {error && <div className="mt-4 text-sm text-red-500">{error}</div>}
           <div className="mt-5 flex items-center justify-between">
