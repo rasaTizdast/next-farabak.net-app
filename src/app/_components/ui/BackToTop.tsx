@@ -6,6 +6,7 @@ import { FaArrowUp } from "react-icons/fa";
 const BackToTop = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -13,9 +14,21 @@ const BackToTop = () => {
       setShowBackToTop(window.scrollY > threshold);
     };
 
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 576);
+    };
+
+    // Initial checks
+    handleResize();
+    handleScroll();
+
+    // Add event listeners
     window.addEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleResize);
+
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
@@ -25,24 +38,21 @@ const BackToTop = () => {
 
   return (
     <div
-      className={`fixed bottom-4 left-4 z-50 flex items-center rounded-full shadow-md transition-all duration-500 ease-in-out cursor-pointer
-        ${showBackToTop ? "translate-x-0" : "-translate-x-[200%]"}
-        ${isHovered ? "bg-blue-600" : "bg-blue-500"}
-      `}
+      className={`fixed bottom-[4.5rem] left-4 z-50 flex cursor-pointer items-center rounded-full shadow-md transition-all duration-500 ease-in-out ${showBackToTop ? "translate-x-0" : "-translate-x-[200%]"} ${isHovered && !isMobile ? "bg-blue-600" : "bg-blue-500"} `}
       onClick={scrollToTop}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       aria-label="Scroll to top"
     >
       <div
-        className={`text-white overflow-hidden transition-all duration-500 ease-in-out whitespace-nowrap
-          ${isHovered ? "max-w-32 opacity-100 pr-4" : "max-w-0 opacity-0 px-0"}
-        `}
+        className={`overflow-hidden whitespace-nowrap text-white transition-all duration-500 ease-in-out ${
+          isHovered && !isMobile ? "max-w-32 pr-4 opacity-100" : "max-w-0 px-0 opacity-0"
+        } `}
       >
         بازگشت به بالا
       </div>
       <div className="p-3">
-        <FaArrowUp className="w-5 h-5 text-white" />
+        <FaArrowUp className="h-5 w-5 text-white" />
       </div>
     </div>
   );

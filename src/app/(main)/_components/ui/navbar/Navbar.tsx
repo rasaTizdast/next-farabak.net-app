@@ -1,7 +1,8 @@
+import Link from "next/link";
+
+import HeaderSubMenu from "./HeaderSubMenu";
 import styles from "./NavBar.module.css";
 import ProductsMegaMenu from "../productsMegaMenu/ProductsMegaMenu";
-import Link from "next/link";
-import HeaderSubMenu from "./HeaderSubMenu";
 
 interface SubMenuItem {
   id: number;

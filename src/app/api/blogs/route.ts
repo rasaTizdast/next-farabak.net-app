@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma"; // Adjust based on your Prisma client location
 
 export const dynamic = "force-dynamic";
@@ -128,9 +129,6 @@ export async function GET() {
     return NextResponse.json({ blogs: formattedBlogs });
   } catch (error) {
     console.error("خطا در دریافت مقالات:", error);
-    return NextResponse.json(
-      { error: "دریافت مقالات با مشکل مواجه شد" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "دریافت مقالات با مشکل مواجه شد" }, { status: 500 });
   }
 }

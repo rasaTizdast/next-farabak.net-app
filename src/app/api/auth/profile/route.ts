@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
@@ -80,14 +81,11 @@ async function verifyToken(token: string) {
  */
 export async function GET(): Promise<NextResponse> {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "توکن احراز هویت الزامی است" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "توکن احراز هویت الزامی است" }, { status: 401 });
     }
 
     // Verify the token
@@ -97,6 +95,7 @@ export async function GET(): Promise<NextResponse> {
       where: { UserID: decoded.userId as number },
       select: {
         UserID: true,
+        Username: true,
         FirstName: true,
         LastName: true,
         Email: true,
@@ -111,6 +110,7 @@ export async function GET(): Promise<NextResponse> {
 
     return NextResponse.json({
       userId: user.UserID,
+      username: user.Username,
       firstName: user.FirstName,
       lastName: user.LastName,
       email: user.Email,
@@ -118,20 +118,18 @@ export async function GET(): Promise<NextResponse> {
       role: user.Role,
     });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
   }
 }
 
 export async function PATCH(request: Request): Promise<NextResponse> {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "توکن احراز هویت الزامی است" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "توکن احراز هویت الزامی است" }, { status: 401 });
     }
 
     // Use jose to verify the token
@@ -153,7 +151,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       );
     }
 
-    const updatedUser = await prisma.client.update({
+    await prisma.client.update({
       where: { UserID: decoded.userId as number },
       data: {
         FirstName: updates.firstName,
@@ -167,6 +165,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
 
     return NextResponse.json({ message: "پروفایل با موفقیت به‌روزرسانی شد" });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
   }
 }

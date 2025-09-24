@@ -1,5 +1,6 @@
 // app/api/blogs/categories/route.ts
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
@@ -8,10 +9,7 @@ export async function GET() {
     return NextResponse.json(categories);
   } catch (error) {
     console.error("Error fetching categories:", error);
-    return NextResponse.json(
-      { error: "خطا در دریافت دسته‌بندی‌ها" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در دریافت دسته‌بندی‌ها" }, { status: 500 });
   }
 }
 
@@ -32,15 +30,9 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Error creating category:", error);
     if ((error as any).code === "P2002") {
-      return NextResponse.json(
-        { error: "این دسته‌بندی قبلاً وجود دارد" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "این دسته‌بندی قبلاً وجود دارد" }, { status: 400 });
     }
-    return NextResponse.json(
-      { error: "خطا در ایجاد دسته‌بندی" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در ایجاد دسته‌بندی" }, { status: 500 });
   }
 }
 
@@ -106,14 +98,8 @@ export async function DELETE(request: Request) {
   } catch (error) {
     console.error("[API] Delete category error:", error);
     if ((error as any).code === "P2025") {
-      return NextResponse.json(
-        { error: "دسته‌بندی مورد نظر یافت نشد" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "دسته‌بندی مورد نظر یافت نشد" }, { status: 404 });
     }
-    return NextResponse.json(
-      { error: "خطا در حذف دسته‌بندی" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در حذف دسته‌بندی" }, { status: 500 });
   }
 }

@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -41,62 +42,67 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     // Fetch all the data we need in parallel
-    const [
-      products,
-      categories,
-      categoryContents,
-      blogs,
-      blogCategories,
-      projects,
-    ] = await Promise.all([
-      // Products
-      prisma.product.findMany({
-        include: {
-          Category: {
-            select: {
-              Slug: true,
+    const [products, categories, categoryContents, blogs, blogCategories, projects] =
+      await Promise.all([
+        // Products
+        prisma.product.findMany({
+          include: {
+            Category: {
+              select: {
+                Slug: true,
+              },
             },
           },
-        },
-      }),
+        }),
 
-      // Categories
-      prisma.category.findMany({
-        where: { Available: true },
-        select: { Slug: true },
-      }),
+        // Categories
+        prisma.category.findMany({
+          where: { Available: true },
+          select: { Slug: true },
+        }),
 
-      // Subcategories
-      prisma.categoryContent.findMany({
-        where: { Available: true },
-        select: {
-          Slug: true,
-          CategoryID: true,
-          Category: {
-            select: {
-              Slug: true,
+        // Subcategories
+        prisma.categoryContent.findMany({
+          where: { Available: true },
+          select: {
+            Slug: true,
+            CategoryID: true,
+            Category: {
+              select: {
+                Slug: true,
+              },
             },
           },
-        },
-      }),
+        }),
 
-      // Blogs
-      prisma.blogs.findMany({
-        where: { status: "Published" },
-        select: { slug: true },
-      }),
+        // Blogs
+        prisma.blogs.findMany({
+          where: { status: "Published" },
+          select: {
+            slug: true,
+            BlogCategories: {
+              select: {
+                Categories: {
+                  select: {
+                    slug: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
 
-      // Blog Categories
-      prisma.categories.findMany({
-        select: { slug: true },
-      }),
+        // Blog Categories
+        prisma.categories.findMany({
+          select: { slug: true },
+        }),
 
-      // Projects
-      prisma.projects.findMany({
-        where: { IsActive: true },
-        select: { Slug: true },
-      }),
-    ]);
+        // Projects
+        prisma.projects.findMany({
+          where: { IsActive: true },
+          select: { Slug: true },
+        }),
+      ]);
 
     // Generate product URLs
     const productUrls = await Promise.all(
@@ -105,9 +111,7 @@ export async function GET() {
 
         // Parse CategoryContentId string
         const categoryContentIds = product.CategoryContentId
-          ? product.CategoryContentId.split(",").map((id) =>
-              parseInt(id.trim(), 10)
-            )
+          ? product.CategoryContentId.split(",").map((id) => parseInt(id.trim(), 10))
           : [];
 
         // Fetch first matching subcategory
@@ -129,15 +133,20 @@ export async function GET() {
     // Generate subcategory URLs
     const subcategoryUrls = categoryContents
       .filter((content) => content.Category?.Slug) // Only include subcategories with valid parent categories
-      .map(
-        (content) =>
-          `https://farabak.net/products/${content.Category?.Slug}/${content.Slug}`
-      );
+      .map((content) => `https://farabak.net/products/${content.Category?.Slug}/${content.Slug}`);
 
     // Generate blog URLs
-    const blogUrls = blogs.map(
-      (blog) => `https://farabak.net/support/blog/${blog.slug}`
-    );
+    const blogUrls = blogs.flatMap((blog) => {
+      // If blog has categories, create URLs for each category
+      if (blog.BlogCategories && blog.BlogCategories.length > 0) {
+        return blog.BlogCategories.map(
+          (blogCategory) =>
+            `https://farabak.net/support/blog/${blogCategory.Categories.slug}/${blog.slug}`
+        );
+      }
+      // If no categories, create URL without category (fallback)
+      return [`https://farabak.net/support/blog/${blog.slug}`];
+    });
 
     // Generate blog category URLs
     const blogCategoryUrls = blogCategories.map(
@@ -180,6 +189,6 @@ export async function GET() {
 
     return NextResponse.json(allUrls);
   } catch (error) {
-    return new NextResponse("Failed to generate sitemap", { status: 500 });
+    return new NextResponse(`Failed to generate sitemap, ${error!}`, { status: 500 });
   }
 }

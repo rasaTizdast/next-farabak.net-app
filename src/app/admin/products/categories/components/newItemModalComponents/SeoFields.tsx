@@ -34,8 +34,7 @@ const SeoFields = ({
   // Error messages
   const errorMessages = {
     SEO_Title: "عنوان سئو باید حداکثر ۵۰ کاراکتر باشد.",
-    SEO_Keywords:
-      "کلمه کلیدی نمی‌تواند شامل کاما باشد و حداکثر ۴۰۰۰ کاراکتر باشد.",
+    SEO_Keywords: "کلمه کلیدی نمی‌تواند شامل کاما باشد و حداکثر ۴۰۰۰ کاراکتر باشد.",
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -44,8 +43,7 @@ const SeoFields = ({
     if (pattern && !pattern.test(value)) {
       setErrors((prev) => ({
         ...prev,
-        [field]:
-          errorMessages[field as keyof typeof errorMessages] || "خطای نامشخص",
+        [field]: errorMessages[field as keyof typeof errorMessages] || "خطای نامشخص",
       }));
     } else {
       setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -69,12 +67,10 @@ const SeoFields = ({
           value={seoTitle}
           onChange={(e) => handleInputChange("SEO_Title", e.target.value)}
           disabled={!editable}
-          className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 disabled:bg-gray-500"
+          className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-500"
           placeholder="عنوان سئو"
         />
-        {errors.SEO_Title && (
-          <p className="text-red-500 text-sm">{errors.SEO_Title}</p>
-        )}
+        {errors.SEO_Title && <p className="text-sm text-red-500">{errors.SEO_Title}</p>}
       </div>
 
       {/* SEO Description */}
@@ -84,12 +80,10 @@ const SeoFields = ({
           value={seoDescription}
           onChange={(e) => handleInputChange("SEO_Description", e.target.value)}
           disabled={!editable}
-          className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 disabled:bg-gray-500"
+          className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-500"
           placeholder="توضیحات سئو | بهتر است برای سئو بهتر توضیحات سئو زیر ۱۶۰ کاراکتر باشد."
         />
-        {errors.SEO_Description && (
-          <p className="text-red-500 text-sm">{errors.SEO_Description}</p>
-        )}
+        {errors.SEO_Description && <p className="text-sm text-red-500">{errors.SEO_Description}</p>}
       </div>
 
       {/* SEO Keywords */}
@@ -108,20 +102,18 @@ const SeoFields = ({
             }}
             onKeyUp={addKeyword}
             disabled={!editable}
-            className="w-full p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 disabled:bg-gray-500"
+            className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-500"
             placeholder="اضافه کردن کلمه کلیدی | بعد هر کلمه کلیدی دکمه Enter را بزنید"
           />
         </div>
-        {errors.SEO_Keywords && (
-          <p className="text-red-500 text-sm">{errors.SEO_Keywords}</p>
-        )}
+        {errors.SEO_Keywords && <p className="text-sm text-red-500">{errors.SEO_Keywords}</p>}
 
         {/* Display keywords */}
         <div className="mt-4 flex flex-wrap gap-2">
           {seoKeywords.map((keyword, index) => (
             <button
               key={index}
-              className="bg-green-700 px-4 py-1 rounded-lg flex items-center gap-2 hover:bg-red-700 animate-fade-in transition-all"
+              className="flex animate-fade-in items-center gap-2 rounded-lg bg-green-700 px-4 py-1 transition-all hover:bg-red-700"
               onClick={() => removeKeyword(keyword)}
             >
               {keyword}

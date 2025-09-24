@@ -23,35 +23,34 @@ const FaqAccordion: React.FC<FaqAccordionProps> = ({ faqs }) => {
   return (
     <div className="space-y-2">
       {faqs.map((faq) => (
-        <div 
-          key={faq.FAQsId} 
-          className="border border-gray-200 rounded-lg overflow-hidden"
-        >
+        <div key={faq.FAQsId} className="overflow-hidden rounded-lg border border-gray-200">
           <h3>
             <button
               onClick={() => toggleFaq(faq.FAQsId)}
-              className="w-full p-4 text-right flex justify-between items-center bg-gray-50 hover:bg-gray-100 transition-all"
+              className="flex w-full items-start justify-between bg-gray-50 p-4 text-right transition-all hover:bg-gray-100"
               aria-expanded={expandedId === faq.FAQsId}
               aria-controls={`faq-content-${faq.FAQsId}`}
             >
-              <span className="text-gray-800 font-medium">{faq.Title}</span>
-              {expandedId === faq.FAQsId ? (
-                <FiChevronUp className="text-blue-500" aria-hidden="true" />
-              ) : (
-                <FiChevronDown className="text-blue-500" aria-hidden="true" />
-              )}
+              <span className="w-[97%] break-words break-all text-right font-medium text-gray-800">
+                {faq.Title}
+              </span>
+              <span className="ml-2 flex-shrink-0">
+                {expandedId === faq.FAQsId ? (
+                  <FiChevronUp className="text-blue-500" aria-hidden="true" />
+                ) : (
+                  <FiChevronDown className="text-blue-500" aria-hidden="true" />
+                )}
+              </span>
             </button>
           </h3>
           <div
             id={`faq-content-${faq.FAQsId}`}
             className={`overflow-hidden transition-all duration-300 ease-in-out ${
-              expandedId === faq.FAQsId ? "max-h-96 p-4" : "max-h-0"
+              expandedId === faq.FAQsId ? "p-4" : "max-h-0"
             }`}
             aria-hidden={expandedId !== faq.FAQsId}
           >
-            <p className="text-gray-700 whitespace-pre-wrap">
-              {faq.Description}
-            </p>
+            <p className="whitespace-pre-wrap break-words text-gray-700">{faq.Description}</p>
           </div>
         </div>
       ))}
@@ -59,4 +58,4 @@ const FaqAccordion: React.FC<FaqAccordionProps> = ({ faqs }) => {
   );
 };
 
-export default FaqAccordion; 
+export default FaqAccordion;

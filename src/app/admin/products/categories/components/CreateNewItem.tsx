@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import CreateNewItemModal from "./CreateNewItemModal";
 import { Category } from "../types/types";
 
@@ -15,13 +16,13 @@ const CreateNewItem = ({ refetchCategories, isLoading, categories }: Props) => {
   const closeModalHandler = () => setIsModalOpen(false);
 
   return (
-    <div className="w-full flex justify-center">
+    <div className="flex w-full justify-center">
       <div className="w-full max-w-[1800px]">
         {isLoading ? (
-          <div className="animate-pulse p-3 rounded-xl bg-gray-300 shadow-lg w-full h-[50px] max-w-64"></div>
+          <div className="h-[50px] w-full max-w-64 animate-pulse rounded-xl bg-gray-300 p-3 shadow-lg"></div>
         ) : (
           <button
-            className="p-3 rounded-xl bg-blue-300 shadow-lg hover:bg-blue-400 transition-all text-md"
+            className="text-md rounded-xl bg-blue-300 p-3 shadow-lg transition-all hover:bg-blue-400"
             onClick={openModalHandler}
           >
             ساخت دسته‌بندی یا زیردسته‌بندی جدید

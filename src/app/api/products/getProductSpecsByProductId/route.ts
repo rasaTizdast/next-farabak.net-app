@@ -2,8 +2,9 @@
 
 export const dynamic = "force-dynamic";
 
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -69,15 +70,13 @@ export async function GET(request: Request) {
 
     // Return 404 if no product specifications found
     if (specs.length === 0) {
-      return new NextResponse(
-        "No specifications found for the given ProductId",
-        { status: 404 }
-      );
+      return new NextResponse("No specifications found for the given ProductId", { status: 404 });
     }
 
     // Return the specifications
     return NextResponse.json({ data: specs });
   } catch (error) {
+    console.error(error);
     return new NextResponse("Failed to fetch product specifications", {
       status: 500,
     });

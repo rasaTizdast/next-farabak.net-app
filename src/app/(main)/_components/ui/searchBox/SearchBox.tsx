@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
 import debounce from "lodash/debounce";
-import { escape } from "validator";
-import { CgSearch } from "react-icons/cg";
-import styles from "./SearchBox.module.css";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { CgSearch } from "react-icons/cg";
+import { escape } from "validator";
+
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+
+import styles from "./SearchBox.module.css";
 
 // Utility function to normalize Persian text
 const normalizePersianText = (text: string) => {
@@ -59,9 +61,7 @@ const debouncedSearchHandler = debounce(
     try {
       const sanitizedSearchTerm = escape(searchTerm);
       const normalizedSearchTerm = normalizePersianText(sanitizedSearchTerm);
-      const response = await fetch(
-        `/api/products/search?q=${normalizedSearchTerm}&limit=150`
-      );
+      const response = await fetch(`/api/products/search?q=${normalizedSearchTerm}&limit=150`);
 
       if (!response.ok) {
         throw new Error("مشکلی در دریافت محصولات به وجود آمده است.");
@@ -70,13 +70,12 @@ const debouncedSearchHandler = debounce(
       // Extract the data from the response, assuming API returns { products, pagination }
       const { data: products } = await response.json();
 
-      const availableProducts = products.filter(
-        (product: Product) => product.Available
-      );
+      const availableProducts = products.filter((product: Product) => product.Available);
 
       // Set the results to the products data from the API response
       setResults(availableProducts);
     } catch (error) {
+      console.error(error);
       setResults([]); // If there's an error, return no results
     } finally {
       setLoading(false);
@@ -97,7 +96,7 @@ const SearchInput = ({
   searchValue: string;
   onSearchClick: () => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
 }) => (
   <div className={styles.search_input}>
     <input
@@ -147,16 +146,12 @@ const SearchResults = ({
               alt={product.name}
             />
             <p>{product.Type}</p>
-            <div className="font-extralight mt-3">
-              {product.Price === null ||
-              product.Price === undefined ||
-              +product.Price === 0 ? (
-                <span className="text-gray-600">
-                  برای ثبت سفارش با بخش فروش تماس بگیرید
-                </span>
+            <div className="mt-3 font-extralight">
+              {product.Price === null || product.Price === undefined || +product.Price === 0 ? (
+                <span className="text-gray-600">برای ثبت سفارش با بخش فروش تماس بگیرید</span>
               ) : product.Discount && +product.Discount > 0 ? (
-                <div className="flex flex-col gap-1 items-center text-lg">
-                  <span className="text-gray-500 font-light line-through">
+                <div className="flex flex-col items-center gap-1 text-lg">
+                  <span className="font-light text-gray-500 line-through">
                     {formatPriceWithRate(+product.Price, exchangeRate)}
                   </span>
                   <span className="font-semibold">
@@ -164,7 +159,7 @@ const SearchResults = ({
                   </span>
                 </div>
               ) : (
-                <span className="text-white text-lg font-semibold">
+                <span className="text-lg font-semibold text-white">
                   {formatPriceWithRate(+product.Price, exchangeRate)}
                 </span>
               )}
@@ -172,9 +167,7 @@ const SearchResults = ({
           </Link>
         ))
       ) : hasSearched ? (
-        <p style={{ color: "#fff", fontWeight: 600 }}>
-          نتیجه ای یافت نشد، مجددا تلاش کنید.
-        </p>
+        <p style={{ color: "#fff", fontWeight: 600 }}>نتیجه ای یافت نشد، مجددا تلاش کنید.</p>
       ) : null}
     </div>
   );
@@ -183,17 +176,17 @@ const SearchResults = ({
 // Component for rendering loading skeletons
 const LoadingSkeletons = () => (
   <div
-    className="w-full grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 mt-8"
+    className="mt-8 grid w-full grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
     style={{ maxWidth: "calc(1900px - 20rem)" }}
   >
     {Array.from({ length: 12 }).map((_, index) => (
       <div
         key={index}
-        className="flex flex-col items-center animate-pulse p-4 bg-gray-200 rounded-lg shadow-lg"
+        className="flex animate-pulse flex-col items-center rounded-lg bg-gray-200 p-4 shadow-lg"
       >
-        <div className="bg-gray-300 h-56 w-full rounded-lg mb-4"></div>
-        <div className="h-4 w-3/4 bg-gray-300 rounded mb-2"></div>
-        <div className="h-4 w-3/4 bg-gray-300 rounded"></div>
+        <div className="mb-4 h-56 w-full rounded-lg bg-gray-300"></div>
+        <div className="mb-2 h-4 w-3/4 rounded bg-gray-300"></div>
+        <div className="h-4 w-3/4 rounded bg-gray-300"></div>
       </div>
     ))}
   </div>
@@ -287,10 +280,7 @@ const SearchBox = () => {
 
   const handleClickOutside = useCallback(
     (event: MouseEvent) => {
-      if (
-        searchBoxRef.current &&
-        !searchBoxRef.current.contains(event.target as Node)
-      ) {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(event.target as Node)) {
         closeSearchBox();
       }
     },

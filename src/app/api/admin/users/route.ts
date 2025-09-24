@@ -1,9 +1,10 @@
 // app/api/admin/users/route.ts
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // Assuming you have a prisma client setup
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
 import { PrismaClient } from "@prisma/client";
+import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma"; // Assuming you have a prisma client setup
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const prismaClient = new PrismaClient();
@@ -43,14 +44,11 @@ async function verifyToken(token: string) {
 export async function POST(request: Request) {
   const { phoneNumber, userId } = await request.json();
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
-    return NextResponse.json(
-      { message: "Authorization token required" },
-      { status: 401 }
-    );
+    return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
   }
 
   const decoded = await verifyToken(token);
@@ -114,21 +112,23 @@ export async function GET() {
     `;
 
     // Filter out users that already have branches
-    const usersWithoutBranches = (usersWithBranches as any[]).filter(
-      (user) => user.has_branch === 0
-    );
+    const usersWithoutBranches = (
+      usersWithBranches as {
+        UserID: number;
+        Username: string;
+        FirstName: string;
+        LastName: string;
+        PhoneNumber: string;
+        Email: string;
+        has_branch: number;
+      }[]
+    ).filter((user) => user.has_branch === 0);
 
     // Remove the has_branch property from the response
-    const cleanedUsers = usersWithoutBranches.map(
-      ({ has_branch, ...user }) => user
-    );
-
+    const cleanedUsers = usersWithoutBranches.map(({ has_branch: _has_branch, ...user }) => user);
     return NextResponse.json(cleanedUsers);
   } catch (error) {
     console.error("Error fetching users:", error);
-    return NextResponse.json(
-      { error: "خطا در بارگذاری کاربران" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در بارگذاری کاربران" }, { status: 500 });
   }
 }

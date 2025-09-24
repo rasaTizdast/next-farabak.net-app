@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -56,10 +57,7 @@ export async function POST(req: NextRequest) {
 
     // Check if body is an array
     if (!Array.isArray(body) || body.length === 0) {
-      return NextResponse.json(
-        { message: "Invalid or missing payload" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Invalid or missing payload" }, { status: 400 });
     }
 
     // Prepare data for database insertion
@@ -70,20 +68,17 @@ export async function POST(req: NextRequest) {
     }));
 
     // Batch insert the payload into the database
-    const createdRecords =
-      await prisma.details_ProductOverviewDetails.createMany({
-        data: dataToInsert,
-        skipDuplicates: true, // Prevent duplicate inserts
-      });
+    const createdRecords = await prisma.details_ProductOverviewDetails.createMany({
+      data: dataToInsert,
+      skipDuplicates: true, // Prevent duplicate inserts
+    });
 
     return NextResponse.json({
       message: "Details created successfully!",
       createdRecords: createdRecords.count,
     });
   } catch (error) {
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

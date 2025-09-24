@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -49,10 +50,8 @@ import { NextResponse } from "next/server";
  *                   example: "Failed to fetch category name"
  */
 
-export async function GET(
-  req: Request,
-  { params }: { params: { subCategoryName: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ subCategoryName: string }> }) {
+  const params = await props.params;
   const subCategoryNameSlug = params.subCategoryName;
   try {
     // Retrieve the subCategory name based on the slug from the Support.CategoryContent table
@@ -76,6 +75,7 @@ export async function GET(
     // Return the subCategory name in the response
     return NextResponse.json({ subCategoryName });
   } catch (error) {
+    console.error(error);
     return new NextResponse("Failed to fetch category name", {
       status: 500,
     });

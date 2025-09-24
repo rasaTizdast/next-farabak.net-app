@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
 import axios from "axios";
+import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { IoIosClose } from "react-icons/io";
 import { FiPlus } from "react-icons/fi";
+import { IoIosClose } from "react-icons/io";
+
 import SpecTemplateManager from "./SpecTemplateManager";
 import { Specs } from "../types";
 
@@ -43,14 +44,14 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
   useEffect(() => {
     if (internalSpecs && internalSpecs.isChanged) {
       const convertedSpecs: Specs = {
-        data: internalSpecs.data.map(spec => ({
+        data: internalSpecs.data.map((spec) => ({
           ProductSpecsId: spec.ProductSpecsId,
           Name: productName,
           Title: spec.Title,
           Description: spec.Description,
           ProductId: productId,
-          Available: true
-        }))
+          Available: true,
+        })),
       };
       setSpecs(convertedSpecs);
     }
@@ -61,11 +62,11 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
     if (specs && !internalSpecs) {
       setInternalSpecs({
         isChanged: false,
-        data: specs.data.map(spec => ({
+        data: specs.data.map((spec) => ({
           ProductSpecsId: spec.ProductSpecsId,
           Title: spec.Title,
-          Description: spec.Description
-        }))
+          Description: spec.Description,
+        })),
       });
     }
   }, [specs]);
@@ -98,11 +99,7 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
     }
   };
 
-  const handleSpecChange = (
-    index: number,
-    field: "Title" | "Description",
-    value: string
-  ) => {
+  const handleSpecChange = (index: number, field: "Title" | "Description", value: string) => {
     if (!internalSpecs) return;
 
     const newData = [...internalSpecs.data];
@@ -116,7 +113,7 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
   const handleAddSpec = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!internalSpecs) return;
 
     setInternalSpecs({
@@ -135,7 +132,7 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
   const handleRemoveSpec = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!internalSpecs) return;
 
     const newData = [...internalSpecs.data];
@@ -158,7 +155,7 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
     if (!internalSpecs) return;
 
     // Convert template specs to the correct format and add them to existing specs
-    const formattedTemplateSpecs = templateSpecs.map(item => ({
+    const formattedTemplateSpecs = templateSpecs.map((item) => ({
       ProductSpecsId: 0,
       Title: item.title,
       Description: item.description,
@@ -177,26 +174,29 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
   return (
     <>
       {showTemplateManager && (
-        <SpecTemplateManager 
+        <SpecTemplateManager
           onClose={() => setShowTemplateManager(false)}
           onTemplateSelect={handleTemplateSelect}
         />
       )}
 
-      <div className="col-span-1 sm:col-span-2 p-4 border border-gray-700 rounded-lg mt-4" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="font-bold text-lg">مشخصات محصول</h3>
+      <div
+        className="col-span-1 mt-4 rounded-lg border border-gray-700 p-4 sm:col-span-2"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-bold">مشخصات محصول</h3>
           <div className="flex gap-2">
             <button
               type="button"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm flex items-center gap-1"
+              className="flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
               onClick={openTemplateManager}
             >
               مدیریت قالب‌ها
             </button>
             <button
               type="button"
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white text-sm flex items-center gap-1"
+              className="flex items-center gap-1 rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700"
               onClick={handleAddSpec}
             >
               <FiPlus size={18} />
@@ -210,7 +210,7 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
             internalSpecs.data.map((spec, index) => (
               <div key={index} className="flex gap-4" onClick={(e) => e.stopPropagation()}>
                 <div className="flex-1">
-                  <label className="block mb-1 text-sm">عنوان</label>
+                  <label className="mb-1 block text-sm">عنوان</label>
                   <input
                     type="text"
                     value={spec.Title}
@@ -218,13 +218,13 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
                       e.stopPropagation();
                       handleSpecChange(index, "Title", e.target.value);
                     }}
-                    className="w-full p-2 rounded bg-gray-700 border border-gray-600"
+                    className="w-full rounded border border-gray-600 bg-gray-700 p-2"
                     placeholder="مثال: وزن، ابعاد، مواد، و غیره"
                     onClick={(e) => e.stopPropagation()}
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="block mb-1 text-sm">توضیحات</label>
+                  <label className="mb-1 block text-sm">توضیحات</label>
                   <input
                     type="text"
                     value={spec.Description}
@@ -232,12 +232,12 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
                       e.stopPropagation();
                       handleSpecChange(index, "Description", e.target.value);
                     }}
-                    className="w-full p-2 rounded bg-gray-700 border border-gray-600"
+                    className="w-full rounded border border-gray-600 bg-gray-700 p-2"
                     placeholder="مثال: 100 گرم، 10×5 سانتی‌متر، فلزی، و غیره"
                     onClick={(e) => e.stopPropagation()}
                   />
                 </div>
-                <div className="flex items-end mb-1">
+                <div className="mb-1 flex items-end">
                   <button
                     type="button"
                     onClick={(e) => handleRemoveSpec(e, index)}
@@ -249,8 +249,9 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
               </div>
             ))
           ) : (
-            <div className="text-center py-4 text-gray-400">
-              هیچ مشخصاتی وجود ندارد. لطفاً با کلیک بر روی «افزودن مشخصات» یا انتخاب یک قالب، مشخصات را اضافه کنید.
+            <div className="py-4 text-center text-gray-400">
+              هیچ مشخصاتی وجود ندارد. لطفاً با کلیک بر روی «افزودن مشخصات» یا انتخاب یک قالب، مشخصات
+              را اضافه کنید.
             </div>
           )}
         </div>

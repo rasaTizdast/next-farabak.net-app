@@ -1,23 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { yupResolver } from "@hookform/resolvers/yup";
+import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
+import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import axios from "axios";
-
-import { signInSchema } from "@/helpers/validationSchema";
-import TextInput from "../_components/TextInput";
-import ForgotPasswordModal from "../_components/ForgotPasswordModal";
-import styles from "../FormStyles.module.css";
 
 import { useUser } from "@/context/UserContext";
+import { signInSchema } from "@/helpers/validationSchema";
 
-import signInImage from "/public/signIn_image.svg";
-import farabakLogo from "/public/Farabak_Logo.webp";
+import ForgotPasswordModal from "../_components/ForgotPasswordModal";
+import TextInput from "../_components/TextInput";
+import styles from "../FormStyles.module.css";
 
 const SignIn = () => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -48,7 +44,16 @@ const SignIn = () => {
     try {
       const response = await axios.post("/api/auth/login", data);
       if (response.data.message === "ورود با موفقیت انجام شد") {
-        updateUserContext();
+        // Add a small delay to ensure cookies are set
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        try {
+          await updateUserContext();
+        } catch (userError) {
+          console.error("Error updating user context:", userError);
+          // Continue with redirect even if user context update fails
+        }
+
         // Redirect based on user role
         const userRole = response.data.role;
         if (userRole === "Admin") {
@@ -80,7 +85,9 @@ const SignIn = () => {
           <div className={styles.group}>
             <Link href="/">
               <Image
-                src={farabakLogo}
+                width={2066}
+                height={182}
+                src="/Farabak_Logo.webp"
                 className={styles.logo}
                 alt="farabak logo"
               />
@@ -101,6 +108,7 @@ const SignIn = () => {
               control={methods.control}
               errors={errors}
               autoComplete="username"
+              data-testid="username-input"
             />
             <TextInput
               name="password"
@@ -110,9 +118,10 @@ const SignIn = () => {
               errors={errors}
               type="password"
               autoComplete="current-password"
+              data-testid="password-input"
             />
-            <button 
-              type="button" 
+            <button
+              type="button"
               className={styles.forgot}
               onClick={() => setIsForgotPasswordModalOpen(true)}
             >
@@ -123,6 +132,7 @@ const SignIn = () => {
               type="submit"
               value={isSubmitting ? "در حال ورود..." : "ورود به حساب کاربری"}
               disabled={isSubmitting}
+              data-testid="submit-button"
             />
           </div>
 
@@ -143,23 +153,20 @@ const SignIn = () => {
 
         <div className={styles.view}>
           <Image
-            src={signInImage}
+            src="/signIn_image.svg"
             width={552}
             height={412}
             quality={100}
             alt="farabak-signIn-Image"
             style={{ display: "block" }}
           />
-          <h3>
-            با ورود به حساب کاربری خود، میتوانید از تمامی امکانات وبسایت استفاده
-            کنید.
-          </h3>
+          <h3>با ورود به حساب کاربری خود، میتوانید از تمامی امکانات وبسایت استفاده کنید.</h3>
         </div>
       </div>
-      
-      <ForgotPasswordModal 
-        isOpen={isForgotPasswordModalOpen} 
-        onClose={() => setIsForgotPasswordModalOpen(false)} 
+
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordModalOpen}
+        onClose={() => setIsForgotPasswordModalOpen(false)}
       />
     </FormProvider>
   );

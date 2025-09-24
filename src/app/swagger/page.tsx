@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
-import { useEffect, useState } from "react";
+
 import LoadingSpinner from "../_components/ui/LoadingSpinner";
 // import { notFound } from "next/navigation";
 
@@ -29,7 +30,7 @@ export default function SwaggerPage() {
         const data = await response.json();
         setSpec(data);
       } catch (error) {
-        throw new Error("Error fetching Swagger spec:");
+        throw new Error("Error fetching Swagger spec:", error!);
       }
     };
 

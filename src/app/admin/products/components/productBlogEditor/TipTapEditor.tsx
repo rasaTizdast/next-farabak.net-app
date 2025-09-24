@@ -1,17 +1,15 @@
 // src/components/TipTapBlogEditor.tsx
 "use client";
 
-import React from "react";
-import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
-import TextAlign from "@tiptap/extension-text-align";
 import Table from "@tiptap/extension-table";
-import TableRow from "@tiptap/extension-table-row";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
-import { useState, useCallback, useEffect, useRef } from "react";
+import TableRow from "@tiptap/extension-table-row";
+import TextAlign from "@tiptap/extension-text-align";
+import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
 import {
   Bold,
   Italic,
@@ -37,9 +35,11 @@ import {
   Video,
   FileUp,
 } from "lucide-react";
-import { ToolbarButton } from "./ToolbarButton";
+import { useState, useCallback, useEffect, useRef } from "react";
+
 import { Divider } from "./Divider";
 import { CustomImage } from "./Image";
+import { ToolbarButton } from "./ToolbarButton";
 import { CustomVideo } from "./Video";
 import VideoUploadModal from "./VideoUploadModal";
 
@@ -49,11 +49,7 @@ interface TipTapBlogEditorProps {
   slug: string;
 }
 
-const TipTapBlogEditor = ({
-  onSave,
-  blogData,
-  slug,
-}: TipTapBlogEditorProps) => {
+const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => {
   const [isLinkMenuOpen, setIsLinkMenuOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [isImageLoading, setIsImageLoading] = useState(false);
@@ -65,6 +61,7 @@ const TipTapBlogEditor = ({
   const editorContainerRef = useRef<HTMLDivElement>(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(false);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const calculateDimensions = async (url: string) => {
     if (typeof window === "undefined") {
@@ -137,6 +134,17 @@ const TipTapBlogEditor = ({
       }),
     ],
     content: blogData || "", // Initialize with blogData if provided
+    onUpdate: ({ editor }) => {
+      // Start a timer to auto-save after user stops typing for 1 second
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+
+      autoSaveTimerRef.current = setTimeout(() => {
+        const mdxContent = editor.getHTML();
+        onSave?.(mdxContent, false);
+      }, 1000);
+    },
   });
 
   // Update editor content when blogData changes
@@ -146,6 +154,15 @@ const TipTapBlogEditor = ({
       editor.commands.setContent(htmlContent);
     }
   }, [editor, blogData]);
+
+  // Add cleanup effect
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, []);
 
   const addImage = useCallback(
     async (file: File) => {
@@ -270,108 +287,6 @@ const TipTapBlogEditor = ({
     }
   }, [editor, htmlContent]);
 
-  // Function to check if a URL is external
-  const isExternalUrl = (url: string): boolean => {
-    return url.startsWith("http://") || url.startsWith("https://");
-  };
-
-  const exportToMDX = useCallback(
-    (status: boolean) => {
-      if (!editor) return;
-
-      // Convert editor content to MDX
-      let mdxContent = editor
-        .getHTML()
-        // Convert img tags to Next.js Image components with proper sizing
-        .replace(
-          /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*data-size="([^"]+)"[^>]*>/g,
-          (match, src, alt, width, height, size) => {
-            // Define different tailwind classes based on size
-            let tailwindClass = "";
-
-            switch (size) {
-              case "full":
-                tailwindClass = "w-full";
-                break;
-              case "half":
-                tailwindClass = "w-1/2 mx-auto";
-                break;
-              case "third":
-                tailwindClass = "w-1/3 mx-auto";
-                break;
-              case "custom":
-                // For custom sizes, we'll create an inline style
-                tailwindClass = `max-w-full`;
-                break;
-              default:
-                tailwindClass = "w-full";
-            }
-
-            // For custom sizes, add a style attribute as well
-            const styleAttr =
-              size === "custom" ? `style="--img-width:${width}px"` : "";
-
-            // Handle external URLs differently
-            const imgSrc = isExternalUrl(src) ? src : `${src}`;
-
-            if (isExternalUrl(src)) {
-              // For external URLs, use unoptimized Image with domain property
-              return `<img src="${imgSrc}" alt="${alt}" width="${width}" height="${height}" className="${tailwindClass}" />`;
-            } else {
-              return `<Image src="${imgSrc}" alt="${alt}" width={${width}} height={${height}} className="${tailwindClass}" quality={100} layout="responsive" ${styleAttr} />`;
-            }
-          }
-        )
-
-        // Also handle images that don't have data-size attribute
-        .replace(
-          /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*>/g,
-          (match, src, alt, width, height) => {
-            // If this regex matches, it means our first replace didn't catch it (no data-size)
-            // Handle external URLs differently
-            const imgSrc = isExternalUrl(src) ? src : `${src}`;
-
-            if (isExternalUrl(src)) {
-              // For external URLs, use unoptimized Image with domain property
-              return `<img src="${imgSrc}" alt="${alt}" width="${width}" height="${height}" className="w-full" />`;
-            } else {
-              return `<Image src="${imgSrc}" alt="${alt}" width={${width}} height={${height}} className="w-full" quality={100} layout="responsive" />`;
-            }
-          }
-        )
-
-        // Make sure videos have the right src path (keep the relative path)
-        .replace(/<div data-type="video"[^>]*>([\s\S]*?)<\/div>/g, (match) => {
-          // Preserve the video element as is - it will be processed on the frontend
-          return match;
-        })
-
-        // Convert a tags to Next.js Link components
-        .replace(
-          /<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g,
-          '<Link href="$1">$2</Link>'
-        );
-
-      // Preserve table structure but add styling classes for MDX
-      mdxContent = mdxContent
-        .replace(
-          /<table[^>]*>/g,
-          '<table className="w-full my-4 border-collapse" dir="rtl">'
-        )
-        .replace(
-          /<th[^>]*>/g,
-          '<th className="border border-gray-600 bg-gray-700 p-2 text-right">'
-        )
-        .replace(
-          /<td[^>]*>/g,
-          '<td className="border border-gray-600 p-2 text-right">'
-        );
-
-      onSave?.(mdxContent, status);
-    },
-    [editor, onSave]
-  );
-
   const convertMDXToHTML = (mdxContent: string) => {
     return (
       mdxContent
@@ -385,10 +300,7 @@ const TipTapBlogEditor = ({
           }
         )
         // Convert Next.js Link components to regular a tags
-        .replace(
-          /<Link\s+href="([^"]+)">\s*([\s\S]*?)\s*<\/Link>/g,
-          '<a href="$1">$2</a>'
-        )
+        .replace(/<Link\s+href="([^"]+)">\s*([\s\S]*?)\s*<\/Link>/g, '<a href="$1">$2</a>')
         // Convert table with className to plain HTML table
         .replace(/<table className="[^"]*">/g, "<table>")
         .replace(/<th className="[^"]*">/g, "<th>")
@@ -479,14 +391,14 @@ const TipTapBlogEditor = ({
 
   return (
     <div
-      className="relative border border-gray-600 rounded-lg bg-gray-800 text-gray-100 flex flex-col min-h-[500px]"
+      className="relative flex min-h-[500px] flex-col rounded-lg border border-gray-600 bg-gray-800 text-gray-100"
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}
       onPaste={handlePaste}
       ref={editorContainerRef}
     >
       {/* Fixed Toolbar */}
-      <div className="sticky -top-6 z-20 bg-gray-800 p-2 border-b border-gray-600 rounded-t-lg shadow-lg">
+      <div className="sticky -top-6 z-20 rounded-t-lg border-b border-gray-600 bg-gray-800 p-2 shadow-lg">
         <div className="flex flex-wrap items-center gap-1">
           <div className="flex items-center gap-1">
             <ToolbarButton
@@ -522,49 +434,37 @@ const TipTapBlogEditor = ({
               title="Paragraph"
             />
             <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().toggleHeading({ level: 1 }).run()
-              }
+              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
               active={editor.isActive("heading", { level: 1 })}
               icon={Heading1}
               title="Heading 1"
             />
             <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().toggleHeading({ level: 2 }).run()
-              }
+              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
               active={editor.isActive("heading", { level: 2 })}
               icon={Heading2}
               title="Heading 2"
             />
             <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().toggleHeading({ level: 3 }).run()
-              }
+              onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
               active={editor.isActive("heading", { level: 3 })}
               icon={Heading3}
               title="Heading 3"
             />
             <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().toggleHeading({ level: 4 }).run()
-              }
+              onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
               active={editor.isActive("heading", { level: 4 })}
               icon={Heading4}
               title="Heading 4"
             />
             <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().toggleHeading({ level: 5 }).run()
-              }
+              onClick={() => editor.chain().focus().toggleHeading({ level: 5 }).run()}
               active={editor.isActive("heading", { level: 5 })}
               icon={Heading5}
               title="Heading 5"
             />
             <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().toggleHeading({ level: 6 }).run()
-              }
+              onClick={() => editor.chain().focus().toggleHeading({ level: 6 }).run()}
               active={editor.isActive("heading", { level: 6 })}
               icon={Heading6}
               title="Heading 6"
@@ -615,9 +515,7 @@ const TipTapBlogEditor = ({
               title="Align Right"
             />
             <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().setTextAlign("center").run()
-              }
+              onClick={() => editor.chain().focus().setTextAlign("center").run()}
               active={editor.isActive({ textAlign: "center" })}
               icon={AlignCenter}
               title="Align Center"
@@ -635,7 +533,7 @@ const TipTapBlogEditor = ({
               icon={Link2}
               title="Link"
             />
-            <label className="cursor-pointer p-2 hover:bg-gray-600 rounded-md">
+            <label className="cursor-pointer rounded-md p-2 hover:bg-gray-600">
               <input
                 type="file"
                 className="hidden"
@@ -647,16 +545,12 @@ const TipTapBlogEditor = ({
               />
               <ImageIcon className="h-5 w-5 text-gray-300" />
             </label>
-            <ToolbarButton
-              onClick={toggleVideoModal}
-              icon={Video}
-              title="Add Video"
-            />
+            <ToolbarButton onClick={toggleVideoModal} icon={Video} title="Add Video" />
             <Divider />
             {isImageLoading && (
               <div className="ml-2 flex items-center gap-2 text-sm text-gray-400">
                 <Divider />
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
                 در حال آپلود عکس...
               </div>
             )}
@@ -670,13 +564,13 @@ const TipTapBlogEditor = ({
                 placeholder="Paste URL..."
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
-                className="px-3 py-1 bg-gray-700 border border-gray-600 rounded-md text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="rounded-md border border-gray-600 bg-gray-700 px-3 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 onKeyDown={(e) => e.key === "Enter" && setLink()}
               />
               <button
                 type="button"
                 onClick={setLink}
-                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm"
+                className="rounded-md bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
               >
                 ثبت
               </button>
@@ -687,21 +581,17 @@ const TipTapBlogEditor = ({
 
       {/* Table Creation Modal */}
       {isTableModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-4 rounded-lg shadow-lg w-full max-w-md">
-            <h3 className="text-lg font-semibold text-white mb-3 text-right">
-              ایجاد جدول
-            </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-lg bg-gray-800 p-4 shadow-lg">
+            <h3 className="mb-3 text-right text-lg font-semibold text-white">ایجاد جدول</h3>
 
-            <div className="flex justify-between gap-4 mb-6">
+            <div className="mb-6 flex justify-between gap-4">
               <div className="flex-1">
-                <label className="block text-sm text-gray-300 mb-2 text-right">
-                  تعداد سطرها
-                </label>
+                <label className="mb-2 block text-right text-sm text-gray-300">تعداد سطرها</label>
                 <div className="flex items-center">
                   <button
                     onClick={() => setTableRows(Math.max(1, tableRows - 1))}
-                    className="px-2 py-1 bg-gray-700 text-white rounded-r border border-gray-600"
+                    className="rounded-r border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
                     -
                   </button>
@@ -710,14 +600,12 @@ const TipTapBlogEditor = ({
                     min="1"
                     max="20"
                     value={tableRows}
-                    onChange={(e) =>
-                      setTableRows(parseInt(e.target.value) || 3)
-                    }
-                    className="w-12 px-2 py-1 bg-gray-900 border-t border-b border-gray-600 text-white text-center"
+                    onChange={(e) => setTableRows(parseInt(e.target.value) || 3)}
+                    className="w-12 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center text-white"
                   />
                   <button
                     onClick={() => setTableRows(Math.min(20, tableRows + 1))}
-                    className="px-2 py-1 bg-gray-700 text-white rounded-l border border-gray-600"
+                    className="rounded-l border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
                     +
                   </button>
@@ -725,13 +613,11 @@ const TipTapBlogEditor = ({
               </div>
 
               <div className="flex-1">
-                <label className="block text-sm text-gray-300 mb-2 text-right">
-                  تعداد ستون‌ها
-                </label>
+                <label className="mb-2 block text-right text-sm text-gray-300">تعداد ستون‌ها</label>
                 <div className="flex items-center">
                   <button
                     onClick={() => setTableCols(Math.max(1, tableCols - 1))}
-                    className="px-2 py-1 bg-gray-700 text-white rounded-r border border-gray-600"
+                    className="rounded-r border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
                     -
                   </button>
@@ -740,14 +626,12 @@ const TipTapBlogEditor = ({
                     min="1"
                     max="10"
                     value={tableCols}
-                    onChange={(e) =>
-                      setTableCols(parseInt(e.target.value) || 3)
-                    }
-                    className="w-12 px-2 py-1 bg-gray-900 border-t border-b border-gray-600 text-white text-center"
+                    onChange={(e) => setTableCols(parseInt(e.target.value) || 3)}
+                    className="w-12 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center text-white"
                   />
                   <button
                     onClick={() => setTableCols(Math.min(10, tableCols + 1))}
-                    className="px-2 py-1 bg-gray-700 text-white rounded-l border border-gray-600"
+                    className="rounded-l border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
                     +
                   </button>
@@ -755,18 +639,18 @@ const TipTapBlogEditor = ({
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 mt-4">
+            <div className="mt-4 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setIsTableModalOpen(false)}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                className="rounded-lg bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700"
               >
                 انصراف
               </button>
               <button
                 type="button"
                 onClick={insertTable}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
               >
                 ایجاد جدول
               </button>
@@ -777,33 +661,31 @@ const TipTapBlogEditor = ({
 
       {/* HTML Import Modal */}
       {isHtmlImportModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-4 rounded-lg shadow-lg w-full max-w-2xl">
-            <h3 className="text-lg font-semibold text-white mb-3">
-              وارد کردن HTML
-            </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-2xl rounded-lg bg-gray-800 p-4 shadow-lg">
+            <h3 className="mb-3 text-lg font-semibold text-white">وارد کردن HTML</h3>
             <textarea
               value={htmlContent}
               onChange={(e) => setHtmlContent(e.target.value)}
               placeholder="کد HTML را اینجا وارد کنید..."
-              className="w-full h-64 p-3 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="h-64 w-full rounded-md border border-gray-600 bg-gray-700 p-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               dir="ltr"
             />
-            <div className="flex justify-end gap-2 mt-3">
+            <div className="mt-3 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => {
                   setIsHtmlImportModalOpen(false);
                   setHtmlContent("");
                 }}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                className="rounded-lg bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700"
               >
                 انصراف
               </button>
               <button
                 type="button"
                 onClick={importHtml}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
               >
                 وارد کردن
               </button>
@@ -816,13 +698,13 @@ const TipTapBlogEditor = ({
       <div className={editorContainerClasses}>
         <EditorContent
           editor={editor}
-          className="focus:ring-2 focus:ring-blue-500 rounded-lg transition-all h-full relative"
+          className="relative h-full rounded-lg transition-all focus:ring-2 focus:ring-blue-500"
         />
 
         {/* Custom in-place table controls that appear above each table when selected */}
         {editor.isActive("table") && (
           <div
-            className="fixed z-40 bg-gray-800 border border-gray-600 rounded-md shadow-lg p-1 flex items-center gap-1"
+            className="fixed z-40 flex items-center gap-1 rounded-md border border-gray-600 bg-gray-800 p-1 shadow-lg"
             style={{
               // Position the controls at the top of the currently selected table node
               top: (() => {
@@ -834,6 +716,8 @@ const TipTapBlogEditor = ({
                   const coordsAtPos = editor.view.coordsAtPos(tablePos);
                   return `${coordsAtPos.top - 40}px`; // Position above the table
                 } catch (e) {
+                  console.error(e);
+
                   return "100px"; // Fallback if calculation fails
                 }
               })(),
@@ -844,35 +728,35 @@ const TipTapBlogEditor = ({
           >
             <button
               onClick={() => editor.chain().focus().addColumnBefore().run()}
-              className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-0.5 rounded"
+              className="rounded bg-blue-600 px-3 py-0.5 text-sm text-white hover:bg-blue-700"
               title="افزودن ستون قبل"
             >
               ستون +
             </button>
             <button
               onClick={() => editor.chain().focus().deleteColumn().run()}
-              className="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-0.5 rounded"
+              className="rounded bg-red-600 px-3 py-0.5 text-sm text-white hover:bg-red-700"
               title="حذف ستون"
             >
               ستون -
             </button>
             <button
               onClick={() => editor.chain().focus().addRowBefore().run()}
-              className="text-sm bg-green-600 hover:bg-green-700 text-white px-3 py-0.5 rounded"
+              className="rounded bg-green-600 px-3 py-0.5 text-sm text-white hover:bg-green-700"
               title="افزودن سطر قبل"
             >
               سطر +
             </button>
             <button
               onClick={() => editor.chain().focus().deleteRow().run()}
-              className="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-0.5 rounded"
+              className="rounded bg-red-600 px-3 py-0.5 text-sm text-white hover:bg-red-700"
               title="حذف سطر"
             >
               سطر -
             </button>
             <button
               onClick={() => editor.chain().focus().deleteTable().run()}
-              className="text-sm bg-gray-600 hover:bg-gray-700 text-white px-3 py-0.5 rounded"
+              className="rounded bg-gray-600 px-3 py-0.5 text-sm text-white hover:bg-gray-700"
               title="حذف جدول"
             >
               حذف جدول
@@ -881,21 +765,10 @@ const TipTapBlogEditor = ({
         )}
       </div>
 
-      {/* Save Button */}
-      <div className="flex justify-center my-4">
-        <button
-          type="button"
-          onClick={() => exportToMDX(true)}
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-        >
-          ذخیره
-        </button>
-      </div>
-
       {/* Bubble Menu */}
       {editor && (
         <BubbleMenu
-          className="flex items-center gap-1 p-2 bg-gray-700 border border-gray-600 rounded-lg shadow-xl"
+          className="flex items-center gap-1 rounded-lg border border-gray-600 bg-gray-700 p-2 shadow-xl"
           tippyOptions={{ duration: 100 }}
           editor={editor}
         >
@@ -927,15 +800,13 @@ const TipTapBlogEditor = ({
       )}
 
       {/* Video Modal */}
-      {isVideoModalOpen && (
-        <VideoUploadModal onClose={toggleVideoModal} onVideoUpload={addVideo} />
-      )}
+      {isVideoModalOpen && <VideoUploadModal onClose={toggleVideoModal} onVideoUpload={addVideo} />}
 
       {/* Video Loading Indicator */}
       {isVideoLoading && (
         <div className="ml-2 flex items-center gap-2 text-sm text-gray-400">
           <Divider />
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
           در حال آپلود ویدیو...
         </div>
       )}

@@ -1,5 +1,6 @@
 import { S3 } from "aws-sdk";
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
 
 /**
@@ -100,18 +101,41 @@ const s3 = new S3({
 export async function DELETE(req: Request): Promise<NextResponse> {
   try {
     const body = await req.json();
-    const { type, productId, imageKey, productImageType } = body;
+    const { type, productId, imageKey, productImageType, key } = body as {
+      type: string;
+      productId?: number | string;
+      imageKey?: string;
+      productImageType?: string;
+      key?: string;
+    };
+
+    // New: allow deleting arbitrary key for category banners
+    if (type === "categoryBanner") {
+      if (!key) {
+        return NextResponse.json({ message: "key is required" }, { status: 400 });
+      }
+      try {
+        const deleteParams = {
+          Bucket: process.env.LIARA_BUCKET_NAME as string,
+          Key: `categoryBanners/${key.replace(/^categoryBanners\//, "")}`,
+        };
+        const deleteResponse = await s3.deleteObject(deleteParams).promise();
+        return NextResponse.json(
+          { message: "Banner deleted successfully.", deletedKey: deleteParams.Key, deleteResponse },
+          { status: 200 }
+        );
+      } catch (error) {
+        return NextResponse.json({ message: "Failed to delete banner.", error }, { status: 500 });
+      }
+    }
 
     if (!type || !productId) {
-      return NextResponse.json(
-        { message: "Type and productId are required." },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Type and productId are required." }, { status: 400 });
     }
 
     // Fetch the product's slug and image fields from the database
     const product = await prisma.product.findUnique({
-      where: { ProductId: parseInt(productId, 10) },
+      where: { ProductId: productId as number },
       select: { Slug: true, img1: true, img2: true },
     });
 
@@ -165,11 +189,7 @@ export async function DELETE(req: Request): Promise<NextResponse> {
             { status: 200 }
           );
         } catch (error) {
-
-          return NextResponse.json(
-            { message: "Failed to delete image.", error },
-            { status: 500 }
-          );
+          return NextResponse.json({ message: "Failed to delete image.", error }, { status: 500 });
         }
       } else {
         const folderKey = `productImages/${slug}/`;
@@ -242,21 +262,12 @@ export async function DELETE(req: Request): Promise<NextResponse> {
           );
         }
       } catch (error) {
-        return NextResponse.json(
-          { message: "Failed to delete image.", error },
-          { status: 500 }
-        );
+        return NextResponse.json({ message: "Failed to delete image.", error }, { status: 500 });
       }
     } else {
-      return NextResponse.json(
-        { message: "Invalid type provided." },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Invalid type provided." }, { status: 400 });
     }
   } catch (error) {
-    return NextResponse.json(
-      { message: "An unexpected error occurred.", error },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "An unexpected error occurred.", error }, { status: 500 });
   }
 }

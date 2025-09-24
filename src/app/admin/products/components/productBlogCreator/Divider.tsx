@@ -1,1 +1,1 @@
-export const Divider = () => <div className="w-px h-6 bg-gray-600 mx-2" />;
+export const Divider = () => <div className="mx-2 h-6 w-px bg-gray-600" />;

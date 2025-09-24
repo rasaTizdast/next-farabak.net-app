@@ -1,7 +1,8 @@
 export const dynamic = "force-dynamic";
 
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -213,16 +214,12 @@ export async function GET(request: Request) {
           };
         }
 
-        structuredData[categoryId].subcategories[subcatId].products.push(
-          product
-        );
+        structuredData[categoryId].subcategories[subcatId].products.push(product);
       }
     }
 
     // STEP 5: Flatten the structured data into a list, preserving order
-    for (const categoryId of Object.keys(structuredData).sort(
-      (a, b) => Number(a) - Number(b)
-    )) {
+    for (const categoryId of Object.keys(structuredData).sort((a, b) => Number(a) - Number(b))) {
       const categoryData = structuredData[categoryId];
 
       // Skip empty categories
@@ -247,23 +244,16 @@ export async function GET(request: Request) {
       }
 
       // Add any products directly associated with the category (not in any subcategory)
-      const productsNotInSubcats = categoryData.products.filter(
-        (p: ProductType) => {
-          // Product is not in any subcategory we processed
-          return !parseCategoryContentIds(p).some(
-            (id) => categoryData.subcategories[id]
-          );
-        }
-      );
+      const productsNotInSubcats = categoryData.products.filter((p: ProductType) => {
+        // Product is not in any subcategory we processed
+        return !parseCategoryContentIds(p).some((id) => categoryData.subcategories[id]);
+      });
 
       if (productsNotInSubcats.length > 0) {
         const sortedDirectProducts = productsNotInSubcats.sort(
           (a: ProductType, b: ProductType) => b.ProductId - a.ProductId
         );
-        allProcessedProducts = [
-          ...allProcessedProducts,
-          ...sortedDirectProducts,
-        ];
+        allProcessedProducts = [...allProcessedProducts, ...sortedDirectProducts];
       }
     }
 
@@ -295,8 +285,7 @@ export async function GET(request: Request) {
         .filter((sub) => sub !== undefined);
 
       // Use the first subcategory for the link
-      const firstSubCategory =
-        subcategories.length > 0 ? subcategories[0] : null;
+      const firstSubCategory = subcategories.length > 0 ? subcategories[0] : null;
 
       return {
         ...product,

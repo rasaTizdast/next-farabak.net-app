@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { signInvoiceData, InvoiceData } from "@/utils/invoiceJwt";
 
 const COOKIE_NAME = "invoiceData";
@@ -48,10 +49,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Validate input
     if (!invoiceData || !Array.isArray(invoiceData.products)) {
-      return NextResponse.json(
-        { message: "Invalid invoice data format" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Invalid invoice data format" }, { status: 400 });
     }
 
     // Add timestamp for validation

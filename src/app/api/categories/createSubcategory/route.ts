@@ -1,6 +1,7 @@
+import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { jwtVerify } from "jose";
+
 import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -59,14 +60,11 @@ async function verifyToken(token: string) {
  */
 
 export async function POST(req: Request) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
-    return NextResponse.json(
-      { message: "Authorization token required" },
-      { status: 401 }
-    );
+    return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
   }
 
   const decoded = await verifyToken(token);
@@ -95,6 +93,9 @@ export async function POST(req: Request) {
       seoTitle,
       seoDescription,
       seoKeywords,
+      topBlog,
+      bottomBlog,
+      banner,
     } = data;
 
     if (
@@ -112,24 +113,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const lastIdResult = await prisma.categoryContent.findFirst({
-      orderBy: {
-        CategoryContentId: "desc",
-      },
-      select: {
-        CategoryContentId: true,
-      },
-    });
-
-    const nextCategoryContentId = (lastIdResult?.CategoryContentId || 0) + 1;
-
     const subcategory = await prisma.categoryContent.create({
       data: {
-        CategoryContentId: nextCategoryContentId,
         Name: name,
         Slug: slug,
         Available: available,
         CategoryID: parentCategoryId,
+        TopBlog: topBlog ?? null,
+        BottomBlog: bottomBlog ?? null,
+        Banner: banner ?? null,
         SEO_CategoryContent: {
           create: {
             SEO_Title: seoTitle,
@@ -145,9 +137,7 @@ export async function POST(req: Request) {
       subcategory,
     });
   } catch (error) {
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }

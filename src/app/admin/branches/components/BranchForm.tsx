@@ -1,10 +1,12 @@
-import React from 'react';
-import { Form, Input, Select, Button } from 'antd';
-import { User } from './types';
+import { Form, Input, Select, Button } from "antd";
+import { FormInstance } from "antd/es/form";
+import React from "react";
+
+import { User } from "./types";
 
 interface BranchFormProps {
-  form: any;
-  onFinish: (values: any) => void;
+  form: FormInstance;
+  onFinish: (values: Record<string, unknown>) => void;
   onCancel: () => void;
   users?: User[];
   isEdit?: boolean;
@@ -17,15 +19,10 @@ const BranchForm: React.FC<BranchFormProps> = ({
   onCancel,
   users = [],
   isEdit = false,
-  submitButtonText
+  submitButtonText,
 }) => {
   return (
-    <Form
-      form={form}
-      layout="vertical"
-      onFinish={onFinish}
-      className="mt-4 text-gray-100"
-    >
+    <Form form={form} layout="vertical" onFinish={onFinish} className="mt-4 text-gray-100">
       {!isEdit && (
         <Form.Item
           name="userId"
@@ -37,9 +34,7 @@ const BranchForm: React.FC<BranchFormProps> = ({
             optionFilterProp="children"
             showSearch
             filterOption={(input, option) =>
-              (option?.label?.toString().toLowerCase() ?? "").includes(
-                input.toLowerCase()
-              )
+              (option?.label?.toString().toLowerCase() ?? "").includes(input.toLowerCase())
             }
             options={users.map((user) => ({
               value: user.UserID,
@@ -47,7 +42,7 @@ const BranchForm: React.FC<BranchFormProps> = ({
                 user.PhoneNumber || "بدون شماره تلفن"
               })`,
             }))}
-            className="w-full text-right dark-select"
+            className="dark-select w-full text-right"
             popupClassName="dark-dropdown"
           />
         </Form.Item>
@@ -58,10 +53,7 @@ const BranchForm: React.FC<BranchFormProps> = ({
         label={<span className="text-gray-300">نام شعبه</span>}
         rules={[{ required: true, message: "لطفاً نام شعبه را وارد کنید" }]}
       >
-        <Input
-          placeholder="نام شعبه را وارد کنید"
-          className="text-right dark-input"
-        />
+        <Input placeholder="نام شعبه را وارد کنید" className="dark-input text-right" />
       </Form.Item>
 
       <Form.Item
@@ -78,21 +70,18 @@ const BranchForm: React.FC<BranchFormProps> = ({
         <Input
           placeholder="کد شعبه را وارد کنید"
           maxLength={10}
-          className="text-right dark-input"
+          className="dark-input text-right"
         />
       </Form.Item>
 
-      <Form.Item className="flex justify-end mb-0">
-        <Button
-          onClick={onCancel}
-          className="ml-2 dark-button-secondary"
-        >
+      <Form.Item className="mb-0 flex justify-end">
+        <Button onClick={onCancel} className="dark-button-secondary ml-2">
           انصراف
         </Button>
         <Button
           type="primary"
           htmlType="submit"
-          className="bg-blue-600 hover:bg-blue-700 border-blue-700"
+          className="border-blue-700 bg-blue-600 hover:bg-blue-700"
         >
           {submitButtonText}
         </Button>
@@ -101,4 +90,4 @@ const BranchForm: React.FC<BranchFormProps> = ({
   );
 };
 
-export default BranchForm; 
+export default BranchForm;

@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // Ensure Prisma client is configured correctly
-import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma"; // Ensure Prisma client is configured correctly
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -91,21 +92,16 @@ async function verifyToken(token: string) {
  *                   example: "Failed to update product images."
  */
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { productId: string } }
-) {
+export async function PATCH(request: Request, props: { params: Promise<{ productId: string }> }) {
+  const params = await props.params;
   const productId = parseInt(params.productId, 10);
 
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "Authorization token required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
@@ -120,10 +116,7 @@ export async function PATCH(
 
     // Validate input
     if (!productId) {
-      return NextResponse.json(
-        { error: "Product ID is required." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Product ID is required." }, { status: 400 });
     }
     if (!img1 && !img2) {
       return NextResponse.json(
@@ -148,9 +141,7 @@ export async function PATCH(
       product: updatedProduct,
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to update product images." },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ error: "Failed to update product images." }, { status: 500 });
   }
 }

@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { jwtVerify } from "jose";
+import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
@@ -27,10 +27,7 @@ export async function POST(request: Request) {
 
       // Check if the email and code in the token match the provided ones
       if (payload.email !== email || payload.code !== code) {
-        return NextResponse.json(
-          { error: "کد بازیابی نامعتبر است" },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "کد بازیابی نامعتبر است" }, { status: 400 });
       }
 
       // If we get here, the token is valid - update the user's password
@@ -46,10 +43,7 @@ export async function POST(request: Request) {
         });
 
         if (!user) {
-          return NextResponse.json(
-            { error: "کاربری با این ایمیل یافت نشد" },
-            { status: 404 }
-          );
+          return NextResponse.json({ error: "کاربری با این ایمیل یافت نشد" }, { status: 404 });
         }
 
         // Create a new password entry for the user
@@ -93,8 +87,7 @@ export async function POST(request: Request) {
         return NextResponse.json(
           {
             error: "خطا در تغییر رمز عبور",
-            details:
-              dbError instanceof Error ? dbError.message : "Unknown error",
+            details: dbError instanceof Error ? dbError.message : "Unknown error",
           },
           { status: 500 }
         );
@@ -103,10 +96,8 @@ export async function POST(request: Request) {
       }
     } catch (tokenError) {
       // Token verification failed (expired or invalid)
-      return NextResponse.json(
-        { error: "کد بازیابی منقضی شده یا نامعتبر است" },
-        { status: 400 }
-      );
+      console.error(tokenError);
+      return NextResponse.json({ error: "کد بازیابی منقضی شده یا نامعتبر است" }, { status: 400 });
     }
   } catch (error) {
     console.error("Error in reset-password endpoint:", error);

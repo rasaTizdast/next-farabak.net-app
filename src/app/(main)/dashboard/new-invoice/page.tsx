@@ -2,22 +2,19 @@
 
 export const dynamic = "force-dynamic";
 
-import { addNewInvoice } from "@/helpers/invoiceHandlers";
-import { useUser } from "@/context/UserContext";
-import { useInvoice } from "@/context/InvoiceContext";
-import styles from "./NewInvoice.module.css";
-import toast, { Toaster } from "react-hot-toast";
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import toast, { Toaster } from "react-hot-toast";
+
+import { useInvoice } from "@/context/InvoiceContext";
+import { useUser } from "@/context/UserContext";
+import { addNewInvoice } from "@/helpers/invoiceHandlers";
+
+import styles from "./NewInvoice.module.css";
 
 const NewInvoicePage = () => {
-  const {
-    invoice,
-    removeProductFromInvoice,
-    updateProductQuantity,
-    clearInvoice,
-  } = useInvoice();
+  const { invoice, removeProductFromInvoice, updateProductQuantity, clearInvoice } = useInvoice();
   const { user } = useUser();
   const [invoiceSuccess, setInvoiceSuccess] = useState(false);
   const router = useRouter();
@@ -54,6 +51,7 @@ const NewInvoicePage = () => {
       }
     } catch (error) {
       toast.error("پروسه اضافه شدن فاکتور با شکست مواجه شد، دوباره تلاش کنید!");
+      console.error(error);
       setInvoiceSuccess(false);
     }
   };
@@ -67,14 +65,13 @@ const NewInvoicePage = () => {
             فاکتور جدید با موفقیت ساخته شد، برای دیدن فاکتور به صفحه{" "}
             <Link
               href="/dashboard/all-invoices"
-              className="text-blue-800 underline font-bold hover:text-blue-950 transition-all"
+              className="font-bold text-blue-800 underline transition-all hover:text-blue-950"
             >
               فاکتور ها
             </Link>{" "}
             مراجعه کنید
             <div className="mt-2 text-sm">
-              شما بعد از ۵ ثانیه به صورت خودکار به صفحه فاکتورها منتقل خواهید
-              شد...
+              شما بعد از ۵ ثانیه به صورت خودکار به صفحه فاکتورها منتقل خواهید شد...
             </div>
           </div>
         )}
@@ -115,32 +112,19 @@ const NewInvoicePage = () => {
                         type="number"
                         min="0"
                         value={quantity}
-                        onChange={(e) =>
-                          handleQuantityChange(
-                            product.ProductId,
-                            e.target.value
-                          )
-                        }
+                        onChange={(e) => handleQuantityChange(product.ProductId, e.target.value)}
                         className={styles.quantityInput}
                       />
                     </td>
+                    <td>{Intl.NumberFormat("fa-IR").format(price * quantity)}</td>
+                    <td>{Intl.NumberFormat("fa-IR").format(discount * quantity)}</td>
                     <td>
-                      {Intl.NumberFormat("fa-IR").format(price * quantity)}
-                    </td>
-                    <td>
-                      {Intl.NumberFormat("fa-IR").format(discount * quantity)}
-                    </td>
-                    <td>
-                      {Intl.NumberFormat("fa-IR").format(
-                        price * quantity - discount * quantity
-                      )}
+                      {Intl.NumberFormat("fa-IR").format(price * quantity - discount * quantity)}
                     </td>
                     <td>
                       <button
                         className={styles.clearButton}
-                        onClick={() =>
-                          removeProductFromInvoice(product.ProductId)
-                        }
+                        onClick={() => removeProductFromInvoice(product.ProductId)}
                       >
                         حذف محصول
                       </button>
@@ -154,13 +138,9 @@ const NewInvoicePage = () => {
 
         <div className={styles.actions}>
           <p className={styles.total}>
-            تعداد کل محصولات:{" "}
-            {Intl.NumberFormat("fa-IR").format(invoice.TotalAmount)}
+            تعداد کل محصولات: {Intl.NumberFormat("fa-IR").format(invoice.TotalAmount)}
           </p>
-          <button
-            className={styles.finalizeButton}
-            onClick={addNewInvoiceHandler}
-          >
+          <button className={styles.finalizeButton} onClick={addNewInvoiceHandler}>
             ذخیره فاکتور جدید
           </button>
         </div>

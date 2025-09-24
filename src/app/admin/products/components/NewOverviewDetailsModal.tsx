@@ -1,8 +1,9 @@
+import Image from "next/image";
 import React, { useState, useCallback } from "react";
-import { IoIosClose } from "react-icons/io";
-import { toast } from "react-hot-toast";
 import { useDropzone } from "react-dropzone";
+import { toast } from "react-hot-toast";
 import { FiUpload } from "react-icons/fi";
+import { IoIosClose } from "react-icons/io";
 
 // NewOverviewDetailsModal component
 const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
@@ -18,10 +19,7 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
 
   // Function to handle adding a new item
   const addItem = () => {
-    setItems([
-      ...items,
-      { title: "", description: "", image: null, preview: "" },
-    ]);
+    setItems([...items, { title: "", description: "", image: null, preview: "" }]);
   };
 
   // Function to handle removing an item
@@ -59,10 +57,7 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
 
     // Validate all fields
     const isValid = items.every(
-      (item) =>
-        item.title.trim() !== "" &&
-        item.description.trim() !== "" &&
-        item.image !== null
+      (item) => item.title.trim() !== "" && item.description.trim() !== "" && item.image !== null
     );
 
     if (!isValid) {
@@ -83,7 +78,7 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
           return new Promise<{
             title: string;
             description: string;
-            image: any;
+            image: string | { base64: string; contentType: string; fileName: string };
           }>((resolve) => {
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -146,10 +141,8 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <div className="fixed inset-0 z-[51] flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity">
-      <div className="bg-gray-800 text-white rounded-xl shadow-lg p-6 w-full max-w-6xl max-h-[90dvh] overflow-y-scroll relative animate-fade-in">
-        <h1 className="text-center font-bold mb-6 text-2xl">
-          توضیحات محصول جدید
-        </h1>
+      <div className="relative max-h-[90dvh] w-full max-w-6xl animate-fade-in overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg">
+        <h1 className="mb-6 text-center text-2xl font-bold">توضیحات محصول جدید</h1>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-6">
@@ -167,20 +160,20 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
             ))}
           </div>
 
-          <div className="flex flex-col gap-4 mt-6">
+          <div className="mt-6 flex flex-col gap-4">
             <button
               type="button"
               onClick={addItem}
-              className="py-2 px-4 bg-green-600 hover:bg-green-700 rounded-lg text-white"
+              className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
               disabled={isSubmitting}
             >
               افزودن آیتم جدید
             </button>
 
-            <div className="flex gap-4 justify-center">
+            <div className="flex justify-center gap-4">
               <button
                 type="submit"
-                className="py-2 px-6 bg-blue-500 hover:bg-blue-600 rounded-lg text-white"
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white hover:bg-blue-600"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "در حال ارسال..." : "ایجاد"}
@@ -189,7 +182,7 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="py-2 px-6 bg-gray-600 hover:bg-gray-700 rounded-lg text-white"
+                className="rounded-lg bg-gray-600 px-6 py-2 text-white hover:bg-gray-700"
                 disabled={isSubmitting}
               >
                 انصراف
@@ -199,7 +192,7 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
         </form>
 
         <div
-          className="absolute top-4 right-4 text-red-400 hover:text-red-500 transition-all cursor-pointer"
+          className="absolute right-4 top-4 cursor-pointer text-red-400 transition-all hover:text-red-500"
           onClick={onClose}
         >
           <IoIosClose size={50} />
@@ -244,59 +237,58 @@ const ItemForm = ({
     [index, handleImageSelect]
   );
 
-  const { getRootProps, getInputProps, isDragActive, isDragReject } =
-    useDropzone({
-      onDrop,
-      accept: { "image/*": [] },
-      maxFiles: 1,
-      multiple: false,
-    });
+  const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
+    onDrop,
+    accept: { "image/*": [] },
+    maxFiles: 1,
+    multiple: false,
+  });
 
   return (
-    <div className="bg-gray-900 rounded-lg p-4 relative">
+    <div className="relative rounded-lg bg-gray-900 p-4">
       {showRemoveButton && (
         <button
           type="button"
           onClick={() => removeItem(index)}
-          className="absolute top-2 left-2 bg-red-500 hover:bg-red-600 rounded-lg"
+          className="absolute left-2 top-2 rounded-lg bg-red-500 hover:bg-red-600"
         >
           <IoIosClose size={25} />
         </button>
       )}
 
       <div className="mb-4">
-        <label className="block mb-2">عنوان</label>
+        <label className="mb-2 block">عنوان</label>
         <input
           type="text"
           value={item.title}
           onChange={(e) => handleChange(index, "title", e.target.value)}
-          className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white"
+          className="w-full rounded-md border border-gray-600 bg-gray-700 p-2 text-white"
           placeholder="عنوان را وارد کنید"
           disabled={isSubmitting}
         />
       </div>
 
       <div className="mb-4">
-        <label className="block mb-2">توضیحات</label>
+        <label className="mb-2 block">توضیحات</label>
         <textarea
           value={item.description}
           onChange={(e) => handleChange(index, "description", e.target.value)}
-          className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white min-h-[100px]"
+          className="min-h-[100px] w-full rounded-md border border-gray-600 bg-gray-700 p-2 text-white"
           placeholder="توضیحات را وارد کنید"
           disabled={isSubmitting}
         />
       </div>
 
       <div className="mb-4">
-        <label className="block mb-2">تصویر</label>
+        <label className="mb-2 block">تصویر</label>
         <div
           {...getRootProps()}
-          className={`p-4 border-2 border-dashed rounded-md text-center cursor-pointer transition-colors ${
+          className={`cursor-pointer rounded-md border-2 border-dashed p-4 text-center transition-colors ${
             isDragActive
               ? "border-blue-400 bg-blue-900/20"
               : isDragReject
-              ? "border-red-400 bg-red-900/20"
-              : "border-gray-600 hover:border-blue-400 hover:bg-blue-900/10"
+                ? "border-red-400 bg-red-900/20"
+                : "border-gray-600 hover:border-blue-400 hover:bg-blue-900/10"
           } ${item.preview ? "border-green-500" : ""}`}
         >
           <input {...getInputProps()} disabled={isSubmitting} />
@@ -304,7 +296,7 @@ const ItemForm = ({
           {item.preview ? (
             <div className="space-y-2">
               <p className="text-green-400">تصویر انتخاب شد</p>
-              <p className="text-gray-400 text-sm">
+              <p className="text-sm text-gray-400">
                 برای تغییر تصویر، کلیک کنید یا تصویر جدیدی را به اینجا بکشید
               </p>
             </div>
@@ -314,9 +306,9 @@ const ItemForm = ({
             <p className="text-red-400">فقط فایل تصویر مجاز است!</p>
           ) : (
             <div className="space-y-2">
-              <FiUpload className="mx-auto text-blue-400 text-3xl mb-2" />
+              <FiUpload className="mx-auto mb-2 text-3xl text-blue-400" />
               <p>برای انتخاب تصویر کلیک کنید یا تصویر را به اینجا بکشید</p>
-              <p className="text-gray-400 text-sm">
+              <p className="text-sm text-gray-400">
                 فرمت‌های مجاز: JPG، PNG، WebP | (اندازه پیشنهادی 1920*1080)
               </p>
             </div>
@@ -324,11 +316,13 @@ const ItemForm = ({
         </div>
 
         {item.preview && (
-          <div className="mt-4 relative w-full h-48 bg-gray-700 rounded-md overflow-hidden">
-            <img
+          <div className="relative mt-4 h-48 w-full overflow-hidden rounded-md bg-gray-700">
+            <Image
+              height={192}
+              width={250}
               src={item.preview}
               alt="پیش‌نمایش"
-              className="w-full h-full object-contain"
+              className="h-full w-full object-contain"
             />
           </div>
         )}

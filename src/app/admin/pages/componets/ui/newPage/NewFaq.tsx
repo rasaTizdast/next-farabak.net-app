@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
 import { Input, Button, Switch, Form } from "antd";
-import { IoMdClose } from "react-icons/io";
+import React, { useState } from "react";
 import toast from "react-hot-toast";
+import { IoMdClose } from "react-icons/io";
 
 const { TextArea } = Input;
 
@@ -32,7 +32,7 @@ const NewFaq: React.FC<NewFaqProps> = ({ onClose }) => {
         body: JSON.stringify({
           Q: values.Q,
           A: values.A,
-          Available: values.Available,
+          Available: true,
         }),
       });
 
@@ -53,12 +53,10 @@ const NewFaq: React.FC<NewFaqProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl overflow-hidden flex flex-col">
-        <div className="flex justify-between items-center p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold text-gray-200">
-            افزودن سوال متداول جدید
-          </h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+      <div className="flex w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-gray-800 shadow-xl">
+        <div className="flex items-center justify-between border-b border-gray-700 p-4">
+          <h2 className="text-xl font-bold text-gray-200">افزودن سوال متداول جدید</h2>
           <Button
             type="text"
             icon={<IoMdClose size={24} />}
@@ -97,11 +95,7 @@ const NewFaq: React.FC<NewFaqProps> = ({ onClose }) => {
                 },
               ]}
             >
-              <TextArea
-                placeholder="پاسخ را وارد کنید"
-                rows={6}
-                className="resize-none"
-              />
+              <TextArea placeholder="پاسخ را وارد کنید" rows={6} className="resize-none" />
             </Form.Item>
 
             <Form.Item
@@ -112,7 +106,7 @@ const NewFaq: React.FC<NewFaqProps> = ({ onClose }) => {
               <Switch />
             </Form.Item>
 
-            <div className="flex justify-end gap-2 mt-6">
+            <div className="mt-6 flex justify-end gap-2">
               <Button onClick={onClose}>انصراف</Button>
               <Button
                 type="primary"
@@ -130,4 +124,4 @@ const NewFaq: React.FC<NewFaqProps> = ({ onClose }) => {
   );
 };
 
-export default NewFaq; 
+export default NewFaq;

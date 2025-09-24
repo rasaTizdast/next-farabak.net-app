@@ -6,7 +6,7 @@ export default function SkeletonLoading() {
       {/* Branch details card skeleton */}
       <Card
         title={<Skeleton.Input active size="small" style={{ width: 150 }} />}
-        className="bg-gray-800 mb-6 rounded-lg shadow-md overflow-hidden text-white"
+        className="mb-6 overflow-hidden rounded-lg bg-gray-800 text-white shadow-md"
         headStyle={{
           backgroundColor: "#1f2937",
           borderBottom: "1px solid #374151",
@@ -15,9 +15,9 @@ export default function SkeletonLoading() {
         }}
         bodyStyle={{ backgroundColor: "#1f2937", padding: "16px" }}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="p-5 bg-gray-900/30 rounded">
+            <div key={i} className="rounded bg-gray-900/30 p-5">
               <Skeleton.Input active size="small" style={{ width: 100 }} />
               <Skeleton.Input active size="large" style={{ width: 150 }} />
             </div>
@@ -26,21 +26,16 @@ export default function SkeletonLoading() {
       </Card>
 
       {/* Tabs skeleton */}
-      <div className="bg-gray-800 rounded-lg text-white pt-4 mb-6">
-        <div className="flex gap-4 px-4 mb-4">
+      <div className="mb-6 rounded-lg bg-gray-800 pt-4 text-white">
+        <div className="mb-4 flex gap-4 px-4">
           {[1, 2].map((i) => (
-            <Skeleton.Input
-              key={i}
-              active
-              size="small"
-              style={{ width: 120 }}
-            />
+            <Skeleton.Input key={i} active size="small" style={{ width: 120 }} />
           ))}
         </div>
         <div className="p-4">
           {/* Products table skeleton */}
           <Card
-            className="bg-gray-800 rounded-lg overflow-hidden text-white border-0"
+            className="overflow-hidden rounded-lg border-0 bg-gray-800 text-white"
             headStyle={{
               backgroundColor: "#19202b",
               borderBottom: "1px solid #374151",
@@ -54,7 +49,7 @@ export default function SkeletonLoading() {
           >
             <div className="space-y-4">
               {/* Table header skeleton */}
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <Skeleton.Input active size="small" style={{ width: 150 }} />
                 <Skeleton.Input active size="small" style={{ width: 120 }} />
               </div>
@@ -62,7 +57,7 @@ export default function SkeletonLoading() {
               {[1, 2, 3, 4, 5].map((i) => (
                 <div
                   key={i}
-                  className="flex justify-between items-center py-5 border-b border-gray-700"
+                  className="flex items-center justify-between border-b border-gray-700 py-5"
                 >
                   <Skeleton.Input active size="small" style={{ width: 200 }} />
                   <Skeleton.Input active size="small" style={{ width: 100 }} />

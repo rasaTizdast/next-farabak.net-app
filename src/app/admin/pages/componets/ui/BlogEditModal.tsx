@@ -1,8 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { BiTrash } from "react-icons/bi";
+
+import FaqManager from "@/components/FaqManager";
+
 import TipTapBlogEditor from "./blogEditor/TipTapEditor";
 
 type BlogEditModalProps = {
@@ -46,9 +50,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState<string[]>([]);
 
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(
-    null
-  );
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newCategory, setNewCategory] = useState({
     name: "",
@@ -61,6 +63,9 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
     categoryName: string;
     blogs: Array<{ id: number; title: string }>;
   } | null>(null);
+
+  // FAQ management state
+  const [showFaqManager, setShowFaqManager] = useState(false);
 
   const [formData, setFormData] = useState<BlogFormData>({
     title: "",
@@ -175,9 +180,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
 
     // Add slug validation
     if (formData.slug && !/^[a-z0-9\-_]+$/.test(formData.slug)) {
-      errors.push(
-        "شناسه فقط می‌تواند شامل حروف انگلیسی، اعداد، خط تیره و زیرخط باشد"
-      );
+      errors.push("شناسه فقط می‌تواند شامل حروف انگلیسی، اعداد، خط تیره و زیرخط باشد");
     }
 
     if (formData.categories.length === 0) {
@@ -241,25 +244,17 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
       }
 
       // Remove the category and associated blogs from state
-      setCategories((prev) =>
-        prev.filter((c) => c.id !== confirmationModalData.categoryId)
-      );
+      setCategories((prev) => prev.filter((c) => c.id !== confirmationModalData.categoryId));
       setFormData((prev) => ({
         ...prev,
-        categories: prev.categories.filter(
-          (id) => id !== confirmationModalData.categoryId
-        ),
+        categories: prev.categories.filter((id) => id !== confirmationModalData.categoryId),
       }));
 
-      toast.success(
-        `دسته بندی و ${confirmationModalData.blogs.length} بلاگ مرتبط با آن حذف شدند`
-      );
+      toast.success(`دسته بندی و ${confirmationModalData.blogs.length} بلاگ مرتبط با آن حذف شدند`);
       setConfirmationModalData(null);
     } catch (error) {
       console.error("Forced delete operation failed:", error);
-      toast.error(
-        error instanceof Error ? error.message : "خطا در حذف دسته بندی"
-      );
+      toast.error(error instanceof Error ? error.message : "خطا در حذف دسته بندی");
     }
   };
 
@@ -277,16 +272,13 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
       if (!response.ok) {
         if (result.error === "Cannot delete category used in blog posts") {
           // Fetch the blogs using this category
-          const blogsResponse = await fetch(
-            `/api/blogs/categories/${categoryId}/blogs`
-          );
+          const blogsResponse = await fetch(`/api/blogs/categories/${categoryId}/blogs`);
           const blogsUsingCategory = await blogsResponse.json();
 
           // Open a confirmation modal with blog details
           setConfirmationModalData({
             categoryId,
-            categoryName:
-              categories.find((c) => c.id === categoryId)?.name || "Category",
+            categoryName: categories.find((c) => c.id === categoryId)?.name || "Category",
             blogs: blogsUsingCategory,
           });
           return;
@@ -306,9 +298,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
       toast.success("دسته بندی با موفقیت حذف شد");
     } catch (error) {
       console.error("Delete operation failed:", error);
-      toast.error(
-        error instanceof Error ? error.message : "خطا در حذف دسته بندی"
-      );
+      toast.error(error instanceof Error ? error.message : "خطا در حذف دسته بندی");
     } finally {
       setShowDeleteConfirm(null);
     }
@@ -326,9 +316,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
 
       // Validate slug format
       if (!/^[a-z0-9\-_]+$/.test(newCategory.slug)) {
-        throw new Error(
-          "شناسه فقط می‌تواند شامل حروف انگلیسی، اعداد، خط تیره و زیرخط باشد"
-        );
+        throw new Error("شناسه فقط می‌تواند شامل حروف انگلیسی، اعداد، خط تیره و زیرخط باشد");
       }
 
       const response = await fetch("/api/blogs/categories", {
@@ -352,9 +340,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
       setNewCategory({ name: "", slug: "" });
       toast.success("دسته بندی با موفقیت ایجاد شد");
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "خطا در ایجاد دسته بندی"
-      );
+      toast.error(error instanceof Error ? error.message : "خطا در ایجاد دسته بندی");
     }
   };
 
@@ -432,19 +418,14 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
     } catch (error) {
       console.error("Error:", error);
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "خطا در ذخیره وبلاگ. لطفا دوباره تلاش کنید."
+        error instanceof Error ? error.message : "خطا در ذخیره وبلاگ. لطفا دوباره تلاش کنید."
       );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleEditorSave = async (
-    content: string,
-    publish: boolean = false
-  ) => {
+  const handleEditorSave = async (content: string, publish: boolean = false) => {
     try {
       const response = await fetch(`/api/blogs/update/${blogId}`, {
         method: "PUT",
@@ -457,9 +438,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
 
       if (!response.ok) throw new Error("خطا در بروزرسانی وبلاگ");
 
-      toast.success(
-        publish ? "وبلاگ با موفقیت منتشر شد" : "پیش‌نویس با موفقیت ذخیره شد"
-      );
+      toast.success(publish ? "وبلاگ با موفقیت منتشر شد" : "پیش‌نویس با موفقیت ذخیره شد");
       onClose();
     } catch (error) {
       console.error("Error:", error);
@@ -493,48 +472,48 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   // Updated loading state
   if (isLoading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
-        <div className="bg-gray-800 text-gray-200 p-6 rounded-lg shadow-xl w-full max-w-7xl max-h-[95vh] overflow-auto">
-          <div className="flex justify-between items-center mb-6">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="max-h-[95vh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-800 p-6 text-gray-200 shadow-xl">
+          <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xl font-bold">در حال بارگذاری وبلاگ...</h2>
-            <div className="w-8 h-8 bg-gray-700 rounded-lg animate-pulse" />
+            <div className="h-8 w-8 animate-pulse rounded-lg bg-gray-700" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-pulse">
+          <div className="grid animate-pulse grid-cols-1 gap-4 md:grid-cols-2">
             {/* Form Skeletons */}
             {[...Array(6)].map((_, i) => (
               <div key={i}>
-                <div className="h-4 w-1/4 mb-2 bg-gray-700 rounded" />
-                <div className="h-10 bg-gray-700 rounded-lg" />
+                <div className="mb-2 h-4 w-1/4 rounded bg-gray-700" />
+                <div className="h-10 rounded-lg bg-gray-700" />
               </div>
             ))}
 
             {/* Image Upload Skeleton */}
-            <div className="md:col-span-2 space-y-4">
-              <div className="h-4 w-1/4 bg-gray-700 rounded" />
+            <div className="space-y-4 md:col-span-2">
+              <div className="h-4 w-1/4 rounded bg-gray-700" />
               <div className="flex items-center gap-4">
-                <div className="w-32 h-10 bg-gray-700 rounded-lg" />
-                <div className="w-32 h-32 bg-gray-700 rounded-lg" />
+                <div className="h-10 w-32 rounded-lg bg-gray-700" />
+                <div className="h-32 w-32 rounded-lg bg-gray-700" />
               </div>
-              <div className="h-10 bg-gray-700 rounded-lg" />
+              <div className="h-10 rounded-lg bg-gray-700" />
             </div>
 
             {/* Categories Skeleton */}
-            <div className="md:col-span-2 mt-4 space-y-4">
-              <div className="h-4 w-1/4 bg-gray-700 rounded" />
-              <div className="h-10 w-full bg-gray-700 rounded-lg" />
+            <div className="mt-4 space-y-4 md:col-span-2">
+              <div className="h-4 w-1/4 rounded bg-gray-700" />
+              <div className="h-10 w-full rounded-lg bg-gray-700" />
               <div className="flex flex-wrap gap-2">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="w-20 h-8 bg-gray-700 rounded-lg" />
+                  <div key={i} className="h-8 w-20 rounded-lg bg-gray-700" />
                 ))}
               </div>
             </div>
           </div>
 
           {/* Footer Buttons Skeleton */}
-          <div className="flex justify-end gap-3 mt-6">
-            <div className="w-20 h-10 bg-gray-700 rounded-lg" />
-            <div className="w-32 h-10 bg-gray-700 rounded-lg" />
+          <div className="mt-6 flex justify-end gap-3">
+            <div className="h-10 w-20 rounded-lg bg-gray-700" />
+            <div className="h-10 w-32 rounded-lg bg-gray-700" />
           </div>
         </div>
       </div>
@@ -542,26 +521,24 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
-      <div className="bg-gray-800 text-gray-200 p-6 rounded-lg shadow-xl w-full max-w-7xl max-h-[95vh] overflow-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="max-h-[95vh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-800 p-6 text-gray-200 shadow-xl">
         {step === 1 ? (
           <>
-            <div className="flex justify-between items-center mb-6">
+            <div className="mb-6 flex items-center justify-between">
               <h2 className="text-xl font-bold">ایجاد وبلاگ جدید</h2>
             </div>
             <form onSubmit={handleInitialSubmit} className="space-y-4">
               {formErrors.length > 0 && (
-                <div className="bg-red-800/30 text-red-400 p-4 rounded-lg">
+                <div className="rounded-lg bg-red-800/30 p-4 text-red-400">
                   {formErrors.map((error, index) => (
                     <p key={index}>• {error}</p>
                   ))}
                 </div>
               )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-medium mb-1">
-                    عنوان وبلاگ
-                  </label>
+                  <label className="mb-1 block text-sm font-medium">عنوان وبلاگ</label>
                   <input
                     type="text"
                     required
@@ -572,43 +549,35 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                         title: e.target.value,
                       });
                     }}
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">
-                    عنوان SEO
-                  </label>
+                  <label className="mb-1 block text-sm font-medium">عنوان SEO</label>
                   <input
                     type="text"
                     required
                     maxLength={60}
                     value={formData.SEO_Title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, SEO_Title: e.target.value })
-                    }
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    onChange={(e) => setFormData({ ...formData, SEO_Title: e.target.value })}
+                    className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                   />
                   <span className="text-xs text-gray-400">
                     {formData.SEO_Title.length}/60 کاراکتر
                   </span>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">
-                    نویسنده
-                  </label>
+                  <label className="mb-1 block text-sm font-medium">نویسنده</label>
                   <input
                     type="text"
                     required
                     value={formData.author}
-                    onChange={(e) =>
-                      setFormData({ ...formData, author: e.target.value })
-                    }
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                    className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">
+                  <label className="mb-1 block text-sm font-medium">
                     شناسه (فقط حروف انگلیسی، اعداد، خط تیره و زیرخط)
                   </label>
                   <input
@@ -618,24 +587,20 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        slug: e.target.value
-                          .toLowerCase()
-                          .replace(/[^a-z0-9\-_]/g, ""),
+                        slug: e.target.value.toLowerCase().replace(/[^a-z0-9\-_]/g, ""),
                       })
                     }
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                     placeholder="مثال: my-blog-post"
                     dir="ltr"
                   />
                   <span className="text-xs text-gray-400">
-                    شناسه باید به انگلیسی باشد و فقط می‌تواند شامل حروف کوچک
-                    انگلیسی، اعداد، خط تیره و زیرخط باشد
+                    شناسه باید به انگلیسی باشد و فقط می‌تواند شامل حروف کوچک انگلیسی، اعداد، خط تیره
+                    و زیرخط باشد
                   </span>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium mb-1">
-                    توضیحات SEO
-                  </label>
+                  <label className="mb-1 block text-sm font-medium">توضیحات SEO</label>
                   <textarea
                     required
                     maxLength={165}
@@ -646,7 +611,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                         SEO_description: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 h-24"
+                    className="h-24 w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                   />
                   <span className="text-xs text-gray-400">
                     {formData.SEO_description.length}/165 کاراکتر
@@ -654,13 +619,11 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                 </div>
                 {/* Updated image section */}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium mb-1">
-                    تصویر بلاگ
-                  </label>
+                  <label className="mb-1 block text-sm font-medium">تصویر بلاگ</label>
                   <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-4 flex-wrap">
+                    <div className="flex flex-wrap items-center gap-4">
                       <label className="relative cursor-pointer">
-                        <span className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors inline-block">
+                        <span className="inline-block rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700">
                           انتخاب تصویر
                         </span>
                         <input
@@ -672,15 +635,17 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                       </label>
 
                       {previewImage && (
-                        <div className="relative group">
-                          <img
+                        <div className="group relative">
+                          <Image
                             src={
                               previewImage?.startsWith("blob:")
                                 ? previewImage
                                 : `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${previewImage}`
                             }
+                            height={144}
+                            width={250}
                             alt="Preview"
-                            className="h-36 object-cover rounded-lg border-2 border-gray-600"
+                            className="h-36 rounded-lg border-2 border-gray-600 object-cover"
                           />
                           <button
                             type="button"
@@ -695,7 +660,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                                 image_URL: "",
                               }));
                             }}
-                            className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 text-xs hover:bg-red-700 transition-colors"
+                            className="absolute -right-2 -top-2 rounded-full bg-red-600 p-1 text-xs text-white transition-colors hover:bg-red-700"
                           >
                             <BiTrash size={16} />
                           </button>
@@ -703,9 +668,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                       )}
                     </div>
 
-                    {uploadError && (
-                      <p className="text-red-400 text-sm mt-1">{uploadError}</p>
-                    )}
+                    {uploadError && <p className="mt-1 text-sm text-red-400">{uploadError}</p>}
 
                     <div className="w-full">
                       <input
@@ -720,44 +683,39 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                             image_alt: e.target.value,
                           })
                         }
-                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                        className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                       />
                     </div>
 
                     <p className="text-xs text-gray-400">
-                      حداکثر حجم فایل: ۲ مگابایت (فرمت‌های مجاز: JPEG, PNG,
-                      WEBP)
+                      حداکثر حجم فایل: ۲ مگابایت (فرمت‌های مجاز: JPEG, PNG, WEBP)
                     </p>
                   </div>
                 </div>
               </div>
               <div className="mt-4">
-                <label className="block text-sm font-medium mb-2">
-                  دسته بندی‌ها
-                </label>
+                <label className="mb-2 block text-sm font-medium">دسته بندی‌ها</label>
                 <div className="relative">
                   <input
                     type="text"
                     value={categoryInput}
                     onChange={(e) => setCategoryInput(e.target.value)}
                     placeholder="جستجو یا افزودن دسته بندی..."
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                     onFocus={() => setIsInputFocused(true)}
-                    onBlur={() =>
-                      setTimeout(() => setIsInputFocused(false), 200)
-                    }
+                    onBlur={() => setTimeout(() => setIsInputFocused(false), 200)}
                   />
                   {(isInputFocused || categoryInput) && (
-                    <div className="absolute w-full mt-1 bg-gray-700 border border-gray-600 rounded-lg max-h-60 overflow-y-auto z-10">
+                    <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-gray-600 bg-gray-700">
                       {filteredCategories.map((category) => (
                         <div
                           key={category.id}
-                          className="flex items-center justify-between group px-4 py-2 hover:bg-gray-600"
+                          className="group flex items-center justify-between px-4 py-2 hover:bg-gray-600"
                         >
                           <button
                             type="button"
                             onClick={() => handleAddCategory(category)}
-                            className="text-right flex-grow"
+                            className="flex-grow text-right"
                           >
                             {category.name}
                           </button>
@@ -767,52 +725,47 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                               e.stopPropagation();
                               setShowDeleteConfirm(category.id);
                             }}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="opacity-0 transition-opacity group-hover:opacity-100"
                           >
                             <BiTrash
                               size={20}
-                              className="text-red-400 hover:text-red-500 transition-all"
+                              className="text-red-400 transition-all hover:text-red-500"
                             />
                           </button>
                         </div>
                       ))}
 
-                      {categoryInput &&
-                        !categories.some((c) => c.name === categoryInput) && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setNewCategory({
-                                name: categoryInput,
-                                slug: generateSlug(categoryInput),
-                              });
-                              setShowCreateModal(true);
-                            }}
-                            className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-center"
-                          >
-                            ایجاد دسته بندی جدید
-                          </button>
-                        )}
+                      {categoryInput && !categories.some((c) => c.name === categoryInput) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewCategory({
+                              name: categoryInput,
+                              slug: generateSlug(categoryInput),
+                            });
+                            setShowCreateModal(true);
+                          }}
+                          className="w-full bg-blue-600 px-4 py-2 text-center hover:bg-blue-700"
+                        >
+                          ایجاد دسته بندی جدید
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {formData.categories.map((categoryId) => {
-                    const category = categories.find(
-                      (c) => c.id === categoryId
-                    );
+                    const category = categories.find((c) => c.id === categoryId);
                     return (
                       <span
                         key={categoryId}
                         onClick={() =>
                           setFormData((prev) => ({
                             ...prev,
-                            categories: prev.categories.filter(
-                              (id) => id !== categoryId
-                            ),
+                            categories: prev.categories.filter((id) => id !== categoryId),
                           }))
                         }
-                        className="bg-green-700 hover:bg-red-600 hover:cursor-pointer px-3 py-1 rounded-lg text-base flex items-center gap-1 transition-all"
+                        className="flex items-center gap-1 rounded-lg bg-green-700 px-3 py-1 text-base transition-all hover:cursor-pointer hover:bg-red-600"
                       >
                         {category?.name || "Loading..."}
                       </span>
@@ -821,54 +774,63 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 mt-6">
+              <div className="mt-6 flex justify-between">
                 <button
                   type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 text-gray-400 hover:text-gray-200 transition-colors"
-                  disabled={isSubmitting}
+                  onClick={() => setShowFaqManager(true)}
+                  className="rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
                 >
-                  انصراف
+                  مدیریت سوالات متداول
                 </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed relative"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting && (
-                    <span className="absolute left-3 top-2.5">
-                      <svg
-                        className="animate-spin h-5 w-5 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                    </span>
-                  )}
-                  {isSubmitting ? "در حال ارسال..." : "ادامه"}
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-4 py-2 text-gray-400 transition-colors hover:text-gray-200"
+                    disabled={isSubmitting}
+                  >
+                    انصراف
+                  </button>
+                  <button
+                    type="submit"
+                    className="relative rounded-lg bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting && (
+                      <span className="absolute left-3 top-2.5">
+                        <svg
+                          className="h-5 w-5 animate-spin text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                      </span>
+                    )}
+                    {isSubmitting ? "در حال ارسال..." : "ادامه"}
+                  </button>
+                </div>
               </div>
             </form>
             {showDeleteConfirm && (
-              <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-                <div className="bg-gray-800 p-6 rounded-lg w-96">
-                  <h3 className="text-lg font-bold mb-4">حذف دسته بندی</h3>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                <div className="w-96 rounded-lg bg-gray-800 p-6">
+                  <h3 className="mb-4 text-lg font-bold">حذف دسته بندی</h3>
                   <p>آیا مطمئن هستید که می‌خواهید این دسته بندی را حذف کنید؟</p>
-                  <div className="flex justify-end gap-2 mt-4">
+                  <div className="mt-4 flex justify-end gap-2">
                     <button
                       onClick={() => setShowDeleteConfirm(null)}
                       className="px-4 py-2 text-gray-400 hover:text-gray-200"
@@ -877,7 +839,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                     </button>
                     <button
                       onClick={() => handleDeleteCategory(showDeleteConfirm)}
-                      className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg"
+                      className="rounded-lg bg-red-600 px-4 py-2 hover:bg-red-700"
                     >
                       حذف
                     </button>
@@ -886,16 +848,12 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
               </div>
             )}
             {showCreateModal && (
-              <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-                <div className="bg-gray-800 p-6 rounded-lg w-96">
-                  <h3 className="text-lg font-bold mb-4">
-                    ایجاد دسته بندی جدید
-                  </h3>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                <div className="w-96 rounded-lg bg-gray-800 p-6">
+                  <h3 className="mb-4 text-lg font-bold">ایجاد دسته بندی جدید</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium mb-1">
-                        نام
-                      </label>
+                      <label className="mb-1 block text-sm font-medium">نام</label>
                       <input
                         type="text"
                         value={newCategory.name}
@@ -905,12 +863,12 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                             name: e.target.value,
                           }))
                         }
-                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg"
+                        className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2"
                         placeholder="نام دسته بندی"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">
+                      <label className="mb-1 block text-sm font-medium">
                         شناسه (فقط حروف انگلیسی، اعداد، خط تیره و زیرخط)
                       </label>
                       <input
@@ -919,18 +877,16 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                         onChange={(e) =>
                           setNewCategory((prev) => ({
                             ...prev,
-                            slug: e.target.value
-                              .toLowerCase()
-                              .replace(/[^a-z0-9\-_]/g, ""),
+                            slug: e.target.value.toLowerCase().replace(/[^a-z0-9\-_]/g, ""),
                           }))
                         }
-                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg"
+                        className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2"
                         placeholder="مثال: my-category-name"
                         dir="ltr"
                       />
                       <span className="text-xs text-gray-400">
-                        شناسه باید به انگلیسی باشد و فقط می‌تواند شامل حروف کوچک
-                        انگلیسی، اعداد، خط تیره و زیرخط باشد
+                        شناسه باید به انگلیسی باشد و فقط می‌تواند شامل حروف کوچک انگلیسی، اعداد، خط
+                        تیره و زیرخط باشد
                       </span>
                     </div>
                     <div className="flex justify-end gap-2">
@@ -942,7 +898,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                       </button>
                       <button
                         onClick={handleCreateCategory}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
+                        className="rounded-lg bg-blue-600 px-4 py-2 hover:bg-blue-700"
                         disabled={
                           !newCategory.name ||
                           !newCategory.slug ||
@@ -957,29 +913,24 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
               </div>
             )}
             {confirmationModalData && (
-              <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-                <div className="bg-gray-800 p-6 rounded-lg w-96">
-                  <h3 className="text-lg font-bold mb-4">
-                    هشدار: دسته بندی در حال استفاده
-                  </h3>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                <div className="w-96 rounded-lg bg-gray-800 p-6">
+                  <h3 className="mb-4 text-lg font-bold">هشدار: دسته بندی در حال استفاده</h3>
                   <p>
-                    دسته بندی "{confirmationModalData.categoryName}" در{" "}
+                    دسته بندی &quot;{confirmationModalData.categoryName}&quot; در{" "}
                     {confirmationModalData.blogs.length} بلاگ استفاده شده است.
                   </p>
                   <div className="mt-4">
-                    <h4 className="font-semibold mb-2">بلاگ‌های مرتبط:</h4>
-                    <ul className="max-h-40 overflow-y-auto bg-gray-700 p-2 rounded-lg">
+                    <h4 className="mb-2 font-semibold">بلاگ‌های مرتبط:</h4>
+                    <ul className="max-h-40 overflow-y-auto rounded-lg bg-gray-700 p-2">
                       {confirmationModalData.blogs.map((blog) => (
-                        <li
-                          key={blog.id}
-                          className="py-1 border-b border-gray-600 last:border-b-0"
-                        >
+                        <li key={blog.id} className="border-b border-gray-600 py-1 last:border-b-0">
                           {blog.title}
                         </li>
                       ))}
                     </ul>
                   </div>
-                  <div className="flex justify-end gap-2 mt-4">
+                  <div className="mt-4 flex justify-end gap-2">
                     <button
                       onClick={() => setConfirmationModalData(null)}
                       className="px-4 py-2 text-gray-400 hover:text-gray-200"
@@ -988,7 +939,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                     </button>
                     <button
                       onClick={handleForceCategoryDelete}
-                      className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg"
+                      className="rounded-lg bg-red-600 px-4 py-2 hover:bg-red-700"
                     >
                       حذف دسته بندی و بلاگ‌های مرتبط
                     </button>
@@ -998,15 +949,23 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
             )}
           </>
         ) : (
-          <div className="h-full flex flex-col">
-            <div className="flex justify-between items-center mb-4">
+          <div className="flex h-full flex-col">
+            <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-bold">نوشتن محتوای وبلاگ</h2>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-200 transition-colors"
-              >
-                ✕
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowFaqManager(true)}
+                  className="rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
+                >
+                  مدیریت سوالات متداول
+                </button>
+                <button
+                  onClick={onClose}
+                  className="text-gray-400 transition-colors hover:text-gray-200"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
             <div className="flex-1">
               <TipTapBlogEditor
@@ -1018,6 +977,9 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
           </div>
         )}
       </div>
+
+      {/* FAQ Manager Modal */}
+      {showFaqManager && <FaqManager blogId={id} onClose={() => setShowFaqManager(false)} />}
     </div>
   );
 };

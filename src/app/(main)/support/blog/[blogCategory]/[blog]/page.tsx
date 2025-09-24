@@ -1,7 +1,9 @@
-import Script from "next/script";
-import Breadcrumb from "@/app/_components/ui/Breadcrumb";
-import { notFound } from "next/navigation";
 import Image from "next/image";
+import { notFound } from "next/navigation";
+import Script from "next/script";
+
+import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import BlogFaqAccordion from "@/components/BlogFaqAccordion";
 
 interface BlogResponse {
   blog: {
@@ -21,6 +23,7 @@ interface BlogResponse {
   comments: { content: string; created_at: string }[];
   likes: number;
   media: { media_URL: string; media_alt: string }[];
+  faqs: { id: number; question: string; answer: string; order: number }[];
 }
 
 const getBlog = async (
@@ -29,12 +32,9 @@ const getBlog = async (
   isAdmin: boolean = false
 ): Promise<BlogResponse | null> => {
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${slug}`,
-      {
-        next: { revalidate: 60 }, // Optional: revalidate every 60 seconds for ISR
-      }
-    );
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${slug}`, {
+      next: { revalidate: 60 }, // Optional: revalidate every 60 seconds for ISR
+    });
 
     if (!res.ok) {
       console.error(`Failed to fetch blog: ${res.statusText}`);
@@ -81,13 +81,12 @@ const getBlog = async (
   }
 };
 
-export async function generateMetadata({
-  params,
-  searchParams,
-}: {
-  params: { blog: string };
-  searchParams: { key?: string };
+export async function generateMetadata(props: {
+  params: Promise<{ blog: string }>;
+  searchParams: Promise<{ key?: string }>;
 }) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const content = await getBlog(params.blog, searchParams);
 
   if (!content) {
@@ -103,20 +102,19 @@ export async function generateMetadata({
   };
 }
 
-export default async function BlogPage({
-  params,
-  searchParams,
-}: {
-  params: { blog: string };
-  searchParams: { key?: string };
+export default async function BlogPage(props: {
+  params: Promise<{ blog: string }>;
+  searchParams: Promise<{ key?: string }>;
 }) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const blogResponse = await getBlog(params.blog, searchParams);
 
   if (!blogResponse) {
     notFound();
   }
 
-  const { blog } = blogResponse;
+  const { blog, faqs } = blogResponse;
 
   const readingTime = calculateReadingTime(blog.content);
 
@@ -140,7 +138,7 @@ export default async function BlogPage({
         return `<video${before}src="${baseUrl}/${src}"${after}`;
       }
     );
-    
+
     // Process TipTap video nodes - convert them to standard HTML5 video tags
     processedContent = processedContent.replace(
       /<div data-type="video"[^>]*>([\s\S]*?)<\/div>/g,
@@ -149,21 +147,20 @@ export default async function BlogPage({
         const srcMatch = match.match(/src="([^"]*)"/);
         if (srcMatch && srcMatch[1]) {
           const src = srcMatch[1];
-          const fullSrc = src.startsWith(baseUrl) || src.startsWith("http") 
-            ? src 
-            : `${baseUrl}/${src}`;
-          
+          const fullSrc =
+            src.startsWith(baseUrl) || src.startsWith("http") ? src : `${baseUrl}/${src}`;
+
           // Replace the entire div with a simple video element
           return `<video src="${fullSrc}" controls class="w-full max-w-4xl mx-auto rounded-md my-4"></video>`;
         }
         return match;
       }
     );
-    
+
     // Ensure videos have controls
     processedContent = processedContent.replace(
       /<video(?![^>]*controls)([^>]*)/g,
-      '<video$1 controls '
+      "<video$1 controls "
     );
 
     // Then handle the size classes. Make sure classes defined in the editor are preserved
@@ -199,18 +196,18 @@ export default async function BlogPage({
     <>
       <Breadcrumb breadcrumbs={["/", "/support", "/support/blog"]} />
 
-      <article className="max-w-[1580px] w-full mt-5 mx-auto bg-gray-200 p-5 sm:p-10 rounded-lg">
+      <article className="mx-auto mt-5 w-full max-w-[1580px] rounded-lg bg-gray-200 p-5 sm:p-10">
         <header className="mb-8">
-          <h1 className="text-2xl sm:text-4xl font-bold mb-8">{blog.title}</h1>
+          <h1 className="mb-8 text-2xl font-bold sm:text-4xl">{blog.title}</h1>
           <Image
             src={`${process.env.LIARA_BUCKET_URL}/${blog.image_URL}`}
             alt={blog.image_alt}
-            className="rounded-lg w-full lg:w-3/5 object-cover mb-6 mx-auto"
+            className="mx-auto mb-6 w-full rounded-lg object-cover lg:w-3/5"
             width={1200}
             height={630}
             quality={100}
           />
-          <div className="flex items-center justify-center mobile:justify-normal gap-3 text-gray-600 mb-4 p-2 bg-gray-100 rounded-lg text-xs mobile:text-base">
+          <div className="mb-4 flex items-center justify-center gap-3 rounded-lg bg-gray-100 p-2 text-xs text-gray-600 mobile:justify-normal mobile:text-base">
             <span>{blog.author}</span>
             <span>•</span>
             <time>{new Date(blog.created_at).toLocaleDateString("fa")}</time>
@@ -220,14 +217,27 @@ export default async function BlogPage({
         </header>
 
         <div
-          className="prose-view max-w-none [&_img]:max-w-full [&_img]:h-auto [&_.w-full]:w-full [&_.w-1\/2]:w-1/2 [&_.w-1\/2]:mx-auto [&_.w-1\/3]:w-1/3 [&_.w-1\/3]:mx-auto"
+          className="prose-view max-w-none [&_.w-1\/2]:mx-auto [&_.w-1\/2]:w-1/2 [&_.w-1\/3]:mx-auto [&_.w-1\/3]:w-1/3 [&_.w-full]:w-full [&_img]:h-auto [&_img]:max-w-full"
           dangerouslySetInnerHTML={{
             __html: processContentWithImageUrls(blog.content),
           }}
         />
       </article>
 
+      {/* FAQ Section */}
+      {faqs && faqs.length > 0 && (
+        <section className="mx-auto mt-8 w-full max-w-[1580px] rounded-lg bg-white p-5 shadow-sm sm:p-10">
+          <BlogFaqAccordion
+            faqs={faqs}
+            blogTitle={blog.title}
+            blogSlug={params.blog}
+            description={`پاسخ سوالات رایج درباره "${blog.title}"`}
+          />
+        </section>
+      )}
+
       <Script
+        id="blogContent"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
@@ -250,10 +260,7 @@ export default async function BlogPage({
 function calculateReadingTime(content: string): number {
   const text = content.replace(/<[^>]*>/g, " ");
   const cleanText = text
-    .replace(
-      /[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF0-9\s]/g,
-      " "
-    )
+    .replace(/[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF0-9\s]/g, " ")
     .replace(/[\u200B-\u200D\uFEFF]/g, "")
     .replace(/\s+/g, " ")
     .trim();

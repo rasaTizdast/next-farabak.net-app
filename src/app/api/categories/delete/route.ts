@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -95,7 +96,32 @@ async function deleteSubCategory(subCategoryId: number) {
     },
   });
 
+  // Delete product images from S3 before deleting from database
   for (const product of products) {
+    try {
+      // Delete product images from S3
+      const baseUrl = process.env.BASE_URL || process.env.NEXT_PUBLIC_BASE_URL;
+      const s3Response = await fetch(`${baseUrl}/api/s3/delete`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "productImages",
+          productId: product.ProductId,
+        }),
+      });
+
+      if (s3Response.status !== 200) {
+        console.error(
+          `Failed to delete images for product ${product.ProductId}:`,
+          await s3Response.text()
+        );
+      }
+    } catch (error) {
+      console.error(`Error deleting images for product ${product.ProductId}:`, error);
+    }
+
     // Delete product overview
     await prisma.productOverview.deleteMany({
       where: { ProductId: product.ProductId },
@@ -149,19 +175,16 @@ async function deleteCategory(categoryId: number) {
       where: { CategoryID: categoryId },
     });
   } catch (error) {
-    throw new Error("Failed to delete category.");
+    throw new Error("Failed to delete category.", error!);
   }
 }
 
 export async function DELETE(request: Request) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
-    return NextResponse.json(
-      { message: "Authorization token required" },
-      { status: 401 }
-    );
+    return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
   }
 
   const decoded = await verifyToken(token);

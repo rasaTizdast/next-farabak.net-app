@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 export const revalidate = 60;
 
@@ -51,10 +52,8 @@ export const revalidate = 60;
  *                   example: "Failed to fetch product type"
  */
 
-export async function GET(
-  req: Request,
-  { params }: { params: { productId: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ productId: string }> }) {
+  const params = await props.params;
   const productId = parseInt(params.productId, 10);
 
   if (isNaN(productId)) {
@@ -76,6 +75,7 @@ export async function GET(
     // Return the product type in the response
     return NextResponse.json({ productType: product.Type });
   } catch (error) {
+    console.error(error);
     return new NextResponse("Failed to fetch product type", { status: 500 });
   }
 }

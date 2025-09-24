@@ -1,21 +1,16 @@
 "use client";
+import { yupResolver } from "@hookform/resolvers/yup";
+import axios from "axios";
 import Image from "next/image";
 import Link from "next/link"; // You can use Link from Next.js as well
 import { useRouter } from "next/navigation"; // Next.js routing
 import { useState } from "react";
-
 import { useForm, FormProvider, SubmitHandler } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import axios from "axios";
 
 import CitySelector from "@/app/auth/_components/CitySelector";
 import TextInput from "@/app/auth/_components/TextInput";
-
-import { signUpSchema } from "@/helpers/validationSchema"; // Import schema from helper
 import { useUser } from "@/context/UserContext";
-
-import signUpImage from "/public/signUp_image.svg"; // Adjust asset paths
-import farabakLogo from "/public/Farabak_Logo.webp"; // Logo path
+import { signUpSchema } from "@/helpers/validationSchema"; // Import schema from helper
 
 import styles from "../FormStyles.module.css"; // Adjust CSS import
 
@@ -89,9 +84,7 @@ const SignUp = () => {
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        setErrorMessage(
-          error.response?.data.message || "خطا در فرایند ثبت‌نام."
-        );
+        setErrorMessage(error.response?.data.message || "خطا در فرایند ثبت‌نام.");
       } else {
         setErrorMessage("خطا در فرایند ثبت‌نام.");
       }
@@ -130,7 +123,7 @@ const SignUp = () => {
               <Image
                 width={2066}
                 height={182}
-                src={farabakLogo.src}
+                src="/Farabak_Logo.webp"
                 className={styles.logo}
                 alt="farabak logo"
               />
@@ -228,9 +221,7 @@ const SignUp = () => {
             type="submit"
             value={isSubmitting ? "در حال ورود..." : "ورود به حساب کاربری"}
             disabled={isSubmitting || step !== 3}
-            className={`${styles.signup_submit} ${
-              step !== 3 ? styles.disable : ""
-            }`}
+            className={`${styles.signup_submit} ${step !== 3 ? styles.disable : ""}`}
           />
 
           {errorMessage && <p className={styles.error}>{errorMessage}</p>}
@@ -269,17 +260,14 @@ const SignUp = () => {
         </form>
         <div className={styles.view}>
           <Image
-            src={signUpImage.src}
+            src="/signUp_image.svg"
             alt="farabak-signUp-Image"
             width={552}
             height={412}
             quality={100}
             style={{ display: "block" }}
           />
-          <h3>
-            با ساخت حساب کاربری خود، میتوانید از تمامی امکانات وبسایت استفاده
-            کنید.
-          </h3>
+          <h3>با ساخت حساب کاربری خود، میتوانید از تمامی امکانات وبسایت استفاده کنید.</h3>
         </div>
       </div>
     </FormProvider>

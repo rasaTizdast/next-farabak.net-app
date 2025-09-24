@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { S3 } from "aws-sdk";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -42,10 +43,8 @@ import { S3 } from "aws-sdk";
  *       500:
  *         description: Internal server error.
  */
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
 
@@ -57,19 +56,13 @@ export async function GET(
     });
 
     if (!member) {
-      return NextResponse.json(
-        { message: "Member not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "Member not found" }, { status: 404 });
     }
 
     return NextResponse.json(member, { status: 200 });
   } catch (error) {
     console.error("Error fetching member details:", error);
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -79,10 +72,8 @@ const s3 = new S3({
   endpoint: process.env.LIARA_ENDPOINT,
 });
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const memberId = parseInt(params.id);
 
@@ -116,9 +107,6 @@ export async function DELETE(
     });
   } catch (error) {
     console.error("Error deleting member:", error);
-    return NextResponse.json(
-      { error: "Error deleting member" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Error deleting member" }, { status: 500 });
   }
 }

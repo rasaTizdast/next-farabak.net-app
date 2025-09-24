@@ -2,8 +2,8 @@ const SkeletonTable = () => {
   return (
     <>
       <h3 className="mb-5 font-bold">فاکتورها ثبت شده توسط شما</h3>
-      <div className="w-full border border-gray-200 rounded-md shadow-sm">
-        <table className="table-auto w-full border-collapse bg-gray-100 animate-pulse">
+      <div className="w-full rounded-md border border-gray-200 shadow-sm">
+        <table className="w-full table-auto border-collapse animate-pulse bg-gray-100">
           <thead>
             <tr className="bg-gray-200">
               <th className="px-4 py-3 text-center">شماره فاکتور</th>
@@ -19,19 +19,19 @@ const SkeletonTable = () => {
               .map((_, idx) => (
                 <tr key={idx} className="border-t border-gray-300">
                   <td className="px-4 py-5">
-                    <div className="h-4 bg-gray-300 rounded-md"></div>
+                    <div className="h-4 rounded-md bg-gray-300"></div>
                   </td>
                   <td className="px-4 py-5">
-                    <div className="h-4 bg-gray-300 rounded-md"></div>
+                    <div className="h-4 rounded-md bg-gray-300"></div>
                   </td>
                   <td className="px-4 py-5">
-                    <div className="h-4 bg-gray-300 rounded-md"></div>
+                    <div className="h-4 rounded-md bg-gray-300"></div>
                   </td>
                   <td className="px-4 py-5">
-                    <div className="h-4 bg-gray-300 rounded-md"></div>
+                    <div className="h-4 rounded-md bg-gray-300"></div>
                   </td>
                   <td className="px-4 py-5">
-                    <div className="h-4 bg-gray-300 rounded-md"></div>
+                    <div className="h-4 rounded-md bg-gray-300"></div>
                   </td>
                 </tr>
               ))}

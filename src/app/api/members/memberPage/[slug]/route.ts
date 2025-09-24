@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -41,10 +42,8 @@ import { prisma } from "@/lib/prisma";
  *       500:
  *         description: Internal server error.
  */
-export async function GET(
-  request: Request,
-  { params }: { params: { slug: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   try {
     const { slug } = params;
 
@@ -56,18 +55,12 @@ export async function GET(
     });
 
     if (!member) {
-      return NextResponse.json(
-        { message: "Member not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "Member not found" }, { status: 404 });
     }
 
     return NextResponse.json(member, { status: 200 });
   } catch (error) {
     console.error("Error fetching member details:", error);
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }

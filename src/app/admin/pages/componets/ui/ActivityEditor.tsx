@@ -1,8 +1,8 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { IoIosCloseCircle } from "react-icons/io";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa"; // Icons for expand/collapse
+import { IoIosCloseCircle } from "react-icons/io";
 
 type ActivityEditModalProps = {
   onClose: () => void;
@@ -24,9 +24,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true); // Track data fetching state
-  const [expandedSections, setExpandedSections] = useState<Set<number>>(
-    new Set<number>()
-  ); // Explicitly type the Set
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set<number>()); // Explicitly type the Set
 
   useEffect(() => {
     axios
@@ -74,24 +72,15 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
     setActivities(updatedActivities);
   };
 
-  const handleUpdateActivity = (
-    index: number,
-    field: "title",
-    value: string
-  ) => {
+  const handleUpdateActivity = (index: number, field: "title", value: string) => {
     const updatedActivities = [...activities];
     updatedActivities[index][field] = value;
     setActivities(updatedActivities);
   };
 
-  const handleUpdateDetail = (
-    activityIndex: number,
-    detailIndex: number,
-    value: string
-  ) => {
+  const handleUpdateDetail = (activityIndex: number, detailIndex: number, value: string) => {
     const updatedActivities = [...activities];
-    updatedActivities[activityIndex].Details_activity[detailIndex].description =
-      value;
+    updatedActivities[activityIndex].Details_activity[detailIndex].description = value;
     setActivities(updatedActivities);
   };
 
@@ -138,34 +127,34 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const SkeletonLoader = () => (
     <div className="space-y-4">
       {[...Array(4)].map((_, index) => (
-        <div key={index} className="bg-gray-600 p-4 rounded-lg animate-pulse">
-          <div className="h-6 bg-gray-500 rounded w-1/2 mb-4"></div>
+        <div key={index} className="animate-pulse rounded-lg bg-gray-600 p-4">
+          <div className="mb-4 h-6 w-1/2 rounded bg-gray-500"></div>
           <div className="space-y-2">
             {[...Array(3)].map((_, idx) => (
-              <div key={idx} className="h-4 bg-gray-500 rounded w-full"></div>
+              <div key={idx} className="h-4 w-full rounded bg-gray-500"></div>
             ))}
           </div>
-          <div className="h-8 bg-gray-500 rounded w-1/4 mt-4"></div>
+          <div className="mt-4 h-8 w-1/4 rounded bg-gray-500"></div>
         </div>
       ))}
     </div>
   );
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm shadow-lg">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 shadow-lg backdrop-blur-sm">
       <div
-        className="bg-gray-700 text-gray-200 p-6 rounded-lg shadow-lg w-full max-w-7xl max-h-[95dvh] overflow-auto relative"
+        className="relative max-h-[95dvh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg"
         dir="rtl"
       >
         {/* Updated Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 left-4 p-2 rounded-full text-red-500 hover:text-red-600"
+          className="absolute left-4 top-4 rounded-full p-2 text-red-500 hover:text-red-600"
         >
           <IoIosCloseCircle size={40} />
         </button>
 
-        <h2 className="text-xl text-center font-bold mb-10">ویرایش فعالیت‌ها</h2>
+        <h2 className="mb-10 text-center text-xl font-bold">ویرایش فعالیت‌ها</h2>
         {isFetching ? ( // Show skeleton while fetching data
           <SkeletonLoader />
         ) : (
@@ -173,29 +162,23 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
             {activities.map((activity, activityIndex) => (
               <section
                 key={activity.id}
-                className="bg-gray-800 p-4 rounded-lg mb-4 border border-gray-500 shadow-md"
+                className="mb-4 rounded-lg border border-gray-500 bg-gray-800 p-4 shadow-md"
               >
-                <div className="flex justify-between items-end">
-                  <label className="flex flex-col gap-2 w-full">
+                <div className="flex items-end justify-between">
+                  <label className="flex w-full flex-col gap-2">
                     تیتر فعالیت
                     <input
                       type="text"
                       value={activity.title}
-                      onChange={(e) =>
-                        handleUpdateActivity(
-                          activityIndex,
-                          "title",
-                          e.target.value
-                        )
-                      }
+                      onChange={(e) => handleUpdateActivity(activityIndex, "title", e.target.value)}
                       placeholder="عنوان فعالیت"
-                      className="w-full p-2 rounded-lg bg-gray-600 text-gray-100 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="mb-2 w-full rounded-lg bg-gray-600 p-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </label>
                   {/* Expand/Collapse Button */}
                   <button
                     onClick={() => toggleSection(activityIndex)}
-                    className="p-2 pl-0 mb-3 text-gray-100 hover:text-blue-500"
+                    className="mb-3 p-2 pl-0 text-gray-100 hover:text-blue-500"
                   >
                     {expandedSections.has(activityIndex) ? (
                       <FaChevronUp size={20} />
@@ -206,7 +189,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                 </div>
                 <button
                   onClick={() => handleDeleteSection(activityIndex)}
-                  className="bg-red-500 hover:bg-red-600 p-2 text-gray-100 rounded-lg mt-1 mb-3"
+                  className="mb-3 mt-1 rounded-lg bg-red-500 p-2 text-gray-100 hover:bg-red-600"
                 >
                   حذف فعالیت
                 </button>
@@ -216,7 +199,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                     {activity.Details_activity.map((detail, detailIndex) => (
                       <div
                         key={detail.id}
-                        className="bg-gray-700 text-gray-100 p-3 rounded-lg border border-gray-500 shadow-md"
+                        className="rounded-lg border border-gray-500 bg-gray-700 p-3 text-gray-100 shadow-md"
                       >
                         <label className="flex flex-col gap-2">
                           توضیح فعالیت
@@ -224,21 +207,15 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                             rows={3}
                             value={detail.description}
                             onChange={(e) =>
-                              handleUpdateDetail(
-                                activityIndex,
-                                detailIndex,
-                                e.target.value
-                              )
+                              handleUpdateDetail(activityIndex, detailIndex, e.target.value)
                             }
                             placeholder="توضیحات فعالیت"
-                            className="w-full p-2 rounded-lg bg-gray-600 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full rounded-lg bg-gray-600 p-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </label>
                         <button
-                          onClick={() =>
-                            handleDeleteDetail(activityIndex, detailIndex)
-                          }
-                          className="bg-red-500 hover:bg-red-600 p-2 text-gray-100 rounded-lg mt-3"
+                          onClick={() => handleDeleteDetail(activityIndex, detailIndex)}
+                          className="mt-3 rounded-lg bg-red-500 p-2 text-gray-100 hover:bg-red-600"
                         >
                           حذف جزئیات
                         </button>
@@ -246,7 +223,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                     ))}
                     <button
                       onClick={() => handleAddDetail(activityIndex)}
-                      className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg mt-4"
+                      className="mt-4 rounded-lg bg-green-600 px-3 py-1 text-white hover:bg-green-700"
                     >
                       افزودن جزئیات جدید
                     </button>
@@ -254,10 +231,10 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                 )}
               </section>
             ))}
-            <div className="w-full flex justify-center">
+            <div className="flex w-full justify-center">
               <button
                 onClick={handleAddSection}
-                className="bg-blue-500 hover:bg-blue-600 text-gray-100 px-4 py-2 rounded-lg mb-4"
+                className="mb-4 rounded-lg bg-blue-500 px-4 py-2 text-gray-100 hover:bg-blue-600"
               >
                 افزودن فعالیت جدید
               </button>
@@ -265,13 +242,13 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
 
             <hr className="my-5" />
 
-            <div className="w-full flex justify-center">
+            <div className="flex w-full justify-center">
               <button
                 onClick={handleSubmit}
                 disabled={isLoading}
                 className={`${
                   isLoading ? "bg-gray-500" : "bg-green-600 hover:bg-green-700"
-                } text-white px-4 py-2 rounded-lg mt-4 transition-all`}
+                } mt-4 rounded-lg px-4 py-2 text-white transition-all`}
               >
                 {isLoading ? "در حال ارسال..." : "ثبت تغییرات"}
               </button>

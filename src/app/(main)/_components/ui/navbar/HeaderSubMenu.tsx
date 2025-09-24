@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useState } from "react";
+
 import styles from "./NavBar.module.css";
 
 interface SubMenuItem {

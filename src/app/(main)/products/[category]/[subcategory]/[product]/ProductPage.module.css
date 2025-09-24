@@ -40,6 +40,10 @@
   font-size: 1.1rem;
   font-weight: 300;
   margin-bottom: 0.5rem;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .productFeatures {
@@ -52,6 +56,11 @@
 
 .productFeatures li {
   padding-block: 0.25rem;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  max-width: 100%;
 }
 
 .invoiceParent {
@@ -149,7 +158,7 @@
   position: sticky;
   top: 75px;
   box-shadow: 0 4px 10px 4px rgba(0, 0, 0, 0.2);
-  z-index:5;
+  z-index: 5;
 }
 
 .productTabs ul {

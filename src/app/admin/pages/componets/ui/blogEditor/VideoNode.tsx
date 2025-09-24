@@ -8,12 +8,7 @@ interface VideoAttributes {
   slug: string;
 }
 
-const VideoNode = ({
-  node,
-  editor,
-  getPos,
-  updateAttributes,
-}: NodeViewProps) => {
+const VideoNode = ({ node, editor, getPos }: NodeViewProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const attrs = node.attrs as VideoAttributes;
 
@@ -54,22 +49,22 @@ const VideoNode = ({
   };
 
   return (
-    <NodeViewWrapper className="relative group w-full my-8 mx-auto max-w-4xl">
-      <div className="bg-gray-800 p-3 rounded-lg shadow-md">
+    <NodeViewWrapper className="group relative mx-auto my-8 w-full max-w-4xl">
+      <div className="rounded-lg bg-gray-800 p-3 shadow-md">
         <div className="relative aspect-video">
           <video
             src={getVideoUrl(attrs.src)}
             title={attrs.title}
             controls
-            className="w-full h-full rounded-md"
+            className="h-full w-full rounded-md"
           />
         </div>
 
-        <div className="flex justify-end mt-2 space-x-2">
+        <div className="mt-2 flex justify-end space-x-2">
           <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="p-1 bg-red-500 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
+            className="rounded bg-red-500 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
             title="Delete video"
           >
             <Trash2 size={20} />

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -60,10 +61,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     if (!Array.isArray(body) || body.length === 0) {
-      return NextResponse.json(
-        { message: "Invalid or missing payload" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Invalid or missing payload" }, { status: 400 });
     }
 
     // Batch insert the payload into the database
@@ -83,8 +81,12 @@ export async function POST(req: NextRequest) {
       createdRecords: createdRecords.count,
     });
   } catch (error) {
+    console.error("Error creating specs:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      {
+        message: "Internal server error",
+        error: String(error),
+      },
       { status: 500 }
     );
   }

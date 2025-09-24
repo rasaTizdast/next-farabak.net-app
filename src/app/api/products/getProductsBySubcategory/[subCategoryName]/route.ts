@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -80,10 +81,8 @@ function parseCategoryContentIds(product: ProductType): number[] {
     .filter((id) => !isNaN(id));
 }
 
-export async function GET(
-  req: Request,
-  { params }: { params: { subCategoryName: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ subCategoryName: string }> }) {
+  const params = await props.params;
   const { searchParams } = new URL(req.url);
   const subCategoryName = params.subCategoryName;
 
@@ -105,12 +104,15 @@ export async function GET(
 
     const subCategoryId = subCategory.CategoryContentId.toString();
 
-    // Count total products for pagination
+    // Count total products for pagination - match whole IDs within comma-separated string
     const totalCount = await prisma.product.count({
       where: {
-        CategoryContentId: {
-          contains: subCategoryId,
-        },
+        OR: [
+          { CategoryContentId: { equals: subCategoryId } },
+          { CategoryContentId: { startsWith: `${subCategoryId},` } },
+          { CategoryContentId: { endsWith: `,${subCategoryId}` } },
+          { CategoryContentId: { contains: `,${subCategoryId},` } },
+        ],
       },
     });
 
@@ -137,12 +139,15 @@ export async function GET(
       subcategoryMap.set(sub.CategoryContentId, sub);
     });
 
-    // Get ALL products for this subcategory (no pagination yet)
+    // Get ALL products for this subcategory (no pagination yet) - exact match within comma-separated list
     const products = await prisma.product.findMany({
       where: {
-        CategoryContentId: {
-          contains: subCategoryId,
-        },
+        OR: [
+          { CategoryContentId: { equals: subCategoryId } },
+          { CategoryContentId: { startsWith: `${subCategoryId},` } },
+          { CategoryContentId: { endsWith: `,${subCategoryId}` } },
+          { CategoryContentId: { contains: `,${subCategoryId},` } },
+        ],
       },
       include: {
         Category: {
@@ -182,9 +187,7 @@ export async function GET(
     let allProcessedProducts: ProductType[] = [];
 
     // Process categories in ascending order by ID
-    const categoryIds = Object.keys(productsByCategory).sort(
-      (a, b) => Number(a) - Number(b)
-    );
+    const categoryIds = Object.keys(productsByCategory).sort((a, b) => Number(a) - Number(b));
 
     for (const categoryId of categoryIds) {
       const productsInCategory = productsByCategory[categoryId];
@@ -215,15 +218,15 @@ export async function GET(
         .filter((sub) => sub !== undefined);
 
       // Use the first subcategory for the link
-      const firstSubCategory =
-        subcategories.length > 0 ? subcategories[0] : null;
+      const firstSubCategory = subcategories.length > 0 ? subcategories[0] : null;
 
       return {
         ...product,
         productSlug: product.Slug,
         categorySlug,
-        subCategorySlug: firstSubCategory?.Slug || null,
-        link: `${categorySlug}/${firstSubCategory?.Slug || ""}/${product.Slug}`,
+        // Prefer the requested subcategory slug to avoid cross-category linking
+        subCategorySlug: subCategory?.Slug || firstSubCategory?.Slug || null,
+        link: `${categorySlug}/${subCategory?.Slug || firstSubCategory?.Slug || ""}/${product.Slug}`,
       };
     });
 

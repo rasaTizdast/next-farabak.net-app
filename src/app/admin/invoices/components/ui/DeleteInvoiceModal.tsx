@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import { AdminInvoice } from "../../type";
 
 type DeleteInvoiceModalProps = {
@@ -7,11 +8,7 @@ type DeleteInvoiceModalProps = {
   onDelete: (invoiceId: string) => void; // Callback to handle invoice deletion
 };
 
-const DeleteInvoiceModal = ({
-  invoice,
-  onClose,
-  onDelete,
-}: DeleteInvoiceModalProps) => {
+const DeleteInvoiceModal = ({ invoice, onClose, onDelete }: DeleteInvoiceModalProps) => {
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   if (!invoice) return null;
@@ -23,17 +20,17 @@ const DeleteInvoiceModal = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
       aria-labelledby="delete-invoice-modal"
       role="dialog"
       aria-modal="true"
     >
-      <div className="bg-slate-900 rounded-xl shadow-lg w-full max-w-lg">
+      <div className="w-full max-w-lg rounded-xl bg-slate-900 shadow-lg">
         {/* Modal Header */}
-        <div className="p-5 border-b border-slate-700">
+        <div className="border-b border-slate-700 p-5">
           <h2
             id="delete-invoice-modal"
-            className="text-2xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-500"
+            className="bg-gradient-to-r from-red-400 to-orange-500 bg-clip-text text-center text-2xl font-bold text-transparent"
           >
             حذف فاکتور
           </h2>
@@ -45,15 +42,15 @@ const DeleteInvoiceModal = ({
             آیا از حذف این فاکتور اطمینان دارید؟ این عملیات غیرقابل بازگشت است.
           </p>
           <div className="mt-6">
-            <label className="flex items-center gap-3 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-3">
               <input
                 type="checkbox"
                 checked={termsAccepted}
                 onChange={(e) => setTermsAccepted(e.target.checked)}
-                className="form-checkbox text-blue-500 w-5 h-5 border-gray-600 focus:ring-2 focus:ring-blue-400"
+                className="form-checkbox h-5 w-5 border-gray-600 text-blue-500 focus:ring-2 focus:ring-blue-400"
                 aria-label="Accept terms and conditions"
               />
-              <span className="text-gray-200 text-sm sm:text-base">
+              <span className="text-sm text-gray-200 sm:text-base">
                 من شرایط را خوانده‌ام و قبول دارم.
               </span>
             </label>
@@ -61,10 +58,10 @@ const DeleteInvoiceModal = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="flex flex-col sm:flex-row justify-end gap-3 p-5 border-t border-slate-700">
+        <div className="flex flex-col justify-end gap-3 border-t border-slate-700 p-5 sm:flex-row">
           <button
             onClick={onClose}
-            className="w-full sm:w-auto px-6 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            className="w-full rounded-lg bg-gray-700 px-6 py-3 text-gray-100 transition hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-auto"
             aria-label="Close modal"
           >
             بستن
@@ -72,10 +69,10 @@ const DeleteInvoiceModal = ({
           <button
             onClick={handleDelete}
             disabled={!termsAccepted}
-            className={`w-full sm:w-auto px-6 py-3 rounded-lg transition-colors ${
+            className={`w-full rounded-lg px-6 py-3 transition-colors sm:w-auto ${
               termsAccepted
-                ? "bg-red-600 hover:bg-red-500 text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
-                : "bg-red-400 text-gray-300 cursor-not-allowed"
+                ? "bg-red-600 text-gray-100 hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                : "cursor-not-allowed bg-red-400 text-gray-300"
             }`}
             aria-label="Delete invoice"
           >

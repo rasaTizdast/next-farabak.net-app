@@ -1,17 +1,16 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { S3 } from "aws-sdk";
+import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
+
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
     const sliders = await prisma.sliders.findMany();
     return NextResponse.json(sliders);
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to fetch sliders" },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ error: "Failed to fetch sliders" }, { status: 500 });
   }
 }
 
@@ -29,10 +28,7 @@ export async function POST(request: Request) {
     const link = formData.get("link") as string;
 
     if (!file || !link) {
-      return NextResponse.json(
-        { error: "فایل و لینک الزامی هستند." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "فایل و لینک الزامی هستند." }, { status: 400 });
     }
 
     // Upload the file to S3
@@ -61,9 +57,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(newSlider);
   } catch (error) {
-    return NextResponse.json(
-      { error: "خطا در آپلود فایل یا ذخیره داده." },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ error: `خطا در آپلود فایل یا ذخیره داده.` }, { status: 500 });
   }
 }

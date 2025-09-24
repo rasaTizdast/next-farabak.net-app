@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 interface SpecTemplate {
   SpecTemplateId: number;
@@ -18,18 +19,13 @@ interface SpecTemplateItem {
 }
 
 // GET /api/specTemplates/[id] - Get a specific template
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const id = parseInt(params.id);
 
     if (isNaN(id)) {
-      return NextResponse.json(
-        { message: "Invalid template ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Invalid template ID" }, { status: 400 });
     }
 
     // Get template using raw SQL
@@ -38,10 +34,7 @@ export async function GET(
     `;
 
     if (!templates || templates.length === 0) {
-      return NextResponse.json(
-        { message: "Template not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "Template not found" }, { status: 404 });
     }
 
     const template = templates[0];
@@ -56,35 +49,24 @@ export async function GET(
     return NextResponse.json(template);
   } catch (error) {
     console.error("Error fetching spec template:", error);
-    return NextResponse.json(
-      { message: "Error fetching spec template" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Error fetching spec template" }, { status: 500 });
   }
 }
 
 // PUT /api/specTemplates/[id] - Update a template
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const id = parseInt(params.id);
     const body = await request.json();
     const { Name, Items } = body;
 
     if (isNaN(id)) {
-      return NextResponse.json(
-        { message: "Invalid template ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Invalid template ID" }, { status: 400 });
     }
 
     if (!Name) {
-      return NextResponse.json(
-        { message: "Template name is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Template name is required" }, { status: 400 });
     }
 
     // Update the template using raw SQL
@@ -127,26 +109,18 @@ export async function PUT(
     return NextResponse.json(updatedTemplate);
   } catch (error) {
     console.error("Error updating spec template:", error);
-    return NextResponse.json(
-      { message: "Error updating spec template" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Error updating spec template" }, { status: 500 });
   }
 }
 
 // DELETE /api/specTemplates/[id] - Delete a template
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const id = parseInt(params.id);
 
     if (isNaN(id)) {
-      return NextResponse.json(
-        { message: "Invalid template ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Invalid template ID" }, { status: 400 });
     }
 
     // Delete the template using raw SQL (cascade delete will handle items)
@@ -158,9 +132,6 @@ export async function DELETE(
     return NextResponse.json({ message: "Template deleted successfully" });
   } catch (error) {
     console.error("Error deleting spec template:", error);
-    return NextResponse.json(
-      { message: "Error deleting spec template" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Error deleting spec template" }, { status: 500 });
   }
 }

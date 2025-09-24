@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 // GET: Fetch a specific FAQ by ID
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const id = parseInt(params.id);
     if (isNaN(id)) {
-      return NextResponse.json(
-        { error: "Invalid FAQ ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid FAQ ID" }, { status: 400 });
     }
 
     const faq = await prisma.faqDetails.findUnique({
@@ -20,34 +16,23 @@ export async function GET(
     });
 
     if (!faq) {
-      return NextResponse.json(
-        { error: "FAQ not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "FAQ not found" }, { status: 404 });
     }
 
     return NextResponse.json({ faq }, { status: 200 });
   } catch (error) {
     console.error("Error fetching FAQ:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch FAQ" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch FAQ" }, { status: 500 });
   }
 }
 
 // PUT: Update a specific FAQ
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const id = parseInt(params.id);
     if (isNaN(id)) {
-      return NextResponse.json(
-        { error: "Invalid FAQ ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid FAQ ID" }, { status: 400 });
     }
 
     const body = await req.json();
@@ -59,10 +44,7 @@ export async function PUT(
     });
 
     if (!existingFaq) {
-      return NextResponse.json(
-        { error: "FAQ not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "FAQ not found" }, { status: 404 });
     }
 
     // Update FAQ
@@ -79,25 +61,17 @@ export async function PUT(
     return NextResponse.json({ faq: updatedFaq }, { status: 200 });
   } catch (error) {
     console.error("Error updating FAQ:", error);
-    return NextResponse.json(
-      { error: "Failed to update FAQ" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to update FAQ" }, { status: 500 });
   }
 }
 
 // DELETE: Delete a specific FAQ
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const id = parseInt(params.id);
     if (isNaN(id)) {
-      return NextResponse.json(
-        { error: "Invalid FAQ ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid FAQ ID" }, { status: 400 });
     }
 
     // Check if FAQ exists
@@ -106,10 +80,7 @@ export async function DELETE(
     });
 
     if (!existingFaq) {
-      return NextResponse.json(
-        { error: "FAQ not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "FAQ not found" }, { status: 404 });
     }
 
     // Delete FAQ
@@ -117,15 +88,9 @@ export async function DELETE(
       where: { FaqDetailsid: id },
     });
 
-    return NextResponse.json(
-      { message: "FAQ deleted successfully" },
-      { status: 200 }
-    );
+    return NextResponse.json({ message: "FAQ deleted successfully" }, { status: 200 });
   } catch (error) {
     console.error("Error deleting FAQ:", error);
-    return NextResponse.json(
-      { error: "Failed to delete FAQ" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to delete FAQ" }, { status: 500 });
   }
-} 
+}

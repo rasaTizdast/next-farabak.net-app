@@ -1,5 +1,6 @@
 import axios from "axios";
 import toast from "react-hot-toast";
+
 import { hasFilters } from "./hasFilters";
 import { Product } from "../types";
 
@@ -58,6 +59,7 @@ const fetchProducts = async ({
       currentPage: pagination.currentPage,
     });
   } catch (error) {
+    console.error(error);
     toast.error("خطا در بارگذاری محصولات.");
     setNotFound(true);
   } finally {

@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
@@ -26,18 +26,13 @@ const prisma = new PrismaClient();
  *       500:
  *         description: Server error
  */
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const productId = parseInt(params.id);
-    
+
     if (isNaN(productId)) {
-      return NextResponse.json(
-        { error: "Invalid product ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid product ID" }, { status: 400 });
     }
 
     const faqs = await prisma.fAQs.findMany({
@@ -55,10 +50,7 @@ export async function GET(
     return NextResponse.json(faqs);
   } catch (error) {
     console.error("Error fetching product FAQs:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch product FAQs" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch product FAQs" }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }
@@ -100,27 +92,19 @@ export async function GET(
  *       500:
  *         description: Server error
  */
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const productId = parseInt(params.id);
-    
+
     if (isNaN(productId)) {
-      return NextResponse.json(
-        { error: "Invalid product ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid product ID" }, { status: 400 });
     }
 
     const faqs = await request.json();
-    
+
     if (!Array.isArray(faqs)) {
-      return NextResponse.json(
-        { error: "Invalid input format" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid input format" }, { status: 400 });
     }
 
     // Delete existing FAQs for this product
@@ -137,7 +121,7 @@ export async function PUT(
 
     // Create new FAQs
     await prisma.fAQs.createMany({
-      data: faqs.map(faq => ({
+      data: faqs.map((faq) => ({
         Title: faq.question,
         Description: faq.answer,
         ProductId: productId,
@@ -149,11 +133,8 @@ export async function PUT(
     return NextResponse.json({ message: "FAQs updated successfully" });
   } catch (error) {
     console.error("Error updating product FAQs:", error);
-    return NextResponse.json(
-      { error: "Failed to update product FAQs" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to update product FAQs" }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }
-} 
+}

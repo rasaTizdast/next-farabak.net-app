@@ -1,18 +1,18 @@
 export const dynamic = "force-dynamic";
 
+import { Metadata } from "next";
 import Link from "next/link";
 
 import supportData from "@/constants/supportData.json";
 
 import styles from "./SupportPage.module.css";
-import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "بخش پشتیبانی شرکت فرابک | فرابک",
   description: "مشاهده صفحه های پشتیبانی شرکت فرابک",
   robots: {
-    index: false, // This sets the noindex directive
-    follow: false, // Allows crawling of links on the page if needed
+    index: true, // This sets the noindex directive
+    follow: true, // Allows crawling of links on the page if needed
   },
 };
 
@@ -21,12 +21,7 @@ const SupportPage = () => {
     <section className={styles.section}>
       <div className={styles.cards}>
         {supportData.map((item) => (
-          <Card
-            key={item.id}
-            title={item.title}
-            desc={item.desc}
-            link={item.link}
-          />
+          <Card key={item.id} title={item.title} desc={item.desc} link={item.link} />
         ))}
       </div>
     </section>

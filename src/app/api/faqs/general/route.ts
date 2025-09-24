@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 export const revalidate = 300; // Revalidate every 5 minutes (300 seconds)

@@ -3,12 +3,9 @@ interface SectionProps {
   className?: string;
 }
 
-export const Section: React.FC<SectionProps> = ({
-  children,
-  className = "",
-}) => (
+export const Section: React.FC<SectionProps> = ({ children, className = "" }) => (
   <section
-    className={`text-sm sm:text-base bg-slate-100 rounded-lg p-4 sm:p-5 my-6 leading-loose ${className} last:mb-0`}
+    className={`my-6 rounded-lg bg-slate-100 p-4 text-sm leading-loose sm:p-5 sm:text-base ${className} last:mb-0`}
   >
     {children}
   </section>

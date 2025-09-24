@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma"; // Assuming you have a Prisma instance set up
 
 /**
@@ -136,10 +137,8 @@ function parseCategoryContentIds(product: ProductType): number[] {
     .filter((id) => !isNaN(id));
 }
 
-export async function GET(
-  req: Request,
-  { params }: { params: { categoryName: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ categoryName: string }> }) {
+  const params = await props.params;
   const categoryName = params.categoryName;
 
   try {
@@ -211,7 +210,11 @@ export async function GET(
     }
 
     // Create structured data organized by subcategory and product
-    const structuredData: any = {
+    const structuredData: {
+      category: typeof category;
+      subcategories: { [key: string]: { subcategory: any; products: ProductType[] } };
+      products: ProductType[];
+    } = {
       category: category,
       subcategories: {},
       products: [],
@@ -260,14 +263,10 @@ export async function GET(
     }
 
     // Add any products directly associated with the category (not in any subcategory)
-    const productsNotInSubcats = structuredData.products.filter(
-      (p: ProductType) => {
-        // Product is not in any subcategory we processed
-        return !parseCategoryContentIds(p).some(
-          (id) => structuredData.subcategories[id]
-        );
-      }
-    );
+    const productsNotInSubcats = structuredData.products.filter((p: ProductType) => {
+      // Product is not in any subcategory we processed
+      return !parseCategoryContentIds(p).some((id) => structuredData.subcategories[id]);
+    });
 
     if (productsNotInSubcats.length > 0) {
       const sortedDirectProducts = productsNotInSubcats.sort(
@@ -304,8 +303,7 @@ export async function GET(
         .filter((sub) => sub !== undefined);
 
       // Use the first subcategory for the link
-      const firstSubCategory =
-        subcategories.length > 0 ? subcategories[0] : null;
+      const firstSubCategory = subcategories.length > 0 ? subcategories[0] : null;
 
       return {
         ...product,

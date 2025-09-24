@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // Adjust the import based on your Prisma setup
 import { S3 } from "aws-sdk";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma"; // Adjust the import based on your Prisma setup
 
 const s3 = new S3({
   accessKeyId: process.env.LIARA_ACCESS_KEY,
@@ -8,10 +9,8 @@ const s3 = new S3({
   endpoint: process.env.LIARA_ENDPOINT,
 });
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
 
@@ -36,6 +35,7 @@ export async function DELETE(
 
     return NextResponse.json({ message: "اسلایدر با موفقیت حذف شد." });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: "خطا در حذف اسلایدر." }, { status: 500 });
   }
 }

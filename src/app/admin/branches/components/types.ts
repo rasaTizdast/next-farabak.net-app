@@ -76,6 +76,7 @@ export const toPersianDate = (dateString: string) => {
 
     return formatter.format(date);
   } catch (error) {
+    console.error(error);
     return "تاریخ نامشخص";
   }
 };

@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
@@ -92,10 +92,8 @@ const prisma = new PrismaClient();
  *         description: Internal server error.
  */
 
-export async function GET(
-  req: Request,
-  { params }: { params: { slug: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const { slug } = params;
 
   try {
@@ -110,6 +108,10 @@ export async function GET(
         },
         Comments: true, // Fetch comments related to the blog
         Likes: true, // Fetch likes related to the blog
+        BlogFAQs: {
+          where: { available: true },
+          orderBy: { order: "asc" },
+        },
       },
     });
 
@@ -157,14 +159,17 @@ export async function GET(
         media_URL: item.media_URL,
         media_alt: item.media_alt,
       })),
+      faqs: blog.BlogFAQs.map((faq) => ({
+        id: faq.id,
+        question: faq.question,
+        answer: faq.answer,
+        order: faq.order,
+      })),
     };
 
     return NextResponse.json(response);
   } catch (error) {
     console.error("Error fetching blog details:", error);
-    return NextResponse.json(
-      { message: "خطای داخلی سرور" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
   }
 }

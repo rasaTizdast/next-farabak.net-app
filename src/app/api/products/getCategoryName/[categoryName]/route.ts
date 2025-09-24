@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -49,10 +50,8 @@ import { prisma } from "@/lib/prisma";
  *                   example: "Failed to fetch category name"
  */
 
-export async function GET(
-  req: Request,
-  { params }: { params: { categoryName: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ categoryName: string }> }) {
+  const params = await props.params;
   const categoryNameSlug = params.categoryName;
 
   try {
@@ -70,6 +69,7 @@ export async function GET(
     // Return the category name in the response
     return NextResponse.json({ categoryName: category.Name });
   } catch (error) {
+    console.error(error);
     return new NextResponse("Failed to fetch category name", {
       status: 500,
     });

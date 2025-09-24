@@ -59,7 +59,9 @@
     bottom: 0;
     left: 100%;
     background-color: var(--fourth-color);
-    transition: left 0.5s ease-in-out, right 0.5s ease-in-out;
+    transition:
+      left 0.5s ease-in-out,
+      right 0.5s ease-in-out;
     z-index: -1; /* Place the pseudo-element behind the content */
   }
 

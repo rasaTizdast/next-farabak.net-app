@@ -2,18 +2,16 @@
 
 export const dynamic = "force-dynamic";
 
+import jalaali from "jalali-moment";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-// import axios from "axios";
+import { Toaster } from "react-hot-toast";
 
 import { getUserInvoices } from "@/helpers/invoiceHandlers";
 
+import styles from "./AllInvoices.module.css";
 import InvoiceDetails from "./components/ui/InvoiceDetails";
 import SkeletonTable from "./components/ui/SkeletonTable";
-import Link from "next/link";
-import jalaali from "jalali-moment";
-
-import styles from "./AllInvoices.module.css";
-import { Toaster } from "react-hot-toast";
 
 type Product = {
   Invoiceid: string;
@@ -49,33 +47,12 @@ const AllInvoices = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentTime, setCurrentTime] = useState(jalaali());
-
-  // Update current time every minute
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(jalaali());
-    }, 60000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const response = await getUserInvoices();
-      // Log the first few dates to see their format
-      if (response && response.length > 0) {
-        console.log("Sample date formats:");
-        response.slice(0, 3).forEach((invoice, index) => {
-          console.log(
-            `Invoice ${index} date:`,
-            invoice.Date,
-            typeof invoice.Date
-          );
-        });
-      }
       setInvoices(response);
     } catch (error: unknown) {
       // Check if the error is an instance of Error before accessing properties
@@ -292,9 +269,7 @@ const AllInvoices = () => {
     return (
       <div className={styles.error}>
         <div className={styles.errorContent}>
-          <span>
-            مشکلی در دریافت اطلاعات به وجود آمده است، دوباره تلاش کنید.
-          </span>
+          <span>مشکلی در دریافت اطلاعات به وجود آمده است، دوباره تلاش کنید.</span>
           <button onClick={fetchInvoices}>تلاش مجدد</button>
         </div>
       </div>
@@ -305,11 +280,11 @@ const AllInvoices = () => {
     <>
       <Toaster position="bottom-center" />
 
-      <div className="bg-amber-50 border border-amber-300 text-amber-800 p-4 rounded-md mb-6 shadow-sm">
+      <div className="mb-6 rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-800 shadow-sm">
         <div className="flex items-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 ml-2 flex-shrink-0"
+            className="ml-2 h-6 w-6 flex-shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -322,13 +297,12 @@ const AllInvoices = () => {
             />
           </svg>
           <p className="text-right">
-            <span className="font-bold">توجه:</span> فاکتورهایی که طی ۴۸ ساعت
-            توسط فرابک تأیید نشوند، به دلیل اعتبار محدود قیمت‌ها از پنل شما حذف
-            خواهند شد و نیاز به ثبت مجدد خواهند داشت. لطفاً در اسرع وقت جهت
-            تأیید فاکتورهای خود با فرابک{" "}
+            <span className="font-bold">توجه:</span> فاکتورهایی که طی ۴۸ ساعت توسط فرابک تأیید
+            نشوند، به دلیل اعتبار محدود قیمت‌ها از پنل شما حذف خواهند شد و نیاز به ثبت مجدد خواهند
+            داشت. لطفاً در اسرع وقت جهت تأیید فاکتورهای خود با فرابک{" "}
             <Link
               href="/contact-us"
-              className="text-amber-900 underline font-bold hover:text-amber-950"
+              className="font-bold text-amber-900 underline hover:text-amber-950"
             >
               تماس
             </Link>{" "}
@@ -361,38 +335,28 @@ const AllInvoices = () => {
                   <td>{item.FactorGuid}</td>
                   <td>{item.TotalAmount}</td>
                   <td>{item.Checked ? "بررسی شده" : "بررسی نشده"}</td>
-                  <td
-                    className={getTimeRemainingClass(item.Date, item.Checked)}
-                  >
-                    <div className="relative group cursor-help">
-                      <span>
-                        {getTimeRemainingText(item.Date, item.Checked)}
-                      </span>
+                  <td className={getTimeRemainingClass(item.Date, item.Checked)}>
+                    <div className="group relative cursor-help">
+                      <span>{getTimeRemainingText(item.Date, item.Checked)}</span>
                       <div
-                        className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gray-800 text-white text-xs rounded py-1 px-2 bottom-full left-1/2 transform -translate-x-1/2 mb-1 whitespace-nowrap z-10 pointer-events-none"
+                        className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                         dir="ltr"
                       >
                         {formatPersianDate(item.Date)}
                         <svg
-                          className="absolute text-gray-800 h-2 w-full left-0 top-full"
+                          className="absolute left-0 top-full h-2 w-full text-gray-800"
                           x="0px"
                           y="0px"
                           viewBox="0 0 255 255"
                           xmlSpace="preserve"
                         >
-                          <polygon
-                            className="fill-current"
-                            points="0,0 127.5,127.5 255,0"
-                          />
+                          <polygon className="fill-current" points="0,0 127.5,127.5 255,0" />
                         </svg>
                       </div>
                     </div>
                   </td>
                   <td className={styles.actionsParent}>
-                    <button
-                      onClick={() => handleShowInvoice(item)}
-                      className={styles.show}
-                    >
+                    <button onClick={() => handleShowInvoice(item)} className={styles.show}>
                       مشاهده فاکتور
                     </button>
                   </td>
@@ -402,9 +366,7 @@ const AllInvoices = () => {
           </tbody>
         </table>
       </div>
-      {selectedInvoice && (
-        <InvoiceDetails invoice={selectedInvoice} onClose={handleCloseModal} />
-      )}
+      {selectedInvoice && <InvoiceDetails invoice={selectedInvoice} onClose={handleCloseModal} />}
     </>
   );
 };

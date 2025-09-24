@@ -5,10 +5,7 @@ export async function POST(request: Request) {
     const { email } = await request.json();
 
     if (!email) {
-      return NextResponse.json(
-        { error: "آدرس ایمیل الزامی است" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "آدرس ایمیل الزامی است" }, { status: 400 });
     }
 
     // Send a test email
@@ -36,10 +33,7 @@ export async function POST(request: Request) {
       });
     } catch (error) {
       console.error("Error sending test email:", error);
-      return NextResponse.json(
-        { error: "خطا در ارسال ایمیل" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "خطا در ارسال ایمیل" }, { status: 500 });
     }
   } catch (error) {
     console.error("Error in test-email endpoint:", error);

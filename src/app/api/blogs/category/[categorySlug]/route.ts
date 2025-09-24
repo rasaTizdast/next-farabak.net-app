@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -105,10 +106,8 @@ import { prisma } from "@/lib/prisma";
  *                   description: The error message.
  */
 
-export async function GET(
-  req: Request,
-  { params }: { params: { categorySlug: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ categorySlug: string }> }) {
+  const params = await props.params;
   try {
     const { categorySlug } = params;
 
@@ -162,9 +161,6 @@ export async function GET(
     return NextResponse.json({ blogs: formattedBlogs });
   } catch (error) {
     console.error("خطا در دریافت مقالات:", error);
-    return NextResponse.json(
-      { error: "دریافت مقالات با مشکل مواجه شد" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "دریافت مقالات با مشکل مواجه شد" }, { status: 500 });
   }
 }

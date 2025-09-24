@@ -6,6 +6,8 @@ export interface Subcategory {
   Slug: string;
   Available: boolean;
   Link: string;
+  TopBlog?: string | null;
+  BottomBlog?: string | null;
   SEO_Details: {
     SEO_Title: string;
     SEO_Description: string;
@@ -21,6 +23,8 @@ export interface Category {
   Slug: string;
   Link: string;
   Subcategories: Subcategory[];
+  TopBlog?: string | null;
+  BottomBlog?: string | null;
   SEO_Details: {
     SEO_Title: string;
     SEO_Description: string;

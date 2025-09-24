@@ -1,22 +1,17 @@
 /* eslint-disable */
 
 import { useState } from "react";
-import {
-  Control,
-  FieldValues,
-  useController,
-  FieldErrors,
-} from "react-hook-form";
+import { Control, FieldValues, useController, FieldErrors } from "react-hook-form";
 
 import styles from "./CitySelector.module.css";
 import { cities } from "@/helpers/validationSchema";
 
 type Props = {
-  control: any ;
+  control: any;
   name: string;
   label: string;
   placeholder: string;
-  errors: FieldErrors; // Use FieldErrors from react-hook-form for errors 
+  errors: FieldErrors; // Use FieldErrors from react-hook-form for errors
 };
 
 const CitySelector = ({ control, name, label, placeholder, errors }: Props) => {

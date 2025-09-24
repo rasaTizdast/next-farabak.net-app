@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
  */
 export async function GET() {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const accessToken = cookieStore.get("accessToken")?.value;
 
     if (!accessToken) {
@@ -37,10 +38,7 @@ export async function GET() {
 
     try {
       // Verify and decode JWT
-      const { payload } = await jwtVerify(
-        accessToken,
-        new TextEncoder().encode(JWT_SECRET)
-      );
+      const { payload } = await jwtVerify(accessToken, new TextEncoder().encode(JWT_SECRET));
 
       // The userId can be stored under different keys in the payload
       // Check common keys: userId, id, sub
@@ -61,10 +59,7 @@ export async function GET() {
       `;
 
       if (!branch || (branch as any[]).length === 0) {
-        return NextResponse.json(
-          { error: "هیچ شعبه‌ای برای این کاربر یافت نشد" },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: "هیچ شعبه‌ای برای این کاربر یافت نشد" }, { status: 404 });
       }
 
       // Return the first branch (users typically have only one branch)

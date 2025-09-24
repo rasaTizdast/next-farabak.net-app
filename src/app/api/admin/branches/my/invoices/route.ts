@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
@@ -54,14 +55,11 @@ export async function GET(request: Request) {
     const offset = (page - 1) * limit;
 
     // Get the access token from cookies
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { error: "توکن احراز هویت مورد نیاز است" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "توکن احراز هویت مورد نیاز است" }, { status: 401 });
     }
 
     // Verify and decode the token
@@ -72,8 +70,7 @@ export async function GET(request: Request) {
     if (!userId || userRole !== "Branch") {
       return NextResponse.json(
         {
-          error:
-            "دسترسی غیرمجاز: فقط کاربران شعبه می‌توانند به این بخش دسترسی داشته باشند",
+          error: "دسترسی غیرمجاز: فقط کاربران شعبه می‌توانند به این بخش دسترسی داشته باشند",
         },
         { status: 401 }
       );
@@ -87,10 +84,7 @@ export async function GET(request: Request) {
     `;
 
     if (!branchResult || (branchResult as any[]).length === 0) {
-      return NextResponse.json(
-        { error: "شعبه‌ای برای این کاربر یافت نشد" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "شعبه‌ای برای این کاربر یافت نشد" }, { status: 404 });
     }
 
     const branch = (branchResult as any[])[0];
@@ -209,7 +203,7 @@ export async function GET(request: Request) {
 
     if (invoiceIds.length > 0) {
       // Create a dynamic query for the IN clause
-      let placeholders = invoiceIds.map((_, i) => `$${i + 1}`).join(", ");
+      const placeholders = invoiceIds.map((_, i) => `$${i + 1}`).join(", ");
 
       const query = `
         SELECT "Invoice_Details"
@@ -217,14 +211,9 @@ export async function GET(request: Request) {
         WHERE "Invoiceid" IN (${placeholders})
       `;
 
-      const invoiceDetailsIds = await prisma.$queryRawUnsafe(
-        query,
-        ...invoiceIds
-      );
+      const invoiceDetailsIds = await prisma.$queryRawUnsafe(query, ...invoiceIds);
 
-      detailIds = (invoiceDetailsIds as any[]).map(
-        (detail) => detail.Invoice_Details
-      );
+      detailIds = (invoiceDetailsIds as any[]).map((detail) => detail.Invoice_Details);
     }
 
     // Now get all standalone warranties for this branch that are not in the current set of invoice details
@@ -232,7 +221,7 @@ export async function GET(request: Request) {
 
     if (detailIds.length > 0) {
       // Create a dynamic query for the NOT IN clause
-      let placeholders = detailIds.map((_, i) => `$${i + 2}`).join(", "); // +2 because $1 is reserved for branchId
+      const placeholders = detailIds.map((_, i) => `$${i + 2}`).join(", "); // +2 because $1 is reserved for branchId
 
       const query = `
         SELECT 
@@ -254,11 +243,7 @@ export async function GET(request: Request) {
           AND w."invoicedetailid" NOT IN (${placeholders})
       `;
 
-      standaloneWarranties = await prisma.$queryRawUnsafe(
-        query,
-        branchId,
-        ...detailIds
-      );
+      standaloneWarranties = await prisma.$queryRawUnsafe(query, branchId, ...detailIds);
     } else {
       standaloneWarranties = await prisma.$queryRaw`
         SELECT 
@@ -281,32 +266,30 @@ export async function GET(request: Request) {
     }
 
     // Process standalone warranty status
-    const processedStandaloneWarranties = standaloneWarranties.map(
-      (warranty) => {
-        const today = new Date();
-        const expiryDate = new Date(warranty.expirydate);
+    const processedStandaloneWarranties = standaloneWarranties.map((warranty) => {
+      const today = new Date();
+      const expiryDate = new Date(warranty.expirydate);
 
-        // Add a display status without modifying the database
-        let displayStatus = warranty.status;
-        if (today > expiryDate) {
-          displayStatus = "Expired";
-        } else {
-          displayStatus = "Active";
-        }
-
-        // Create a full name from first name and last name
-        const clientFullName =
-          warranty.ClientFirstName && warranty.ClientLastName
-            ? `${warranty.ClientFirstName} ${warranty.ClientLastName}`
-            : "نامشخص";
-
-        return {
-          ...warranty,
-          displayStatus,
-          clientFullName,
-        };
+      // Add a display status without modifying the database
+      let displayStatus = warranty.status;
+      if (today > expiryDate) {
+        displayStatus = "Expired";
+      } else {
+        displayStatus = "Active";
       }
-    );
+
+      // Create a full name from first name and last name
+      const clientFullName =
+        warranty.ClientFirstName && warranty.ClientLastName
+          ? `${warranty.ClientFirstName} ${warranty.ClientLastName}`
+          : "نامشخص";
+
+      return {
+        ...warranty,
+        displayStatus,
+        clientFullName,
+      };
+    });
 
     // Calculate summary of active and expired warranties (for all invoices, not just paginated ones)
     // Get all warranties for this branch

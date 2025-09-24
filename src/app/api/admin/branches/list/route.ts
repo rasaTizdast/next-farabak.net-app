@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -9,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 // Helper function to verify the JWT token
 async function verifyToken() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
@@ -36,15 +37,11 @@ export async function GET() {
     const tokenPayload = await verifyToken();
 
     if (!tokenPayload) {
-      return NextResponse.json(
-        { error: "احراز هویت الزامی است" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "احراز هویت الزامی است" }, { status: 401 });
     }
 
     // Get user role from token
     const userRole = tokenPayload.role;
-    const userId = tokenPayload.userId;
 
     // Only Admin or Branch users can see branches
     if (userRole !== "Admin" && userRole !== "Branch") {
@@ -66,9 +63,6 @@ export async function GET() {
     return NextResponse.json(branches);
   } catch (error) {
     console.error("Error fetching branches list:", error);
-    return NextResponse.json(
-      { error: "خطا در بارگذاری لیست شعبه‌ها" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در بارگذاری لیست شعبه‌ها" }, { status: 500 });
   }
 }

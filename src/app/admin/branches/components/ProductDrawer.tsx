@@ -1,9 +1,10 @@
-import React from "react";
 import { Drawer } from "antd";
-import { Product, Branch } from "./types";
-import ProductSummary from "./ProductSummary";
+import React from "react";
+
 import ProductForm from "./ProductForm";
+import ProductSummary from "./ProductSummary";
 import ProductTable from "./ProductTable";
+import { Product, Branch } from "./types";
 
 interface ProductDrawerProps {
   visible: boolean;
@@ -77,7 +78,7 @@ const ProductDrawer: React.FC<ProductDrawerProps> = ({
       />
 
       <div className="mb-4">
-        <h3 className="text-lg font-medium mb-3 text-gray-200">لیست محصولات</h3>
+        <h3 className="mb-3 text-lg font-medium text-gray-200">لیست محصولات</h3>
         <ProductTable
           products={products}
           loading={loading}

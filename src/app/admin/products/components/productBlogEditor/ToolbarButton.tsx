@@ -9,20 +9,15 @@ interface ToolbarButtonProps {
   title: string;
 }
 
-export const ToolbarButton = ({
-  active,
-  onClick,
-  icon: Icon,
-  title,
-}: ToolbarButtonProps) => (
+export const ToolbarButton = ({ active, onClick, icon: Icon, title }: ToolbarButtonProps) => (
   <button
     type="button"
     onClick={onClick}
     title={title}
-    className={`p-2 hover:bg-gray-600 rounded-md ${
+    className={`rounded-md p-2 hover:bg-gray-600 ${
       active ? "bg-gray-600 text-white" : "text-gray-300"
     }`}
   >
-    <Icon className="w-5 h-5" />
+    <Icon className="h-5 w-5" />
   </button>
 );

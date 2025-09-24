@@ -1,11 +1,10 @@
 // app/api/blogs/update/[id]/route.ts
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const body = await request.json();
     const blogId = parseInt(params.id);
@@ -21,17 +20,12 @@ export async function PUT(
     return NextResponse.json(blog);
   } catch (error) {
     console.error("خطا در بروزرسانی محتوای وبلاگ:", error);
-    return NextResponse.json(
-      { error: "خطا در بروزرسانی محتوای وبلاگ" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در بروزرسانی محتوای وبلاگ" }, { status: 500 });
   }
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const body = await request.json();
     const blogId = parseInt(params.id);
@@ -67,9 +61,6 @@ export async function PATCH(
     return NextResponse.json(updatedBlog);
   } catch (error) {
     console.error("خطا در بروزرسانی اطلاعات وبلاگ:", error);
-    return NextResponse.json(
-      { error: "خطا در بروزرسانی اطلاعات وبلاگ" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در بروزرسانی اطلاعات وبلاگ" }, { status: 500 });
   }
 }

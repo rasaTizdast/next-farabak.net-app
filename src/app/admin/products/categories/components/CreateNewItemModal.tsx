@@ -1,6 +1,9 @@
-import { useState, useEffect } from "react";
-import { toast } from "react-hot-toast";
 import axios from "axios";
+import { useState, useEffect, useCallback } from "react";
+import { useDropzone } from "react-dropzone";
+import { toast } from "react-hot-toast";
+
+import CategoryBlogEditor from "./CategoryBlogEditor";
 import { Category } from "../types/types";
 import CategoryFields from "./newItemModalComponents/CategoryFields";
 import SeoFields from "./newItemModalComponents/SeoFields";
@@ -16,13 +19,9 @@ const checkIfUnique = (
     return !categories.some((category) => category.Name === name);
   }
 
-  const parentCategory = categories.find(
-    (category) => category.CategoryID === parentCategoryId
-  );
+  const parentCategory = categories.find((category) => category.CategoryID === parentCategoryId);
   if (!parentCategory) return true;
-  return !parentCategory.Subcategories.some(
-    (subcategory) => subcategory.Name === name
-  );
+  return !parentCategory.Subcategories.some((subcategory) => subcategory.Name === name);
 };
 
 const CreateNewItemModal = ({
@@ -40,15 +39,40 @@ const CreateNewItemModal = ({
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [available, setAvailable] = useState(true);
-  const [parentCategoryId, setParentCategoryId] = useState<number | undefined>(
-    undefined
-  );
+  const [parentCategoryId, setParentCategoryId] = useState<number | undefined>(undefined);
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
   const [seoKeywords, setSeoKeywords] = useState<string[]>([]);
   const [keywordInput, setKeywordInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false); // Loading state for submission
+  const [topBlog, setTopBlog] = useState("");
+  const [bottomBlog, setBottomBlog] = useState("");
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string>("");
+  const [bannerCleared, setBannerCleared] = useState<boolean>(false);
+
+  // Retry helper for 401 errors
+  const withRetry401 = async <T,>(
+    requestFn: () => Promise<T>,
+    options: { retries?: number; baseDelayMs?: number } = {}
+  ): Promise<T> => {
+    const { retries = 3, baseDelayMs = 300 } = options;
+    let lastError: unknown;
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        return await requestFn();
+      } catch (error) {
+        lastError = error;
+        if (axios.isAxiosError(error) && error.response?.status === 401 && attempt < retries - 1) {
+          await new Promise((r) => setTimeout(r, baseDelayMs * (attempt + 1)));
+          continue;
+        }
+        throw error;
+      }
+    }
+    throw lastError as Error;
+  };
 
   // Reset the form fields when the modal is opened (when `isOpen` changes)
   useEffect(() => {
@@ -61,14 +85,15 @@ const CreateNewItemModal = ({
     setSeoKeywords([]);
     setKeywordInput("");
     setError(null); // Clear any previous error messages
+    setTopBlog("");
+    setBottomBlog("");
+    setBannerFile(null);
+    setBannerPreview("");
+    setBannerCleared(false);
   }, [isOpen, activeTab]); // Trigger the effect when `isOpen` changes
 
   const addKeyword = (e: React.KeyboardEvent) => {
-    if (
-      e.key === "Enter" &&
-      keywordInput.trim() &&
-      !seoKeywords.includes(keywordInput.trim())
-    ) {
+    if (e.key === "Enter" && keywordInput.trim() && !seoKeywords.includes(keywordInput.trim())) {
       setSeoKeywords([...seoKeywords, keywordInput.trim()]);
       setKeywordInput("");
     }
@@ -106,18 +131,40 @@ const CreateNewItemModal = ({
         seoTitle,
         seoDescription,
         seoKeywords,
+        topBlog,
+        bottomBlog,
+        banner: undefined as string | undefined,
       },
     };
 
     setLoading(true); // Set loading to true when submitting
     try {
+      // Upload banner if present and not cleared
+      if (bannerFile && !bannerCleared && slug) {
+        const payload =
+          activeTab === "Category"
+            ? { type: "categoryBanner", contentType: bannerFile.type, categorySlug: slug }
+            : {
+                type: "categoryBanner",
+                contentType: bannerFile.type,
+                categorySlug:
+                  categories.find((c) => c.CategoryID === parentCategoryId)?.Slug || slug,
+                subcategorySlug: slug,
+              };
+
+        const { data: presign } = await withRetry401(() => axios.post("/api/s3/upload", payload));
+        await axios.put(presign.uploadUrl, bannerFile, {
+          headers: { "Content-Type": bannerFile.type },
+        });
+        result.data.banner = presign.key; // store returned key
+      }
       if (activeTab === "Category") {
-        await axios.post("/api/categories/createCategory", result);
+        await withRetry401(() => axios.post("/api/categories/createCategory", result));
         toast.success("دسته‌بندی با موفقیت ایجاد شد!");
         onClose();
         refetchCategories();
       } else if (activeTab === "Subcategory") {
-        await axios.post("/api/categories/createSubcategory", result);
+        await withRetry401(() => axios.post("/api/categories/createSubcategory", result));
         toast.success("زیردسته‌بندی با موفقیت ایجاد شد!");
         onClose();
         refetchCategories();
@@ -132,11 +179,15 @@ const CreateNewItemModal = ({
       setSeoDescription("");
       setSeoKeywords([]);
       setKeywordInput("");
+      setTopBlog("");
+      setBottomBlog("");
+      setBannerFile(null);
+      setBannerPreview("");
+      setBannerCleared(false);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorMessage =
-          error.response?.data?.message ||
-          "خطا در ثبت آیتم. لطفاً دوباره تلاش کنید.";
+          error.response?.data?.message || "خطا در ثبت آیتم. لطفاً دوباره تلاش کنید.";
         setError(errorMessage);
       } else {
         setError("خطای ناشناخته‌ای رخ داده است. لطفاً دوباره تلاش کنید.");
@@ -160,17 +211,34 @@ const CreateNewItemModal = ({
     return false;
   };
 
+  // Dropzone for banner upload
+  const onDrop = useCallback((accepted: File[]) => {
+    if (accepted.length > 0) {
+      const file = accepted[0];
+      setBannerFile(file);
+      setBannerPreview(URL.createObjectURL(file));
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
+    onDrop,
+    accept: { "image/*": [] },
+    maxFiles: 1,
+    multiple: false,
+  });
+
   return (
     <div
-      className={`fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 backdrop-blur-lg z-50 ${
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-lg ${
         !isOpen ? "hidden" : ""
       }`}
     >
       <div className="w-full max-w-3xl animate-fade-in">
-        <div className="flex justify-center gap-6 rtl">
+        <div className="rtl flex justify-center gap-6">
           <button
+            data-testid="newCategoryButton"
             onClick={() => setActiveTab("Category")}
-            className={`px-6 py-3 rounded-t-xl font-medium transition-all ${
+            className={`rounded-t-xl px-6 py-3 font-medium transition-all ${
               activeTab === "Category"
                 ? "bg-gray-800 text-gray-200"
                 : "bg-blue-800 text-white hover:animate-pulse"
@@ -179,8 +247,9 @@ const CreateNewItemModal = ({
             دسته‌بندی جدید
           </button>
           <button
+            data-testid="newSubCategoryButton"
             onClick={() => setActiveTab("Subcategory")}
-            className={`px-6 py-3 rounded-t-xl font-medium transition-all ${
+            className={`rounded-t-xl px-6 py-3 font-medium transition-all ${
               activeTab === "Subcategory"
                 ? "bg-gray-800 text-gray-200"
                 : "bg-blue-800 text-white hover:animate-pulse"
@@ -190,7 +259,7 @@ const CreateNewItemModal = ({
           </button>
         </div>
 
-        <div className="p-6 pr-9 bg-gray-800 shadow-xl rounded-2xl text-white max-h-[90dvh] overflow-y-scroll">
+        <div className="max-h-[90dvh] overflow-y-scroll rounded-2xl bg-gray-800 p-6 pr-9 text-white shadow-xl">
           {activeTab === "Category" ? (
             <CategoryFields
               name={name}
@@ -204,22 +273,17 @@ const CreateNewItemModal = ({
           ) : (
             <div>
               <div className="mb-4">
-                <label className="block text-sm font-medium">
-                  دسته‌بندی اصلی
-                </label>
+                <label className="block text-sm font-medium">دسته‌بندی اصلی</label>
                 <select
                   value={parentCategoryId ?? ""}
                   onChange={(e) => setParentCategoryId(Number(e.target.value))}
-                  className="w-full bg-gray-700 p-3 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="" disabled>
                     انتخاب دسته‌بندی
                   </option>
                   {categories.map((category) => (
-                    <option
-                      key={category.CategoryID}
-                      value={category.CategoryID}
-                    >
+                    <option key={category.CategoryID} value={category.CategoryID}>
                       {category.Name}
                     </option>
                   ))}
@@ -248,23 +312,99 @@ const CreateNewItemModal = ({
             setKeywordInput={setKeywordInput}
             addKeyword={addKeyword}
             removeKeyword={removeKeyword}
-            editable={
-              activeTab === "Category" || parentCategoryId !== undefined
-            }
+            editable={activeTab === "Category" || parentCategoryId !== undefined}
           />
 
-          {error && <div className="text-red-500 text-sm mt-4">{error}</div>}
-          <div className="flex justify-between items-center mt-5">
+          <div className="mt-6 rounded-md bg-gray-900 p-4">
+            <div className="mb-6">
+              <label className="mb-2 block text-sm font-medium">تصویر بنر</label>
+              <div
+                {...getRootProps()}
+                className={`cursor-pointer rounded-md border-2 border-dashed p-4 text-center transition-colors ${
+                  isDragActive
+                    ? "border-blue-400 bg-blue-900/20"
+                    : isDragReject
+                      ? "border-red-400 bg-red-900/20"
+                      : "border-gray-600 hover:border-blue-400 hover:bg-blue-900/10"
+                } ${bannerPreview ? "border-green-500" : ""}`}
+              >
+                <input {...getInputProps()} />
+                {bannerPreview ? (
+                  <div className="space-y-2">
+                    <p className="text-green-400">تصویر انتخاب شد</p>
+                    <p className="text-xs text-gray-400">
+                      اندازه پیشنهادی: 1920x600 (16:5) | حداکثر 2MB
+                    </p>
+                  </div>
+                ) : isDragActive ? (
+                  <p>فایل را اینجا رها کنید ...</p>
+                ) : isDragReject ? (
+                  <p className="text-red-400">فقط فایل تصویر مجاز است!</p>
+                ) : (
+                  <div className="space-y-2">
+                    <p>برای انتخاب تصویر کلیک کنید یا تصویر را به اینجا بکشید</p>
+                    <p className="text-xs text-gray-400">
+                      اندازه پیشنهادی: 1920x600 (16:5) | حداکثر 2MB
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {bannerPreview && (
+                <div
+                  className="relative mt-4 w-full overflow-hidden rounded-md bg-gray-700"
+                  style={{ aspectRatio: "16/5" }}
+                >
+                  <img
+                    src={bannerPreview}
+                    alt="پیش‌نمایش بنر"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              )}
+              {bannerPreview && (
+                <div className="mt-3 flex justify-end">
+                  <button
+                    type="button"
+                    className="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
+                    onClick={() => {
+                      setBannerFile(null);
+                      setBannerPreview("");
+                      setBannerCleared(true);
+                    }}
+                  >
+                    حذف بنر
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <CategoryBlogEditor
+              label="متن بالای صفحه"
+              value={topBlog}
+              onChange={setTopBlog}
+              placeholder="متن یا جدول دلخواه برای بالای صفحه دسته/زیردسته"
+            />
+            <CategoryBlogEditor
+              label="متن پایین صفحه"
+              value={bottomBlog}
+              onChange={setBottomBlog}
+              placeholder="متن یا جدول دلخواه برای پایین صفحه دسته/زیردسته"
+            />
+          </div>
+
+          {error && <div className="mt-4 text-sm text-red-500">{error}</div>}
+          <div className="mt-5 flex items-center justify-between">
             <button
               onClick={onClose}
-              className="px-6 py-3 rounded-xl font-medium bg-white text-gray-700"
+              className="rounded-xl bg-white px-6 py-3 font-medium text-gray-700"
             >
               انصراف
             </button>
             <button
               onClick={handleSubmit}
               disabled={isSubmitDisabled() || loading} // Disable the button if loading
-              className={`px-6 py-3 rounded-xl font-medium bg-blue-500 text-white disabled:bg-gray-400 disabled:cursor-not-allowed ${
+              className={`rounded-xl bg-blue-500 px-6 py-3 font-medium text-white disabled:cursor-not-allowed disabled:bg-gray-400 ${
                 loading ? "cursor-not-allowed" : ""
               }`}
             >

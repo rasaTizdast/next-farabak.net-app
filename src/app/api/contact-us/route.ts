@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -17,10 +18,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error("Error fetching contact us data:", error);
-    return NextResponse.json(
-      { message: "خطایی در دریافت اطلاعات رخ داد." },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "خطایی در دریافت اطلاعات رخ داد." }, { status: 500 });
   }
 }
 
@@ -76,9 +74,6 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ message: "اطلاعات با موفقیت به‌روزرسانی شد." });
   } catch (error) {
     console.error("Error updating contact us data:", error);
-    return NextResponse.json(
-      { message: "خطایی در به‌روزرسانی اطلاعات رخ داد." },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "خطایی در به‌روزرسانی اطلاعات رخ داد." }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 // app/api/manageBlog/delete/route.ts
-import { NextResponse } from "next/server";
 import { S3 } from "aws-sdk";
+import { NextResponse } from "next/server";
 
 const s3 = new S3({
   accessKeyId: process.env.LIARA_ACCESS_KEY,
@@ -22,9 +22,6 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Delete error:", error);
-    return NextResponse.json(
-      { error: "Failed to delete image" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to delete image" }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 // /app/api/send-email/route.ts
-import nodemailer from "nodemailer";
 import { NextResponse } from "next/server";
+import nodemailer from "nodemailer";
 
 /**
  * @swagger
@@ -147,11 +147,7 @@ async function sendEmail(mailOptions: nodemailer.SendMailOptions) {
     console.error("Error sending email:", error);
 
     // Check if this is a connection timeout error
-    if (
-      error instanceof Error &&
-      "code" in error &&
-      error.code === "ETIMEDOUT"
-    ) {
+    if (error instanceof Error && "code" in error && error.code === "ETIMEDOUT") {
       // Recreate the transporter with different settings
       const alternativeTransporter = nodemailer.createTransport({
         host: process.env.MAIL_HOST,

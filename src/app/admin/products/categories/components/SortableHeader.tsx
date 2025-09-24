@@ -18,7 +18,7 @@ const SortableHeader: React.FC<SortableHeaderProps> = ({
   onSort,
 }) => (
   <th
-    className="px-6 py-3 text-gray-300 hover:text-gray-100 transition-colors cursor-pointer"
+    className="cursor-pointer px-6 py-3 text-gray-300 transition-colors hover:text-gray-100"
     onClick={() => onSort(sortKey)}
   >
     <div className="flex items-center justify-center gap-2">

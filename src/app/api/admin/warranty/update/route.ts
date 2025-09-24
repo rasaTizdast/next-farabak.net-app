@@ -1,6 +1,7 @@
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -14,14 +15,11 @@ async function verifyToken(token: string) {
 export async function POST(request: Request) {
   try {
     // Auth check
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { error: "Authorization token required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Authorization token required" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
@@ -33,14 +31,10 @@ export async function POST(request: Request) {
     }
 
     // Get request data
-    const { invoiceId, invoiceDetailId, productId, warrantyData } =
-      await request.json();
+    const { warrantyData } = await request.json();
 
     if (!warrantyData || !warrantyData.warrantycode) {
-      return NextResponse.json(
-        { error: "Missing warranty data" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing warranty data" }, { status: 400 });
     }
 
     // For branch users, verify they can only update warranties for their own branch
@@ -52,10 +46,7 @@ export async function POST(request: Request) {
       `;
 
       if (!branch || (branch as any[]).length === 0) {
-        return NextResponse.json(
-          { error: "No branch found for this user" },
-          { status: 403 }
-        );
+        return NextResponse.json({ error: "No branch found for this user" }, { status: 403 });
       }
 
       const branchId = (branch as any[])[0].branchid;
@@ -81,16 +72,12 @@ export async function POST(request: Request) {
     });
 
     if (!currentWarranty) {
-      return NextResponse.json(
-        { error: "Warranty not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Warranty not found" }, { status: 404 });
     }
 
     // Check if branch is being changed
     const isBranchChanging =
-      warrantyData.branchId &&
-      currentWarranty.branchid !== warrantyData.branchId;
+      warrantyData.branchId && currentWarranty.branchid !== warrantyData.branchId;
 
     // If branch is changing, verify new branch has stock
     if (isBranchChanging) {
@@ -121,10 +108,7 @@ export async function POST(request: Request) {
             warrantycode: warrantyData.warrantycode,
             startdate: warrantyData.startdate,
             expirydate: warrantyData.expirydate,
-            status: determineWarrantyStatus(
-              warrantyData.expirydate,
-              warrantyData.status
-            ),
+            status: determineWarrantyStatus(warrantyData.expirydate),
             branchid: warrantyData.branchId,
           },
         }),
@@ -160,10 +144,7 @@ export async function POST(request: Request) {
           warrantycode: warrantyData.warrantycode,
           startdate: warrantyData.startdate,
           expirydate: warrantyData.expirydate,
-          status: determineWarrantyStatus(
-            warrantyData.expirydate,
-            warrantyData.status
-          ),
+          status: determineWarrantyStatus(warrantyData.expirydate),
         },
       });
 
@@ -174,18 +155,12 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error("Error updating warranty:", error);
-    return NextResponse.json(
-      { error: "Failed to update warranty" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to update warranty" }, { status: 500 });
   }
 }
 
 // Helper function to determine warranty status based on expiry date
-function determineWarrantyStatus(
-  expiryDate: string,
-  providedStatus: string
-): string {
+function determineWarrantyStatus(expiryDate: string): string {
   // Compare expiry date with current date
   const currentDate = new Date();
   const expiry = new Date(expiryDate);

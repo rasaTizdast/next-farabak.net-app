@@ -66,6 +66,10 @@
   .signup {
     font-size: 1.2rem;
   }
+
+  .userIcon svg {
+    font-size: 2.7rem;
+  }
 }
 
 @media (max-width: 1199px) {

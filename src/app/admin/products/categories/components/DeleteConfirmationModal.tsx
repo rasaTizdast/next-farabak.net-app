@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
+
 import { Category, Subcategory } from "../types/types";
 
 type DeleteConfirmationModalProps = {
@@ -21,31 +22,29 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   if (!isOpen || !item) return null;
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 backdrop-blur-sm">
-      <div className="bg-gray-800 text-white p-6 rounded-xl w-96">
-        <h2 className="text-lg font-semibold text-center">
-          حذف {item.Name} را تأیید کنید
-        </h2>
-        <p className="text-center mt-4">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+      <div className="w-96 rounded-xl bg-gray-800 p-6 text-white">
+        <h2 className="text-center text-lg font-semibold">حذف {item.Name} را تأیید کنید</h2>
+        <p className="mt-4 text-center">
           برای حذف {item.Name} و تمام محصولات مرتبط، لطفاً نام آن را وارد کنید:
         </p>
         <input
           type="text"
           value={confirmationText}
           onChange={(e) => setConfirmationText(e.target.value)}
-          className="mt-4 w-full px-4 py-2 border border-gray-900 rounded bg-gray-700"
+          className="mt-4 w-full rounded border border-gray-900 bg-gray-700 px-4 py-2"
           placeholder="نام را وارد کنید"
         />
         <div className="mt-6 flex justify-around">
           <button
             onClick={onDeleteConfirm}
-            className="bg-red-700 text-white px-4 py-2 rounded hover:bg-red-800 transition-all"
+            className="rounded bg-red-700 px-4 py-2 text-white transition-all hover:bg-red-800"
           >
             بله، حذف کن
           </button>
           <button
             onClick={onClose}
-            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-all"
+            className="rounded bg-gray-500 px-4 py-2 text-white transition-all hover:bg-gray-600"
           >
             انصراف
           </button>

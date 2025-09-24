@@ -32,7 +32,9 @@
   gap: 2rem;
   opacity: 0; /* Initially hidden */
   transform: translateX(100%); /* Initially off the screen */
-  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out 0.3s; /* Delay to start after menu transition */
+  transition:
+    opacity 0.3s ease-in-out,
+    transform 0.3s ease-in-out 0.3s; /* Delay to start after menu transition */
 }
 
 .items a {
@@ -59,7 +61,9 @@
   gap: 1rem;
   opacity: 0; /* Initially hidden */
   transform: translateX(100%); /* Initially off the screen */
-  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out 0.3s; /* Delay to start after menu transition */
+  transition:
+    opacity 0.3s ease-in-out,
+    transform 0.3s ease-in-out 0.3s; /* Delay to start after menu transition */
 }
 
 .signup button {

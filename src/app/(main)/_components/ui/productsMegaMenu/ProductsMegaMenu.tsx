@@ -1,8 +1,10 @@
-// ProductsMegaMenu.tsx (Server + Client)
+// ProductsMegaMenu.tsx (Server Component)
 
 import Link from "next/link";
+
+import { prisma } from "@/lib/prisma";
+
 import styles from "./ProductsMegaMenu.module.css";
-import axios from "axios";
 
 export const dynamic = "force-dynamic";
 
@@ -35,22 +37,50 @@ export interface Category {
   };
 }
 
-// Fetch data on the server
+// Fetch categories directly from the database to avoid network calls during SSG/ISR
 async function fetchCategories(): Promise<Category[]> {
   try {
-    const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/getAll`
-    );
+    const categories = await prisma.category.findMany({
+      orderBy: { CategoryID: "asc" },
+      include: {
+        SEO_Category: true,
+        CategoryContent: {
+          include: {
+            SEO_CategoryContent: true,
+          },
+        },
+      },
+    });
 
-    if (!res.status) {
-      console.error("Fetch failed with status");
-      return []; // Return empty array instead of throwing
-    }
+    const categoriesWithSubcategoriesAndSEO = categories.map((category: any) => {
+      const subcategoriesWithSEO = category.CategoryContent.map((sub: any) => {
+        return {
+          ...sub,
+          Link: `/products/${category.Slug}/${sub.Slug}`,
+          SEO_Details: sub.SEO_CategoryContent || {
+            SEO_Title: null,
+            SEO_Description: null,
+            SEO_Keywords: null,
+          },
+        };
+      });
 
-    const categories: Category[] = await res.data;
-    return categories.filter((category) => category.Available);
+      return {
+        ...category,
+        Link: `/products/${category.Slug}`,
+        SEO_Details: category.SEO_Category || {
+          SEO_Title: null,
+          SEO_Description: null,
+          SEO_Keywords: null,
+        },
+        Subcategories: subcategoriesWithSEO,
+      };
+    });
+
+    // Filter only available categories
+    return categoriesWithSubcategoriesAndSEO.filter((category: any) => category.Available);
   } catch (error) {
-    // During build time or when API is unavailable, return empty array
+    // During build time or when DB/API is unavailable, return empty array
     console.error("Error fetching categories:", error);
     return [];
   }
@@ -83,13 +113,13 @@ const ProductsMegaMenu = async () => {
               <Link href={category.Link}>{category.Name}</Link>
             </h3>
             <ul>
-              {category.Subcategories.filter(
-                (subCategory) => subCategory.Available
-              ).map((subCategory) => (
-                <li key={subCategory.CategoryContentId}>
-                  <Link href={subCategory.Link}>{subCategory.Name}</Link>
-                </li>
-              ))}
+              {category.Subcategories.filter((subCategory) => subCategory.Available).map(
+                (subCategory) => (
+                  <li key={subCategory.CategoryContentId}>
+                    <Link href={subCategory.Link}>{subCategory.Name}</Link>
+                  </li>
+                )
+              )}
             </ul>
           </div>
         ))}

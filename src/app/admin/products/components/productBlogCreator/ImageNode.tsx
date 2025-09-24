@@ -1,22 +1,12 @@
 // src/components/ImageNode.tsx
 
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import Image from "next/image";
 import { Trash2 } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
-
-interface ImageAttributes {
-  src: string;
-  alt: string;
-  width: number;
-  height: number;
-  slug: string;
-}
 
 const ImageNode = ({ node, editor, getPos }: NodeViewProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const attrs = node.attrs as ImageAttributes;
 
   const handleDelete = async () => {
     const confirmed = window.confirm("آیا میخواهید این عکس حذف شود؟");
@@ -45,9 +35,9 @@ const ImageNode = ({ node, editor, getPos }: NodeViewProps) => {
 
   return (
     <NodeViewWrapper>
-      <div className="relative group" draggable>
+      <div className="group relative" draggable>
         <div
-          className="relative inline-block max-w-full max-h-[500px] cursor-move my-4"
+          className="relative my-4 inline-block max-h-[500px] max-w-full cursor-move"
           data-drag-handle // Add this attribute
         >
           <Image
@@ -58,24 +48,24 @@ const ImageNode = ({ node, editor, getPos }: NodeViewProps) => {
             height={node.attrs.height}
             layout="responsive"
             objectFit="contain"
-            className="rounded-lg pointer-events-none max-w-full max-h-[500px]"
+            className="pointer-events-none max-h-[500px] max-w-full rounded-lg"
           />
 
           {isDeleting && (
-            <div className="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center rounded-lg">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-              <span className="text-white ml-2">در حال حذف...</span>
+            <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-gray-900 bg-opacity-75">
+              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-white"></div>
+              <span className="ml-2 text-white">در حال حذف...</span>
             </div>
           )}
         </div>
 
         {/* Delete button */}
         {!isDeleting && (
-          <div className="absolute top-6 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute right-2 top-6 opacity-0 transition-opacity group-hover:opacity-100">
             <button
               type="button"
               onClick={handleDelete}
-              className="p-1 bg-red-600 rounded-md hover:bg-red-700"
+              className="rounded-md bg-red-600 p-1 hover:bg-red-700"
               disabled={isDeleting}
             >
               <Trash2 className="text-white" size={20} />

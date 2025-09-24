@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic"; // To ensure this page isn't statically generated
 
-import Link from "next/link";
 import { Metadata } from "next";
+import Link from "next/link";
 
 import aboutUsData from "@/constants/aboutUs.json";
 
@@ -9,17 +9,43 @@ import styles from "./AboutUs.module.css";
 
 export const metadata: Metadata = {
   title: "بخش درباره ما | فرابک",
-  description:
-    "شما در این صفحه میتوانید اطلاعاتی درباره شرکت فرابک مشاهده کنید.",
+  description: "شما در این صفحه میتوانید اطلاعاتی درباره شرکت فرابک مشاهده کنید.",
   robots: {
-    index: false, // This sets the noindex directive
-    follow: false, // Allows crawling of links on the page if needed
+    index: true, // This sets the noindex directive
+    follow: true, // Allows crawling of links on the page if needed
   },
 };
 
 const AboutUs = () => {
+  // Prepare structured data for Schema.org
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    name: "درباره ما",
+    url: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us`,
+    description: "اطلاعات درباره شرکت فرابک، پروژه‌ها، اعضای هیئت مدیره و فعالیت‌های شرکت",
+    isPartOf: {
+      "@type": "WebSite",
+      url: process.env.NEXT_PUBLIC_BASE_URL,
+    },
+    mainEntity: {
+      "@type": "Organization",
+      name: "فرابک",
+      url: process.env.NEXT_PUBLIC_BASE_URL,
+      sameAs: [
+        `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/projects`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/members`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/activity`,
+      ],
+    },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <div className={styles.main}>
         <div className={styles.cards}>
           {aboutUsData.map((item) => (

@@ -1,20 +1,16 @@
-import React, { useState, useMemo, useEffect } from "react";
+import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import ProductTableSkeleton from "./ProductTableSkeleton";
-import {
-  FaExternalLinkAlt,
-  FaSort,
-  FaSortUp,
-  FaSortDown,
-  FaTimes,
-} from "react-icons/fa";
-import ProductEditModal from "./ProductEditModal";
-import { Product } from "../types";
+import React, { useState, useMemo, useEffect } from "react";
+import { FaExternalLinkAlt, FaSort, FaSortUp, FaSortDown, FaTimes } from "react-icons/fa";
 import { IoQrCode } from "react-icons/io5";
-import QrCodeModal from "./QrCodeModal";
+
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
-import axios from "axios";
+
+import ProductEditModal from "./ProductEditModal";
+import ProductTableSkeleton from "./ProductTableSkeleton";
+import { Product } from "../types";
+import QrCodeModal from "./QrCodeModal";
 
 type Props = {
   isLoading: boolean;
@@ -44,9 +40,7 @@ const ProductsTable = ({
   const [productQuantities, setProductQuantities] = useState<
     Record<number, { value: number; timestamp: number }>
   >({});
-  const [loadingQuantities, setLoadingQuantities] = useState<
-    Record<number, boolean>
-  >({});
+  const [loadingQuantities, setLoadingQuantities] = useState<Record<number, boolean>>({});
 
   const [sortConfig, setSortConfig] = useState<{
     key: SortKey;
@@ -81,13 +75,6 @@ const ProductsTable = ({
   // Check if the USD rate is valid
   const isValidRate = usdRate && !isNaN(usdRate) && usdRate > 0;
 
-  const updatePrice = (price: number) => {
-    if (!price) return "بدون قیمت";
-    if (!isValidRate) return "برای دریافت قیمت تماس بگیرید";
-    const updatedPrice = price * usdRate!;
-    return updatedPrice.toLocaleString("fa-IR") + " تومان";
-  };
-
   // Sorting function
   const sortedProducts = useMemo(() => {
     if (!products.length) return [];
@@ -100,11 +87,11 @@ const ProductsTable = ({
     // Otherwise, apply the selected sort
     return [...products].sort((a, b) => {
       const key = sortConfig.key as keyof Product;
-      
+
       // Handle potential null values in the comparison
       const valueA = a[key];
       const valueB = b[key];
-      
+
       // If either value is null or undefined, handle it appropriately
       if (valueA == null && valueB == null) return 0;
       if (valueA == null) return 1; // null values go last
@@ -129,14 +116,14 @@ const ProductsTable = ({
         if (prevConfig.direction === "ascending") {
           return {
             key,
-            direction: "descending"
+            direction: "descending",
           };
-        } 
+        }
         // If it's already descending, clear the sort (back to default)
         else {
           return {
             key: null,
-            direction: "ascending"
+            direction: "ascending",
           };
         }
       }
@@ -144,7 +131,7 @@ const ProductsTable = ({
       else {
         return {
           key,
-          direction: "ascending"
+          direction: "ascending",
         };
       }
     });
@@ -162,9 +149,7 @@ const ProductsTable = ({
   // Toggle individual product selection
   const handleSelectProduct = (productId: number) => {
     setSelectedProducts((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId]
+      prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
     );
   };
 
@@ -174,9 +159,7 @@ const ProductsTable = ({
       setCurrentAction({
         id: selectedProducts,
         type: `bulk-${actionType}`,
-        name: selectedProducts.map(
-          (id) => products.find((p) => p.ProductId === id)?.Type || ""
-        ),
+        name: selectedProducts.map((id) => products.find((p) => p.ProductId === id)?.Type || ""),
       });
     }
   };
@@ -185,7 +168,7 @@ const ProductsTable = ({
   const resetSorting = () => {
     setSortConfig({
       key: null,
-      direction: "ascending"
+      direction: "ascending",
     });
   };
 
@@ -199,7 +182,7 @@ const ProductsTable = ({
   }) => (
     <th
       scope="col"
-      className="px-6 py-3 cursor-pointer select-none"
+      className="cursor-pointer select-none px-6 py-3"
       onClick={() => handleSort(sortKey)}
     >
       <div className="flex items-center justify-center gap-2">
@@ -242,9 +225,7 @@ const ProductsTable = ({
     setLoadingQuantities((prev) => ({ ...prev, [productId]: true }));
 
     try {
-      const response = await axios.get(
-        `/api/admin/branches/product-quantity/${productId}`
-      );
+      const response = await axios.get(`/api/admin/branches/product-quantity/${productId}`);
       if (response.status === 200) {
         setProductQuantities((prev) => ({
           ...prev,
@@ -268,7 +249,7 @@ const ProductsTable = ({
 
   if (notFound) {
     return (
-      <div className="w-full text-center text-white p-5 rounded-lg bg-blue-600 shadow-lg animate-fade-in transition-all">
+      <div className="w-full animate-fade-in rounded-lg bg-blue-600 p-5 text-center text-white shadow-lg transition-all">
         محصولی یافت نشد
       </div>
     );
@@ -276,13 +257,13 @@ const ProductsTable = ({
 
   return (
     <>
-      <div className="w-full overflow-x-auto rounded-xl max-w-[1800px]">
+      <div className="w-full max-w-[1800px] overflow-x-auto rounded-xl">
         {/* Sort reset bar */}
         {sortConfig.key !== null && (
-          <div className="flex justify-end bg-blue-600 p-2 rounded-t-xl">
-            <button 
+          <div className="flex justify-end rounded-t-xl bg-blue-600 p-2">
+            <button
               onClick={resetSorting}
-              className="flex items-center gap-1 text-white text-xs px-3 py-1 bg-blue-800 hover:bg-blue-900 rounded-lg transition-all"
+              className="flex items-center gap-1 rounded-lg bg-blue-800 px-3 py-1 text-xs text-white transition-all hover:bg-blue-900"
             >
               <FaTimes size={10} />
               <span>حذف مرتب‌سازی</span>
@@ -291,24 +272,25 @@ const ProductsTable = ({
         )}
 
         {selectedProducts.length > 0 && (
-          <div className="flex flex-wrap justify-between items-center bg-slate-600 p-4 rounded-t-xl text-xs lg:text-sm">
-            <span className="text-white">
-              {selectedProducts.length} محصول انتخاب شده
-            </span>
-            <div className="flex gap-2 flex-wrap justify-end">
+          <div className="flex flex-wrap items-center justify-between rounded-t-xl bg-slate-600 p-4 text-xs lg:text-sm">
+            <span className="text-white">{selectedProducts.length} محصول انتخاب شده</span>
+            <div className="flex flex-wrap justify-end gap-2">
               <button
                 onClick={() => handleBulkAction("delete")}
-                className="px-3 py-1 bg-red-600 text-white text-xs rounded-lg hover:bg-red-700 transition-all"
+                className="rounded-lg bg-red-600 px-3 py-1 text-xs text-white transition-all hover:bg-red-700"
               >
                 حذف محصولات
               </button>
             </div>
           </div>
         )}
-        <table className="w-full text-xs lg:text-sm text-center text-gray-300 table-auto border-spacing-0 border-separate whitespace-nowrap">
-          <thead className="text-gray-100 uppercase bg-slate-800">
+        <table
+          className="w-full table-auto border-separate border-spacing-0 whitespace-nowrap text-center text-xs text-gray-300 lg:text-sm"
+          data-testid="products-table"
+        >
+          <thead className="bg-slate-800 uppercase text-gray-100">
             <tr>
-              <th scope="col" className="px-6 py-3 w-12">
+              <th scope="col" className="w-12 px-6 py-3">
                 <input
                   type="checkbox"
                   className="h-4 w-4 text-indigo-600 transition-all duration-150 ease-in-out"
@@ -318,7 +300,9 @@ const ProductsTable = ({
                 />
               </th>
 
-              <th scope="col" className="px-6 py-3">نام محصول</th>
+              <th scope="col" className="px-6 py-3">
+                نام محصول
+              </th>
               <th scope="col" className="px-6 py-3">
                 دسته‌بندی
               </th>
@@ -337,15 +321,13 @@ const ProductsTable = ({
           </thead>
           <tbody>
             {isLoading
-              ? [...Array(10)].map((_, index) => (
-                  <ProductTableSkeleton key={index} />
-                ))
+              ? [...Array(10)].map((_, index) => <ProductTableSkeleton key={index} />)
               : sortedProducts.map((product, index) => (
                   <tr
                     key={product.ProductId}
                     className={`${
                       index % 2 === 0 ? "bg-slate-700" : "bg-slate-600"
-                    } hover:bg-slate-900 transition-all`}
+                    } transition-all hover:bg-slate-900`}
                   >
                     <td className="px-6 py-4">
                       <input
@@ -363,112 +345,93 @@ const ProductsTable = ({
                           onClick={() =>
                             setActiveSubCategories({
                               name: product.Type,
-                              subCategories: product.CategoryContentIds.map(
-                                (sub) => sub.Name
-                              ),
+                              subCategories: product.CategoryContentIds.map((sub) => sub.Name),
                             })
                           }
-                          className="text-white bg-blue-600 py-2 px-4 rounded-lg hover:bg-blue-700 transition-all"
+                          className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-700"
                         >
                           مشاهده
                         </button>
                       ) : (
-                        <span>
-                          {product.CategoryContentIds?.[0]?.Name ||
-                            "No Subcategories"}
-                        </span>
+                        <span>{product.CategoryContentIds?.[0]?.Name || "No Subcategories"}</span>
                       )}
                     </td>
 
                     <td className="px-6 py-4">{product.productSlug}</td>
-                    <td className="px-6 py-4 relative group cursor-help">
-                      <span className="absolute left-1/2 -translate-x-1/2 bottom-full -mb-3 opacity-0 group-hover:opacity-100 transition-opacity bg-blue-900 text-white font-extralight text-xs rounded px-2 py-1 whitespace-nowrap">
+                    <td className="group relative cursor-help px-6 py-4">
+                      <span className="absolute bottom-full left-1/2 -mb-3 -translate-x-1/2 whitespace-nowrap rounded bg-blue-900 px-2 py-1 text-xs font-extralight text-white opacity-0 transition-opacity group-hover:opacity-100">
                         قیمت دلار:{" "}
                         {isValidRate ? (
                           <span className="font-normal">
                             {usdRate?.toLocaleString("fa-IR")} تومان
                           </span>
                         ) : (
-                          <span className="font-normal text-yellow-300">
-                            خطا در دریافت نرخ ارز
-                          </span>
+                          <span className="font-normal text-yellow-300">خطا در دریافت نرخ ارز</span>
                         )}
                       </span>
                       {product.Price === null ||
                       product.Price === undefined ||
                       +product.Price === 0 ? (
-                        <span className="text-gray-400 italic">بدون قیمت</span>
+                        <span className="italic text-gray-400">بدون قیمت</span>
                       ) : !isValidRate ? (
-                        <span className="text-yellow-300 font-medium">
-                          خطا در دریافت نرخ ارز
-                        </span>
+                        <span className="font-medium text-yellow-300">خطا در دریافت نرخ ارز</span>
                       ) : product.Discount && +product.Discount > 0 ? (
                         <div className="flex flex-col items-center">
                           <span className="text-red-400 line-through">
-                            {(+product.Price * usdRate!).toLocaleString(
+                            {(+product.Price * usdRate!).toLocaleString("fa-IR") + " تومان"}
+                          </span>
+                          <span className="font-semibold text-green-400">
+                            {((+product.Price - +product.Discount) * usdRate!).toLocaleString(
                               "fa-IR"
                             ) + " تومان"}
-                          </span>
-                          <span className="text-green-400 font-semibold">
-                            {(
-                              (+product.Price - +product.Discount) *
-                              usdRate!
-                            ).toLocaleString("fa-IR") + " تومان"}
                           </span>
                         </div>
                       ) : (
                         <span className="text-white">
-                          {(+product.Price * usdRate!).toLocaleString("fa-IR") +
-                            " تومان"}
+                          {(+product.Price * usdRate!).toLocaleString("fa-IR") + " تومان"}
                         </span>
                       )}
                     </td>
 
                     <td className="px-6 py-4">
                       <span
-                        className={`px-3 py-1 text-xs rounded-lg cursor-pointer relative group ${
+                        className={`group relative cursor-pointer rounded-lg px-3 py-1 text-xs ${
                           product.Available
                             ? "bg-green-100 text-green-700"
                             : "bg-red-100 text-red-700"
                         }`}
-                        onMouseEnter={() =>
-                          fetchProductBranchQuantity(product.ProductId)
-                        }
+                        onMouseEnter={() => fetchProductBranchQuantity(product.ProductId)}
                         onClick={() => navigateToBranches(product.ProductId)}
                       >
                         {product.Available ? "موجود" : "ناموجود"}
 
                         {/* Tooltip on hover */}
-                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                        <div className="absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-slate-800 px-3 py-1 text-xs text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                           {loadingQuantities[product.ProductId]
                             ? "در حال بارگذاری..."
                             : productQuantities[product.ProductId] !== undefined
-                            ? `تعداد کل در شعبه‌ها: ${
-                                productQuantities[product.ProductId].value
-                              } عدد`
-                            : "کلیک برای مشاهده جزئیات در شعبه‌ها"}
-                          <div className="absolute left-1/2 -translate-x-1/2 top-full -mt-1 w-2 h-2 bg-slate-800 rotate-45"></div>
+                              ? `تعداد کل در شعبه‌ها: ${
+                                  productQuantities[product.ProductId].value
+                                } عدد`
+                              : "کلیک برای مشاهده جزئیات در شعبه‌ها"}
+                          <div className="absolute left-1/2 top-full -mt-1 h-2 w-2 -translate-x-1/2 rotate-45 bg-slate-800"></div>
                         </div>
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex gap-2 justify-center">
+                      <div className="flex justify-center gap-2">
                         <button
                           onClick={() => qrCodeModalHandler(product)}
-                          className={`${
-                            product.QrCode_Key ? "bg-violet-800" : "bg-sky-600"
-                          } ${
-                            product.QrCode_Key
-                              ? "hover:bg-violet-900"
-                              : "hover:bg-sky-700"
-                          } p-2 rounded-lg transition-all`}
+                          className={`${product.QrCode_Key ? "bg-violet-800" : "bg-sky-600"} ${
+                            product.QrCode_Key ? "hover:bg-violet-900" : "hover:bg-sky-700"
+                          } rounded-lg p-2 transition-all`}
                         >
                           <IoQrCode size={20} color="#fff" />
                         </button>
 
                         <button
                           onClick={() => handleEditProduct(product)}
-                          className="px-2 py-1 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-all"
+                          className="rounded-lg bg-yellow-600 px-2 py-1 text-white transition-all hover:bg-yellow-700"
                         >
                           ویرایش
                         </button>
@@ -482,7 +445,8 @@ const ProductsTable = ({
                               name: product.Type,
                             });
                           }}
-                          className="px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all"
+                          className="rounded-lg bg-red-600 px-2 py-1 text-white transition-all hover:bg-red-700"
+                          data-testid="delete-product-button"
                         >
                           حذف
                         </button>
@@ -490,7 +454,7 @@ const ProductsTable = ({
                         <Link
                           href={`/products/${product.link}`}
                           target="_blank"
-                          className="flex gap-2 items-center px-2 py-1 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all"
+                          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-2 py-1 text-white transition-all hover:bg-emerald-700"
                         >
                           مشاهده
                           <FaExternalLinkAlt size={12} />
@@ -502,24 +466,21 @@ const ProductsTable = ({
           </tbody>
         </table>
         {activeSubCategories && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
-            <div className="bg-gray-700 text-white rounded-lg p-6 w-11/12 max-w-lg">
-              <h3 className="text-xl font-semibold mb-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+            <div className="w-11/12 max-w-lg rounded-lg bg-gray-700 p-6 text-white">
+              <h3 className="mb-4 text-xl font-semibold">
                 زیر دسته‌بندی‌های محصول: {activeSubCategories.name}
               </h3>
               <ul className="space-y-2">
                 {activeSubCategories.subCategories.map((subCategory, idx) => (
-                  <li
-                    key={idx}
-                    className="text-white bg-gray-800 p-2 rounded-lg"
-                  >
+                  <li key={idx} className="rounded-lg bg-gray-800 p-2 text-white">
                     {subCategory}
                   </li>
                 ))}
               </ul>
               <button
                 onClick={() => setActiveSubCategories(null)}
-                className="mt-8 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-800 transition-all"
+                className="mt-8 rounded-lg bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-800"
               >
                 بستن
               </button>

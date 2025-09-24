@@ -1,7 +1,8 @@
 // app/api/projects/[id]/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
 import { S3 } from "aws-sdk";
+import { NextRequest, NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
 
 const s3 = new S3({
   accessKeyId: process.env.LIARA_ACCESS_KEY,
@@ -9,10 +10,8 @@ const s3 = new S3({
   endpoint: process.env.LIARA_ENDPOINT,
 });
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const formData = await request.formData();
     const projectId = parseInt(params.id);
@@ -34,26 +33,17 @@ export async function PUT(
         where: { Slug: newSlug },
       });
       if (slugExists) {
-        return NextResponse.json(
-          { error: "اسلاگ تکراری است" },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "اسلاگ تکراری است" }, { status: 400 });
       }
     }
 
     // Update the uploadFile function in the PUT handler
     const uploadFile = async (file: File, folder: string): Promise<string> => {
       if (file.size > (folder === "videos" ? 50 : 2) * 1024 * 1024) {
-        throw new Error(
-          `حجم فایل از حد مجاز (${
-            folder === "videos" ? 50 : 2
-          } مگابایت) بیشتر است`
-        );
+        throw new Error(`حجم فایل از حد مجاز (${folder === "videos" ? 50 : 2} مگابایت) بیشتر است`);
       }
 
-      const originalName = file.name
-        .replace(/\s+/g, "-")
-        .replace(/[^a-zA-Z0-9-.]/g, "");
+      const originalName = file.name.replace(/\s+/g, "-").replace(/[^a-zA-Z0-9-.]/g, "");
       const key = `projects/${newSlug}/${folder}/${Date.now()}_${originalName}`;
 
       await s3
@@ -162,20 +152,15 @@ export async function PUT(
     });
 
     return NextResponse.json(updatedProject, { status: 200 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error updating project:", error);
-    return NextResponse.json(
-      { error: error.message || "خطا در به روز رسانی پروژه" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error || "خطا در به روز رسانی پروژه" }, { status: 500 });
   }
 }
 
 // Also add GET handler for fetching project data
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const project = await prisma.projects.findUnique({
       where: { ProjectID: parseInt(params.id) },
@@ -195,17 +180,12 @@ export async function GET(
     );
   } catch (error) {
     console.error("Error fetching project:", error);
-    return NextResponse.json(
-      { error: "خطا در دریافت اطلاعات پروژه" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در دریافت اطلاعات پروژه" }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const projectId = parseInt(params.id);
 
@@ -272,11 +252,8 @@ export async function DELETE(
       { message: "پروژه و تمام فایل های مرتبط با موفقیت حذف شدند" },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error deleting project:", error);
-    return NextResponse.json(
-      { error: error.message || "خطا در حذف پروژه" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error || "خطا در حذف پروژه" }, { status: 500 });
   }
 }

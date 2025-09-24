@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma"; // Import Prisma client
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
@@ -37,21 +38,15 @@ const SALT_ROUNDS = 10;
 export async function PATCH(request: Request): Promise<NextResponse> {
   try {
     // Retrieve the access token from cookies
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "توکن احراز هویت مورد نیاز است" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "توکن احراز هویت مورد نیاز است" }, { status: 401 });
     }
 
     // Verify JWT and extract userId
-    const { payload } = await jwtVerify(
-      token,
-      new TextEncoder().encode(JWT_SECRET)
-    );
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
     const { userId } = payload as { userId: string };
 
     // Parse the request body
@@ -66,29 +61,17 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     });
 
     if (!activePasswordRecord) {
-      return NextResponse.json(
-        { message: "رمز عبور فعلی یافت نشد" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "رمز عبور فعلی یافت نشد" }, { status: 401 });
     }
 
     // Validate the current password
     if (!activePasswordRecord.Password1) {
-      return NextResponse.json(
-        { message: "رمز عبور فعلی نامعتبر است" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "رمز عبور فعلی نامعتبر است" }, { status: 401 });
     }
 
-    const passwordMatch = await bcrypt.compare(
-      currentPassword,
-      activePasswordRecord.Password1
-    );
+    const passwordMatch = await bcrypt.compare(currentPassword, activePasswordRecord.Password1);
     if (!passwordMatch) {
-      return NextResponse.json(
-        { message: "رمز عبور فعلی اشتباه است" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "رمز عبور فعلی اشتباه است" }, { status: 401 });
     }
 
     // Hash the new password
@@ -111,6 +94,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
 
     return NextResponse.json({ message: "رمز عبور با موفقیت تغییر یافت" });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
   }
 }

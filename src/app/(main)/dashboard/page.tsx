@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+
+import LoadingSpinner from "@/app/_components/ui/LoadingSpinner";
 import { useUser } from "@/context/UserContext";
 
 import styles from "./MainDashboardPage.module.css";
-import LoadingSpinner from "@/app/_components/ui/LoadingSpinner";
 
 const MainDashboardPage = () => {
   const { userFullName, loading } = useUser();
@@ -15,9 +16,7 @@ const MainDashboardPage = () => {
 
   return (
     <>
-      <h3 className={styles.pageTitle}>
-        کاربر گرامی، {userFullName} خوش‌آمدید
-      </h3>
+      <h3 className={styles.pageTitle}>کاربر گرامی، {userFullName} خوش‌آمدید</h3>
 
       <div className={styles.cardParent}>
         <Card

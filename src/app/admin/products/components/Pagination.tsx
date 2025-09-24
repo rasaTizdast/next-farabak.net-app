@@ -1,9 +1,6 @@
 type Props = {
   pagination: { currentPage: number; totalPages: number };
-  setPagination: (updatedPagination: {
-    currentPage: number;
-    totalPages: number;
-  }) => void;
+  setPagination: (updatedPagination: { currentPage: number; totalPages: number }) => void;
 };
 
 const Pagination = ({ pagination, setPagination }: Props) => {
@@ -15,11 +12,11 @@ const Pagination = ({ pagination, setPagination }: Props) => {
   };
 
   return (
-    <div className="w-full flex justify-center items-center mt-5 gap-2">
+    <div className="mt-5 flex w-full items-center justify-center gap-2">
       <button
         onClick={() => changePage(currentPage - 1)}
         disabled={currentPage === 1}
-        className={`px-4 py-2 rounded-lg ${
+        className={`rounded-lg px-4 py-2 ${
           currentPage === 1 ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
         } text-white transition-all`}
       >
@@ -29,7 +26,7 @@ const Pagination = ({ pagination, setPagination }: Props) => {
         <button
           key={index}
           onClick={() => changePage(index + 1)}
-          className={`px-3 py-2 rounded-lg ${
+          className={`rounded-lg px-3 py-2 ${
             currentPage === index + 1
               ? "bg-blue-700 text-white"
               : "bg-white text-gray-700 hover:bg-gray-200"
@@ -41,10 +38,8 @@ const Pagination = ({ pagination, setPagination }: Props) => {
       <button
         onClick={() => changePage(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className={`px-4 py-2 rounded-lg ${
-          currentPage === totalPages
-            ? "bg-gray-400"
-            : "bg-blue-600 hover:bg-blue-700"
+        className={`rounded-lg px-4 py-2 ${
+          currentPage === totalPages ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
         } text-white transition-all`}
       >
         بعدی

@@ -1,15 +1,16 @@
 export const dynamic = "force-dynamic";
 
-import Link from "next/link";
-import styles from "./DownloadCenterPage.module.css";
 import { Metadata } from "next";
+import Link from "next/link";
+
+import styles from "./DownloadCenterPage.module.css";
 
 export const metadata: Metadata = {
   title: "نرم افزار ها و آپدیت ها | فرابک",
   description: "دانلود نرم‌افزارهای محصولات، دفترچه راهنما و آپدیت‌ها",
   robots: {
-    index: false, // This sets the noindex directive
-    follow: false, // Allows crawling of links on the page if needed
+    index: true, // This sets the noindex directive
+    follow: true, // Allows crawling of links on the page if needed
   },
 };
 
@@ -20,8 +21,8 @@ const DownloadCenterPage = () => {
         <h3>برنامه رئولینک</h3>
         <div className={styles.details}>
           <p>
-            با دانلود برنامه رئولینک شما میتوانید به سادگی دوربین های خود را
-            کنترل، تنظیم و بررسی کنید.
+            با دانلود برنامه رئولینک شما میتوانید به سادگی دوربین های خود را کنترل، تنظیم و بررسی
+            کنید.
           </p>
 
           <Link href="https://play.google.com/store/apps/details?id=com.mcu.reolink">
@@ -40,12 +41,8 @@ const DownloadCenterPage = () => {
             دریافت اپلیکیشن Mac رئولینک
           </Link>
 
-          <Link
-            href="https://reolink.com/software-and-manual/"
-            className={styles.linkText}
-          >
-            دریافت جدید‌ترین نسخه اپلیکیشن برای Windows - Mac - IOS - Android از
-            وبسایت رسمی رئولینک
+          <Link href="https://reolink.com/software-and-manual/" className={styles.linkText}>
+            دریافت جدید‌ترین نسخه اپلیکیشن برای Windows - Mac - IOS - Android از وبسایت رسمی رئولینک
           </Link>
         </div>
       </div>

@@ -1,10 +1,9 @@
-import { NextResponse, NextRequest } from "next/server";
 import { jwtVerify, SignJWT } from "jose";
+import { NextResponse, NextRequest } from "next/server";
 
 // Define your JWT secrets (ensure they're stored securely)
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
-const REFRESH_TOKEN_SECRET =
-  process.env.REFRESH_TOKEN_SECRET || "your_refresh_jwt_secret";
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "your_refresh_jwt_secret";
 
 // Token expiration times (in seconds)
 const ACCESS_TOKEN_EXPIRATION = 15 * 60; // 15 minutes
@@ -14,13 +13,8 @@ interface ExtendedNextRequest extends NextRequest {
 }
 
 // Helper function to create a new access token
-const createAccessToken = async (user: {
-  userId: string;
-  username: string;
-  role: string;
-}) => {
-  const expirationTimeInSeconds =
-    Math.floor(Date.now() / 1000) + ACCESS_TOKEN_EXPIRATION;
+const createAccessToken = async (user: { userId: string; username: string; role: string }) => {
+  const expirationTimeInSeconds = Math.floor(Date.now() / 1000) + ACCESS_TOKEN_EXPIRATION;
 
   return new SignJWT(user)
     .setProtectedHeader({ alg: "HS256" })
@@ -61,9 +55,7 @@ export async function middleware(req: ExtendedNextRequest) {
   const protectedRoutes = ["/dashboard", "/admin"];
 
   // Check if the request is for a protected route
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    req.nextUrl.pathname.startsWith(route)
-  );
+  const isProtectedRoute = protectedRoutes.some((route) => req.nextUrl.pathname.startsWith(route));
 
   // If the user is trying to access a protected route without any token, redirect to login
   if (isProtectedRoute && !accessToken && !refreshToken) {
@@ -115,10 +107,7 @@ export async function middleware(req: ExtendedNextRequest) {
   if (accessToken) {
     try {
       // Verify the access token using jose
-      const { payload } = await jwtVerify(
-        accessToken,
-        new TextEncoder().encode(JWT_SECRET)
-      );
+      const { payload } = await jwtVerify(accessToken, new TextEncoder().encode(JWT_SECRET));
 
       const user = payload as {
         userId: string;
@@ -130,27 +119,19 @@ export async function middleware(req: ExtendedNextRequest) {
       req.user = user;
 
       // Role-based access control
-      if (
-        req.nextUrl.pathname.startsWith("/admin") &&
-        user.role.toLowerCase() !== "admin"
-      ) {
+      if (req.nextUrl.pathname.startsWith("/admin") && user.role.toLowerCase() !== "admin") {
         // Branch users should only access branch-related routes
         if (user.role === "Branch") {
           // Allow branch users only to access their specific branch page and related pages
           if (
             req.nextUrl.pathname === "/admin/branches/my" ||
-            req.nextUrl.pathname === "/admin/branches/my/invoices" ||
-            req.nextUrl.pathname.startsWith("/admin/branches/my/invoices/")
+            req.nextUrl.pathname === "/admin/branches/my/partner-prices" ||
+            req.nextUrl.pathname.startsWith("/admin/branches/my/partner-prices/")
           ) {
             return NextResponse.next();
-          } else if (
-            req.nextUrl.pathname === "/admin" ||
-            req.nextUrl.pathname === "/admin/"
-          ) {
+          } else if (req.nextUrl.pathname === "/admin" || req.nextUrl.pathname === "/admin/") {
             // Redirect to their branch page if they try to access the admin home
-            return NextResponse.redirect(
-              new URL("/admin/branches/my", req.url)
-            );
+            return NextResponse.redirect(new URL("/admin/branches/my", req.url));
           } else {
             // Add an error message as a searchParam and redirect to their branch page
             const redirectUrl = new URL("/admin/branches/my", req.url);
@@ -165,10 +146,7 @@ export async function middleware(req: ExtendedNextRequest) {
         user.role.toLowerCase() === "admin"
       ) {
         return NextResponse.redirect(new URL("/admin", req.url));
-      } else if (
-        req.nextUrl.pathname.startsWith("/dashboard") &&
-        user.role === "Branch"
-      ) {
+      } else if (req.nextUrl.pathname.startsWith("/dashboard") && user.role === "Branch") {
         // Redirect branch users from dashboard to their branch page
         return NextResponse.redirect(new URL("/admin/branches/my", req.url));
       }

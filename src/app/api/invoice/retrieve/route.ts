@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { verifyInvoiceData } from "@/utils/invoiceJwt";
 
 const COOKIE_NAME = "invoiceData";
+
+export const dynamic = "force-dynamic";
 
 /**
  * @swagger
@@ -23,10 +26,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const token = request.cookies.get(COOKIE_NAME)?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "No invoice data found", data: null },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "No invoice data found", data: null }, { status: 404 });
     }
 
     // Verify and decode the JWT

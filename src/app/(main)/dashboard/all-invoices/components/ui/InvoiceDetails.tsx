@@ -1,10 +1,11 @@
-import { useRef, useEffect, useState } from "react";
+import axios from "axios";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import axios from "axios";
-import logo from "../../../../../../../public/Farabak_Logo.webp";
-import styles from "./InvoiceDetails.module.css";
 import Image from "next/image";
+import { useRef, useEffect, useState } from "react";
+
+import styles from "./InvoiceDetails.module.css";
+import logo from "../../../../../../../public/Farabak_Logo.webp";
 
 type Product = {
   Invoiceid: string;
@@ -42,9 +43,7 @@ type Props = {
 
 const InvoiceDetails = ({ invoice, onClose }: Props) => {
   const componentRef = useRef<HTMLDivElement>(null);
-  const [productNames, setProductNames] = useState<{ [key: number]: string }>(
-    {}
-  );
+  const [productNames, setProductNames] = useState<{ [key: number]: string }>({});
   // Add state for warranties
   const [warranties, setWarranties] = useState<{ [key: number]: Warranty }>({});
   const [loading, setLoading] = useState(true);
@@ -75,6 +74,7 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
 
       return isoString || "تاریخ نامشخص";
     } catch (error) {
+      console.error(error);
       return isoString || "تاریخ نامشخص";
     }
   };
@@ -106,6 +106,7 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
 
       return isoString || "تاریخ نامشخص";
     } catch (error) {
+      console.error(error);
       return isoString || "تاریخ نامشخص";
     }
   };
@@ -127,51 +128,43 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
             }))
         );
 
-        const warrantyRequests = invoice.Invoice_Details.map(
-          (product, index) => {
-            // Make sure we have a valid Invoice_Details ID
-            const detailId = product.Invoice_Details || null;
-            // Use a predictable key for storing the warranty data
-            const lookupKey = detailId || product.ProductId || index;
+        const warrantyRequests = invoice.Invoice_Details.map((product, index) => {
+          // Make sure we have a valid Invoice_Details ID
+          const detailId = product.Invoice_Details || null;
+          // Use a predictable key for storing the warranty data
+          const lookupKey = detailId || product.ProductId || index;
 
-            if (!detailId) {
-              console.warn(
-                `Missing Invoice_Details ID for product ${product.ProductId} at index ${index}`
-              );
-              return Promise.resolve({
+          if (!detailId) {
+            console.warn(
+              `Missing Invoice_Details ID for product ${product.ProductId} at index ${index}`
+            );
+            return Promise.resolve({
+              id: lookupKey,
+              warranty: null,
+            });
+          }
+
+          return axios
+            .get(`/api/warranties/getByInvoiceDetail/${detailId}`)
+            .then((res) => ({
+              id: lookupKey,
+              warranty: res.data.warranty,
+            }))
+            .catch((error) => {
+              console.error(`Error fetching warranty for detail ID ${detailId}:`, error);
+              return {
                 id: lookupKey,
                 warranty: null,
-              });
-            }
-
-            return axios
-              .get(`/api/warranties/getByInvoiceDetail/${detailId}`)
-              .then((res) => ({
-                id: lookupKey,
-                warranty: res.data.warranty,
-              }))
-              .catch((error) => {
-                console.error(
-                  `Error fetching warranty for detail ID ${detailId}:`,
-                  error
-                );
-                return {
-                  id: lookupKey,
-                  warranty: null,
-                };
-              });
-          }
-        );
+              };
+            });
+        });
 
         const [productResults, warrantyResults] = await Promise.all([
           Promise.all(productNameRequests),
           Promise.all(warrantyRequests),
         ]);
 
-        const names = productResults.reduce(
-          (acc, curr) => ({ ...acc, [curr.id]: curr.name }),
-          {}
-        );
+        const names = productResults.reduce((acc, curr) => ({ ...acc, [curr.id]: curr.name }), {});
 
         const warrantyData = warrantyResults.reduce(
           (acc, curr) => ({ ...acc, [curr.id]: curr.warranty }),
@@ -250,13 +243,13 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
       <div className={styles.modalContent}>
         {loading ? (
           // Skeleton Loader while loading data
-          <div className="p-8 space-y-4">
-            <div className="w-48 h-6 bg-gray-300 animate-pulse rounded-md mx-auto"></div>
-            <div className="w-32 h-4 bg-gray-300 animate-pulse rounded-md mx-auto"></div>
-            <div className="w-full h-6 bg-gray-300 animate-pulse rounded-md"></div>
-            <div className="w-full h-6 bg-gray-300 animate-pulse rounded-md"></div>
-            <div className="w-full h-2 bg-gray-300 animate-pulse rounded-md"></div>
-            <div className="w-full h-48 bg-gray-300 animate-pulse rounded-md"></div>
+          <div className="space-y-4 p-8">
+            <div className="mx-auto h-6 w-48 animate-pulse rounded-md bg-gray-300"></div>
+            <div className="mx-auto h-4 w-32 animate-pulse rounded-md bg-gray-300"></div>
+            <div className="h-6 w-full animate-pulse rounded-md bg-gray-300"></div>
+            <div className="h-6 w-full animate-pulse rounded-md bg-gray-300"></div>
+            <div className="h-2 w-full animate-pulse rounded-md bg-gray-300"></div>
+            <div className="h-48 w-full animate-pulse rounded-md bg-gray-300"></div>
           </div>
         ) : (
           <div ref={componentRef} className={styles.invoice} dir="rtl">
@@ -284,10 +277,7 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
                   تاریخ صدور: <span>{formatDateTime(invoice.Date)}</span>
                 </div>
                 <div>
-                  وضعیت:{" "}
-                  <span>
-                    {invoice.Checked ? "تایید شده" : "در انتظار تایید"}
-                  </span>
+                  وضعیت: <span>{invoice.Checked ? "تایید شده" : "در انتظار تایید"}</span>
                 </div>
                 <div>
                   تعداد کل اقلام: <span>{invoice.TotalAmount}</span>
@@ -306,54 +296,38 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
               <tbody>
                 {invoice.Invoice_Details.map((product, index) => {
                   // Generate a consistent key for the warranty lookup
-                  const detailId =
-                    product.Invoice_Details || product.ProductId || index;
-                  const lookupKey =
-                    typeof detailId === "number" ? detailId : index;
+                  const detailId = product.Invoice_Details || product.ProductId || index;
+                  const lookupKey = typeof detailId === "number" ? detailId : index;
                   const warranty = warranties[lookupKey];
-                  const warrantyStyling = warranty
-                    ? formatWarrantyStatus(warranty.status)
-                    : null;
+                  const warrantyStyling = warranty ? formatWarrantyStatus(warranty.status) : null;
 
                   return (
                     <tr key={`${product.ProductId}-${index}`}>
-                      <td>
-                        {productNames[product.ProductId] ||
-                          "در حال بارگذاری..."}
-                      </td>
+                      <td>{productNames[product.ProductId] || "در حال بارگذاری..."}</td>
                       <td>{formatCurrency(product.total_price)}</td>
                       <td>
                         {warranty ? (
                           <div className={styles.warrantyInfo}>
                             <div>
-                              <strong>کد گارانتی:</strong>{" "}
-                              {warranty.warrantycode}
+                              <strong>کد گارانتی:</strong> {warranty.warrantycode}
                             </div>
                             <div>
                               <strong>وضعیت:</strong>
-                              <span
-                                className={`${styles.statusTag} ${warrantyStyling?.className}`}
-                              >
+                              <span className={`${styles.statusTag} ${warrantyStyling?.className}`}>
                                 {warrantyStyling?.text}
                               </span>
                             </div>
                             {warranty.startdate && warranty.expirydate && (
                               <div>
                                 <strong>اعتبار:</strong>
-                                <span>
-                                  {formatPersianDate(warranty.startdate)}
-                                </span>
+                                <span>{formatPersianDate(warranty.startdate)}</span>
                                 {" تا "}
-                                <span>
-                                  {formatPersianDate(warranty.expirydate)}
-                                </span>
+                                <span>{formatPersianDate(warranty.expirydate)}</span>
                               </div>
                             )}
                           </div>
                         ) : (
-                          <span className={styles.noWarranty}>
-                            گارانتی ثبت نشده
-                          </span>
+                          <span className={styles.noWarranty}>گارانتی ثبت نشده</span>
                         )}
                       </td>
                     </tr>
@@ -364,11 +338,7 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
           </div>
         )}
         <div className={styles.actions}>
-          <button
-            className={styles.downloadButton}
-            onClick={handleDownload}
-            title="دانلود فاکتور"
-          >
+          <button className={styles.downloadButton} onClick={handleDownload} title="دانلود فاکتور">
             دانلود فاکتور
           </button>
           <button className={styles.closeButton} onClick={onClose} title="بستن">

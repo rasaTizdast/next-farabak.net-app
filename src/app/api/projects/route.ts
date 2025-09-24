@@ -1,7 +1,8 @@
 // app/api/projects/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
 import { S3 } from "aws-sdk";
+import { NextRequest, NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
 
 const s3 = new S3({
   accessKeyId: process.env.LIARA_ACCESS_KEY,
@@ -19,10 +20,7 @@ export async function GET() {
     });
 
     if (!projects.length) {
-      return NextResponse.json(
-        { message: "No projects found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "No projects found" }, { status: 404 });
     }
 
     // Transform the data to match your frontend needs
@@ -43,10 +41,7 @@ export async function GET() {
     return NextResponse.json(transformedProjects);
   } catch (error) {
     console.error("Error fetching projects:", error);
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -55,20 +50,10 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
 
     // Validate required fields
-    const requiredFields = [
-      "title",
-      "description",
-      "slug",
-      "date",
-      "city",
-      "mainImage",
-    ];
+    const requiredFields = ["title", "description", "slug", "date", "city", "mainImage"];
     for (const field of requiredFields) {
       if (!formData.get(field)) {
-        return NextResponse.json(
-          { error: `فیلد ${field} الزامی است` },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: `فیلد ${field} الزامی است` }, { status: 400 });
       }
     }
 
@@ -79,23 +64,16 @@ export async function POST(request: NextRequest) {
       where: { Slug: slug },
     });
     if (existingProject) {
-      return NextResponse.json(
-        { error: "پروژه با این اسلاگ وجود دارد" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "پروژه با این اسلاگ وجود دارد" }, { status: 400 });
     }
 
     // File upload handler
     const uploadFile = async (file: File, folder: string) => {
       if (file.size > (folder === "videos" ? 50 : 2) * 1024 * 1024) {
-        throw new Error(
-          `File size exceeds ${folder === "videos" ? 50 : 2}MB limit`
-        );
+        throw new Error(`File size exceeds ${folder === "videos" ? 50 : 2}MB limit`);
       }
 
-      const originalName = file.name
-        .replace(/\s+/g, "-")
-        .replace(/[^a-zA-Z0-9-.]/g, "");
+      const originalName = file.name.replace(/\s+/g, "-").replace(/[^a-zA-Z0-9-.]/g, "");
       const key = `projects/${slug}/${folder}/${Date.now()}_${originalName}`;
 
       await s3
@@ -154,11 +132,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(project, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating project:", error);
-    return NextResponse.json(
-      { error: error.message || "خطا در ایجاد پروژه" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error || "خطا در ایجاد پروژه" }, { status: 500 });
   }
 }

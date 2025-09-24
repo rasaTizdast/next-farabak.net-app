@@ -8,24 +8,24 @@ import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 
 interface SearchPageProps {
-  searchParams: { q: string; page?: string };
+  searchParams: Promise<{ q: string; page?: string }>;
 }
 
-export async function generateMetadata({
-  searchParams,
-}: SearchPageProps): Promise<Metadata> {
+export async function generateMetadata(props: SearchPageProps): Promise<Metadata> {
+  const searchParams = await props.searchParams;
   const query = searchParams.q || "";
   return {
     title: `نتایج جستجو برای "${query}"`,
     description: `مشاهده ${query} در سایت فرابک`,
     robots: {
-      index: false, // This sets the noindex directive
+      index: true, // This sets the noindex directive
       follow: true, // Allows crawling of links on the page if needed
     },
   };
 }
 
-export default async function SearchPage({ searchParams }: SearchPageProps) {
+export default async function SearchPage(props: SearchPageProps) {
+  const searchParams = await props.searchParams;
   const query = searchParams.q || "";
   const currentPage = parseInt(searchParams.page || "1", 10);
 
@@ -40,11 +40,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       <Breadcrumb breadcrumbs={breadcrumbs} />
 
       {/* Product Grid with Pagination */}
-      <ProductGrid
-        title={`نتایج جستجو برای: ${query}`}
-        apiUrl={apiUrl}
-        currentPage={currentPage}
-      />
+      <ProductGrid title={`نتایج جستجو برای: ${query}`} apiUrl={apiUrl} currentPage={currentPage} />
     </div>
   );
 }

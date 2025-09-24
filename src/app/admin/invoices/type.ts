@@ -10,7 +10,7 @@ export interface Warranty {
   warrantyid?: string;
   warrantycode?: string; // For backward compatibility
   warrantycodes?: WarrantyCode[]; // New field for multiple warranty codes
-  status: string;  // 'Active' or 'Expired'
+  status: string; // 'Active' or 'Expired'
   displayStatus?: string; // Computed status based on date check
   startdate?: string;
   expirydate?: string;

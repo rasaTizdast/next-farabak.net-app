@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -92,6 +93,7 @@ export async function GET() {
             SEO_Description: null,
             SEO_Keywords: null,
           },
+          Banner: (sub as any).Banner || null,
         };
       });
 
@@ -103,6 +105,7 @@ export async function GET() {
           SEO_Description: null,
           SEO_Keywords: null,
         },
+        Banner: (category as any).Banner || null,
         Subcategories: subcategoriesWithSEO,
       };
     });

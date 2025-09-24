@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { S3 } from "aws-sdk";
+import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
@@ -11,10 +11,8 @@ const s3 = new S3({
   endpoint: process.env.LIARA_ENDPOINT,
 });
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const detailId = parseInt(params.id);
 
@@ -23,18 +21,14 @@ export async function DELETE(
     }
 
     // Get the overview detail record to get the image path for deletion
-    const overviewDetail =
-      await prisma.master_ProductOverviewDetails.findUnique({
-        where: {
-          ProductOverviewDetailsId: detailId,
-        },
-      });
+    const overviewDetail = await prisma.master_ProductOverviewDetails.findUnique({
+      where: {
+        ProductOverviewDetailsId: detailId,
+      },
+    });
 
     if (!overviewDetail) {
-      return NextResponse.json(
-        { error: "Overview detail not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Overview detail not found" }, { status: 404 });
     }
 
     // Get the image path
@@ -72,10 +66,7 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting overview detail:", error);
-    return NextResponse.json(
-      { error: "Failed to delete overview detail" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to delete overview detail" }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }

@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Table, InputNumber, Card, Spin, Empty, Alert, Tabs } from "antd";
-import { Product } from "../../types";
+
 import { useUser } from "@/context/UserContext";
 
 // Extended Product interface with additional properties
@@ -22,6 +21,14 @@ interface ProductSelectionStepProps {
   onUpdate: (products: any[], totalAmount: number) => void;
 }
 
+interface Product {
+  ProductId: number;
+  Type: string;
+  Price?: string;
+  Discount?: string;
+  quantity?: number;
+}
+
 const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
   branchId,
   selectedProducts,
@@ -34,10 +41,11 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
   const [rawProducts, setRawProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [localSelectedProducts, setLocalSelectedProducts] = useState<any[]>([]);
-  const [manualExchangeRate, setManualExchangeRate] = useState<number | null>(
-    null
-  );
-  const { isAdmin, isBranch } = useUser();
+  const [manualExchangeRate, setManualExchangeRate] = useState<number | null>(null);
+  const [rawInput, setRawInput] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<"products" | "selected">("products");
+  const [searchTerm, setSearchTerm] = useState("");
+  const { isBranch } = useUser();
 
   // Determine which exchange rate to use (automatic or manual)
   const effectiveRate = useMemo(() => {
@@ -61,9 +69,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `/api/admin/branches/${branchId}/products`
-        );
+        const response = await fetch(`/api/admin/branches/${branchId}/products`);
 
         if (!response.ok) {
           throw new Error("خطا در دریافت محصولات");
@@ -96,9 +102,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
       const priceInRials = effectiveRate ? finalPrice * effectiveRate : 0;
 
       // Check if product is already selected
-      const existingProduct = localSelectedProducts.find(
-        (p) => p.ProductId === product.ProductId
-      );
+      const existingProduct = localSelectedProducts.find((p) => p.ProductId === product.ProductId);
 
       return {
         ...product,
@@ -106,9 +110,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
         currentQuantity: product.quantity || 0,
         selectedQuantity: existingProduct ? existingProduct.quantity : 0,
         isSelected: !!existingProduct,
-        total_price: existingProduct
-          ? existingProduct.quantity * priceInRials
-          : 0,
+        total_price: existingProduct ? existingProduct.quantity * priceInRials : 0,
       };
     });
 
@@ -117,17 +119,11 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     // Update selected products with new prices based on new rate
     if (effectiveRate && localSelectedProducts.length > 0) {
       const updatedSelectedProducts = localSelectedProducts.map((product) => {
-        const originalProduct = rawProducts.find(
-          (p) => p.ProductId === product.ProductId
-        );
+        const originalProduct = rawProducts.find((p) => p.ProductId === product.ProductId);
         if (!originalProduct) return product;
 
-        const price = originalProduct.Price
-          ? parseFloat(originalProduct.Price)
-          : 0;
-        const discount = originalProduct.Discount
-          ? parseFloat(originalProduct.Discount)
-          : 0;
+        const price = originalProduct.Price ? parseFloat(originalProduct.Price) : 0;
+        const discount = originalProduct.Discount ? parseFloat(originalProduct.Discount) : 0;
         const finalPrice = Math.max(0, price - discount);
         const priceInRials = finalPrice * effectiveRate;
 
@@ -153,6 +149,15 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     }
   }, [rawProducts, effectiveRate]);
 
+  // Filter products based on search term
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm.trim()) return products;
+
+    return products.filter((product) =>
+      product.Type.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [products, searchTerm]);
+
   // Use memoized callback to avoid re-renders
   const handleQuantityChange = useCallback(
     (productId: number, quantity: number | null) => {
@@ -164,9 +169,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
 
       setLocalSelectedProducts((prevSelected) => {
         // Find if product is already in the selected list
-        const existingIndex = prevSelected.findIndex(
-          (p) => p.ProductId === productId
-        );
+        const existingIndex = prevSelected.findIndex((p) => p.ProductId === productId);
 
         const updatedProducts = [...prevSelected];
 
@@ -201,10 +204,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
         }
 
         // Calculate total amount
-        const totalAmount = updatedProducts.reduce(
-          (sum, p) => sum + p.total_price,
-          0
-        );
+        const totalAmount = updatedProducts.reduce((sum, p) => sum + p.total_price, 0);
 
         // Update parent component
         setSelectedProducts(updatedProducts);
@@ -231,351 +231,418 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     [products, setSelectedProducts, onUpdate]
   );
 
-  // Handle manual exchange rate change without full re-renders
-  const handleManualRateChange = useCallback((value: number | null) => {
-    if (value === null) return;
-    setManualExchangeRate(value);
+  // Handle manual exchange rate change
+  const handleManualRateChange = useCallback((value: string) => {
+    // Keep what the user types
+    setRawInput(value);
+
+    // Convert Persian digits to English before parsing
+    const englishValue = value.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)));
+
+    const numValue = englishValue ? parseFloat(englishValue.replace(/,/g, "")) : null;
+    if (numValue !== null && !isNaN(numValue)) {
+      setManualExchangeRate(numValue);
+    } else {
+      setManualExchangeRate(null);
+    }
   }, []);
 
-  const branchProductsColumns = [
-    {
-      title: "نام محصول",
-      dataIndex: "Type", // Use Type as name
-      key: "name",
-    },
-    {
-      title: "موجودی",
-      dataIndex: "currentQuantity",
-      key: "stock",
-      render: (stock: number) => stock || 0,
-    },
-    {
-      title: "قیمت اصلی (تومان)",
-      key: "originalPrice",
-      render: (_: any, record: any) => {
-        const originalPrice = record.Price
-          ? parseFloat(record.Price) * (effectiveRate || 1)
-          : 0;
-        return originalPrice
-          ? new Intl.NumberFormat("fa-IR").format(originalPrice)
-          : "بدون قیمت";
-      },
-    },
-    {
-      title: "تخفیف (تومان)",
-      key: "discount",
-      render: (_: any, record: any) => {
-        const discount = record.Discount
-          ? parseFloat(record.Discount) * (effectiveRate || 1)
-          : 0;
-        return discount ? new Intl.NumberFormat("fa-IR").format(discount) : "0";
-      },
-    },
-    {
-      title: "قیمت نهایی (تومان)",
-      dataIndex: "priceInRials",
-      key: "price",
-      render: (price: number) =>
-        price ? new Intl.NumberFormat("fa-IR").format(price) : "بدون قیمت",
-    },
-    {
-      title: "تعداد",
-      key: "quantity",
-      render: (_: any, record: any) => (
-        <InputNumber
-          min={0}
-          max={record.currentQuantity}
-          defaultValue={0}
-          value={
-            localSelectedProducts.find((p) => p.ProductId === record.ProductId)
-              ?.quantity || 0
-          }
-          onChange={(value) => handleQuantityChange(record.ProductId, value)}
-          className="dark-input-number"
-          style={{
-            backgroundColor: "#1f2937",
-            borderColor: "#374151",
-            color: "#e5e7eb",
-          }}
-        />
-      ),
-    },
-    {
-      title: "قیمت کل (تومان)",
-      key: "totalPrice",
-      render: (_: any, record: any) => {
-        const selectedProduct = localSelectedProducts.find(
-          (p) => p.ProductId === record.ProductId
-        );
-
-        if (!selectedProduct) return "-";
-
-        return new Intl.NumberFormat("fa-IR").format(
-          selectedProduct.total_price
-        );
-      },
-    },
-  ];
-
-  const selectedProductsColumns = [
-    {
-      title: "نام محصول",
-      dataIndex: "Name",
-      key: "name",
-    },
-    {
-      title: "تعداد",
-      dataIndex: "quantity",
-      key: "quantity",
-    },
-    {
-      title: "قیمت واحد (تومان)",
-      key: "price",
-      render: (_: any, record: any) =>
-        new Intl.NumberFormat("fa-IR").format(record.price),
-    },
-    {
-      title: "قیمت کل (تومان)",
-      key: "totalPrice",
-      render: (_: any, record: any) =>
-        new Intl.NumberFormat("fa-IR").format(record.total_price),
-    },
-  ];
+  // Format number with Persian digits (for later display, not during typing)
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat("fa-IR").format(num);
+  };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Spin size="large" />
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-white"></div>
       </div>
     );
   }
 
   if (error) {
-    return <Alert message={error} type="error" />;
+    return (
+      <div className="rounded-md border border-red-800/30 bg-red-900/20 p-4 text-red-100">
+        {error}
+      </div>
+    );
   }
 
-  const isValidAutoRate =
-    usdToRialRate && !isNaN(usdToRialRate) && usdToRialRate > 0;
+  const isValidAutoRate = usdToRialRate && !isNaN(usdToRialRate) && usdToRialRate > 0;
+  const totalAmount = localSelectedProducts.reduce((sum, p) => sum + p.total_price, 0);
 
   return (
-    <Card className="bg-gray-900 border-0 shadow-md">
-      <h3 className="text-lg font-medium text-white mb-4">
-        محصولات مورد نظر را انتخاب کنید
-      </h3>
+    <div className="rounded-md border-0 bg-gray-900 p-6 shadow-md">
+      <h3 className="mb-4 text-lg font-medium text-white">محصولات مورد نظر را انتخاب کنید</h3>
 
       {isValidAutoRate ? (
-        <div className="mb-4 p-3 bg-blue-900/20 border border-blue-800/30 rounded-md">
-          <p className="text-blue-100 text-sm">
+        <div className="mb-4 rounded-md border border-blue-800/30 bg-blue-900/20 p-3">
+          <p className="text-sm text-blue-100">
             نرخ تبدیل دلار به تومان:{" "}
-            <span className="font-bold">
-              {new Intl.NumberFormat("fa-IR").format(usdToRialRate)} تومان
-            </span>
+            <span className="font-bold">{formatNumber(usdToRialRate)} تومان</span>
           </p>
         </div>
       ) : isBranch ? (
-        <div className="mb-4 p-4 bg-red-900/20 border border-red-800/30 rounded-md">
-          <p className="text-red-100 mb-2">
+        <div className="mb-4 rounded-md border border-red-800/30 bg-red-900/20 p-4">
+          <p className="mb-2 text-red-100">
             <span className="font-bold">خطا در دریافت نرخ ارز</span>
           </p>
-          <p className="text-red-100 text-sm">
-            در حال حاضر امکان ایجاد فاکتور وجود ندارد. لطفا با مدیر سیستم تماس بگیرید تا برای شما فاکتور ایجاد کند.
+          <p className="text-sm text-red-100">
+            در حال حاضر امکان ایجاد فاکتور وجود ندارد. لطفا با مدیر سیستم تماس بگیرید تا برای شما
+            فاکتور ایجاد کند.
           </p>
         </div>
       ) : (
-        <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-800/30 rounded-md">
-          <p className="text-yellow-100 text-sm mb-2">
+        <div className="mb-4 rounded-md border border-yellow-800/30 bg-yellow-900/20 p-3">
+          <p className="mb-2 text-sm text-yellow-100">
             خطا در دریافت نرخ ارز. لطفا نرخ تبدیل دلار به تومان را وارد کنید:
           </p>
           <div className="flex items-center">
-            <InputNumber
+            <input
+              type="text"
               min={1}
-              value={manualExchangeRate || undefined}
-              onChange={handleManualRateChange}
-              className="dark-input-number"
-              formatter={(value) =>
-                value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : ""
-              }
-              parser={(value) =>
-                value ? parseFloat(value.replace(/,/g, "")) : 0
-              }
-              style={{
-                backgroundColor: "#1f2937",
-                borderColor: "#374151",
-                color: "#e5e7eb",
-                width: "180px",
-              }}
+              value={rawInput}
+              onChange={(e) => handleManualRateChange(e.target.value)}
+              className="w-48 rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="نرخ ارز را وارد کنید"
             />
-            <span className="text-white mr-2">تومان</span>
+
+            <span className="mr-2 text-white">تومان</span>
           </div>
         </div>
       )}
 
       {!effectiveRate ? (
         isBranch ? (
-          <Alert
-            message="امکان ایجاد فاکتور تا زمان رفع مشکل نرخ ارز وجود ندارد."
-            type="error"
-            className="mb-4"
-            showIcon
-          />
+          <div className="mb-4 flex items-center rounded-md border border-red-800/30 bg-red-900/20 p-4 text-red-100">
+            <svg className="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-1 9a1 1 0 100-2 1 1 0 000 2z"
+                clipRule="evenodd"
+              />
+            </svg>
+            امکان ایجاد فاکتور تا زمان رفع مشکل نرخ ارز وجود ندارد.
+          </div>
         ) : (
-          <Alert
-            message="لطفا برای مشاهده و انتخاب محصولات، نرخ تبدیل دلار به تومان را وارد کنید."
-            type="error"
-            className="mb-4"
-            showIcon
-          />
+          <div className="mb-4 flex items-center rounded-md border border-red-800/30 bg-red-900/20 p-4 text-red-100">
+            <svg className="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-1 9a1 1 0 100-2 1 1 0 000 2z"
+                clipRule="evenodd"
+              />
+            </svg>
+            لطفا برای مشاهده و انتخاب محصولات، نرخ تبدیل دلار به تومان را وارد کنید.
+          </div>
         )
       ) : (
         <>
-          <Tabs
-            defaultActiveKey="1"
-            className="custom-dark-tabs"
-            type="card"
-            items={[
-              {
-                key: "1",
-                label: "محصولات شعبه",
-                children:
-                  products.length > 0 ? (
-                    <Table
-                      dataSource={products}
-                      columns={branchProductsColumns}
-                      rowKey="ProductId"
-                      pagination={false}
-                      className="custom-dark-table"
-                      scroll={{ x: "max-content" }}
-                      rowClassName="dark-table-row"
-                    />
-                  ) : (
-                    <Empty description="محصولی برای این شعبه یافت نشد" />
-                  ),
-              },
-              {
-                key: "2",
-                label: "محصولات انتخاب شده",
-                children:
-                  localSelectedProducts.length > 0 ? (
-                    <Table
-                      dataSource={localSelectedProducts}
-                      columns={selectedProductsColumns}
-                      rowKey="ProductId"
-                      pagination={false}
-                      className="custom-dark-table"
-                      scroll={{ x: "max-content" }}
-                      rowClassName="dark-table-row"
-                    />
-                  ) : (
-                    <Empty description="هیچ محصولی انتخاب نشده است" />
-                  ),
-              },
-            ]}
-          />
+          {/* Custom Tabs */}
+          <div className="mb-6 border-b border-gray-700">
+            <ul className="-mb-px flex flex-wrap">
+              <li className="mr-4">
+                <button
+                  className={`inline-block rounded-t-lg px-4 py-3 ${
+                    activeTab === "products"
+                      ? "border-b-2 border-blue-500 font-medium text-white"
+                      : "border-b-2 border-transparent text-gray-400 hover:border-gray-700 hover:text-gray-300"
+                  }`}
+                  onClick={() => setActiveTab("products")}
+                >
+                  محصولات شعبه
+                </button>
+              </li>
+              <li>
+                <button
+                  className={`inline-block rounded-t-lg px-4 py-3 ${
+                    activeTab === "selected"
+                      ? "border-b-2 border-blue-500 font-medium text-white"
+                      : "border-b-2 border-transparent text-gray-400 hover:border-gray-700 hover:text-gray-300"
+                  }`}
+                  onClick={() => setActiveTab("selected")}
+                >
+                  محصولات انتخاب شده{" "}
+                  {localSelectedProducts.length > 0 && `(${localSelectedProducts.length})`}
+                </button>
+              </li>
+            </ul>
+          </div>
 
-          <div className="mt-4 text-white text-right">
-            <p className="text-lg font-bold">
-              مجموع:{" "}
-              {new Intl.NumberFormat("fa-IR").format(
-                localSelectedProducts.reduce((sum, p) => sum + p.total_price, 0)
-              )}{" "}
-              تومان
-            </p>
+          {/* Tab Content */}
+          <div className="tab-content">
+            {/* Products Tab */}
+            {activeTab === "products" && (
+              <div>
+                {/* Search Input */}
+                <div className="mb-4">
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <svg
+                        className="h-4 w-4 text-gray-400"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                        />
+                      </svg>
+                    </div>
+                    <input
+                      type="search"
+                      className="block w-full rounded-lg border border-gray-700 bg-gray-800 p-2.5 pl-10 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="جستجوی محصول..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {filteredProducts.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full overflow-hidden rounded-lg border border-gray-700 text-right text-sm text-gray-200">
+                      <thead className="bg-gray-800 text-xs uppercase text-gray-200">
+                        <tr>
+                          <th scope="col" className="px-4 py-3">
+                            نام محصول
+                          </th>
+                          <th scope="col" className="px-4 py-3">
+                            موجودی
+                          </th>
+                          <th scope="col" className="px-4 py-3">
+                            قیمت اصلی (تومان)
+                          </th>
+                          <th scope="col" className="px-4 py-3">
+                            تخفیف (تومان)
+                          </th>
+                          <th scope="col" className="px-4 py-3">
+                            قیمت نهایی (تومان)
+                          </th>
+                          <th scope="col" className="px-4 py-3">
+                            تعداد
+                          </th>
+                          <th scope="col" className="px-4 py-3">
+                            قیمت کل (تومان)
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-gray-950/50">
+                        {filteredProducts.map((product) => {
+                          const selectedProduct = localSelectedProducts.find(
+                            (p) => p.ProductId === product.ProductId
+                          );
+
+                          const originalPrice = product.Price
+                            ? parseFloat(product.Price) * (effectiveRate || 1)
+                            : 0;
+                          const discount = product.Discount
+                            ? parseFloat(product.Discount) * (effectiveRate || 1)
+                            : 0;
+
+                          return (
+                            <tr
+                              key={product.ProductId}
+                              className="border-b border-gray-700 hover:bg-gray-950"
+                            >
+                              <td className="px-4 py-3">{product.Type}</td>
+                              <td className="px-4 py-3">{product.currentQuantity || 0}</td>
+                              <td className="px-4 py-3">
+                                {originalPrice ? formatNumber(originalPrice) : "بدون قیمت"}
+                              </td>
+                              <td className="px-4 py-3">
+                                {discount ? formatNumber(discount) : "0"}
+                              </td>
+                              <td className="px-4 py-3">
+                                {product.priceInRials
+                                  ? formatNumber(product.priceInRials)
+                                  : "بدون قیمت"}
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center">
+                                  <div className="flex h-8 items-stretch overflow-hidden rounded-md border border-gray-700 bg-gray-800">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const currentQuantity = selectedProduct?.quantity || 0;
+                                        if (currentQuantity > 0) {
+                                          handleQuantityChange(
+                                            product.ProductId,
+                                            currentQuantity - 1
+                                          );
+                                        }
+                                      }}
+                                      disabled={(selectedProduct?.quantity || 0) <= 0}
+                                      className="flex h-full w-8 items-center justify-center bg-gray-900 text-white hover:bg-gray-800 focus:outline-none disabled:opacity-20 disabled:hover:bg-gray-800"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-3 w-3"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M20 12H4"
+                                        />
+                                      </svg>
+                                    </button>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      max={product.currentQuantity}
+                                      value={selectedProduct?.quantity || 0}
+                                      onChange={(e) => {
+                                        const inputValue = e.target.value
+                                          ? parseInt(e.target.value)
+                                          : 0;
+                                        // Ensure the input value doesn't exceed the available quantity
+                                        const validQuantity = Math.min(
+                                          inputValue,
+                                          product.currentQuantity
+                                        );
+                                        handleQuantityChange(product.ProductId, validQuantity);
+                                      }}
+                                      className="h-full w-10 border-0 bg-gray-950 text-center text-white [appearance:textfield] focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const currentQuantity = selectedProduct?.quantity || 0;
+                                        if (currentQuantity < product.currentQuantity) {
+                                          handleQuantityChange(
+                                            product.ProductId,
+                                            currentQuantity + 1
+                                          );
+                                        }
+                                      }}
+                                      disabled={
+                                        (selectedProduct?.quantity || 0) >= product.currentQuantity
+                                      }
+                                      className="flex h-full w-8 items-center justify-center bg-gray-900 text-white hover:bg-gray-800 focus:outline-none disabled:opacity-20 disabled:hover:bg-gray-800"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-3 w-3"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M12 4v16m8-8H4"
+                                        />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                {selectedProduct ? formatNumber(selectedProduct.total_price) : "-"}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center rounded-md border border-gray-700 bg-gray-800/50 p-6 text-gray-400">
+                    <svg
+                      className="mb-3 h-12 w-12"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <p className="text-center text-lg">محصولی یافت نشد</p>
+                    <p className="mt-1 text-center text-sm">لطفا عبارت دیگری را جستجو کنید</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Selected Products Tab */}
+            {activeTab === "selected" && (
+              <div>
+                {localSelectedProducts.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full overflow-hidden rounded-lg border border-gray-700 text-right text-sm text-gray-200">
+                      <thead className="bg-gray-800 text-xs uppercase text-gray-200">
+                        <tr>
+                          <th scope="col" className="px-6 py-3">
+                            نام محصول
+                          </th>
+                          <th scope="col" className="px-6 py-3">
+                            تعداد
+                          </th>
+                          <th scope="col" className="px-6 py-3">
+                            قیمت واحد (تومان)
+                          </th>
+                          <th scope="col" className="px-6 py-3">
+                            قیمت کل (تومان)
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-gray-950/50">
+                        {localSelectedProducts.map((product) => (
+                          <tr
+                            key={product.ProductId}
+                            className="border-b border-gray-700 hover:bg-gray-700"
+                          >
+                            <td className="px-6 py-3">{product.Name}</td>
+                            <td className="px-6 py-3">{product.quantity}</td>
+                            <td className="px-6 py-3">{formatNumber(product.price)}</td>
+                            <td className="px-6 py-3">{formatNumber(product.total_price)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center rounded-md border border-gray-700 bg-gray-800/50 p-6 text-gray-400">
+                    <svg
+                      className="mb-3 h-12 w-12"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                      />
+                    </svg>
+                    <p className="text-lg">هیچ محصولی انتخاب نشده است</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-6 text-right text-white">
+            <p className="text-lg font-bold">مجموع: {formatNumber(totalAmount)} تومان</p>
           </div>
         </>
       )}
-
-      <style jsx global>{`
-        .custom-dark-table .ant-table {
-          background-color: #111827;
-          color: white;
-        }
-
-        .custom-dark-table .ant-table-thead > tr > th {
-          background-color: #1f2937;
-          color: white;
-          border-bottom: 1px solid #374151;
-        }
-
-        .custom-dark-table .ant-table-tbody > tr > td {
-          border-bottom: 1px solid #374151;
-          color: white;
-        }
-
-        .custom-dark-table .ant-table-tbody > tr.dark-table-row:hover > td {
-          background-color: #2d3748;
-        }
-
-        .dark-table-row {
-          background-color: #111827;
-        }
-
-        .custom-dark-tabs .ant-empty-description {
-          color: white !important;
-        }
-
-        .custom-dark-table .ant-table-container {
-          border: 1px solid #374151;
-          border-radius: 8px;
-          overflow: hidden;
-        }
-
-        .custom-dark-table .ant-table-footer {
-          background-color: #1f2937;
-          color: white;
-          border-top: 1px solid #374151;
-        }
-
-        /* Fix the tabs styling to match the overall UI */
-        .custom-dark-tabs .ant-tabs-nav {
-          margin-bottom: 16px;
-        }
-
-        .custom-dark-tabs .ant-tabs-tab {
-          background-color: #1e293b !important;
-          border-color: #334155 !important;
-          border-radius: 8px 8px 0 0 !important;
-          padding: 8px 16px !important;
-          margin-right: 8px !important;
-          transition: all 0.2s ease;
-          color: #b5bdca;
-          opacity: 0.8;
-        }
-
-        .custom-dark-tabs .ant-tabs-tab:hover {
-          background-color: #263244 !important;
-          opacity: 1;
-        }
-
-        .custom-dark-tabs .ant-tabs-tab-active {
-          background-color: #19202b !important;
-          opacity: 1;
-        }
-
-        .custom-dark-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
-          color: white !important;
-          font-weight: 500;
-        }
-
-        .custom-dark-tabs .ant-tabs-content {
-          background-color: none;
-          padding: 10px;
-          border-radius: 8px;
-        }
-
-        .custom-dark-tabs .ant-tabs-ink-bar {
-          display: none;
-        }
-
-        .custom-dark-tabs .ant-tabs-nav:before {
-          border-bottom: 1px solid #334155;
-        }
-
-        .custom-dark-tabs .ant-tabs-nav-list {
-          display: flex;
-          gap: 4px;
-        }
-      `}</style>
-    </Card>
+    </div>
   );
 };
 

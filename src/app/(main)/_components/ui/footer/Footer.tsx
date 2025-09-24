@@ -1,15 +1,13 @@
 import Link from "next/link";
 import { BsFillSignpostSplitFill } from "react-icons/bs";
 import { FaInstagram, FaPhoneSquare, FaWhatsapp } from "react-icons/fa";
+
 import styles from "./Footer.module.css";
 
 const Footer = async () => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/contact-us`,
-    {
-      next: { revalidate: 3600 },
-    }
-  );
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/contact-us`, {
+    next: { revalidate: 3600 },
+  });
   const { phone_numbers, address } = await response.json();
 
   return (
@@ -86,19 +84,14 @@ const Footer = async () => {
             <div className={styles.cTitle}>آدرس دفتر مرکزی</div>
             {address && (
               <>
-                <div className={`${styles.cItem} ${styles.address}`}>
-                  {address.address}
-                </div>
+                <div className={`${styles.cItem} ${styles.address}`}>{address.address}</div>
                 <div className={styles.details}>
                   <div className={`${styles.cItem} ${styles.addressItem}`}>
                     <BsFillSignpostSplitFill />
                     <span>{address.postal_code}</span>
                   </div>
                   {phone_numbers.map((phone) => (
-                    <div
-                      key={phone.id}
-                      className={`${styles.cItem} ${styles.addressItem}`}
-                    >
+                    <div key={phone.id} className={`${styles.cItem} ${styles.addressItem}`}>
                       <FaPhoneSquare />
                       <Link href={`tel:${phone.number}`}>{phone.number}</Link>
                     </div>
@@ -108,6 +101,7 @@ const Footer = async () => {
             )}
           </div>
           <iframe
+            title="فرابک - آدرس دفتر مرکزی"
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1360.8932132644327!2d51.35469992463351!3d35.78108017399431!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3f8e07b684c2b9d5%3A0x703fbc3293eb71d6!2sFARABAK%20Head%20Office%20Company!5e0!3m2!1sen!2s!4v1711904970824!5m2!1sen!2s"
             allowFullScreen
             loading="lazy"

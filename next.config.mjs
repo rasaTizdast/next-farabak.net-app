@@ -22,6 +22,79 @@ const nextConfig = {
       port: "",
       pathname: "/**",
     })),
+    formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
+  },
+  // Performance optimizations
+  experimental: {
+    optimizePackageImports: ['react-icons', 'axios'],
+  },
+  // Turbopack configuration (now stable)
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
+      },
+    },
+  },
+  // Enable compression
+  compress: true,
+  // Enable static optimization
+  trailingSlash: false,
+  // Optimize for production
+  productionBrowserSourceMaps: false,
+  // Optimize bundle (Note: This uses Webpack, not Turbopack)
+  webpack: (config, { dev, isServer }) => {
+    if (!dev && !isServer) {
+      // Disable source maps in production for better performance
+      config.devtool = false;
+      
+      // Optimize bundle splitting for better caching
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        minSize: 20000,
+        maxSize: 244000,
+        cacheGroups: {
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true,
+          },
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            priority: -10,
+            chunks: 'all',
+            maxSize: 244000,
+          },
+          react: {
+            test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+            name: 'react',
+            priority: 20,
+            chunks: 'all',
+          },
+          common: {
+            name: 'common',
+            minChunks: 2,
+            chunks: 'all',
+            priority: -5,
+            reuseExistingChunk: true,
+            maxSize: 244000,
+          },
+        },
+      };
+      
+      // CSS optimization
+      config.optimization.minimize = true;
+      
+      // Tree shaking optimization
+      config.optimization.usedExports = true;
+      config.optimization.sideEffects = false;
+    }
+    return config;
   },
 };
 

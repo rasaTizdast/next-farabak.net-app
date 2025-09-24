@@ -1,12 +1,6 @@
 "use client";
-import React, {
-  createContext,
-  useState,
-  ReactNode,
-  useContext,
-  useEffect,
-  useRef,
-} from "react";
+import React, { createContext, useState, ReactNode, useContext, useEffect, useRef } from "react";
+
 import { useInvoiceCookie } from "@/hooks/useInvoiceCookie";
 
 // Define types for the product and invoice state
@@ -41,9 +35,7 @@ interface InvoiceContextType {
 }
 
 // Create the context with an initial value of `null`
-export const InvoiceContext = createContext<InvoiceContextType | undefined>(
-  undefined
-);
+export const InvoiceContext = createContext<InvoiceContextType | undefined>(undefined);
 
 // Define the props for the provider component
 interface InvoiceProviderProps {
@@ -58,20 +50,14 @@ const INVOICE_SYNC_KEY = "invoice_sync_timestamp";
 const INVOICE_CLEARED_KEY = "invoice_cleared";
 
 // Create the provider component
-export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({
-  children,
-}) => {
+export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) => {
   const [invoice, setInvoice] = useState<InvoiceState>({
     products: [],
     TotalAmount: 0,
   });
 
-  const {
-    saveInvoiceToCookie,
-    getInvoiceFromCookie,
-    clearInvoiceCookie,
-    isLoading,
-  } = useInvoiceCookie();
+  const { saveInvoiceToCookie, getInvoiceFromCookie, clearInvoiceCookie, isLoading } =
+    useInvoiceCookie();
 
   // Debounce timer reference
   const debounceSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -83,10 +69,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({
   useEffect(() => {
     const loadInvoiceFromCookie = async () => {
       // Check if invoice was cleared by another tab
-      if (
-        typeof window !== "undefined" &&
-        localStorage.getItem(INVOICE_CLEARED_KEY) === "true"
-      ) {
+      if (typeof window !== "undefined" && localStorage.getItem(INVOICE_CLEARED_KEY) === "true") {
         setInvoice({
           products: [],
           TotalAmount: 0,
@@ -136,10 +119,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({
           if (typeof window !== "undefined") {
             localStorage.setItem(INVOICE_CLEARED_KEY, "true");
             // Also trigger sync event
-            localStorage.setItem(
-              INVOICE_SYNC_KEY,
-              "cleared:" + Date.now().toString()
-            );
+            localStorage.setItem(INVOICE_SYNC_KEY, "cleared:" + Date.now().toString());
           }
         }
       } catch (error) {
@@ -166,10 +146,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({
       // Set cleared flag for other tabs
       if (typeof window !== "undefined") {
         localStorage.setItem(INVOICE_CLEARED_KEY, "true");
-        localStorage.setItem(
-          INVOICE_SYNC_KEY,
-          "cleared:" + Date.now().toString()
-        );
+        localStorage.setItem(INVOICE_SYNC_KEY, "cleared:" + Date.now().toString());
       }
     }
 
@@ -215,10 +192,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({
             TotalAmount: 0,
           });
         }
-      } else if (
-        event.key === INVOICE_CLEARED_KEY &&
-        event.newValue === "true"
-      ) {
+      } else if (event.key === INVOICE_CLEARED_KEY && event.newValue === "true") {
         // Direct response to cleared flag
         isUpdatingRef.current = true;
         setInvoice({
@@ -249,28 +223,18 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({
     Discount?: number
   ) => {
     setInvoice((prev) => {
-      const existingProduct = prev.products.find(
-        (p) => p.ProductId === ProductId
-      );
+      const existingProduct = prev.products.find((p) => p.ProductId === ProductId);
 
       const updatedProducts = existingProduct
         ? prev.products.map((p) =>
-            p.ProductId === ProductId
-              ? { ...p, Quantity: p.Quantity + Quantity }
-              : p
+            p.ProductId === ProductId ? { ...p, Quantity: p.Quantity + Quantity } : p
           )
-        : [
-            ...prev.products,
-            { ProductId, Quantity, ProductName, Price, Discount },
-          ];
+        : [...prev.products, { ProductId, Quantity, ProductName, Price, Discount }];
 
       return {
         ...prev,
         products: updatedProducts,
-        TotalAmount: updatedProducts.reduce(
-          (sum, product) => sum + product.Quantity,
-          0
-        ),
+        TotalAmount: updatedProducts.reduce((sum, product) => sum + product.Quantity, 0),
       };
     });
 
@@ -282,17 +246,12 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({
 
   const removeProductFromInvoice = (ProductId: number) => {
     setInvoice((prev) => {
-      const updatedProducts = prev.products.filter(
-        (p) => p.ProductId !== ProductId
-      );
+      const updatedProducts = prev.products.filter((p) => p.ProductId !== ProductId);
 
       const updatedInvoice = {
         ...prev,
         products: updatedProducts,
-        TotalAmount: updatedProducts.reduce(
-          (sum, product) => sum + product.Quantity,
-          0
-        ),
+        TotalAmount: updatedProducts.reduce((sum, product) => sum + product.Quantity, 0),
       };
 
       // If removing this product results in an empty invoice, clear the cookie immediately
@@ -303,10 +262,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({
           // Set cleared flag for other tabs
           if (typeof window !== "undefined") {
             localStorage.setItem(INVOICE_CLEARED_KEY, "true");
-            localStorage.setItem(
-              INVOICE_SYNC_KEY,
-              "cleared:" + Date.now().toString()
-            );
+            localStorage.setItem(INVOICE_SYNC_KEY, "cleared:" + Date.now().toString());
           }
         }, 0);
       }
@@ -319,17 +275,12 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({
     setInvoice((prev) => {
       // If the new amount is zero or less, remove the product entirely
       if (newAmount <= 0) {
-        const updatedProducts = prev.products.filter(
-          (p) => p.ProductId !== ProductId
-        );
+        const updatedProducts = prev.products.filter((p) => p.ProductId !== ProductId);
 
         const updatedInvoice = {
           ...prev,
           products: updatedProducts,
-          TotalAmount: updatedProducts.reduce(
-            (sum, product) => sum + product.Quantity,
-            0
-          ),
+          TotalAmount: updatedProducts.reduce((sum, product) => sum + product.Quantity, 0),
         };
 
         // If this was the last product, clear the cookie immediately
@@ -339,10 +290,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({
             // Set cleared flag for other tabs
             if (typeof window !== "undefined") {
               localStorage.setItem(INVOICE_CLEARED_KEY, "true");
-              localStorage.setItem(
-                INVOICE_SYNC_KEY,
-                "cleared:" + Date.now().toString()
-              );
+              localStorage.setItem(INVOICE_SYNC_KEY, "cleared:" + Date.now().toString());
             }
           }, 0);
         }
@@ -358,10 +306,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({
       return {
         ...prev,
         products: updatedProducts,
-        TotalAmount: updatedProducts.reduce(
-          (sum, product) => sum + product.Quantity,
-          0
-        ),
+        TotalAmount: updatedProducts.reduce((sum, product) => sum + product.Quantity, 0),
       };
     });
   };
@@ -389,10 +334,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({
     // Set cleared flag for other tabs
     if (typeof window !== "undefined") {
       localStorage.setItem(INVOICE_CLEARED_KEY, "true");
-      localStorage.setItem(
-        INVOICE_SYNC_KEY,
-        "cleared:" + Date.now().toString()
-      );
+      localStorage.setItem(INVOICE_SYNC_KEY, "cleared:" + Date.now().toString());
     }
   };
 

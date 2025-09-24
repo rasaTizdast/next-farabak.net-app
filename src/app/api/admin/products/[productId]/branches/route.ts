@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -9,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 // Helper function to verify the JWT token
 async function verifyToken() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
@@ -26,19 +27,14 @@ async function verifyToken() {
   }
 }
 
-export async function GET(
-  request: Request,
-  { params }: { params: { productId: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ productId: string }> }) {
+  const params = await props.params;
   try {
     // Verify authentication
     const tokenPayload = await verifyToken();
 
     if (!tokenPayload) {
-      return NextResponse.json(
-        { error: "احراز هویت الزامی است" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "احراز هویت الزامی است" }, { status: 401 });
     }
 
     // Get user role and ID from token
@@ -47,19 +43,13 @@ export async function GET(
 
     // Only Admin or Branch users can search branches
     if (userRole !== "Admin" && userRole !== "Branch") {
-      return NextResponse.json(
-        { error: "دسترسی غیرمجاز" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
     }
 
     // Get product ID from params
     const productId = Number(params.productId);
     if (isNaN(productId)) {
-      return NextResponse.json(
-        { error: "شناسه محصول نامعتبر است" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "شناسه محصول نامعتبر است" }, { status: 400 });
     }
 
     // For branch users, get their branch ID
@@ -110,9 +100,6 @@ export async function GET(
     });
   } catch (error) {
     console.error("Error searching branches for product:", error);
-    return NextResponse.json(
-      { error: "خطا در جستجوی شعبه‌ها" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در جستجوی شعبه‌ها" }, { status: 500 });
   }
-} 
+}

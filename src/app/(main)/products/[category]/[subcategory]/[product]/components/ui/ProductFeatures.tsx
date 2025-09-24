@@ -1,5 +1,6 @@
 // app/products/[category]/[product]/components/ProductFeatures.tsx
 import axios from "axios";
+
 import styles from "../../ProductPage.module.css";
 
 async function getProductFeatures(productId: number) {
@@ -12,15 +13,12 @@ async function getProductFeatures(productId: number) {
 
     return res.data;
   } catch (error) {
+    console.error(error);
     return null;
   }
 }
 
-export default async function ProductFeatures({
-  productId,
-}: {
-  productId: number;
-}) {
+export default async function ProductFeatures({ productId }: { productId: number }) {
   const features = await getProductFeatures(productId);
 
   if (!features) {

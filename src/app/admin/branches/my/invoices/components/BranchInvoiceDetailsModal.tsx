@@ -1,16 +1,14 @@
-import React, { useState, useEffect, useRef } from "react";
-import {
-  AdminInvoice,
-  InvoiceDetail,
-  Warranty,
-} from "@/app/admin/invoices/type";
-import moment from "jalali-moment";
-import axios from "axios";
-import { usePrint } from "@/app/utils/usePrint";
-import PrintButton from "@/app/components/ui/PrintButton";
-import BranchWarrantyViewModal from "./BranchWarrantyViewModal";
-import BranchWarrantyManagementModal from "./BranchWarrantyManagementModal";
 import { message } from "antd";
+import axios from "axios";
+import Image from "next/image";
+import React, { useState, useEffect } from "react";
+
+import { AdminInvoice, InvoiceDetail, Warranty } from "@/app/admin/invoices/type";
+import PrintButton from "@/app/components/ui/PrintButton";
+import { usePrint } from "@/app/utils/usePrint";
+
+import BranchWarrantyManagementModal from "./BranchWarrantyManagementModal";
+import BranchWarrantyViewModal from "./BranchWarrantyViewModal";
 
 // Extend the Warranty interface to include the hasWarranty property
 interface ExtendedWarranty extends Warranty {
@@ -36,16 +34,10 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
   invoice,
   onClose,
 }) => {
-  const [productNames, setProductNames] = useState<{ [key: string]: string }>(
-    {}
-  );
+  const [productNames, setProductNames] = useState<{ [key: string]: string }>({});
   const [expandedItems, setExpandedItems] = useState<ExpandedInvoiceItem[]>([]);
-  const [selectedItem, setSelectedItem] = useState<ExpandedInvoiceItem | null>(
-    null
-  );
-  const [showPrintView, setShowPrintView] = useState(false);
-  const [addWarrantyItem, setAddWarrantyItem] =
-    useState<ExpandedInvoiceItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<ExpandedInvoiceItem | null>(null);
+  const [addWarrantyItem, setAddWarrantyItem] = useState<ExpandedInvoiceItem | null>(null);
   const [refreshCounter, setRefreshCounter] = useState(0);
 
   // Use the print hook for printing
@@ -57,22 +49,6 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
   if (!invoice.Invoice_Details) {
     console.warn("Missing Invoice_Details in invoice:", invoice);
   }
-
-  // Helper function to safely check if an item has warranty
-  const hasValidWarranty = (item: any) => {
-    return (
-      item &&
-      item.warranty &&
-      item.warranty.hasWarranty !== false &&
-      item.warranty.warrantycode
-    );
-  };
-
-  // Convert Western digits to Persian digits
-  const toPersianDigits = (text: string) => {
-    const persianDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
-    return text.replace(/[0-9]/g, (match) => persianDigits[parseInt(match)]);
-  };
 
   // Format date using jalali moment
   const formatDate = (dateString: string, includeTime: boolean = true) => {
@@ -117,31 +93,27 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
   useEffect(() => {
     const fetchProductNames = async () => {
       try {
-        if (
-          !invoice.Invoice_Details ||
-          !Array.isArray(invoice.Invoice_Details)
-        ) {
+        if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
           return;
         }
 
         // Map over Invoice_Details and make async calls for each product
-        const productNameRequests = invoice.Invoice_Details.map(
-          async (product) => {
-            const res = await axios.get(
-              `/api/products/getProductType/${product.ProductId}`
-            );
-            return { id: product.ProductId, name: res.data.productType };
-          }
-        );
+        const productNameRequests = invoice.Invoice_Details.map(async (product) => {
+          const res = await axios.get(`/api/products/getProductType/${product.ProductId}`);
+          return { id: product.ProductId, name: res.data.productType };
+        });
 
         // Wait for all promises to resolve
         const results = await Promise.all(productNameRequests);
 
         // Update state with the resolved product names
-        const names = results.reduce((acc, curr) => {
-          acc[curr.id] = curr.name;
-          return acc;
-        }, {} as { [key: string]: string });
+        const names = results.reduce(
+          (acc, curr) => {
+            acc[curr.id] = curr.name;
+            return acc;
+          },
+          {} as { [key: string]: string }
+        );
 
         setProductNames(names);
       } catch (error) {
@@ -267,9 +239,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
 
     // Fetch updated invoice data directly instead of just triggering useEffect
     try {
-      const response = await axios.get(
-        `/api/admin/invoices/${invoice.Invoiceid}`
-      );
+      const response = await axios.get(`/api/admin/invoices/${invoice.Invoiceid}`);
       if (response.data && response.data.invoice) {
         // Update with fresh data that includes branchid
         const updatedInvoice = response.data.invoice;
@@ -326,9 +296,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
     if (refreshCounter > 0) {
       const fetchUpdatedInvoiceData = async () => {
         try {
-          const response = await axios.get(
-            `/api/admin/invoices/${invoice.Invoiceid}`
-          );
+          const response = await axios.get(`/api/admin/invoices/${invoice.Invoiceid}`);
           if (response.data && response.data.invoice) {
             // Update with fresh data
             const updatedInvoice = response.data.invoice;
@@ -349,20 +317,20 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
   }, [refreshCounter, invoice.Invoiceid]);
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-slate-900 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 backdrop-blur-sm sm:p-4">
+      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-slate-900">
         <div ref={componentRef} className="p-3 sm:p-6">
           <div className="text-gray-100">
             {/* Header */}
             <div className="mb-4 sm:mb-8">
-              <img
+              <Image
                 src="/Farabak_Logo.webp"
                 alt="Farabak Logo"
                 width={130}
                 height={130}
-                className="mx-auto logo print-only flex justify-center items-center mt-4 mb-5"
+                className="logo print-only mx-auto mb-5 mt-4 flex items-center justify-center"
               />
-              <h2 className="text-xl sm:text-2xl font-bold text-center">
+              <h2 className="text-center text-xl font-bold sm:text-2xl">
                 جزئیات فاکتور
                 <br />
                 {invoice.FactorGuid}
@@ -371,22 +339,22 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
 
             <div className="space-y-4 sm:space-y-6" dir="rtl">
               {/* Customer Details */}
-              <div className="space-y-3 sm:space-y-4 bg-slate-800 p-3 sm:p-4 rounded-lg text-sm sm:text-base">
-                <div className="flex justify-between items-center">
+              <div className="space-y-3 rounded-lg bg-slate-800 p-3 text-sm sm:space-y-4 sm:p-4 sm:text-base">
+                <div className="flex items-center justify-between">
                   <span className="text-gray-300">نام و نام خانوادگی:</span>
                   <span className="font-medium">{invoice.Fullname}</span>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex items-center justify-between">
                   <span className="text-gray-300">شماره کاربر:</span>
                   <span className="font-medium">{invoice.Phonenumber}</span>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                   <span className="text-gray-300">تاریخ ثبت فاکتور:</span>
                   <span className="font-medium" dir="ltr">
                     {formatDate(invoice.Date)}
                   </span>
                 </div>
-                <div className="flex justify-between items-center no-print">
+                <div className="no-print flex items-center justify-between">
                   <span className="text-gray-300">وضعیت فاکتور:</span>
                   <span className="font-medium">
                     {invoice.Checked ? (
@@ -399,21 +367,19 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
               </div>
 
               {/* Products Table */}
-              <div className="overflow-x-auto bg-slate-800 rounded-lg">
-                <div className="overflow-auto max-h-[500px] invoice-table-container">
-                  <table className="w-full text-xs sm:text-sm whitespace-nowrap">
-                    <thead className="bg-slate-700 sticky top-0 z-10">
+              <div className="overflow-x-auto rounded-lg bg-slate-800">
+                <div className="invoice-table-container max-h-[500px] overflow-auto">
+                  <table className="w-full whitespace-nowrap text-xs sm:text-sm">
+                    <thead className="sticky top-0 z-10 bg-slate-700">
                       <tr>
-                        <th className="p-2 sm:p-4 text-right font-medium text-gray-300">
+                        <th className="p-2 text-right font-medium text-gray-300 sm:p-4">
                           نام محصول
                         </th>
-                        <th className="p-2 sm:p-4 text-right font-medium text-gray-300">
+                        <th className="p-2 text-right font-medium text-gray-300 sm:p-4">
                           قیمت واحد - تومان
                         </th>
-                        <th className="p-2 sm:p-4 text-right font-medium text-gray-300">
-                          گارانتی
-                        </th>
-                        <th className="p-2 sm:p-4 text-right font-medium text-gray-300 no-print">
+                        <th className="p-2 text-right font-medium text-gray-300 sm:p-4">گارانتی</th>
+                        <th className="no-print p-2 text-right font-medium text-gray-300 sm:p-4">
                           عملیات
                         </th>
                       </tr>
@@ -427,9 +393,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                           );
 
                           // Find index of current item in its product group
-                          const currentIndex = sameProductItems.findIndex(
-                            (i) => i === item
-                          );
+                          const currentIndex = sameProductItems.findIndex((i) => i === item);
 
                           // Only show product name and count for first item in group
                           const isFirstOccurrence = currentIndex === 0;
@@ -437,9 +401,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                           // Generate item indicator for warranty
                           const itemIndicator =
                             sameProductItems.length > 1
-                              ? `محصول ${currentIndex + 1} از ${
-                                  sameProductItems.length
-                                }: `
+                              ? `محصول ${currentIndex + 1} از ${sameProductItems.length}: `
                               : "";
 
                           // Determine row class based on position in group
@@ -447,10 +409,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                           if (sameProductItems.length > 1) {
                             if (currentIndex === 0) {
                               rowClass += " first-group-item";
-                            } else if (
-                              currentIndex ===
-                              sameProductItems.length - 1
-                            ) {
+                            } else if (currentIndex === sameProductItems.length - 1) {
                               rowClass += " last-group-item";
                             } else {
                               rowClass += " middle-group-item";
@@ -458,18 +417,12 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                           }
 
                           // Add product-specific color class
-                          const colorIndex = getProductColorIndex(
-                            item.ProductId
-                          );
-                          rowClass += ` product-color-${getColorNameByIndex(
-                            colorIndex
-                          )}`;
+                          const colorIndex = getProductColorIndex(item.ProductId);
+                          rowClass += ` product-color-${getColorNameByIndex(colorIndex)}`;
 
                           return (
                             <tr
-                              key={`${item.ProductId}-${
-                                item.itemNumber || index
-                              }`}
+                              key={`${item.ProductId}-${item.itemNumber || index}`}
                               className={rowClass}
                             >
                               <td className="p-2 sm:p-4">
@@ -484,7 +437,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                                       <span
                                         className={`${getProductColor(
                                           item.ProductId
-                                        )} text-xs text-white px-2 py-0.5 rounded-full`}
+                                        )} rounded-full px-2 py-0.5 text-xs text-white`}
                                       >
                                         {sameProductItems.length}×
                                       </span>
@@ -492,34 +445,26 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                                   </div>
                                 ) : null}
                               </td>
+                              <td className="p-2 sm:p-4">{formatCurrency(item.price)}</td>
                               <td className="p-2 sm:p-4">
-                                {formatCurrency(item.price)}
-                              </td>
-                              <td className="p-2 sm:p-4">
-                                {item.individualWarranty &&
-                                item.individualWarranty.warrantycode ? (
+                                {item.individualWarranty && item.individualWarranty.warrantycode ? (
                                   <div className="flex flex-col gap-1">
-                                    {item.individualWarranty.status ===
-                                      "Expired" ||
-                                    item.individualWarranty.displayStatus ===
-                                      "Expired" ||
+                                    {item.individualWarranty.status === "Expired" ||
+                                    item.individualWarranty.displayStatus === "Expired" ||
                                     (item.individualWarranty.expirydate &&
-                                      new Date(
-                                        item.individualWarranty.expirydate
-                                      ) < new Date()) ? (
-                                      <span className="text-xs bg-red-900/40 text-red-300 px-2 py-1 rounded-full inline-block w-fit no-print">
+                                      new Date(item.individualWarranty.expirydate) < new Date()) ? (
+                                      <span className="no-print inline-block w-fit rounded-full bg-red-900/40 px-2 py-1 text-xs text-red-300">
                                         منقضی شده
                                       </span>
                                     ) : (
-                                      <span className="text-xs bg-green-900/40 text-green-300 px-2 py-1 rounded-full inline-block w-fit no-print">
+                                      <span className="no-print inline-block w-fit rounded-full bg-green-900/40 px-2 py-1 text-xs text-green-300">
                                         فعال
                                       </span>
                                     )}
-                                    <div className="text-xs text-gray-400 border border-gray-700 rounded p-1">
+                                    <div className="rounded border border-gray-700 p-1 text-xs text-gray-400">
                                       <div>
                                         {itemIndicator}
-                                        {item.individualWarranty.warrantycode ||
-                                          "بدون کد"}
+                                        {item.individualWarranty.warrantycode || "بدون کد"}
                                       </div>
                                       {item.individualWarranty.startdate &&
                                         item.individualWarranty.expirydate && (
@@ -531,14 +476,11 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                                             تا{" "}
                                             <span
                                               className={
-                                                item.individualWarranty
-                                                  .status === "Expired" ||
-                                                item.individualWarranty
-                                                  .displayStatus ===
+                                                item.individualWarranty.status === "Expired" ||
+                                                item.individualWarranty.displayStatus ===
                                                   "Expired" ||
-                                                new Date(
-                                                  item.individualWarranty.expirydate
-                                                ) < new Date()
+                                                new Date(item.individualWarranty.expirydate) <
+                                                  new Date()
                                                   ? "text-red-400"
                                                   : "text-gray-400"
                                               }
@@ -552,24 +494,21 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                                     </div>
                                   </div>
                                 ) : (
-                                  <span className="text-xs text-gray-500">
-                                    بدون گارانتی
-                                  </span>
+                                  <span className="text-xs text-gray-500">بدون گارانتی</span>
                                 )}
                               </td>
-                              <td className="p-2 sm:p-4 no-print">
-                                {item.individualWarranty &&
-                                item.individualWarranty.warrantycode ? (
+                              <td className="no-print p-2 sm:p-4">
+                                {item.individualWarranty && item.individualWarranty.warrantycode ? (
                                   <button
                                     onClick={() => handleViewWarranty(item)}
-                                    className="text-xs bg-blue-700 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors"
+                                    className="rounded bg-blue-700 px-2 py-1 text-xs text-white transition-colors hover:bg-blue-600"
                                   >
                                     مشاهده گارانتی
                                   </button>
                                 ) : (
                                   <button
                                     onClick={() => handleAddWarranty(item)}
-                                    className="text-xs bg-green-700 hover:bg-green-600 text-white px-2 py-1 rounded transition-colors"
+                                    className="rounded bg-green-700 px-2 py-1 text-xs text-white transition-colors hover:bg-green-600"
                                   >
                                     افزودن گارانتی
                                   </button>
@@ -580,7 +519,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                         })
                       ) : (
                         <tr>
-                          <td colSpan={4} className="p-2 sm:p-4 text-center">
+                          <td colSpan={4} className="p-2 text-center sm:p-4">
                             هیچ محصولی در این فاکتور وجود ندارد
                           </td>
                         </tr>
@@ -591,12 +530,11 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
               </div>
 
               {/* Total Amount */}
-              <div className="flex justify-between items-center text-base sm:text-lg font-bold p-3 sm:p-4 bg-slate-800 rounded-lg">
+              <div className="flex items-center justify-between rounded-lg bg-slate-800 p-3 text-base font-bold sm:p-4 sm:text-lg">
                 <span className="text-gray-300">مجموع کل:</span>
-                <span className="text-green-400 flex gap-1 items-center">
+                <span className="flex items-center gap-1 text-green-400">
                   <span>
-                    {invoice.Invoice_Details &&
-                    Array.isArray(invoice.Invoice_Details)
+                    {invoice.Invoice_Details && Array.isArray(invoice.Invoice_Details)
                       ? invoice.Invoice_Details.reduce(
                           (sum, product) => sum + product.total_price,
                           0
@@ -611,11 +549,11 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="flex justify-between gap-4 p-3 sm:p-6 border-t border-slate-700 no-print">
+        <div className="no-print flex justify-between gap-4 border-t border-slate-700 p-3 sm:p-6">
           <PrintButton onPrint={handleInvoicePrint} />
           <button
             onClick={onClose}
-            className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors duration-200 text-gray-100 text-sm sm:text-base"
+            className="w-full rounded-lg bg-slate-700 px-4 py-2 text-sm text-gray-100 transition-colors duration-200 hover:bg-slate-600 sm:w-auto sm:px-6 sm:text-base"
           >
             بستن
           </button>
@@ -624,10 +562,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
 
       {/* Warranty View Modal */}
       {selectedItem && (
-        <BranchWarrantyViewModal
-          item={selectedItem}
-          onClose={() => setSelectedItem(null)}
-        />
+        <BranchWarrantyViewModal item={selectedItem} onClose={() => setSelectedItem(null)} />
       )}
 
       {/* Warranty Management Modal for adding new warranties */}
@@ -828,9 +763,7 @@ const getProductColorIndex = (productId: string | number): number => {
     numValue = parseInt(numbers[0], 10);
   } else {
     // If no numbers, use the sum of char codes
-    numValue = productIdStr
-      .split("")
-      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    numValue = productIdStr.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
   }
 
   // Return color index (0-7)
@@ -845,16 +778,7 @@ const getProductColor = (productId: string | number): string => {
 
 // Get color name by index
 const getColorNameByIndex = (index: number): string => {
-  const colorNames = [
-    "blue",
-    "green",
-    "purple",
-    "orange",
-    "pink",
-    "cyan",
-    "red",
-    "lime",
-  ];
+  const colorNames = ["blue", "green", "purple", "orange", "pink", "cyan", "red", "lime"];
 
   return colorNames[index];
 };

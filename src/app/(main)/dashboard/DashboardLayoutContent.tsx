@@ -1,19 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useUser } from "@/context/UserContext";
-
+import { useEffect, useState } from "react";
+import { FaArrowLeft, FaArrowRight, FaFileInvoice, FaUserEdit } from "react-icons/fa";
 import { ImExit } from "react-icons/im";
-import {
-  FaArrowLeft,
-  FaArrowRight,
-  FaFileInvoice,
-  FaUserEdit,
-} from "react-icons/fa";
 import { MdDashboard, MdOutlinePassword } from "react-icons/md";
 import { TbInvoice } from "react-icons/tb";
+
+import { useUser } from "@/context/UserContext";
 
 import styles from "./DashboardLayout.module.css";
 
@@ -45,11 +40,7 @@ const asideData = [
   },
 ];
 
-const DashboardLayoutContent = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => {
   const [width, setWidth] = useState<number | undefined>(undefined); // Initialize as undefined
   const [overlay, setOverlay] = useState(false);
   const [textVis, setTextVis] = useState(false);
@@ -81,9 +72,7 @@ const DashboardLayoutContent = ({
             <li key={id}>
               <Link
                 href={link}
-                className={
-                  pathname === link ? styles.active : styles.asideLinks
-                }
+                className={pathname === link ? styles.active : styles.asideLinks}
                 onClick={() => {
                   if (width && width <= 576) {
                     setTextVis(false);
@@ -92,9 +81,7 @@ const DashboardLayoutContent = ({
                 }}
               >
                 {textVis && <span className={styles.text}>{name}</span>}
-                {width && width <= 576 && (
-                  <span className={styles.icon}>{icon}</span>
-                )}
+                {width && width <= 576 && <span className={styles.icon}>{icon}</span>}
               </Link>
             </li>
           ))}
@@ -110,9 +97,7 @@ const DashboardLayoutContent = ({
             </button>
           )}
           <li>
-            <span onClick={() => logout()}>
-              {textVis ? "خروج از حساب" : <ImExit />}
-            </span>
+            <span onClick={() => logout()}>{textVis ? "خروج از حساب" : <ImExit />}</span>
           </li>
         </ul>
       </aside>

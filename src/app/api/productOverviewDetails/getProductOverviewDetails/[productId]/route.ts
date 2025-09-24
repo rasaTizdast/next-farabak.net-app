@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -41,17 +42,12 @@ import { NextResponse } from "next/server";
  *         description: Internal server error
  */
 
-export async function GET(
-  request: Request,
-  { params }: { params: { productId: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ productId: string }> }) {
+  const params = await props.params;
   const { productId } = params;
 
   if (!productId) {
-    return NextResponse.json(
-      { message: "Product ID is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ message: "Product ID is required" }, { status: 400 });
   }
 
   try {
@@ -59,10 +55,7 @@ export async function GET(
     const productIdInt = parseInt(productId, 10);
 
     if (isNaN(productIdInt)) {
-      return NextResponse.json(
-        { message: "Invalid product ID format" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Invalid product ID format" }, { status: 400 });
     }
 
     // Fetch data using Prisma
@@ -74,10 +67,7 @@ export async function GET(
     });
 
     if (!details || details.length === 0) {
-      return NextResponse.json(
-        { message: "No product found for the given ID" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "No product found for the given ID" }, { status: 404 });
     }
 
     // Transform data into the required format
@@ -91,8 +81,9 @@ export async function GET(
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
-      { message: "Failed to fetch product overview details" },
+      { error: "Failed to fetch product overview details" },
       { status: 500 }
     );
   }

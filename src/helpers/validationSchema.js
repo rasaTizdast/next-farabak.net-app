@@ -39,8 +39,7 @@ const fNamePattern = /^[\u0600-\u06FF\uFB8A\u067E\u0686\u06AF\s]{3,20}$/;
 const lNamePattern = /^[\u0600-\u06FF\uFB8A\u067E\u0686\u06AF\s]{3,30}$/;
 const phoneNumberPattern = /^09\d{9}$/;
 const jobPattern = /^[\u0600-\u06FF\uFB8A\u067E\u0686\u06AF\s]{3,30}$/;
-const emailPattern =
-  /^[A-Za-z0-9_!#$%&'*+=?`{|}~^.-]{5,50}@[A-Za-z0-9.-]{1,45}\.[A-Za-z]{2,4}$/;
+const emailPattern = /^[A-Za-z0-9_!#$%&'*+=?`{|}~^.-]{5,50}@[A-Za-z0-9.-]{1,45}\.[A-Za-z]{2,4}$/;
 const usernamePattern = /^[a-zA-Z_0-9]{3,30}$/;
 const passwordPattern = /^[a-zA-Z0-9@!#$%^&*_+;:?]{8,50}$/;
 
@@ -83,10 +82,7 @@ const signUpSchema = yup.object().shape({
     .required("نام کاربری الزامی است"),
   password: yup
     .string()
-    .matches(
-      passwordPattern,
-      "کلمه عبور باید بین ۸ تا ۵۰ کاراکتر و شامل حروف انگلیسی و اعداد باشد"
-    )
+    .matches(passwordPattern, "کلمه عبور باید بین ۸ تا ۵۰ کاراکتر و شامل حروف انگلیسی و اعداد باشد")
     .required("کلمه عبور الزامی است"),
   secondPassword: yup
     .string()
@@ -106,10 +102,7 @@ const signInSchema = yup.object().shape({
     .required("نام کاربری الزامی است"),
   password: yup
     .string()
-    .matches(
-      passwordPattern,
-      "کلمه عبور باید بین ۸ تا ۵۰ کاراکتر و شامل حروف و اعداد انگلیسی باشد"
-    )
+    .matches(passwordPattern, "کلمه عبور باید بین ۸ تا ۵۰ کاراکتر و شامل حروف و اعداد انگلیسی باشد")
     .required("کلمه عبور الزامی است")
     .min(8, "کلمه عبور نباید کمتر از ۸ کاراکتر باشد")
     .max(50, "کلمه عبور نباید بیش از ۵۰ کاراکتر باشد"),
@@ -136,10 +129,7 @@ const verifyCodeSchema = yup.object().shape({
 const resetPasswordSchema = yup.object().shape({
   password: yup
     .string()
-    .matches(
-      passwordPattern,
-      "کلمه عبور باید بین ۸ تا ۵۰ کاراکتر و شامل حروف و اعداد انگلیسی باشد"
-    )
+    .matches(passwordPattern, "کلمه عبور باید بین ۸ تا ۵۰ کاراکتر و شامل حروف و اعداد انگلیسی باشد")
     .required("کلمه عبور الزامی است")
     .min(8, "کلمه عبور نباید کمتر از ۸ کاراکتر باشد")
     .max(50, "کلمه عبور نباید بیش از ۵۰ کاراکتر باشد"),
@@ -184,17 +174,11 @@ const editUserSchema = yup.object().shape({
 const changePasswordSchema = yup.object().shape({
   currentPassword: yup
     .string()
-    .matches(
-      passwordPattern,
-      "کلمه عبور باید بین ۸ تا ۵۰ کاراکتر و شامل حروف انگلیسی و اعداد باشد"
-    )
+    .matches(passwordPattern, "کلمه عبور باید بین ۸ تا ۵۰ کاراکتر و شامل حروف انگلیسی و اعداد باشد")
     .required("کلمه عبور الزامی است"),
   newPassword: yup
     .string()
-    .matches(
-      passwordPattern,
-      "کلمه عبور جدید باید با کلمه عبور قبلی تفاوت داشته باشد"
-    )
+    .matches(passwordPattern, "کلمه عبور جدید باید با کلمه عبور قبلی تفاوت داشته باشد")
     .required("کلمه عبور جدید الزامی است"),
 });
 

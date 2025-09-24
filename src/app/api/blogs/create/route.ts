@@ -1,5 +1,6 @@
 // app/api/blogs/create/route.ts
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
@@ -37,14 +38,8 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("خطا در ایجاد بلاگ:", error);
     if ((error as any).code === "P2002") {
-      return NextResponse.json(
-        { error: "بلاگی با این اسلاگ قبلاً وجود دارد" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "بلاگی با این اسلاگ قبلاً وجود دارد" }, { status: 400 });
     }
-    return NextResponse.json(
-      { error: "ایجاد بلاگ با مشکل مواجه شد" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "ایجاد بلاگ با مشکل مواجه شد" }, { status: 500 });
   }
 }

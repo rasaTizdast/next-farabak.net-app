@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { IoIosClose } from "react-icons/io";
-import { toast } from "react-hot-toast";
 import axios from "axios";
+import React, { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 import { CgSpinnerTwo } from "react-icons/cg";
 import { FiEdit, FiTrash, FiPlus } from "react-icons/fi";
+import { IoIosClose } from "react-icons/io";
+
 import SpecTemplateModal from "./SpecTemplateModal";
 
 type SpecTemplate = {
@@ -23,16 +24,11 @@ type SpecTemplateManagerProps = {
   onTemplateSelect: (items: { title: string; description: string }[]) => void;
 };
 
-const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({
-  onClose,
-  onTemplateSelect,
-}) => {
+const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTemplateSelect }) => {
   const [templates, setTemplates] = useState<SpecTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
-  const [templateToEdit, setTemplateToEdit] = useState<SpecTemplate | null>(
-    null
-  );
+  const [templateToEdit, setTemplateToEdit] = useState<SpecTemplate | null>(null);
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
   // Fetch all templates
@@ -113,12 +109,10 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div
-          className="bg-gray-800 text-white rounded-xl shadow-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto relative animate-fade-in"
+          className="relative max-h-[90vh] w-full max-w-3xl animate-fade-in overflow-y-auto rounded-xl bg-gray-800 p-6 text-white shadow-lg"
           onClick={(e) => e.stopPropagation()}
         >
-          <h2 className="text-xl font-bold mb-6 text-center">
-            مدیریت قالب‌های مشخصات
-          </h2>
+          <h2 className="mb-6 text-center text-xl font-bold">مدیریت قالب‌های مشخصات</h2>
 
           <div className="mb-4 flex justify-end">
             <button
@@ -127,7 +121,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({
                 e.stopPropagation();
                 handleCreateTemplate();
               }}
-              className="px-4 py-2 bg-green-600 rounded-lg hover:bg-green-500 transition-colors flex items-center gap-2"
+              className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 transition-colors hover:bg-green-500"
             >
               <FiPlus />
               ایجاد قالب جدید
@@ -147,15 +141,13 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({
               {templates.map((template) => (
                 <div
                   key={template.SpecTemplateId}
-                  className="bg-gray-700 rounded-lg p-4 flex justify-between items-center"
+                  className="flex items-center justify-between rounded-lg bg-gray-700 p-4"
                 >
                   <div className="flex-grow">
-                    <h3 className="font-bold text-lg">{template.Name}</h3>
-                    <p className="text-gray-400 text-sm">
-                      {template.Items && template.Items.length
-                        ? template.Items.length
-                        : 0}{" "}
-                      مورد مشخصات
+                    <h3 className="text-lg font-bold">{template.Name}</h3>
+                    <p className="text-sm text-gray-400">
+                      {template.Items && template.Items.length ? template.Items.length : 0} مورد
+                      مشخصات
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -165,7 +157,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({
                         e.stopPropagation();
                         handleSelectTemplate(template.SpecTemplateId);
                       }}
-                      className="px-3 py-1 bg-blue-600 rounded hover:bg-blue-500 transition-colors"
+                      className="rounded bg-blue-600 px-3 py-1 transition-colors hover:bg-blue-500"
                     >
                       انتخاب
                     </button>
@@ -175,7 +167,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({
                         e.stopPropagation();
                         handleEditTemplate(template);
                       }}
-                      className="p-1 bg-yellow-600 rounded hover:bg-yellow-500 transition-colors"
+                      className="rounded bg-yellow-600 p-1 transition-colors hover:bg-yellow-500"
                     >
                       <FiEdit />
                     </button>
@@ -185,7 +177,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({
                         e.stopPropagation();
                         handleDeleteTemplate(template.SpecTemplateId);
                       }}
-                      className="p-1 bg-red-600 rounded hover:bg-red-500 transition-colors"
+                      className="rounded bg-red-600 p-1 transition-colors hover:bg-red-500"
                       disabled={deleteLoading === template.SpecTemplateId}
                     >
                       {deleteLoading === template.SpecTemplateId ? (
@@ -207,7 +199,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({
                 e.stopPropagation();
                 onClose();
               }}
-              className="px-4 py-2 bg-gray-600 rounded-lg hover:bg-gray-500 transition-colors"
+              className="rounded-lg bg-gray-600 px-4 py-2 transition-colors hover:bg-gray-500"
             >
               بستن
             </button>
@@ -215,7 +207,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({
 
           <button
             type="button"
-            className="absolute top-2 right-2 text-gray-400 hover:text-white"
+            className="absolute right-2 top-2 text-gray-400 hover:text-white"
             onClick={(e) => {
               e.stopPropagation();
               onClose();

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -19,10 +20,8 @@ import { prisma } from "@/lib/prisma";
  *       500:
  *         description: Server error
  */
-export async function GET(
-  request: Request,
-  { params }: { params: { productId: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ productId: string }> }) {
+  const params = await props.params;
   try {
     const productId = parseInt(params.productId);
 
@@ -41,9 +40,6 @@ export async function GET(
     });
   } catch (error) {
     console.error("Error getting product quantity:", error);
-    return NextResponse.json(
-      { error: "خطا در دریافت تعداد محصول" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در دریافت تعداد محصول" }, { status: 500 });
   }
 }

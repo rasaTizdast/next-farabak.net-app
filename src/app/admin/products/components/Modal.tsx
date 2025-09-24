@@ -38,15 +38,13 @@ const Modal: React.FC<Props> = ({
       style={{ zIndex }}
     >
       <div
-        className={`bg-gray-800 text-white rounded-lg shadow-xl p-6 w-full ${sizeClasses} max-h-[90vh] overflow-auto relative animate-fade-in ${className}`}
+        className={`w-full rounded-lg bg-gray-800 p-6 text-white shadow-xl ${sizeClasses} relative max-h-[90vh] animate-fade-in overflow-auto ${className}`}
       >
-        {title && (
-          <h2 className="text-xl font-bold mb-6 text-center">{title}</h2>
-        )}
+        {title && <h2 className="mb-6 text-center text-xl font-bold">{title}</h2>}
 
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 font-bold text-gray-400 hover:text-gray-200 focus:outline-none"
+          className="absolute right-4 top-4 font-bold text-gray-400 hover:text-gray-200 focus:outline-none"
         >
           ✕
         </button>

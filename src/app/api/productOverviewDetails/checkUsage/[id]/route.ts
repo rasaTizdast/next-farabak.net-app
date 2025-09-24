@@ -1,20 +1,15 @@
-import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const detailId = parseInt(params.id);
 
     if (isNaN(detailId)) {
-      return NextResponse.json(
-        { error: "Invalid Detail ID" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid Detail ID" }, { status: 400 });
     }
 
     // Check if the overview detail is being used by any products
@@ -30,11 +25,8 @@ export async function GET(
     });
   } catch (error) {
     console.error("Error checking overview detail usage:", error);
-    return NextResponse.json(
-      { error: "Failed to check overview detail usage" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to check overview detail usage" }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }
-} 
+}

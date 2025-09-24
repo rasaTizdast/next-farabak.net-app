@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma"; // Ensure you have a Prisma client setup
 
-export async function GET(
-  request: Request,
-  { params }: { params: { slug: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const { slug } = params;
 
   try {
@@ -19,10 +18,7 @@ export async function GET(
     });
 
     if (!project) {
-      return NextResponse.json(
-        { message: "Project not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "Project not found" }, { status: 404 });
     }
 
     // Transform the data to match the expected structure
@@ -30,25 +26,19 @@ export async function GET(
       id: project.ProjectID,
       title: project.Title,
       date: project.date,
-      images: project.ProjectMedia.filter(
-        (media) => media.MediaType === "image"
-      ).map((media) => ({
+      images: project.ProjectMedia.filter((media) => media.MediaType === "image").map((media) => ({
         id: media.MediaID,
         img: media.MediaURL,
         alt: `Project image ${media.MediaID}`,
       })),
       largeDesc: project.Description,
       location: project.city,
-      video: project.ProjectMedia.find((media) => media.MediaType === "video")
-        ?.MediaURL,
+      video: project.ProjectMedia.find((media) => media.MediaType === "video")?.MediaURL,
     };
 
     return NextResponse.json(projectData);
   } catch (error) {
     console.error("Error fetching project:", error);
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }

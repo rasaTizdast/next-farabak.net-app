@@ -6,8 +6,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     // Fetch all URLs from our enhanced API endpoint
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/sitemap`
-      // { next: { revalidate: 86400 } } // Revalidate every 24 hours (86400 seconds)
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/sitemap`,
+      { next: { revalidate: 3600 } } // Revalidate every 1 hour (3600 seconds)
     );
 
     if (!response.ok) {

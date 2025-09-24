@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma"; // Adjust the path based on your project structure
 
 export async function POST(req: NextRequest) {
@@ -11,8 +12,7 @@ export async function POST(req: NextRequest) {
     if (!productId || !qrCodeKey || qrCodeExpiryDays === undefined) {
       return NextResponse.json(
         {
-          error:
-            "Missing required fields: productId, qrCodeKey, or qrCodeExpiryDays",
+          error: "Missing required fields: productId, qrCodeKey, or qrCodeExpiryDays",
         },
         { status: 400 }
       );
@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { error: "An error occurred while updating QR Code details" },
       { status: 500 }
@@ -50,10 +51,7 @@ export async function DELETE(req: NextRequest) {
 
     // Validate required field
     if (!productId) {
-      return NextResponse.json(
-        { error: "Missing required field: productId" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing required field: productId" }, { status: 400 });
     }
 
     // Update the product in the database by removing QR Code details
@@ -73,6 +71,7 @@ export async function DELETE(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { error: "An error occurred while removing QR Code details" },
       { status: 500 }

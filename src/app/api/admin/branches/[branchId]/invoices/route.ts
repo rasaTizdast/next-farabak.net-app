@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -21,18 +22,13 @@ import { prisma } from "@/lib/prisma";
  *       500:
  *         description: Server error
  */
-export async function GET(
-  request: Request,
-  { params }: { params: { branchId: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ branchId: string }> }) {
+  const params = await props.params;
   try {
     const branchId = parseInt(params.branchId);
 
     if (isNaN(branchId)) {
-      return NextResponse.json(
-        { error: "شناسه شعبه نامعتبر است" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "شناسه شعبه نامعتبر است" }, { status: 400 });
     }
 
     // Check if branch exists
@@ -41,10 +37,7 @@ export async function GET(
     `;
 
     if (!branch || (branch as any[]).length === 0) {
-      return NextResponse.json(
-        { error: "شعبه مورد نظر یافت نشد" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "شعبه مورد نظر یافت نشد" }, { status: 404 });
     }
 
     // Get branch's user ID
@@ -94,8 +87,7 @@ export async function GET(
 
             return {
               ...detail,
-              warranty:
-                (warranty as any[]).length > 0 ? (warranty as any[])[0] : null,
+              warranty: (warranty as any[]).length > 0 ? (warranty as any[])[0] : null,
             };
           })
         );
@@ -110,9 +102,6 @@ export async function GET(
     return NextResponse.json(invoicesWithDetails);
   } catch (error) {
     console.error("Error fetching branch invoices:", error);
-    return NextResponse.json(
-      { error: "خطا در بارگذاری فاکتورهای شعبه" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "خطا در بارگذاری فاکتورهای شعبه" }, { status: 500 });
   }
 }

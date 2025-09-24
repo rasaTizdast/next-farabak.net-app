@@ -44,6 +44,8 @@
 .project img {
   height: 250px;
   width: 100%;
+  object-fit: cover;
+  image-rendering: -webkit-optimize-contrast; /* Better image rendering */
 }
 
 .details {
@@ -60,7 +62,7 @@
 .all_projects {
   margin-top: 4rem;
   padding: 1rem 2rem;
-  background-color: var(--third-color);
+  background-color: var(--fourth-color);
   color: #fff;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -95,7 +97,7 @@
 
 @media (min-width: 576px) {
   .all_projects:hover {
-    background-color: var(--fourth-color);
+    background-color: var(--dark-blue-color);
     transform: scale(1.05);
   }
 
@@ -110,8 +112,10 @@
     right: 0;
     bottom: 0;
     left: 100%;
-    background-color: var(--fourth-color);
-    transition: left 0.5s ease-in-out, right 0.5s ease-in-out;
+    background-color: var(--dark-blue-color);
+    transition:
+      left 0.5s ease-in-out,
+      right 0.5s ease-in-out;
     z-index: -1; /* Place the pseudo-element behind the content */
   }
 

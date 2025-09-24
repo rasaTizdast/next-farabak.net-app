@@ -2,10 +2,10 @@
 export function SkeletonFeatures() {
   return (
     <div className="space-y-4">
-      <div className="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
-      <div className="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
-      <div className="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
-      <div className="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
+      <div className="h-4 w-full animate-pulse rounded bg-gray-200"></div>
+      <div className="h-4 w-full animate-pulse rounded bg-gray-200"></div>
+      <div className="h-4 w-full animate-pulse rounded bg-gray-200"></div>
+      <div className="h-4 w-full animate-pulse rounded bg-gray-200"></div>
     </div>
   );
 }

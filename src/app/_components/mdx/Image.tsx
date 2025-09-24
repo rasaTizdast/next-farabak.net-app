@@ -9,13 +9,7 @@ interface ImageProps {
   size?: string;
 }
 
-export const CustomImage: React.FC<ImageProps> = ({
-  width,
-  height,
-  src,
-  alt,
-  size = "full",
-}) => {
+export const CustomImage: React.FC<ImageProps> = ({ width, height, src, alt, size = "full" }) => {
   const sizeClass = useMemo(() => {
     switch (size) {
       case "half":
@@ -47,7 +41,7 @@ export const CustomImage: React.FC<ImageProps> = ({
         width={width || 1000}
         height={height || 1000}
         quality={100}
-        className="rounded-md mx-auto my-4 mobile:my-10"
+        className="mx-auto my-4 rounded-md mobile:my-10"
         priority
         sizes={size === "full" ? "100vw" : size === "half" ? "50vw" : "33vw"}
       />

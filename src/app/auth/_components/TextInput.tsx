@@ -7,8 +7,9 @@ import {
   FieldErrors,
   Path,
 } from "react-hook-form";
-import styles from "./TextInput.module.css";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
+
+import styles from "./TextInput.module.css";
 
 // Define Prop types
 type Props<T extends FieldValues> = {
@@ -61,25 +62,18 @@ const TextInput = <T extends FieldValues>({
               value={value ?? ""}
               className={`${
                 errors[name] ? styles.not_valid : value ? styles.valid : ""
-              }
-              ${styles.input}
-              `}
+              } ${styles.input} `}
               {...rest}
             />
           )}
         />
         {type === "password" && (
-          <span
-            className={styles.password_toggle_icon}
-            onClick={handleTogglePassword}
-          >
+          <span className={styles.password_toggle_icon} onClick={handleTogglePassword}>
             {showPassword ? <FaRegEye /> : <FaRegEyeSlash />}
           </span>
         )}
       </div>
-      {errors[name] && (
-        <p className={styles.error}>{errors[name]?.message as string}</p>
-      )}
+      {errors[name] && <p className={styles.error}>{errors[name]?.message as string}</p>}
     </div>
   );
 };

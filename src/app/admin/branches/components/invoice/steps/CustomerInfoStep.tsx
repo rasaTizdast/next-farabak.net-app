@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
 import { Form, Input, Card } from "antd";
+import React from "react";
+
 import { Invoice } from "../../types";
 
 interface CustomerInfoStepProps {
@@ -9,10 +10,7 @@ interface CustomerInfoStepProps {
   onUpdate: (values: Partial<Invoice>) => void;
 }
 
-const CustomerInfoStep: React.FC<CustomerInfoStepProps> = ({
-  invoice,
-  onUpdate,
-}) => {
+const CustomerInfoStep: React.FC<CustomerInfoStepProps> = ({ invoice, onUpdate }) => {
   const [form] = Form.useForm();
 
   // Initialize form values
@@ -24,15 +22,13 @@ const CustomerInfoStep: React.FC<CustomerInfoStepProps> = ({
   }, [form, invoice]);
 
   // Handle form value changes
-  const handleValuesChange = (changedValues: any) => {
+  const handleValuesChange = (changedValues: Partial<Invoice>) => {
     onUpdate(changedValues);
   };
 
   return (
-    <Card className="bg-slate-900 border-0 shadow-md">
-      <h3 className="text-lg font-medium text-white mb-4">
-        اطلاعات خریدار را وارد کنید
-      </h3>
+    <Card className="border-0 bg-slate-900 shadow-md">
+      <h3 className="mb-4 text-lg font-medium text-white">اطلاعات خریدار را وارد کنید</h3>
       <Form
         form={form}
         layout="vertical"
@@ -52,8 +48,8 @@ const CustomerInfoStep: React.FC<CustomerInfoStepProps> = ({
             },
           ]}
         >
-          <Input 
-            placeholder="نام و نام خانوادگی خریدار" 
+          <Input
+            placeholder="نام و نام خانوادگی خریدار"
             className="dark-input"
             style={{
               backgroundColor: "#374151",
@@ -74,8 +70,8 @@ const CustomerInfoStep: React.FC<CustomerInfoStepProps> = ({
             },
           ]}
         >
-          <Input 
-            placeholder="مثال: 09123456789" 
+          <Input
+            placeholder="مثال: 09123456789"
             className="dark-input"
             style={{
               backgroundColor: "#374151",

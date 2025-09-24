@@ -1,11 +1,7 @@
-import React from "react";
 import { Pagination, PaginationProps } from "antd";
+import React from "react";
 
-interface PersianPaginationProps extends PaginationProps {
-  // Add any additional props if needed
-}
-
-const PersianPagination: React.FC<PersianPaginationProps> = (props) => {
+const PersianPagination: React.FC<PaginationProps> = (props) => {
   // Create a modified version of the locale object
   const persianLocale = {
     // Override the English text with Persian
@@ -68,9 +64,7 @@ const PersianPagination: React.FC<PersianPaginationProps> = (props) => {
         }
 
         /* Hide the original "/ page" text from the selector */
-        .persian-pagination
-          .ant-pagination-options-size-changer
-          .ant-select-selection-item {
+        .persian-pagination .ant-pagination-options-size-changer .ant-select-selection-item {
           font-size: 0 !important;
         }
 

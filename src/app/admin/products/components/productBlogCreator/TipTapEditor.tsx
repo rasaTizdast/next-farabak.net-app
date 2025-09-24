@@ -1,12 +1,14 @@
 // src/components/TipTapBlogEditor.tsx
 
-import React from "react";
-import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
+import Table from "@tiptap/extension-table";
+import TableCell from "@tiptap/extension-table-cell";
+import TableHeader from "@tiptap/extension-table-header";
+import TableRow from "@tiptap/extension-table-row";
 import TextAlign from "@tiptap/extension-text-align";
-import { useState, useCallback, useEffect } from "react";
+import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
 import {
   Bold,
   Italic,
@@ -28,25 +30,43 @@ import {
   Heading4,
   Heading5,
   Heading6,
+  Table as TableIcon,
+  FileUp,
+  Video,
 } from "lucide-react";
-import { ToolbarButton } from "./ToolbarButton";
+import { useState, useCallback, useEffect, useRef } from "react";
+
 import { Divider } from "./Divider";
 import { CustomImage } from "./Image";
+import { ToolbarButton } from "./ToolbarButton";
+import { CustomVideo } from "../productBlogEditor/Video";
+import VideoUploadModal from "../productBlogEditor/VideoUploadModal";
 
+// Update the interface to include initialContent prop
 interface TipTapBlogEditorProps {
   onSave?: React.Dispatch<{ type: string; productBlog: string }>;
   blogData?: string; // Add prop for initial content
   slug: string;
+  initialContent?: string; // Add new prop for initial content
 }
 
-const TipTapBlogEditor = ({
-  onSave,
-  blogData,
-  slug,
-}: TipTapBlogEditorProps) => {
+const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => {
   const [isLinkMenuOpen, setIsLinkMenuOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [isImageLoading, setIsImageLoading] = useState(false);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isTableModalOpen, setIsTableModalOpen] = useState(false);
+  const [tableRows, setTableRows] = useState(3);
+  const [tableCols, setTableCols] = useState(3);
+  const [isHtmlImportModalOpen, setIsHtmlImportModalOpen] = useState(false);
+  const [htmlContent, setHtmlContent] = useState("");
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [isVideoLoading, setIsVideoLoading] = useState(false);
+
+  // Add refs to track content changes and prevent infinite loops
+  const prevContentRef = useRef<string>("");
+  const isUpdatingContentRef = useRef(false);
 
   const calculateDimensions = async (url: string) => {
     if (typeof window === "undefined") {
@@ -78,6 +98,24 @@ const TipTapBlogEditor = ({
     });
   };
 
+  // Define convertMDXToHTML before using it in useEffects
+  const convertMDXToHTML = useCallback((mdxContent: string) => {
+    return (
+      mdxContent
+        // Convert Next.js Image components to regular img tags
+        .replace(
+          /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*\/?>/g,
+          '<img src="$1" alt="$2" width="$3" height="$4" class="rounded-lg max-w-full my-4" />'
+        )
+        // Convert Next.js Link components to regular a tags
+        .replace(/<Link\s+href="([^"]+)">\s*([\s\S]*?)\s*<\/Link>/g, '<a href="$1">$2</a>')
+        // Convert table with className to plain HTML table
+        .replace(/<table className="[^"]*">/g, "<table>")
+        .replace(/<th className="[^"]*">/g, "<th>")
+        .replace(/<td className="[^"]*">/g, "<td>")
+    );
+  }, []);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -90,20 +128,145 @@ const TipTapBlogEditor = ({
         HTMLAttributes: { class: "rounded-lg max-w-full my-4" },
       }),
       Link.configure({ openOnClick: false }),
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
+      TextAlign.configure({
+        types: ["heading", "paragraph", "tableCell", "tableHeader"],
+      }),
+      // Table extensions - complete configuration with RTL support
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: "w-full my-4 border-collapse",
+          dir: "rtl",
+        },
+      }),
+      TableRow,
+      TableHeader.configure({
+        HTMLAttributes: {
+          class: "border border-gray-600 bg-gray-700 p-2 text-right",
+        },
+      }),
+      TableCell.configure({
+        HTMLAttributes: {
+          class: "border border-gray-600 p-2 text-right",
+        },
+      }),
       // Replace the existing ResizableImage configuration in the editor setup
       CustomImage,
+      CustomVideo.configure({
+        HTMLAttributes: { class: "w-full my-4" },
+      }),
     ],
-    content: blogData || "", // Initialize with blogData if provided
+    content: blogData || "", // Initialize with blogData
+    onUpdate: ({ editor }) => {
+      // Only process updates if we're not currently updating from external source
+      if (isUpdatingContentRef.current) return;
+
+      // Start a timer to auto-save after user stops typing for 1 second
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+
+      autoSaveTimerRef.current = setTimeout(() => {
+        const mdxContent = convertToMDX(editor.getHTML());
+        onSave?.({ type: "SET_PRODUCT_BLOG", productBlog: mdxContent });
+      }, 1000);
+    },
   });
 
   // Update editor content when blogData changes
   useEffect(() => {
-    if (editor && blogData) {
-      const htmlContent = convertMDXToHTML(blogData);
-      editor.commands.setContent(htmlContent);
+    // Only update editor content when both editor is ready and we have blogData
+    if (editor && blogData && !isUpdatingContentRef.current) {
+      // Only update on first render or if blogData has significantly changed
+      if (prevContentRef.current === "" || blogData !== prevContentRef.current) {
+        isUpdatingContentRef.current = true;
+
+        try {
+          const htmlContent = convertMDXToHTML(blogData);
+          if (htmlContent !== editor.getHTML()) {
+            // Use a timeout to avoid React rendering conflicts
+            setTimeout(() => {
+              editor.commands.setContent(htmlContent);
+              prevContentRef.current = blogData;
+
+              // Release the lock after a delay
+              setTimeout(() => {
+                isUpdatingContentRef.current = false;
+              }, 200);
+            }, 0);
+          } else {
+            isUpdatingContentRef.current = false;
+          }
+        } catch (e) {
+          console.error("Error updating editor content:", e);
+          isUpdatingContentRef.current = false;
+        }
+      }
     }
-  }, [editor, blogData]);
+  }, [editor, blogData, convertMDXToHTML]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Toggle the table creation modal
+  const toggleTableModal = () => {
+    setIsTableModalOpen(!isTableModalOpen);
+  };
+
+  // Insert table function
+  const insertTable = useCallback(() => {
+    if (!editor) return;
+
+    editor
+      .chain()
+      .focus()
+      .insertTable({ rows: tableRows, cols: tableCols, withHeaderRow: true })
+      .run();
+
+    setIsTableModalOpen(false);
+  }, [editor, tableRows, tableCols]);
+
+  // Import HTML function
+  const importHtml = useCallback(() => {
+    if (!editor || !htmlContent) return;
+
+    // Safely clean and insert HTML at cursor position
+    try {
+      // Store the current cursor position
+      editor.chain().focus().insertContent(htmlContent).run();
+      setHtmlContent("");
+      setIsHtmlImportModalOpen(false);
+    } catch (error) {
+      console.error("Failed to import HTML:", error);
+      alert("Failed to import HTML. Please check your HTML content.");
+    }
+  }, [editor, htmlContent]);
+
+  const convertToMDX = useCallback((html: string) => {
+    // Convert editor content to MDX
+    let mdxContent = html
+      // Convert img tags to Next.js Image components
+      .replace(
+        /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*>/g,
+        '<Image src="$1" alt="$2" width={1000} height={900} quality={100} layout="responsive" />'
+      )
+      // Convert a tags to Next.js Link components
+      .replace(/<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g, '<Link href="$1">$2</Link>');
+
+    // Preserve table structure but add styling classes for MDX
+    mdxContent = mdxContent
+      .replace(/<table[^>]*>/g, '<table className="w-full my-4 border-collapse" dir="rtl">')
+      .replace(/<th[^>]*>/g, '<th className="border border-gray-600 bg-gray-700 p-2 text-right">')
+      .replace(/<td[^>]*>/g, '<td className="border border-gray-600 p-2 text-right">');
+
+    return mdxContent;
+  }, []);
 
   const addImage = useCallback(
     async (file: File) => {
@@ -144,6 +307,7 @@ const TipTapBlogEditor = ({
                 width,
                 height,
                 slug, // Add the slug here
+                size: "full", // Default size to full width
               },
             })
             .run();
@@ -193,43 +357,54 @@ const TipTapBlogEditor = ({
     setIsLinkMenuOpen(false);
   }, [editor, linkUrl]);
 
-  const exportToMDX = useCallback(() => {
-    if (!editor) return;
+  const addVideo = useCallback(
+    async (file: File) => {
+      if (!editor) {
+        return;
+      }
 
-    // Convert editor content to MDX
-    let mdxContent = editor
-      .getHTML()
-      // Convert img tags to Next.js Image components
-      .replace(
-        /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*>/g,
-        '<Image src="$1" alt="$2" width={1000} height={900} quality={100} layout="responsive" />'
-      )
+      if (file.size > 1.5 * 1024 * 1024 * 1024) {
+        alert("ویدیو باید کمتر از 1.5 گیگابایت باشد");
+        return;
+      }
 
-      // Convert a tags to Next.js Link components
-      .replace(
-        /<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g,
-        '<Link href="$1">$2</Link>'
-      );
+      try {
+        setIsVideoLoading(true);
 
-    // Add Image import at the top
-    // mdxContent = `import Image from 'next/image';\n\n${mdxContent}`;
-    onSave?.({ type: "SET_PRODUCT_BLOG", productBlog: mdxContent });
-  }, [editor, onSave]);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("slug", slug);
 
-  const convertMDXToHTML = (mdxContent: string) => {
-    return (
-      mdxContent
-        // Convert Next.js Image components to regular img tags
-        .replace(
-          /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*\/?>/g,
-          '<img src="$1" alt="$2" width="$3" height="$4" class="rounded-lg max-w-full my-4" />'
-        )
-        // Convert Next.js Link components to regular a tags
-        .replace(
-          /<Link\s+href="([^"]+)">\s*([\s\S]*?)\s*<\/Link>/g,
-          '<a href="$1">$2</a>'
-        )
-    );
+        const response = await fetch("/api/products/productBlog/uploadVideo", {
+          method: "POST",
+          body: formData,
+        });
+
+        const { url } = await response.json();
+
+        // Insert the video into the editor
+        editor.commands.command(({ chain }) => {
+          return chain()
+            .focus()
+            .setVideo({
+              src: url,
+              title: file.name,
+              slug,
+            })
+            .run();
+        });
+      } catch (error) {
+        console.error("Video upload failed:", error);
+        alert("Failed to upload video");
+      } finally {
+        setIsVideoLoading(false);
+      }
+    },
+    [editor, slug]
+  );
+
+  const toggleVideoModal = () => {
+    setIsVideoModalOpen(!isVideoModalOpen);
   };
 
   // Improved editor container styling
@@ -255,19 +430,24 @@ const TipTapBlogEditor = ({
   [&_div[data-loading-image]]:bg-gray-700
   [&_div[data-loading-image]]:h-48
   [&_div[data-loading-image]]:rounded-lg
-  [&_div[data-loading-image]]:my-4`;
+  [&_div[data-loading-image]]:my-4
+  [&_table]:border-collapse [&_table]:w-full 
+  [&_th]:border [&_th]:border-gray-600 [&_th]:p-2 [&_th]:bg-gray-700
+  [&_td]:border [&_td]:border-gray-600 [&_td]:p-2
+  [&_.tableControls]:relative [&_.tableControls]:top-[-30px] [&_.tableControls]:justify-center [&_.tableControls]:z-20 [&_.tableControls]:flex`;
 
   if (!editor) return null;
 
   return (
     <div
-      className="relative border border-gray-600 rounded-lg bg-gray-800 text-gray-100 flex flex-col min-h-[500px]"
+      className="relative flex min-h-[500px] flex-col rounded-lg border border-gray-600 bg-gray-800 text-gray-100"
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}
       onPaste={handlePaste}
+      ref={editorContainerRef}
     >
       {/* Fixed Toolbar */}
-      <div className="sticky top-0 z-20 bg-gray-800 p-2 border-b border-gray-600 rounded-t-lg shadow-lg">
+      <div className="sticky top-0 z-20 rounded-t-lg border-b border-gray-600 bg-gray-800 p-2 shadow-lg">
         <div className="flex flex-wrap items-center gap-1">
           <div className="flex items-center gap-1">
             <ToolbarButton
@@ -281,6 +461,21 @@ const TipTapBlogEditor = ({
               title="Redo"
             />
             <Divider />
+
+            {/* Table button - opens a modal */}
+            <ToolbarButton
+              onClick={toggleTableModal}
+              active={isTableModalOpen}
+              icon={TableIcon}
+              title="درج جدول"
+            />
+            <ToolbarButton
+              onClick={() => setIsHtmlImportModalOpen(true)}
+              icon={FileUp}
+              title="وارد کردن HTML"
+            />
+            <Divider />
+
             <ToolbarButton
               onClick={() => editor.chain().focus().setParagraph().run()}
               active={editor.isActive("paragraph")}
@@ -288,49 +483,37 @@ const TipTapBlogEditor = ({
               title="Paragraph"
             />
             <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().toggleHeading({ level: 1 }).run()
-              }
+              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
               active={editor.isActive("heading", { level: 1 })}
               icon={Heading1}
               title="Heading 1"
             />
             <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().toggleHeading({ level: 2 }).run()
-              }
+              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
               active={editor.isActive("heading", { level: 2 })}
               icon={Heading2}
               title="Heading 2"
             />
             <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().toggleHeading({ level: 3 }).run()
-              }
+              onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
               active={editor.isActive("heading", { level: 3 })}
               icon={Heading3}
               title="Heading 3"
             />
             <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().toggleHeading({ level: 4 }).run()
-              }
+              onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
               active={editor.isActive("heading", { level: 4 })}
               icon={Heading4}
               title="Heading 4"
             />
             <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().toggleHeading({ level: 5 }).run()
-              }
+              onClick={() => editor.chain().focus().toggleHeading({ level: 5 }).run()}
               active={editor.isActive("heading", { level: 5 })}
               icon={Heading5}
               title="Heading 5"
             />
             <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().toggleHeading({ level: 6 }).run()
-              }
+              onClick={() => editor.chain().focus().toggleHeading({ level: 6 }).run()}
               active={editor.isActive("heading", { level: 6 })}
               icon={Heading6}
               title="Heading 6"
@@ -381,9 +564,7 @@ const TipTapBlogEditor = ({
               title="Align Right"
             />
             <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().setTextAlign("center").run()
-              }
+              onClick={() => editor.chain().focus().setTextAlign("center").run()}
               active={editor.isActive({ textAlign: "center" })}
               icon={AlignCenter}
               title="Align Center"
@@ -401,7 +582,7 @@ const TipTapBlogEditor = ({
               icon={Link2}
               title="Link"
             />
-            <label className="p-2 hover:bg-gray-600 rounded-md cursor-pointer text-gray-300">
+            <label className="cursor-pointer rounded-md p-2 text-gray-300 hover:bg-gray-600">
               <input
                 type="file"
                 className="hidden"
@@ -411,12 +592,13 @@ const TipTapBlogEditor = ({
                   if (file) addImage(file);
                 }}
               />
-              <ImageIcon className="w-5 h-5" />
+              <ImageIcon className="h-5 w-5" />
             </label>
+            <ToolbarButton onClick={toggleVideoModal} icon={Video} title="Add Video" />
             {isImageLoading && (
               <div className="ml-2 flex items-center gap-2 text-sm text-gray-400">
                 <Divider />
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
                 در حال آپلود عکس...
               </div>
             )}
@@ -430,13 +612,13 @@ const TipTapBlogEditor = ({
                 placeholder="Paste URL..."
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
-                className="px-3 py-1 bg-gray-700 border border-gray-600 rounded-md text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="rounded-md border border-gray-600 bg-gray-700 px-3 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 onKeyDown={(e) => e.key === "Enter" && setLink()}
               />
               <button
                 type="button"
                 onClick={setLink}
-                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm"
+                className="rounded-md bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
               >
                 ثبت
               </button>
@@ -445,29 +627,195 @@ const TipTapBlogEditor = ({
         </div>
       </div>
 
+      {/* Table Creation Modal */}
+      {isTableModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-lg bg-gray-800 p-4 shadow-lg">
+            <h3 className="mb-3 text-right text-lg font-semibold text-white">ایجاد جدول</h3>
+
+            <div className="mb-6 flex justify-between gap-4">
+              <div className="flex-1">
+                <label className="mb-2 block text-right text-sm text-gray-300">تعداد سطرها</label>
+                <div className="flex items-center">
+                  <button
+                    onClick={() => setTableRows(Math.max(1, tableRows - 1))}
+                    className="rounded-r border border-gray-600 bg-gray-700 px-2 py-1 text-white"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={tableRows}
+                    onChange={(e) => setTableRows(parseInt(e.target.value) || 3)}
+                    className="w-12 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center text-white"
+                  />
+                  <button
+                    onClick={() => setTableRows(Math.min(20, tableRows + 1))}
+                    className="rounded-l border border-gray-600 bg-gray-700 px-2 py-1 text-white"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1">
+                <label className="mb-2 block text-right text-sm text-gray-300">تعداد ستون‌ها</label>
+                <div className="flex items-center">
+                  <button
+                    onClick={() => setTableCols(Math.max(1, tableCols - 1))}
+                    className="rounded-r border border-gray-600 bg-gray-700 px-2 py-1 text-white"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={tableCols}
+                    onChange={(e) => setTableCols(parseInt(e.target.value) || 3)}
+                    className="w-12 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center text-white"
+                  />
+                  <button
+                    onClick={() => setTableCols(Math.min(10, tableCols + 1))}
+                    className="rounded-l border border-gray-600 bg-gray-700 px-2 py-1 text-white"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsTableModalOpen(false)}
+                className="rounded-lg bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700"
+              >
+                انصراف
+              </button>
+              <button
+                type="button"
+                onClick={insertTable}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+              >
+                ایجاد جدول
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* HTML Import Modal */}
+      {isHtmlImportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-2xl rounded-lg bg-gray-800 p-4 shadow-lg">
+            <h3 className="mb-3 text-lg font-semibold text-white">وارد کردن HTML</h3>
+            <textarea
+              value={htmlContent}
+              onChange={(e) => setHtmlContent(e.target.value)}
+              placeholder="کد HTML را اینجا وارد کنید..."
+              className="h-64 w-full rounded-md border border-gray-600 bg-gray-700 p-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              dir="ltr"
+            />
+            <div className="mt-3 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsHtmlImportModalOpen(false);
+                  setHtmlContent("");
+                }}
+                className="rounded-lg bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700"
+              >
+                انصراف
+              </button>
+              <button
+                type="button"
+                onClick={importHtml}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+              >
+                وارد کردن
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Improved Editor Content Area */}
       <div className={editorContainerClasses}>
         <EditorContent
           editor={editor}
-          className="focus:ring-2 focus:ring-blue-500 rounded-lg transition-all h-full"
+          className="h-full rounded-lg transition-all focus:ring-2 focus:ring-blue-500"
         />
-      </div>
 
-      {/* Save Button */}
-      <div className="sticky bottom-0 flex gap-2 p-4 bg-gray-800 border-t border-gray-600 rounded-b-lg">
-        <button
-          type="button"
-          onClick={exportToMDX}
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-        >
-          ذخیره مقاله محصول
-        </button>
+        {/* Custom in-place table controls that appear above each table when selected */}
+        {editor.isActive("table") && (
+          <div
+            className="fixed z-40 flex items-center gap-1 rounded-md border border-gray-600 bg-gray-800 p-1 shadow-lg"
+            style={{
+              // Position the controls at the top of the currently selected table node
+              top: (() => {
+                try {
+                  const { state } = editor;
+                  const { selection } = state;
+                  const { $from } = selection;
+                  const tablePos = $from.before(1); // Get position of closest parent table
+                  const coordsAtPos = editor.view.coordsAtPos(tablePos);
+                  return `${coordsAtPos.top - 40}px`; // Position above the table
+                } catch (e) {
+                  console.error(e);
+                  return "100px"; // Fallback if calculation fails
+                }
+              })(),
+              // Center horizontally
+              left: "50%",
+              transform: "translateX(-50%)",
+            }}
+          >
+            <button
+              onClick={() => editor.chain().focus().addColumnBefore().run()}
+              className="rounded bg-blue-600 px-3 py-0.5 text-sm text-white hover:bg-blue-700"
+              title="افزودن ستون قبل"
+            >
+              ستون +
+            </button>
+            <button
+              onClick={() => editor.chain().focus().deleteColumn().run()}
+              className="rounded bg-red-600 px-3 py-0.5 text-sm text-white hover:bg-red-700"
+              title="حذف ستون"
+            >
+              ستون -
+            </button>
+            <button
+              onClick={() => editor.chain().focus().addRowBefore().run()}
+              className="rounded bg-green-600 px-3 py-0.5 text-sm text-white hover:bg-green-700"
+              title="افزودن سطر قبل"
+            >
+              سطر +
+            </button>
+            <button
+              onClick={() => editor.chain().focus().deleteRow().run()}
+              className="rounded bg-red-600 px-3 py-0.5 text-sm text-white hover:bg-red-700"
+              title="حذف سطر"
+            >
+              سطر -
+            </button>
+            <button
+              onClick={() => editor.chain().focus().deleteTable().run()}
+              className="rounded bg-gray-600 px-3 py-0.5 text-sm text-white hover:bg-gray-700"
+              title="حذف جدول"
+            >
+              حذف جدول
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Bubble Menu (for text formatting) */}
       {editor && (
         <BubbleMenu
-          className="flex items-center gap-1 p-2 bg-gray-700 border border-gray-600 rounded-lg shadow-xl"
+          className="flex items-center gap-1 rounded-lg border border-gray-600 bg-gray-700 p-2 shadow-xl"
           tippyOptions={{ duration: 100 }}
           editor={editor}
         >
@@ -496,6 +844,17 @@ const TipTapBlogEditor = ({
             title="Link"
           />
         </BubbleMenu>
+      )}
+
+      {/* Video Modal */}
+      {isVideoModalOpen && <VideoUploadModal onClose={toggleVideoModal} onVideoUpload={addVideo} />}
+
+      {/* Video Loading Indicator */}
+      {isVideoLoading && (
+        <div className="fixed bottom-20 right-6 flex items-center gap-2 rounded-md bg-gray-700 px-3 py-1 text-sm text-gray-200 shadow-lg">
+          <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+          در حال آپلود ویدیو...
+        </div>
       )}
     </div>
   );

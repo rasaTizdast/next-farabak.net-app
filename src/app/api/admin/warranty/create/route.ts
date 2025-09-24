@@ -1,6 +1,7 @@
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -14,14 +15,11 @@ async function verifyToken(token: string) {
 export async function POST(request: Request) {
   try {
     // Auth check
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { error: "Authorization token required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Authorization token required" }, { status: 401 });
     }
 
     const decoded = await verifyToken(token);
@@ -43,10 +41,7 @@ export async function POST(request: Request) {
       `;
 
       if (!branch || (branch as any[]).length === 0) {
-        return NextResponse.json(
-          { error: "No branch found for this user" },
-          { status: 403 }
-        );
+        return NextResponse.json({ error: "No branch found for this user" }, { status: 403 });
       }
 
       branchId = (branch as any[])[0].branchid;
@@ -54,25 +49,14 @@ export async function POST(request: Request) {
     }
 
     // Get request data
-    const { invoiceId, invoiceDetailId, productId, warrantyData } =
-      await request.json();
+    const { invoiceId, invoiceDetailId, productId, warrantyData } = await request.json();
 
     if (!invoiceId || !invoiceDetailId || !productId || !warrantyData) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    if (
-      !warrantyData.warrantycode ||
-      !warrantyData.startdate ||
-      !warrantyData.expirydate
-    ) {
-      return NextResponse.json(
-        { error: "Missing warranty details" },
-        { status: 400 }
-      );
+    if (!warrantyData.warrantycode || !warrantyData.startdate || !warrantyData.expirydate) {
+      return NextResponse.json({ error: "Missing warranty details" }, { status: 400 });
     }
 
     // Get user ID from invoice
@@ -116,8 +100,7 @@ export async function POST(request: Request) {
           if (((invoiceBranchCheck as any[])[0].count as number) === 0) {
             return NextResponse.json(
               {
-                error:
-                  "You are not authorized to create a warranty for this invoice",
+                error: "You are not authorized to create a warranty for this invoice",
               },
               { status: 403 }
             );
@@ -129,10 +112,7 @@ export async function POST(request: Request) {
     // Verify the branch has stock of this product if we're not using an existing inventory item
     const selectedBranchId = warrantyData.branchId || branchId;
     if (!selectedBranchId) {
-      return NextResponse.json(
-        { error: "Branch ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Branch ID is required" }, { status: 400 });
     }
 
     // Get branch name if needed
@@ -158,8 +138,7 @@ export async function POST(request: Request) {
         AND id."ProductId" = ${parseInt(productId)}
       `;
 
-      const hasProduct =
-        ((invoiceProductCheck as any[])[0].count as number) > 0;
+      const hasProduct = ((invoiceProductCheck as any[])[0].count as number) > 0;
 
       if (!hasProduct) {
         return NextResponse.json(
@@ -176,11 +155,7 @@ export async function POST(request: Request) {
         },
       });
 
-      if (
-        !branchProduct ||
-        branchProduct.quantity === null ||
-        branchProduct.quantity <= 0
-      ) {
+      if (!branchProduct || branchProduct.quantity === null || branchProduct.quantity <= 0) {
         return NextResponse.json(
           { error: "The selected branch does not have this product in stock" },
           { status: 400 }
@@ -249,10 +224,7 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error("Error creating warranty:", error);
-    return NextResponse.json(
-      { error: "Failed to create warranty" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to create warranty" }, { status: 500 });
   }
 }
 

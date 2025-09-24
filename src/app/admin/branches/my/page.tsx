@@ -2,7 +2,13 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useRef, useMemo, Suspense } from "react";
+import {
+  ExclamationCircleOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  EyeOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
 import {
   Card,
   Empty,
@@ -11,7 +17,6 @@ import {
   Table,
   InputNumber,
   message,
-  Popconfirm,
   Alert,
   Form,
   Tabs,
@@ -20,27 +25,22 @@ import {
   Input,
   AutoComplete,
 } from "antd";
-import {
-  ExclamationCircleOutlined,
-  PlusOutlined,
-  SearchOutlined,
-  EyeOutlined,
-  ReloadOutlined,
-} from "@ant-design/icons";
-import { Branch, Product } from "../components/types";
-import { toPersianDate } from "../components/types";
-import { useSearchParams, useRouter } from "next/navigation";
-import ProductDrawer from "../components/ProductDrawer";
-import InvoiceModal from "../components/invoice/InvoiceModal";
-import Styles from "../components/Styles";
-import { AdminInvoice } from "@/app/admin/invoices/type";
-import BranchInvoiceDetailsModal from "./invoices/components/BranchInvoiceDetailsModal";
-import BranchWarrantyViewModal from "./invoices/components/BranchWarrantyViewModal";
 import moment from "jalali-moment";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useState, useEffect, useRef, useMemo, Suspense } from "react";
+
+import { AdminInvoice } from "@/app/admin/invoices/type";
+
+import InvoiceModal from "../components/invoice/InvoiceModal";
+import ProductDrawer from "../components/ProductDrawer";
+import Styles from "../components/Styles";
+import { Branch, Product, toPersianDate } from "../components/types";
+import BranchProductSearch from "./components/BranchProductSearch";
 import SkeletonLoading from "./components/SkeletonLoading";
 import WarrantyStats from "./components/WarrantyStats";
 import WarrantyRequests from "../components/WarrantyRequests";
-import BranchProductSearch from "./components/BranchProductSearch";
+import BranchInvoiceDetailsModal from "./invoices/components/BranchInvoiceDetailsModal";
+import BranchWarrantyViewModal from "./invoices/components/BranchWarrantyViewModal";
 
 function MyBranchContent() {
   const [branch, setBranch] = useState<Branch | null>(null);
@@ -63,19 +63,14 @@ function MyBranchContent() {
   const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<AdminInvoice[]>([]);
   const [standaloneWarranties, setStandaloneWarranties] = useState<any[]>([]);
-  const [filteredStandaloneWarranties, setFilteredStandaloneWarranties] =
-    useState<any[]>([]);
+  const [filteredStandaloneWarranties, setFilteredStandaloneWarranties] = useState<any[]>([]);
   const [invoicesLoading, setInvoicesLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [searchOptions, setSearchOptions] = useState<
-    { value: string; label: React.ReactNode }[]
-  >([]);
-  const [selectedInvoice, setSelectedInvoice] = useState<AdminInvoice | null>(
-    null
+  const [searchOptions, setSearchOptions] = useState<{ value: string; label: React.ReactNode }[]>(
+    []
   );
-  const [selectedStandaloneWarranty, setSelectedStandaloneWarranty] = useState<
-    any | null
-  >(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<AdminInvoice | null>(null);
+  const [selectedStandaloneWarranty, setSelectedStandaloneWarranty] = useState<any | null>(null);
   const [warrantySummary, setWarrantySummary] = useState<{
     active: number;
     expired: number;
@@ -102,9 +97,7 @@ function MyBranchContent() {
   // Clean up timers on unmount
   useEffect(() => {
     return () => {
-      Object.values(quantityTimersRef.current).forEach((timer) =>
-        clearTimeout(timer)
-      );
+      Object.values(quantityTimersRef.current).forEach((timer) => clearTimeout(timer));
     };
   }, []);
 
@@ -167,9 +160,7 @@ function MyBranchContent() {
       const pageSize = 100; // Fetch more per page
 
       while (hasMorePages) {
-        const response = await fetch(
-          `/api/admin/products?page=${currentPage}&limit=${pageSize}`
-        );
+        const response = await fetch(`/api/admin/products?page=${currentPage}&limit=${pageSize}`);
 
         if (!response.ok) {
           break;
@@ -340,7 +331,7 @@ function MyBranchContent() {
   };
 
   // Enhanced date formatting function with better error handling
-  const formatDate = (dateString: any) => {
+  const formatDate = (dateString: string | Date | number) => {
     if (!dateString) return "-";
 
     try {
@@ -414,7 +405,7 @@ function MyBranchContent() {
             value: invoice.FactorGuid,
             label: (
               <div>
-                <span className="text-blue-500 font-bold">شماره فاکتور: </span>
+                <span className="font-bold text-blue-500">شماره فاکتور: </span>
                 {invoice.FactorGuid}
               </div>
             ),
@@ -429,7 +420,7 @@ function MyBranchContent() {
             value: invoice.Fullname,
             label: (
               <div>
-                <span className="text-green-500 font-bold">نام مشتری: </span>
+                <span className="font-bold text-green-500">نام مشتری: </span>
                 {invoice.Fullname}
               </div>
             ),
@@ -439,15 +430,12 @@ function MyBranchContent() {
 
       // Add phone numbers
       invoices.forEach((invoice) => {
-        if (
-          invoice.Phonenumber &&
-          invoice.Phonenumber.includes(lowerCaseSearch)
-        ) {
+        if (invoice.Phonenumber && invoice.Phonenumber.includes(lowerCaseSearch)) {
           options.push({
             value: invoice.Phonenumber,
             label: (
               <div>
-                <span className="text-purple-500 font-bold">شماره تماس: </span>
+                <span className="font-bold text-purple-500">شماره تماس: </span>
                 {invoice.Phonenumber}
               </div>
             ),
@@ -462,17 +450,13 @@ function MyBranchContent() {
             if (
               detail.warranty &&
               detail.warranty.warrantycode &&
-              detail.warranty.warrantycode
-                .toLowerCase()
-                .includes(lowerCaseSearch)
+              detail.warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)
             ) {
               options.push({
                 value: detail.warranty.warrantycode,
                 label: (
                   <div>
-                    <span className="text-yellow-500 font-bold">
-                      کد گارانتی:{" "}
-                    </span>
+                    <span className="font-bold text-yellow-500">کد گارانتی: </span>
                     {detail.warranty.warrantycode}
                     <span className="mr-2">
                       {detail.warranty.status === "Expired" ||
@@ -510,13 +494,10 @@ function MyBranchContent() {
             value: warranty.warrantycode,
             label: (
               <div>
-                <span className="text-orange-500 font-bold">
-                  کد گارانتی مستقل:{" "}
-                </span>
+                <span className="font-bold text-orange-500">کد گارانتی مستقل: </span>
                 {warranty.warrantycode}
                 <span className="mr-2">
-                  {warranty.status === "Expired" ||
-                  warranty.displayStatus === "Expired" ? (
+                  {warranty.status === "Expired" || warranty.displayStatus === "Expired" ? (
                     <Tag color="red" className="mr-2">
                       منقضی شده
                     </Tag>
@@ -532,17 +513,12 @@ function MyBranchContent() {
         }
 
         // Add product names from standalone warranties
-        if (
-          warranty.Type &&
-          warranty.Type.toLowerCase().includes(lowerCaseSearch)
-        ) {
+        if (warranty.Type && warranty.Type.toLowerCase().includes(lowerCaseSearch)) {
           options.push({
             value: warranty.Type,
             label: (
               <div>
-                <span className="text-cyan-500 font-bold">
-                  محصول با گارانتی مستقل:{" "}
-                </span>
+                <span className="font-bold text-cyan-500">محصول با گارانتی مستقل: </span>
                 {warranty.Type}
               </div>
             ),
@@ -569,17 +545,14 @@ function MyBranchContent() {
       (invoice) =>
         invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch) ||
         invoice.Fullname.toLowerCase().includes(lowerCaseSearch) ||
-        (invoice.Phonenumber &&
-          invoice.Phonenumber.includes(lowerCaseSearch)) ||
+        (invoice.Phonenumber && invoice.Phonenumber.includes(lowerCaseSearch)) ||
         // Search in warranty codes
         (invoice.Invoice_Details &&
           invoice.Invoice_Details.some(
             (detail) =>
               detail.warranty &&
               detail.warranty.warrantycode &&
-              detail.warranty.warrantycode
-                .toLowerCase()
-                .includes(lowerCaseSearch)
+              detail.warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)
           ))
     );
 
@@ -588,8 +561,7 @@ function MyBranchContent() {
     // Filter standalone warranties
     const filteredWarrantiesResult = standaloneWarranties.filter(
       (warranty) =>
-        (warranty.warrantycode &&
-          warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)) ||
+        (warranty.warrantycode && warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)) ||
         (warranty.Type && warranty.Type.toLowerCase().includes(lowerCaseSearch))
     );
 
@@ -602,9 +574,7 @@ function MyBranchContent() {
       return null;
     }
 
-    const hasWarranties = invoice.Invoice_Details.some(
-      (detail) => detail.warranty
-    );
+    const hasWarranties = invoice.Invoice_Details.some((detail) => detail.warranty);
     if (!hasWarranties) {
       return null;
     }
@@ -619,8 +589,7 @@ function MyBranchContent() {
     const expiredWarranties = invoice.Invoice_Details.filter(
       (detail) =>
         detail.warranty &&
-        (detail.warranty.status === "Expired" ||
-          detail.warranty.displayStatus === "Expired")
+        (detail.warranty.status === "Expired" || detail.warranty.displayStatus === "Expired")
     ).length;
 
     return { active: activeWarranties, expired: expiredWarranties };
@@ -636,9 +605,7 @@ function MyBranchContent() {
 
         if (!response.ok) {
           if (response.status === 404) {
-            setError(
-              "شما هنوز به عنوان شعبه تعریف نشده‌اید. لطفاً با مدیر سایت تماس بگیرید."
-            );
+            setError("شما هنوز به عنوان شعبه تعریف نشده‌اید. لطفاً با مدیر سایت تماس بگیرید.");
             setLoading(false);
             return;
           }
@@ -718,19 +685,16 @@ function MyBranchContent() {
     if (!branch || !selectedProduct) return;
 
     try {
-      const response = await fetch(
-        `/api/admin/branches/${branch.branchid}/products`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            productId: selectedProduct,
-            quantity: productQuantity,
-          }),
-        }
-      );
+      const response = await fetch(`/api/admin/branches/${branch.branchid}/products`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productId: selectedProduct,
+          quantity: productQuantity,
+        }),
+      });
 
       if (!response.ok) throw new Error("خطا در افزودن محصول");
 
@@ -773,23 +737,17 @@ function MyBranchContent() {
     }, 2000); // 2 second delay
   };
 
-  const handleUpdateProductQuantity = async (
-    productId: number,
-    quantity: number
-  ) => {
+  const handleUpdateProductQuantity = async (productId: number, quantity: number) => {
     if (!branch) return;
 
     try {
-      const response = await fetch(
-        `/api/admin/branches/${branch.branchid}/products/${productId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ quantity }),
-        }
-      );
+      const response = await fetch(`/api/admin/branches/${branch.branchid}/products/${productId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ quantity }),
+      });
 
       if (!response.ok) throw new Error("خطا در بروزرسانی تعداد محصول");
 
@@ -828,23 +786,17 @@ function MyBranchContent() {
   };
 
   // Add function to update invoice status
-  const updateInvoiceStatus = async (
-    invoice: AdminInvoice,
-    checked: boolean
-  ) => {
+  const updateInvoiceStatus = async (invoice: AdminInvoice, checked: boolean) => {
     try {
-      const response = await fetch(
-        `/api/admin/invoices?id=${invoice.Invoiceid}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            checked: checked,
-          }),
-        }
-      );
+      const response = await fetch(`/api/admin/invoices?id=${invoice.Invoiceid}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          checked: checked,
+        }),
+      });
 
       if (!response.ok) {
         throw new Error("خطا در بروزرسانی وضعیت فاکتور");
@@ -875,11 +827,6 @@ function MyBranchContent() {
     }
   };
 
-  // Add a handler for invoice table pagination change
-  const handleInvoiceTableChange = (pagination: any) => {
-    fetchInvoices(pagination.current, pagination.pageSize);
-  };
-
   const productColumns = [
     {
       title: "نام محصول",
@@ -907,13 +854,10 @@ function MyBranchContent() {
             // Update immediately on blur
             if (quantityTimersRef.current[record.ProductId]) {
               clearTimeout(quantityTimersRef.current[record.ProductId]);
-              handleUpdateProductQuantity(
-                record.ProductId,
-                debouncedQuantities[record.ProductId]
-              );
+              handleUpdateProductQuantity(record.ProductId, debouncedQuantities[record.ProductId]);
             }
           }}
-          className="w-20 dark-input-number"
+          className="dark-input-number w-20"
           style={{
             backgroundColor: "#374151",
             borderColor: "#4b5563",
@@ -932,9 +876,7 @@ function MyBranchContent() {
         dataIndex: "FactorGuid",
         key: "FactorGuid",
         className: "text-right font-medium",
-        render: (text: string) => (
-          <span className="text-blue-400 font-medium">{text}</span>
-        ),
+        render: (text: string) => <span className="font-medium text-blue-400">{text}</span>,
       },
       {
         title: "نام مشتری",
@@ -949,10 +891,7 @@ function MyBranchContent() {
         key: "Phonenumber",
         className: "text-right font-medium",
         render: (phone: string) => (
-          <a
-            href={`tel:${phone}`}
-            className="text-blue-400 hover:text-blue-300 transition-colors"
-          >
+          <a href={`tel:${phone}`} className="text-blue-400 transition-colors hover:text-blue-300">
             {phone}
           </a>
         ),
@@ -962,9 +901,7 @@ function MyBranchContent() {
         dataIndex: "Date",
         key: "Date",
         className: "text-right font-medium",
-        render: (date: string) => (
-          <span className="text-gray-200">{formatDate(date)}</span>
-        ),
+        render: (date: string) => <span className="text-gray-200">{formatDate(date)}</span>,
       },
       {
         title: "وضعیت",
@@ -976,8 +913,7 @@ function MyBranchContent() {
             {checked ? (
               <Tag
                 color="success"
-                className="cursor-pointer flex items-center justify-center px-4 py-1.5 min-w-[120px]"
-                onClick={() => updateInvoiceStatus(invoice, false)}
+                className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
                 style={{ fontFamily: "inherit", fontWeight: 500 }}
               >
                 <span>بررسی شده</span>
@@ -985,7 +921,7 @@ function MyBranchContent() {
             ) : (
               <Tag
                 color="warning"
-                className="cursor-pointer flex items-center justify-center px-4 py-1.5 min-w-[120px]"
+                className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
                 onClick={() => updateInvoiceStatus(invoice, true)}
                 style={{
                   fontFamily: "inherit",
@@ -1009,7 +945,7 @@ function MyBranchContent() {
             return (
               <Tag
                 color="default"
-                className="px-4 py-1.5 flex items-center justify-center min-w-[120px]"
+                className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
                 style={{ fontFamily: "inherit", fontWeight: 500 }}
               >
                 <span>بدون گارانتی</span>
@@ -1018,11 +954,11 @@ function MyBranchContent() {
           }
 
           return (
-            <div className="flex flex-wrap gap-2 justify-center">
+            <div className="flex flex-wrap justify-center gap-2">
               {status.active > 0 && (
                 <Tag
                   color="success"
-                  className="px-4 py-1.5 flex items-center justify-center min-w-[120px]"
+                  className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
                   style={{ fontFamily: "inherit", fontWeight: 500 }}
                 >
                   <span>{status.active} گارانتی فعال</span>
@@ -1031,7 +967,7 @@ function MyBranchContent() {
               {status.expired > 0 && (
                 <Tag
                   color="error"
-                  className="px-4 py-1.5 flex items-center justify-center min-w-[120px]"
+                  className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
                   style={{ fontFamily: "inherit", fontWeight: 500 }}
                 >
                   <span>{status.expired} گارانتی منقضی</span>
@@ -1048,7 +984,7 @@ function MyBranchContent() {
         render: (_: any, invoice: AdminInvoice) => (
           <Button
             type="primary"
-            className="bg-blue-600 hover:bg-blue-700 border-blue-700 flex items-center"
+            className="flex items-center border-blue-700 bg-blue-600 hover:bg-blue-700"
             onClick={() => setSelectedInvoice(invoice)}
           >
             <span>مشاهده جزئیات</span>
@@ -1067,15 +1003,15 @@ function MyBranchContent() {
   if (error) {
     return (
       <div className="p-6">
-        <Card className="bg-gray-800 rounded-lg shadow-md overflow-hidden text-white">
+        <Card className="overflow-hidden rounded-lg bg-gray-800 text-white shadow-md">
           <div className="flex flex-col items-center justify-center py-8">
             <ExclamationCircleOutlined
               style={{ fontSize: 48, color: "#f5222d", marginBottom: 16 }}
             />
-            <h1 className="text-xl font-bold text-center">{error}</h1>
+            <h1 className="text-center text-xl font-bold">{error}</h1>
             {authError ? (
               <div className="mt-4 text-center">
-                <p className="text-gray-300 mb-4">
+                <p className="mb-4 text-gray-300">
                   ممکن است نشست کاری شما منقضی شده باشد. لطفاً دوباره وارد شوید.
                 </p>
                 <Button
@@ -1087,7 +1023,7 @@ function MyBranchContent() {
                 </Button>
               </div>
             ) : (
-              <p className="text-gray-300 mt-4 text-center">
+              <p className="mt-4 text-center text-gray-300">
                 برای تعریف شعبه جدید، لطفاً با مدیر سیستم در تماس باشید.
               </p>
             )}
@@ -1100,7 +1036,7 @@ function MyBranchContent() {
   if (!branch) {
     return (
       <div className="p-6">
-        <Card className="bg-gray-800 rounded-lg shadow-md overflow-hidden text-white">
+        <Card className="overflow-hidden rounded-lg bg-gray-800 text-white shadow-md">
           <Empty
             description="اطلاعات شعبه در دسترس نیست"
             image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -1125,7 +1061,7 @@ function MyBranchContent() {
         />
       )}
 
-      <div className="mb-6 flex justify-between items-center">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-100">مدیریت شعبه من</h1>
         <div className="flex items-center gap-3">
           {refreshing && (
@@ -1140,7 +1076,7 @@ function MyBranchContent() {
       {/* Branch details card */}
       <Card
         title={<span className="text-lg">اطلاعات شعبه</span>}
-        className="bg-gray-800 mb-6 rounded-lg shadow-md overflow-hidden text-white"
+        className="mb-6 overflow-hidden rounded-lg bg-gray-800 text-white shadow-md"
         headStyle={{
           backgroundColor: "#1f2937",
           borderBottom: "1px solid #374151",
@@ -1149,28 +1085,24 @@ function MyBranchContent() {
         }}
         bodyStyle={{ backgroundColor: "#1f2937", padding: "16px" }}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-2 bg-gray-900/30 rounded">
-            <p className="text-gray-400 text-sm mb-1">نام شعبه:</p>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="rounded bg-gray-900/30 p-2">
+            <p className="mb-1 text-sm text-gray-400">نام شعبه:</p>
             <p className="text-lg font-medium">{branch.name}</p>
           </div>
-          <div className="p-2 bg-gray-900/30 rounded">
-            <p className="text-gray-400 text-sm mb-1">کد شعبه:</p>
+          <div className="rounded bg-gray-900/30 p-2">
+            <p className="mb-1 text-sm text-gray-400">کد شعبه:</p>
             <p className="text-lg font-medium">{branch.location}</p>
           </div>
-          <div className="p-2 bg-gray-900/30 rounded">
-            <p className="text-gray-400 text-sm mb-1">تاریخ ایجاد:</p>
-            <p className="text-lg font-medium">
-              {toPersianDate(branch.createdat)}
-            </p>
+          <div className="rounded bg-gray-900/30 p-2">
+            <p className="mb-1 text-sm text-gray-400">تاریخ ایجاد:</p>
+            <p className="text-lg font-medium">{toPersianDate(branch.createdat)}</p>
           </div>
-          <div className="p-2 bg-gray-900/30 rounded">
-            <p className="text-gray-400 text-sm mb-1">تعداد محصولات:</p>
+          <div className="rounded bg-gray-900/30 p-2">
+            <p className="mb-1 text-sm text-gray-400">تعداد محصولات:</p>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-medium">
-                {branch.productCount} نوع محصول
-              </span>
-              <span className="bg-blue-800/70 text-blue-100 px-2 py-0.5 rounded-md text-sm">
+              <span className="text-lg font-medium">{branch.productCount} نوع محصول</span>
+              <span className="rounded-md bg-blue-800/70 px-2 py-0.5 text-sm text-blue-100">
                 {branch.totalQuantity} عدد
               </span>
             </div>
@@ -1182,34 +1114,30 @@ function MyBranchContent() {
       <Tabs
         activeKey={activeTab}
         onChange={handleTabChange}
-        className="bg-gray-800 rounded-lg text-white pt-4 mb-6 invoice-warranty-tabs"
+        className="invoice-warranty-tabs mb-6 rounded-lg bg-gray-800 pt-4 text-white"
         type="card"
         items={[
           {
             key: "products",
-            label: (
-              <span className="text-white px-3 py-1 text-base font-medium">
-                محصولات
-              </span>
-            ),
+            label: <span className="px-3 py-1 text-base font-medium text-white">محصولات</span>,
             children: (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {/* Branch Products Section */}
                 <Card
                   title={
-                    <div className="flex justify-between items-center">
+                    <div className="flex items-center justify-between">
                       <span className="text-lg font-medium">محصولات شعبه</span>
                       <Button
                         type="primary"
                         onClick={() => setProductDrawerVisible(true)}
-                        className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 border-blue-700"
+                        className="flex items-center justify-center border-blue-700 bg-blue-600 hover:bg-blue-700"
                       >
                         <span>افزودن محصول</span>
                         <PlusOutlined className="mr-2" />
                       </Button>
                     </div>
                   }
-                  className="bg-gray-800 rounded-lg overflow-hidden text-white border-0"
+                  className="overflow-hidden rounded-lg border-0 bg-gray-800 text-white"
                   headStyle={{
                     backgroundColor: "#19202b",
                     borderBottom: "1px solid #374151",
@@ -1224,7 +1152,7 @@ function MyBranchContent() {
                   }}
                 >
                   {productsLoading ? (
-                    <div className="flex justify-center my-8">
+                    <div className="my-8 flex justify-center">
                       <Spin />
                     </div>
                   ) : (
@@ -1275,7 +1203,7 @@ function MyBranchContent() {
           {
             key: "invoices",
             label: (
-              <span className="text-white px-3 py-1 text-base font-medium flex items-center">
+              <span className="flex items-center px-3 py-1 text-base font-medium text-white">
                 فاکتورها و گارانتی‌ها
                 {warrantySummary.active > 0 && (
                   <Badge
@@ -1293,7 +1221,7 @@ function MyBranchContent() {
               <>
                 {/* Improved Search UI */}
                 <Card
-                  className="mb-4 bg-gray-800 border-0 shadow-md"
+                  className="mb-4 border-0 bg-gray-800 shadow-md"
                   headStyle={{
                     backgroundColor: "#1f2937",
                     borderBottom: "1px solid #374151",
@@ -1306,14 +1234,14 @@ function MyBranchContent() {
                     fontFamily: "inherit",
                   }}
                   title={
-                    <div className="flex flex-wrap justify-between items-center gap-2">
-                      <h2 className="text-lg font-medium text-white m-0">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h2 className="m-0 text-lg font-medium text-white">
                         فاکتورها و گارانتی‌های شعبه
                       </h2>
                       <div className="flex items-center gap-2">
                         <Button
                           onClick={() => fetchInvoices()}
-                          className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600 flex items-center"
+                          className="flex items-center border-blue-600 bg-blue-600 text-white hover:bg-blue-700"
                           loading={invoicesLoading}
                           icon={<ReloadOutlined />}
                         >
@@ -1322,7 +1250,7 @@ function MyBranchContent() {
                         <Button
                           type="primary"
                           onClick={handleCreateInvoice}
-                          className="bg-green-600 hover:bg-green-700 flex items-center"
+                          className="flex items-center bg-green-600 hover:bg-green-700"
                         >
                           <span>ثبت فاکتور جدید</span>
                           <PlusOutlined className="mr-2" />
@@ -1363,9 +1291,9 @@ function MyBranchContent() {
                 </Card>
 
                 {/* Warranty Summary */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <Card
-                    className="bg-gray-800 border-0 shadow-md hover:shadow-lg transition-shadow"
+                    className="border-0 bg-gray-800 shadow-md transition-shadow hover:shadow-lg"
                     bodyStyle={{
                       padding: "16px 20px",
                       fontFamily: "inherit",
@@ -1373,12 +1301,10 @@ function MyBranchContent() {
                     }}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-200 font-medium">
-                        گارانتی‌های فعال:
-                      </span>
+                      <span className="font-medium text-gray-200">گارانتی‌های فعال:</span>
                       <Tag
                         color="success"
-                        className="text-base px-4 py-1.5 flex items-center justify-center min-w-[50px]"
+                        className="flex min-w-[50px] items-center justify-center px-4 py-1.5 text-base"
                         style={{ fontFamily: "inherit" }}
                       >
                         {warrantySummary.active}
@@ -1386,7 +1312,7 @@ function MyBranchContent() {
                     </div>
                   </Card>
                   <Card
-                    className="bg-gray-800 border-0 shadow-md hover:shadow-lg transition-shadow"
+                    className="border-0 bg-gray-800 shadow-md transition-shadow hover:shadow-lg"
                     bodyStyle={{
                       padding: "16px 20px",
                       fontFamily: "inherit",
@@ -1394,12 +1320,10 @@ function MyBranchContent() {
                     }}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-200 font-medium">
-                        گارانتی‌های منقضی شده:
-                      </span>
+                      <span className="font-medium text-gray-200">گارانتی‌های منقضی شده:</span>
                       <Tag
                         color="error"
-                        className="text-base px-4 py-1.5 flex items-center justify-center min-w-[50px]"
+                        className="flex min-w-[50px] items-center justify-center px-4 py-1.5 text-base"
                         style={{ fontFamily: "inherit" }}
                       >
                         {warrantySummary.expired}
@@ -1409,7 +1333,7 @@ function MyBranchContent() {
                 </div>
 
                 <Card
-                  className="bg-gray-800 rounded-lg shadow-md overflow-hidden border-0 mb-6"
+                  className="mb-6 overflow-hidden rounded-lg border-0 bg-gray-800 shadow-md"
                   bodyStyle={{
                     padding: "0",
                     fontFamily: "inherit",
@@ -1417,9 +1341,7 @@ function MyBranchContent() {
                   }}
                   title={
                     <div className="flex items-center px-4 py-2">
-                      <h3 className="text-white text-lg font-medium m-0">
-                        فاکتورها
-                      </h3>
+                      <h3 className="m-0 text-lg font-medium text-white">فاکتورها</h3>
                     </div>
                   }
                   headStyle={{
@@ -1430,7 +1352,7 @@ function MyBranchContent() {
                   }}
                 >
                   {invoicesLoading ? (
-                    <div className="flex justify-center items-center p-10">
+                    <div className="flex items-center justify-center p-10">
                       <Spin size="large" tip="در حال بارگذاری..." />
                     </div>
                   ) : filteredInvoices.length === 0 ? (
@@ -1449,10 +1371,7 @@ function MyBranchContent() {
                         pageSize: invoicePagination.pageSize,
                         total: invoicePagination.total,
                         onChange: (page, pageSize) => {
-                          fetchInvoices(
-                            page,
-                            pageSize || invoicePagination.pageSize
-                          );
+                          fetchInvoices(page, pageSize || invoicePagination.pageSize);
                         },
                         showSizeChanger: true,
                         showQuickJumper: true,
@@ -1462,9 +1381,7 @@ function MyBranchContent() {
                       }}
                       scroll={{ x: "max-content" }}
                       className="branch-invoices-table enhanced-table rtl-table"
-                      rowClassName={(record) =>
-                        !record.Checked ? "unread-invoice-row" : ""
-                      }
+                      rowClassName={(record) => (!record.Checked ? "unread-invoice-row" : "")}
                     />
                   )}
                 </Card>
@@ -1473,7 +1390,7 @@ function MyBranchContent() {
                   <>
                     <hr className="mt-4" />
                     <Card
-                      className="bg-gray-800 rounded-lg shadow-md overflow-hidden border-0"
+                      className="overflow-hidden rounded-lg border-0 bg-gray-800 shadow-md"
                       bodyStyle={{
                         padding: "0",
                         fontFamily: "inherit",
@@ -1481,9 +1398,7 @@ function MyBranchContent() {
                       }}
                       title={
                         <div className="flex items-center px-4 py-2">
-                          <h3 className="text-white text-lg font-medium m-0">
-                            گارانتی‌های مستقل
-                          </h3>
+                          <h3 className="m-0 text-lg font-medium text-white">گارانتی‌های مستقل</h3>
                           <Tag color="blue" className="mr-2">
                             {filteredStandaloneWarranties.length} گارانتی
                           </Tag>
@@ -1497,7 +1412,7 @@ function MyBranchContent() {
                       }}
                     >
                       {invoicesLoading ? (
-                        <div className="flex justify-center items-center p-10">
+                        <div className="flex items-center justify-center p-10">
                           <Spin size="large" tip="در حال بارگذاری..." />
                         </div>
                       ) : (
@@ -1509,9 +1424,7 @@ function MyBranchContent() {
                               key: "warrantycode",
                               className: "text-right font-medium",
                               render: (text: string) => (
-                                <span className="text-orange-400 font-medium">
-                                  {text}
-                                </span>
+                                <span className="font-medium text-orange-400">{text}</span>
                               ),
                             },
                             {
@@ -1520,7 +1433,7 @@ function MyBranchContent() {
                               key: "clientFullName",
                               className: "text-right font-medium",
                               render: (text: string) => (
-                                <span className="text-green-400 font-medium">
+                                <span className="font-medium text-green-400">
                                   {text || "نامشخص"}
                                 </span>
                               ),
@@ -1534,7 +1447,7 @@ function MyBranchContent() {
                                 phone ? (
                                   <a
                                     href={`tel:${phone}`}
-                                    className="text-blue-400 hover:text-blue-300 transition-colors"
+                                    className="text-blue-400 transition-colors hover:text-blue-300"
                                   >
                                     {phone}
                                   </a>
@@ -1562,17 +1475,11 @@ function MyBranchContent() {
                                   const persianDate = moment(date)
                                     .locale("fa")
                                     .format("jYYYY/jMM/jDD");
-                                  return (
-                                    <span className="text-gray-200">
-                                      {persianDate}
-                                    </span>
-                                  );
+                                  return <span className="text-gray-200">{persianDate}</span>;
                                 } catch (e) {
-                                  return (
-                                    <span className="text-gray-200">
-                                      {formatDate(date)}
-                                    </span>
-                                  );
+                                  console.error(e);
+
+                                  return <span className="text-gray-200">{formatDate(date)}</span>;
                                 }
                               },
                             },
@@ -1587,17 +1494,10 @@ function MyBranchContent() {
                                   const persianDate = moment(date)
                                     .locale("fa")
                                     .format("jYYYY/jMM/jDD");
-                                  return (
-                                    <span className="text-gray-200">
-                                      {persianDate}
-                                    </span>
-                                  );
+                                  return <span className="text-gray-200">{persianDate}</span>;
                                 } catch (e) {
-                                  return (
-                                    <span className="text-gray-200">
-                                      {formatDate(date)}
-                                    </span>
-                                  );
+                                  console.error(e);
+                                  return <span className="text-gray-200">{formatDate(date)}</span>;
                                 }
                               },
                             },
@@ -1608,10 +1508,8 @@ function MyBranchContent() {
                               className: "text-center font-medium",
                               render: (status: string) => (
                                 <Tag
-                                  color={
-                                    status === "Expired" ? "error" : "success"
-                                  }
-                                  className="px-4 py-1.5 flex items-center justify-center min-w-[120px]"
+                                  color={status === "Expired" ? "error" : "success"}
+                                  className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
                                   style={{
                                     fontFamily: "inherit",
                                     fontWeight: 500,
@@ -1625,40 +1523,26 @@ function MyBranchContent() {
                               title: "عملیات",
                               key: "actions",
                               className: "text-center font-medium",
-                              render: (_, warranty: any) => (
+                              render: (_, warranty) => (
                                 <Button
                                   type="primary"
-                                  className="bg-blue-600 hover:bg-blue-700 border-blue-700 flex items-center"
+                                  className="flex items-center border-blue-700 bg-blue-600 hover:bg-blue-700"
                                   onClick={() => {
                                     // Create an item object expected by BranchWarrantyViewModal
                                     const warrantyItem = {
-                                      Invoice_Details: String(
-                                        warranty.invoicedetailid || ""
-                                      ),
-                                      ProductId: String(
-                                        warranty.ProductId || ""
-                                      ),
+                                      Invoice_Details: String(warranty.invoicedetailid || ""),
+                                      ProductId: String(warranty.ProductId || ""),
                                       quantity: warranty.quantity || 1,
                                       price: warranty.price || 0,
-                                      total_price:
-                                        (warranty.price || 0) *
-                                        (warranty.quantity || 1),
+                                      total_price: (warranty.price || 0) * (warranty.quantity || 1),
                                       Name: warranty.Type,
                                       Type: warranty.Type,
                                       individualWarranty: {
                                         ...warranty,
-                                        warrantyid: String(
-                                          warranty.warrantyid || ""
-                                        ),
-                                        invoicedetailid: String(
-                                          warranty.invoicedetailid || ""
-                                        ),
-                                        ProductId: String(
-                                          warranty.ProductId || ""
-                                        ),
-                                        branchid: String(
-                                          warranty.branchid || ""
-                                        ),
+                                        warrantyid: String(warranty.warrantyid || ""),
+                                        invoicedetailid: String(warranty.invoicedetailid || ""),
+                                        ProductId: String(warranty.ProductId || ""),
+                                        branchid: String(warranty.branchid || ""),
                                         branchname: branch?.name,
                                       },
                                     };
@@ -1694,35 +1578,31 @@ function MyBranchContent() {
           {
             key: "warranty-requests",
             label: (
-              <span className="text-white px-3 py-1 text-base font-medium">
+              <span className="px-3 py-1 text-base font-medium text-white">
                 درخواست‌های گارانتی
               </span>
             ),
             children: (
               <Card
-                className="bg-gray-800 rounded-lg overflow-hidden text-white border-0"
+                className="overflow-hidden rounded-lg border-0 bg-gray-800 text-white"
                 bodyStyle={{
                   backgroundColor: "#19202b",
                   padding: "16px 20px",
                   fontFamily: "inherit",
                 }}
               >
-                <WarrantyRequests
-                  isTabActive={activeTab === "warranty-requests"}
-                />
+                <WarrantyRequests isTabActive={activeTab === "warranty-requests"} />
               </Card>
             ),
           },
           {
             key: "warranty-stats",
             label: (
-              <span className="text-white px-3 py-1 text-base font-medium">
-                آمار گارانتی‌ها
-              </span>
+              <span className="px-3 py-1 text-base font-medium text-white">آمار گارانتی‌ها</span>
             ),
             children: (
               <Card
-                className="bg-gray-800 rounded-lg overflow-hidden text-white border-0"
+                className="overflow-hidden rounded-lg border-0 bg-gray-800 text-white"
                 bodyStyle={{
                   padding: "16px 20px",
                   fontFamily: "inherit",
@@ -1755,9 +1635,7 @@ function MyBranchContent() {
         productForm={productForm}
         selectedProduct={selectedProduct}
         onSelectProduct={setSelectedProduct}
-        onQuantityChange={(value) =>
-          value !== null && setProductQuantity(value)
-        }
+        onQuantityChange={(value) => value !== null && setProductQuantity(value)}
         onAddProduct={handleAddProduct}
         onUpdateQuantity={handleUpdateProductQuantity}
       />
@@ -2277,32 +2155,24 @@ function MyBranchContent() {
         }
 
         /* Fix per page text in the dropdown */
-        .pagination-dark
-          .ant-pagination-options
-          .ant-select-selection-item::after {
+        .pagination-dark .ant-pagination-options .ant-select-selection-item::after {
           content: " / صفحه" !important;
           display: inline !important;
         }
 
         /* Fix dropdown items */
-        .pagination-dark
-          .ant-select-dropdown
-          .ant-select-item-option-content::after {
+        .pagination-dark .ant-select-dropdown .ant-select-item-option-content::after {
           content: " / صفحه" !important;
         }
 
         /* Page size selector styling */
-        .pagination-dark
-          .ant-pagination-options-size-changer
-          .ant-select-selector {
+        .pagination-dark .ant-pagination-options-size-changer .ant-select-selector {
           background-color: #1f2937 !important;
           border-color: #4b5563 !important;
           color: #e5e7eb !important;
         }
 
-        .pagination-dark
-          .ant-pagination-options-size-changer:hover
-          .ant-select-selector {
+        .pagination-dark .ant-pagination-options-size-changer:hover .ant-select-selector {
           border-color: #3b82f6 !important;
         }
 

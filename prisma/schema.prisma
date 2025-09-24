@@ -43,6 +43,7 @@ model Blogs {
   BlogCategories    BlogCategories[]
   Comments          Blog_Comments[]
   Likes             Likes[]
+  BlogFAQs          BlogFAQs[]
 
   @@schema("blog")
 }
@@ -96,8 +97,8 @@ model Client {
 
 model FaqDetails {
   FaqDetailsid Int       @id(map: "PK__FaqDetai__35A141347E7D7444") @default(autoincrement())
-  Q            String?   @db.VarChar(500)
-  A            String?   @db.VarChar(1000)
+  Q            String?   @db.VarChar(1000)
+  A            String?   @db.VarChar(3000)
   Available    Boolean?
   InsertDate   DateTime? @default(now()) @db.Timestamp(6)
   ModifyDate   DateTime? @default(now()) @db.Timestamp(6)
@@ -203,6 +204,10 @@ model Category {
   ModifyDate       DateTime?         @default(now()) @db.Timestamp(6)
   Category_groupId Int?
   Slug             String?           @db.VarChar(200)
+  Banner           String?           @db.VarChar(4000)
+  // SEO/AEO/AIO blogs for category pages
+  TopBlog          String?           @db.Text
+  BottomBlog       String?           @db.Text
   CategoryContent  CategoryContent[]
   SEO_Category     SEO_Category?
   Product          Product[]
@@ -211,13 +216,17 @@ model Category {
 }
 
 model CategoryContent {
-  CategoryContentId   Int                  @id(map: "PK_CategoryContent")
+  CategoryContentId   Int                  @id(map: "PK_CategoryContent") @default(autoincrement())
   Name                String?              @db.VarChar(200)
   CategoryID          Int?
   Slug                String?              @db.VarChar(200)
   Available           Boolean?
   InsertDate          DateTime?            @default(now()) @db.Timestamp(6)
   ModifyDate          DateTime?            @default(now()) @db.Timestamp(6)
+  Banner              String?              @db.VarChar(4000)
+  // SEO/AEO/AIO blogs for subcategory pages
+  TopBlog             String?              @db.Text
+  BottomBlog          String?              @db.Text
   Category            Category?            @relation(fields: [CategoryID], references: [CategoryID], onDelete: NoAction, onUpdate: NoAction, map: "FK_CategoryContent_Category_CategoryID")
   SEO_CategoryContent SEO_CategoryContent?
 
@@ -238,7 +247,7 @@ model Details_ProductOverviewDetails {
 
 model FAQs {
   FAQsId       Int       @id(map: "PK__FAQs__6DDBE835DC17F6BB") @default(autoincrement())
-  Title        String?   @db.VarChar(50)
+  Title        String?   @db.VarChar(1000)
   Description  String?   @db.VarChar(3000)
   FilesAddress String?   @db.VarChar(500)
   ProductId    Int?
@@ -251,7 +260,7 @@ model FAQs {
 
 model Master_ProductOverviewDetails {
   id                       Int    @id @default(autoincrement())
-  ProductOverviewDetailsId Int    @unique(map: "UQ_ProductOverviewDetailsId")
+  ProductOverviewDetailsId Int?   @unique(map: "UQ_ProductOverviewDetailsId")
   Title                    String @db.VarChar(2000)
   Description              String @db.VarChar(4000)
   Img                      String @db.VarChar(1000)
@@ -274,12 +283,13 @@ model Product {
   Available         Boolean?
   Description       String?  @db.VarChar(1000)
   CategoryId        Int?
-  Slug              String?  @db.VarChar(200)
-  SEO_Title         String?  @db.VarChar(50)
+  Slug              String?  @db.VarChar(1200)
+  SEO_Title         String?  @db.VarChar(60)
   SEO_Description   String?  @db.VarChar(4000)
   QrCode_Key        String?  @db.VarChar(100)
   QrCode_expiryDays String?  @db.VarChar(50)
   productBlog       String?
+  Partner_Price     String?  @db.VarChar(20)
 
   // new added field
   Category      Category?       @relation(fields: [CategoryId], references: [CategoryID])
@@ -291,7 +301,7 @@ model Product {
 
 model ProductOverview {
   ProductOverviewId Int       @id(map: "PK__ProductO__2C6062D2C1D11FB4") @default(autoincrement())
-  ProductName       String?   @db.VarChar(100)
+  ProductName       String?   @db.VarChar(1200)
   ProductId         Int?
   Property1         String?   @db.VarChar(300)
   Property2         String?   @db.VarChar(300)
@@ -306,8 +316,8 @@ model ProductOverview {
 
 model ProductSpecs {
   ProductSpecsId Int       @id(map: "PK__ProductS__AD8D1EF57B85BAB5") @default(autoincrement())
-  Name           String?   @db.VarChar(20)
-  Title          String?   @db.VarChar(100)
+  Name           String?   @db.VarChar(1000)
+  Title          String?   @db.VarChar(1000)
   Description    String?   @db.VarChar(4000)
   ProductId      Int?
   Available      Boolean?
@@ -355,6 +365,20 @@ model Media {
   media_type String  @db.VarChar(50)
   media_URL  String  @db.VarChar(2500)
   media_alt  String? @db.VarChar(250)
+
+  @@schema("blog")
+}
+
+model BlogFAQs {
+  id         Int      @id @default(autoincrement())
+  blog_id    Int
+  question   String   @db.VarChar(400)
+  answer     String   @db.VarChar(1500)
+  available  Boolean  @default(true)
+  created_at String   @db.VarChar(10)
+  updated_at String   @db.VarChar(10)
+  order      Int      @default(0)
+  Blogs      Blogs    @relation(fields: [blog_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@schema("blog")
 }
@@ -462,24 +486,24 @@ model warranty {
 }
 
 model SpecTemplate {
-  SpecTemplateId     Int                 @id @default(autoincrement())
-  Name               String              @db.VarChar(100)
-  InsertDate         DateTime            @default(now())
-  ModifyDate         DateTime            @updatedAt
-  Items              SpecTemplateItem[]  // Relation
+  SpecTemplateId Int                @id @default(autoincrement())
+  Name           String             @db.VarChar(100)
+  InsertDate     DateTime           @default(now())
+  ModifyDate     DateTime           @updatedAt
+  Items          SpecTemplateItem[] // Relation
 
   @@map("SpecTemplate")
   @@schema("support")
 }
 
 model SpecTemplateItem {
-  SpecTemplateItemId Int          @id @default(autoincrement())
+  SpecTemplateItemId Int      @id @default(autoincrement())
   SpecTemplateId     Int
-  Title              String       @db.VarChar(100)
-  InsertDate         DateTime     @default(now())
-  ModifyDate         DateTime     @updatedAt
+  Title              String   @db.VarChar(100)
+  InsertDate         DateTime @default(now())
+  ModifyDate         DateTime @updatedAt
 
-  Template           SpecTemplate @relation(fields: [SpecTemplateId], references: [SpecTemplateId], onDelete: Cascade)
+  Template SpecTemplate @relation(fields: [SpecTemplateId], references: [SpecTemplateId], onDelete: Cascade)
 
   @@map("SpecTemplateItem")
   @@schema("support")

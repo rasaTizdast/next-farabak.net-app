@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma"; // Adjust this path to where you initialize Prisma in your project
 
 export const dynamic = "force-dynamic";
@@ -53,26 +54,22 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     // Fetch the data from the database
-    const overviewDetails = await prisma.master_ProductOverviewDetails.findMany(
-      {
-        select: {
-          ProductOverviewDetailsId: true,
-          Title: true,
-          Img: true,
-          Description: true,
-        },
-        orderBy: {
-          id: "desc",
-        },
-      }
-    );
+    const overviewDetails = await prisma.master_ProductOverviewDetails.findMany({
+      select: {
+        ProductOverviewDetailsId: true,
+        Title: true,
+        Img: true,
+        Description: true,
+      },
+      orderBy: {
+        id: "desc",
+      },
+    });
 
     // Return the data as JSON
     return NextResponse.json(overviewDetails);
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to fetch overview details" },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ error: "Failed to fetch overview details" }, { status: 500 });
   }
 }

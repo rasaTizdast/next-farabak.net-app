@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
 import { Modal, Steps, Button, message } from "antd";
+import moment from "jalali-moment";
+import React, { useState, useEffect } from "react";
+
+import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+
 import { Branch, Invoice } from "../types";
 import CustomerInfoStep from "./steps/CustomerInfoStep";
 import ProductSelectionStep from "./steps/ProductSelectionStep";
-import WarrantyStep from "./steps/WarrantyStep";
 import ReviewStep from "./steps/ReviewStep";
-import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
-import moment from "jalali-moment";
+import WarrantyStep from "./steps/WarrantyStep";
 
 interface InvoiceModalProps {
   visible: boolean;
@@ -17,12 +19,7 @@ interface InvoiceModalProps {
   onSuccess?: () => void;
 }
 
-const InvoiceModal: React.FC<InvoiceModalProps> = ({
-  visible,
-  onClose,
-  branch,
-  onSuccess,
-}) => {
+const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, onSuccess }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [usdToRialRate, setUsdToRialRate] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -39,6 +36,20 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
 
   // Reset all state when modal becomes visible or is closed
   useEffect(() => {
+    const resetForm = () => {
+      setCurrentStep(0);
+      setInvoice({
+        Fullname: "",
+        Phonenumber: "",
+        UserId: branch?.UserID,
+        TotalAmount: 0,
+        Checked: true,
+        Date: moment().locale("fa").format("YYYY-MM-DDTHH:mm:ss"),
+      });
+      setSelectedProducts([]);
+      setProductsWithWarranty([]);
+    };
+
     if (visible) {
       // Only fetch exchange rate when modal opens
       getExchangeRate();
@@ -51,20 +62,6 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
   const getExchangeRate = async () => {
     const rate = await fetchUsdToRialRate();
     setUsdToRialRate(rate);
-  };
-
-  const resetForm = () => {
-    setCurrentStep(0);
-    setInvoice({
-      Fullname: "",
-      Phonenumber: "",
-      UserId: branch?.UserID,
-      TotalAmount: 0,
-      Checked: true,
-      Date: moment().locale("fa").format("YYYY-MM-DDTHH:mm:ss"),
-    });
-    setSelectedProducts([]);
-    setProductsWithWarranty([]);
   };
 
   const handleClose = () => {
@@ -110,10 +107,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
     {
       title: "بررسی نهایی",
       content: (
-        <ReviewStep
-          invoice={invoice as Invoice}
-          productsWithWarranty={productsWithWarranty}
-        />
+        <ReviewStep invoice={invoice as Invoice} productsWithWarranty={productsWithWarranty} />
       ),
     },
   ];
@@ -178,16 +172,16 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
       }
 
       message.success("فاکتور با موفقیت ثبت شد");
-      
+
       // Call onSuccess callback if provided
       if (onSuccess) {
         onSuccess();
       } else {
         handleClose(); // Only close if onSuccess is not provided
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating invoice:", error);
-      message.error(error.message || "خطا در ثبت فاکتور");
+      message.error("خطا در ثبت فاکتور");
     } finally {
       setIsLoading(false);
     }
@@ -204,12 +198,10 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
       destroyOnClose={true}
       style={{ direction: "rtl" }}
       className="invoice-modal"
-      modalRender={(modal) => (
-        <div className="bg-gray-900 rounded-lg overflow-hidden">{modal}</div>
-      )}
+      modalRender={(modal) => <div className="overflow-hidden rounded-lg bg-gray-900">{modal}</div>}
     >
-      <div className="bg-gray-800 text-white p-4 rounded-lg">
-        <Steps current={currentStep} className="mb-8 custom-dark-steps">
+      <div className="rounded-lg bg-gray-800 p-4 text-white">
+        <Steps current={currentStep} className="custom-dark-steps mb-8">
           {steps.map((step) => (
             <Steps.Step key={step.title} title={step.title} />
           ))}
@@ -217,12 +209,12 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
 
         <div className="step-content mb-8">{steps[currentStep].content}</div>
 
-        <div className="flex justify-between mt-4">
+        <div className="mt-4 flex justify-between">
           {currentStep > 0 && (
             <Button
               onClick={handlePrev}
               disabled={isLoading}
-              className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600 hover:text-white hover:border-gray-500"
+              className="border-gray-600 bg-gray-700 text-white hover:border-gray-500 hover:bg-gray-600 hover:text-white"
             >
               قبلی
             </Button>
@@ -233,7 +225,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
               type="primary"
               onClick={handleNext}
               disabled={isLoading}
-              className="bg-blue-600 hover:bg-blue-700 border-blue-700"
+              className="border-blue-700 bg-blue-600 hover:bg-blue-700"
             >
               بعدی
             </Button>
@@ -243,7 +235,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({
               onClick={handleSubmit}
               loading={isLoading}
               disabled={isLoading}
-              className="bg-green-600 hover:bg-green-700 border-green-600"
+              className="border-green-600 bg-green-600 hover:bg-green-700"
             >
               ثبت فاکتور
             </Button>

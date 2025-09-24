@@ -1,13 +1,14 @@
-import React, { useEffect } from 'react';
-import { Modal, Form } from 'antd';
-import BranchForm from './BranchForm';
-import { Branch, User } from './types';
+import { FormInstance, Modal } from "antd";
+import React, { useEffect } from "react";
+
+import BranchForm from "./BranchForm";
+import { Branch, User } from "./types";
 
 interface EditBranchModalProps {
   visible: boolean;
   onClose: () => void;
-  onFinish: (values: any) => void;
-  form: any;
+  onFinish: (values: Record<string, unknown>) => void;
+  form: FormInstance;
   branch: Branch;
   users: User[];
 }
@@ -18,7 +19,7 @@ const EditBranchModal: React.FC<EditBranchModalProps> = ({
   onFinish,
   form,
   branch,
-  users
+  users,
 }) => {
   useEffect(() => {
     if (branch && visible) {
@@ -67,4 +68,4 @@ const EditBranchModal: React.FC<EditBranchModalProps> = ({
   );
 };
 
-export default EditBranchModal; 
+export default EditBranchModal;
