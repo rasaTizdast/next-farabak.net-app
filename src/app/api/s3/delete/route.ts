@@ -117,11 +117,11 @@ export async function DELETE(req: Request): Promise<NextResponse> {
       try {
         const deleteParams = {
           Bucket: process.env.LIARA_BUCKET_NAME as string,
-          Key: key,
+          Key: `categoryBanners/${key.replace(/^categoryBanners\//, "")}`,
         };
         const deleteResponse = await s3.deleteObject(deleteParams).promise();
         return NextResponse.json(
-          { message: "Banner deleted successfully.", deletedKey: key, deleteResponse },
+          { message: "Banner deleted successfully.", deletedKey: deleteParams.Key, deleteResponse },
           { status: 200 }
         );
       } catch (error) {

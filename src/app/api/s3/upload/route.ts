@@ -145,7 +145,7 @@ export async function POST(request: Request) {
       const sanitizedFolderName = sanitize(folderName);
       key = `${parentFolder}/${sanitizedFolderName}.${contentType.split("/")[1]}`;
     } else if (type === "categoryBanner") {
-      // Path: /category or /category/subcategory at bucket root
+      // Path: categoryBanners/category[/subcategory]/banner.ext for consistent foldering
       if (!categorySlug || typeof categorySlug !== "string") {
         return NextResponse.json(
           { error: "categorySlug is required for categoryBanner" },
@@ -157,7 +157,10 @@ export async function POST(request: Request) {
       const sub = subcategorySlug ? sanitize(subcategorySlug) : null;
       const fileExt = contentType.split("/")[1];
       const fileName = "banner";
-      key = sub ? `${cat}/${sub}/${fileName}.${fileExt}` : `${cat}/${fileName}.${fileExt}`;
+      parentFolder = "categoryBanners";
+      key = sub
+        ? `${parentFolder}/${cat}/${sub}/${fileName}.${fileExt}`
+        : `${parentFolder}/${cat}/${fileName}.${fileExt}`;
     } else {
       return NextResponse.json({ error: "Invalid type provided" }, { status: 400 });
     }
@@ -170,8 +173,8 @@ export async function POST(request: Request) {
     });
 
     // For productImage and overviewDetails we strip the first folder for consistency with existing clients.
-    // For categoryBanner we return the full key since it's at bucket root folder(s).
-    const responseKey = type === "categoryBanner" ? key : key.substring(key.indexOf("/") + 1);
+    // For categoryBanner we also strip the parent folder for consistency, returning everything after the first slash.
+    const responseKey = key.substring(key.indexOf("/") + 1);
 
     return NextResponse.json({ uploadUrl, key: responseKey });
   } catch (error) {
