@@ -161,6 +161,14 @@ export default async function ProductPage(props: {
     `/products/${productData.categorySlug}/${productData.subCategorySlug}`,
   ];
 
+  // Compute pricing for structured data (omit offers if price is missing)
+  const rawPrice = Number(productData.Price);
+  const rawDiscount = Number(productData.Discount);
+  const hasValidPrice = Number.isFinite(rawPrice) && rawPrice > 0;
+  const hasValidDiscount =
+    Number.isFinite(rawDiscount) && rawDiscount > 0 && rawDiscount < rawPrice;
+  const finalPrice = hasValidDiscount ? rawPrice - rawDiscount : rawPrice;
+
   // Prepare structured data for Schema.org
   const structuredData = {
     "@context": "https://schema.org",
@@ -185,17 +193,21 @@ export default async function ProductPage(props: {
           name: "فرابک",
           url: "https://farabak.net",
         },
-        offers: {
-          "@type": "Offer",
-          price: productData.Price,
-          priceCurrency: "IRR",
-          availability: productData.Available
-            ? "https://schema.org/InStock"
-            : "https://schema.org/OutOfStock",
-          seller: {
-            "@id": "https://farabak.net",
-          },
-        },
+        ...(hasValidPrice
+          ? {
+              offers: {
+                "@type": "Offer",
+                price: String(finalPrice),
+                priceCurrency: "IRR",
+                availability: productData.Available
+                  ? "https://schema.org/InStock"
+                  : "https://schema.org/OutOfStock",
+                seller: {
+                  "@id": "https://farabak.net",
+                },
+              },
+            }
+          : {}),
         mainEntityOfPage: {
           "@type": "WebPage",
           "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
