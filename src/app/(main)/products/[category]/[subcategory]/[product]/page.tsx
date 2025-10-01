@@ -15,6 +15,7 @@ import ProductFeatures from "./components/ui/ProductFeatures";
 import ProductOverview from "./components/ui/ProductOverviewDetails";
 import ProductSpecs from "./components/ui/ProductSpecs";
 import ProductTabs from "./components/ui/ProductTabs";
+import SimilarProducts from "./components/ui/SimilarProducts";
 import { SkeletonFeatures } from "./components/ui/Skeletons";
 import styles from "./ProductPage.module.css";
 
@@ -343,6 +344,15 @@ export default async function ProductPage(props: {
           <ProductFaq productId={productData.ProductId} />
         </Suspense>
       </section>
+
+      {/* Similar Products */}
+      <div className="my-10 h-px w-full bg-gray-200" aria-hidden="true" />
+      <SimilarProducts
+        currentProductId={productData.ProductId}
+        currentProductSlug={productData.productSlug}
+        categorySlug={productData.categorySlug}
+        subCategorySlug={productData.subCategorySlug}
+      />
     </>
   );
 }
