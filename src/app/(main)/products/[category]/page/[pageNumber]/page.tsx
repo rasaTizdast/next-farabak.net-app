@@ -189,6 +189,43 @@ const CategoryPage = async (props: CategoryPageProps) => {
                     valueAddedTaxIncluded: true,
                   },
               priceValidUntil: priceValidUntil,
+              hasMerchantReturnPolicy: {
+                "@type": "MerchantReturnPolicy",
+                applicableCountry: "IR",
+                returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+                merchantReturnDays: 7,
+                returnMethod: "https://schema.org/ReturnByMail",
+                returnFees: "https://schema.org/FreeReturn",
+              },
+              shippingDetails: [
+                {
+                  "@type": "OfferShippingDetails",
+                  shippingDestination: {
+                    "@type": "DefinedRegion",
+                    addressCountry: "IR",
+                  },
+                  shippingRate: {
+                    "@type": "MonetaryAmount",
+                    value: "0",
+                    currency: "IRR",
+                  },
+                  deliveryTime: {
+                    "@type": "ShippingDeliveryTime",
+                    handlingTime: {
+                      "@type": "QuantitativeValue",
+                      minValue: 1,
+                      maxValue: 5,
+                      unitCode: "DAY",
+                    },
+                    transitTime: {
+                      "@type": "QuantitativeValue",
+                      minValue: 2,
+                      maxValue: 5,
+                      unitCode: "DAY",
+                    },
+                  },
+                },
+              ],
               availability: "https://schema.org/InStock",
               seller: {
                 "@type": "Organization",
