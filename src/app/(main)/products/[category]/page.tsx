@@ -102,6 +102,7 @@ const CategoryPage = async (props: CategoryPageProps) => {
 
   const breadcrumbs = ["/", "/products", `/products/${categoryName}`];
 
+  const priceValidUntil = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -174,6 +175,7 @@ const CategoryPage = async (props: CategoryPageProps) => {
                     priceCurrency: "IRR",
                     valueAddedTaxIncluded: true,
                   },
+              priceValidUntil: priceValidUntil,
               availability: "https://schema.org/InStock",
               seller: {
                 "@type": "Organization",

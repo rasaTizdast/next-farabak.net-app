@@ -82,19 +82,40 @@ export default async function SimilarProducts({
   return (
     <section id="similar-products" className="mt-12">
       {(() => {
+        const priceValidUntil = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
         const itemList = {
           "@context": "https://schema.org",
           "@type": "ItemList",
-          itemListElement: products.map((p, idx) => ({
-            "@type": "ListItem",
-            position: idx + 1,
-            item: {
-              "@type": "Product",
-              name: p.Type,
-              url: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${p.link}`,
-              image: `${process.env.LIARA_BUCKET_URL}/productImages/${p.img1 ?? ""}`,
-            },
-          })),
+          itemListElement: products.map((p, idx) => {
+            const rawPrice = Number(p.Price);
+            const rawDiscount = Number(p.Discount);
+            const hasValidPrice = Number.isFinite(rawPrice) && rawPrice > 0;
+            const hasValidDiscount =
+              Number.isFinite(rawDiscount) && rawDiscount > 0 && rawDiscount < rawPrice;
+            const finalPrice = hasValidDiscount ? rawPrice - rawDiscount : rawPrice;
+
+            return {
+              "@type": "ListItem",
+              position: idx + 1,
+              item: {
+                "@type": "Product",
+                name: p.Type,
+                url: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${p.link}`,
+                image: `${process.env.LIARA_BUCKET_URL}/productImages/${p.img1}`,
+                sku: `FAR-${p.ProductId}`,
+                offers: {
+                  "@type": "Offer",
+                  price: String(hasValidPrice ? finalPrice : 0),
+                  priceCurrency: "IRR",
+                  priceValidUntil,
+                  availability: p.Available
+                    ? "https://schema.org/InStock"
+                    : "https://schema.org/OutOfStock",
+                  url: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${p.link}`,
+                },
+              },
+            };
+          }),
         } as const;
         return (
           <script

@@ -168,6 +168,7 @@ export default async function ProductPage(props: {
   const hasValidDiscount =
     Number.isFinite(rawDiscount) && rawDiscount > 0 && rawDiscount < rawPrice;
   const finalPrice = hasValidDiscount ? rawPrice - rawDiscount : rawPrice;
+  const priceValidUntil = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
 
   // Prepare structured data for Schema.org
   const structuredData = {
@@ -199,6 +200,7 @@ export default async function ProductPage(props: {
                 "@type": "Offer",
                 price: String(finalPrice),
                 priceCurrency: "IRR",
+                priceValidUntil,
                 availability: productData.Available
                   ? "https://schema.org/InStock"
                   : "https://schema.org/OutOfStock",

@@ -48,7 +48,7 @@ const ClientInvoiceSection = ({ ProductId, ProductName, productPrice, productDis
   const discountInRial = exchangeRate ? discountUsd * exchangeRate : null;
   const discountedPrice = priceInRial && discountInRial ? priceInRial - discountInRial : null;
   const discountPercentage =
-    priceInRial && discountInRial ? ((discountInRial / priceInRial) * 100).toFixed(0) : 0;
+    priceInRial && discountInRial ? ((discountInRial / priceInRial) * 100).toFixed(2) : 0;
 
   // Handle cases where the product price is not available or fetching the exchange rate fails
   if (!productPrice || +productPrice === 0 || exchangeRate === null) {
@@ -78,18 +78,6 @@ const ClientInvoiceSection = ({ ProductId, ProductName, productPrice, productDis
     );
   }
 
-  // Render if user is not logged in
-  if (!user) {
-    return (
-      <Link
-        href="/auth/login"
-        className="mt-6 flex w-full justify-center rounded-lg bg-[#003262] p-2 text-sm text-white sm:mt-0 md:text-base"
-      >
-        برای ثبت فاکتور وارد شوید
-      </Link>
-    );
-  }
-
   // Price display block (used for all logged in users)
   const priceBlock = (
     <div
@@ -104,7 +92,7 @@ const ClientInvoiceSection = ({ ProductId, ProductName, productPrice, productDis
           <span
             className={`${styles.discount} rounded-lg bg-[#003262] px-2 py-1 text-xs font-semibold text-white lg:rounded-xl`}
           >
-            {discountPercentage}%
+            {e2p(discountPercentage?.toLocaleString() || "0")}%
           </span>
         )}
       </div>
@@ -148,58 +136,71 @@ const ClientInvoiceSection = ({ ProductId, ProductName, productPrice, productDis
     );
   }
 
-  // Render for regular users
+  // Render for regular users (and guests)
   return (
     <div className={styles.invoiceParent}>
       {priceBlock}
 
-      {currentQuantity > 0 && <p className={styles.invoiceText}>تعداد این محصول در فاکتور</p>}
-
-      <div className={styles.addToInvoice}>
-        {currentQuantity > 0 ? (
-          <div className={styles.actions}>
-            <button
-              className={styles.action}
-              onClick={() =>
-                addProductToInvoice(ProductId, 1, ProductName, priceInRial!, discountInRial!)
-              }
-            >
-              +
-            </button>
-            {!!currentQuantity && <div className={styles.invoiceAmount}>{currentQuantity}</div>}
-            {currentQuantity === 1 ? (
-              <button onClick={() => removeProductFromInvoice(ProductId)} className={styles.action}>
-                <FaRegTrashAlt />
-              </button>
+      {!user ? (
+        <Link
+          href="/auth/login"
+          className="flex w-full justify-center rounded-lg bg-[#003262] p-2 text-sm text-white sm:mt-0 md:text-base"
+        >
+          برای ثبت فاکتور وارد شوید
+        </Link>
+      ) : (
+        <>
+          {currentQuantity > 0 && <p className={styles.invoiceText}>تعداد این محصول در فاکتور</p>}
+          <div className={styles.addToInvoice}>
+            {currentQuantity > 0 ? (
+              <div className={styles.actions}>
+                <button
+                  className={styles.action}
+                  onClick={() =>
+                    addProductToInvoice(ProductId, 1, ProductName, priceInRial!, discountInRial!)
+                  }
+                >
+                  +
+                </button>
+                {!!currentQuantity && <div className={styles.invoiceAmount}>{currentQuantity}</div>}
+                {currentQuantity === 1 ? (
+                  <button
+                    onClick={() => removeProductFromInvoice(ProductId)}
+                    className={styles.action}
+                  >
+                    <FaRegTrashAlt />
+                  </button>
+                ) : (
+                  <button
+                    className={styles.action}
+                    onClick={() =>
+                      addProductToInvoice(ProductId, -1, ProductName, priceInRial!, discountInRial!)
+                    }
+                  >
+                    -
+                  </button>
+                )}
+              </div>
             ) : (
               <button
-                className={styles.action}
+                className="flex w-full justify-center rounded-lg bg-[#003262] p-2 text-sm text-white sm:mt-0 md:text-base"
                 onClick={() =>
-                  addProductToInvoice(ProductId, -1, ProductName, priceInRial!, discountInRial!)
+                  addProductToInvoice(ProductId, 1, ProductName, priceInRial!, discountInRial!)
                 }
               >
-                -
+                اضافه کردن به فاکتور
               </button>
             )}
           </div>
-        ) : (
-          <button
-            className="flex w-full justify-center rounded-lg bg-[#003262] p-2 text-sm text-white sm:mt-0 md:text-base"
-            onClick={() =>
-              addProductToInvoice(ProductId, 1, ProductName, priceInRial!, discountInRial!)
-            }
-          >
-            اضافه کردن به فاکتور
-          </button>
-        )}
-      </div>
 
-      {!!currentQuantity && (
-        <p className={styles.invoiceText2}>
-          این محصول به
-          <Link href="/dashboard/new-invoice"> فاکتور جدید </Link>
-          شما اضافه شد
-        </p>
+          {!!currentQuantity && (
+            <p className={styles.invoiceText2}>
+              این محصول به
+              <Link href="/dashboard/new-invoice"> فاکتور جدید </Link>
+              شما اضافه شد
+            </p>
+          )}
+        </>
       )}
     </div>
   );

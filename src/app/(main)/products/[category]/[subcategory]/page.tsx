@@ -106,6 +106,7 @@ const SubcategoryPage = async (props: SubcategoryPageProps) => {
     `/products/${category}/${subcategory}`,
   ];
 
+  const priceValidUntil = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -184,6 +185,7 @@ const SubcategoryPage = async (props: SubcategoryPageProps) => {
                     priceCurrency: "IRR",
                     valueAddedTaxIncluded: true,
                   },
+              priceValidUntil: priceValidUntil,
               availability: "https://schema.org/InStock",
               seller: {
                 "@type": "Organization",
