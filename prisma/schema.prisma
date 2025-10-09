@@ -294,6 +294,7 @@ model Product {
   // new added field
   Category      Category?       @relation(fields: [CategoryId], references: [CategoryID])
   branchproduct branchproduct[]
+  warehouseproduct warehouseproduct[]
   warranty      warranty[]
 
   @@schema("support")
@@ -464,6 +465,27 @@ model branchproduct {
   quantity        Int?    @default(0)
   Product         Product @relation(fields: [ProductId], references: [ProductId], onDelete: Cascade, onUpdate: NoAction)
   branch          branch  @relation(fields: [branchid], references: [branchid], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("support")
+}
+
+model warehouse {
+  warehouseid     Int                @id @default(autoincrement())
+  name            String             @unique @db.VarChar(255)
+  location        String?            @db.VarChar(255)
+  createdat       DateTime?          @default(now()) @db.Timestamp(6)
+  warehouseproduct warehouseproduct[]
+
+  @@schema("support")
+}
+
+model warehouseproduct {
+  warehouseproductid Int        @id @default(autoincrement())
+  warehouseid        Int
+  ProductId          Int
+  quantity           Int?       @default(0)
+  Product            Product    @relation(fields: [ProductId], references: [ProductId], onDelete: Cascade, onUpdate: NoAction)
+  warehouse          warehouse  @relation(fields: [warehouseid], references: [warehouseid], onDelete: Cascade, onUpdate: NoAction)
 
   @@schema("support")
 }

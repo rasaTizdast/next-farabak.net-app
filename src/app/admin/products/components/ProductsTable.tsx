@@ -1,6 +1,5 @@
 import axios from "axios";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import React, { useState, useMemo, useEffect } from "react";
 import { FaExternalLinkAlt, FaSort, FaSortUp, FaSortDown, FaTimes } from "react-icons/fa";
 import { IoQrCode } from "react-icons/io5";
@@ -8,9 +7,10 @@ import { IoQrCode } from "react-icons/io5";
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 
 import ProductEditModal from "./ProductEditModal";
+import ProductQuantityDisplay from "./ProductQuantityDisplay";
 import ProductTableSkeleton from "./ProductTableSkeleton";
-import { Product } from "../types";
 import QrCodeModal from "./QrCodeModal";
+import { Product } from "../types";
 
 type Props = {
   isLoading: boolean;
@@ -35,10 +35,9 @@ const ProductsTable = ({
   setCurrentAction,
   refetchProducts,
 }: Props) => {
-  const router = useRouter();
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
   const [productQuantities, setProductQuantities] = useState<
-    Record<number, { value: number; timestamp: number }>
+    Record<number, { branches: number; warehouses: number; timestamp: number }>
   >({});
   const [loadingQuantities, setLoadingQuantities] = useState<Record<number, boolean>>({});
 
@@ -225,26 +224,24 @@ const ProductsTable = ({
     setLoadingQuantities((prev) => ({ ...prev, [productId]: true }));
 
     try {
-      const response = await axios.get(`/api/admin/branches/product-quantity/${productId}`);
-      if (response.status === 200) {
-        setProductQuantities((prev) => ({
-          ...prev,
-          [productId]: {
-            value: response.data.totalQuantity || 0,
-            timestamp: now,
-          },
-        }));
-      }
+      const [branchRes, warehouseRes] = await Promise.all([
+        axios.get(`/api/admin/branches/product-quantity/${productId}`),
+        axios.get(`/api/admin/warehouses/product-quantity/${productId}`),
+      ]);
+
+      setProductQuantities((prev) => ({
+        ...prev,
+        [productId]: {
+          branches: branchRes.status === 200 ? branchRes.data.totalQuantity || 0 : 0,
+          warehouses: warehouseRes.status === 200 ? warehouseRes.data.totalQuantity || 0 : 0,
+          timestamp: now,
+        },
+      }));
     } catch (error) {
       console.error("Error fetching product quantity:", error);
     } finally {
       setLoadingQuantities((prev) => ({ ...prev, [productId]: false }));
     }
-  };
-
-  // Navigate to branches page with product filter
-  const navigateToBranches = (productId: number) => {
-    router.push(`/admin/branches?productId=${productId}`);
   };
 
   if (notFound) {
@@ -394,29 +391,21 @@ const ProductsTable = ({
                     </td>
 
                     <td className="px-6 py-4">
-                      <span
-                        className={`group relative cursor-pointer rounded-lg px-3 py-1 text-xs ${
-                          product.Available
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                        onMouseEnter={() => fetchProductBranchQuantity(product.ProductId)}
-                        onClick={() => navigateToBranches(product.ProductId)}
-                      >
-                        {product.Available ? "موجود" : "ناموجود"}
-
-                        {/* Tooltip on hover */}
-                        <div className="absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-slate-800 px-3 py-1 text-xs text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                          {loadingQuantities[product.ProductId]
-                            ? "در حال بارگذاری..."
-                            : productQuantities[product.ProductId] !== undefined
-                              ? `تعداد کل در شعبه‌ها: ${
-                                  productQuantities[product.ProductId].value
-                                } عدد`
-                              : "کلیک برای مشاهده جزئیات در شعبه‌ها"}
-                          <div className="absolute left-1/2 top-full -mt-1 h-2 w-2 -translate-x-1/2 rotate-45 bg-slate-800"></div>
-                        </div>
-                      </span>
+                      <ProductQuantityDisplay
+                        branchCount={productQuantities[product.ProductId]?.branches ?? 0}
+                        warehouseCount={productQuantities[product.ProductId]?.warehouses ?? 0}
+                        productId={product.ProductId}
+                        Available={product.Available}
+                        isLoading={loadingQuantities[product.ProductId]}
+                        onHover={() => {
+                          if (
+                            !productQuantities[product.ProductId] &&
+                            !loadingQuantities[product.ProductId]
+                          ) {
+                            fetchProductBranchQuantity(product.ProductId);
+                          }
+                        }}
+                      />
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex justify-center gap-2">

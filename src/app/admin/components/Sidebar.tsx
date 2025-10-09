@@ -43,6 +43,11 @@ const Sidebar = () => {
       href: "/admin/branches",
       icon: <MdOutlineStorefront size={20} />,
     },
+    {
+      name: "انبارها",
+      href: "/admin/warehouses",
+      icon: <MdOutlineStorefront size={20} />,
+    },
     { name: "فاکتورها", href: "/admin/invoices", icon: <FiFile size={20} /> },
     {
       name: "تنظیمات",
