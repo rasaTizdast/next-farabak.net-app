@@ -4,7 +4,7 @@ import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import { Input, Modal, Table, Button, AutoComplete, message } from "antd";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 import Styles from "./styles";
 
@@ -29,7 +29,7 @@ type Product = {
   Type: string | null;
 };
 
-export default function WarehousesPage() {
+function WarehousesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const productId = searchParams.get("productId");
@@ -559,5 +559,13 @@ export default function WarehousesPage() {
       </Modal>
       <Styles />
     </div>
+  );
+}
+
+export default function WarehousesPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-white">در حال بارگذاری...</div>}>
+      <WarehousesPageContent />
+    </Suspense>
   );
 }
