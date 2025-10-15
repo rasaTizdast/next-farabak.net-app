@@ -47,11 +47,13 @@ export default function WarehousesTable({
               title: "تعداد این محصول",
               key: "specificProductQuantity",
               render: (_: any, record: Warehouse) => (
-                <span className={
-                  (record.specificProductQuantity || 0) > 0
-                    ? "rounded bg-green-900/40 px-2 py-0.5 text-green-200"
-                    : "text-gray-300"
-                }>
+                <span
+                  className={
+                    (record.specificProductQuantity || 0) > 0
+                      ? "rounded bg-green-900/40 px-2 py-0.5 text-green-200"
+                      : "text-gray-300"
+                  }
+                >
                   {(record.specificProductQuantity ?? 0) > 0
                     ? `${record.specificProductQuantity} عدد`
                     : "ناموجود"}
