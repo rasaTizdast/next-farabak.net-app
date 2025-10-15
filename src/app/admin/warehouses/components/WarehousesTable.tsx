@@ -11,6 +11,7 @@ type Warehouse = {
   createdat: string | null;
   productCount: number;
   totalQuantity: number;
+  specificProductQuantity?: number;
 };
 
 export default function WarehousesTable({
@@ -22,6 +23,7 @@ export default function WarehousesTable({
   onEdit,
   onDelete,
   onProducts,
+  isSearching,
 }: {
   items: Warehouse[];
   loading: boolean;
@@ -31,6 +33,7 @@ export default function WarehousesTable({
   onEdit: (w: Warehouse) => void;
   onDelete: (w: Warehouse) => void;
   onProducts: (w: Warehouse) => void;
+  isSearching?: boolean;
 }) {
   const columns = useMemo(
     () => [
@@ -38,6 +41,25 @@ export default function WarehousesTable({
       { title: "مکان", dataIndex: "location", key: "location" },
       { title: "تعداد محصولات", dataIndex: "productCount", key: "productCount" },
       { title: "تعداد کل", dataIndex: "totalQuantity", key: "totalQuantity" },
+      ...(isSearching
+        ? [
+            {
+              title: "تعداد این محصول",
+              key: "specificProductQuantity",
+              render: (_: any, record: Warehouse) => (
+                <span className={
+                  (record.specificProductQuantity || 0) > 0
+                    ? "rounded bg-green-900/40 px-2 py-0.5 text-green-200"
+                    : "text-gray-300"
+                }>
+                  {(record.specificProductQuantity ?? 0) > 0
+                    ? `${record.specificProductQuantity} عدد`
+                    : "ناموجود"}
+                </span>
+              ),
+            },
+          ]
+        : []),
       {
         title: "عملیات",
         key: "actions",
@@ -68,7 +90,7 @@ export default function WarehousesTable({
         ),
       },
     ],
-    [onEdit, onDelete, onProducts]
+    [onEdit, onDelete, onProducts, isSearching]
   );
 
   return (

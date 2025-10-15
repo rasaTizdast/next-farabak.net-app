@@ -18,6 +18,8 @@ type Warehouse = {
   createdat: string | null;
   productCount: number;
   totalQuantity: number;
+  // Returned only when searching by a specific product
+  specificProductQuantity?: number;
 };
 
 type Product = {
@@ -74,7 +76,23 @@ function WarehousesPageContent() {
       }
 
       const res = await axios.get("/api/admin/warehouses", { params });
-      setItems(res.data.items);
+      const rawItems = res.data.items || res.data.data || [];
+      const normalized = (Array.isArray(rawItems) ? rawItems : []).map((it: any) => {
+        const possible =
+          it?.specificProductQuantity ??
+          it?.specific_product_quantity ??
+          it?.productSpecificQuantity ??
+          it?.product_specific_quantity ??
+          it?.productQuantity ??
+          it?.product_quantity ??
+          it?.quantity;
+        const qty = typeof possible === "string" ? parseInt(possible) : possible;
+        return {
+          ...it,
+          specificProductQuantity: Number.isFinite(qty) && qty >= 0 ? qty : undefined,
+        } as Warehouse;
+      });
+      setItems(normalized);
       setTotal(res.data.total);
     } catch (e) {
       console.error(e);
@@ -170,13 +188,19 @@ function WarehousesPageContent() {
   };
   const saveWarehouse = async () => {
     try {
+      const trimmedName = (formName || "").trim();
+      const trimmedLocation = (formLocation || "").trim();
+      if (!trimmedName || !trimmedLocation) {
+        notify("warning", "نام و مکان انبار الزامی است");
+        return;
+      }
       if (editing) {
         await axios.put(`/api/admin/warehouses/${editing.warehouseid}`, {
-          name: formName,
-          location: formLocation,
+          name: trimmedName,
+          location: trimmedLocation,
         });
       } else {
-        await axios.post(`/api/admin/warehouses`, { name: formName, location: formLocation });
+        await axios.post(`/api/admin/warehouses`, { name: trimmedName, location: trimmedLocation });
       }
       setIsModalOpen(false);
       fetchWarehouses();
@@ -190,6 +214,14 @@ function WarehousesPageContent() {
       fetchWarehouses();
     } catch (e) {
       console.error(e);
+    }
+  };
+  const confirmAndDeleteWarehouse = async (wh: Warehouse) => {
+    const ok =
+      typeof window !== "undefined" ? window.confirm("آیا از حذف این انبار اطمینان دارید؟") : true;
+    if (ok) {
+      await deleteWarehouse(wh);
+      notify("success", "انبار با موفقیت حذف شد");
     }
   };
 
@@ -273,8 +305,9 @@ function WarehousesPageContent() {
         total={total}
         onPageChange={(p) => setPage(p)}
         onEdit={openEdit}
-        onDelete={deleteWarehouse}
+        onDelete={confirmAndDeleteWarehouse}
         onProducts={openProducts}
+        isSearching={!!selectedProduct}
       />
 
       <WarehouseFormModal
@@ -286,6 +319,7 @@ function WarehousesPageContent() {
         setFormName={(v) => setFormName(v)}
         formLocation={formLocation}
         setFormLocation={(v) => setFormLocation(v)}
+        disableSubmit={!((formName || "").trim() && (formLocation || "").trim())}
       />
 
       <ProductsModal

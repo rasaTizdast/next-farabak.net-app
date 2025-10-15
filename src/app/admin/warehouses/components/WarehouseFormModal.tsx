@@ -11,6 +11,7 @@ export default function WarehouseFormModal({
   setFormName,
   formLocation,
   setFormLocation,
+  disableSubmit,
 }: {
   open: boolean;
   onClose: () => void;
@@ -20,6 +21,7 @@ export default function WarehouseFormModal({
   setFormName: (v: string) => void;
   formLocation?: string;
   setFormLocation: (v: string) => void;
+  disableSubmit?: boolean;
 }) {
   return (
     <ModalBase
@@ -29,7 +31,7 @@ export default function WarehouseFormModal({
       footer={
         <>
           <ButtonBase onClick={onClose}>انصراف</ButtonBase>
-          <ButtonBase variant="primary" onClick={onSubmit}>
+          <ButtonBase variant="primary" onClick={onSubmit} disabled={!!disableSubmit}>
             {editing ? "ذخیره" : "ایجاد"}
           </ButtonBase>
         </>
@@ -42,6 +44,7 @@ export default function WarehouseFormModal({
             value={formName}
             onChange={(e) => setFormName((e.target as HTMLInputElement).value)}
             placeholder="نام انبار را وارد کنید"
+            required
           />
         </label>
         <label className="flex flex-col gap-2">
@@ -50,8 +53,14 @@ export default function WarehouseFormModal({
             value={formLocation}
             onChange={(e) => setFormLocation((e.target as HTMLInputElement).value)}
             placeholder="مکان انبار را وارد کنید"
+            required
           />
         </label>
+        {disableSubmit && (
+          <div className="rounded border border-amber-600 bg-amber-900/30 p-2 text-sm text-amber-200">
+            لطفاً نام و مکان انبار را وارد کنید
+          </div>
+        )}
       </div>
     </ModalBase>
   );
