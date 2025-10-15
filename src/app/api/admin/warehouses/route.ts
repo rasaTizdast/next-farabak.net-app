@@ -90,6 +90,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "نام انبار الزامی است" }, { status: 400 });
     }
 
+    // Check if warehouse name already exists
+    const existingWarehouse = await prisma.$queryRaw`
+      SELECT "warehouseid" FROM "support"."warehouse" 
+      WHERE LOWER("name") = LOWER(${name})
+    `;
+
+    if ((existingWarehouse as any[]).length > 0) {
+      return NextResponse.json(
+        { error: "نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید." },
+        { status: 409 }
+      );
+    }
+
     const created = await prisma.$queryRaw`
       INSERT INTO "support"."warehouse" ("name", "location")
       VALUES (${name}, ${location || null})
@@ -99,6 +112,15 @@ export async function POST(request: Request) {
     return NextResponse.json((created as any[])[0], { status: 201 });
   } catch (error) {
     console.error("Error creating warehouse:", error);
+
+    // Handle unique constraint violation at database level as fallback
+    if (error instanceof Error && error.message.includes("unique")) {
+      return NextResponse.json(
+        { error: "نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید." },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json({ error: "خطا در ایجاد انبار" }, { status: 500 });
   }
 }

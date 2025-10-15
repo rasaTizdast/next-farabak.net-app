@@ -33,6 +33,21 @@ export async function PUT(request: Request, props: { params: Promise<{ warehouse
     const id = parseInt(params.warehouseId);
     const { name, location } = await request.json();
 
+    // If name is being updated, check for duplicates
+    if (name) {
+      const existingWarehouse = await prisma.$queryRaw`
+        SELECT "warehouseid" FROM "support"."warehouse" 
+        WHERE LOWER("name") = LOWER(${name}) AND "warehouseid" != ${id}
+      `;
+
+      if ((existingWarehouse as any[]).length > 0) {
+        return NextResponse.json(
+          { error: "نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید." },
+          { status: 409 }
+        );
+      }
+    }
+
     const updated = await prisma.$queryRaw`
       UPDATE "support"."warehouse"
       SET "name" = COALESCE(${name}, "name"),
@@ -47,6 +62,15 @@ export async function PUT(request: Request, props: { params: Promise<{ warehouse
     return NextResponse.json((updated as any[])[0]);
   } catch (error) {
     console.error("Error updating warehouse:", error);
+
+    // Handle unique constraint violation at database level as fallback
+    if (error instanceof Error && error.message.includes("unique")) {
+      return NextResponse.json(
+        { error: "نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید." },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json({ error: "خطا در بروزرسانی انبار" }, { status: 500 });
   }
 }

@@ -199,13 +199,20 @@ function WarehousesPageContent() {
           name: trimmedName,
           location: trimmedLocation,
         });
+        notify("success", "انبار با موفقیت بروزرسانی شد");
       } else {
         await axios.post(`/api/admin/warehouses`, { name: trimmedName, location: trimmedLocation });
+        notify("success", "انبار با موفقیت ایجاد شد");
       }
       setIsModalOpen(false);
       fetchWarehouses();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      if (e.response?.status === 409) {
+        notify("error", e.response.data.error || "نام انبار تکراری است");
+      } else {
+        notify("error", editing ? "خطا در بروزرسانی انبار" : "خطا در ایجاد انبار");
+      }
     }
   };
   const deleteWarehouse = async (wh: Warehouse) => {
@@ -319,7 +326,11 @@ function WarehousesPageContent() {
         setFormName={(v) => setFormName(v)}
         formLocation={formLocation}
         setFormLocation={(v) => setFormLocation(v)}
-        disableSubmit={!((formName || "").trim() && (formLocation || "").trim())}
+        existingWarehouses={items.map((item) => ({
+          warehouseid: item.warehouseid,
+          name: item.name,
+        }))}
+        editingWarehouseId={editing?.warehouseid}
       />
 
       <ProductsModal
@@ -332,7 +343,7 @@ function WarehousesPageContent() {
       />
 
       {/* Toasts */}
-      <div className="pointer-events-none fixed right-4 top-4 z-50 flex w-[300px] flex-col gap-2">
+      <div className="pointer-events-none fixed left-1/2 top-4 z-50 flex w-[300px] -translate-x-1/2 flex-col gap-2">
         {toasts.map((t) => (
           <div
             key={t.id}
