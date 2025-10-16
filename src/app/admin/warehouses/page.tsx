@@ -260,9 +260,9 @@ function WarehousesPageContent() {
             />
             <button
               onClick={openCreate}
-              className="inline-flex items-center gap-2 whitespace-nowrap rounded bg-emerald-600 px-4 py-2 text-white transition-all hover:bg-emerald-700"
+              className="inline-flex items-center gap-2 whitespace-nowrap rounded bg-emerald-600 px-4 py-1 text-white transition-all hover:bg-emerald-700"
             >
-              <span className="-mt-0.5 text-lg">＋</span>
+              <span className="text-lg">＋</span>
               ایجاد انبار
             </button>
           </div>
