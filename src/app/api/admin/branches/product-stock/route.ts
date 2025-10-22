@@ -60,9 +60,6 @@ export async function GET(request: Request) {
     const branchesWithStock = await prisma.branchproduct.findMany({
       where: {
         ProductId: parseInt(productId),
-        quantity: {
-          gt: 0, // Only include branches with quantity > 0
-        },
       },
       select: {
         branch: {
