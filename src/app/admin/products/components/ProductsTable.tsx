@@ -7,6 +7,7 @@ import { IoQrCode } from "react-icons/io5";
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 
 import ProductEditModal from "./ProductEditModal";
+import ProductGradeButton from "./ProductGradeButton";
 import ProductQuantityDisplay from "./ProductQuantityDisplay";
 import ProductTableSkeleton from "./ProductTableSkeleton";
 import QrCodeModal from "./QrCodeModal";
@@ -448,6 +449,8 @@ const ProductsTable = ({
                           مشاهده
                           <FaExternalLinkAlt size={12} />
                         </Link>
+
+                        <ProductGradeButton product={product} refetchProducts={refetchProducts} />
                       </div>
                     </td>
                   </tr>
