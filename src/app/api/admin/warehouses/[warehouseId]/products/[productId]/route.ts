@@ -10,28 +10,71 @@ export async function PUT(
   try {
     const warehouseId = parseInt(params.warehouseId);
     const productId = parseInt(params.productId);
-    const { quantity } = await request.json();
+    const { quantity, ProductGradeId } = await request.json();
 
-    if (quantity === undefined) {
-      return NextResponse.json({ error: "تعداد الزامی است" }, { status: 400 });
+    if (quantity === undefined && ProductGradeId === undefined) {
+      return NextResponse.json({ error: "تعداد یا گرید الزامی است" }, { status: 400 });
     }
 
-    const existing = await prisma.$queryRaw`
-      SELECT * FROM "support"."warehouseproduct"
-      WHERE "warehouseid" = ${warehouseId} AND "ProductId" = ${productId}
-    `;
+    // First check if the warehouse product exists
+    const existingProduct = await prisma.warehouseproduct.findUnique({
+      where: {
+        warehouseproductid: productId,
+      },
+      include: {
+        Product: true,
+      },
+    });
 
-    if ((existing as any[]).length === 0) {
+    if (!existingProduct || existingProduct.warehouseid !== warehouseId) {
       return NextResponse.json({ error: "محصول در این انبار یافت نشد" }, { status: 404 });
     }
 
-    const updated = await prisma.$queryRaw`
-      UPDATE "support"."warehouseproduct"
-      SET "quantity" = ${quantity}
-      WHERE "warehouseid" = ${warehouseId} AND "ProductId" = ${productId}
-      RETURNING *
-    `;
-    return NextResponse.json((updated as any[])[0]);
+    // If updating grade, validate it exists for this product
+    if (ProductGradeId !== undefined && ProductGradeId !== null) {
+      const validGrade = await prisma.productGrade.findFirst({
+        where: {
+          ProductGradeId: ProductGradeId,
+          ProductId: existingProduct.ProductId,
+        },
+      });
+
+      if (!validGrade) {
+        return NextResponse.json({ error: "گرید محصول معتبر نیست" }, { status: 400 });
+      }
+    }
+
+    // Update using Prisma client
+    const updated = await prisma.warehouseproduct.update({
+      where: {
+        warehouseproductid: productId,
+      },
+      data: {
+        ...(quantity !== undefined && { quantity }),
+        ...(ProductGradeId !== undefined && { ProductGradeId }),
+      },
+      include: {
+        Product: {
+          include: {
+            ProductGrade: true,
+          },
+        },
+        ProductGrade: true,
+      },
+    });
+    // Format the response to match the expected structure
+    const formattedProduct = {
+      warehouseproductid: updated.warehouseproductid,
+      ProductId: updated.ProductId,
+      Type: updated.Product.Type,
+      Name: updated.Product.Name,
+      quantity: updated.quantity,
+      ProductGradeId: updated.ProductGradeId,
+      ProductGrade: updated.ProductGrade,
+      availableGrades: updated.Product.ProductGrade,
+    };
+
+    return NextResponse.json(formattedProduct);
   } catch (error) {
     console.error("Error updating warehouse product:", error);
     return NextResponse.json({ error: "خطا در بروزرسانی محصول انبار" }, { status: 500 });
@@ -47,16 +90,20 @@ export async function DELETE(
     const warehouseId = parseInt(params.warehouseId);
     const productId = parseInt(params.productId);
 
-    const deleted = await prisma.$queryRaw`
-      DELETE FROM "support"."warehouseproduct"
-      WHERE "warehouseid" = ${warehouseId} AND "ProductId" = ${productId}
-      RETURNING *
-    `;
+    // Verify the warehouseproduct belongs to the warehouse
+    const existing = await prisma.warehouseproduct.findUnique({
+      where: { warehouseproductid: productId },
+    });
 
-    if ((deleted as any[]).length === 0) {
+    if (!existing || existing.warehouseid !== warehouseId) {
       return NextResponse.json({ error: "محصول در این انبار یافت نشد" }, { status: 404 });
     }
-    return NextResponse.json((deleted as any[])[0]);
+
+    const deleted = await prisma.warehouseproduct.delete({
+      where: { warehouseproductid: productId },
+    });
+
+    return NextResponse.json(deleted);
   } catch (error) {
     console.error("Error removing product from warehouse:", error);
     return NextResponse.json({ error: "خطا در حذف محصول از انبار" }, { status: 500 });

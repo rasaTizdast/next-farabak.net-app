@@ -302,12 +302,13 @@ model Product {
 }
 
 model ProductGrade {
-  ProductGradeId Int      @id @default(autoincrement())
-  ProductId      Int
-  Grade          String   @db.VarChar(1)
-  Price          Int
-  discount       Int
-  Product        Product? @relation(fields: [ProductId], references: [ProductId])
+  ProductGradeId   Int                @id @default(autoincrement())
+  ProductId        Int
+  Grade            String             @db.VarChar(1)
+  Price            Int
+  discount         Int
+  Product          Product?           @relation(fields: [ProductId], references: [ProductId])
+  warehouseproduct warehouseproduct[]
 
   @@map("ProductGrade")
   @@schema("support")
@@ -493,12 +494,14 @@ model warehouse {
 }
 
 model warehouseproduct {
-  warehouseproductid Int       @id @default(autoincrement())
+  warehouseproductid Int           @id @default(autoincrement())
   warehouseid        Int
   ProductId          Int
-  quantity           Int?      @default(0)
-  Product            Product   @relation(fields: [ProductId], references: [ProductId], onDelete: Cascade, onUpdate: NoAction)
-  warehouse          warehouse @relation(fields: [warehouseid], references: [warehouseid], onDelete: Cascade, onUpdate: NoAction)
+  ProductGradeId     Int? // Optional reference to a specific grade
+  quantity           Int?          @default(0)
+  Product            Product       @relation(fields: [ProductId], references: [ProductId], onDelete: Cascade, onUpdate: NoAction)
+  ProductGrade       ProductGrade? @relation(fields: [ProductGradeId], references: [ProductGradeId], onDelete: SetNull, onUpdate: NoAction)
+  warehouse          warehouse     @relation(fields: [warehouseid], references: [warehouseid], onDelete: Cascade, onUpdate: NoAction)
 
   @@schema("support")
 }
