@@ -4,6 +4,13 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
   try {
+    // Cleanup invalid warehouseproduct records where ProductGradeId is not null and invalid
+    await prisma.$queryRaw`
+      DELETE FROM "support"."warehouseproduct"
+      WHERE "ProductGradeId" IS NOT NULL
+      AND "ProductGradeId" NOT IN (SELECT "ProductGradeId" FROM "support"."ProductGrade")
+    `;
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
@@ -92,7 +99,7 @@ export async function POST(request: Request) {
 
     // Check if warehouse name already exists
     const existingWarehouse = await prisma.$queryRaw`
-      SELECT "warehouseid" FROM "support"."warehouse" 
+      SELECT "warehouseid" FROM "support"."warehouse"
       WHERE LOWER("name") = LOWER(${name})
     `;
 
