@@ -149,6 +149,10 @@
     margin-top: 0;
   }
 
+  .search_icon {
+    margin-bottom: 0.8rem;
+  }
+
   .search_box {
     padding-inline: 3rem;
   }
