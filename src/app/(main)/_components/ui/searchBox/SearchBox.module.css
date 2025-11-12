@@ -150,7 +150,7 @@
   }
 
   .search_icon {
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.3rem;
   }
 
   .search_box {
@@ -195,6 +195,7 @@
 
   .search_icon {
     margin-top: 0.6rem;
+    font-size: 1.8rem;
   }
 
   .skeletons > span > span {
@@ -212,7 +213,6 @@
 
 @media (max-width: 430px) {
   .search_icon {
-    font-size: 1.4rem;
     margin-top: 0.5rem;
   }
 

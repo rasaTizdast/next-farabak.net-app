@@ -11,7 +11,7 @@
 }
 
 .userIcon svg {
-  color: #fff;
+  color: #ddd;
 }
 
 .invoiceBadge {
@@ -340,6 +340,10 @@
 @media (min-width: 2000px) {
   .userIcon ul * {
     font-size: 1.1rem;
+  }
+
+  .userIcon svg {
+    font-size: 2.7rem;
   }
 }
 
