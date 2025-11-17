@@ -80,6 +80,8 @@ export async function GET() {
             Price: true,
           },
         },
+        Minimum_Amount: true,
+        Maximum_Amount: true,
       },
       orderBy: {
         ProductId: "asc",

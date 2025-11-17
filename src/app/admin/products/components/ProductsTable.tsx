@@ -12,6 +12,7 @@ import ProductQuantityDisplay from "./ProductQuantityDisplay";
 import ProductTableSkeleton from "./ProductTableSkeleton";
 import QrCodeModal from "./QrCodeModal";
 import { Product } from "../types";
+import MinimumAmountSelector from "./MinimumAmountSelector";
 
 type Props = {
   isLoading: boolean;
@@ -419,6 +420,12 @@ const ProductsTable = ({
                           <IoQrCode size={20} color="#fff" />
                         </button>
 
+                        <ProductGradeButton product={product} refetchProducts={refetchProducts} />
+                        <MinimumAmountSelector
+                          product={product}
+                          refetchProducts={refetchProducts}
+                        />
+
                         <button
                           onClick={() => handleEditProduct(product)}
                           className="rounded-lg bg-yellow-600 px-2 py-1 text-white transition-all hover:bg-yellow-700"
@@ -449,8 +456,6 @@ const ProductsTable = ({
                           مشاهده
                           <FaExternalLinkAlt size={12} />
                         </Link>
-
-                        <ProductGradeButton product={product} refetchProducts={refetchProducts} />
                       </div>
                     </td>
                   </tr>
