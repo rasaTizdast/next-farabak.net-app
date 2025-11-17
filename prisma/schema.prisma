@@ -292,6 +292,8 @@ model Product {
   QrCode_expiryDays String?  @db.VarChar(50)
   productBlog       String?
   Partner_Price     String?  @db.VarChar(20)
+  Minimum_Amount    Int?
+  Maximum_Amount    Int?
 
   // new added field
   Category         Category?          @relation(fields: [CategoryId], references: [CategoryID])
