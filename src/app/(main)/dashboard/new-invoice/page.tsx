@@ -19,22 +19,40 @@ const NewInvoicePage = () => {
   const [invoiceSuccess, setInvoiceSuccess] = useState(false);
   const router = useRouter();
 
-  // Redirect to all-invoices page after successful invoice creation
   useEffect(() => {
     if (invoiceSuccess) {
       const redirectTimer = setTimeout(() => {
         router.push("/dashboard/all-invoices");
-      }, 5000); // Redirect after 5 seconds
-
+      }, 5000);
       return () => clearTimeout(redirectTimer);
     }
   }, [invoiceSuccess, router]);
 
+  // Persian digits helper
+  const e2p = (n: number | null | undefined) => {
+    if (n === null || n === undefined) return "—";
+    return n.toString().replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d)]);
+  };
+
   const handleQuantityChange = (ProductId: number, newQuantity: string) => {
-    const parsedQuantity = +newQuantity;
-    if (parsedQuantity >= 0) {
-      // Validate quantity is non-negative
-      updateProductQuantity(ProductId, parsedQuantity);
+    const num = parseInt(newQuantity) || 0;
+
+    const product = invoice.products.find((p) => p.ProductId === ProductId);
+    if (!product) return;
+
+    const min = product.minAmount ?? 0;
+    const max = product.maxAmount ?? Infinity;
+
+    if (num < min && num > 0) {
+      toast.error(`حداقل تعداد مجاز: ${e2p(min)} عدد`, { duration: 3000 });
+      updateProductQuantity(ProductId, min);
+    } else if (max !== Infinity && num > max) {
+      toast.error(`حداکثر تعداد مجاز: ${e2p(max)} عدد`, { duration: 3000 });
+      updateProductQuantity(ProductId, max);
+    } else if (num <= 0) {
+      removeProductFromInvoice(ProductId);
+    } else {
+      updateProductQuantity(ProductId, num);
     }
   };
 
@@ -42,17 +60,15 @@ const NewInvoicePage = () => {
     try {
       const response = await addNewInvoice(invoice, user);
       if (response) {
-        toast.success(
-          "فاکتور جدید با موفقیت ساخته شد، برای دیدن فاکتور به صفحه فاکتور ها مراجعه کنید",
-          { duration: 10000 } // 10 seconds
-        );
+        toast.success("فاکتور جدید با موفقیت ساخته شد، به صفحه فاکتورها منتقل می‌شوید...", {
+          duration: 10000,
+        });
         setInvoiceSuccess(true);
-        clearInvoice(); // Clear the invoice after a successful post
+        clearInvoice();
       }
     } catch (error) {
-      toast.error("پروسه اضافه شدن فاکتور با شکست مواجه شد، دوباره تلاش کنید!");
+      toast.error("خطا در ثبت فاکتور. لطفاً دوباره تلاش کنید.");
       console.error(error);
-      setInvoiceSuccess(false);
     }
   };
 
@@ -65,62 +81,90 @@ const NewInvoicePage = () => {
             فاکتور جدید با موفقیت ساخته شد، برای دیدن فاکتور به صفحه{" "}
             <Link
               href="/dashboard/all-invoices"
-              className="font-bold text-blue-800 underline transition-all hover:text-blue-950"
+              className="font-bold text-blue-800 underline hover:text-blue-950"
             >
               فاکتور ها
             </Link>{" "}
             مراجعه کنید
-            <div className="mt-2 text-sm">
-              شما بعد از ۵ ثانیه به صورت خودکار به صفحه فاکتورها منتقل خواهید شد...
-            </div>
+            <div className="mt-2 text-sm">شما بعد از ۵ ثانیه به صورت خودکار منتقل خواهید شد...</div>
           </div>
         )}
+
         <h1 className={styles.header}>ثبت فاکتور جدید</h1>
 
-        <table className={styles.invoiceTable}>
-          <thead>
-            <tr>
-              <th>نام محصول</th>
-              <th>قیمت واحد - تومان</th>
-              <th>تعداد</th>
-              <th>مجموع قیمت - تومان</th>
-              <th>تخفیف - تومان</th>
-              <th>قیمت نهایی - تومان</th>
-              <th>عملیات‌ها</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoice.products.length === 0 ? (
+        {invoice.products.length === 0 ? (
+          <div className="py-10 text-center text-lg text-gray-600">
+            فعلاً محصولی داخل فاکتور شما نیست!
+          </div>
+        ) : (
+          <table className={`${styles.invoiceTable} table-fixed`}>
+            <thead>
               <tr>
-                <td colSpan={7} style={{ textAlign: "center" }}>
-                  فعلا محصولی داخل فاکتور شما نیست!
-                </td>
+                <th>نام محصول</th>
+                <th>قیمت واحد (تومان)</th>
+                <th>تعداد</th>
+                <th>مجموع قیمت</th>
+                <th>تخفیف کل</th>
+                <th>قیمت نهایی</th>
+                <th>عملیات</th>
               </tr>
-            ) : (
-              invoice.products.map((product) => {
-                // Safeguard for undefined properties
+            </thead>
+            <tbody>
+              {invoice.products.map((product) => {
                 const price = product.Price ?? 0;
                 const discount = product.Discount ?? 0;
                 const quantity = product.Quantity ?? 0;
+                const min = product.minAmount!;
+                const max = product.maxAmount!;
+
+                const isAtMin = min !== null && min > 0 && quantity === min;
+                const isAtMax = max !== null && max < Infinity && quantity === max;
 
                 return (
-                  <tr key={product.ProductId}>
-                    <td>{product.ProductName}</td>
+                  <tr key={product.ProductId} className={quantity === 0 ? "opacity-50" : ""}>
+                    <td className="font-medium">{product.ProductName}</td>
                     <td>{Intl.NumberFormat("fa-IR").format(price)}</td>
+
+                    {/* Quantity with limits */}
                     <td>
-                      <input
-                        type="number"
-                        min="0"
-                        value={quantity}
-                        onChange={(e) => handleQuantityChange(product.ProductId, e.target.value)}
-                        className={styles.quantityInput}
-                      />
+                      <div className="flex flex-col items-center gap-1">
+                        <input
+                          type="number"
+                          min={min ?? 0}
+                          max={max && max < Infinity ? max : undefined}
+                          value={quantity}
+                          onChange={(e) => handleQuantityChange(product.ProductId, e.target.value)}
+                          className={`${styles.quantityInput} w-20 text-center`}
+                          style={{
+                            borderColor: isAtMin ? "#16a34a" : isAtMax ? "#dc2626" : undefined,
+                            borderWidth: isAtMin || isAtMax ? "2px" : "1px",
+                          }}
+                        />
+
+                        {/* Limits indicator */}
+                        {(min !== null || max !== null) && (
+                          <div className="flex gap-3 text-xs text-gray-600">
+                            {min !== null && min > 0 && (
+                              <span className={isAtMin ? "font-bold text-green-600" : ""}>
+                                حداقل: {e2p(min)}
+                              </span>
+                            )}
+                            {max !== null && max < Infinity && (
+                              <span className={isAtMax ? "font-bold text-red-600" : ""}>
+                                حداکثر: {e2p(max)}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </td>
+
                     <td>{Intl.NumberFormat("fa-IR").format(price * quantity)}</td>
                     <td>{Intl.NumberFormat("fa-IR").format(discount * quantity)}</td>
-                    <td>
-                      {Intl.NumberFormat("fa-IR").format(price * quantity - discount * quantity)}
+                    <td className="text-lg font-bold">
+                      {Intl.NumberFormat("fa-IR").format((price - discount) * quantity)}
                     </td>
+
                     <td>
                       <button
                         className={styles.clearButton}
@@ -131,16 +175,20 @@ const NewInvoicePage = () => {
                     </td>
                   </tr>
                 );
-              })
-            )}
-          </tbody>
-        </table>
+              })}
+            </tbody>
+          </table>
+        )}
 
         <div className={styles.actions}>
           <p className={styles.total}>
             تعداد کل محصولات: {Intl.NumberFormat("fa-IR").format(invoice.TotalAmount)}
           </p>
-          <button className={styles.finalizeButton} onClick={addNewInvoiceHandler}>
+          <button
+            className={styles.finalizeButton}
+            onClick={addNewInvoiceHandler}
+            disabled={invoice.products.length === 0}
+          >
             ذخیره فاکتور جدید
           </button>
         </div>
