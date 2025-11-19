@@ -37,6 +37,8 @@ interface ProductData {
   QrCode_key: string;
   QrCode_expiryDays: string;
   productBlog: string;
+  Minimum_Amount?: number;
+  Maximum_Amount?: number;
 }
 
 // Metadata generation
@@ -342,6 +344,8 @@ export default async function ProductPage(props: {
             productDiscount={productData.Discount}
             ProductId={productData.ProductId}
             ProductName={productData.Type}
+            minimumAmount={productData.Minimum_Amount}
+            maximumAmount={productData.Maximum_Amount}
           />
         </div>
       </section>

@@ -125,6 +125,8 @@ export async function GET(request: Request, props: { params: Promise<{ productSl
       QrCode_key: product.QrCode_Key,
       QrCode_expiryDays: product.QrCode_expiryDays,
       productBlog: product.productBlog,
+      Minimum_Amount: product.Minimum_Amount,
+      Maximum_Amount: product.Maximum_Amount,
     };
 
     return NextResponse.json(responseData);
