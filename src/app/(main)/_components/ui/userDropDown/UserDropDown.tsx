@@ -8,8 +8,6 @@ import { useUser } from "@/context/UserContext";
 
 import styles from "./UserDropDown.module.css";
 
-// import { useAuth } from "../hooks/useAuth";
-
 const UserDropDown = () => {
   const router = useRouter();
   const [isVis, setIsVis] = useState(false);
@@ -155,6 +153,12 @@ const UserDropDown = () => {
                             const itemDiscount = product.Discount || 0;
                             const finalUnitPrice = itemPrice - itemDiscount;
 
+                            const min = product.minAmount ?? 0;
+                            const max = product.maxAmount ?? Infinity;
+                            const current = product.Quantity;
+
+                            const canIncrease = max === Infinity || current < max;
+
                             return (
                               <div key={product.ProductId} className={styles.expandedInvoiceItem}>
                                 <div className={styles.productDetails}>
@@ -185,27 +189,34 @@ const UserDropDown = () => {
                                   >
                                     حذف
                                   </button>
+
                                   <div className={styles.quantityButtons}>
                                     <button
-                                      className={styles.quantityBtn}
+                                      className={`${styles.quantityBtn} ${!canIncrease ? styles.disabled : ""}`}
                                       onClick={() =>
-                                        handleQuantityChange(
-                                          product.ProductId,
-                                          product.Quantity + 1
-                                        )
+                                        canIncrease &&
+                                        handleQuantityChange(product.ProductId, current + 1)
                                       }
+                                      disabled={!canIncrease}
+                                      title={!canIncrease ? `حداکثر ${max} عدد` : ""}
                                     >
                                       +
                                     </button>
-                                    <span className={styles.quantity}>{product.Quantity}</span>
+
+                                    <span className={`${styles.quantity} px-2`}>
+                                      {new Intl.NumberFormat("fa-IR").format(current)}
+                                      {min > 1 && current === min && " (حداقل)"}
+                                      {max < Infinity && current === max && " (حداکثر)"}
+                                    </span>
+
                                     <button
-                                      className={styles.quantityBtn}
+                                      className={`${styles.quantityBtn} ${current <= min ? styles.disabled : ""}`}
                                       onClick={() =>
-                                        handleQuantityChange(
-                                          product.ProductId,
-                                          product.Quantity - 1
-                                        )
+                                        current > min &&
+                                        handleQuantityChange(product.ProductId, current - 1)
                                       }
+                                      disabled={current <= min}
+                                      title={current <= min ? `حداقل ${min} عدد` : ""}
                                     >
                                       -
                                     </button>
