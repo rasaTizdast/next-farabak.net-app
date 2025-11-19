@@ -10,6 +10,8 @@ interface Product {
   Quantity: number;
   Price?: number;
   Discount?: number;
+  minAmount?: number | null;
+  maxAmount?: number | null;
 }
 
 interface InvoiceState {
@@ -25,7 +27,9 @@ interface InvoiceContextType {
     Quantity: number,
     ProductName: string,
     Price?: number,
-    Discount?: number
+    Discount?: number,
+    minAmount?: number | null,
+    maxAmount?: number | null
   ) => void;
   removeProductFromInvoice: (ProductId: number) => void;
   updateProductQuantity: (ProductId: number, Quantity: number) => void;
@@ -220,28 +224,51 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
     Quantity: number,
     ProductName: string,
     Price?: number,
-    Discount?: number
+    Discount?: number,
+    minAmount?: number | null, // ← Add
+    maxAmount?: number | null // ← Add
   ) => {
     setInvoice((prev) => {
       const existingProduct = prev.products.find((p) => p.ProductId === ProductId);
 
+      let finalQuantity = Quantity;
+
+      // Enforce limits on add
+      if (existingProduct) {
+        const current = existingProduct.Quantity;
+        const min = existingProduct.minAmount ?? 0;
+        const max = existingProduct.maxAmount ?? Infinity;
+
+        const newQty = current + Quantity;
+
+        if (newQty < min && newQty > 0) finalQuantity = min;
+        if (newQty > max) finalQuantity = max - current;
+        if (finalQuantity <= 0) return prev; // don't add if can't increase
+      }
+
       const updatedProducts = existingProduct
         ? prev.products.map((p) =>
-            p.ProductId === ProductId ? { ...p, Quantity: p.Quantity + Quantity } : p
+            p.ProductId === ProductId ? { ...p, Quantity: p.Quantity + finalQuantity } : p
           )
-        : [...prev.products, { ProductId, Quantity, ProductName, Price, Discount }];
+        : [
+            ...prev.products,
+            {
+              ProductId,
+              Quantity: finalQuantity,
+              ProductName,
+              Price,
+              Discount,
+              minAmount,
+              maxAmount,
+            },
+          ];
 
       return {
         ...prev,
         products: updatedProducts,
-        TotalAmount: updatedProducts.reduce((sum, product) => sum + product.Quantity, 0),
+        TotalAmount: updatedProducts.reduce((sum, p) => sum + p.Quantity, 0),
       };
     });
-
-    // Remove cleared flag if it exists when adding products
-    if (typeof window !== "undefined") {
-      localStorage.removeItem(INVOICE_CLEARED_KEY);
-    }
   };
 
   const removeProductFromInvoice = (ProductId: number) => {
@@ -271,42 +298,38 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
     });
   };
 
-  const updateProductQuantity = (ProductId: number, newAmount: number) => {
+  const updateProductQuantity = (ProductId: number, newQuantity: number) => {
     setInvoice((prev) => {
-      // If the new amount is zero or less, remove the product entirely
-      if (newAmount <= 0) {
-        const updatedProducts = prev.products.filter((p) => p.ProductId !== ProductId);
+      const product = prev.products.find((p) => p.ProductId === ProductId);
+      if (!product) return prev;
 
-        const updatedInvoice = {
+      const min = product.minAmount ?? 0;
+      const max = product.maxAmount ?? Infinity;
+
+      let finalQuantity = newQuantity;
+
+      // Enforce min/max
+      if (finalQuantity < min && finalQuantity > 0) finalQuantity = min;
+      if (finalQuantity > max) finalQuantity = max;
+
+      if (finalQuantity <= 0) {
+        // Remove if going to 0 or below
+        const updatedProducts = prev.products.filter((p) => p.ProductId !== ProductId);
+        return {
           ...prev,
           products: updatedProducts,
-          TotalAmount: updatedProducts.reduce((sum, product) => sum + product.Quantity, 0),
+          TotalAmount: updatedProducts.reduce((sum, p) => sum + p.Quantity, 0),
         };
-
-        // If this was the last product, clear the cookie immediately
-        if (updatedProducts.length === 0) {
-          setTimeout(() => {
-            clearInvoiceCookie();
-            // Set cleared flag for other tabs
-            if (typeof window !== "undefined") {
-              localStorage.setItem(INVOICE_CLEARED_KEY, "true");
-              localStorage.setItem(INVOICE_SYNC_KEY, "cleared:" + Date.now().toString());
-            }
-          }, 0);
-        }
-
-        return updatedInvoice;
       }
 
-      // Otherwise update the quantity
       const updatedProducts = prev.products.map((p) =>
-        p.ProductId === ProductId ? { ...p, Quantity: newAmount } : p
+        p.ProductId === ProductId ? { ...p, Quantity: finalQuantity } : p
       );
 
       return {
         ...prev,
         products: updatedProducts,
-        TotalAmount: updatedProducts.reduce((sum, product) => sum + product.Quantity, 0),
+        TotalAmount: updatedProducts.reduce((sum, p) => sum + p.Quantity, 0),
       };
     });
   };
