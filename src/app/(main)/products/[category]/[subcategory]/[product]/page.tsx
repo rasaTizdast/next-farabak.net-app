@@ -55,6 +55,10 @@ export async function generateMetadata(props: {
     return {
       title: "محصولی یافت نشد | فرابک",
       description: "محصول مورد نظر یافت نشد.",
+      robots: {
+        index: false,
+        follow: true,
+      },
     };
   }
 
@@ -63,6 +67,10 @@ export async function generateMetadata(props: {
     return {
       title: "محصولی یافت نشد | فرابک",
       description: "محصول مورد نظر یافت نشد.",
+      robots: {
+        index: false,
+        follow: true,
+      },
     };
   }
 
@@ -75,6 +83,10 @@ export async function generateMetadata(props: {
       return {
         title: "محصولی یافت نشد | فرابک",
         description: "محصول مورد نظر یافت نشد.",
+        robots: {
+          index: false,
+          follow: true,
+        },
       };
     }
 
@@ -84,6 +96,10 @@ export async function generateMetadata(props: {
       return {
         title: "محصولی یافت نشد | فرابک",
         description: "محصول مورد نظر یافت نشد.",
+        robots: {
+          index: false,
+          follow: true,
+        },
       };
     }
   }

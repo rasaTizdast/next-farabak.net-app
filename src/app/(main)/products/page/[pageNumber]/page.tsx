@@ -29,6 +29,10 @@ export const generateMetadata = async (props: ProductsPageProps): Promise<Metada
     alternates: {
       canonical: canonicalUrl,
     },
+    robots: {
+      index: true,
+      follow: true,
+    },
   };
 };
 

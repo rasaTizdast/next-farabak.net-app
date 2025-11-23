@@ -28,6 +28,10 @@ export const generateMetadata = async (props: ProductsPageProps): Promise<Metada
     alternates: {
       canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products`,
     },
+    robots: {
+      index: true,
+      follow: true,
+    },
   };
 };
 

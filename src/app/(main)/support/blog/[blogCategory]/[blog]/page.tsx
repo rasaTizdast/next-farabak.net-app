@@ -93,12 +93,20 @@ export async function generateMetadata(props: {
     return {
       title: "مقاله‌ای یافت نشد",
       description: "با این اطلاعات، مقاله یافت نشد!",
+      robots: {
+        index: false,
+        follow: true,
+      },
     };
   }
 
   return {
     title: content.blog.SEO_Title,
     description: content.blog.SEO_description,
+    robots: {
+      index: true,
+      follow: true,
+    },
   };
 }
 

@@ -6,8 +6,9 @@ import Link from "next/link";
 import styles from "./DownloadCenterPage.module.css";
 
 export const metadata: Metadata = {
-  title: "نرم افزار ها و آپدیت ها | فرابک",
-  description: "دانلود نرم‌افزارهای محصولات، دفترچه راهنما و آپدیت‌ها",
+  title: "مرکز دانلود نرم‌افزار و آپدیت | فرابک",
+  description:
+    "دانلود رایگان نرم‌افزار، راهنماها و بروزرسانی‌های محصولات ریولینک، بلک مجیک و دستگاه‌های ایکس‌ری از فرابک. دسترسی آسان برای کاربران خرید دوربین مداربسته و سیستم‌های امنیتی.",
   robots: {
     index: true, // This sets the noindex directive
     follow: true, // Allows crawling of links on the page if needed

@@ -6,10 +6,58 @@ import React from "react";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 
-export const metadata: Metadata = {
-  title: "مشاهده تمامی بلاگ‌‌ها | فرابک",
-  description: "شما در این صفحه میتوانید تمامی بلاگ‌های فرابک را مشاهده کنید.",
-};
+export async function generateMetadata(props: {
+  params: Promise<{ blogCategory: string }>;
+}): Promise<Metadata> {
+  const params = await props.params;
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/category/${params.blogCategory}`,
+      {
+        next: { revalidate: 60 },
+      }
+    );
+
+    if (!response.ok || !response) {
+      return {
+        title: "صفحه یافت نشد | فرابک",
+        description: "صفحه مورد نظر یافت نشد",
+        robots: {
+          index: false,
+          follow: true,
+        },
+      };
+    }
+
+    const data = await response.json();
+
+    if (!data || data.blogs.length === 0) {
+      return {
+        title: "صفحه یافت نشد | فرابک",
+        description: "صفحه مورد نظر یافت نشد",
+        robots: {
+          index: false,
+          follow: true,
+        },
+      };
+    }
+
+    return {
+      title: "مشاهده تمامی بلاگ‌‌ها | فرابک",
+      description: "شما در این صفحه میتوانید تمامی بلاگ‌های فرابک را مشاهده کنید.",
+    };
+  } catch {
+    return {
+      title: "صفحه یافت نشد | فرابک",
+      description: "صفحه مورد نظر یافت نشد",
+      robots: {
+        index: false,
+        follow: true,
+      },
+    };
+  }
+}
 
 type Blogs = {
   blogs: {
@@ -50,13 +98,15 @@ const fetchBlogs = async (categorySlug: string) => {
   return response.json();
 };
 
-const BlogContent = ({ blogs }: { blogs: Blogs }) => {
+const BlogContent = ({ blogs, categorySlug }: { blogs: Blogs; categorySlug: string }) => {
+  const categoryDisplay = categorySlug.replace(/-/g, " ");
+
   return (
     <div className="w-full">
       {/* Latest Blog */}
       <div className="mb-10 mt-5">
         <h1 className="mb-5 text-right text-3xl font-extrabold text-gray-800 md:text-4xl">
-          جدیدترین بلاگ
+          جدیدترین بلاگ ({categoryDisplay})
         </h1>
         <Link
           href={`/support/blog/${blogs.blogs[0].categories[0].slug}/${blogs.blogs[0].slug}`}
@@ -139,10 +189,10 @@ const BlogLandingPage = async (props: { params: Promise<{ blogCategory: string }
   }
 
   return (
-    <>
+    <div className="max-w-[1580px]">
       <Breadcrumb breadcrumbs={breadCrumbs} />
-      <BlogContent blogs={blogData || { blogs: [] }} />
-    </>
+      <BlogContent blogs={blogData || { blogs: [] }} categorySlug={params.blogCategory} />
+    </div>
   );
 };
 

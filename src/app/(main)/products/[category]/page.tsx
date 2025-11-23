@@ -26,6 +26,10 @@ export const generateMetadata = async (props: CategoryPageProps): Promise<Metada
       return {
         title: categoryName,
         description: `محصولات دسته‌بندی ${categoryName}`,
+        robots: {
+          index: true,
+          follow: true,
+        },
       };
     }
 
@@ -37,12 +41,20 @@ export const generateMetadata = async (props: CategoryPageProps): Promise<Metada
       alternates: {
         canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${categoryName}`,
       },
+      robots: {
+        index: true,
+        follow: true,
+      },
     };
   } catch (error) {
     console.error(error);
     return {
       title: "دسته‌بندی یافت نشد!",
       description: "دسته‌بندی مورد نظر یافت نشد!",
+      robots: {
+        index: false,
+        follow: true,
+      },
     };
   }
 };

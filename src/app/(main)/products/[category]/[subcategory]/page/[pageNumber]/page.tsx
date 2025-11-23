@@ -31,6 +31,10 @@ export const generateMetadata = async (props: SubcategoryPageProps): Promise<Met
       return {
         title: "زیر دسته بندی یافت نشد!",
         description: "زیر دسته بندی مورد نظر یافت نشد!",
+        robots: {
+          index: false,
+          follow: true,
+        },
       };
     }
 
@@ -47,12 +51,20 @@ export const generateMetadata = async (props: SubcategoryPageProps): Promise<Met
       alternates: {
         canonical: canonicalUrl,
       },
+      robots: {
+        index: true,
+        follow: true,
+      },
     };
   } catch (error) {
     console.error(error);
     return {
       title: "زیر دسته بندی یافت نشد!",
       description: "زیر دسته بندی مورد نظر یافت نشد!",
+      robots: {
+        index: false,
+        follow: true,
+      },
     };
   }
 };

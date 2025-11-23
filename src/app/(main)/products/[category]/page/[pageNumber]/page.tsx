@@ -27,6 +27,10 @@ export const generateMetadata = async (props: CategoryPageProps): Promise<Metada
       return {
         title: "دسته بندی یافت نشد!",
         description: "دسته بندی مورد نظر یافت نشد!",
+        robots: {
+          index: false,
+          follow: true,
+        },
       };
     }
 
@@ -43,12 +47,20 @@ export const generateMetadata = async (props: CategoryPageProps): Promise<Metada
       alternates: {
         canonical: canonicalUrl,
       },
+      robots: {
+        index: true,
+        follow: true,
+      },
     };
   } catch (error) {
     console.error(error);
     return {
       title: "دسته بندی یافت نشد!",
       description: "دسته بندی مورد نظر یافت نشد!",
+      robots: {
+        index: false,
+        follow: true,
+      },
     };
   }
 };

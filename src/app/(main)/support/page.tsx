@@ -8,8 +8,9 @@ import supportData from "@/constants/supportData.json";
 import styles from "./SupportPage.module.css";
 
 export const metadata: Metadata = {
-  title: "بخش پشتیبانی شرکت فرابک | فرابک",
-  description: "مشاهده صفحه های پشتیبانی شرکت فرابک",
+  title: "پشتیبانی مشتریان فرابک | گارانتی و سوالات متداول",
+  description:
+    "در بخش پشتیبانی فرابک، به دانلود نرم‌افزارها، پیگیری گارانتی، سوالات متداول و مقالات آموزشی دسترسی پیدا کنید. پشتیبانی حرفه‌ای برای محصولات امنیتی مانند ریولینک و بلک مجیک",
   robots: {
     index: true, // This sets the noindex directive
     follow: true, // Allows crawling of links on the page if needed

@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
 import styles from "./not-found.module.css";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false, // prevents indexing of 404 pages
+    follow: true, // usually keep "follow" so bots still crawl links on the 404 page
+  },
+};
 
 const NotFound = () => {
   return (

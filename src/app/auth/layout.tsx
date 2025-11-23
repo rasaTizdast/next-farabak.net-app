@@ -7,7 +7,7 @@ import styles from "./AuthLayout.module.css";
 
 export const metadata: Metadata = {
   robots: {
-    index: true, // This sets the noindex directive
+    index: false, // This sets the noindex directive
     follow: true, // Allows crawling of links on the page if needed
   },
   other: {

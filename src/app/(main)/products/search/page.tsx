@@ -18,7 +18,7 @@ export async function generateMetadata(props: SearchPageProps): Promise<Metadata
     title: `نتایج جستجو برای "${query}"`,
     description: `مشاهده ${query} در سایت فرابک`,
     robots: {
-      index: true, // This sets the noindex directive
+      index: false, // This sets the noindex directive
       follow: true, // Allows crawling of links on the page if needed
     },
   };
