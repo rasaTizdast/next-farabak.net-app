@@ -56,8 +56,8 @@ export async function POST(request: Request, props: { params: Promise<{ warehous
 
     if (ProductGradeId) {
       const gradeResult = await prisma.$queryRaw`
-        SELECT * FROM "support"."ProductGrade"
-        WHERE "ProductGradeId" = ${ProductGradeId}
+        SELECT * FROM "support"."ProductGrade" 
+        WHERE "ProductGradeId" = ${ProductGradeId} 
         AND "ProductId" = ${productId}
       `;
       if ((gradeResult as any[]).length === 0) {
@@ -81,7 +81,7 @@ export async function POST(request: Request, props: { params: Promise<{ warehous
 
     const existing = await prisma.$queryRaw`
       SELECT * FROM "support"."warehouseproduct"
-      WHERE "warehouseid" = ${warehouseId}
+      WHERE "warehouseid" = ${warehouseId} 
       AND "ProductId" = ${productId}
       AND (
         ("ProductGradeId" IS NULL AND ${ProductGradeId}::text = 'null')
@@ -94,7 +94,7 @@ export async function POST(request: Request, props: { params: Promise<{ warehous
       const updated = await prisma.$queryRaw`
         UPDATE "support"."warehouseproduct"
         SET "quantity" = "quantity" + ${quantity}
-        WHERE "warehouseid" = ${warehouseId}
+        WHERE "warehouseid" = ${warehouseId} 
         AND "ProductId" = ${productId}
         AND (
           ("ProductGradeId" IS NULL AND ${ProductGradeId}::text = 'null')
@@ -109,9 +109,9 @@ export async function POST(request: Request, props: { params: Promise<{ warehous
     const inserted = await prisma.$queryRaw`
       INSERT INTO "support"."warehouseproduct" ("warehouseid", "ProductId", "quantity", "ProductGradeId")
       VALUES (
-        ${warehouseId},
-        ${productId},
-        ${quantity},
+        ${warehouseId}, 
+        ${productId}, 
+        ${quantity}, 
         CASE WHEN ${ProductGradeId}::text = 'null' THEN NULL ELSE ${ProductGradeId}::int END
       )
       RETURNING *
