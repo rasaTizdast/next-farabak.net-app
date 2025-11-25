@@ -19,11 +19,11 @@ export const generateMetadata = async (props: ProductsPageProps): Promise<Metada
   const currentPage = parseInt(searchParams.page || "1", 10);
 
   return {
-    title: `تمامی محصولات - صفحه ${currentPage} | فرابک`,
-    description: `با مرور در صفحه ${currentPage} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
+    title: `لیست محصولات - صفحه ${currentPage} | فرابک`,
+    description: `تمامی محصولات فرابک: دوربین مداربسته ریولینک، محصولات بلک مجیک، گیت‌های کنترل تردد و دستگاه‌های ایکس‌ری با قیمت رقابتی و گارانتی. جستجو و خرید آسان تجهیزات نظارتی حرفه‌ای.`,
     openGraph: {
-      title: `تمامی محصولات - صفحه ${currentPage} | فرابک`,
-      description: `با مرور در صفحه ${currentPage} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
+      title: `لیست محصولات - صفحه ${currentPage} | فرابک`,
+      description: `تمامی محصولات فرابک: دوربین مداربسته ریولینک، محصولات بلک مجیک، گیت‌های کنترل تردد و دستگاه‌های ایکس‌ری با قیمت رقابتی و گارانتی. جستجو و خرید آسان تجهیزات نظارتی حرفه‌ای.`,
     },
     alternates: {
       canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products`,
