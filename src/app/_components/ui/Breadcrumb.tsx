@@ -49,12 +49,12 @@ const Breadcrumb: React.FC<BreadcrumbProps> = async ({ breadcrumbs }) => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <nav className="mb-5 flex w-full items-center rounded-lg bg-gradient-to-l from-[#003262] via-[#0e6aff] to-[#1e90ff] p-4 text-sm text-white shadow-lg">
-        <div className="flex flex-wrap items-center space-x-2">
+      <nav className="scrollbar-hide mb-5 w-full overflow-x-auto rounded-lg bg-gradient-to-l from-[#003262] via-[#0e6aff] to-[#1e90ff] p-4 text-sm text-white shadow-lg [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex min-w-max items-center space-x-2">
           {breadcrumbs.map((crumb, idx) => (
-            <div key={idx} className="flex items-center">
+            <div key={idx} className="flex items-center whitespace-nowrap">
               {idx > 0 && (
-                <span className="mx-2" aria-hidden="true">
+                <span className="mx-2 sm:mx-3" aria-hidden="true">
                   <IoIosArrowBack />
                 </span>
               )}

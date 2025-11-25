@@ -122,8 +122,8 @@ const BlogContent = async ({ html, text }: BlogContentProps) => {
   })();
 
   return (
-    <section className="mx-auto mb-5 w-full rounded-xl border border-gray-900 bg-gray-800 p-5 shadow-sm backdrop-blur md:p-7">
-      <article className="prose prose-neutral prose-invert max-w-none overflow-x-auto break-words leading-relaxed prose-headings:scroll-mt-24 prose-h1:text-3xl prose-h1:font-extrabold prose-h2:mt-8 prose-h2:text-2xl prose-p:text-[15px] prose-a:inline-block prose-a:rounded-lg prose-a:border prose-a:border-blue-800/40 prose-a:bg-blue-900/30 prose-a:px-3 prose-a:py-1 prose-a:text-blue-100 prose-a:no-underline prose-table:block prose-table:overflow-x-auto prose-img:h-auto prose-img:max-w-full md:prose-p:text-base">
+    <section className="mx-auto mb-5 w-full rounded-xl border border-gray-900 bg-gray-800 p-3 shadow-sm backdrop-blur sm:p-5 md:p-7">
+      <article className="prose prose-neutral prose-invert max-w-none overflow-hidden break-words leading-relaxed [word-break:break-word] prose-headings:scroll-mt-24 prose-h1:text-2xl prose-h1:font-extrabold prose-h1:leading-tight prose-h2:mt-6 prose-h2:text-xl prose-h2:leading-tight prose-p:text-sm prose-p:leading-relaxed prose-a:inline-block prose-a:rounded-lg prose-a:border prose-a:border-blue-800/40 prose-a:bg-blue-900/30 prose-a:px-2 prose-a:py-1 prose-a:text-sm prose-a:text-blue-100 prose-a:no-underline prose-table:block prose-table:overflow-x-auto prose-img:h-auto prose-img:max-w-full sm:prose-h1:text-3xl sm:prose-h2:mt-8 sm:prose-h2:text-2xl sm:prose-p:text-[15px] sm:prose-a:px-3 md:prose-p:text-base">
         {content}
       </article>
     </section>
