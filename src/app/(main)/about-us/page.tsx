@@ -8,8 +8,9 @@ import aboutUsData from "@/constants/aboutUs.json";
 import styles from "./AboutUs.module.css";
 
 export const metadata: Metadata = {
-  title: "بخش درباره ما | فرابک",
-  description: "شما در این صفحه میتوانید اطلاعاتی درباره شرکت فرابک مشاهده کنید.",
+  title: "درباره ما | تاریخچه و فعالیت‌های فرابک",
+  description:
+    "با فرابک آشنا شوید: شرکتی متخصص در واردات و توزیع تجهیزات امنیتی مانند دوربین‌های ریولینک، دستگاه‌های ایکس‌ری و محصولات بلک مجیک با گارانتی معتبر. بیش از ربع قرن تجربه در پروژه‌های نظارتی. برای همکاری تماس بگیرید.",
   robots: {
     index: true, // This sets the noindex directive
     follow: true, // Allows crawling of links on the page if needed
