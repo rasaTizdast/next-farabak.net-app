@@ -215,12 +215,14 @@ export default async function BlogPage(props: {
             height={630}
             quality={100}
           />
-          <div className="mb-4 flex items-center justify-center gap-3 rounded-lg bg-gray-100 p-2 text-xs text-gray-600 mobile:justify-normal mobile:text-base">
-            <span>{blog.author}</span>
-            <span>•</span>
-            <time>{new Date(blog.created_at).toLocaleDateString("fa")}</time>
-            <span>•</span>
-            <span>{readingTime} دقیقه مطالعه</span>
+          <div className="scrollbar-hide mb-4 overflow-x-auto rounded-lg bg-gray-100 p-2">
+            <div className="flex items-center gap-3 whitespace-nowrap text-xs text-gray-600 mobile:text-base">
+              <span>{blog.author}</span>
+              <span>•</span>
+              <time>{new Date(blog.created_at).toLocaleDateString("fa")}</time>
+              <span>•</span>
+              <span>{readingTime} دقیقه مطالعه</span>
+            </div>
           </div>
         </header>
 
