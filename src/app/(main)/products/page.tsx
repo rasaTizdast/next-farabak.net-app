@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import { Metadata } from "next";
 import Script from "next/script";
 
+import CategorySlider from "@/app/(main)/products/_components/CategorySlider";
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
 import { fetchProducts } from "@/app/(main)/products/_utils/fetchProducts";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
@@ -72,6 +73,30 @@ const ProductsPage = async (props: ProductsPageProps) => {
   const breadcrumbs = ["/", "/products"];
 
   const priceValidUntil = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+
+  // Fetch categories for JSON-LD schema
+  let categories: any[] = [];
+  try {
+    const categoriesRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/getAll`, {
+      next: { revalidate: 60 },
+    });
+    if (categoriesRes.ok) {
+      categories = await categoriesRes.json();
+    }
+  } catch (error) {
+    console.error("Error fetching categories for schema:", error);
+  }
+
+  // Build ItemList with categories for JSON-LD
+  const categoryItemList = categories
+    .filter((cat: any) => cat.Available !== false)
+    .map((cat: any, index: number) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: cat.Name,
+      url: `https://farabak.net${cat.Link || `/products/${cat.Slug}`}`,
+    }));
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -188,6 +213,14 @@ const ProductsPage = async (props: ProductsPageProps) => {
         },
         inLanguage: "fa-IR",
       },
+      {
+        "@type": "ItemList",
+        "@id": "https://farabak.net/products#categories",
+        name: "دسته‌بندی‌های محصولات",
+        description: "دسته‌بندی‌های مختلف محصولات فرابک",
+        numberOfItems: categories.length,
+        itemListElement: categoryItemList,
+      },
     ],
   };
 
@@ -200,6 +233,7 @@ const ProductsPage = async (props: ProductsPageProps) => {
       />
       <div>
         <Breadcrumb breadcrumbs={breadcrumbs} />
+        <CategorySlider type="categories" />
         <ProductGrid title="تمامی محصولات" apiUrl={apiUrl} currentPage={currentPage} />
       </div>
     </>

@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Script from "next/script";
 
+import CategorySlider from "@/app/(main)/products/_components/CategorySlider";
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
 import { fetchProducts } from "@/app/(main)/products/_utils/fetchProducts";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
@@ -115,6 +116,32 @@ const CategoryPage = async (props: CategoryPageProps) => {
   const breadcrumbs = ["/", "/products", `/products/${categoryName}`];
 
   const priceValidUntil = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+
+  // Fetch category data for subcategories schema
+  let categoryData: any = null;
+  let subcategoryItemList: any[] = [];
+  try {
+    const categoriesRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/getAll`, {
+      next: { revalidate: 60 },
+    });
+    if (categoriesRes.ok) {
+      const allCategories = await categoriesRes.json();
+      categoryData = allCategories.find((cat: any) => cat.Slug === categoryName);
+      if (categoryData && categoryData.Subcategories) {
+        subcategoryItemList = categoryData.Subcategories.filter(
+          (subcat: any) => subcat.Available !== false
+        ).map((subcat: any, index: number) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: subcat.Name,
+          url: `https://farabak.net${subcat.Link || `/products/${categoryName}/${subcat.Slug}`}`,
+        }));
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching category data for schema:", error);
+  }
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -236,6 +263,14 @@ const CategoryPage = async (props: CategoryPageProps) => {
         },
         inLanguage: "fa-IR",
       },
+      {
+        "@type": "ItemList",
+        "@id": `https://farabak.net/products/${categoryName}#subcategories`,
+        name: `دسته‌بندی‌های ${categoryTitle}`,
+        description: `دسته‌بندی‌های مختلف در ${categoryTitle}`,
+        numberOfItems: subcategoryItemList.length,
+        itemListElement: subcategoryItemList,
+      },
     ],
   };
 
@@ -248,6 +283,7 @@ const CategoryPage = async (props: CategoryPageProps) => {
       />
       <div>
         <Breadcrumb breadcrumbs={breadcrumbs} />
+        <CategorySlider type="subcategories" categorySlug={categoryName} />
         <ProductGrid
           title={categoryTitle} // Passing dynamically fetched category title
           apiUrl={apiUrl} // Passing API URL for product fetching
