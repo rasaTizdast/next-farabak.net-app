@@ -11,7 +11,7 @@ export default function BannerImage({ src, alt }: { src: string; alt?: string })
   }, [src]);
 
   return (
-    <div className="relative mb-5 w-full" style={{ aspectRatio: "1920 / 600" }}>
+    <div className="relative mb-8 w-full mobile:mb-12" style={{ aspectRatio: "1920 / 600" }}>
       {!loaded && (
         <div
           className="absolute inset-0 animate-pulse rounded-md bg-gray-700/60"
