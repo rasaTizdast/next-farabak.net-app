@@ -26,7 +26,7 @@ const config: Config = {
       },
       screens: {
         "2xl": "1400px",
-        mobile: "576px",
+        mobile: "577px",
       },
       colors: {
         background: "var(--background)",

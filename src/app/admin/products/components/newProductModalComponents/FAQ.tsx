@@ -51,7 +51,7 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
 
     // Log errors if needed
     if (Object.keys(formattedErrors).length > 0) {
-      console.log("FAQ validation errors:", formattedErrors);
+      console.error("FAQ validation errors:", formattedErrors);
     }
   }, [localErrors, setErrors]);
 

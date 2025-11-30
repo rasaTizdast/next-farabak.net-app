@@ -23,6 +23,8 @@ export type Product = {
   QrCode_Key: string | null;
   QrCode_expiryDays: string | null;
   productBlog: string;
+  Minimum_Amount: number;
+  Maximum_Amount: number;
 };
 
 export type Overview = {

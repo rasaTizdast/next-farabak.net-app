@@ -1,4 +1,6 @@
-export async function fetchUsdToRialRate() {
+import { cache } from "react";
+
+export const fetchUsdToRialRate = cache(async () => {
   try {
     // Determine if we're on the client or server
     const isClient = typeof window !== "undefined";
@@ -31,4 +33,4 @@ export async function fetchUsdToRialRate() {
     console.error("Error fetching exchange rate:", error);
     return null;
   }
-}
+});

@@ -65,8 +65,6 @@ export async function PUT(req: Request, props: { params: Promise<{ faqId: string
       return NextResponse.json({ message: "پاسخ نمی‌تواند خالی باشد" }, { status: 400 });
     }
 
-    console.log(`Updating FAQ ${faqId} with order: ${order}`);
-
     const faq = await prisma.blogFAQs.update({
       where: { id: faqId },
       data: {
@@ -77,8 +75,6 @@ export async function PUT(req: Request, props: { params: Promise<{ faqId: string
         updated_at: getCurrentJalaliDate(), // Jalali date format (e.g., "1404-06-23")
       },
     });
-
-    console.log(`Updated FAQ ${faqId} with new order: ${faq.order}`);
 
     return NextResponse.json({ faq });
   } catch (error) {

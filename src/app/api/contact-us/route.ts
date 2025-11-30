@@ -11,10 +11,18 @@ export async function GET() {
     const emails = await prisma.emails.findMany();
     const phoneNumbers = await prisma.phone_numbers.findMany();
 
+    // Filter out emails with empty address
+    const filteredEmails = emails.filter((email) => email.address && email.address.trim() !== "");
+
+    // Filter out phone numbers with empty number
+    const filteredPhoneNumbers = phoneNumbers.filter(
+      (phone) => phone.number && phone.number.trim() !== ""
+    );
+
     return NextResponse.json({
       address,
-      emails,
-      phone_numbers: phoneNumbers,
+      emails: filteredEmails,
+      phone_numbers: filteredPhoneNumbers,
     });
   } catch (error) {
     console.error("Error fetching contact us data:", error);

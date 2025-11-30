@@ -7,8 +7,9 @@ import FaqAccordion from "@/components/FaqAccordion";
 import { fetchFaqs } from "@/lib/fetchFaqs";
 
 export const metadata: Metadata = {
-  title: "سوالات متداول | فرابک",
-  description: "پاسخ به پرسش‌های متداول درباره خدمات و محصولات فرابک",
+  title: "سوالات متداول درباره فرابک | FAQ",
+  description:
+    "پاسخ به سوالات رایج درباره خرید و استفاده از دوربین مداربسته ریولینک، محصولات بلک مجیک و گیت‌های امنیتی. راهنمایی‌های مفید برای حل مشکلات سریع در فرابک.",
   robots: {
     index: true,
     follow: true,

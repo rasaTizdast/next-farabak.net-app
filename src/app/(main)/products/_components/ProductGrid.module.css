@@ -14,8 +14,8 @@
 .productGrid {
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(auto-fit, 290px);
-  justify-content: space-evenly;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  align-items: stretch;
   gap: 1.5rem;
 }
 
@@ -35,9 +35,10 @@
 
 .productCard img,
 .SkImg {
-  width: 70%;
-  height: auto;
-  object-fit: cover;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  display: block;
   margin-bottom: 2rem;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.1));
 }
@@ -51,34 +52,33 @@
   font-size: 18px;
 }
 
+/* Utility: hide scrollbars while keeping scrollability */
+.hideScrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.hideScrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
 @media (max-width: 992px) {
   .productGrid {
-    grid-template-columns: repeat(auto-fit, 250px);
-  }
-
-  .productCard img,
-  .SkImg {
-    height: 216px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
 
   .SkImg {
-    width: 216px;
+    width: 100%;
   }
 }
 
 @media (max-width: 768px) {
   .productGrid {
-    grid-template-columns: repeat(auto-fit, 210px);
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 1rem;
   }
 
-  .productCard img,
   .SkImg {
-    height: 176px;
-  }
-
-  .SkImg {
-    width: 176px;
+    width: 100%;
   }
 }
 
@@ -88,7 +88,7 @@
   }
 
   .productGrid {
-    grid-template-columns: repeat(auto, minmax(180px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     justify-items: center;
   }
 
@@ -104,7 +104,7 @@
   .productCard img,
   .SkImg {
     width: 100%;
-    height: fit-content;
+    aspect-ratio: 1 / 1;
   }
 }
 
@@ -116,18 +116,10 @@
 
 @media (max-width: 485px) {
   .productGrid {
-    display: flex;
-    align-items: center;
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .productCard {
-    width: 80%;
-  }
-
-  .productCard img,
-  .SkImg {
-    width: 80%;
-    height: fit-content;
+    width: 100%;
   }
 }

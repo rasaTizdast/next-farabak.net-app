@@ -73,6 +73,15 @@ export async function GET() {
             Name: true,
           },
         },
+        ProductGrade: {
+          select: {
+            ProductGradeId: true,
+            Grade: true,
+            Price: true,
+          },
+        },
+        Minimum_Amount: true,
+        Maximum_Amount: true,
       },
       orderBy: {
         ProductId: "asc",

@@ -15,6 +15,7 @@ import ProductFeatures from "./components/ui/ProductFeatures";
 import ProductOverview from "./components/ui/ProductOverviewDetails";
 import ProductSpecs from "./components/ui/ProductSpecs";
 import ProductTabs from "./components/ui/ProductTabs";
+import SimilarProducts from "./components/ui/SimilarProducts";
 import { SkeletonFeatures } from "./components/ui/Skeletons";
 import styles from "./ProductPage.module.css";
 
@@ -36,6 +37,8 @@ interface ProductData {
   QrCode_key: string;
   QrCode_expiryDays: string;
   productBlog: string;
+  Minimum_Amount?: number;
+  Maximum_Amount?: number;
 }
 
 // Metadata generation
@@ -52,6 +55,10 @@ export async function generateMetadata(props: {
     return {
       title: "محصولی یافت نشد | فرابک",
       description: "محصول مورد نظر یافت نشد.",
+      robots: {
+        index: false,
+        follow: true,
+      },
     };
   }
 
@@ -60,6 +67,10 @@ export async function generateMetadata(props: {
     return {
       title: "محصولی یافت نشد | فرابک",
       description: "محصول مورد نظر یافت نشد.",
+      robots: {
+        index: false,
+        follow: true,
+      },
     };
   }
 
@@ -72,6 +83,10 @@ export async function generateMetadata(props: {
       return {
         title: "محصولی یافت نشد | فرابک",
         description: "محصول مورد نظر یافت نشد.",
+        robots: {
+          index: false,
+          follow: true,
+        },
       };
     }
 
@@ -81,6 +96,10 @@ export async function generateMetadata(props: {
       return {
         title: "محصولی یافت نشد | فرابک",
         description: "محصول مورد نظر یافت نشد.",
+        robots: {
+          index: false,
+          follow: true,
+        },
       };
     }
   }
@@ -160,6 +179,15 @@ export default async function ProductPage(props: {
     `/products/${productData.categorySlug}/${productData.subCategorySlug}`,
   ];
 
+  // Compute pricing for structured data (omit offers if price is missing)
+  const rawPrice = Number(productData.Price);
+  const rawDiscount = Number(productData.Discount);
+  const hasValidPrice = Number.isFinite(rawPrice) && rawPrice > 0;
+  const hasValidDiscount =
+    Number.isFinite(rawDiscount) && rawDiscount > 0 && rawDiscount < rawPrice;
+  const finalPrice = hasValidDiscount ? rawPrice - rawDiscount : rawPrice;
+  const priceValidUntil = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+
   // Prepare structured data for Schema.org
   const structuredData = {
     "@context": "https://schema.org",
@@ -184,17 +212,59 @@ export default async function ProductPage(props: {
           name: "فرابک",
           url: "https://farabak.net",
         },
-        offers: {
-          "@type": "Offer",
-          price: productData.Price,
-          priceCurrency: "IRR",
-          availability: productData.Available
-            ? "https://schema.org/InStock"
-            : "https://schema.org/OutOfStock",
-          seller: {
-            "@id": "https://farabak.net",
-          },
-        },
+        ...(hasValidPrice
+          ? {
+              offers: {
+                "@type": "Offer",
+                price: String(finalPrice),
+                priceCurrency: "IRR",
+                priceValidUntil,
+                hasMerchantReturnPolicy: {
+                  "@type": "MerchantReturnPolicy",
+                  applicableCountry: "IR",
+                  returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+                  merchantReturnDays: 7,
+                  returnMethod: "https://schema.org/ReturnByMail",
+                  returnFees: "https://schema.org/FreeReturn",
+                },
+                shippingDetails: [
+                  {
+                    "@type": "OfferShippingDetails",
+                    shippingDestination: {
+                      "@type": "DefinedRegion",
+                      addressCountry: "IR",
+                    },
+                    shippingRate: {
+                      "@type": "MonetaryAmount",
+                      value: "0",
+                      currency: "IRR",
+                    },
+                    deliveryTime: {
+                      "@type": "ShippingDeliveryTime",
+                      handlingTime: {
+                        "@type": "QuantitativeValue",
+                        minValue: 1,
+                        maxValue: 5,
+                        unitCode: "DAY",
+                      },
+                      transitTime: {
+                        "@type": "QuantitativeValue",
+                        minValue: 2,
+                        maxValue: 5,
+                        unitCode: "DAY",
+                      },
+                    },
+                  },
+                ],
+                availability: productData.Available
+                  ? "https://schema.org/InStock"
+                  : "https://schema.org/OutOfStock",
+                seller: {
+                  "@id": "https://farabak.net",
+                },
+              },
+            }
+          : {}),
         mainEntityOfPage: {
           "@type": "WebPage",
           "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
@@ -290,6 +360,8 @@ export default async function ProductPage(props: {
             productDiscount={productData.Discount}
             ProductId={productData.ProductId}
             ProductName={productData.Type}
+            minimumAmount={productData.Minimum_Amount}
+            maximumAmount={productData.Maximum_Amount}
           />
         </div>
       </section>
@@ -343,6 +415,15 @@ export default async function ProductPage(props: {
           <ProductFaq productId={productData.ProductId} />
         </Suspense>
       </section>
+
+      {/* Similar Products */}
+      <div className="my-10 h-px w-full bg-gray-200" aria-hidden="true" />
+      <SimilarProducts
+        currentProductId={productData.ProductId}
+        currentProductSlug={productData.productSlug}
+        categorySlug={productData.categorySlug}
+        subCategorySlug={productData.subCategorySlug}
+      />
     </>
   );
 }

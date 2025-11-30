@@ -27,6 +27,10 @@ export const generateMetadata = async (props: SubcategoryPageProps): Promise<Met
       return {
         title: subcategory,
         description: "دسته بندی مورد نظر یافت نشد!",
+        robots: {
+          index: false,
+          follow: true,
+        },
       };
     }
 
@@ -38,12 +42,20 @@ export const generateMetadata = async (props: SubcategoryPageProps): Promise<Met
       alternates: {
         canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${category}/${subcategory}`,
       },
+      robots: {
+        index: true,
+        follow: true,
+      },
     };
   } catch (error) {
     console.error(error);
     return {
       title: "دسته بندی یافت نشد!",
       description: "دسته بندی مورد نظر یافت نشد!",
+      robots: {
+        index: false,
+        follow: true,
+      },
     };
   }
 };
@@ -106,6 +118,7 @@ const SubcategoryPage = async (props: SubcategoryPageProps) => {
     `/products/${category}/${subcategory}`,
   ];
 
+  const priceValidUntil = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -184,6 +197,44 @@ const SubcategoryPage = async (props: SubcategoryPageProps) => {
                     priceCurrency: "IRR",
                     valueAddedTaxIncluded: true,
                   },
+              priceValidUntil: priceValidUntil,
+              hasMerchantReturnPolicy: {
+                "@type": "MerchantReturnPolicy",
+                applicableCountry: "IR",
+                returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+                merchantReturnDays: 7,
+                returnMethod: "https://schema.org/ReturnByMail",
+                returnFees: "https://schema.org/FreeReturn",
+              },
+              shippingDetails: [
+                {
+                  "@type": "OfferShippingDetails",
+                  shippingDestination: {
+                    "@type": "DefinedRegion",
+                    addressCountry: "IR",
+                  },
+                  shippingRate: {
+                    "@type": "MonetaryAmount",
+                    value: "0",
+                    currency: "IRR",
+                  },
+                  deliveryTime: {
+                    "@type": "ShippingDeliveryTime",
+                    handlingTime: {
+                      "@type": "QuantitativeValue",
+                      minValue: 1,
+                      maxValue: 5,
+                      unitCode: "DAY",
+                    },
+                    transitTime: {
+                      "@type": "QuantitativeValue",
+                      minValue: 2,
+                      maxValue: 5,
+                      unitCode: "DAY",
+                    },
+                  },
+                },
+              ],
               availability: "https://schema.org/InStock",
               seller: {
                 "@type": "Organization",

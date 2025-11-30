@@ -24,9 +24,11 @@ const Layout = ({
         data-website-id={process.env.UMAMI_WEBSITE_ID}
         strategy="lazyOnload"
       />
-      <Header />
-      {children}
-      <Footer />
+      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        <Header />
+        <main style={{ flex: 1 }}>{children}</main>
+        <Footer />
+      </div>
       {/* Include the client-side BackToTop component */}
       <BackToTop />
       <WhatsAppContactButton

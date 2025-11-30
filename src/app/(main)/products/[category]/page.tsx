@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Script from "next/script";
 
+import CategorySlider from "@/app/(main)/products/_components/CategorySlider";
 import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
 import { fetchProducts } from "@/app/(main)/products/_utils/fetchProducts";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
@@ -26,6 +27,10 @@ export const generateMetadata = async (props: CategoryPageProps): Promise<Metada
       return {
         title: categoryName,
         description: `محصولات دسته‌بندی ${categoryName}`,
+        robots: {
+          index: true,
+          follow: true,
+        },
       };
     }
 
@@ -37,12 +42,20 @@ export const generateMetadata = async (props: CategoryPageProps): Promise<Metada
       alternates: {
         canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${categoryName}`,
       },
+      robots: {
+        index: true,
+        follow: true,
+      },
     };
   } catch (error) {
     console.error(error);
     return {
       title: "دسته‌بندی یافت نشد!",
       description: "دسته‌بندی مورد نظر یافت نشد!",
+      robots: {
+        index: false,
+        follow: true,
+      },
     };
   }
 };
@@ -101,6 +114,33 @@ const CategoryPage = async (props: CategoryPageProps) => {
   }
 
   const breadcrumbs = ["/", "/products", `/products/${categoryName}`];
+
+  const priceValidUntil = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+
+  // Fetch category data for subcategories schema
+  let categoryData: any = null;
+  let subcategoryItemList: any[] = [];
+  try {
+    const categoriesRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/getAll`, {
+      next: { revalidate: 60 },
+    });
+    if (categoriesRes.ok) {
+      const allCategories = await categoriesRes.json();
+      categoryData = allCategories.find((cat: any) => cat.Slug === categoryName);
+      if (categoryData && categoryData.Subcategories) {
+        subcategoryItemList = categoryData.Subcategories.filter(
+          (subcat: any) => subcat.Available !== false
+        ).map((subcat: any, index: number) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: subcat.Name,
+          url: `https://farabak.net${subcat.Link || `/products/${categoryName}/${subcat.Slug}`}`,
+        }));
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching category data for schema:", error);
+  }
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -174,6 +214,44 @@ const CategoryPage = async (props: CategoryPageProps) => {
                     priceCurrency: "IRR",
                     valueAddedTaxIncluded: true,
                   },
+              priceValidUntil: priceValidUntil,
+              hasMerchantReturnPolicy: {
+                "@type": "MerchantReturnPolicy",
+                applicableCountry: "IR",
+                returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+                merchantReturnDays: 7,
+                returnMethod: "https://schema.org/ReturnByMail",
+                returnFees: "https://schema.org/FreeReturn",
+              },
+              shippingDetails: [
+                {
+                  "@type": "OfferShippingDetails",
+                  shippingDestination: {
+                    "@type": "DefinedRegion",
+                    addressCountry: "IR",
+                  },
+                  shippingRate: {
+                    "@type": "MonetaryAmount",
+                    value: "0",
+                    currency: "IRR",
+                  },
+                  deliveryTime: {
+                    "@type": "ShippingDeliveryTime",
+                    handlingTime: {
+                      "@type": "QuantitativeValue",
+                      minValue: 1,
+                      maxValue: 5,
+                      unitCode: "DAY",
+                    },
+                    transitTime: {
+                      "@type": "QuantitativeValue",
+                      minValue: 2,
+                      maxValue: 5,
+                      unitCode: "DAY",
+                    },
+                  },
+                },
+              ],
               availability: "https://schema.org/InStock",
               seller: {
                 "@type": "Organization",
@@ -184,6 +262,14 @@ const CategoryPage = async (props: CategoryPageProps) => {
           },
         },
         inLanguage: "fa-IR",
+      },
+      {
+        "@type": "ItemList",
+        "@id": `https://farabak.net/products/${categoryName}#subcategories`,
+        name: `دسته‌بندی‌های ${categoryTitle}`,
+        description: `دسته‌بندی‌های مختلف در ${categoryTitle}`,
+        numberOfItems: subcategoryItemList.length,
+        itemListElement: subcategoryItemList,
       },
     ],
   };
@@ -197,6 +283,7 @@ const CategoryPage = async (props: CategoryPageProps) => {
       />
       <div>
         <Breadcrumb breadcrumbs={breadcrumbs} />
+        <CategorySlider type="subcategories" categorySlug={categoryName} />
         <ProductGrid
           title={categoryTitle} // Passing dynamically fetched category title
           apiUrl={apiUrl} // Passing API URL for product fetching

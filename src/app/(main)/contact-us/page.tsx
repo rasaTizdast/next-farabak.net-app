@@ -5,8 +5,9 @@ import { Metadata } from "next";
 import styles from "./ContactUsPage.module.css";
 
 export const metadata: Metadata = {
-  title: "تماس با ما | فرابک",
-  description: "راه های تماس با شرکت فرابک را میتوانید از این صفحه مشاهده کنید.",
+  title: "تماس با فرابک | آدرس و پشتیبانی",
+  description:
+    "برای خرید محصولات امنیتی یا پیگیری سفارشات با فرابک تماس بگیرید. آدرس: سعادت آباد، میدان کتاب، خیابان عسگری گراوندی، نبش آسمان هشتم، پلاک 6، طبقه همکف. ساعات بازدید: ۱۱-۱۳ و ۱۴-۱۶. پیام به پشتیبانی ارسال کنید یا با شماره ۰۲۱-۷۷۵۰۰۰۰۸ تماس حاصل فرمایید.",
   robots: {
     index: true, // This sets the noindex directive
     follow: true, // Allows crawling of links on the page if needed
@@ -31,7 +32,7 @@ const ContactUsPage = async () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "ContactPage",
-    name: "تماس با فرابک",
+    name: "تماس با فرابک | آدرس و پشتیبانی",
     description: "راه های تماس با شرکت فرابک",
     url: `${process.env.NEXT_PUBLIC_BASE_URL}/contact-us`,
     breadcrumb: {

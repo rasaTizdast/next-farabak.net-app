@@ -9,8 +9,13 @@ import React from "react";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 
 export const metadata: Metadata = {
-  title: "مشاهده تمامی بلاگ‌‌ها | فرابک",
-  description: "شما در این صفحه میتوانید تمامی بلاگ‌های فرابک را مشاهده کنید.",
+  title: "بلاگ آموزشی فرابک | مقالات امنیتی",
+  description:
+    "مقالات تخصصی درباره خرید دوربین مداربسته، نصب محصولات بلک مجیک و نکات نگهداری سیستم‌های امنیتی. محتوای مفید و به‌روز از کارشناسان فرابک.",
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 type Blogs = {
@@ -182,10 +187,10 @@ const BlogLandingPage = async () => {
   }
 
   return (
-    <>
+    <div className="max-w-[1580px]">
       <Breadcrumb breadcrumbs={breadCrumbs} />
       <BlogContent blogs={blogData || { blogs: [] }} categoryData={categoryData} />
-    </>
+    </div>
   );
 };
 

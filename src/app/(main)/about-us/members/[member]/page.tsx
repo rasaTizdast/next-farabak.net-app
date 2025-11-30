@@ -40,6 +40,10 @@ export const generateMetadata = async (props: Props): Promise<Metadata> => {
   return {
     title: `معرفی ${memberData.Name} | فرابک`,
     description: `مشاهده صفحه معرفی ${memberData.Name} که عضوی از هیئت مدیره شرکت فرابک هستند و سمت ${memberData.Role} را دارند.`,
+    robots: {
+      index: true,
+      follow: true,
+    },
   };
 };
 
