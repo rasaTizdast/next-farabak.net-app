@@ -432,7 +432,7 @@ const BranchWarrantyManagementModal = ({
       onClose();
     } catch (error) {
       console.error("Error creating warranty:", error);
-      toast.error(error || "خطا در ایجاد گارانتی");
+      toast.error("خطا در ایجاد گارانتی");
     } finally {
       setLoading(false);
     }

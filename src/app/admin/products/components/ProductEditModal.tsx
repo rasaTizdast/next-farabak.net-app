@@ -241,7 +241,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     if (name === "Price" || name === "Discount") {
       // Check if the value is a valid number format
       if (value && !validationRules[name].regex?.test(value)) {
-        toast.error(validationRules[name].errorMsg.regex);
+        toast.error(validationRules[name].errorMsg.regex || "فرمت عددی نامعتبر است.");
         return;
       }
 
@@ -259,7 +259,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     if (name === "productSlug") {
       const sanitizedValue = value.replace(/\s+/g, "-");
       if (!validationRules.productSlug.regex?.test(sanitizedValue)) {
-        toast.error(validationRules.productSlug.errorMsg.regex);
+        toast.error(validationRules.productSlug.errorMsg.regex || "فرمت شناسه محصول نامعتبر است.");
       }
 
       setFormState((prevState) => (prevState ? { ...prevState, [name]: sanitizedValue } : null));

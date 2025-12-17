@@ -46,7 +46,7 @@ const refreshAccessToken = async (refreshToken: string) => {
 };
 
 // Middleware function to protect routes and handle token refresh
-export async function middleware(req: ExtendedNextRequest) {
+export async function proxy(req: ExtendedNextRequest) {
   // Extract tokens from cookies
   const accessToken = req.cookies.get("accessToken")?.value;
   const refreshToken = req.cookies.get("refreshToken")?.value;
