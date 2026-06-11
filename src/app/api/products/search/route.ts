@@ -105,45 +105,154 @@ type ProductType = {
   } | null;
 };
 
-// Helper function to calculate search relevance score
+/**
+ * Normalize text for better matching:
+ * - Convert to lowercase
+ * - Remove extra spaces
+ * - Remove special characters (keep alphanumeric and spaces)
+ */
+function normalizeText(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "") // Remove special chars
+    .replace(/\s+/g, " ") // Normalize spaces
+    .trim();
+}
+
+/**
+ * Create search variants to handle spacing issues
+ * "ultra studio" -> ["ultrastudio", "ultra studio", "ultra-studio"]
+ */
+function generateSearchVariants(query: string): string[] {
+  const normalized = normalizeText(query);
+  const variants = new Set<string>();
+
+  // Add original normalized
+  variants.add(normalized);
+
+  // Add version without spaces
+  variants.add(normalized.replace(/\s+/g, ""));
+
+  // Add version with hyphens
+  variants.add(normalized.replace(/\s+/g, "-"));
+
+  // Split into tokens for individual word matching
+  const tokens = normalized.split(/\s+/).filter((t) => t.length > 0);
+  tokens.forEach((token) => variants.add(token));
+
+  return Array.from(variants).filter((v) => v.length > 0);
+}
+
+/**
+ * Enhanced relevance scoring with fuzzy matching
+ */
 function calculateRelevanceScore(product: ProductType, query: string): number {
-  const normalizedQuery = query.toLowerCase().trim();
+  const searchVariants = generateSearchVariants(query);
+  const normalizedQuery = normalizeText(query);
   let score = 0;
 
-  // Type contains product name - highest priority (exact match)
-  if (product.Type?.toLowerCase() === normalizedQuery) {
-    score += 100;
-  }
-  // Type contains the query as a substring (product name partial match)
-  else if (product.Type?.toLowerCase().includes(normalizedQuery)) {
-    score += 70;
-  }
-  // Begin with query (higher priority)
-  else if (product.Type?.toLowerCase().startsWith(normalizedQuery)) {
-    score += 80;
+  // Normalize product fields
+  const normalizedType = normalizeText(product.Type || "");
+  const normalizedName = normalizeText(product.Name || "");
+  const normalizedDesc = normalizeText(product.Description || "");
+  const normalizedSlug = normalizeText(product.Slug || "");
+  const normalizedSeoTitle = normalizeText(product.SEO_Title || "");
+
+  // Check each search variant against product fields
+  for (const variant of searchVariants) {
+    // Type (product name) - highest priority
+    if (normalizedType === variant) {
+      score += 100;
+    } else if (normalizedType.includes(variant)) {
+      score += 70;
+    } else if (normalizedType.startsWith(variant)) {
+      score += 80;
+    }
+
+    // Name (brief description)
+    if (normalizedName.includes(variant)) {
+      score += 50;
+    }
+
+    // Description
+    if (normalizedDesc.includes(variant)) {
+      score += 30;
+    }
+
+    // Slug
+    if (normalizedSlug.includes(variant)) {
+      score += 25;
+    }
+
+    // SEO Title
+    if (normalizedSeoTitle.includes(variant)) {
+      score += 10;
+    }
   }
 
-  // Name contains brief description - high priority
-  if (product.Name?.toLowerCase().includes(normalizedQuery)) {
-    score += 50;
-  }
+  // Bonus: Check if ALL tokens from the query appear in the product
+  const queryTokens = normalizedQuery.split(/\s+/).filter((t) => t.length > 1);
+  const allTokensMatch = queryTokens.every(
+    (token) =>
+      normalizedType.includes(token) ||
+      normalizedName.includes(token) ||
+      normalizedDesc.includes(token)
+  );
 
-  // Description contains keywords - medium priority
-  if (product.Description?.toLowerCase().includes(normalizedQuery)) {
-    score += 30;
-  }
-
-  // Slug match - lower priority than direct name match
-  if (product.Slug?.toLowerCase().includes(normalizedQuery)) {
-    score += 25;
-  }
-
-  // Add match on other fields like SEO_Title, etc.
-  if (product.SEO_Title?.toLowerCase().includes(normalizedQuery)) {
-    score += 10;
+  if (allTokensMatch && queryTokens.length > 1) {
+    score += 40; // Bonus for matching all words
   }
 
   return score;
+}
+
+/**
+ * Build flexible search conditions using OR combinations
+ */
+function buildSearchConditions(query: string): Prisma.ProductWhereInput {
+  const searchVariants = generateSearchVariants(query);
+  const orConditions: Prisma.ProductWhereInput[] = [];
+
+  // For each variant, search across all fields
+  for (const variant of searchVariants) {
+    orConditions.push(
+      {
+        Type: {
+          contains: variant,
+          mode: "insensitive",
+        },
+      },
+      {
+        Name: {
+          contains: variant,
+          mode: "insensitive",
+        },
+      },
+      {
+        Description: {
+          contains: variant,
+          mode: "insensitive",
+        },
+      },
+      {
+        Slug: {
+          contains: variant,
+          mode: "insensitive",
+        },
+      },
+      {
+        SEO_Title: {
+          contains: variant,
+          mode: "insensitive",
+        },
+      }
+    );
+  }
+
+  return {
+    Available: true,
+    OR: orConditions,
+  };
 }
 
 /**
@@ -162,7 +271,7 @@ export async function GET(request: Request) {
   const query = searchParams.get("q");
   const page = parseInt(searchParams.get("page") || "1", 10);
   const limitParam = searchParams.get("limit");
-  const limit = limitParam !== null ? parseInt(limitParam, 10) : 0; // Default to 0 for no limit
+  const limit = limitParam !== null ? parseInt(limitParam, 10) : 0;
 
   if (!query || query.trim().length === 0) {
     return NextResponse.json({ error: "Invalid search query" }, { status: 400 });
@@ -171,49 +280,10 @@ export async function GET(request: Request) {
   try {
     const searchQuery = query.trim();
 
-    // Build enhanced search conditions - search across multiple fields
-    const searchCondition: Prisma.ProductWhereInput = {
-      Available: true, // Only search for available products
-      OR: [
-        // Product name (stored in Type field) - contains search
-        {
-          Type: {
-            contains: searchQuery,
-            mode: "insensitive",
-          },
-        },
-        // Brief description (stored in Name field)
-        {
-          Name: {
-            contains: searchQuery,
-            mode: "insensitive",
-          },
-        },
-        // Keywords (stored in Description field)
-        {
-          Description: {
-            contains: searchQuery,
-            mode: "insensitive",
-          },
-        },
-        // Search by slug as well
-        {
-          Slug: {
-            contains: searchQuery,
-            mode: "insensitive",
-          },
-        },
-        // Also search in SEO fields
-        {
-          SEO_Title: {
-            contains: searchQuery,
-            mode: "insensitive",
-          },
-        },
-      ],
-    };
+    // Build enhanced search conditions with variant matching
+    const searchCondition = buildSearchConditions(searchQuery);
 
-    // First, get the total count of products matching the conditions
+    // Get total count
     const totalCount = await prisma.product.count({
       where: searchCondition,
     });
@@ -235,31 +305,29 @@ export async function GET(request: Request) {
       );
     }
 
-    // Calculate correct pagination values
+    // Calculate pagination
     const totalPages = Math.ceil(totalCount / (limit > 0 ? limit : totalCount));
-    const currentPageToUse = page > totalPages ? 1 : page; // Reset to page 1 if current page exceeds total pages
+    const currentPageToUse = page > totalPages ? 1 : page;
 
-    // STEP 1: Get all categories in ascending order by ID
+    // Get categories and subcategories
     const allCategories = await prisma.category.findMany({
       orderBy: {
         CategoryID: "asc",
       },
     });
 
-    // STEP 2: Get all subcategories in ascending order by ID
     const allSubCategories = await prisma.categoryContent.findMany({
       orderBy: {
         CategoryContentId: "asc",
       },
     });
 
-    // Create maps for efficient lookups
     const subcategoryMap = new Map();
     allSubCategories.forEach((sub) => {
       subcategoryMap.set(sub.CategoryContentId, sub);
     });
 
-    // STEP 3: Get ALL products matching search conditions (no pagination yet)
+    // Get all matching products
     const products = await prisma.product.findMany({
       where: searchCondition,
       include: {
@@ -272,15 +340,14 @@ export async function GET(request: Request) {
         },
       },
       orderBy: {
-        ProductId: "desc", // Default ordering within subcategories
+        ProductId: "desc",
       },
     });
 
-    // STEP 4: Create structured data organized by category, subcategory, and product
+    // Organize by category and subcategory
     const structuredData: any = {};
     let allProcessedProducts: any[] = [];
 
-    // Process all products and organize by category and subcategory
     for (const category of allCategories) {
       structuredData[category.CategoryID] = {
         category: category,
@@ -289,17 +356,14 @@ export async function GET(request: Request) {
       };
     }
 
-    // Assign products to their categories/subcategories
     for (const product of products) {
       const categoryId = product.Category?.CategoryID;
       const subcategoryIds = parseCategoryContentIds(product);
 
       if (!categoryId || !structuredData[categoryId]) continue;
 
-      // Add product to its category's product list
       structuredData[categoryId].products.push(product);
 
-      // Add product to each of its subcategories
       for (const subcatId of subcategoryIds) {
         const subcat = subcategoryMap.get(subcatId);
         if (!subcat) continue;
@@ -315,24 +379,20 @@ export async function GET(request: Request) {
       }
     }
 
-    // STEP 5: Flatten the structured data into a list, preserving order
+    // Flatten structured data
     for (const categoryId of Object.keys(structuredData).sort((a, b) => Number(a) - Number(b))) {
       const categoryData = structuredData[categoryId];
 
-      // Skip empty categories
       if (categoryData.products.length === 0) continue;
 
-      // For each subcategory in this category, add its products to the list
       const subcategoryIds = Object.keys(categoryData.subcategories).sort(
         (a, b) => Number(a) - Number(b)
       );
 
       for (const subcatId of subcategoryIds) {
         const subcatData = categoryData.subcategories[subcatId];
-        // Skip empty subcategories
         if (subcatData.products.length === 0) continue;
 
-        // Sort products by ProductId descending
         const sortedProducts = subcatData.products.sort(
           (a: any, b: any) => b.ProductId - a.ProductId
         );
@@ -340,9 +400,7 @@ export async function GET(request: Request) {
         allProcessedProducts = [...allProcessedProducts, ...sortedProducts];
       }
 
-      // Add any products directly associated with the category (not in any subcategory)
       const productsNotInSubcats = categoryData.products.filter((p: any) => {
-        // Product is not in any subcategory we processed
         return !parseCategoryContentIds(p).some((id) => categoryData.subcategories[id]);
       });
 
@@ -354,7 +412,7 @@ export async function GET(request: Request) {
       }
     }
 
-    // Remove duplicate products - sometimes products can be in multiple subcategories
+    // Remove duplicates
     const processedProductIds = new Set();
     allProcessedProducts = allProcessedProducts.filter((p) => {
       if (processedProductIds.has(p.ProductId)) {
@@ -364,34 +422,30 @@ export async function GET(request: Request) {
       return true;
     });
 
-    // Calculate relevance scores and reorder by relevance (search-specific)
+    // Calculate relevance scores with enhanced matching
     const scoredProducts = allProcessedProducts.map((product) => ({
       product,
       score: calculateRelevanceScore(product, searchQuery),
     }));
 
-    // Sort by relevance score
+    // Sort by relevance
     scoredProducts.sort((a, b) => b.score - a.score);
 
-    // STEP 6: Apply pagination AFTER organizing and scoring
+    // Apply pagination
     const startIndex = (currentPageToUse - 1) * (limit > 0 ? limit : totalCount);
     const endIndex = Math.min(startIndex + (limit > 0 ? limit : totalCount), scoredProducts.length);
     const paginatedProducts = scoredProducts.slice(startIndex, endIndex);
 
-    // Process the products to include links and subcategory information
+    // Process products for response
     const data = await Promise.all(
       paginatedProducts.map(async ({ product, score }) => {
         const categorySlug = product.Category?.Slug || null;
-
-        // Parse CategoryContentId string
         const categoryContentIds = parseCategoryContentIds(product);
 
-        // Get subcategories from the pre-fetched map
         const subcategories = categoryContentIds
           .map((id: number) => subcategoryMap.get(id))
           .filter((sub: any) => sub !== undefined);
 
-        // Use the first subcategory for the link
         const firstSubCategory = subcategories.length > 0 ? subcategories[0] : null;
 
         return {
@@ -400,7 +454,7 @@ export async function GET(request: Request) {
           categorySlug,
           subCategorySlug: firstSubCategory?.Slug || null,
           link: `${categorySlug}/${firstSubCategory?.Slug || ""}/${product.Slug}`,
-          _relevanceScore: score, // For debugging
+          _relevanceScore: score,
         };
       })
     );
