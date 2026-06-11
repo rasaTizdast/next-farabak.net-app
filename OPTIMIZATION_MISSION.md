@@ -12,9 +12,9 @@
 | Phase | Status | Notes |
 |-------|--------|-------|
 | **0 — Preparation & Snapshot** | ✅ Complete | Read all relevant files, saved baseline report (`react-doctor-baseline.json`) |
-| **1 — Commit Current Changes** | 🔄 In progress | Staging and committing all current changes |
-| **2 — Install skills.sh Skills** | ❌ Not started | 10 skills for opencode agent |
-| **3 — AGENTS.md & DESIGN.md** | ❌ Not started | Project conventions + design tokens |
+| **1 — Commit Current Changes** | ✅ Complete | Committed 6 files: mission doc, baseline report, gitignore, +3 modified files |
+| **2 — Install skills.sh Skills** | ✅ Complete | All 10 skills installed in `.agents/skills/` for OpenCode agent |
+| **3 — AGENTS.md & DESIGN.md** | ✅ Complete | Created both files from codebase analysis — includes all skills, conventions, design tokens |
 | **4 — Fix React Doctor Issues** | ❌ Not started | Performance, renders, UI states |
 | **5 — Write & Run Tests** | ❌ Not started | Vitest unit + Cypress E2E |
 | **6 — Final Verification** | ❌ Not started | Lint, build, react-doctor, all tests |

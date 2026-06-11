@@ -37,6 +37,7 @@
     "class-variance-authority": "^0.7.0",
     "hamburger-react": "^2.5.1",
     "html2canvas": "^1.4.1",
+    "isomorphic-dompurify": "^3.16.0",
     "jalali-moment": "^3.3.11",
     "jose": "^5.9.6",
     "jspdf": "^2.5.2",

@@ -26,14 +26,18 @@ export async function GET() {
       SELECT * FROM "support"."SpecTemplate"
     `;
 
-    // For each template, get its items
-    for (const template of templates) {
-      const items = await prisma.$queryRaw<SpecTemplateItem[]>`
-        SELECT * FROM "support"."SpecTemplateItem" 
-        WHERE "SpecTemplateId" = ${template.SpecTemplateId}
-      `;
-      template.Items = items;
-    }
+    // For each template, get its items in parallel
+    const itemsList = await Promise.all(
+      templates.map((template) =>
+        prisma.$queryRaw<SpecTemplateItem[]>`
+          SELECT * FROM "support"."SpecTemplateItem" 
+          WHERE "SpecTemplateId" = ${template.SpecTemplateId}
+        `
+      )
+    );
+    templates.forEach((template, i) => {
+      template.Items = itemsList[i];
+    });
 
     return NextResponse.json(templates);
   } catch (error) {
@@ -64,12 +68,14 @@ export async function POST(request: NextRequest) {
 
     // Then create all items using raw SQL
     if (Items && Items.length > 0) {
-      for (const item of Items) {
-        await prisma.$queryRaw`
-          INSERT INTO "support"."SpecTemplateItem" ("SpecTemplateId", "Title", "InsertDate", "ModifyDate")
-          VALUES (${templateId}, ${item.Title}, NOW(), NOW())
-        `;
-      }
+      await Promise.all(
+        Items.map((item) =>
+          prisma.$queryRaw`
+            INSERT INTO "support"."SpecTemplateItem" ("SpecTemplateId", "Title", "InsertDate", "ModifyDate")
+            VALUES (${templateId}, ${item.Title}, NOW(), NOW())
+          `
+        )
+      );
     }
 
     // Get the complete template with items

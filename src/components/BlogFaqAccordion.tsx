@@ -111,6 +111,7 @@ const BlogFaqAccordion = ({
                   } transition-all duration-300`}
                 >
                   <button
+                    type="button"
                     onClick={() => toggleFaq(index)}
                     className={`flex w-full items-center justify-between p-4 text-right focus:outline-none md:p-5 ${
                       isOpen ? "bg-blue-50" : "hover:bg-gray-50"

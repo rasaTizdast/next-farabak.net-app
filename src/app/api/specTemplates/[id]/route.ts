@@ -58,12 +58,13 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
   const params = await props.params;
   try {
     const id = parseInt(params.id);
-    const body = await request.json();
-    const { Name, Items } = body;
 
     if (isNaN(id)) {
       return NextResponse.json({ message: "Invalid template ID" }, { status: 400 });
     }
+
+    const body = await request.json();
+    const { Name, Items } = body;
 
     if (!Name) {
       return NextResponse.json({ message: "Template name is required" }, { status: 400 });
@@ -84,12 +85,14 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
 
     // Create new items using raw SQL
     if (Items && Items.length > 0) {
-      for (const item of Items) {
-        await prisma.$queryRaw`
-          INSERT INTO "support"."SpecTemplateItem" ("SpecTemplateId", "Title", "InsertDate", "ModifyDate")
-          VALUES (${id}, ${item.Title}, NOW(), NOW())
-        `;
-      }
+      await Promise.all(
+        Items.map((item) =>
+          prisma.$queryRaw`
+            INSERT INTO "support"."SpecTemplateItem" ("SpecTemplateId", "Title", "InsertDate", "ModifyDate")
+            VALUES (${id}, ${item.Title}, NOW(), NOW())
+          `
+        )
+      );
     }
 
     // Get the updated template
