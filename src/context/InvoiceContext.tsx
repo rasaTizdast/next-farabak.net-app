@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useState, ReactNode, useContext, useEffect, useRef } from "react";
+import React, { createContext, useState, ReactNode, use, useEffect, useRef } from "react";
 
 import { useInvoiceCookie } from "@/hooks/useInvoiceCookie";
 
@@ -69,6 +69,13 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
   // Flag to prevent infinite loops when updating
   const isUpdatingRef = useRef<boolean>(false);
 
+  // Stable refs for cookie functions to keep effects stable
+  const clearInvoiceCookieRef = useRef(clearInvoiceCookie);
+  clearInvoiceCookieRef.current = clearInvoiceCookie;
+
+  const getInvoiceFromCookieRef = useRef(getInvoiceFromCookie);
+  getInvoiceFromCookieRef.current = getInvoiceFromCookie;
+
   // Load invoice data from cookie when the component mounts
   useEffect(() => {
     const loadInvoiceFromCookie = async () => {
@@ -81,7 +88,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
         return;
       }
 
-      const savedInvoice = await getInvoiceFromCookie();
+      const savedInvoice = await getInvoiceFromCookieRef.current();
 
       if (savedInvoice) {
         setInvoice({
@@ -92,7 +99,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
     };
 
     loadInvoiceFromCookie();
-  }, [getInvoiceFromCookie]);
+  }, []);
 
   // Function to save invoice data with debouncing
   const debounceSaveInvoice = (currentInvoice: InvoiceState) => {
@@ -145,7 +152,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
       debounceSaveInvoice(invoice);
     } else if (invoice.products.length === 0 && invoice.TotalAmount === 0) {
       // If invoice is empty, ensure cookie is cleared
-      clearInvoiceCookie();
+      clearInvoiceCookieRef.current();
 
       // Set cleared flag for other tabs
       if (typeof window !== "undefined") {
@@ -160,7 +167,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
         clearTimeout(debounceSaveTimerRef.current);
       }
     };
-  }, [invoice, saveInvoiceToCookie, clearInvoiceCookie]);
+  }, [invoice]);
 
   // Listen for changes from other tabs/windows
   useEffect(() => {
@@ -182,7 +189,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
         }
 
         // Fetch latest invoice data from cookie
-        const latestInvoice = await getInvoiceFromCookie();
+        const latestInvoice = await getInvoiceFromCookieRef.current();
 
         if (latestInvoice) {
           setInvoice({
@@ -217,7 +224,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
         window.removeEventListener("storage", syncFromOtherTabs);
       }
     };
-  }, [getInvoiceFromCookie]);
+  }, []);
 
   const addProductToInvoice = (
     ProductId: number,
@@ -285,7 +292,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
       if (updatedProducts.length === 0) {
         // Use setTimeout to make this asynchronous and not block the UI
         setTimeout(() => {
-          clearInvoiceCookie();
+          clearInvoiceCookieRef.current();
           // Set cleared flag for other tabs
           if (typeof window !== "undefined") {
             localStorage.setItem(INVOICE_CLEARED_KEY, "true");
@@ -379,7 +386,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
 };
 
 export const useInvoice = () => {
-  const context = useContext(InvoiceContext);
+  const context = use(InvoiceContext);
   if (!context) {
     throw new Error("useInvoice must be used within an InvoiceProvider");
   }

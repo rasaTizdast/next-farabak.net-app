@@ -2,7 +2,7 @@
 
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, use, useState, useEffect } from "react";
 
 interface User {
   userId: string;
@@ -95,7 +95,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 export const useUser = () => {
-  const context = useContext(UserContext);
+  const context = use(UserContext);
   if (!context) {
     throw new Error("useUser must be used within a UserProvider");
   }
