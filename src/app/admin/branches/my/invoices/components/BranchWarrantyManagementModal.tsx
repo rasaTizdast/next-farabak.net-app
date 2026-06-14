@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { DatePicker } from "zaman";
 
-import { ExpandedInvoiceItem } from "./BranchInvoiceDetailsModal";
+import { ExpandedInvoiceItem } from "./types";
 
 // Format a Date object to YYYY-MM-DD string
 const formatDateToISOString = (date: Date | null): string | null => {

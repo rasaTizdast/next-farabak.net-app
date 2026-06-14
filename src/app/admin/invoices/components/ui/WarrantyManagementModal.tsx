@@ -7,7 +7,7 @@ import { DatePicker } from "zaman";
 import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
 
-import { ExpandedInvoiceItem } from "./AdminInvoiceDetailsModal";
+import { ExpandedInvoiceItem } from "./types";
 
 // Format a Date object to YYYY-MM-DD string
 const formatDateToISOString = (date: Date | null): string | null => {

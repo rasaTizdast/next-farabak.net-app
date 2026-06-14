@@ -6,15 +6,8 @@ import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
 
 import WarrantyManagementModal from "./WarrantyManagementModal";
-import { AdminInvoice, InvoiceDetail, Warranty } from "../../type";
-
-// Define an interface for expanded items with individual warranties
-export interface ExpandedInvoiceItem extends InvoiceDetail {
-  itemNumber?: number;
-  itemIndex?: number;
-  individualWarranty?: Warranty | null;
-  Name?: string;
-}
+import { AdminInvoice } from "../../type";
+import { ExpandedInvoiceItem } from "./types";
 
 type Props = {
   invoice: AdminInvoice | null;

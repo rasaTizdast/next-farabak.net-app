@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
 
-import { ExpandedInvoiceItem } from "./BranchInvoiceDetailsModal";
+import { ExpandedInvoiceItem } from "./types";
 
 type BranchWarrantyViewModalProps = {
   item: ExpandedInvoiceItem;
@@ -19,27 +19,23 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
   const [loading, setLoading] = useState<boolean>(false);
   const [showPrintView, setShowPrintView] = useState<boolean>(false);
 
-  if (!item || !item.individualWarranty) return null;
-
-  const warranty = item.individualWarranty;
-  const hasValidWarranty = Boolean(warranty?.warrantycode);
-
-  // If the branch name is already present in the warranty data, use it directly
+  // Must be before early return so hook order is consistent on every render
   useEffect(() => {
-    // Check if branch name is already available in the data
-    if ((warranty as any).branchname) {
-      setBranchName((warranty as any).branchname);
+    if (!item?.individualWarranty) return;
+
+    const w = item.individualWarranty;
+
+    if ((w as any).branchname) {
+      setBranchName((w as any).branchname);
       return;
     }
 
-    // Check if branch object with name is present
-    if ((warranty as any).branch?.name) {
-      setBranchName((warranty as any).branch.name);
+    if ((w as any).branch?.name) {
+      setBranchName((w as any).branch.name);
       return;
     }
 
-    // If no branch name is available in data, then try API fetch
-    const branchId = warranty.branchid;
+    const branchId = w.branchid;
 
     const fetchBranchName = async () => {
       if (!branchId) {
@@ -49,26 +45,12 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
 
       try {
         setLoading(true);
-
-        const url = `/api/admin/branches/${branchId}`;
-
-        const response = await fetch(url);
+        const response = await fetch(`/api/admin/branches/${branchId}`);
 
         if (response.ok) {
-          const responseText = await response.text();
-
-          let branchData;
-          try {
-            branchData = JSON.parse(responseText);
-
-            // The API returns an object with a 'name' property
-            setBranchName(branchData.name || "تعیین نشده");
-          } catch (parseError) {
-            console.error("Error parsing JSON response:", parseError);
-            setBranchName("خطا در پردازش پاسخ");
-          }
+          const branchData = await response.json();
+          setBranchName(branchData.name || "تعیین نشده");
         } else {
-          console.error("Failed to fetch branch name, status:", response.status);
           setBranchName("خطا در دریافت اطلاعات شعبه");
         }
       } catch (error) {
@@ -79,13 +61,17 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
       }
     };
 
-    // Only fetch if branch name isn't already set and we have a branch ID
     if (!branchName && branchId) {
       fetchBranchName();
     } else if (!branchId) {
       setBranchName("تعیین نشده");
     }
-  }, [warranty, branchName]);
+  }, [item, branchName]);
+
+  if (!item || !item.individualWarranty) return null;
+
+  const warranty = item.individualWarranty;
+  const hasValidWarranty = Boolean(warranty?.warrantycode);
 
   // Format date for display
   const formatDate = (dateString: string | undefined) => {

@@ -3,27 +3,13 @@ import axios from "axios";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
 
-import { AdminInvoice, InvoiceDetail, Warranty } from "@/app/admin/invoices/type";
+import { AdminInvoice } from "@/app/admin/invoices/type";
 import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
 
 import BranchWarrantyManagementModal from "./BranchWarrantyManagementModal";
 import BranchWarrantyViewModal from "./BranchWarrantyViewModal";
-
-// Extend the Warranty interface to include the hasWarranty property
-interface ExtendedWarranty extends Warranty {
-  hasWarranty?: boolean;
-  branchname?: string;
-  branchid?: string;
-}
-
-// Define an interface for expanded items with individual warranties
-export interface ExpandedInvoiceItem extends InvoiceDetail {
-  itemNumber?: number;
-  itemIndex?: number;
-  individualWarranty?: ExtendedWarranty | null;
-  Name?: string; // Add Name field for use in both components
-}
+import { ExpandedInvoiceItem, ExtendedWarranty } from "./types";
 
 interface BranchInvoiceDetailsModalProps {
   invoice: AdminInvoice;
