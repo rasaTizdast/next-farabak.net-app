@@ -71,10 +71,12 @@ npm run build           # prisma generate + next build
 npm run lint            # ESLint check
 npm run lint:fix        # ESLint auto-fix
 npm run format          # Prettier format
+npm test                # Vitest unit tests (CI mode)
+npm run test:watch      # Vitest unit tests (watch mode)
 npx cypress open        # E2E tests (interactive)
 npx cypress run         # E2E tests (headless)
-npx vitest              # Unit tests
-npx vitest run          # Unit tests (CI mode)
+npx vitest              # Unit tests (watch mode, same as test:watch)
+npx vitest run          # Unit tests (CI mode, same as npm test)
 npx react-doctor .      # React Doctor scan
 ```
 
