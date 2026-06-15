@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { BiTrash } from "react-icons/bi";
 
+import { useApiFetch } from "@/hooks/useApiFetch";
 import FaqManager from "@/components/FaqManager";
 
 import TipTapBlogEditor from "./blogEditor/TipTapEditor";
@@ -39,8 +40,6 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [blogContent, setBlogContent] = useState("");
-
-  const [isLoading, setIsLoading] = useState(true);
 
   // Add these state variables at the top of the component
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -78,41 +77,36 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
     categories: [],
   });
 
+  const {
+    data: blogData,
+    loading: blogLoading,
+    error: blogError,
+  } = useApiFetch(id ? `/api/blogs/getBlogData/${id}` : null);
+  const isLoading = id ? blogLoading : false;
+
   useEffect(() => {
-    const fetchBlogData = async () => {
-      if (!id) {
-        setIsLoading(false);
-        return;
-      }
+    if (blogData) {
+      setFormData({
+        title: blogData.blog.title,
+        SEO_Title: blogData.blog.SEO_Title,
+        slug: blogData.blog.slug,
+        author: blogData.blog.author,
+        SEO_description: blogData.blog.SEO_description,
+        image_URL: blogData.blog.image_URL,
+        image_alt: blogData.blog.image_alt,
+        categories: blogData.categories.map((c: Category) => c.id),
+      });
+      setPreviewImage(blogData.blog.image_URL);
+      setBlogContent(blogData.blog.content);
+    }
+  }, [blogData]);
 
-      try {
-        const response = await fetch(`/api/blogs/getBlogData/${id}`);
-        if (!response.ok) throw new Error("Failed to fetch blog data");
-
-        const blogData = await response.json();
-
-        setFormData({
-          title: blogData.blog.title,
-          SEO_Title: blogData.blog.SEO_Title,
-          slug: blogData.blog.slug,
-          author: blogData.blog.author,
-          SEO_description: blogData.blog.SEO_description,
-          image_URL: blogData.blog.image_URL,
-          image_alt: blogData.blog.image_alt,
-          categories: blogData.categories.map((c: Category) => c.id),
-        });
-        setPreviewImage(blogData.blog.image_URL);
-        setBlogContent(blogData.blog.content);
-      } catch (error) {
-        console.error("Error fetching blog:", error);
-        toast.error("Error loading blog data");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchBlogData();
-  }, [id]);
+  useEffect(() => {
+    if (blogError) {
+      console.error("Error fetching blog:", blogError);
+      toast.error("Error loading blog data");
+    }
+  }, [blogError]);
 
   const handleImageUpload = async (file: File) => {
     try {
@@ -127,14 +121,16 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to upload image");
+        toast.error(errorData.error || "Failed to upload image");
+        return null;
       }
 
       const data = await response.json();
       return data.url;
     } catch (error) {
       console.error("Upload error:", error);
-      throw error;
+      toast.error("خطا در آپلود تصویر");
+      return null;
     }
   };
 
@@ -240,7 +236,12 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || "Failed to delete category");
+        console.error(
+          "Forced delete operation failed:",
+          result.error || "Failed to delete category"
+        );
+        toast.error(result.error || "خطا در حذف دسته بندی");
+        return;
       }
 
       // Remove the category and associated blogs from state
@@ -286,7 +287,8 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
 
         // Handle other errors
         console.error("Delete error response:", result);
-        throw new Error(result.error || "Failed to delete category");
+        toast.error(result.error || "خطا در حذف دسته بندی");
+        return;
       }
 
       // Successful deletion
@@ -305,20 +307,22 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   };
 
   const handleCreateCategory = async () => {
+    if (!newCategory.name) {
+      toast.error("نام دسته بندی الزامی است");
+      return;
+    }
+
+    if (!newCategory.slug) {
+      toast.error("شناسه دسته بندی الزامی است");
+      return;
+    }
+
+    if (!/^[a-z0-9\-_]+$/.test(newCategory.slug)) {
+      toast.error("شناسه فقط می‌تواند شامل حروف انگلیسی، اعداد، خط تیره و زیرخط باشد");
+      return;
+    }
+
     try {
-      if (!newCategory.name) {
-        throw new Error("نام دسته بندی الزامی است");
-      }
-
-      if (!newCategory.slug) {
-        throw new Error("شناسه دسته بندی الزامی است");
-      }
-
-      // Validate slug format
-      if (!/^[a-z0-9\-_]+$/.test(newCategory.slug)) {
-        throw new Error("شناسه فقط می‌تواند شامل حروف انگلیسی، اعداد، خط تیره و زیرخط باشد");
-      }
-
       const response = await fetch("/api/blogs/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -327,7 +331,8 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "خطا در ایجاد دسته بندی");
+        toast.error(errorData.error || "خطا در ایجاد دسته بندی");
+        return;
       }
 
       const createdCategory = await response.json();
@@ -353,7 +358,11 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
           body: JSON.stringify({ name: category }),
         });
 
-        if (!response.ok) throw new Error("Failed to create category");
+        if (!response.ok) {
+          console.error("Failed to create category");
+          toast.error("Error creating category. Please try again.");
+          return;
+        }
 
         const newCategory = await response.json();
         setCategories((prev) => [...prev, newCategory]);
@@ -390,9 +399,12 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
     try {
       let imageUrl = formData.image_URL;
 
-      // Only upload new image if selected
       if (selectedImage) {
-        imageUrl = await handleImageUpload(selectedImage);
+        const uploadedUrl = await handleImageUpload(selectedImage);
+        if (!uploadedUrl) {
+          return;
+        }
+        imageUrl = uploadedUrl;
       }
 
       const url = `/api/blogs/update/${id}`;
@@ -409,7 +421,8 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "خطا در ذخیره وبلاگ");
+        toast.error(errorData.error || "خطا در ذخیره وبلاگ. لطفا دوباره تلاش کنید.");
+        return;
       }
 
       const data = await response.json();
@@ -417,9 +430,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
       setStep(2);
     } catch (error) {
       console.error("Error:", error);
-      toast.error(
-        error instanceof Error ? error.message : "خطا در ذخیره وبلاگ. لطفا دوباره تلاش کنید."
-      );
+      toast.error("خطا در ذخیره وبلاگ. لطفا دوباره تلاش کنید.");
     } finally {
       setIsSubmitting(false);
     }
@@ -436,7 +447,10 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
         }),
       });
 
-      if (!response.ok) throw new Error("خطا در بروزرسانی وبلاگ");
+      if (!response.ok) {
+        toast.error("خطا در بروزرسانی وبلاگ");
+        return;
+      }
 
       toast.success(publish ? "وبلاگ با موفقیت منتشر شد" : "پیش‌نویس با موفقیت ذخیره شد");
       onClose();

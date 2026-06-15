@@ -29,6 +29,38 @@ type Props = {
 
 type SortKey = keyof Pick<Product, "Price" | "Available"> | null;
 
+type SortConfig = {
+  key: SortKey;
+  direction: "ascending" | "descending";
+};
+
+const SortableHeader = ({
+  children,
+  sortKey,
+  sortConfig,
+  onSort,
+}: {
+  children: React.ReactNode;
+  sortKey: SortKey;
+  sortConfig: SortConfig;
+  onSort: (key: SortKey) => void;
+}) => (
+  <th scope="col" className="cursor-pointer select-none px-6 py-3" onClick={() => onSort(sortKey)}>
+    <div className="flex items-center justify-center gap-2">
+      {children}
+      {sortConfig.key === sortKey ? (
+        sortConfig.direction === "ascending" ? (
+          <FaSortUp aria-label="Sort ascending" />
+        ) : (
+          <FaSortDown aria-label="Sort descending" />
+        )
+      ) : (
+        <FaSort className="text-gray-400" aria-label="Sort" />
+      )}
+    </div>
+  </th>
+);
+
 const ProductsTable = ({
   isLoading,
   products,
@@ -86,7 +118,7 @@ const ProductsTable = ({
     }
 
     // Otherwise, apply the selected sort
-    return [...products].sort((a, b) => {
+    return products.toSorted((a, b) => {
       const key = sortConfig.key as keyof Product;
 
       // Handle potential null values in the comparison
@@ -172,34 +204,6 @@ const ProductsTable = ({
       direction: "ascending",
     });
   };
-
-  // Sorting header component
-  const SortableHeader = ({
-    children,
-    sortKey,
-  }: {
-    children: React.ReactNode;
-    sortKey: SortKey;
-  }) => (
-    <th
-      scope="col"
-      className="cursor-pointer select-none px-6 py-3"
-      onClick={() => handleSort(sortKey)}
-    >
-      <div className="flex items-center justify-center gap-2">
-        {children}
-        {sortConfig.key === sortKey ? (
-          sortConfig.direction === "ascending" ? (
-            <FaSortUp aria-label="Sort ascending" />
-          ) : (
-            <FaSortDown aria-label="Sort descending" />
-          )
-        ) : (
-          <FaSort className="text-gray-400" aria-label="Sort" />
-        )}
-      </div>
-    </th>
-  );
 
   const handleEditProduct = (product: Product) => {
     setIsEditModalOpen(true);
@@ -311,8 +315,12 @@ const ProductsTable = ({
               <th scope="col" className="px-6 py-3">
                 شناسه محصول
               </th>
-              <SortableHeader sortKey="Price">قیمت</SortableHeader>
-              <SortableHeader sortKey="Available">موجودی</SortableHeader>
+              <SortableHeader sortKey="Price" sortConfig={sortConfig} onSort={handleSort}>
+                قیمت
+              </SortableHeader>
+              <SortableHeader sortKey="Available" sortConfig={sortConfig} onSort={handleSort}>
+                موجودی
+              </SortableHeader>
               <th scope="col" className="px-6 py-3 text-center">
                 عملیات
               </th>

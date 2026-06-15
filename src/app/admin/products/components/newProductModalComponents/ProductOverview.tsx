@@ -12,7 +12,7 @@ type Props = {
 };
 
 const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
-  const [localFeatures, setLocalFeatures] = useState<string[]>(state.features);
+  const [localFeatures, setLocalFeatures] = useState<string[]>(() => state.features);
   const [localErrors, setLocalErrors] = useState<{ [key: string]: string }>({});
 
   // Enhanced error reporting to parent component

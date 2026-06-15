@@ -335,7 +335,7 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
             </div>
           ) : (
             faqs
-              .sort((a, b) => a.order - b.order)
+              .toSorted((a, b) => a.order - b.order)
               .map((faq, index) => (
                 <div
                   key={faq.id || index}
@@ -443,7 +443,7 @@ interface EditFaqFormProps {
 }
 
 const EditFaqForm: React.FC<EditFaqFormProps> = ({ faq, onSave, onCancel }) => {
-  const [editedFaq, setEditedFaq] = useState<FaqItem>(faq);
+  const [editedFaq, setEditedFaq] = useState<FaqItem>(() => faq);
 
   const handleSave = () => {
     if (!editedFaq.question.trim() || !editedFaq.answer.trim()) {

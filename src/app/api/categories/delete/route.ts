@@ -122,19 +122,21 @@ async function deleteSubCategory(subCategoryId: number) {
       console.error(`Error deleting images for product ${product.ProductId}:`, error);
     }
 
-    // Delete product overview
-    await prisma.productOverview.deleteMany({
-      where: { ProductId: product.ProductId },
-    });
-    await prisma.details_ProductOverviewDetails.deleteMany({
-      where: { productid: product.ProductId },
-    });
-    await prisma.productSpecs.deleteMany({
-      where: { ProductId: product.ProductId },
-    });
-    await prisma.fAQs.deleteMany({
-      where: { ProductId: product.ProductId },
-    });
+    // Delete product overview, details, specs, and FAQs in parallel
+    await Promise.all([
+      prisma.productOverview.deleteMany({
+        where: { ProductId: product.ProductId },
+      }),
+      prisma.details_ProductOverviewDetails.deleteMany({
+        where: { productid: product.ProductId },
+      }),
+      prisma.productSpecs.deleteMany({
+        where: { ProductId: product.ProductId },
+      }),
+      prisma.fAQs.deleteMany({
+        where: { ProductId: product.ProductId },
+      }),
+    ]);
   }
 
   // Delete products

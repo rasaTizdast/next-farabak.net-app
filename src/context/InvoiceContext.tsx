@@ -39,7 +39,7 @@ interface InvoiceContextType {
 }
 
 // Create the context with an initial value of `null`
-export const InvoiceContext = createContext<InvoiceContextType | undefined>(undefined);
+const InvoiceContext = createContext<InvoiceContextType | undefined>(undefined);
 
 // Define the props for the provider component
 interface InvoiceProviderProps {
@@ -71,10 +71,13 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
 
   // Stable refs for cookie functions to keep effects stable
   const clearInvoiceCookieRef = useRef(clearInvoiceCookie);
-  clearInvoiceCookieRef.current = clearInvoiceCookie;
-
   const getInvoiceFromCookieRef = useRef(getInvoiceFromCookie);
-  getInvoiceFromCookieRef.current = getInvoiceFromCookie;
+
+  // Sync refs after each render to avoid accessing refs during render
+  useEffect(() => {
+    clearInvoiceCookieRef.current = clearInvoiceCookie;
+    getInvoiceFromCookieRef.current = getInvoiceFromCookie;
+  });
 
   // Load invoice data from cookie when the component mounts
   useEffect(() => {

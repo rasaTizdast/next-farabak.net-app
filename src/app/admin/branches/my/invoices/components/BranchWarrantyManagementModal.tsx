@@ -126,7 +126,9 @@ const BranchWarrantyManagementModal = ({
       const response = await fetch(`/api/admin/branches/current`);
 
       if (!response.ok) {
-        throw new Error("Failed to fetch current branch");
+        console.error("Failed to fetch current branch");
+        toast.error("خطا در دریافت اطلاعات شعبه");
+        return null;
       }
 
       const branchData = await response.json();
@@ -156,7 +158,9 @@ const BranchWarrantyManagementModal = ({
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Product availability check failed:", errorData);
-        throw new Error("Failed to check product availability");
+        toast.error("خطا در بررسی موجودی محصول");
+        setBranchHasProduct(false);
+        return false;
       }
 
       const data = await response.json();
@@ -186,7 +190,8 @@ const BranchWarrantyManagementModal = ({
         currentBranch && currentBranch.branchid === selectedBranchId ? currentBranch : null;
 
       if (!selectedBranch) {
-        throw new Error("اطلاعات شعبه یافت نشد");
+        toast.error("اطلاعات شعبه یافت نشد");
+        return null;
       }
 
       // Use branch location code or name as branch code
@@ -424,7 +429,8 @@ const BranchWarrantyManagementModal = ({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "خطا در مدیریت گارانتی");
+        toast.error(errorData.error || "خطا در مدیریت گارانتی");
+        return;
       }
 
       toast.success("گارانتی جدید با موفقیت ایجاد شد");
@@ -491,6 +497,7 @@ const BranchWarrantyManagementModal = ({
               <input
                 type="text"
                 id="productName"
+                readOnly
                 className="no-print w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70"
                 value={item.Name || `محصول #${item.ProductId}`}
                 disabled
@@ -505,6 +512,7 @@ const BranchWarrantyManagementModal = ({
               <label className="block text-sm font-medium text-gray-300">شعبه مسئول گارانتی</label>
               <input
                 type="text"
+                readOnly
                 className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70"
                 value={currentBranch?.name || ""}
                 disabled

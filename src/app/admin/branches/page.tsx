@@ -119,7 +119,10 @@ function BranchesPageContent() {
       }
 
       const response = await fetch(url);
-      if (!response.ok) throw new Error("خطا در دریافت شعبه‌ها");
+      if (!response.ok) {
+        message.error("خطا در بارگذاری شعبه‌ها");
+        return;
+      }
       const responseData = await response.json();
 
       // Update branches and pagination data
@@ -152,7 +155,10 @@ function BranchesPageContent() {
   const fetchUsers = async () => {
     try {
       const response = await fetch("/api/admin/users");
-      if (!response.ok) throw new Error("خطا در دریافت کاربران");
+      if (!response.ok) {
+        message.error("خطا در بارگذاری کاربران");
+        return;
+      }
       const data = await response.json();
       setUsers(data);
     } catch (error) {
@@ -253,7 +259,11 @@ function BranchesPageContent() {
     try {
       setProductsLoading(true);
       const response = await fetch(`/api/admin/branches/${branchId}/products`);
-      if (!response.ok) throw new Error("خطا در دریافت محصولات شعبه");
+      if (!response.ok) {
+        message.error("خطا در بارگذاری محصولات شعبه");
+        setProducts([]);
+        return;
+      }
       const responseData = await response.json();
 
       // Extract products from the data property if it exists
@@ -292,7 +302,8 @@ function BranchesPageContent() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "خطا در ایجاد شعبه");
+        message.error(errorData.error || "خطا در ایجاد شعبه");
+        return;
       }
 
       message.success("شعبه با موفقیت ایجاد شد");
@@ -319,7 +330,8 @@ function BranchesPageContent() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "خطا در بروزرسانی شعبه");
+        message.error(errorData.error || "خطا در بروزرسانی شعبه");
+        return;
       }
 
       message.success("شعبه با موفقیت بروزرسانی شد");
@@ -338,7 +350,10 @@ function BranchesPageContent() {
         method: "DELETE",
       });
 
-      if (!response.ok) throw new Error("خطا در حذف شعبه");
+      if (!response.ok) {
+        message.error("خطا در حذف شعبه");
+        return;
+      }
 
       message.success("شعبه با موفقیت حذف شد");
       fetchBranches();
@@ -379,7 +394,10 @@ function BranchesPageContent() {
         }),
       });
 
-      if (!response.ok) throw new Error("خطا در افزودن محصول");
+      if (!response.ok) {
+        message.error("خطا در افزودن محصول");
+        return;
+      }
 
       message.success("محصول با موفقیت به شعبه اضافه شد");
       productForm.resetFields();
@@ -412,7 +430,10 @@ function BranchesPageContent() {
         }
       );
 
-      if (!response.ok) throw new Error("خطا در بروزرسانی تعداد محصول");
+      if (!response.ok) {
+        message.error("خطا در بروزرسانی تعداد محصول");
+        return;
+      }
 
       message.success("تعداد محصول با موفقیت بروزرسانی شد");
 
@@ -438,7 +459,10 @@ function BranchesPageContent() {
         }
       );
 
-      if (!response.ok) throw new Error("خطا در حذف محصول");
+      if (!response.ok) {
+        message.error("خطا در حذف محصول");
+        return;
+      }
 
       message.success("محصول با موفقیت از شعبه حذف شد");
 

@@ -3,7 +3,6 @@
 import { Tooltip } from "antd";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
 
 type QuantityDisplayProps = {
   warehouseCount: number;
@@ -62,7 +61,7 @@ export default function ProductQuantityDisplay({
   onHover,
 }: QuantityDisplayProps) {
   const router = useRouter();
-  const total = useMemo(() => warehouseCount + branchCount, [warehouseCount, branchCount]);
+  const total = warehouseCount + branchCount;
 
   return (
     <Tooltip

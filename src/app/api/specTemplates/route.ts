@@ -28,8 +28,9 @@ export async function GET() {
 
     // For each template, get its items in parallel
     const itemsList = await Promise.all(
-      templates.map((template) =>
-        prisma.$queryRaw<SpecTemplateItem[]>`
+      templates.map(
+        (template) =>
+          prisma.$queryRaw<SpecTemplateItem[]>`
           SELECT * FROM "support"."SpecTemplateItem" 
           WHERE "SpecTemplateId" = ${template.SpecTemplateId}
         `
@@ -69,8 +70,9 @@ export async function POST(request: NextRequest) {
     // Then create all items using raw SQL
     if (Items && Items.length > 0) {
       await Promise.all(
-        Items.map((item) =>
-          prisma.$queryRaw`
+        Items.map(
+          (item) =>
+            prisma.$queryRaw`
             INSERT INTO "support"."SpecTemplateItem" ("SpecTemplateId", "Title", "InsertDate", "ModifyDate")
             VALUES (${templateId}, ${item.Title}, NOW(), NOW())
           `

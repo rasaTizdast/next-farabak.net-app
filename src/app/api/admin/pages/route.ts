@@ -63,39 +63,37 @@ type SubPage = {
  */
 export async function GET() {
   try {
-    // Count member pages
-    const members = await prisma.members.findMany({
-      select: {
-        Membersid: true,
-        Name: true,
-        Slug: true,
-      },
-    });
-
-    // Count blog posts
-    const blogs = await prisma.blogs.findMany({
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        QrCode_key: true,
-        QrCode_expiryDays: true,
-        BlogCategories: {
-          select: {
-            Categories: true,
+    // Fetch members, blogs, and projects in parallel
+    const [members, blogs, projects] = await Promise.all([
+      prisma.members.findMany({
+        select: {
+          Membersid: true,
+          Name: true,
+          Slug: true,
+        },
+      }),
+      prisma.blogs.findMany({
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          QrCode_key: true,
+          QrCode_expiryDays: true,
+          BlogCategories: {
+            select: {
+              Categories: true,
+            },
           },
         },
-      },
-    });
-
-    // Count projects
-    const projects = await prisma.projects.findMany({
-      select: {
-        ProjectID: true,
-        Title: true,
-        Slug: true,
-      },
-    });
+      }),
+      prisma.projects.findMany({
+        select: {
+          ProjectID: true,
+          Title: true,
+          Slug: true,
+        },
+      }),
+    ]);
 
     const rowNames = [
       {

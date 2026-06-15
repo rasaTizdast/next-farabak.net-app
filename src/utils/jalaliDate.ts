@@ -14,22 +14,6 @@ export const getCurrentJalaliDate = (): string => {
 };
 
 /**
- * Get current Jalali date and time in YYYY-MM-DDTHH:mm:ss format
- * @returns {string} Current Jalali date and time in format like "1404-06-23T14:30:45"
- */
-export const getCurrentJalaliDateTime = (): string => {
-  const now = jalaali();
-  const year = now.jYear();
-  const month = String(now.jMonth() + 1).padStart(2, "0");
-  const day = String(now.jDate()).padStart(2, "0");
-  const hour = String(now.hour()).padStart(2, "0");
-  const minute = String(now.minute()).padStart(2, "0");
-  const second = String(now.second()).padStart(2, "0");
-
-  return `${year}-${month}-${day}T${hour}:${minute}:${second}`;
-};
-
-/**
  * Format a Jalali date string to a more readable Persian format
  * @param {string} jalaliDateString - Jalali date in YYYY-MM-DD format
  * @param {boolean} includeTime - Whether to include time if available
@@ -77,16 +61,4 @@ export const formatJalaliDate = (
   }
 };
 
-/**
- * Convert a Gregorian date to Jalali date string
- * @param {Date} gregorianDate - Gregorian date object
- * @returns {string} Jalali date in YYYY-MM-DD format
- */
-export const gregorianToJalali = (gregorianDate: Date): string => {
-  const jalaliMoment = jalaali(gregorianDate);
-  const year = jalaliMoment.jYear();
-  const month = String(jalaliMoment.jMonth() + 1).padStart(2, "0");
-  const day = String(jalaliMoment.jDate()).padStart(2, "0");
 
-  return `${year}-${month}-${day}`;
-};

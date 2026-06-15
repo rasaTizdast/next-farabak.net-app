@@ -6,6 +6,40 @@ type ContactUsEditModalProps = {
   onClose: () => void;
 };
 
+const SkeletonLoader = () => (
+  <div className="animate-pulse">
+    <div className="mb-6 rounded-lg bg-gray-600 p-3">
+      <div className="mb-4 h-6 w-1/4 rounded bg-gray-500"></div>
+      <div className="space-y-3">
+        <div className="h-4 w-3/4 rounded bg-gray-500"></div>
+        <div className="h-4 w-1/2 rounded bg-gray-500"></div>
+        <div className="h-4 w-2/3 rounded bg-gray-500"></div>
+      </div>
+    </div>
+    <div className="mb-6 rounded-lg bg-gray-600 p-3">
+      <div className="mb-4 h-6 w-1/4 rounded bg-gray-500"></div>
+      <div className="space-y-3">
+        {[1, 2].map((_, index) => (
+          <div key={index} className="space-y-2">
+            <div className="h-4 w-3/4 rounded bg-gray-500"></div>
+            <div className="h-4 w-1/2 rounded bg-gray-500"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+    <div className="mb-6 rounded-lg bg-gray-600 p-3">
+      <div className="mb-4 h-6 w-1/4 rounded bg-gray-500"></div>
+      <div className="space-y-3">
+        {[1].map((_, index) => (
+          <div key={index} className="space-y-2">
+            <div className="h-4 w-3/4 rounded bg-gray-500"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
 const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
   const [address, setAddress] = useState({
     id: 0,
@@ -40,7 +74,6 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
       });
   };
 
-  // Move email up in order
   const moveEmailUp = (index: number) => {
     if (index === 0) return;
     const newEmails = [...emails];
@@ -50,7 +83,6 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
     setEmails(newEmails);
   };
 
-  // Move email down in order
   const moveEmailDown = (index: number) => {
     if (index === emails.length - 1) return;
     const newEmails = [...emails];
@@ -60,7 +92,6 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
     setEmails(newEmails);
   };
 
-  // Move phone number up in order
   const movePhoneUp = (index: number) => {
     if (index === 0) return;
     const newPhones = [...phoneNumbers];
@@ -70,7 +101,6 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
     setPhoneNumbers(newPhones);
   };
 
-  // Move phone number down in order
   const movePhoneDown = (index: number) => {
     if (index === phoneNumbers.length - 1) return;
     const newPhones = [...phoneNumbers];
@@ -79,40 +109,6 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
     newPhones[index + 1] = temp;
     setPhoneNumbers(newPhones);
   };
-
-  const SkeletonLoader = () => (
-    <div className="animate-pulse">
-      <div className="mb-6 rounded-lg bg-gray-600 p-3">
-        <div className="mb-4 h-6 w-1/4 rounded bg-gray-500"></div>
-        <div className="space-y-3">
-          <div className="h-4 w-3/4 rounded bg-gray-500"></div>
-          <div className="h-4 w-1/2 rounded bg-gray-500"></div>
-          <div className="h-4 w-2/3 rounded bg-gray-500"></div>
-        </div>
-      </div>
-      <div className="mb-6 rounded-lg bg-gray-600 p-3">
-        <div className="mb-4 h-6 w-1/4 rounded bg-gray-500"></div>
-        <div className="space-y-3">
-          {[1, 2].map((_, index) => (
-            <div key={index} className="space-y-2">
-              <div className="h-4 w-3/4 rounded bg-gray-500"></div>
-              <div className="h-4 w-1/2 rounded bg-gray-500"></div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="mb-6 rounded-lg bg-gray-600 p-3">
-        <div className="mb-4 h-6 w-1/4 rounded bg-gray-500"></div>
-        <div className="space-y-3">
-          {[1].map((_, index) => (
-            <div key={index} className="space-y-2">
-              <div className="h-4 w-3/4 rounded bg-gray-500"></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 shadow-lg backdrop-blur-sm">
@@ -126,7 +122,6 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
           <SkeletonLoader />
         ) : (
           <>
-            {/* Address Form */}
             <div className="mb-6 rounded-lg bg-gray-600 p-3">
               <h3 className="text-lg font-semibold">آدرس</h3>
               <hr className="mb-4 mt-2" />
@@ -159,7 +154,6 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
               </label>
             </div>
 
-            {/* Emails Form */}
             <div className="mb-6 rounded-lg bg-gray-600 p-3">
               <h3 className="text-lg font-semibold">ایمیل‌ها</h3>
               <hr className="mb-4 mt-2" />
@@ -236,7 +230,6 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
               ))}
             </div>
 
-            {/* Phone Numbers Form */}
             <div className="mb-6 rounded-lg bg-gray-600 p-3">
               <h3 className="text-lg font-semibold">شماره تلفن‌ها</h3>
               <hr className="mb-4 mt-2" />

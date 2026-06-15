@@ -29,16 +29,10 @@ function TestConsumer() {
       >
         Add
       </button>
-      <button
-        data-testid="remove-product"
-        onClick={() => invoice.removeProductFromInvoice(1)}
-      >
+      <button data-testid="remove-product" onClick={() => invoice.removeProductFromInvoice(1)}>
         Remove
       </button>
-      <button
-        data-testid="clear-invoice"
-        onClick={() => invoice.clearInvoice()}
-      >
+      <button data-testid="clear-invoice" onClick={() => invoice.clearInvoice()}>
         Clear
       </button>
     </div>

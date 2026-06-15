@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { CgSpinnerTwo } from "react-icons/cg";
 
+import { useApiFetch } from "@/hooks/useApiFetch";
 import { Overview, OverviewDetail, Product, Specs } from "../types";
 import EditModalFAQ from "./EditModalFAQ";
 import EditModalOverview from "./EditModalOverview";
@@ -117,7 +118,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   refetchProducts,
   setIsEditModalOpen,
 }) => {
-  const [formState, setFormState] = useState<Product | null>(product);
+  const [formState, setFormState] = useState<Product | null>(() => product);
   const [categories, setCategories] = useState<Category[]>([]);
   const [newImg1, setNewImg1] = useState<File | null>(null);
   const [newImg2, setNewImg2] = useState<File | null>(null);
@@ -130,13 +131,23 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const [faqs, setFaqs] = useState<FAQItem[]>([]);
   const [faqErrors, setFaqErrors] = useState<{ [key: string]: string }>({});
 
+  const { data: categoriesData, error: categoriesError } = useApiFetch("/api/categories/getAll");
+
   useEffect(() => {
-    axios
-      .get("/api/categories/getAll")
-      .then((response) => setCategories(response.data))
-      .catch(() => toast.error("در دریافت دسته بندی ها مشکلی به وجود آمده است، دوباره تلاش کنید"));
+    if (categoriesData) {
+      setCategories(categoriesData);
+    }
+  }, [categoriesData]);
+
+  useEffect(() => {
+    if (categoriesError) {
+      toast.error("در دریافت دسته بندی ها مشکلی به وجود آمده است، دوباره تلاش کنید");
+    }
+  }, [categoriesError]);
+
+  useEffect(() => {
     setFormState(product);
-  }, []);
+  }, [product]);
 
   // Validate FAQs whenever they change
   useEffect(() => {
@@ -149,19 +160,16 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     }
   }, [faqs]);
 
-  // Function to handle uploading images to S3
-  const ImageUploader = async (
+  const imageUploader = async (
     image: File | null,
     productName: string,
     imageType: "banner" | "mini"
   ) => {
-    // Ensure that required data is available
     if (!image || !productName) {
-      return;
+      return null;
     }
 
     try {
-      // Request a presigned URL for image upload
       const response = await axios.post("/api/s3/upload", {
         type: "productImage",
         folderName: productName,
@@ -171,56 +179,60 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
 
       const { uploadUrl, key } = response.data;
 
-      // Upload the image to the presigned URL
       await axios.put(uploadUrl, image, {
         headers: {
           "Content-Type": image.type,
         },
       });
 
-      return key; // Return the image key for further use
+      return key;
     } catch (error) {
       console.error(error);
-      throw new Error("Error uploading the image");
+      return null;
     }
   };
 
   const handleImageUpdate = async (productId: number, productName: string) => {
     const payload: { img1?: string; img2?: string } = {};
 
-    // Update newImg1 if it exists
     if (newImg1) {
       try {
         await axios.delete("/api/s3/delete", {
           data: {
             productId,
             type: "productImages",
-            productImageType: "mini", // Mini for img1
+            productImageType: "mini",
           },
         });
-        const img1Key = await ImageUploader(newImg1, productName, "mini");
-        payload.img1 = img1Key;
-        toast.success("تصویر بدون پس‌زمینه با موفقیت آپدیت شد!");
+        const img1Key = await imageUploader(newImg1, productName, "mini");
+        if (!img1Key) {
+          console.error("Failed to upload img1");
+        } else {
+          payload.img1 = img1Key;
+          toast.success("تصویر بدون پس‌زمینه با موفقیت آپدیت شد!");
+        }
       } catch (error) {
         console.error(error);
         toast.error("آپلود تصویر بدون پس‌زمینه با شکست مواجه شد، مجددا تلاش کنید");
       }
     }
 
-    // Update newImg2 if it exists
     if (newImg2) {
       try {
         await axios.delete("/api/s3/delete", {
           data: {
             productId,
             type: "productImages",
-            productImageType: "banner", // Banner for img2
+            productImageType: "banner",
           },
         });
-        const img2Key = await ImageUploader(newImg2, productName, "banner");
-        payload.img2 = img2Key;
-
-        toast.success("تصویر بنر با موفقیت آپدیت شد!");
+        const img2Key = await imageUploader(newImg2, productName, "banner");
+        if (!img2Key) {
+          console.error("Failed to upload img2");
+        } else {
+          payload.img2 = img2Key;
+          toast.success("تصویر بنر با موفقیت آپدیت شد!");
+        }
       } catch (error) {
         console.error(error);
         toast.error("آپدیت تصویر بنر با شکست مواجه شد، مجددا تلاش کنید");

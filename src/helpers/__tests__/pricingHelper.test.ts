@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { calculateProductPricing, formatPriceForSchema, getPriceRangeForSchema } from "../pricingHelper";
+import {
+  calculateProductPricing,
+  formatPriceForSchema,
+  getPriceRangeForSchema,
+} from "../pricingHelper";
 
 vi.mock("../Usd2RialRate", () => ({
   fetchUsdToRialRate: vi.fn(),
@@ -87,20 +91,12 @@ describe("getPriceRangeForSchema", () => {
   });
 
   it("returns correct range for products with prices", () => {
-    const products = [
-      { Price: 100 },
-      { Price: 500 },
-      { Price: 200 },
-    ];
+    const products = [{ Price: 100 }, { Price: 500 }, { Price: 200 }];
     expect(getPriceRangeForSchema(products)).toEqual({ minPrice: "100", maxPrice: "500" });
   });
 
   it("ignores products without valid prices", () => {
-    const products = [
-      { Price: 0 },
-      { Price: null },
-      { notPrice: true },
-    ];
+    const products = [{ Price: 0 }, { Price: null }, { notPrice: true }];
     expect(getPriceRangeForSchema(products)).toEqual({ minPrice: "0", maxPrice: "0" });
   });
 });

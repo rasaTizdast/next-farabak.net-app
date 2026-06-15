@@ -179,7 +179,7 @@ export async function GET(request: Request) {
         });
 
         // Sort details by ProductId to group same products together
-        const sortedDetails = [...detailsWithWarranty].sort((a, b) => {
+        const sortedDetails = detailsWithWarranty.toSorted((a, b) => {
           // First sort by ProductId to group same products together
           if (a.ProductId !== b.ProductId) {
             return (a.ProductId || 0) - (b.ProductId || 0);

@@ -35,7 +35,10 @@ describe("useInvoiceCookie", () => {
     expect(mockFetch).toHaveBeenCalledWith("/api/invoice/save", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ products: [{ ProductId: 1, Quantity: 2, ProductName: "Test" }], TotalAmount: 2 }),
+      body: JSON.stringify({
+        products: [{ ProductId: 1, Quantity: 2, ProductName: "Test" }],
+        TotalAmount: 2,
+      }),
     });
     expect(response).toEqual({ success: true });
   });

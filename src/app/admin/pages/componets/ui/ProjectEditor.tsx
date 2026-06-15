@@ -10,8 +10,9 @@ import { useDropzone } from "react-dropzone";
 import { BiTrash } from "react-icons/bi";
 import { DatePicker } from "zaman";
 
+import { useApiFetch } from "@/hooks/useApiFetch";
+
 const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
-  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -26,46 +27,33 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Add this useEffect to load existing data
+  const projectUrl = id ? `/api/projects/${id}` : null;
+  const { data: projectData, loading: projectLoading } = useApiFetch(projectUrl);
+  const isLoading = projectUrl ? projectLoading || !projectData : false;
+
   useEffect(() => {
-    if (id) {
-      const fetchProject = async () => {
-        try {
-          setIsLoading(true);
-          const response = await fetch(`/api/projects/${id}`);
-          const data = await response.json();
+    if (projectData) {
+      setFormData({
+        title: projectData.project.Title,
+        description: projectData.project.Description,
+        slug: projectData.project.Slug,
+        isActive: projectData.project.IsActive,
+        date: projectData.project.date,
+        city: projectData.project.city,
+      });
+      setMainImage(projectData.project.Main_img_URL);
 
-          setFormData({
-            title: data.project.Title,
-            description: data.project.Description,
-            slug: data.project.Slug,
-            isActive: data.project.IsActive,
-            date: data.project.date,
-            city: data.project.city,
-          });
+      const images = projectData.media
+        .filter((m: any) => m.MediaType === "image")
+        .map((m: any) => m.MediaURL);
+      const videos = projectData.media
+        .filter((m: any) => m.MediaType === "video")
+        .map((m: any) => m.MediaURL);
 
-          setMainImage(data.project.Main_img_URL);
-
-          const images = data.media
-            .filter((m: any) => m.MediaType === "image")
-            .map((m: any) => m.MediaURL);
-          const videos = data.media
-            .filter((m: any) => m.MediaType === "video")
-            .map((m: any) => m.MediaURL);
-
-          setDetailImages(images);
-          setVideos(videos);
-        } catch (error) {
-          console.error("Error loading project:", error);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchProject();
-    } else {
-      setIsLoading(false);
+      setDetailImages(images);
+      setVideos(videos);
     }
-  }, [id]);
+  }, [projectData]);
 
   // Update handleInputChange
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -150,7 +138,12 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
       });
 
       if (!response.ok) {
-        throw new Error(await response.text());
+        const errorText = await response.text();
+        setErrors((prev) => ({
+          ...prev,
+          form: "خطا در ذخیره پروژه: " + errorText,
+        }));
+        return;
       }
 
       onClose();

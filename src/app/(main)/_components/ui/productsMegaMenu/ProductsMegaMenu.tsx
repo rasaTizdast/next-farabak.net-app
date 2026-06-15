@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 
 import styles from "./ProductsMegaMenu.module.css";
 
-export const dynamic = "force-dynamic";
+const dynamic = "force-dynamic";
 
 // Category and Subcategory types
 export interface Subcategory {

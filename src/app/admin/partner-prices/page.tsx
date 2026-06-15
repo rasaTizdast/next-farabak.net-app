@@ -265,13 +265,10 @@ export default function AdminPartnerPricesPage() {
                         value={partnerValues[p.ProductId] ?? ""}
                         inputMode="decimal"
                         pattern="[0-9]*[.]?[0-9]*"
-                        onInput={(e) => {
-                          const t = e.currentTarget;
-                          const cleaned = t.value
-                            .replace(/[^0-9.]/g, "")
-                            .replace(/(\..*)\./g, "$1");
-                          if (t.value !== cleaned) t.value = cleaned;
-                          setPartnerValues((prev) => ({ ...prev, [p.ProductId]: t.value }));
+                        onChange={(e) => {
+                          const raw = e.currentTarget.value;
+                          const cleaned = raw.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
+                          setPartnerValues((prev) => ({ ...prev, [p.ProductId]: cleaned }));
                         }}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {

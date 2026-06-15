@@ -221,6 +221,7 @@ const SignUp = () => {
             type="submit"
             value={isSubmitting ? "در حال ورود..." : "ورود به حساب کاربری"}
             disabled={isSubmitting || step !== 3}
+            readOnly
             className={`${styles.signup_submit} ${step !== 3 ? styles.disable : ""}`}
           />
 

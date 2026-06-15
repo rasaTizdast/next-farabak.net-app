@@ -20,8 +20,8 @@ const DEFAULT_HEIGHT = 400;
 const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showResizeOptions, setShowResizeOptions] = useState(false);
-  const [customWidth, setCustomWidth] = useState(DEFAULT_WIDTH.toString());
-  const [customHeight, setCustomHeight] = useState(DEFAULT_HEIGHT.toString());
+  const [customWidth, setCustomWidth] = useState(() => DEFAULT_WIDTH.toString());
+  const [customHeight, setCustomHeight] = useState(() => DEFAULT_HEIGHT.toString());
   const [isResizing, setIsResizing] = useState(false);
   const [startResizePos, setStartResizePos] = useState({ x: 0, y: 0 });
   const [startDimensions, setStartDimensions] = useState({

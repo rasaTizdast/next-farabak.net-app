@@ -128,15 +128,13 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       },
     });
 
-    // Update media relationships
-    await prisma.projectMedia.deleteMany({
-      where: {
-        MediaURL: { in: [...removedDetails, ...removedVideos] },
-      },
-    });
-
-    // Delete removed files from storage
+    // Update media relationships and delete removed files in parallel
     await Promise.all([
+      prisma.projectMedia.deleteMany({
+        where: {
+          MediaURL: { in: [...removedDetails, ...removedVideos] },
+        },
+      }),
       ...removedDetails.map((key) => deleteFile(key)),
       ...removedVideos.map((key) => deleteFile(key)),
     ]);

@@ -46,6 +46,7 @@ export async function POST(request: Request) {
 
     // Generate multiple unique warranty codes
     const warrantyCodes: string[] = [];
+    const warrantyCodesSet = new Set<string>();
 
     // Get existing codes with this prefix for optimization
     const prefix = `${branchCode}-${yearMonth}`;
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
         warrantyCode = `${branchCode}-${yearMonth}-${randomCode}`;
 
         // Check if code is unique
-        isUnique = !existingCodes.has(warrantyCode) && !warrantyCodes.includes(warrantyCode);
+        isUnique = !existingCodes.has(warrantyCode) && !warrantyCodesSet.has(warrantyCode);
       }
 
       // If we couldn't generate a unique code after max attempts, use timestamp + index as fallback
@@ -83,6 +84,7 @@ export async function POST(request: Request) {
       }
 
       warrantyCodes.push(warrantyCode);
+      warrantyCodesSet.add(warrantyCode);
       existingCodes.add(warrantyCode);
     }
 

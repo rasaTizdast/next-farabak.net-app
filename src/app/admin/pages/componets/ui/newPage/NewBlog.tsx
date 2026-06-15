@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { BiTrash } from "react-icons/bi";
 
+import { useApiFetch } from "@/hooks/useApiFetch";
 import FaqManager from "@/components/FaqManager";
 
 import TipTapBlogEditor from "../blogEditor/TipTapEditor";
@@ -86,14 +87,16 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to upload image");
+        toast.error(errorData.error || "Failed to upload image");
+        return null;
       }
 
       const data = await response.json();
       return data.url;
     } catch (error) {
       console.error("Upload error:", error);
-      throw error;
+      toast.error("خطا در آپلود تصویر");
+      return null;
     }
   };
 
@@ -147,18 +150,13 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     return errors.length === 0;
   };
 
+  const { data: categoriesData } = useApiFetch("/api/blogs/categories");
+
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch("/api/blogs/categories");
-        const data = await response.json();
-        setCategories(data);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
-    fetchCategories();
-  }, []);
+    if (categoriesData) {
+      setCategories(categoriesData);
+    }
+  }, [categoriesData]);
 
   // And in the filtering useEffect:
   useEffect(() => {
@@ -194,7 +192,12 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || "Failed to delete category");
+        console.error(
+          "Forced delete operation failed:",
+          result.error || "Failed to delete category"
+        );
+        toast.error(result.error || "خطا در حذف دسته بندی");
+        return;
       }
 
       // Remove the category and associated blogs from state
@@ -240,7 +243,8 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
         // Handle other errors
         console.error("Delete error response:", result);
-        throw new Error(result.error || "Failed to delete category");
+        toast.error(result.error || "خطا در حذف دسته بندی");
+        return;
       }
 
       // Successful deletion
@@ -259,20 +263,22 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   };
 
   const handleCreateCategory = async () => {
+    if (!newCategory.name) {
+      toast.error("نام دسته بندی الزامی است");
+      return;
+    }
+
+    if (!newCategory.slug) {
+      toast.error("شناسه دسته بندی الزامی است");
+      return;
+    }
+
+    if (!/^[a-z0-9\-_]+$/.test(newCategory.slug)) {
+      toast.error("شناسه فقط می‌تواند شامل حروف انگلیسی، اعداد، خط تیره و زیرخط باشد");
+      return;
+    }
+
     try {
-      if (!newCategory.name) {
-        throw new Error("نام دسته بندی الزامی است");
-      }
-
-      if (!newCategory.slug) {
-        throw new Error("شناسه دسته بندی الزامی است");
-      }
-
-      // Validate slug format
-      if (!/^[a-z0-9\-_]+$/.test(newCategory.slug)) {
-        throw new Error("شناسه فقط می‌تواند شامل حروف انگلیسی، اعداد، خط تیره و زیرخط باشد");
-      }
-
       const response = await fetch("/api/blogs/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -281,7 +287,8 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "خطا در ایجاد دسته بندی");
+        toast.error(errorData.error || "خطا در ایجاد دسته بندی");
+        return;
       }
 
       const createdCategory = await response.json();
@@ -307,7 +314,11 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           body: JSON.stringify({ name: category }),
         });
 
-        if (!response.ok) throw new Error("Failed to create category");
+        if (!response.ok) {
+          console.error("Failed to create category");
+          toast.error("Error creating category. Please try again.");
+          return;
+        }
 
         const newCategory = await response.json();
         setCategories((prev) => [...prev, newCategory]);
@@ -344,7 +355,11 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     try {
       let imageUrl = "";
       if (selectedImage) {
-        imageUrl = await handleImageUpload(selectedImage);
+        const uploadedUrl = await handleImageUpload(selectedImage);
+        if (!uploadedUrl) {
+          return;
+        }
+        imageUrl = uploadedUrl;
       }
 
       const response = await fetch("/api/blogs/create", {
@@ -358,7 +373,8 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "خطا در ایجاد وبلاگ");
+        toast.error(errorData.error || "خطا در ایجاد وبلاگ. لطفا دوباره تلاش کنید.");
+        return;
       }
 
       const data = await response.json();
@@ -366,9 +382,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       setStep(2);
     } catch (error) {
       console.error("Error:", error);
-      toast.error(
-        error instanceof Error ? error.message : "خطا در ایجاد وبلاگ. لطفا دوباره تلاش کنید."
-      );
+      toast.error("خطا در ایجاد وبلاگ. لطفا دوباره تلاش کنید.");
     } finally {
       setIsSubmitting(false);
     }
@@ -385,7 +399,10 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         }),
       });
 
-      if (!response.ok) throw new Error("خطا در بروزرسانی وبلاگ");
+      if (!response.ok) {
+        toast.error("خطا در بروزرسانی وبلاگ");
+        return;
+      }
 
       toast.success(publish ? "وبلاگ با موفقیت منتشر شد" : "پیش‌نویس با موفقیت ذخیره شد");
       onClose();

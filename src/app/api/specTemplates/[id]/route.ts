@@ -86,8 +86,9 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
     // Create new items using raw SQL
     if (Items && Items.length > 0) {
       await Promise.all(
-        Items.map((item) =>
-          prisma.$queryRaw`
+        Items.map(
+          (item) =>
+            prisma.$queryRaw`
             INSERT INTO "support"."SpecTemplateItem" ("SpecTemplateId", "Title", "InsertDate", "ModifyDate")
             VALUES (${id}, ${item.Title}, NOW(), NOW())
           `

@@ -29,8 +29,6 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
   // Use the print hook for printing
   const { componentRef, handlePrint } = usePrint();
 
-  if (!invoice) return null;
-
   // Ensure invoice structure is valid
   if (!invoice.Invoice_Details) {
     console.warn("Missing Invoice_Details in invoice:", invoice);
@@ -301,6 +299,8 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
       fetchUpdatedInvoiceData();
     }
   }, [refreshCounter, invoice.Invoiceid]);
+
+  if (!invoice) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 backdrop-blur-sm sm:p-4">

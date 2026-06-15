@@ -9,6 +9,8 @@ import jalaali from "jalali-moment";
 import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
+import { useApiFetch } from "@/hooks/useApiFetch";
+
 import AdminInvoiceDetailsModal from "./components/ui/AdminInvoiceDetailsModal";
 import AdminPhoneNumberModal from "./components/ui/AdminPhoneNumberModal";
 import ChangeStatusModal from "./components/ui/ChangeStatusModal";
@@ -20,8 +22,6 @@ const { Option } = Select;
 const AdminInvoicesPage = () => {
   const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<AdminInvoice[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<AdminInvoice | null>(null);
   const [showPhoneNumberModal, setShowPhoneNumberModal] = useState<AdminInvoice | null>(null);
 
@@ -31,28 +31,20 @@ const AdminInvoicesPage = () => {
   const [searchMode, setSearchMode] = useState<"basic" | "warranty">("basic");
   const [isCheckingWarranties, setIsCheckingWarranties] = useState(false);
 
-  // Function to fetch invoices
-  const fetchInvoices = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("/api/admin/invoices");
-      if (!response.ok) {
-        throw new Error("Failed to fetch invoices.");
-      }
-      const data: AdminInvoice[] = await response.json();
-      setInvoices(data);
-      setFilteredInvoices(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    data: invoicesData,
+    loading,
+    error,
+    refetch,
+  } = useApiFetch<AdminInvoice[]>("/api/admin/invoices");
 
-  // Initial data fetch
+  // Sync fetched data to local state
   useEffect(() => {
-    fetchInvoices();
-  }, []);
+    if (invoicesData) {
+      setInvoices(invoicesData);
+      setFilteredInvoices(invoicesData);
+    }
+  }, [invoicesData]);
 
   // Check and update warranty status
   const checkWarrantyStatus = async () => {
@@ -63,7 +55,8 @@ const AdminInvoicesPage = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to check warranty status");
+        toast.error("خطا در بررسی وضعیت گارانتی‌ها");
+        return;
       }
 
       const data = await response.json();
@@ -71,8 +64,7 @@ const AdminInvoicesPage = () => {
 
       if (updatedCount > 0) {
         toast.success(`${updatedCount} گارانتی‌ بروزرسانی شدند`);
-        // Refresh invoices to get updated warranty data
-        fetchInvoices();
+        refetch();
       } else {
         toast.success("تمام گارانتی‌ها به روز هستند");
       }
@@ -316,9 +308,10 @@ const AdminInvoicesPage = () => {
       const response = await axios.patch(`/api/admin/invoices?id=${Invoiceid}`, payload);
 
       if (!response) {
-        throw new Error("Failed to update invoice status.");
+        toast.error("آپدیت فاکتور با شکست مواجه شد");
+        return;
       }
-      await fetchInvoices(); // Refresh the invoice list
+      refetch();
       toast.success("وضعیت با موفقیت آپدیت شد");
     } catch (error) {
       console.error(error);
@@ -331,9 +324,10 @@ const AdminInvoicesPage = () => {
     try {
       const response = await axios.delete(`/api/admin/invoices?invoiceId=${Invoiceid}`);
       if (!response) {
-        throw new Error("Failed to delete invoice.");
+        toast.error("حذف فاکتور با شکست مواجه شد");
+        return;
       }
-      await fetchInvoices(); // Refresh the invoice list
+      refetch();
       toast.success("فاکتور با موفقیت حذف شد");
     } catch (error) {
       console.error(error);

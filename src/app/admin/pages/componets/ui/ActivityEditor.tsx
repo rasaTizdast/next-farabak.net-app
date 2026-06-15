@@ -20,11 +20,27 @@ type Activity = {
   Details_activity: Detail[];
 };
 
+const SkeletonLoader = () => (
+  <div className="space-y-4">
+    {[...Array(4)].map((_, index) => (
+      <div key={index} className="animate-pulse rounded-lg bg-gray-600 p-4">
+        <div className="mb-4 h-6 w-1/2 rounded bg-gray-500"></div>
+        <div className="space-y-2">
+          {[...Array(3)].map((_, idx) => (
+            <div key={idx} className="h-4 w-full rounded bg-gray-500"></div>
+          ))}
+        </div>
+        <div className="mt-4 h-8 w-1/4 rounded bg-gray-500"></div>
+      </div>
+    ))}
+  </div>
+);
+
 const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true); // Track data fetching state
-  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set<number>()); // Explicitly type the Set
+  const [isFetching, setIsFetching] = useState(true);
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set<number>());
 
   useEffect(() => {
     axios
@@ -122,23 +138,6 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
       onClose();
     }
   };
-
-  // Skeleton Loading Component
-  const SkeletonLoader = () => (
-    <div className="space-y-4">
-      {[...Array(4)].map((_, index) => (
-        <div key={index} className="animate-pulse rounded-lg bg-gray-600 p-4">
-          <div className="mb-4 h-6 w-1/2 rounded bg-gray-500"></div>
-          <div className="space-y-2">
-            {[...Array(3)].map((_, idx) => (
-              <div key={idx} className="h-4 w-full rounded bg-gray-500"></div>
-            ))}
-          </div>
-          <div className="mt-4 h-8 w-1/4 rounded bg-gray-500"></div>
-        </div>
-      ))}
-    </div>
-  );
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 shadow-lg backdrop-blur-sm">

@@ -175,22 +175,19 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
 
   // Update editor content when blogData changes
   useEffect(() => {
-    // Only update editor content when both editor is ready and we have blogData
     if (editor && blogData && !isUpdatingContentRef.current) {
-      // Only update on first render or if blogData has significantly changed
       if (prevContentRef.current === "" || blogData !== prevContentRef.current) {
         isUpdatingContentRef.current = true;
+        let timer: ReturnType<typeof setTimeout> | null = null;
 
         try {
           const htmlContent = convertMDXToHTML(blogData);
           if (htmlContent !== editor.getHTML()) {
-            // Use a timeout to avoid React rendering conflicts
-            setTimeout(() => {
+            timer = setTimeout(() => {
               editor.commands.setContent(htmlContent);
               prevContentRef.current = blogData;
 
-              // Release the lock after a delay
-              setTimeout(() => {
+              timer = setTimeout(() => {
                 isUpdatingContentRef.current = false;
               }, 200);
             }, 0);
@@ -201,6 +198,10 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
           console.error("Error updating editor content:", e);
           isUpdatingContentRef.current = false;
         }
+
+        return () => {
+          if (timer) clearTimeout(timer);
+        };
       }
     }
   }, [editor, blogData, convertMDXToHTML]);

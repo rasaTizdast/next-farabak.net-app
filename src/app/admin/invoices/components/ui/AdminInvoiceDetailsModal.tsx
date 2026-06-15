@@ -24,8 +24,6 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
   // Use the print hook
   const { componentRef, handlePrint } = usePrint();
 
-  if (!invoice) return null;
-
   // Helper function to format the date and time
   const formatDateTime = (isoString: string) => {
     const date = new Date(isoString);
@@ -172,6 +170,8 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
       }
     }, 1000);
   };
+
+  if (!invoice) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 backdrop-blur-sm sm:p-4">

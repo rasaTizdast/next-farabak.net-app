@@ -410,6 +410,7 @@ const NewShowcaseProductForm = ({
           <input
             type="text"
             value={`${nextOrder} (تنظیم خودکار)`}
+            readOnly
             disabled
             className="w-full rounded-lg border border-gray-600 bg-gray-700 p-2 text-gray-400"
           />
@@ -480,7 +481,7 @@ const ShowcaseProductSection = ({
   handleMoveProductDown: (id: number, currentOrder: number) => void;
 }) => {
   // Sort products by order
-  const sortedProducts = [...products].sort((a, b) => a.order - b.order);
+  const sortedProducts = products.toSorted((a, b) => a.order - b.order);
 
   // Calculate next order (highest order + 1)
   const nextOrder = products.length > 0 ? Math.max(...products.map((p) => p.order)) + 1 : 1;
@@ -687,7 +688,7 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const handleMoveProductUp = async (id: number, currentOrder: number) => {
     try {
       // Find the product with the next lower order
-      const sortedProducts = [...showcaseProducts].sort((a, b) => a.order - b.order);
+      const sortedProducts = showcaseProducts.toSorted((a, b) => a.order - b.order);
       const currentIndex = sortedProducts.findIndex((p) => p.id === id);
 
       if (currentIndex > 0) {
@@ -735,7 +736,7 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const handleMoveProductDown = async (id: number, currentOrder: number) => {
     try {
       // Find the product with the next higher order
-      const sortedProducts = [...showcaseProducts].sort((a, b) => a.order - b.order);
+      const sortedProducts = showcaseProducts.toSorted((a, b) => a.order - b.order);
       const currentIndex = sortedProducts.findIndex((p) => p.id === id);
 
       if (currentIndex < sortedProducts.length - 1) {

@@ -23,7 +23,7 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
   >([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [tempFilters, setTempFilters] = useState<Filters>(filters);
+  const [tempFilters, setTempFilters] = useState<Filters>(() => filters);
 
   useEffect(() => {
     const fetchCategoriesAndSubCategories = async () => {

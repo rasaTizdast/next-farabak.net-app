@@ -27,7 +27,7 @@ import {
 } from "antd";
 import moment from "jalali-moment";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState, useEffect, useRef, useMemo, Suspense } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from "react";
 
 import { AdminInvoice } from "@/app/admin/invoices/type";
 
@@ -199,7 +199,10 @@ function MyBranchContent() {
       const response = await fetch(
         `/api/admin/branches/${branchId}/products?page=${page}&limit=${pageSize}`
       );
-      if (!response.ok) throw new Error("خطا در دریافت محصولات شعبه");
+      if (!response.ok) {
+        message.error("خطا در بارگذاری محصولات شعبه");
+        return;
+      }
       const responseData = await response.json();
 
       // Check if response is an array (new API format) or has pagination (old format)
@@ -286,7 +289,8 @@ function MyBranchContent() {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch invoices");
+        message.error("خطا در بارگذاری فاکتورها");
+        return;
       }
 
       const data = await response.json();
@@ -617,20 +621,20 @@ function MyBranchContent() {
             return;
           }
 
-          throw new Error("خطا در دریافت اطلاعات شعبه");
+          setError("خطا در دریافت اطلاعات شعبه");
+          setLoading(false);
+          return;
         }
 
         const branchData = await response.json();
         setBranch(branchData);
 
-        // Fetch branch products
-        await fetchBranchProducts(branchData.branchid);
-
-        // Fetch branch invoices
-        await fetchInvoices();
-
-        // Fetch all products for the product drawer
-        await fetchAllProducts();
+        // Fetch branch products, invoices, and all products in parallel
+        await Promise.all([
+          fetchBranchProducts(branchData.branchid),
+          fetchInvoices(),
+          fetchAllProducts(),
+        ]);
       } catch (error) {
         console.error("Error fetching branch data:", error);
         setError("خطا در بارگذاری اطلاعات شعبه");
@@ -696,7 +700,10 @@ function MyBranchContent() {
         }),
       });
 
-      if (!response.ok) throw new Error("خطا در افزودن محصول");
+      if (!response.ok) {
+        message.error("خطا در افزودن محصول");
+        return;
+      }
 
       message.success("محصول با موفقیت به شعبه اضافه شد");
       productForm.resetFields();
@@ -749,7 +756,10 @@ function MyBranchContent() {
         body: JSON.stringify({ quantity }),
       });
 
-      if (!response.ok) throw new Error("خطا در بروزرسانی تعداد محصول");
+      if (!response.ok) {
+        message.error("خطا در بروزرسانی تعداد محصول");
+        return;
+      }
 
       message.success("تعداد محصول با موفقیت بروزرسانی شد");
 
@@ -786,46 +796,50 @@ function MyBranchContent() {
   };
 
   // Add function to update invoice status
-  const updateInvoiceStatus = async (invoice: AdminInvoice, checked: boolean) => {
-    try {
-      const response = await fetch(`/api/admin/invoices?id=${invoice.Invoiceid}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          checked: checked,
-        }),
-      });
+  const updateInvoiceStatus = useCallback(
+    async (invoice: AdminInvoice, checked: boolean) => {
+      try {
+        const response = await fetch(`/api/admin/invoices?id=${invoice.Invoiceid}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            checked: checked,
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error("خطا در بروزرسانی وضعیت فاکتور");
-      }
-
-      // Update the invoice in state
-      const updatedInvoices = invoices.map((inv) => {
-        if (inv.Invoiceid === invoice.Invoiceid) {
-          return { ...inv, Checked: checked };
+        if (!response.ok) {
+          message.error("خطا در بروزرسانی وضعیت فاکتور");
+          return;
         }
-        return inv;
-      });
 
-      setInvoices(updatedInvoices);
-      setFilteredInvoices(
-        filteredInvoices.map((inv) => {
+        // Update the invoice in state
+        const updatedInvoices = invoices.map((inv) => {
           if (inv.Invoiceid === invoice.Invoiceid) {
             return { ...inv, Checked: checked };
           }
           return inv;
-        })
-      );
+        });
 
-      message.success("وضعیت فاکتور با موفقیت بروزرسانی شد");
-    } catch (error) {
-      console.error("Error updating invoice status:", error);
-      message.error("خطا در بروزرسانی وضعیت فاکتور");
-    }
-  };
+        setInvoices(updatedInvoices);
+        setFilteredInvoices(
+          filteredInvoices.map((inv) => {
+            if (inv.Invoiceid === invoice.Invoiceid) {
+              return { ...inv, Checked: checked };
+            }
+            return inv;
+          })
+        );
+
+        message.success("وضعیت فاکتور با موفقیت بروزرسانی شد");
+      } catch (error) {
+        console.error("Error updating invoice status:", error);
+        message.error("خطا در بروزرسانی وضعیت فاکتور");
+      }
+    },
+    [invoices, filteredInvoices]
+  );
 
   const productColumns = [
     {

@@ -132,6 +132,7 @@ const SignIn = () => {
               type="submit"
               value={isSubmitting ? "در حال ورود..." : "ورود به حساب کاربری"}
               disabled={isSubmitting}
+              readOnly
               data-testid="submit-button"
             />
           </div>

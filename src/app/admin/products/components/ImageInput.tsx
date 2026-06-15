@@ -8,7 +8,7 @@ interface ImageInputProps {
 }
 
 const ImageInput: React.FC<ImageInputProps> = ({ label, imageUrl, onChange }) => {
-  const [preview, setPreview] = useState(imageUrl);
+  const [preview, setPreview] = useState(() => imageUrl);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

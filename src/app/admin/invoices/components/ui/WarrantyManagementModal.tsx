@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { DatePicker } from "zaman";
 
+import { useApiFetch } from "@/hooks/useApiFetch";
 import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
 
@@ -57,7 +58,6 @@ const WarrantyManagementModal = ({
 }: WarrantyManagementModalProps) => {
   const [loading, setLoading] = useState(false);
   const [loadingWarrantyCode, setLoadingWarrantyCode] = useState(false);
-  const [loadingBranches, setLoadingBranches] = useState(true);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [warrantyData, setWarrantyData] = useState<{
     warrantycode: string;
@@ -85,40 +85,32 @@ const WarrantyManagementModal = ({
 
   const isUpdate = !!item.individualWarranty;
 
-  // Fetch branches when component mounts
+  const {
+    data: branchesData,
+    loading: loadingBranches,
+    error: branchesError,
+  } = useApiFetch<Branch[]>(`/api/admin/branches/product-stock?productId=${item.ProductId}`);
+
+  // Sync fetched branches to local state and auto-select first branch
   useEffect(() => {
-    fetchBranches();
-  }, []);
+    if (branchesData) {
+      setBranches(branchesData);
 
-  // Fetch list of available branches
-  const fetchBranches = async () => {
-    try {
-      setLoadingBranches(true);
-
-      // Use new API endpoint to get only branches with this product in stock
-      const response = await fetch(`/api/admin/branches/product-stock?productId=${item.ProductId}`);
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch branches");
-      }
-
-      const data = await response.json();
-      setBranches(data);
-
-      // If this is a new warranty and we have branches, select the first one by default
-      if (!isUpdate && data.length > 0 && !warrantyData.branchId) {
+      if (!isUpdate && branchesData.length > 0 && !warrantyData.branchId) {
         setWarrantyData((prev) => ({
           ...prev,
-          branchId: data[0].branchid,
+          branchId: branchesData[0].branchid,
         }));
       }
-    } catch (error) {
-      console.error("Error fetching branches:", error);
-      toast.error("خطا در دریافت لیست شعبه‌ها");
-    } finally {
-      setLoadingBranches(false);
     }
-  };
+  }, [branchesData]);
+
+  // Show error toast when fetch fails
+  useEffect(() => {
+    if (branchesError) {
+      toast.error("خطا در دریافت لیست شعبه‌ها");
+    }
+  }, [branchesError]);
 
   // Generate a unique warranty code when component mounts
   useEffect(() => {
@@ -161,7 +153,12 @@ const WarrantyManagementModal = ({
         (b) => b.branchid === Number(item.individualWarranty?.branchid)
       );
       if (!selectedBranch) {
-        throw new Error("شعبه انتخاب شده یافت نشد");
+        toast.error("شعبه انتخاب شده یافت نشد");
+        setWarrantyData((prev) => ({
+          ...prev,
+          warrantycode: "",
+        }));
+        return;
       }
 
       // Use branch location code or name as branch code
@@ -372,7 +369,8 @@ const WarrantyManagementModal = ({
 
           if (!deleteResponse.ok) {
             const errorData = await deleteResponse.json();
-            throw new Error(errorData.error || "خطا در حذف گارانتی");
+            toast.error(errorData.error || "خطا در حذف گارانتی");
+            return;
           }
 
           toast.success("گارانتی با موفقیت حذف شد");
@@ -382,6 +380,7 @@ const WarrantyManagementModal = ({
           // If not updating, just close the modal without doing anything
           onClose();
         }
+        return;
       } catch (error: any) {
         toast.error(error.message || "خطا در حذف گارانتی");
       } finally {
@@ -421,7 +420,8 @@ const WarrantyManagementModal = ({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "خطا در مدیریت گارانتی");
+        toast.error(errorData.error || "خطا در مدیریت گارانتی");
+        return;
       }
 
       toast.success(
@@ -488,6 +488,7 @@ const WarrantyManagementModal = ({
               <input
                 type="text"
                 id="productName"
+                readOnly
                 className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70"
                 value={item.Name || `محصول #${item.ProductId}`}
                 disabled
@@ -540,6 +541,7 @@ const WarrantyManagementModal = ({
                   ) : isUpdate ? (
                     <input
                       type="text"
+                      readOnly
                       className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70"
                       value={selectedBranchName}
                       disabled
