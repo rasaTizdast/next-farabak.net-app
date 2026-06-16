@@ -37,6 +37,7 @@ import Styles from "../components/Styles";
 import { Branch, Product, toPersianDate } from "../components/types";
 import BranchProductSearch from "./components/BranchProductSearch";
 import SkeletonLoading from "./components/SkeletonLoading";
+import { useApiMutation } from "@/hooks/useApiMutation";
 import WarrantyStats from "./components/WarrantyStats";
 import WarrantyRequests from "../components/WarrantyRequests";
 import BranchInvoiceDetailsModal from "./invoices/components/BranchInvoiceDetailsModal";
@@ -120,6 +121,10 @@ function MyBranchContent() {
     pageSize: 10,
     total: 0,
   });
+
+  const { mutate: addProductMutate } = useApiMutation("post");
+  const { mutate: updateProductQtyMutate } = useApiMutation("put");
+  const { mutate: updateInvoiceStatusMutate } = useApiMutation("patch");
 
   // Define all fetch functions first
   const fetchAllProducts = async () => {
@@ -688,39 +693,22 @@ function MyBranchContent() {
   const handleAddProduct = async () => {
     if (!branch || !selectedProduct) return;
 
-    try {
-      const response = await fetch(`/api/admin/branches/${branch.branchid}/products`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId: selectedProduct,
-          quantity: productQuantity,
-        }),
-      });
-
-      if (!response.ok) {
-        message.error("خطا در افزودن محصول");
-        return;
-      }
-
+    const result = await addProductMutate(`/api/admin/branches/${branch.branchid}/products`, {
+      productId: selectedProduct,
+      quantity: productQuantity,
+    });
+    if (result) {
       message.success("محصول با موفقیت به شعبه اضافه شد");
       productForm.resetFields();
       setSelectedProduct(null);
       setProductQuantity(1);
-
-      // Update branch products
       await fetchBranchProducts(branch.branchid);
-
-      // Refresh branch data to update product counts and totals
       const branchResponse = await fetch("/api/admin/branches/my");
       if (branchResponse.ok) {
         const branchData = await branchResponse.json();
         setBranch(branchData);
       }
-    } catch (error) {
-      console.error("Error adding product:", error);
+    } else {
       message.error("خطا در افزودن محصول به شعبه");
     }
   };
@@ -747,33 +735,19 @@ function MyBranchContent() {
   const handleUpdateProductQuantity = async (productId: number, quantity: number) => {
     if (!branch) return;
 
-    try {
-      const response = await fetch(`/api/admin/branches/${branch.branchid}/products/${productId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ quantity }),
-      });
-
-      if (!response.ok) {
-        message.error("خطا در بروزرسانی تعداد محصول");
-        return;
-      }
-
+    const result = await updateProductQtyMutate(
+      `/api/admin/branches/${branch.branchid}/products/${productId}`,
+      { quantity }
+    );
+    if (result) {
       message.success("تعداد محصول با موفقیت بروزرسانی شد");
-
-      // Update branch products
       await fetchBranchProducts(branch.branchid);
-
-      // Refresh branch data to update product counts and totals
       const branchResponse = await fetch("/api/admin/branches/my");
       if (branchResponse.ok) {
         const branchData = await branchResponse.json();
         setBranch(branchData);
       }
-    } catch (error) {
-      console.error("Error updating product quantity:", error);
+    } else {
       message.error("خطا در بروزرسانی تعداد محصول");
     }
   };
@@ -798,30 +772,14 @@ function MyBranchContent() {
   // Add function to update invoice status
   const updateInvoiceStatus = useCallback(
     async (invoice: AdminInvoice, checked: boolean) => {
-      try {
-        const response = await fetch(`/api/admin/invoices?id=${invoice.Invoiceid}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            checked: checked,
-          }),
-        });
-
-        if (!response.ok) {
-          message.error("خطا در بروزرسانی وضعیت فاکتور");
-          return;
-        }
-
-        // Update the invoice in state
+      const result = await updateInvoiceStatusMutate(`/api/admin/invoices?id=${invoice.Invoiceid}`, { checked });
+      if (result) {
         const updatedInvoices = invoices.map((inv) => {
           if (inv.Invoiceid === invoice.Invoiceid) {
             return { ...inv, Checked: checked };
           }
           return inv;
         });
-
         setInvoices(updatedInvoices);
         setFilteredInvoices(
           filteredInvoices.map((inv) => {
@@ -831,10 +789,8 @@ function MyBranchContent() {
             return inv;
           })
         );
-
         message.success("وضعیت فاکتور با موفقیت بروزرسانی شد");
-      } catch (error) {
-        console.error("Error updating invoice status:", error);
+      } else {
         message.error("خطا در بروزرسانی وضعیت فاکتور");
       }
     },

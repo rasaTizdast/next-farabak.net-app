@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, Suspense } from "react";
 
 import { useUser } from "@/context/UserContext";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import BranchTable from "./components/BranchTable";
 import CreateBranchModal from "./components/CreateBranchModal";
@@ -59,6 +60,13 @@ function BranchesPageContent() {
   // Create refs for the fetch functions to use in intervals
   const fetchBranchesRef = useRef<() => Promise<void>>(undefined);
   const fetchBranchProductsRef = useRef<(branchId: number) => Promise<void>>(undefined);
+
+  const { mutate: createBranchMutate } = useApiMutation("post");
+  const { mutate: updateBranchMutate } = useApiMutation("put");
+  const { mutate: deleteBranchMutate } = useApiMutation("delete");
+  const { mutate: addProductMutate } = useApiMutation("post");
+  const { mutate: updateProductQtyMutate } = useApiMutation("put");
+  const { mutate: removeProductMutate } = useApiMutation("delete");
 
   // Check URL for productId param
   useEffect(() => {
@@ -291,74 +299,37 @@ function BranchesPageContent() {
   }, []);
 
   const handleCreateBranch = async (values: any) => {
-    try {
-      const response = await fetch("/api/admin/branches", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        message.error(errorData.error || "خطا در ایجاد شعبه");
-        return;
-      }
-
+    const result = await createBranchMutate("/api/admin/branches", values);
+    if (result) {
       message.success("شعبه با موفقیت ایجاد شد");
       setModalVisible(false);
       form.resetFields();
       fetchBranches();
-    } catch (error: any) {
-      console.error("Error creating branch:", error);
-      message.error(error.message || "خطا در ایجاد شعبه");
+    } else {
+      message.error("خطا در ایجاد شعبه");
     }
   };
 
   const handleUpdateBranch = async (values: any) => {
     if (!currentBranch) return;
 
-    try {
-      const response = await fetch(`/api/admin/branches/${currentBranch.branchid}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        message.error(errorData.error || "خطا در بروزرسانی شعبه");
-        return;
-      }
-
+    const result = await updateBranchMutate(`/api/admin/branches/${currentBranch.branchid}`, values);
+    if (result) {
       message.success("شعبه با موفقیت بروزرسانی شد");
       setEditBranchModalVisible(false);
       editForm.resetFields();
       fetchBranches();
-    } catch (error: any) {
-      console.error("Error updating branch:", error);
-      message.error(error.message || "خطا در بروزرسانی شعبه");
+    } else {
+      message.error("خطا در بروزرسانی شعبه");
     }
   };
 
   const handleDeleteBranch = async (branchId: number) => {
-    try {
-      const response = await fetch(`/api/admin/branches/${branchId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        message.error("خطا در حذف شعبه");
-        return;
-      }
-
+    const result = await deleteBranchMutate(`/api/admin/branches/${branchId}`);
+    if (result) {
       message.success("شعبه با موفقیت حذف شد");
       fetchBranches();
-    } catch (error) {
-      console.error("Error deleting branch:", error);
+    } else {
       message.error("خطا در حذف شعبه");
     }
   };
@@ -382,35 +353,18 @@ function BranchesPageContent() {
   const handleAddProduct = async () => {
     if (!currentBranch || !selectedProduct) return;
 
-    try {
-      const response = await fetch(`/api/admin/branches/${currentBranch.branchid}/products`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId: selectedProduct,
-          quantity: productQuantity,
-        }),
-      });
-
-      if (!response.ok) {
-        message.error("خطا در افزودن محصول");
-        return;
-      }
-
+    const result = await addProductMutate(`/api/admin/branches/${currentBranch.branchid}/products`, {
+      productId: selectedProduct,
+      quantity: productQuantity,
+    });
+    if (result) {
       message.success("محصول با موفقیت به شعبه اضافه شد");
       productForm.resetFields();
       setSelectedProduct(null);
       setProductQuantity(1);
-
-      // Update branch products
       await fetchBranchProducts(currentBranch.branchid);
-
-      // Refresh all branches to update product counts and totals
       await fetchBranches();
-    } catch (error) {
-      console.error("Error adding product:", error);
+    } else {
       message.error("خطا در افزودن محصول به شعبه");
     }
   };
@@ -418,32 +372,15 @@ function BranchesPageContent() {
   const handleUpdateProductQuantity = async (productId: number, quantity: number) => {
     if (!currentBranch) return;
 
-    try {
-      const response = await fetch(
-        `/api/admin/branches/${currentBranch.branchid}/products/${productId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ quantity }),
-        }
-      );
-
-      if (!response.ok) {
-        message.error("خطا در بروزرسانی تعداد محصول");
-        return;
-      }
-
+    const result = await updateProductQtyMutate(
+      `/api/admin/branches/${currentBranch.branchid}/products/${productId}`,
+      { quantity }
+    );
+    if (result) {
       message.success("تعداد محصول با موفقیت بروزرسانی شد");
-
-      // Update branch products
       await fetchBranchProducts(currentBranch.branchid);
-
-      // Refresh all branches to update product counts and totals
       await fetchBranches();
-    } catch (error) {
-      console.error("Error updating product quantity:", error);
+    } else {
       message.error("خطا در بروزرسانی تعداد محصول");
     }
   };
@@ -451,28 +388,14 @@ function BranchesPageContent() {
   const handleRemoveProduct = async (productId: number) => {
     if (!currentBranch) return;
 
-    try {
-      const response = await fetch(
-        `/api/admin/branches/${currentBranch.branchid}/products/${productId}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!response.ok) {
-        message.error("خطا در حذف محصول");
-        return;
-      }
-
+    const result = await removeProductMutate(
+      `/api/admin/branches/${currentBranch.branchid}/products/${productId}`
+    );
+    if (result) {
       message.success("محصول با موفقیت از شعبه حذف شد");
-
-      // Update branch products
       await fetchBranchProducts(currentBranch.branchid);
-
-      // Refresh all branches to update product counts and totals
       await fetchBranches();
-    } catch (error) {
-      console.error("Error removing product:", error);
+    } else {
       message.error("خطا در حذف محصول از شعبه");
     }
   };

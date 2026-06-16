@@ -1,8 +1,9 @@
-import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { CgSpinnerTwo } from "react-icons/cg";
 import { IoIosClose } from "react-icons/io";
+
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 type SpecTemplate = {
   SpecTemplateId: number;
@@ -29,7 +30,9 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
 }) => {
   const [templateName, setTemplateName] = useState("");
   const [items, setItems] = useState<{ Title: string }[]>([{ Title: "" }]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { mutate: createTemplate, loading: isCreating } = useApiMutation("post");
+  const { mutate: updateTemplate, loading: isUpdating } = useApiMutation("put");
+  const isLoading = isCreating || isUpdating;
 
   // Initialize state when editing an existing template
   useEffect(() => {
@@ -77,34 +80,24 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
       return;
     }
 
-    setIsLoading(true);
+    let res;
 
-    try {
-      if (templateToEdit) {
-        // Update existing template
-        await axios.put(`/api/specTemplates/${templateToEdit.SpecTemplateId}`, {
-          Name: templateName,
-          Items: nonEmptyItems,
-        });
-        toast.success("قالب با موفقیت به‌روزرسانی شد");
-      } else {
-        // Create new template
-        await axios.post("/api/specTemplates", {
-          Name: templateName,
-          Items: nonEmptyItems,
-        });
-        toast.success("قالب جدید با موفقیت ایجاد شد");
-      }
+    if (templateToEdit) {
+      res = await updateTemplate(`/api/specTemplates/${templateToEdit.SpecTemplateId}`, {
+        Name: templateName,
+        Items: nonEmptyItems,
+      });
+    } else {
+      res = await createTemplate("/api/specTemplates", {
+        Name: templateName,
+        Items: nonEmptyItems,
+      });
+    }
 
-      if (onTemplateAdded) {
-        onTemplateAdded();
-      }
+    if (res) {
+      toast.success(templateToEdit ? "قالب با موفقیت به‌روزرسانی شد" : "قالب جدید با موفقیت ایجاد شد");
+      if (onTemplateAdded) onTemplateAdded();
       onClose();
-    } catch (error) {
-      console.error("Error saving template:", error);
-      toast.error("خطا در ذخیره‌سازی قالب. لطفاً دوباره تلاش کنید");
-    } finally {
-      setIsLoading(false);
     }
   };
 

@@ -1,5 +1,6 @@
-import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+
+import { useApiFetch } from "@/hooks/useApiFetch";
 
 type Filters = {
   category: string;
@@ -13,32 +14,23 @@ type Props = {
   setShowFilterModal: (visible: boolean) => void;
 };
 
+type FilterData = {
+  categories: {
+    CategoryID: string;
+    Name: string;
+    subCategories: { CategoryContentID: string; Name: string }[];
+  }[];
+};
+
 const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
-  const [categories, setCategories] = useState<
-    {
-      CategoryID: string;
-      Name: string;
-      subCategories: { CategoryContentID: string; Name: string }[];
-    }[]
-  >([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    data: filterData,
+    loading: isLoading,
+  } = useApiFetch<FilterData>("/api/admin/products/filterData");
+
+  const categories = filterData?.categories ?? [];
 
   const [tempFilters, setTempFilters] = useState<Filters>(() => filters);
-
-  useEffect(() => {
-    const fetchCategoriesAndSubCategories = async () => {
-      try {
-        const { data } = await axios.get("/api/admin/products/filterData");
-        setCategories(data.categories); // API sends categories with subcategories
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCategoriesAndSubCategories();
-  }, []);
 
   const handleApplyFilters = () => {
     applyFilters(tempFilters);

@@ -1,6 +1,8 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 type ContactUsEditModalProps = {
   onClose: () => void;
@@ -51,27 +53,27 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
   const [phoneNumbers, setPhoneNumbers] = useState<Array<{ id: number; number: string }>>([]);
   const [loading, setLoading] = useState(true);
 
+  const { data: contactData } = useApiFetch("/api/contact-us");
+  const { mutate: saveContact, loading: saving } = useApiMutation("put");
+
   useEffect(() => {
-    axios.get("/api/contact-us").then((response) => {
-      const { address, emails, phone_numbers } = response.data;
+    if (contactData) {
+      const { address, emails, phone_numbers } = contactData;
       setAddress(address);
       setEmails(emails);
       setPhoneNumbers(phone_numbers);
       setLoading(false);
-    });
-  }, []);
+    }
+  }, [contactData]);
 
-  const handleSave = () => {
-    axios
-      .put("/api/contact-us", { address, emails, phone_numbers: phoneNumbers })
-      .then(() => {
-        toast.success("اطلاعات با موفقیت ذخیره شد.");
-        onClose();
-      })
-      .catch((error) => {
-        console.error(error);
-        toast.error("خطا در ذخیره اطلاعات.");
-      });
+  const handleSave = async () => {
+    const res = await saveContact("/api/contact-us", { address, emails, phone_numbers: phoneNumbers });
+    if (res) {
+      toast.success("اطلاعات با موفقیت ذخیره شد.");
+      onClose();
+    } else {
+      toast.error("خطا در ذخیره اطلاعات.");
+    }
   };
 
   const moveEmailUp = (index: number) => {

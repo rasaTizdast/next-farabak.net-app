@@ -5,6 +5,8 @@ import { toast } from "react-hot-toast";
 import { FiUpload } from "react-icons/fi";
 import { IoIosClose } from "react-icons/io";
 
+import { useApiMutation } from "@/hooks/useApiMutation";
+
 // NewOverviewDetailsModal component
 const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
   const [items, setItems] = useState<
@@ -15,7 +17,7 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
       preview: string;
     }[]
   >([{ title: "", description: "", image: null, preview: "" }]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { mutate: createDetails, loading: isSubmitting } = useApiMutation("post");
 
   // Function to handle adding a new item
   const addItem = () => {

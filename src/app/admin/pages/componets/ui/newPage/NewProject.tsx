@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { BiTrash } from "react-icons/bi";
 import { DatePicker } from "zaman";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 type NewProjectProps = {
   onClose: () => void;
@@ -23,6 +24,7 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
   const [videos, setVideos] = useState<File[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { mutate: createProjectMutate } = useApiMutation("post");
 
   // Handle form field changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -66,36 +68,26 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
 
     setIsSubmitting(true);
 
-    try {
-      const data = new FormData();
-      data.append("title", formData.title);
-      data.append("description", formData.description);
-      data.append("slug", formData.slug);
-      data.append("isActive", formData.isActive.toString());
-      data.append("date", formData.date);
-      data.append("city", formData.city);
-      if (mainImage) data.append("mainImage", mainImage);
-      detailImages.forEach((file) => data.append("detailImages", file));
-      videos.forEach((file) => data.append("videos", file));
+    const formDataToSend = new FormData();
+    formDataToSend.append("title", formData.title);
+    formDataToSend.append("description", formData.description);
+    formDataToSend.append("slug", formData.slug);
+    formDataToSend.append("isActive", formData.isActive.toString());
+    formDataToSend.append("date", formData.date);
+    formDataToSend.append("city", formData.city);
+    if (mainImage) formDataToSend.append("mainImage", mainImage);
+    detailImages.forEach((file) => formDataToSend.append("detailImages", file));
+    videos.forEach((file) => formDataToSend.append("videos", file));
 
-      const response = await fetch("/api/projects", {
-        method: "POST",
-        body: data,
-      });
+    const res = await createProjectMutate("/api/projects", formDataToSend);
 
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
-
+    if (res) {
       onClose();
-    } catch (error) {
-      setErrors((prev) => ({
-        ...prev,
-        form: "خطا در ذخیره پروژه: " + (error instanceof Error ? error.message : "Unknown error"),
-      }));
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      setErrors((prev) => ({ ...prev, form: "خطا در ذخیره پروژه." }));
     }
+
+    setIsSubmitting(false);
   };
 
   // Main image dropzone

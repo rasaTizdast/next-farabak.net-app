@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { BiTrash } from "react-icons/bi";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
 import FaqManager from "@/components/FaqManager";
 
 import TipTapBlogEditor from "./blogEditor/TipTapEditor";
@@ -84,6 +85,12 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   } = useApiFetch(id ? `/api/blogs/getBlogData/${id}` : null);
   const isLoading = id ? blogLoading : false;
 
+  const { mutate: deleteCategoryMutate } = useApiMutation("delete");
+  const { mutate: createCategoryMutate } = useApiMutation("post");
+  const { mutate: updateBlogMutate } = useApiMutation("put");
+  const { mutate: uploadImageMutate } = useApiMutation("post");
+  const { mutate: patchBlogMutate } = useApiMutation("patch");
+
   useEffect(() => {
     if (blogData) {
       setFormData({
@@ -109,29 +116,16 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   }, [blogError]);
 
   const handleImageUpload = async (file: File) => {
-    try {
-      const payload = new FormData();
-      payload.append("file", file);
-      payload.append("slug", formData.slug); // Send current slug
+    const payload = new FormData();
+    payload.append("file", file);
+    payload.append("slug", formData.slug);
 
-      const response = await fetch("/api/manageBlog/upload", {
-        method: "POST",
-        body: payload,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        toast.error(errorData.error || "Failed to upload image");
-        return null;
-      }
-
-      const data = await response.json();
+    const data = await uploadImageMutate("/api/manageBlog/upload", payload);
+    if (data) {
       return data.url;
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("خطا در آپلود تصویر");
-      return null;
     }
+    toast.error("خطا در آپلود تصویر");
+    return null;
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,18 +183,13 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
     return errors.length === 0;
   };
 
+  const { data: categoriesData } = useApiFetch("/api/blogs/categories");
+
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch("/api/blogs/categories");
-        const data = await response.json();
-        setCategories(data);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
-    fetchCategories();
-  }, []);
+    if (categoriesData) {
+      setCategories(categoriesData);
+    }
+  }, [categoriesData]);
 
   // And in the filtering useEffect:
   useEffect(() => {
@@ -223,87 +212,55 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   const handleForceCategoryDelete = async () => {
     if (!confirmationModalData) return;
 
-    try {
-      const response = await fetch("/api/blogs/categories", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: confirmationModalData.categoryId,
-          force: true,
-        }),
-      });
+    const res = await deleteCategoryMutate("/api/blogs/categories", {
+      id: confirmationModalData.categoryId,
+      force: true,
+    });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        console.error(
-          "Forced delete operation failed:",
-          result.error || "Failed to delete category"
-        );
-        toast.error(result.error || "خطا در حذف دسته بندی");
-        return;
-      }
-
-      // Remove the category and associated blogs from state
+    if (res) {
       setCategories((prev) => prev.filter((c) => c.id !== confirmationModalData.categoryId));
       setFormData((prev) => ({
         ...prev,
         categories: prev.categories.filter((id) => id !== confirmationModalData.categoryId),
       }));
-
       toast.success(`دسته بندی و ${confirmationModalData.blogs.length} بلاگ مرتبط با آن حذف شدند`);
       setConfirmationModalData(null);
-    } catch (error) {
-      console.error("Forced delete operation failed:", error);
-      toast.error(error instanceof Error ? error.message : "خطا در حذف دسته بندی");
+    } else {
+      toast.error("خطا در حذف دسته بندی");
     }
   };
 
   // Add these handler functions
   const handleDeleteCategory = async (categoryId: number) => {
-    try {
-      const response = await fetch("/api/blogs/categories", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: categoryId }),
-      });
+    const res = await deleteCategoryMutate("/api/blogs/categories", { id: categoryId });
 
-      const result = await response.json();
+    if (res === null) {
+      // Check if the error is about blogs using this category
+      const blogsResponse = await fetch(`/api/blogs/categories/${categoryId}/blogs`);
+      const blogsUsingCategory = await blogsResponse.json();
 
-      if (!response.ok) {
-        if (result.error === "Cannot delete category used in blog posts") {
-          // Fetch the blogs using this category
-          const blogsResponse = await fetch(`/api/blogs/categories/${categoryId}/blogs`);
-          const blogsUsingCategory = await blogsResponse.json();
-
-          // Open a confirmation modal with blog details
-          setConfirmationModalData({
-            categoryId,
-            categoryName: categories.find((c) => c.id === categoryId)?.name || "Category",
-            blogs: blogsUsingCategory,
-          });
-          return;
-        }
-
-        // Handle other errors
-        console.error("Delete error response:", result);
-        toast.error(result.error || "خطا در حذف دسته بندی");
+      if (Array.isArray(blogsUsingCategory) && blogsUsingCategory.length > 0) {
+        setConfirmationModalData({
+          categoryId,
+          categoryName: categories.find((c) => c.id === categoryId)?.name || "Category",
+          blogs: blogsUsingCategory,
+        });
+        setShowDeleteConfirm(null);
         return;
       }
 
-      // Successful deletion
-      setCategories((prev) => prev.filter((c) => c.id !== categoryId));
-      setFormData((prev) => ({
-        ...prev,
-        categories: prev.categories.filter((id) => id !== categoryId),
-      }));
-      toast.success("دسته بندی با موفقیت حذف شد");
-    } catch (error) {
-      console.error("Delete operation failed:", error);
-      toast.error(error instanceof Error ? error.message : "خطا در حذف دسته بندی");
-    } finally {
+      toast.error("خطا در حذف دسته بندی");
       setShowDeleteConfirm(null);
+      return;
     }
+
+    setCategories((prev) => prev.filter((c) => c.id !== categoryId));
+    setFormData((prev) => ({
+      ...prev,
+      categories: prev.categories.filter((id) => id !== categoryId),
+    }));
+    toast.success("دسته بندی با موفقیت حذف شد");
+    setShowDeleteConfirm(null);
   };
 
   const handleCreateCategory = async () => {
@@ -322,20 +279,9 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
       return;
     }
 
-    try {
-      const response = await fetch("/api/blogs/categories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newCategory),
-      });
+    const createdCategory = await createCategoryMutate("/api/blogs/categories", newCategory);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        toast.error(errorData.error || "خطا در ایجاد دسته بندی");
-        return;
-      }
-
-      const createdCategory = await response.json();
+    if (createdCategory) {
       setCategories((prev) => [...prev, createdCategory]);
       setFormData((prev) => ({
         ...prev,
@@ -344,34 +290,22 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
       setShowCreateModal(false);
       setNewCategory({ name: "", slug: "" });
       toast.success("دسته بندی با موفقیت ایجاد شد");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "خطا در ایجاد دسته بندی");
+    } else {
+      toast.error("خطا در ایجاد دسته بندی");
     }
   };
 
   const handleAddCategory = async (category: Category | string) => {
     if (typeof category === "string") {
-      try {
-        const response = await fetch("/api/blogs/categories", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: category }),
-        });
+      const createdCategory = await createCategoryMutate("/api/blogs/categories", { name: category });
 
-        if (!response.ok) {
-          console.error("Failed to create category");
-          toast.error("Error creating category. Please try again.");
-          return;
-        }
-
-        const newCategory = await response.json();
-        setCategories((prev) => [...prev, newCategory]);
+      if (createdCategory) {
+        setCategories((prev) => [...prev, createdCategory]);
         setFormData((prev) => ({
           ...prev,
-          categories: [...prev.categories, newCategory.id],
+          categories: [...prev.categories, createdCategory.id],
         }));
-      } catch (error) {
-        console.error("Error creating category:", error);
+      } else {
         toast.error("Error creating category. Please try again.");
       }
     } else {
@@ -396,66 +330,42 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
       return;
     }
 
-    try {
-      let imageUrl = formData.image_URL;
+    let imageUrl = formData.image_URL;
 
-      if (selectedImage) {
-        const uploadedUrl = await handleImageUpload(selectedImage);
-        if (!uploadedUrl) {
-          return;
-        }
-        imageUrl = uploadedUrl;
-      }
-
-      const url = `/api/blogs/update/${id}`;
-      const method = "PATCH";
-
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          image_URL: imageUrl,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        toast.error(errorData.error || "خطا در ذخیره وبلاگ. لطفا دوباره تلاش کنید.");
+    if (selectedImage) {
+      const uploadedUrl = await handleImageUpload(selectedImage);
+      if (!uploadedUrl) {
+        setIsSubmitting(false);
         return;
       }
+      imageUrl = uploadedUrl;
+    }
 
-      const data = await response.json();
+    const data = await patchBlogMutate(`/api/blogs/update/${id}`, {
+      ...formData,
+      image_URL: imageUrl,
+    });
+
+    if (data) {
       setBlogId(id || data.id);
       setStep(2);
-    } catch (error) {
-      console.error("Error:", error);
+    } else {
       toast.error("خطا در ذخیره وبلاگ. لطفا دوباره تلاش کنید.");
-    } finally {
-      setIsSubmitting(false);
     }
+
+    setIsSubmitting(false);
   };
 
   const handleEditorSave = async (content: string, publish: boolean = false) => {
-    try {
-      const response = await fetch(`/api/blogs/update/${blogId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content,
-          status: publish ? "Published" : "Draft",
-        }),
-      });
+    const res = await updateBlogMutate(`/api/blogs/update/${blogId}`, {
+      content,
+      status: publish ? "Published" : "Draft",
+    });
 
-      if (!response.ok) {
-        toast.error("خطا در بروزرسانی وبلاگ");
-        return;
-      }
-
+    if (res) {
       toast.success(publish ? "وبلاگ با موفقیت منتشر شد" : "پیش‌نویس با موفقیت ذخیره شد");
       onClose();
-    } catch (error) {
-      console.error("Error:", error);
+    } else {
       toast.error("خطا در بروزرسانی وبلاگ. لطفا دوباره تلاش کنید.");
     }
   };

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import axios, { type AxiosRequestConfig } from "axios";
 
 type UseApiFetchResult<T> = {
   data: T | null;
@@ -11,7 +11,8 @@ type UseApiFetchResult<T> = {
 
 export function useApiFetch<T = any>(
   url: string | null,
-  fetchOnMount: boolean = true
+  fetchOnMount: boolean = true,
+  config?: AxiosRequestConfig
 ): UseApiFetchResult<T> {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
@@ -22,7 +23,7 @@ export function useApiFetch<T = any>(
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(url);
+      const response = await axios.get(url, config);
       if (response.status >= 400) {
         setError("خطا در دریافت اطلاعات");
         setData(null);

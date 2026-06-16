@@ -11,6 +11,7 @@ import { BiTrash } from "react-icons/bi";
 import { DatePicker } from "zaman";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
   const [formData, setFormData] = useState({
@@ -30,6 +31,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
   const projectUrl = id ? `/api/projects/${id}` : null;
   const { data: projectData, loading: projectLoading } = useApiFetch(projectUrl);
   const isLoading = projectUrl ? projectLoading || !projectData : false;
+  const { mutate: saveProjectMutate } = useApiMutation("put");
 
   useEffect(() => {
     if (projectData) {
@@ -97,64 +99,46 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
 
     setIsSubmitting(true);
 
-    try {
-      const data = new FormData();
-      data.append("projectId", id?.toString() || "");
-      data.append("title", formData.title);
-      data.append("description", formData.description);
-      data.append("slug", formData.slug);
-      data.append("isActive", formData.isActive.toString());
-      data.append("date", formData.date);
-      data.append("city", formData.city);
+    const formDataToSend = new FormData();
+    formDataToSend.append("projectId", id?.toString() || "");
+    formDataToSend.append("title", formData.title);
+    formDataToSend.append("description", formData.description);
+    formDataToSend.append("slug", formData.slug);
+    formDataToSend.append("isActive", formData.isActive.toString());
+    formDataToSend.append("date", formData.date);
+    formDataToSend.append("city", formData.city);
 
-      // Handle main image - send existing URL or new file
-      if (typeof mainImage === "string") {
-        data.append("existingMainImage", mainImage);
-      } else if (mainImage) {
-        data.append("mainImage", mainImage);
-      }
-
-      // Handle detail images
-      detailImages.forEach((item) => {
-        if (typeof item === "string") {
-          data.append("existingDetailImages", item);
-        } else {
-          data.append("detailImages", item);
-        }
-      });
-
-      // Handle videos
-      videos.forEach((item) => {
-        if (typeof item === "string") {
-          data.append("existingVideos", item);
-        } else {
-          data.append("videos", item);
-        }
-      });
-
-      const response = await fetch(`/api/projects/${id}`, {
-        method: "PUT",
-        body: data,
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        setErrors((prev) => ({
-          ...prev,
-          form: "خطا در ذخیره پروژه: " + errorText,
-        }));
-        return;
-      }
-
-      onClose();
-    } catch (error) {
-      setErrors((prev) => ({
-        ...prev,
-        form: "خطا در ذخیره پروژه: " + (error instanceof Error ? error.message : "Unknown error"),
-      }));
-    } finally {
-      setIsSubmitting(false);
+    if (typeof mainImage === "string") {
+      formDataToSend.append("existingMainImage", mainImage);
+    } else if (mainImage) {
+      formDataToSend.append("mainImage", mainImage);
     }
+
+    detailImages.forEach((item) => {
+      if (typeof item === "string") {
+        formDataToSend.append("existingDetailImages", item);
+      } else {
+        formDataToSend.append("detailImages", item);
+      }
+    });
+
+    videos.forEach((item) => {
+      if (typeof item === "string") {
+        formDataToSend.append("existingVideos", item);
+      } else {
+        formDataToSend.append("videos", item);
+      }
+    });
+
+    const res = await saveProjectMutate(`/api/projects/${id}`, formDataToSend);
+
+    if (res) {
+      onClose();
+    } else {
+      setErrors((prev) => ({ ...prev, form: "خطا در ذخیره پروژه." }));
+    }
+
+    setIsSubmitting(false);
   };
 
   // Main image dropzone

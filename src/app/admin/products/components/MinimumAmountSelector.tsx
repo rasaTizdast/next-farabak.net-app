@@ -3,6 +3,7 @@ import { toast } from "react-hot-toast";
 import { FaTimes } from "react-icons/fa";
 import { TbShoppingCartCog } from "react-icons/tb";
 
+import { useApiMutation } from "@/hooks/useApiMutation";
 import { Product } from "../types";
 
 type ButtonProps = {
@@ -44,7 +45,7 @@ export default MinimumAmountSelector;
 const MinimumAmountSelectorModal = ({ product, onClose, refetchProducts }: ModalProps) => {
   const [minAmount, setMinAmount] = useState<string>("");
   const [maxAmount, setMaxAmount] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { mutate: saveLimits, loading: isLoading } = useApiMutation("patch");
 
   // Initialize with existing values
   useEffect(() => {
@@ -74,32 +75,15 @@ const MinimumAmountSelectorModal = ({ product, onClose, refetchProducts }: Modal
       return;
     }
 
-    setIsLoading(true);
+    const res = await saveLimits(`/api/admin/products/${product.ProductId}/amount-limits`, {
+      minimum_amount: min,
+      maximum_amount: max,
+    });
 
-    try {
-      const response = await fetch(`/api/admin/products/${product.ProductId}/amount-limits`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          minimum_amount: min,
-          maximum_amount: max,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "خطا در ذخیره تغییرات");
-      }
-
+    if (res) {
       toast.success("تغییرات با موفقیت ذخیره شد");
       refetchProducts();
       onClose();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "خطا در ذخیره تغییرات");
-    } finally {
-      setIsLoading(false);
     }
   };
 

@@ -1,7 +1,9 @@
-import axios from "axios";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
 import {
   FiX,
   FiPlus,
@@ -543,240 +545,186 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const [isDeletingProduct, setIsDeletingProduct] = useState<number | null>(null);
 
   // Fetch sliders and showcase products on component mount
+  const { data: slidersData } = useApiFetch("/api/landingPage/sliders");
+  const { data: productsData } = useApiFetch("/api/landingPage/showcase_products");
+  const { mutate: deleteSliderMutate } = useApiMutation("delete");
+  const { mutate: deleteProductMutate } = useApiMutation("delete");
+  const { mutate: updateOrderMutate } = useApiMutation("patch");
+
   useEffect(() => {
-    fetchSliders();
-    fetchShowcaseProducts();
-  }, []);
-
-  const fetchSliders = async () => {
-    try {
-      const response = await axios.get("/api/landingPage/sliders");
-      setSliders(response.data);
-    } catch (error) {
-      console.error(error);
-      toast.error("خطا در دریافت اسلایدرها.");
-    } finally {
+    if (slidersData) {
+      setSliders(slidersData);
       setIsLoading(false);
     }
-  };
+  }, [slidersData]);
 
-  const fetchShowcaseProducts = async () => {
-    try {
-      const response = await axios.get("/api/landingPage/showcase_products");
-      setShowcaseProducts(response.data);
-    } catch (error) {
-      console.error(error);
-      toast.error("محصولات نمایشی یافت نشد");
-    } finally {
+  useEffect(() => {
+    if (productsData) {
+      setShowcaseProducts(productsData);
       setIsLoading(false);
     }
-  };
+  }, [productsData]);
 
   const handleAddSlider = async () => {
-    try {
-      if (!sliderFile) {
-        toast.error("لطفا یک فایل انتخاب کنید.");
-        return;
-      }
+    if (!sliderFile) {
+      toast.error("لطفا یک فایل انتخاب کنید.");
+      return;
+    }
 
-      setIsUploadingSlider(true);
+    setIsUploadingSlider(true);
 
-      const formData = new FormData();
-      formData.append("file", sliderFile);
-      formData.append("image_alt", newSlider.image_alt || "");
-      formData.append("link", newSlider.link || "");
+    const formData = new FormData();
+    formData.append("file", sliderFile);
+    formData.append("image_alt", newSlider.image_alt || "");
+    formData.append("link", newSlider.link || "");
 
-      const response = await axios.post("/api/landingPage/sliders", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+    const res = await fetch("/api/landingPage/sliders", {
+      method: "POST",
+      body: formData,
+    });
 
-      setSliders([...sliders, response.data]);
+    if (res.ok) {
+      const data = await res.json();
+      setSliders([...sliders, data]);
       setNewSlider({});
       setSliderFile(null);
       toast.success("اسلایدر با موفقیت اضافه شد.");
-    } catch (error) {
-      console.error(error);
+    } else {
       toast.error("خطا در اضافه کردن اسلایدر.");
-    } finally {
-      setIsUploadingSlider(false);
     }
+    setIsUploadingSlider(false);
   };
 
   const handleAddShowcaseProduct = async () => {
-    try {
-      if (!productFile) {
-        toast.error("لطفا یک فایل انتخاب کنید.");
-        return;
-      }
+    if (!productFile) {
+      toast.error("لطفا یک فایل انتخاب کنید.");
+      return;
+    }
 
-      setIsUploadingProduct(true);
+    setIsUploadingProduct(true);
 
-      // Always use the next order value (highest + 1) to avoid conflicts
-      const nextOrder =
-        showcaseProducts.length > 0 ? Math.max(...showcaseProducts.map((p) => p.order)) + 1 : 1;
+    const nextOrder =
+      showcaseProducts.length > 0 ? Math.max(...showcaseProducts.map((p) => p.order)) + 1 : 1;
 
-      const formData = new FormData();
-      formData.append("file", productFile);
-      formData.append("title", newShowcaseProduct.title || "");
-      formData.append("description", newShowcaseProduct.description || "");
-      formData.append("order", nextOrder.toString());
-      formData.append("link", newShowcaseProduct.link || "");
+    const formData = new FormData();
+    formData.append("file", productFile);
+    formData.append("title", newShowcaseProduct.title || "");
+    formData.append("description", newShowcaseProduct.description || "");
+    formData.append("order", nextOrder.toString());
+    formData.append("link", newShowcaseProduct.link || "");
 
-      const response = await axios.post("/api/landingPage/showcase_products", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+    const res = await fetch("/api/landingPage/showcase_products", {
+      method: "POST",
+      body: formData,
+    });
 
-      setShowcaseProducts([...showcaseProducts, response.data]);
+    if (res.ok) {
+      const data = await res.json();
+      setShowcaseProducts([...showcaseProducts, data]);
       setNewShowcaseProduct({});
       setProductFile(null);
       toast.success("محصول نمایشی با موفقیت اضافه شد.");
-    } catch (error) {
-      console.error(error);
+    } else {
       toast.error("خطا در اضافه کردن محصول نمایشی.");
-    } finally {
-      setIsUploadingProduct(false);
     }
+    setIsUploadingProduct(false);
   };
 
   const handleDeleteSlider = async (id: number) => {
-    try {
-      setIsDeletingSlider(id);
-      await axios.delete(`/api/landingPage/sliders/${id}`);
+    setIsDeletingSlider(id);
+    const res = await deleteSliderMutate(`/api/landingPage/sliders/${id}`);
+    if (res) {
       setSliders(sliders.filter((slider) => slider.id !== id));
       toast.success("اسلایدر با موفقیت حذف شد.");
-    } catch (error) {
-      console.error(error);
+    } else {
       toast.error("خطا در حذف اسلایدر.");
-    } finally {
-      setIsDeletingSlider(null);
     }
+    setIsDeletingSlider(null);
   };
 
   const handleDeleteShowcaseProduct = async (id: number) => {
-    try {
-      setIsDeletingProduct(id);
-      await axios.delete(`/api/landingPage/showcase_products/${id}`);
+    setIsDeletingProduct(id);
+    const res = await deleteProductMutate(`/api/landingPage/showcase_products/${id}`);
+    if (res) {
       setShowcaseProducts(showcaseProducts.filter((product) => product.id !== id));
       toast.success("محصول نمایشی با موفقیت حذف شد.");
-    } catch (error) {
-      console.error(error);
+    } else {
       toast.error("خطا در حذف محصول نمایشی.");
-    } finally {
-      setIsDeletingProduct(null);
     }
+    setIsDeletingProduct(null);
   };
 
-  // New function to update product order
   const updateProductOrder = async (id: number, newOrder: number) => {
-    try {
-      const response = await axios.patch(`/api/landingPage/showcase_products/${id}`, {
-        order: newOrder,
-      });
-
-      return response.data;
-    } catch (error) {
-      console.error("Error updating product order:", error);
-      throw error;
-    }
+    return await updateOrderMutate(`/api/landingPage/showcase_products/${id}`, {
+      order: newOrder,
+    });
   };
 
   // Function to handle moving product up (decreasing order)
   const handleMoveProductUp = async (id: number, currentOrder: number) => {
-    try {
-      // Find the product with the next lower order
-      const sortedProducts = showcaseProducts.toSorted((a, b) => a.order - b.order);
-      const currentIndex = sortedProducts.findIndex((p) => p.id === id);
+    const sortedProducts = showcaseProducts.toSorted((a, b) => a.order - b.order);
+    const currentIndex = sortedProducts.findIndex((p) => p.id === id);
 
-      if (currentIndex > 0) {
-        const prevProduct = sortedProducts[currentIndex - 1];
-        const tempOrder = -9999; // Use a temporary order that's unlikely to conflict
+    if (currentIndex > 0) {
+      const prevProduct = sortedProducts[currentIndex - 1];
+      const tempOrder = -9999;
 
-        try {
-          // Step 1: Move the current product to a temporary order
-          await updateProductOrder(id, tempOrder);
+      const step1 = await updateProductOrder(id, tempOrder);
+      if (!step1) { toast.error("خطا در تغییر ترتیب محصول."); return; }
 
-          // Step 2: Move the previous product to the current product's original order
-          await updateProductOrder(prevProduct.id, currentOrder);
+      const step2 = await updateProductOrder(prevProduct.id, currentOrder);
+      if (!step2) { toast.error("خطا در تغییر ترتیب محصول."); return; }
 
-          // Step 3: Move the current product to the previous product's original order
-          await updateProductOrder(id, prevProduct.order);
+      const step3 = await updateProductOrder(id, prevProduct.order);
+      if (!step3) { toast.error("خطا در تغییر ترتیب محصول."); return; }
 
-          // Update local state to reflect the changes
-          setShowcaseProducts((prevProducts) =>
-            prevProducts.map((product) => {
-              if (product.id === id) {
-                return { ...product, order: prevProduct.order };
-              }
-              if (product.id === prevProduct.id) {
-                return { ...product, order: currentOrder };
-              }
-              return product;
-            })
-          );
+      setShowcaseProducts((prevProducts) =>
+        prevProducts.map((product) => {
+          if (product.id === id) {
+            return { ...product, order: prevProduct.order };
+          }
+          if (product.id === prevProduct.id) {
+            return { ...product, order: currentOrder };
+          }
+          return product;
+        })
+      );
 
-          toast.success("ترتیب محصول با موفقیت تغییر کرد.");
-        } catch (error) {
-          toast.error("خطا در تغییر ترتیب محصول.");
-          console.error("Error in handleMoveProductUp:", error);
-
-          // Refresh data from server to ensure UI is in sync
-          fetchShowcaseProducts();
-        }
-      }
-    } catch (error) {
-      console.error(error);
+      toast.success("ترتیب محصول با موفقیت تغییر کرد.");
     }
   };
 
   // Function to handle moving product down (increasing order)
   const handleMoveProductDown = async (id: number, currentOrder: number) => {
-    try {
-      // Find the product with the next higher order
-      const sortedProducts = showcaseProducts.toSorted((a, b) => a.order - b.order);
-      const currentIndex = sortedProducts.findIndex((p) => p.id === id);
+    const sortedProducts = showcaseProducts.toSorted((a, b) => a.order - b.order);
+    const currentIndex = sortedProducts.findIndex((p) => p.id === id);
 
-      if (currentIndex < sortedProducts.length - 1) {
-        const nextProduct = sortedProducts[currentIndex + 1];
-        const tempOrder = -9999; // Use a temporary order that's unlikely to conflict
+    if (currentIndex < sortedProducts.length - 1) {
+      const nextProduct = sortedProducts[currentIndex + 1];
+      const tempOrder = -9999;
 
-        try {
-          // Step 1: Move the current product to a temporary order
-          await updateProductOrder(id, tempOrder);
+      const step1 = await updateProductOrder(id, tempOrder);
+      if (!step1) { toast.error("خطا در تغییر ترتیب محصول."); return; }
 
-          // Step 2: Move the next product to the current product's original order
-          await updateProductOrder(nextProduct.id, currentOrder);
+      const step2 = await updateProductOrder(nextProduct.id, currentOrder);
+      if (!step2) { toast.error("خطا در تغییر ترتیب محصول."); return; }
 
-          // Step 3: Move the current product to the next product's original order
-          await updateProductOrder(id, nextProduct.order);
+      const step3 = await updateProductOrder(id, nextProduct.order);
+      if (!step3) { toast.error("خطا در تغییر ترتیب محصول."); return; }
 
-          // Update local state to reflect the changes
-          setShowcaseProducts((prevProducts) =>
-            prevProducts.map((product) => {
-              if (product.id === id) {
-                return { ...product, order: nextProduct.order };
-              }
-              if (product.id === nextProduct.id) {
-                return { ...product, order: currentOrder };
-              }
-              return product;
-            })
-          );
+      setShowcaseProducts((prevProducts) =>
+        prevProducts.map((product) => {
+          if (product.id === id) {
+            return { ...product, order: nextProduct.order };
+          }
+          if (product.id === nextProduct.id) {
+            return { ...product, order: currentOrder };
+          }
+          return product;
+        })
+      );
 
-          toast.success("ترتیب محصول با موفقیت تغییر کرد.");
-        } catch (error) {
-          toast.error("خطا در تغییر ترتیب محصول.");
-          console.error("Error in handleMoveProductDown:", error);
-
-          // Refresh data from server to ensure UI is in sync
-          fetchShowcaseProducts();
-        }
-      }
-    } catch (error) {
-      console.error(error);
+      toast.success("ترتیب محصول با موفقیت تغییر کرد.");
     }
   };
 

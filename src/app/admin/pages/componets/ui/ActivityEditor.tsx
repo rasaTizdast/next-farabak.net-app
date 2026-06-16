@@ -1,8 +1,10 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa"; // Icons for expand/collapse
 import { IoIosCloseCircle } from "react-icons/io";
+
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 type ActivityEditModalProps = {
   onClose: () => void;
@@ -42,24 +44,19 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const [isFetching, setIsFetching] = useState(true);
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set<number>());
 
+  const { data: activitiesData } = useApiFetch("/api/activities");
+  const { mutate: saveActivities, loading: isSaving } = useApiMutation("put");
+
   useEffect(() => {
-    axios
-      .get("/api/activities")
-      .then((response) => {
-        setActivities(response.data);
-        // Expand all sections by default
-        const defaultExpanded = new Set<number>(
-          response.data.map((activity: Activity, index: number) => index)
-        );
-        setExpandedSections(defaultExpanded);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch activities:", error);
-      })
-      .finally(() => {
-        setIsFetching(false); // Data fetching is complete
-      });
-  }, []);
+    if (activitiesData) {
+      setActivities(activitiesData);
+      const defaultExpanded = new Set<number>(
+        activitiesData.map((activity: Activity, index: number) => index)
+      );
+      setExpandedSections(defaultExpanded);
+      setIsFetching(false);
+    }
+  }, [activitiesData]);
 
   // Toggle section expansion
   const toggleSection = (index: number) => {
@@ -118,25 +115,23 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    try {
-      const updatedActivities = activities.map((activity) => ({
-        id: activity.id,
-        title: activity.title,
-        details: activity.Details_activity.map((detail) => ({
-          id: detail.id || undefined,
-          description: detail.description,
-        })),
-      }));
+    const updatedActivities = activities.map((activity) => ({
+      id: activity.id,
+      title: activity.title,
+      details: activity.Details_activity.map((detail) => ({
+        id: detail.id || undefined,
+        description: detail.description,
+      })),
+    }));
 
-      await axios.put("/api/activities", updatedActivities);
+    const res = await saveActivities("/api/activities", updatedActivities);
+    if (res) {
       toast.success("فعالیت با موفقیت آپدیت شد!");
-    } catch (error) {
-      console.error(error);
+    } else {
       toast.error("آپدیت فعالیت به مشکل خورد!");
-    } finally {
-      setIsLoading(false);
-      onClose();
     }
+    setIsLoading(false);
+    onClose();
   };
 
   return (

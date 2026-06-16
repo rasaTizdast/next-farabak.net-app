@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 type MemberEditModalProps = {
   id: number | null;
@@ -20,6 +22,7 @@ type Member = {
 const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
   const [member, setMember] = useState<Member | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
@@ -31,35 +34,22 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  useEffect(() => {
-    if (id) {
-      // Fetch member data from the API
-      const fetchMember = async () => {
-        try {
-          const response = await fetch(`/api/members/${id}`);
-          if (!response.ok) {
-            throw new Error("Failed to fetch member data");
-          }
-          const data: Member = await response.json();
-          setMember(data);
-          setFormData({
-            name: data.Name,
-            role: data.Role,
-            desc: data.main_description,
-            phone: data.phonenumber || "",
-            slug: data.Slug,
-          });
-        } catch (err) {
-          setError("اطلاعاتی برای این عضو پیدا نشد، مجددا تلاش کنید");
-          console.error("Error fetching member data:", err);
-        } finally {
-          setLoading(false);
-        }
-      };
+  const { data: memberData } = useApiFetch<Member>(id ? `/api/members/${id}` : null);
+  const { mutate: updateMemberMutate } = useApiMutation("put");
 
-      fetchMember();
+  useEffect(() => {
+    if (memberData) {
+      setMember(memberData);
+      setFormData({
+        name: memberData.Name,
+        role: memberData.Role,
+        desc: memberData.main_description,
+        phone: memberData.phonenumber || "",
+        slug: memberData.Slug,
+      });
+      setLoading(false);
     }
-  }, [id]);
+  }, [memberData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -108,30 +98,22 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
       formDataToSend.append("file", imageFile);
     }
 
-    setLoading(true); // Set loading state to true
+    setSaving(true);
 
-    try {
-      // Send the request to the endpoint
-      const response = await fetch("/api/members/update", {
-        method: "PUT",
-        body: formDataToSend,
-      });
+    const res = await updateMemberMutate("/api/members/update", formDataToSend);
 
-      if (!response.ok) {
-        throw new Error("Failed to update member");
-      }
+    if (res) {
       toast.success("عضو با موفقیت آپدیت شد");
-      onClose(); // Close the modal after successful update
-    } catch (error) {
-      console.error("Error updating member:", error);
+      onClose();
+    } else {
       toast.error("خطا در به‌روزرسانی عضو، مجددا تلاش کنید");
       setError("خطا در به‌روزرسانی عضو، مجددا تلاش کنید");
-    } finally {
-      setLoading(false); // Reset loading state
     }
+
+    setSaving(false);
   };
 
-  if (loading) {
+  if (loading && id) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
         <div
@@ -303,12 +285,12 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
             </button>
             <button
               type="submit"
-              disabled={loading}
-              className={`px-4 py-2 ${
-                loading ? "cursor-not-allowed bg-green-700" : "bg-green-600 hover:bg-green-700"
-              } rounded-lg text-gray-100 transition-all`}
+          disabled={saving}
+          className={`px-4 py-2 ${
+            saving ? "cursor-not-allowed bg-green-700" : "bg-green-600 hover:bg-green-700"
+          } rounded-lg text-gray-100 transition-all`}
             >
-              {loading ? "در حال ذخیره کردن" : "ذخیره تغییرات"}
+              {saving ? "در حال ذخیره کردن" : "ذخیره تغییرات"}
             </button>
           </div>
         </form>

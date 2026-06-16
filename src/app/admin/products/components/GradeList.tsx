@@ -1,8 +1,9 @@
-import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { toast } from "react-hot-toast";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 
 import GradeCardSkeleton from "./GradeCardSkeleton";
@@ -28,26 +29,14 @@ type EditingGrade = {
 } | null;
 
 const GradeList = ({ productId, refetchProducts }: Props) => {
-  const [grades, setGrades] = useState<Grade[]>([]);
-  const [loading, setLoading] = useState(true);
   const [editingGrade, setEditingGrade] = useState<EditingGrade>(null);
   const [usdRate, setUsdRate] = useState<number | null>(null);
 
-  const fetchGrades = async () => {
-    try {
-      const response = await axios.get(`/api/products/grades?productId=${productId}`);
-      setGrades(response.data);
-    } catch (error) {
-      console.error("Error fetching grades:", error);
-      toast.error("خطا در دریافت لیست گرید‌ها");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchGrades();
-  }, [productId]);
+  const {
+    data: grades,
+    loading,
+    refetch: fetchGrades,
+  } = useApiFetch<Grade[]>(`/api/products/grades?productId=${productId}`);
 
   useEffect(() => {
     const fetchExchangeRate = async () => {
@@ -62,17 +51,16 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
     fetchExchangeRate();
   }, []);
 
+  const { mutate: deleteGrade, loading: deletingGrade } = useApiMutation("delete");
+
   const handleDelete = async (gradeId: number) => {
     if (!confirm("آیا از حذف این گرید اطمینان دارید؟")) return;
 
-    try {
-      await axios.delete(`/api/products/grades/grade/${gradeId}`);
+    const res = await deleteGrade(`/api/products/grades/grade/${gradeId}`);
+    if (res) {
       toast.success("گرید با موفقیت حذف شد");
       fetchGrades();
       refetchProducts();
-    } catch (error) {
-      console.error("Error deleting grade:", error);
-      toast.error("خطا در حذف گرید");
     }
   };
 
@@ -85,28 +73,27 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
     });
   };
 
+  const { mutate: updateGrade, loading: updatingGrade } = useApiMutation("put");
+
   const handleUpdate = async () => {
     if (!editingGrade) return;
 
-    try {
-      if (!editingGrade.grade || editingGrade.price <= 0) {
-        toast.error("لطفاً تمام فیلدها را پر کنید");
-        return;
-      }
+    if (!editingGrade.grade || editingGrade.price <= 0) {
+      toast.error("لطفاً تمام فیلدها را پر کنید");
+      return;
+    }
 
-      await axios.put(`/api/products/grades/grade/${editingGrade.id}`, {
-        grade: editingGrade.grade,
-        price: editingGrade.price,
-        discount: editingGrade.discount,
-      });
+    const res = await updateGrade(`/api/products/grades/grade/${editingGrade.id}`, {
+      grade: editingGrade.grade,
+      price: editingGrade.price,
+      discount: editingGrade.discount,
+    });
 
+    if (res) {
       toast.success("گرید با موفقیت بروزرسانی شد");
       setEditingGrade(null);
       fetchGrades();
       refetchProducts();
-    } catch (error) {
-      console.error("Error updating grade:", error);
-      toast.error("خطا در بروزرسانی گرید");
     }
   };
 
@@ -139,7 +126,7 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
   return (
     <div className="rounded-lg bg-slate-700/50 p-4">
       <h4 className="mb-4 text-lg font-semibold text-white">گرید‌های موجود</h4>
-      {grades.length === 0 ? (
+      {!grades || grades.length === 0 ? (
         <div className="flex h-20 items-center justify-center rounded-md bg-slate-700 text-gray-400">
           هیچ گرید‌ای ثبت نشده است
         </div>

@@ -1,9 +1,9 @@
-import axios from "axios";
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { FiPlus } from "react-icons/fi";
 import { IoIosClose } from "react-icons/io";
 
+import { useApiFetch } from "@/hooks/useApiFetch";
 import SpecTemplateManager from "./SpecTemplateManager";
 import { Specs } from "../types";
 
@@ -32,13 +32,29 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
   specs,
   setSpecs,
 }) => {
-  const [isLoading, setIsLoading] = useState(true);
   const [showTemplateManager, setShowTemplateManager] = useState(false);
   const [internalSpecs, setInternalSpecs] = useState<SpecsInternal | null>(null);
 
+  const {
+    data: fetchedSpecs,
+    loading: isLoading,
+  } = useApiFetch<any[]>(productId ? `/api/specs/${productId}` : null);
+
+  // Convert fetched specs to internal format
   useEffect(() => {
-    fetchSpecs();
-  }, [productId]);
+    if (fetchedSpecs && !internalSpecs) {
+      const specData = fetchedSpecs.map((spec: any) => ({
+        ProductSpecsId: spec.ProductSpecsId,
+        Title: spec.Title,
+        Description: spec.Description,
+      }));
+
+      setInternalSpecs({
+        isChanged: false,
+        data: specData,
+      });
+    }
+  }, [fetchedSpecs]);
 
   // Convert from internal format to the API format
   useEffect(() => {
@@ -70,34 +86,6 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
       });
     }
   }, [specs]);
-
-  const fetchSpecs = async () => {
-    if (!productId) return;
-
-    setIsLoading(true);
-    try {
-      const response = await axios.get(`/api/specs/${productId}`);
-      const specData = response.data.map((spec: any) => ({
-        ProductSpecsId: spec.ProductSpecsId,
-        Title: spec.Title,
-        Description: spec.Description,
-      }));
-
-      setInternalSpecs({
-        isChanged: false,
-        data: specData,
-      });
-    } catch (error) {
-      console.error("Error fetching specs:", error);
-      toast.error("خطا در دریافت مشخصات محصول");
-      setInternalSpecs({
-        isChanged: false,
-        data: [],
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleSpecChange = (index: number, field: "Title" | "Description", value: string) => {
     if (!internalSpecs) return;
