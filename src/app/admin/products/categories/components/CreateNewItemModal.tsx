@@ -104,43 +104,58 @@ const CreateNewItemModal = ({
     setSeoKeywords(seoKeywords.filter((k) => k !== keyword));
   };
 
-  const handleSubmit = async () => {
-    if (name.trim() === "") {
-      setError("نام نمی‌تواند خالی باشد.");
-      return;
-    }
-
-    if (
-      !checkIfUnique(
-        name,
-        activeTab === "Category",
-        categories,
-        activeTab === "Category" ? undefined : parentCategoryId
-      )
-    ) {
-      setError("این نام قبلاً ثبت شده است.");
-      return;
-    }
-
-    const result = {
-      type: activeTab,
-      data: {
-        name,
-        slug,
-        available,
-        parentCategoryId: activeTab === "Subcategory" ? parentCategoryId : null,
-        seoTitle,
-        seoDescription,
-        seoKeywords,
-        topBlog,
-        bottomBlog,
-        banner: undefined as string | undefined,
-      },
-    };
-
-    setLoading(true); // Set loading to true when submitting
+  async function doCreateItem(
+    name: string,
+    slug: string,
+    available: boolean,
+    parentCategoryId: number | undefined,
+    seoTitle: string,
+    seoDescription: string,
+    seoKeywords: string[],
+    topBlog: string,
+    bottomBlog: string,
+    bannerFile: File | null,
+    bannerCleared: boolean,
+    activeTab: string,
+    categories: Category[],
+    withRetry401: <T>(fn: () => Promise<T>, opts?: { retries?: number; baseDelayMs?: number }) => Promise<T>,
+    createMutate: any,
+    setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+    setError: React.Dispatch<React.SetStateAction<string | null>>,
+    setName: React.Dispatch<React.SetStateAction<string>>,
+    setSlug: React.Dispatch<React.SetStateAction<string>>,
+    setAvailable: React.Dispatch<React.SetStateAction<boolean>>,
+    setParentCategoryId: React.Dispatch<React.SetStateAction<number | undefined>>,
+    setSeoTitle: React.Dispatch<React.SetStateAction<string>>,
+    setSeoDescription: React.Dispatch<React.SetStateAction<string>>,
+    setSeoKeywords: React.Dispatch<React.SetStateAction<string[]>>,
+    setKeywordInput: React.Dispatch<React.SetStateAction<string>>,
+    setTopBlog: React.Dispatch<React.SetStateAction<string>>,
+    setBottomBlog: React.Dispatch<React.SetStateAction<string>>,
+    setBannerFile: React.Dispatch<React.SetStateAction<File | null>>,
+    setBannerPreview: React.Dispatch<React.SetStateAction<string>>,
+    setBannerCleared: React.Dispatch<React.SetStateAction<boolean>>,
+    onClose: () => void,
+    refetchCategories: () => void
+  ) {
+    setLoading(true);
     try {
-      // Upload banner if present and not cleared
+      const result: any = {
+        type: activeTab,
+        data: {
+          name,
+          slug,
+          available,
+          parentCategoryId: activeTab === "Subcategory" ? parentCategoryId : null,
+          seoTitle,
+          seoDescription,
+          seoKeywords,
+          topBlog,
+          bottomBlog,
+          banner: undefined as string | undefined,
+        },
+      };
+
       if (bannerFile && !bannerCleared && slug) {
         const payload =
           activeTab === "Category"
@@ -157,7 +172,7 @@ const CreateNewItemModal = ({
         await axios.put(presign.uploadUrl, bannerFile, {
           headers: { "Content-Type": bannerFile.type },
         });
-        result.data.banner = presign.key; // store returned key
+        result.data.banner = presign.key;
       }
       if (activeTab === "Category") {
         const catRes = await createMutate("/api/categories/createCategory", result);
@@ -179,7 +194,6 @@ const CreateNewItemModal = ({
         }
       }
 
-      // Clear the form fields after success
       setName("");
       setSlug("");
       setAvailable(true);
@@ -202,8 +216,38 @@ const CreateNewItemModal = ({
         setError("خطای ناشناخته‌ای رخ داده است. لطفاً دوباره تلاش کنید.");
       }
     } finally {
-      setLoading(false); // Set loading to false after request is complete
+      setLoading(false);
     }
+  }
+
+  const handleSubmit = async () => {
+    if (name.trim() === "") {
+      setError("نام نمی‌تواند خالی باشد.");
+      return;
+    }
+
+    if (
+      !checkIfUnique(
+        name,
+        activeTab === "Category",
+        categories,
+        activeTab === "Category" ? undefined : parentCategoryId
+      )
+    ) {
+      setError("این نام قبلاً ثبت شده است.");
+      return;
+    }
+
+    await doCreateItem(
+      name, slug, available, parentCategoryId, seoTitle, seoDescription, seoKeywords,
+      topBlog, bottomBlog, bannerFile, bannerCleared, activeTab, categories,
+      withRetry401, createMutate,
+      setLoading, setError,
+      setName, setSlug, setAvailable, setParentCategoryId,
+      setSeoTitle, setSeoDescription, setSeoKeywords, setKeywordInput,
+      setTopBlog, setBottomBlog, setBannerFile, setBannerPreview, setBannerCleared,
+      onClose, refetchCategories
+    );
   };
 
   const isSubmitDisabled = () => {

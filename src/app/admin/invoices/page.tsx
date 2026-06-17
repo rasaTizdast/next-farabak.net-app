@@ -290,6 +290,33 @@ const AdminInvoicesPage = () => {
     setFilteredInvoices(filtered);
   }, [searchText, searchMode, invoices]);
 
+  async function refreshInvoiceAfterWarrantyUpdate(
+    selectedInvoice: AdminInvoice,
+    setSelectedInvoice: React.Dispatch<React.SetStateAction<AdminInvoice | null>>,
+    setInvoices: React.Dispatch<React.SetStateAction<AdminInvoice[]>>,
+    setFilteredInvoices: React.Dispatch<React.SetStateAction<AdminInvoice[]>>
+  ) {
+    try {
+      const response = await fetch(`/api/admin/invoices/${selectedInvoice.Invoiceid}`);
+      if (response.ok) {
+        const updatedInvoice = await response.json();
+        setSelectedInvoice(updatedInvoice);
+        setInvoices((prev) =>
+          prev.map((inv) =>
+            inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv
+          )
+        );
+        setFilteredInvoices((prev) =>
+          prev.map((inv) =>
+            inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Failed to refresh invoice data:", error);
+    }
+  }
+
   // Handler to update invoice status
   const handleStatusChange = async (Invoiceid: string, status: boolean) => {
     const result = await updateStatusMutate(`/api/admin/invoices?id=${Invoiceid}`, {
@@ -595,32 +622,9 @@ const AdminInvoicesPage = () => {
                 invoice={selectedInvoice}
                 onClose={() => setSelectedInvoice(null)}
                 onWarrantyUpdate={async () => {
-                  // Fetch updated invoice data
-                  try {
-                    const response = await fetch(
-                      `/api/admin/invoices/${selectedInvoice.Invoiceid}`
-                    );
-                    if (response.ok) {
-                      const updatedInvoice = await response.json();
-
-                      // Update the selected invoice with fresh data
-                      setSelectedInvoice(updatedInvoice);
-
-                      // Also update the invoice in the invoices list
-                      setInvoices((prev) =>
-                        prev.map((inv) =>
-                          inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv
-                        )
-                      );
-                      setFilteredInvoices((prev) =>
-                        prev.map((inv) =>
-                          inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv
-                        )
-                      );
-                    }
-                  } catch (error) {
-                    console.error("Failed to refresh invoice data:", error);
-                  }
+                  await refreshInvoiceAfterWarrantyUpdate(
+                    selectedInvoice, setSelectedInvoice, setInvoices, setFilteredInvoices
+                  );
                 }}
               />
             )}

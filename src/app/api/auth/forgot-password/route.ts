@@ -12,7 +12,7 @@ function generateVerificationCode(): string {
 async function createResetCodeToken(email: string, code: string): Promise<string> {
   // Create a JWT with the email and code that expires in 15 minutes
   const secret = new TextEncoder().encode(
-    process.env.JWT_SECRET || "farabak-reset-password-secret-key-2024"
+    process.env.JWT_SECRET
   );
   const expiresIn = 15 * 60; // 15 minutes
 

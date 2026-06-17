@@ -395,6 +395,15 @@ function MyBranchContent() {
     }
   };
 
+  const formatPersianDate = (date: string, formatDate: (d: string | Date | number) => string) => {
+    try {
+      return moment(date).locale("fa").format("jYYYY/jMM/jDD");
+    } catch (e) {
+      console.error(e);
+      return formatDate(date);
+    }
+  };
+
   // Update search options for invoices and standalone warranties
   useEffect(() => {
     if (!searchText.trim()) {
@@ -604,75 +613,88 @@ function MyBranchContent() {
     return { active: activeWarranties, expired: expiredWarranties };
   };
 
-  // Update the fetchInitialData function to also get invoices
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      setLoading(true);
-      try {
-        // Fetch the current user's branch
-        const response = await fetch("/api/admin/branches/my");
+  async function loadInitialBranchData(
+    setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+    setError: React.Dispatch<React.SetStateAction<string | null>>,
+    setAuthError: React.Dispatch<React.SetStateAction<boolean>>,
+    setBranch: React.Dispatch<React.SetStateAction<Branch | null>>,
+    fetchBranchProducts: (branchId: number, page?: number, pageSize?: number) => Promise<void>,
+    fetchInvoices: () => Promise<void>,
+    fetchAllProducts: () => Promise<void>
+  ) {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/admin/branches/my");
 
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError("شما هنوز به عنوان شعبه تعریف نشده‌اید. لطفاً با مدیر سایت تماس بگیرید.");
-            setLoading(false);
-            return;
-          }
-
-          if (response.status === 401) {
-            setAuthError(true);
-            setError("دسترسی غیرمجاز - لطفا وارد حساب کاربری خود شوید.");
-            setLoading(false);
-            return;
-          }
-
-          setError("خطا در دریافت اطلاعات شعبه");
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError("شما هنوز به عنوان شعبه تعریف نشده‌اید. لطفاً با مدیر سایت تماس بگیرید.");
           setLoading(false);
           return;
         }
 
+        if (response.status === 401) {
+          setAuthError(true);
+          setError("دسترسی غیرمجاز - لطفا وارد حساب کاربری خود شوید.");
+          setLoading(false);
+          return;
+        }
+
+        setError("خطا در دریافت اطلاعات شعبه");
+        setLoading(false);
+        return;
+      }
+
+      const branchData = await response.json();
+      setBranch(branchData);
+
+      await Promise.all([
+        fetchBranchProducts(branchData.branchid),
+        fetchInvoices(),
+        fetchAllProducts(),
+      ]);
+    } catch (error) {
+      console.error("Error fetching branch data:", error);
+      setError("خطا در بارگذاری اطلاعات شعبه");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function doAutoRefresh(
+    setRefreshing: React.Dispatch<React.SetStateAction<boolean>>,
+    setBranch: React.Dispatch<React.SetStateAction<Branch | null>>,
+    fetchBranchProductsRef: React.MutableRefObject<(branchId: number, page?: number, pageSize?: number) => Promise<void>>
+  ) {
+    try {
+      setRefreshing(true);
+      const response = await fetch("/api/admin/branches/my");
+      if (response.ok) {
         const branchData = await response.json();
         setBranch(branchData);
-
-        // Fetch branch products, invoices, and all products in parallel
-        await Promise.all([
-          fetchBranchProducts(branchData.branchid),
-          fetchInvoices(),
-          fetchAllProducts(),
-        ]);
-      } catch (error) {
-        console.error("Error fetching branch data:", error);
-        setError("خطا در بارگذاری اطلاعات شعبه");
-      } finally {
-        setLoading(false);
+        if (branchData && branchData.branchid) {
+          await fetchBranchProductsRef.current(branchData.branchid);
+        }
+      } else {
+        console.error("Failed to refresh branch data:", response.status);
       }
-    };
+    } catch (error) {
+      console.error("Error auto-refreshing branch data:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
-    fetchInitialData();
+  // Update the fetchInitialData function to also get invoices
+  useEffect(() => {
+    loadInitialBranchData(
+      setLoading, setError, setAuthError, setBranch,
+      fetchBranchProducts, fetchInvoices, fetchAllProducts
+    );
 
     // Set up auto-refresh interval (30 seconds)
-    const intervalId = setInterval(async () => {
-      try {
-        setRefreshing(true);
-
-        // Fetch branch data
-        const response = await fetch("/api/admin/branches/my");
-        if (response.ok) {
-          const branchData = await response.json();
-          setBranch(branchData);
-
-          // Fetch products for the current branch
-          if (branchData && branchData.branchid) {
-            await fetchBranchProductsRef.current(branchData.branchid);
-          }
-        } else {
-          console.error("Failed to refresh branch data:", response.status);
-        }
-      } catch (error) {
-        console.error("Error auto-refreshing branch data:", error);
-      } finally {
-        setRefreshing(false);
-      }
+    const intervalId = setInterval(() => {
+      doAutoRefresh(setRefreshing, setBranch, fetchBranchProductsRef);
     }, 30000);
 
     // Clean up interval on component unmount
@@ -1439,37 +1461,18 @@ function MyBranchContent() {
                               dataIndex: "startdate",
                               key: "startdate",
                               className: "text-right font-medium",
-                              render: (date: string) => {
-                                try {
-                                  // Try to use moment to format into Persian date
-                                  const persianDate = moment(date)
-                                    .locale("fa")
-                                    .format("jYYYY/jMM/jDD");
-                                  return <span className="text-gray-200">{persianDate}</span>;
-                                } catch (e) {
-                                  console.error(e);
-
-                                  return <span className="text-gray-200">{formatDate(date)}</span>;
-                                }
-                              },
+                              render: (date: string) => (
+                                <span className="text-gray-200">{formatPersianDate(date, formatDate)}</span>
+                              ),
                             },
                             {
                               title: "تاریخ انقضا",
                               dataIndex: "expirydate",
                               key: "expirydate",
                               className: "text-right font-medium",
-                              render: (date: string) => {
-                                try {
-                                  // Try to use moment to format into Persian date
-                                  const persianDate = moment(date)
-                                    .locale("fa")
-                                    .format("jYYYY/jMM/jDD");
-                                  return <span className="text-gray-200">{persianDate}</span>;
-                                } catch (e) {
-                                  console.error(e);
-                                  return <span className="text-gray-200">{formatDate(date)}</span>;
-                                }
-                              },
+                              render: (date: string) => (
+                                <span className="text-gray-200">{formatPersianDate(date, formatDate)}</span>
+                              ),
                             },
                             {
                               title: "وضعیت",

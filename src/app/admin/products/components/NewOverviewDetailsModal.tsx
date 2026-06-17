@@ -53,28 +53,17 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
     });
   };
 
-  // Function to handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Validate all fields
-    const isValid = items.every(
-      (item) => item.title.trim() !== "" && item.description.trim() !== "" && item.image !== null
-    );
-
-    if (!isValid) {
-      toast.error("لطفاً تمام فیلدها را پر کنید.");
-      return;
-    }
-
+  async function doSubmitOverviewDetails(
+    items: any[],
+    setIsSubmitting: (v: boolean) => void,
+    onClose: () => void
+  ) {
     setIsSubmitting(true);
     toast.loading("در حال ایجاد توضیحات محصول...");
 
     try {
-      // Convert images to base64
       const itemsWithBase64 = await Promise.all(
         items.map(async (item) => {
-          // Skip items without an image (should not happen due to validation)
           if (!item.image) return null;
 
           return new Promise<{
@@ -84,10 +73,7 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
           }>((resolve) => {
             const reader = new FileReader();
             reader.onloadend = () => {
-              // We already checked that item.image is not null above
               const image = item.image!;
-
-              // Extract base name without extension to prevent duplicate extensions
               const fileName = image.name.includes(".")
                 ? image.name.substring(0, image.name.lastIndexOf("."))
                 : image.name;
@@ -102,16 +88,13 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
                 },
               });
             };
-            // We're sure item.image is not null here since we checked above
             reader.readAsDataURL(item.image!);
           });
         })
       );
 
-      // Filter out any null items (shouldn't happen if validation is working)
       const validItems = itemsWithBase64.filter((item) => item !== null);
 
-      // Send to API
       const response = await fetch("/api/productOverviewDetails/create", {
         method: "POST",
         headers: {
@@ -127,8 +110,6 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
       toast.dismiss();
       toast.success("توضیحات محصول با موفقیت ایجاد شد!");
 
-      // Force a refresh of the overview details list
-      // This will trigger a re-fetch of all overview details
       document.dispatchEvent(new CustomEvent("refreshOverviewDetails"));
 
       onClose();
@@ -139,6 +120,22 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  // Function to handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const isValid = items.every(
+      (item) => item.title.trim() !== "" && item.description.trim() !== "" && item.image !== null
+    );
+
+    if (!isValid) {
+      toast.error("لطفاً تمام فیلدها را پر کنید.");
+      return;
+    }
+
+    await doSubmitOverviewDetails(items, setIsSubmitting, onClose);
   };
 
   return (

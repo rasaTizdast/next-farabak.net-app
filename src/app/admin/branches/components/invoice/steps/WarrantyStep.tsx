@@ -48,6 +48,126 @@ interface WarrantyStepProps {
   setProductsWithWarranty: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
+async function doUpdateWarranties(
+  selectedProducts: any[],
+  isGeneratingCodes: boolean,
+  branch: any,
+  productsWithWarranty: any[],
+  setProductsWithWarranty: React.Dispatch<React.SetStateAction<any[]>>,
+  setIsGeneratingCodes: React.Dispatch<React.SetStateAction<boolean>>,
+  generateBatchWarrantyCodes: (branchCode: string, yearMonth: string, count: number) => Promise<string[]>
+) {
+  if (selectedProducts.length === 0 || isGeneratingCodes) return;
+
+  let allHaveWarranty = true;
+  for (const product of selectedProducts) {
+    const items = productsWithWarranty.filter((p) => p.ProductId === product.ProductId);
+    if (items.length < product.quantity) {
+      allHaveWarranty = false;
+      break;
+    }
+  }
+  if (allHaveWarranty && productsWithWarranty.length > 0) {
+    return;
+  }
+
+  try {
+    setIsGeneratingCodes(true);
+
+    const branchCode = branch.location || "HQ";
+    const date = new Date();
+
+    const persianYear = new Intl.DateTimeFormat("fa-IR", {
+      year: "numeric",
+    }).format(date);
+    const yearStr = persianToEnglishDigits(persianYear);
+    const yearNum = yearStr.slice(-3);
+
+    const persianMonth = new Intl.DateTimeFormat("fa-IR", {
+      month: "2-digit",
+    }).format(date);
+    const monthNum = persianToEnglishDigits(persianMonth);
+    const yearMonth = yearNum + monthNum.padStart(2, "0");
+
+    const currentDate = new Date();
+    const startDate = currentDate.toISOString().split("T")[0];
+    const oneYearLater = new Date(currentDate);
+    oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
+    oneYearLater.setDate(currentDate.getDate());
+    const endDate = oneYearLater.toISOString().split("T")[0];
+
+    let totalCodesNeeded = 0;
+    const productCodeNeeds: {
+      productId: number;
+      existingCodes: string[];
+      codesNeeded: number;
+    }[] = [];
+
+    for (const product of selectedProducts) {
+      const items = productsWithWarranty.filter((p) => p.ProductId === product.ProductId);
+      const existingCodes = items.map((item) => item.warranty?.warrantycode).filter(Boolean);
+      const codesNeeded = Math.max(0, product.quantity - existingCodes.length);
+      totalCodesNeeded += codesNeeded;
+      productCodeNeeds.push({
+        productId: product.ProductId,
+        existingCodes,
+        codesNeeded,
+      });
+    }
+
+    let allNewCodes: string[] = [];
+    if (totalCodesNeeded > 0) {
+      allNewCodes = await generateBatchWarrantyCodes(branchCode, yearMonth, totalCodesNeeded);
+    }
+
+    const expandedItems: any[] = [];
+    let usedCodesCount = 0;
+
+    for (let i = 0; i < productCodeNeeds.length; i++) {
+      const product = selectedProducts[i];
+      const { existingCodes, codesNeeded } = productCodeNeeds[i];
+
+      const productNewCodes = allNewCodes.slice(usedCodesCount, usedCodesCount + codesNeeded);
+      usedCodesCount += codesNeeded;
+
+      let warrantyCodes = [...existingCodes];
+      if (codesNeeded > 0) {
+        warrantyCodes = [...warrantyCodes, ...productNewCodes];
+      } else if (product.quantity < existingCodes.length) {
+        warrantyCodes = warrantyCodes.slice(0, product.quantity);
+      }
+
+      const items = productsWithWarranty.filter((p) => p.ProductId === product.ProductId);
+
+      for (let j = 0; j < product.quantity; j++) {
+        const existingItem = items[j];
+        expandedItems.push({
+          ...product,
+          itemIndex: j,
+          itemNumber: j + 1,
+          singleItemId: `${product.ProductId}-${j}`,
+          warranty: existingItem?.warranty
+            ? { ...existingItem.warranty, warrantycode: warrantyCodes[j] || "" }
+            : {
+                ProductId: product.ProductId,
+                startdate: startDate,
+                expirydate: endDate,
+                warrantycode: warrantyCodes[j] || "",
+                hasWarranty: true,
+              },
+        });
+      }
+    }
+
+    setProductsWithWarranty(expandedItems);
+  } catch (error) {
+    console.error("Error updating warranty codes:", error);
+    message.error("خطا در به‌روزرسانی کدهای گارانتی");
+  } finally {
+    setIsGeneratingCodes(false);
+  }
+}
+
 const WarrantyStep: React.FC<WarrantyStepProps> = ({
   selectedProducts,
   branch,
@@ -91,141 +211,16 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
 
   // Only generate codes for products that do not already have warranty data from API
   const updateWarranties = useCallback(async () => {
-    if (selectedProducts.length === 0 || isGeneratingCodes) return;
-
-    // If productsWithWarranty already has correct data (from API), do not generate again
-    // Check if all selectedProducts have enough warranty items in productsWithWarranty
-    let allHaveWarranty = true;
-    for (const product of selectedProducts) {
-      const items = productsWithWarranty.filter((p) => p.ProductId === product.ProductId);
-      if (items.length < product.quantity) {
-        allHaveWarranty = false;
-        break;
-      }
-    }
-    if (allHaveWarranty && productsWithWarranty.length > 0) {
-      // Already have all warranty data, do not generate again
-      return;
-    }
-
-    try {
-      setIsGeneratingCodes(true);
-
-      // Generate warranty code values
-      const branchCode = branch.location || "HQ";
-      const date = new Date();
-
-      // Get Persian year in English digits
-      const persianYear = new Intl.DateTimeFormat("fa-IR", {
-        year: "numeric",
-      }).format(date);
-      const yearStr = persianToEnglishDigits(persianYear);
-      const yearNum = yearStr.slice(-3);
-
-      // Get Persian month with leading zero
-      const persianMonth = new Intl.DateTimeFormat("fa-IR", {
-        month: "2-digit",
-      }).format(date);
-      const monthNum = persianToEnglishDigits(persianMonth);
-      const yearMonth = yearNum + monthNum.padStart(2, "0");
-
-      // Default dates
-      const currentDate = new Date();
-      const startDate = currentDate.toISOString().split("T")[0];
-      const oneYearLater = new Date(currentDate);
-      oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
-      oneYearLater.setDate(currentDate.getDate());
-      const endDate = oneYearLater.toISOString().split("T")[0];
-
-      // Calculate total codes needed only for products that do not have enough warranty items
-      let totalCodesNeeded = 0;
-      const productCodeNeeds: {
-        productId: number;
-        existingCodes: string[];
-        codesNeeded: number;
-      }[] = [];
-
-      for (const product of selectedProducts) {
-        // Find all warranty items for this product
-        const items = productsWithWarranty.filter((p) => p.ProductId === product.ProductId);
-        // Collect all warranty codes for this product
-        const existingCodes = items.map((item) => item.warranty?.warrantycode).filter(Boolean);
-        const codesNeeded = Math.max(0, product.quantity - existingCodes.length);
-        totalCodesNeeded += codesNeeded;
-        productCodeNeeds.push({
-          productId: product.ProductId,
-          existingCodes,
-          codesNeeded,
-        });
-      }
-
-      // Generate all needed codes in a single request
-      let allNewCodes: string[] = [];
-      if (totalCodesNeeded > 0) {
-        allNewCodes = await generateBatchWarrantyCodes(branchCode, yearMonth, totalCodesNeeded);
-      }
-
-      // Create expanded items with individual warranties
-      const expandedItems: any[] = [];
-      let usedCodesCount = 0;
-
-      for (let i = 0; i < productCodeNeeds.length; i++) {
-        const product = selectedProducts[i];
-        const { existingCodes, codesNeeded } = productCodeNeeds[i];
-
-        // Get the slice of new codes for this product
-        const productNewCodes = allNewCodes.slice(usedCodesCount, usedCodesCount + codesNeeded);
-        usedCodesCount += codesNeeded;
-
-        // Combine existing and new codes
-        let warrantyCodes = [...existingCodes];
-        if (codesNeeded > 0) {
-          warrantyCodes = [...warrantyCodes, ...productNewCodes];
-        } else if (product.quantity < existingCodes.length) {
-          warrantyCodes = warrantyCodes.slice(0, product.quantity);
-        }
-
-        // Find all warranty items for this product
-        const items = productsWithWarranty.filter((p) => p.ProductId === product.ProductId);
-
-        for (let j = 0; j < product.quantity; j++) {
-          // Try to use existing warranty item if available
-          const existingItem = items[j];
-          expandedItems.push({
-            ...product,
-            itemIndex: j,
-            itemNumber: j + 1,
-            singleItemId: `${product.ProductId}-${j}`,
-            warranty: existingItem?.warranty
-              ? { ...existingItem.warranty, warrantycode: warrantyCodes[j] || "" }
-              : {
-                  ProductId: product.ProductId,
-                  startdate: startDate,
-                  expirydate: endDate,
-                  warrantycode: warrantyCodes[j] || "",
-                  hasWarranty: true,
-                },
-          });
-        }
-      }
-
-      setProductsWithWarranty(expandedItems);
-    } catch (error) {
-      console.error("Error updating warranty codes:", error);
-      message.error("خطا در به‌روزرسانی کدهای گارانتی");
-    } finally {
-      setIsGeneratingCodes(false);
-    }
+    await doUpdateWarranties(
+      selectedProducts, isGeneratingCodes, branch, productsWithWarranty,
+      setProductsWithWarranty, setIsGeneratingCodes, generateBatchWarrantyCodes
+    );
   }, [selectedProducts, isGeneratingCodes, branch, productsWithWarranty, setProductsWithWarranty]);
 
   // Use effect to trigger warranty update when products change
   useEffect(() => {
     if (selectedProducts.length > 0 && !isGeneratingCodes) {
-      try {
-        updateWarranties();
-      } catch (error) {
-        console.error("Error processing individual items:", error);
-      }
+      updateWarranties();
     }
   }, [selectedProducts, isGeneratingCodes, updateWarranties]);
 

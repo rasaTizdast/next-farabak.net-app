@@ -90,19 +90,10 @@ function BranchesPageContent() {
 
   // Load data when component mounts and set up auto-refresh
   useEffect(() => {
-    const loadInitialData = async () => {
-      setInitialLoading(true);
-
-      try {
-        await Promise.all([fetchBranches(), fetchAllProducts()]);
-      } catch (error) {
-        console.error("Error loading initial data:", error);
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-
-    loadInitialData();
+    setInitialLoading(true);
+    Promise.all([fetchBranches(), fetchAllProducts()])
+      .catch((error) => console.error("Error loading initial data:", error))
+      .finally(() => setInitialLoading(false));
 
     // Set up auto-refresh interval (30 seconds)
     const intervalId = setInterval(() => {

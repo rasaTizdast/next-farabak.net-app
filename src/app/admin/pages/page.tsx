@@ -137,7 +137,11 @@ const AdminPageManager: React.FC = () => {
     }
   };
 
-  const deleteItem = async (type: string, id: number) => {
+  async function doDeleteItem(
+    type: string,
+    id: number,
+    fetchPageData: () => void
+  ) {
     try {
       let endpoint = "";
 
@@ -173,6 +177,10 @@ const AdminPageManager: React.FC = () => {
       console.error("Error deleting item:", error);
       toast.error("خطا در ارتباط با سرور");
     }
+  }
+
+  const deleteItem = async (type: string, id: number) => {
+    await doDeleteItem(type, id, fetchPageData);
   };
 
   const handleQrCodeModal = (blog: {

@@ -91,18 +91,19 @@ const ProductsTable = ({
   const [qrCodeProduct, setQrCodeProduct] = useState<Product | null>(null);
 
   const [usdRate, setUsdRate] = useState<number | null>(null);
+  async function loadUsdRate() {
+    try {
+      const rate = await fetchUsdToRialRate();
+      setUsdRate(rate);
+    } catch (error) {
+      console.error("Failed to fetch USD rate:", error);
+      setUsdRate(null);
+    }
+  }
+
   // Fetch the rate when the component mounts
   useEffect(() => {
-    const fetchExchangeRate = async () => {
-      try {
-        const rate = await fetchUsdToRialRate();
-        setUsdRate(rate);
-      } catch (error) {
-        console.error("Failed to fetch USD rate:", error);
-        setUsdRate(null); // Don't set a fallback value to properly handle invalid rates
-      }
-    };
-    fetchExchangeRate();
+    loadUsdRate();
   }, []);
 
   // Check if the USD rate is valid

@@ -35,12 +35,13 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
   );
   const products: Product[] = productsData?.data || [];
 
-  const handleSearch = async () => {
-    if (!selectedProduct) {
-      message.warning("لطفا یک محصول انتخاب کنید");
-      return;
-    }
-
+  async function doBranchProductSearch(
+    selectedProduct: number,
+    setSearchLoading: React.Dispatch<React.SetStateAction<boolean>>,
+    setSearchPerformed: React.Dispatch<React.SetStateAction<boolean>>,
+    setBranchProducts: React.Dispatch<React.SetStateAction<BranchProduct[]>>,
+    products: Product[]
+  ) {
     try {
       setSearchLoading(true);
       setSearchPerformed(true);
@@ -78,6 +79,15 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
     } finally {
       setSearchLoading(false);
     }
+  }
+
+  const handleSearch = async () => {
+    if (!selectedProduct) {
+      message.warning("لطفا یک محصول انتخاب کنید");
+      return;
+    }
+
+    await doBranchProductSearch(selectedProduct, setSearchLoading, setSearchPerformed, setBranchProducts, products);
   };
 
   // More compact columns for side-by-side layout

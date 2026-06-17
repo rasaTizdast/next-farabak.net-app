@@ -30,6 +30,11 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
   const [lastX, setLastX] = useState(0);
   const lastTimeRef = useRef(0);
   const animationFrameRef = useRef<number | null>(null);
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const lastXRef = useRef(0);
+  const velocityRef = useRef(0);
 
   const isValidRate = usdRate && !isNaN(usdRate) && (usdRate as number) > 0;
 
@@ -56,13 +61,6 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
       setVelocity(0);
     }
   }, []);
-
-  // Use refs for frequently-changing values to avoid useCallback dependency churn
-  const isDraggingRef = useRef(false);
-  const startXRef = useRef(0);
-  const scrollLeftRef = useRef(0);
-  const lastXRef = useRef(0);
-  const velocityRef = useRef(0);
 
   // Sync state to refs
   isDraggingRef.current = isDragging;

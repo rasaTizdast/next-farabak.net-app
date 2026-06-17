@@ -23,7 +23,12 @@ const DeleteOverviewDetailButton = ({
     productsCount: number;
   }>({ isInUse: false, productsCount: 0 });
 
-  const checkIfInUse = async () => {
+  async function doCheckInUse(
+    detailId: number,
+    setIsLoading: (v: boolean) => void,
+    setInUseInfo: (info: { isInUse: boolean; productsCount: number }) => void,
+    setShowConfirmModal: (v: boolean) => void
+  ) {
     setIsLoading(true);
     try {
       const response = await fetch(`/api/productOverviewDetails/checkUsage/${detailId}`);
@@ -37,6 +42,10 @@ const DeleteOverviewDetailButton = ({
     } finally {
       setIsLoading(false);
     }
+  }
+
+  const checkIfInUse = async () => {
+    await doCheckInUse(detailId, setIsLoading, setInUseInfo, setShowConfirmModal);
   };
 
   const handleDelete = async () => {

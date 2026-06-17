@@ -43,40 +43,48 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
     totalPages: 0,
   });
 
+  async function doFetchRequests(
+    page: number,
+    pageSize: number,
+    skipCheck: boolean,
+    isTabActive: boolean,
+    dataFetched: boolean,
+    lastFetchTime: number
+  ) {
+    if (!isTabActive && !skipCheck) return;
+    const now = Date.now();
+    if (!skipCheck && now - lastFetchTime < 10000 && dataFetched) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/admin/warranty/requests?page=${page}&limit=${pageSize}`);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch warranty requests");
+      }
+
+      const data = await response.json();
+
+      setRequests(data.requests);
+      setPagination({
+        current: data.pagination.currentPage,
+        pageSize: data.pagination.pageSize,
+        total: data.pagination.totalCount,
+        totalPages: data.pagination.totalPages,
+      });
+      setDataFetched(true);
+      setLastFetchTime(now);
+    } catch (err: any) {
+      console.error("[Client] Error fetching warranty requests:", err);
+      setError(err.message || "خطا در دریافت درخواست‌های گارانتی");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const fetchRequests = useCallback(
     async (page: number = 1, pageSize: number = 10, force: boolean = false) => {
-      // Skip if not active and not forced
-      if (!isTabActive && !force) return;
-
-      // Skip if we've fetched in the last 10 seconds and not forced
-      const now = Date.now();
-      if (!force && now - lastFetchTime < 10000 && dataFetched) return;
-
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/admin/warranty/requests?page=${page}&limit=${pageSize}`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch warranty requests");
-        }
-
-        const data = await response.json();
-
-        setRequests(data.requests);
-        setPagination({
-          current: data.pagination.currentPage,
-          pageSize: data.pagination.pageSize,
-          total: data.pagination.totalCount,
-          totalPages: data.pagination.totalPages,
-        });
-        setDataFetched(true);
-        setLastFetchTime(now);
-      } catch (err: any) {
-        console.error("[Client] Error fetching warranty requests:", err);
-        setError(err.message || "خطا در دریافت درخواست‌های گارانتی");
-      } finally {
-        setLoading(false);
-      }
+      await doFetchRequests(page, pageSize, force, isTabActive, dataFetched, lastFetchTime);
     },
     [isTabActive, dataFetched, lastFetchTime]
   );

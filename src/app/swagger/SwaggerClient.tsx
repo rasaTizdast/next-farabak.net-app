@@ -19,20 +19,20 @@ interface SwaggerSpec {
 export default function SwaggerClient() {
   const [spec, setSpec] = useState<SwaggerSpec | null>(null);
 
-  useEffect(() => {
-    const fetchSwaggerSpec = async () => {
-      try {
-        const response = await fetch("/api/swagger");
-        if (!response.ok) {
-          throw new Error("Failed to fetch Swagger spec");
-        }
-        const data = await response.json();
-        setSpec(data);
-      } catch (error) {
-        throw new Error("Error fetching Swagger spec:", error!);
+  async function fetchSwaggerSpec() {
+    try {
+      const response = await fetch("/api/swagger");
+      if (!response.ok) {
+        throw new Error("Failed to fetch Swagger spec");
       }
-    };
+      const data = await response.json();
+      setSpec(data);
+    } catch (error) {
+      console.error("Error fetching Swagger spec:", error);
+    }
+  }
 
+  useEffect(() => {
     fetchSwaggerSpec();
   }, []);
 

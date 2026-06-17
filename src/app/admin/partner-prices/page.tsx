@@ -60,8 +60,12 @@ export default function AdminPartnerPricesPage() {
   // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => { fetchData(); }, []);
 
+  async function loadUsdRate() {
+    try { const rate = await fetchUsdToRialRate(); if (rate && rate > 0) setUsdRate(rate); } catch {}
+  }
+
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { (async () => { try { const rate = await fetchUsdToRialRate(); if (rate && rate > 0) setUsdRate(rate); } catch {} })(); }, []);
+  useEffect(() => { loadUsdRate(); }, []);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedKeyword(keyword), 300);

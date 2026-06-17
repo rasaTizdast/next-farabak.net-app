@@ -43,13 +43,18 @@ export default function BranchPartnerPricesPage() {
     link: p.link,
   }));
 
+  async function doFetchUsdRate(
+    fetchUsdToRialRate: () => Promise<number>,
+    setUsdRate: (rate: number) => void
+  ) {
+    try {
+      const rate = await fetchUsdToRialRate();
+      if (rate && rate > 0) setUsdRate(rate);
+    } catch {}
+  }
+
   useEffect(() => {
-    (async () => {
-      try {
-        const rate = await fetchUsdToRialRate();
-        if (rate && rate > 0) setUsdRate(rate);
-      } catch {}
-    })();
+    doFetchUsdRate(fetchUsdToRialRate, setUsdRate);
   }, []);
 
   useEffect(() => {

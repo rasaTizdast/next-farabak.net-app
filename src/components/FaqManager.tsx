@@ -23,6 +23,41 @@ interface FaqManagerProps {
   onClose: () => void;
 }
 
+async function doUpdateFaqOrder(
+  updatedFaqs: FaqItem[],
+  originalFaqs: FaqItem[],
+  updateFaq: (url: string, body: any) => Promise<any>,
+  fetchFaqs: () => void,
+  setFaqs: (faqs: FaqItem[]) => void
+) {
+  try {
+    const faqsToUpdate = updatedFaqs.filter((updatedFaq) => {
+      const originalFaq = originalFaqs.find((f) => f.id === updatedFaq.id);
+      return originalFaq && originalFaq.order !== updatedFaq.order;
+    });
+
+    const results = await Promise.all(
+      faqsToUpdate.map(async (faq) => {
+        if (faq.id) {
+          return updateFaq(`/api/blogs/faqs/${faq.id}`, { order: faq.order });
+        }
+        return null;
+      })
+    );
+
+    if (results.every((r) => r !== null)) {
+      fetchFaqs();
+      toast.success("ترتیب سوالات با موفقیت تغییر کرد");
+    } else {
+      throw new Error("Failed to update FAQ order");
+    }
+  } catch (error) {
+    console.error("Error updating FAQ order:", error);
+    toast.error("خطا در تغییر ترتیب سوالات");
+    setFaqs(originalFaqs);
+  }
+}
+
 const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
   const [editingFaq, setEditingFaq] = useState<number | null>(null);
@@ -165,44 +200,7 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
     // Update UI immediately
     setFaqs(updatedFaqs);
 
-    // Update order in database - update all FAQs that have changed order
-    try {
-      // Find all FAQs that have different order values
-      const faqsToUpdate = updatedFaqs.filter((updatedFaq) => {
-        const originalFaq = faqs.find((f) => f.id === updatedFaq.id);
-        return originalFaq && originalFaq.order !== updatedFaq.order;
-      });
-
-      console.log(
-        "Updating order for FAQs:",
-        faqsToUpdate.map((f) => ({
-          id: f.id,
-          oldOrder: faqs.find((orig) => orig.id === f.id)?.order,
-          newOrder: f.order,
-        }))
-      );
-
-      // Update all changed FAQs
-      const results = await Promise.all(
-        faqsToUpdate.map(async (faq) => {
-          if (faq.id) {
-            return updateFaq(`/api/blogs/faqs/${faq.id}`, { order: faq.order });
-          }
-          return null;
-        })
-      );
-
-      if (results.every((r) => r !== null)) {
-        fetchFaqs();
-        toast.success("ترتیب سوالات با موفقیت تغییر کرد");
-      } else {
-        throw new Error("Failed to update FAQ order");
-      }
-    } catch (error) {
-      console.error("Error updating FAQ order:", error);
-      toast.error("خطا در تغییر ترتیب سوالات");
-      setFaqs(faqs);
-    }
+    await doUpdateFaqOrder(updatedFaqs, faqs, updateFaq, fetchFaqs, setFaqs);
 
     setDraggedItem(null);
   };

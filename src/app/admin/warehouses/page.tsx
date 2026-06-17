@@ -67,7 +67,15 @@ function WarehousesPageContent() {
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3000);
   };
 
-  const fetchWarehouses = async (searchProductId?: string) => {
+  async function doFetchWarehouses(
+    searchProductId: string | undefined,
+    page: number,
+    q: string,
+    setLoading: (v: boolean) => void,
+    setItems: (items: any[]) => void,
+    setTotal: (total: number) => void,
+    notify: (type: "success" | "error" | "warning", text: string) => void
+  ) {
     setLoading(true);
     try {
       const params: Record<string, any> = {
@@ -108,6 +116,10 @@ function WarehousesPageContent() {
     } finally {
       setLoading(false);
     }
+  }
+
+  const fetchWarehouses = async (searchProductId?: string) => {
+    await doFetchWarehouses(searchProductId, page, q, setLoading, setItems, setTotal, notify);
   };
 
   const searchProductInWarehouses = async (searchProductId: number) => {

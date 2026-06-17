@@ -76,20 +76,21 @@ export default function ProductsModal({
     remove: Record<number, boolean>;
   }>({ add: false, modify: {}, remove: {} });
 
+  async function loadProducts(whId: number) {
+    setProductLoading(true);
+    try {
+      const res = await axios.get(`/api/admin/warehouses/${whId}/products`);
+      setProducts(res.data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setProductLoading(false);
+    }
+  }
+
   useEffect(() => {
-    const fetch = async () => {
-      if (!open || !warehouseId) return;
-      setProductLoading(true);
-      try {
-        const res = await axios.get(`/api/admin/warehouses/${warehouseId}/products`);
-        setProducts(res.data);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setProductLoading(false);
-      }
-    };
-    fetch();
+    if (!open || !warehouseId) return;
+    loadProducts(warehouseId);
   }, [open, warehouseId]);
 
   const updateQuantity = async (wpId: number, value: number) => {

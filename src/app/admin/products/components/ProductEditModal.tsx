@@ -154,11 +154,12 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     }
   }, [faqs]);
 
-  const imageUploader = async (
+  async function doUploadImage(
     image: File | null,
     productName: string,
-    imageType: "banner" | "mini"
-  ) => {
+    imageType: "banner" | "mini",
+    postMutation: { mutate: (url: string, body: any) => Promise<any> }
+  ) {
     if (!image || !productName) {
       return null;
     }
@@ -186,6 +187,14 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     }
 
     return key;
+  }
+
+  const imageUploader = async (
+    image: File | null,
+    productName: string,
+    imageType: "banner" | "mini"
+  ) => {
+    return doUploadImage(image, productName, imageType, postMutation);
   };
 
   const handleImageUpdate = async (productId: number, productName: string) => {

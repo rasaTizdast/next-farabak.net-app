@@ -132,31 +132,32 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
     setCurrentStep(currentStep - 1);
   };
 
-  const handleSubmit = async () => {
+  async function doSubmitInvoice(
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+    productsWithWarranty: any[],
+    invoice: Partial<Invoice>,
+    branch: Branch,
+    createInvoiceMutate: any,
+    onSuccess?: () => void,
+    handleClose?: () => void
+  ) {
     setIsLoading(true);
     try {
-      // With the new approach, each item already has its own warranty
-      // Just need to make sure each item has quantity=1
       const individualItems = productsWithWarranty.map((item) => ({
         ProductId: item.ProductId,
-        quantity: 1, // Each item has quantity 1
+        quantity: 1,
         price: item.price,
         total_price: item.price,
         warranty: item.warranty.hasWarranty
-          ? {
-              ...item.warranty,
-              hasWarranty: true,
-            }
+          ? { ...item.warranty, hasWarranty: true }
           : null,
       }));
 
-      // Prepare data for submission with individual items
       const invoiceData = {
         ...invoice,
         products: individualItems,
       };
 
-      // Submit invoice data
       const result = await createInvoiceMutate("/api/admin/invoices", {
         branchId: branch.branchid,
         invoiceData,
@@ -169,11 +170,10 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
 
       message.success("فاکتور با موفقیت ثبت شد");
 
-      // Call onSuccess callback if provided
       if (onSuccess) {
         onSuccess();
       } else {
-        handleClose(); // Only close if onSuccess is not provided
+        handleClose?.();
       }
     } catch (error) {
       console.error("Error creating invoice:", error);
@@ -181,6 +181,13 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
     } finally {
       setIsLoading(false);
     }
+  }
+
+  const handleSubmit = async () => {
+    await doSubmitInvoice(
+      setIsLoading, productsWithWarranty, invoice, branch,
+      createInvoiceMutate, onSuccess, handleClose
+    );
   };
 
   return (
