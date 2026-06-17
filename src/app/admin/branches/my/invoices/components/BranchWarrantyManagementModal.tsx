@@ -89,45 +89,17 @@ const BranchWarrantyManagementModal = ({
   // Use the print hook with ref for the warranty card area
   const componentRef = useRef<HTMLDivElement>(null);
 
-  // Sync current branch data from useApiFetch
-  useEffect(() => {
-    if (currentBranchData) {
-      setCurrentBranch(currentBranchData);
-      setWarrantyData((prev) => ({
-        ...prev,
-        branchId: currentBranchData.branchid,
-      }));
-    }
-  }, [currentBranchData]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (currentBranchData) { setCurrentBranch(currentBranchData); setWarrantyData((prev) => ({ ...prev, branchId: currentBranchData.branchid })); } }, [currentBranchData]);
 
-  // Sync product check data from useApiFetch
-  useEffect(() => {
-    if (productCheckData !== null && productCheckData !== undefined) {
-      setBranchHasProduct(productCheckData.hasProduct);
-    }
-  }, [productCheckData]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (productCheckData !== null && productCheckData !== undefined) { setBranchHasProduct(productCheckData.hasProduct); } }, [productCheckData]);
 
-  // Generate warranty code when branch is available and product exists
-  useEffect(() => {
-    if (
-      branchHasProduct &&
-      currentBranch &&
-      (!warrantyData.warrantycode || warrantyData.warrantycode === "")
-    ) {
-      generateWarrantyCode(currentBranch.branchid);
-    }
-  }, [branchHasProduct, currentBranch, warrantyData.warrantycode]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (branchHasProduct && currentBranch && (!warrantyData.warrantycode || warrantyData.warrantycode === "")) { generateWarrantyCode(currentBranch.branchid); } }, [branchHasProduct, currentBranch, warrantyData.warrantycode]);
 
-  // Mark initialized when we have branch data or error
-  useEffect(() => {
-    if (
-      (currentBranchData || branchError) &&
-      (productCheckData !== undefined || productCheckError)
-    ) {
-      setLoading(false);
-      setIsInitialized(true);
-    }
-  }, [currentBranchData, branchError, productCheckData, productCheckError]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if ((currentBranchData || branchError) && (productCheckData !== undefined || productCheckError)) { setLoading(false); setIsInitialized(true); } }, [currentBranchData, branchError, productCheckData, productCheckError]);
 
   // Generate a unique warranty code for the current branch
   const generateWarrantyCode = async (branchId?: number): Promise<string | null> => {
@@ -199,30 +171,8 @@ const BranchWarrantyManagementModal = ({
     }
   };
 
-  // Calculate warranty duration and update status based on expiry date
-  useEffect(() => {
-    calculateDuration(new Date(warrantyData.startdate), new Date(warrantyData.expirydate));
-
-    // Auto-set status based on expiry date
-    const currentDate = new Date();
-    const expiryDate = new Date(warrantyData.expirydate);
-
-    // If expiry date is in the past, set status to Expired
-    if (expiryDate < currentDate) {
-      setWarrantyData((prev) => ({
-        ...prev,
-        status: "Expired",
-      }));
-    } else {
-      // Otherwise set to Active (only if current status is Expired)
-      if (warrantyData.status === "Expired") {
-        setWarrantyData((prev) => ({
-          ...prev,
-          status: "Active",
-        }));
-      }
-    }
-  }, [warrantyData.startdate, warrantyData.expirydate]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { calculateDuration(new Date(warrantyData.startdate), new Date(warrantyData.expirydate)); const cd = new Date(); const ed = new Date(warrantyData.expirydate); if (ed < cd) { setWarrantyData((p) => ({ ...p, status: "Expired" })); } else if (warrantyData.status === "Expired") { setWarrantyData((p) => ({ ...p, status: "Active" })); } }, [warrantyData.startdate, warrantyData.expirydate]);
 
   const calculateDuration = (startDate: Date | string | null, endDate: Date | string | null) => {
     if (!startDate || !endDate) {

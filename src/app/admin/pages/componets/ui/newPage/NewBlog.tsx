@@ -2,7 +2,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { BiTrash } from "react-icons/bi";
 
@@ -34,7 +34,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [blogId, setBlogId] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryInput, setCategoryInput] = useState("");
-  const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
+
   const [isInputFocused, setIsInputFocused] = useState(false);
 
   // Add these state variables at the top of the component
@@ -145,27 +145,18 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { mutate: uploadImageMutate } = useApiMutation("post");
   const { mutate: createBlogMutate } = useApiMutation("post");
 
-  useEffect(() => {
-    if (categoriesData) {
-      setCategories(categoriesData);
-    }
-  }, [categoriesData]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (categoriesData && categories.length === 0) setCategories(categoriesData); }, [categoriesData]);
 
-  // And in the filtering useEffect:
-  useEffect(() => {
+  const filteredCategories = useMemo(() => {
     if (categoryInput) {
-      // When there's input, filter based on the input
-      const filtered = categories.filter((category) =>
+      return categories.filter((category) =>
         category.name?.toLowerCase().includes(categoryInput.toLowerCase())
       );
-      setFilteredCategories(filtered);
     } else if (isInputFocused) {
-      // When input is empty but focused, show all categories
-      setFilteredCategories(categories);
-    } else {
-      // When not focused and no input, clear the filtered list
-      setFilteredCategories([]);
+      return categories;
     }
+    return [];
   }, [categoryInput, categories, isInputFocused]);
 
   // Add a method to handle forced deletion

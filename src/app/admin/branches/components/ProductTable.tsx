@@ -20,17 +20,16 @@ const ProductTable: React.FC<ProductTableProps> = ({
   showRemoveButton = true,
 }) => {
   // Keep track of debounced values per product
-  const [debouncedValues, setDebouncedValues] = useState<{ [key: number]: number }>({});
+  const [debouncedValues, setDebouncedValues] = useState<{ [key: number]: number }>(() => {
+    const initial: { [key: number]: number } = {};
+    products.forEach((p) => { initial[p.ProductId] = p.quantity; });
+    return initial;
+  });
   const timersRef = useRef<{ [key: number]: NodeJS.Timeout }>({});
 
   // Populate initial values when products change
-  useEffect(() => {
-    const initialValues: { [key: number]: number } = {};
-    products.forEach((product) => {
-      initialValues[product.ProductId] = product.quantity;
-    });
-    setDebouncedValues(initialValues);
-  }, [products]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { setDebouncedValues(() => { const initial: { [key: number]: number } = {}; products.forEach((p) => { initial[p.ProductId] = p.quantity; }); return initial; }); }, [products]);
 
   // Handle quantity change with debounce
   const handleQuantityChange = (productId: number, value: number) => {

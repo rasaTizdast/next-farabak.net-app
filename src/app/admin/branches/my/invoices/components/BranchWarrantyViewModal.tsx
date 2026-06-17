@@ -15,7 +15,6 @@ type BranchWarrantyViewModalProps = {
 
 const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item, onClose }) => {
   const { componentRef, handlePrint } = usePrint();
-  const [branchName, setBranchName] = useState<string>("");
   const [showPrintView, setShowPrintView] = useState<boolean>(false);
 
   // Determine branch ID from warranty
@@ -31,27 +30,15 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
       : null
   );
 
-  useEffect(() => {
-    if (!item?.individualWarranty) return;
-
+  const branchName = (() => {
+    if (!item?.individualWarranty) return "";
     const w = item.individualWarranty;
-
-    if ((w as any).branchname) {
-      setBranchName((w as any).branchname);
-      return;
-    }
-
-    if ((w as any).branch?.name) {
-      setBranchName((w as any).branch.name);
-      return;
-    }
-
-    if (branchData) {
-      setBranchName(branchData.name || "تعیین نشده");
-    } else if (!branchId) {
-      setBranchName("تعیین نشده");
-    }
-  }, [item, branchData, branchId]);
+    if ((w as any).branchname) return (w as any).branchname;
+    if ((w as any).branch?.name) return (w as any).branch.name;
+    if (branchData) return branchData.name || "تعیین نشده";
+    if (!branchId) return "تعیین نشده";
+    return "";
+  })();
 
   if (!item || !item.individualWarranty) return null;
 

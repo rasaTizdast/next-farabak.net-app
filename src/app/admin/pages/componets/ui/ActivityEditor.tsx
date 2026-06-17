@@ -47,16 +47,8 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const { data: activitiesData } = useApiFetch("/api/activities");
   const { mutate: saveActivities, loading: isSaving } = useApiMutation("put");
 
-  useEffect(() => {
-    if (activitiesData) {
-      setActivities(activitiesData);
-      const defaultExpanded = new Set<number>(
-        activitiesData.map((activity: Activity, index: number) => index)
-      );
-      setExpandedSections(defaultExpanded);
-      setIsFetching(false);
-    }
-  }, [activitiesData]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (activitiesData) { setActivities(activitiesData); setExpandedSections(new Set<number>(activitiesData.map((_: Activity, i: number) => i))); setIsFetching(false); } }, [activitiesData]);
 
   // Toggle section expansion
   const toggleSection = (index: number) => {

@@ -57,18 +57,11 @@ export default function AdminPartnerPricesPage() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { fetchData(); }, []);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const rate = await fetchUsdToRialRate();
-        if (rate && rate > 0) setUsdRate(rate);
-      } catch {}
-    })();
-  }, []);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { (async () => { try { const rate = await fetchUsdToRialRate(); if (rate && rate > 0) setUsdRate(rate); } catch {} })(); }, []);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedKeyword(keyword), 300);

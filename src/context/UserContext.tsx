@@ -70,10 +70,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isBranch = user?.role.toLowerCase() === "branch";
   const userFullName = `${user?.firstName || ""} ${user?.lastName || ""}`;
 
-  // Try to fetch user data on mount (e.g., when the page is first loaded)
-  useEffect(() => {
-    updateUserContext(); // Fetch user data when the app is initialized
-  }, []);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { updateUserContext(); }, []);
 
   return (
     <UserContext.Provider

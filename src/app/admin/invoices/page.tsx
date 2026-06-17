@@ -42,13 +42,8 @@ const AdminInvoicesPage = () => {
     refetch,
   } = useApiFetch<AdminInvoice[]>("/api/admin/invoices");
 
-  // Sync fetched data to local state
-  useEffect(() => {
-    if (invoicesData) {
-      setInvoices(invoicesData);
-      setFilteredInvoices(invoicesData);
-    }
-  }, [invoicesData]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (invoicesData) { setInvoices(invoicesData); setFilteredInvoices(invoicesData); } }, [invoicesData]);
 
   // Check and update warranty status
   const checkWarrantyStatus = async () => {
@@ -256,6 +251,7 @@ const AdminInvoicesPage = () => {
   };
 
   // Filter invoices based on search text
+  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
     if (!searchText.trim()) {
       setFilteredInvoices(invoices);

@@ -19,7 +19,6 @@ const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Prop
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isListening, setIsListening] = useState(false);
 
   // Number of items to show when collapsed
   const COLLAPSED_ITEM_COUNT = 3;
@@ -64,19 +63,12 @@ const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Prop
   useEffect(() => {
     fetchData();
 
-    // Set up event listener for refresh event
-    if (!isListening) {
-      document.addEventListener("refreshOverviewDetails", fetchData);
-      setIsListening(true);
-    }
+    document.addEventListener("refreshOverviewDetails", fetchData);
 
-    // Cleanup function
     return () => {
-      if (isListening) {
-        document.removeEventListener("refreshOverviewDetails", fetchData);
-      }
+      document.removeEventListener("refreshOverviewDetails", fetchData);
     };
-  }, [productId, isListening]);
+  }, [productId]);
 
   const toggleSelection = (detailId: number) => {
     const updatedDetails = allOverviewDetails.map((detail) =>

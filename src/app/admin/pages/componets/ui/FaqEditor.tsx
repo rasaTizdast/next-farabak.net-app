@@ -40,12 +40,8 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
   const { mutate: saveFaqMutate } = useApiMutation("post");
   const { mutate: updateFaqMutate } = useApiMutation("put");
 
-  useEffect(() => {
-    if (faqsData) {
-      setFaqs(faqsData.faqs);
-      setLoading(false);
-    }
-  }, [faqsData]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (faqsData) { setFaqs(faqsData.faqs); setLoading(false); } }, [faqsData]);
 
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

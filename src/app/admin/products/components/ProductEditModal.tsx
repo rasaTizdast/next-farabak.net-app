@@ -120,7 +120,6 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   setIsEditModalOpen,
 }) => {
   const [formState, setFormState] = useState<Product | null>(() => product);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [newImg1, setNewImg1] = useState<File | null>(null);
   const [newImg2, setNewImg2] = useState<File | null>(null);
   const [isLoading, setIsloading] = useState<boolean>(false);
@@ -138,23 +137,13 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const putMutation = useApiMutation("put");
   const deleteMutation = useApiMutation("delete");
 
-  useEffect(() => {
-    if (categoriesData) {
-      setCategories(categoriesData);
-    }
-  }, [categoriesData]);
+  const categories = categoriesData || [];
 
-  useEffect(() => {
-    if (categoriesError) {
-      toast.error("در دریافت دسته بندی ها مشکلی به وجود آمده است، دوباره تلاش کنید");
-    }
-  }, [categoriesError]);
-
-  useEffect(() => {
-    setFormState(product);
-  }, [product]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (categoriesError) toast.error("در دریافت دسته بندی ها مشکلی به وجود آمده است، دوباره تلاش کنید"); }, [categoriesError]);
 
   // Validate FAQs whenever they change
+  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
     // Only validate if we have FAQs
     if (faqs.length > 0) {

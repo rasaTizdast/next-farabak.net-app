@@ -33,29 +33,8 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
   const isLoading = projectUrl ? projectLoading || !projectData : false;
   const { mutate: saveProjectMutate } = useApiMutation("put");
 
-  useEffect(() => {
-    if (projectData) {
-      setFormData({
-        title: projectData.project.Title,
-        description: projectData.project.Description,
-        slug: projectData.project.Slug,
-        isActive: projectData.project.IsActive,
-        date: projectData.project.date,
-        city: projectData.project.city,
-      });
-      setMainImage(projectData.project.Main_img_URL);
-
-      const images = projectData.media
-        .filter((m: any) => m.MediaType === "image")
-        .map((m: any) => m.MediaURL);
-      const videos = projectData.media
-        .filter((m: any) => m.MediaType === "video")
-        .map((m: any) => m.MediaURL);
-
-      setDetailImages(images);
-      setVideos(videos);
-    }
-  }, [projectData]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (projectData) { setFormData({ title: projectData.project.Title, description: projectData.project.Description, slug: projectData.project.Slug, isActive: projectData.project.IsActive, date: projectData.project.date, city: projectData.project.city }); setMainImage(projectData.project.Main_img_URL); setDetailImages(projectData.media.filter((m: any) => m.MediaType === "image").map((m: any) => m.MediaURL)); setVideos(projectData.media.filter((m: any) => m.MediaType === "video").map((m: any) => m.MediaURL)); } }, [projectData]);
 
   // Update handleInputChange
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

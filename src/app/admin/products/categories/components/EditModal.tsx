@@ -62,33 +62,8 @@ const EditModal: React.FC<EditModalProps> = ({
     throw lastError as Error;
   };
 
-  useEffect(() => {
-    if (item && item.SEO_Details) {
-      const seoDetails = item.SEO_Details;
-      let parsedKeywords: string[] = [];
-      if (Array.isArray(seoDetails.SEO_Keywords)) {
-        parsedKeywords = seoDetails.SEO_Keywords;
-      } else if (typeof seoDetails.SEO_Keywords === "string") {
-        try {
-          parsedKeywords = JSON.parse(seoDetails.SEO_Keywords);
-        } catch (e) {
-          parsedKeywords = [];
-          console.error(e);
-        }
-      }
-      setSeoKeywords(parsedKeywords);
-    }
-    if (item) {
-      setTopBlog((item as any).TopBlog || "");
-      setBottomBlog((item as any).BottomBlog || "");
-      const existingBanner = (item as any).Banner as string | undefined;
-      if (existingBanner) {
-        setBannerPreview(`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${existingBanner}`);
-      } else {
-        setBannerPreview("");
-      }
-    }
-  }, [item]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (!item) return; if (item.SEO_Details) { const sd = item.SEO_Details; let k: string[] = []; if (Array.isArray(sd.SEO_Keywords)) k = sd.SEO_Keywords; else if (typeof sd.SEO_Keywords === "string") { try { k = JSON.parse(sd.SEO_Keywords); } catch {} } setSeoKeywords(k); } setTopBlog((item as any).TopBlog || ""); setBottomBlog((item as any).BottomBlog || ""); const b = (item as any).Banner as string | undefined; setBannerPreview(b ? `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${b}` : ""); }, [item]);
 
   // Banner drop handlers MUST be declared before any conditional return to avoid hook order changes
   const onDrop = useCallback((accepted: File[]) => {

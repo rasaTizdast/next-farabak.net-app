@@ -29,7 +29,7 @@ function BranchesPageContent() {
   const { user } = useUser();
   const currentUserId = user?.userId ? parseInt(user.userId) : undefined;
   const [branches, setBranches] = useState<Branch[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const users = usersData || [];
   const [products, setProducts] = useState<Product[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -163,10 +163,7 @@ function BranchesPageContent() {
     fetchBranchesRef.current = () => fetchBranches(pagination.current, pagination.pageSize);
   }, [searchProductId, pagination.current, pagination.pageSize]);
 
-  // usersData is auto-fetched via useApiFetch above
-  useEffect(() => {
-    if (usersData) setUsers(usersData);
-  }, [usersData]);
+
 
   const fetchAllProducts = async () => {
     try {

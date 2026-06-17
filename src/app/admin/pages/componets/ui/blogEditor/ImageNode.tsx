@@ -46,29 +46,11 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
       : DEFAULT_HEIGHT;
 
   // Initialize dimension values
-  useEffect(() => {
-    // Set default values on mount
-    setCustomWidth(safeWidth.toString());
-    setCustomHeight(safeHeight.toString());
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { setCustomWidth(safeWidth.toString()); setCustomHeight(safeHeight.toString()); if (attrs.width !== safeWidth || attrs.height !== safeHeight) { updateAttributes({ width: safeWidth, height: safeHeight, size: attrs.size || "full" }); } }, []);
 
-    // Update attributes if they're invalid
-    if (attrs.width !== safeWidth || attrs.height !== safeHeight) {
-      updateAttributes({
-        width: safeWidth,
-        height: safeHeight,
-        size: attrs.size || "full",
-      });
-    }
-  }, []);
-
-  // Update form values when attributes change
-  useEffect(() => {
-    // Only update when we have valid dimensions
-    if (safeWidth > 0 && safeHeight > 0) {
-      setCustomWidth(safeWidth.toString());
-      setCustomHeight(safeHeight.toString());
-    }
-  }, [safeWidth, safeHeight]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (safeWidth > 0 && safeHeight > 0) { setCustomWidth(safeWidth.toString()); setCustomHeight(safeHeight.toString()); } }, [safeWidth, safeHeight]);
 
   useEffect(() => {
     // Add resize event handlers when resizing

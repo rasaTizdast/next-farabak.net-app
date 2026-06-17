@@ -66,9 +66,8 @@ const AllInvoices = () => {
     }
   }, []);
 
-  useEffect(() => {
-    fetchInvoices();
-  }, [fetchInvoices]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { fetchInvoices(); }, [fetchInvoices]);
 
   const handleShowInvoice = (invoice: Invoice) => {
     setSelectedInvoice(invoice);

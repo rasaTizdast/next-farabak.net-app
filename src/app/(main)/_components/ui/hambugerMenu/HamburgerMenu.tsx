@@ -2,7 +2,7 @@
 
 import { Divide } from "hamburger-react";
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { PiUserCircleDashedFill } from "react-icons/pi";
 
@@ -14,8 +14,7 @@ const HamburgerMenu = () => {
   const [isOpen, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const { isLoggedIn, isAdmin } = useUser(); // Use the user context
-  const [userLoggedIn, setUserLoggedIn] = useState(isLoggedIn);
+  const { isLoggedIn, isAdmin } = useUser();
 
   const handleClickOutside = (event: MouseEvent) => {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -37,11 +36,6 @@ const HamburgerMenu = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
-
-  // Re-render when the isLoggedIn value changes in context
-  useEffect(() => {
-    setUserLoggedIn(isLoggedIn);
-  }, [isLoggedIn]);
 
   return (
     <div className={`${styles.container}`} ref={menuRef}>
@@ -88,7 +82,7 @@ const HamburgerMenu = () => {
         </div>
 
         {/* sign-in or sign-up button */}
-        {userLoggedIn ? (
+        {isLoggedIn ? (
           isAdmin ? (
             <Link
               onClick={() => setOpen(false)}

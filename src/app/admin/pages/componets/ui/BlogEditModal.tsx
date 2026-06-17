@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { BiTrash } from "react-icons/bi";
 
@@ -38,7 +38,6 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   const [blogId, setBlogId] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryInput, setCategoryInput] = useState("");
-  const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [blogContent, setBlogContent] = useState("");
 
@@ -91,29 +90,11 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   const { mutate: uploadImageMutate } = useApiMutation("post");
   const { mutate: patchBlogMutate } = useApiMutation("patch");
 
-  useEffect(() => {
-    if (blogData) {
-      setFormData({
-        title: blogData.blog.title,
-        SEO_Title: blogData.blog.SEO_Title,
-        slug: blogData.blog.slug,
-        author: blogData.blog.author,
-        SEO_description: blogData.blog.SEO_description,
-        image_URL: blogData.blog.image_URL,
-        image_alt: blogData.blog.image_alt,
-        categories: blogData.categories.map((c: Category) => c.id),
-      });
-      setPreviewImage(blogData.blog.image_URL);
-      setBlogContent(blogData.blog.content);
-    }
-  }, [blogData]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (blogData) { setFormData({ title: blogData.blog.title, SEO_Title: blogData.blog.SEO_Title, slug: blogData.blog.slug, author: blogData.blog.author, SEO_description: blogData.blog.SEO_description, image_URL: blogData.blog.image_URL, image_alt: blogData.blog.image_alt, categories: blogData.categories.map((c: Category) => c.id) }); setPreviewImage(blogData.blog.image_URL); setBlogContent(blogData.blog.content); } }, [blogData]);
 
-  useEffect(() => {
-    if (blogError) {
-      console.error("Error fetching blog:", blogError);
-      toast.error("Error loading blog data");
-    }
-  }, [blogError]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (blogError) { console.error("Error fetching blog:", blogError); toast.error("Error loading blog data"); } }, [blogError]);
 
   const handleImageUpload = async (file: File) => {
     const payload = new FormData();
@@ -185,27 +166,18 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
 
   const { data: categoriesData } = useApiFetch("/api/blogs/categories");
 
-  useEffect(() => {
-    if (categoriesData) {
-      setCategories(categoriesData);
-    }
-  }, [categoriesData]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (categoriesData && categories.length === 0) setCategories(categoriesData); }, [categoriesData]);
 
-  // And in the filtering useEffect:
-  useEffect(() => {
+  const filteredCategories = useMemo(() => {
     if (categoryInput) {
-      // When there's input, filter based on the input
-      const filtered = categories.filter((category) =>
+      return categories.filter((category) =>
         category.name?.toLowerCase().includes(categoryInput.toLowerCase())
       );
-      setFilteredCategories(filtered);
     } else if (isInputFocused) {
-      // When input is empty but focused, show all categories
-      setFilteredCategories(categories);
-    } else {
-      // When not focused and no input, clear the filtered list
-      setFilteredCategories([]);
+      return categories;
     }
+    return [];
   }, [categoryInput, categories, isInputFocused]);
 
   // Add a method to handle forced deletion

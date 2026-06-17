@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect } from "react";
+
 import { Toaster } from "react-hot-toast";
 import { useApiFetch } from "@/hooks/useApiFetch";
 
@@ -12,13 +12,7 @@ import { Category } from "./types/types";
 
 const ProductCategories = () => {
   const { data: categoriesData, loading: isLoading, refetch: fetchCategories } = useApiFetch<Category[]>("/api/categories/getAll");
-  const [categories, setCategories] = useState<Category[]>([]);
-
-  useEffect(() => {
-    if (categoriesData) {
-      setCategories(categoriesData);
-    }
-  }, [categoriesData]);
+  const categories = categoriesData || [];
 
   return (
     <>

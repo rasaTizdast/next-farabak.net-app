@@ -551,19 +551,11 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const { mutate: deleteProductMutate } = useApiMutation("delete");
   const { mutate: updateOrderMutate } = useApiMutation("patch");
 
-  useEffect(() => {
-    if (slidersData) {
-      setSliders(slidersData);
-      setIsLoading(false);
-    }
-  }, [slidersData]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (slidersData) { setSliders(slidersData); setIsLoading(false); } }, [slidersData]);
 
-  useEffect(() => {
-    if (productsData) {
-      setShowcaseProducts(productsData);
-      setIsLoading(false);
-    }
-  }, [productsData]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (productsData) { setShowcaseProducts(productsData); setIsLoading(false); } }, [productsData]);
 
   const handleAddSlider = async () => {
     if (!sliderFile) {

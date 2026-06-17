@@ -21,12 +21,12 @@ type ImageSliderProps = {
 const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState<boolean[]>([]);
+  const [imageLoaded, setImageLoaded] = useState<boolean[]>(() => Array(slides.length).fill(false));
 
-  useEffect(() => {
-    // Initialize the loading state for each image
+  // Reset loading state when slides change
+  if (imageLoaded.length !== slides.length) {
     setImageLoaded(Array(slides.length).fill(false));
-  }, [slides]);
+  }
 
   const handleImageLoad = (index: number) => {
     setImageLoaded((prev) => {

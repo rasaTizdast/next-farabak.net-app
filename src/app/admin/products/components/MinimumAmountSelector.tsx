@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { FaTimes } from "react-icons/fa";
 import { TbShoppingCartCog } from "react-icons/tb";
@@ -43,15 +43,9 @@ const MinimumAmountSelector = ({ product, refetchProducts }: ButtonProps) => {
 export default MinimumAmountSelector;
 
 const MinimumAmountSelectorModal = ({ product, onClose, refetchProducts }: ModalProps) => {
-  const [minAmount, setMinAmount] = useState<string>("");
-  const [maxAmount, setMaxAmount] = useState<string>("");
+  const [minAmount, setMinAmount] = useState<string>(() => product.Minimum_Amount?.toString() || "");
+  const [maxAmount, setMaxAmount] = useState<string>(() => product.Maximum_Amount?.toString() || "");
   const { mutate: saveLimits, loading: isLoading } = useApiMutation("patch");
-
-  // Initialize with existing values
-  useEffect(() => {
-    setMinAmount(product.Minimum_Amount?.toString() || "");
-    setMaxAmount(product.Maximum_Amount?.toString() || "");
-  }, [product]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

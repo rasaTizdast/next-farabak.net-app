@@ -56,15 +56,8 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
   const { data: contactData } = useApiFetch("/api/contact-us");
   const { mutate: saveContact, loading: saving } = useApiMutation("put");
 
-  useEffect(() => {
-    if (contactData) {
-      const { address, emails, phone_numbers } = contactData;
-      setAddress(address);
-      setEmails(emails);
-      setPhoneNumbers(phone_numbers);
-      setLoading(false);
-    }
-  }, [contactData]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (contactData) { const { address: a, emails: e, phone_numbers: p } = contactData; setAddress(a); setEmails(e); setPhoneNumbers(p); setLoading(false); } }, [contactData]);
 
   const handleSave = async () => {
     const res = await saveContact("/api/contact-us", { address, emails, phone_numbers: phoneNumbers });

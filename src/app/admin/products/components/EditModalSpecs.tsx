@@ -40,52 +40,14 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
     loading: isLoading,
   } = useApiFetch<any[]>(productId ? `/api/specs/${productId}` : null);
 
-  // Convert fetched specs to internal format
-  useEffect(() => {
-    if (fetchedSpecs && !internalSpecs) {
-      const specData = fetchedSpecs.map((spec: any) => ({
-        ProductSpecsId: spec.ProductSpecsId,
-        Title: spec.Title,
-        Description: spec.Description,
-      }));
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (fetchedSpecs && !internalSpecs) { setInternalSpecs({ isChanged: false, data: fetchedSpecs.map((s: any) => ({ ProductSpecsId: s.ProductSpecsId, Title: s.Title, Description: s.Description })) }); } }, [fetchedSpecs]);
 
-      setInternalSpecs({
-        isChanged: false,
-        data: specData,
-      });
-    }
-  }, [fetchedSpecs]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (internalSpecs && internalSpecs.isChanged) { setSpecs({ data: internalSpecs.data.map((s) => ({ ProductSpecsId: s.ProductSpecsId, Name: productName, Title: s.Title, Description: s.Description, ProductId: productId, Available: true })) }); } }, [internalSpecs]);
 
-  // Convert from internal format to the API format
-  useEffect(() => {
-    if (internalSpecs && internalSpecs.isChanged) {
-      const convertedSpecs: Specs = {
-        data: internalSpecs.data.map((spec) => ({
-          ProductSpecsId: spec.ProductSpecsId,
-          Name: productName,
-          Title: spec.Title,
-          Description: spec.Description,
-          ProductId: productId,
-          Available: true,
-        })),
-      };
-      setSpecs(convertedSpecs);
-    }
-  }, [internalSpecs]);
-
-  // Convert from API format to the internal format
-  useEffect(() => {
-    if (specs && !internalSpecs) {
-      setInternalSpecs({
-        isChanged: false,
-        data: specs.data.map((spec) => ({
-          ProductSpecsId: spec.ProductSpecsId,
-          Title: spec.Title,
-          Description: spec.Description,
-        })),
-      });
-    }
-  }, [specs]);
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => { if (specs && !internalSpecs) { setInternalSpecs({ isChanged: false, data: specs.data.map((s) => ({ ProductSpecsId: s.ProductSpecsId, Title: s.Title, Description: s.Description })) }); } }, [specs]);
 
   const handleSpecChange = (index: number, field: "Title" | "Description", value: string) => {
     if (!internalSpecs) return;

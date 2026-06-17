@@ -44,7 +44,6 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
   } = useApiFetch<Product[]>(branchId ? `/api/admin/branches/${branchId}/products` : null);
   const [products, setProducts] = useState<ExtendedProduct[]>([]);
   const [localSelectedProducts, setLocalSelectedProducts] = useState<any[]>([]);
-  const [localSelectedProducts, setLocalSelectedProducts] = useState<any[]>([]);
   const [manualExchangeRate, setManualExchangeRate] = useState<number | null>(null);
   const [rawInput, setRawInput] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"products" | "selected">("products");
