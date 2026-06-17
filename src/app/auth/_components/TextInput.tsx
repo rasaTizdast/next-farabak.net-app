@@ -68,9 +68,14 @@ const TextInput = <T extends FieldValues>({
           )}
         />
         {type === "password" && (
-          <span className={styles.password_toggle_icon} onClick={handleTogglePassword}>
+          <button
+            type="button"
+            className={styles.password_toggle_icon}
+            onClick={handleTogglePassword}
+            aria-label={showPassword ? "مخفی کردن رمز" : "نمایش رمز"}
+          >
             {showPassword ? <FaRegEye /> : <FaRegEyeSlash />}
-          </span>
+          </button>
         )}
       </div>
       {errors[name] && <p className={styles.error}>{errors[name]?.message as string}</p>}

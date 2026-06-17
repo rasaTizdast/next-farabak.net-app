@@ -3,13 +3,13 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
-import { useApiMutation } from "@/hooks/useApiMutation";
 
 import {
   forgotPasswordSchema,
   verifyCodeSchema,
   resetPasswordSchema,
 } from "@/helpers/validationSchema";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import styles from "./ForgotPasswordModal.module.css";
 import TextInput from "./TextInput";
@@ -69,7 +69,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
   const handleEmailSubmit = async (data: { email: string }) => {
     setErrorMessage("");
 
-    const response = await forgotPassword("/api/auth/forgot-password", data) as any;
+    const response = (await forgotPassword("/api/auth/forgot-password", data)) as any;
     if (response) {
       if (response.emailSent && response.resetToken) {
         setEmail(data.email);
@@ -87,11 +87,11 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
   const handleCodeSubmit = async (data: { code: string }) => {
     setErrorMessage("");
 
-    const response = await verifyCode("/api/auth/verify-reset-code", {
+    const response = (await verifyCode("/api/auth/verify-reset-code", {
       email,
       code: data.code,
       resetToken,
-    }) as any;
+    })) as any;
     if (response) {
       if (response.valid) {
         setVerificationCode(data.code);
@@ -108,12 +108,12 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
   const handlePasswordSubmit = async (data: { password: string; confirmPassword: string }) => {
     setErrorMessage("");
 
-    const response = await resetPassword("/api/auth/reset-password", {
+    const response = (await resetPassword("/api/auth/reset-password", {
       email,
       code: verificationCode,
       newPassword: data.password,
       resetToken,
-    }) as any;
+    })) as any;
     if (response) {
       if (response.success) {
         setCurrentStep(ForgotPasswordStep.SUCCESS);
@@ -143,7 +143,12 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
-        <button type="button" className={styles.closeButton} onClick={handleClose}>
+        <button
+          type="button"
+          className={styles.closeButton}
+          onClick={handleClose}
+          aria-label="بستن"
+        >
           ×
         </button>
 

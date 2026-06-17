@@ -358,6 +358,7 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
             onClick={toggleResizeOptions}
             className="rounded-md bg-blue-600 p-1 text-white hover:bg-blue-700"
             title="تغییر اندازه"
+            aria-label="تغییر اندازه"
             type="button"
           >
             {showResizeOptions ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
@@ -370,6 +371,7 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
             className="rounded-md bg-red-600 p-1 text-white hover:bg-red-700"
             disabled={isDeleting}
             title="حذف تصویر"
+            aria-label="حذف تصویر"
           >
             <Trash2 size={20} />
           </button>

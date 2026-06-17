@@ -73,7 +73,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
           const { banner } = await blogsPromise;
           if (!banner) return null;
           const src = `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/categoryBanners/${banner.replace(/^categoryBanners\//, "")}`;
-          return <BannerImage src={src} alt="banner" />;
+          return <BannerImage src={src} alt="بنر محصول" />;
         })()}
       </Suspense>
 

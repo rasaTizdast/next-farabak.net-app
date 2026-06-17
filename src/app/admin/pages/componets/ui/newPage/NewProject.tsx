@@ -263,7 +263,7 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
                 <div className="group relative">
                   <img
                     src={URL.createObjectURL(mainImage)}
-                    alt="Main"
+                    alt="تصویر اصلی"
                     className="mx-auto max-h-48 rounded-lg"
                   />
                   <button

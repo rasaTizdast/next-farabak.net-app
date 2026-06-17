@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { BiTrash, BiEdit, BiPlus, BiCheck, BiX, BiMenu } from "react-icons/bi";
+
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
-
 import { formatJalaliDate } from "@/utils/jalaliDate";
 
 interface FaqItem {
@@ -26,9 +26,11 @@ interface FaqManagerProps {
 const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
   const [editingFaq, setEditingFaq] = useState<number | null>(null);
-  const { data: faqsData, loading: isLoading, refetch: fetchFaqs } = useApiFetch<any>(
-    blogId ? `/api/blogs/manage/${blogId}/faqs` : null
-  );
+  const {
+    data: faqsData,
+    loading: isLoading,
+    refetch: fetchFaqs,
+  } = useApiFetch<any>(blogId ? `/api/blogs/manage/${blogId}/faqs` : null);
   const { mutate: createFaq } = useApiMutation("post");
   const { mutate: updateFaq } = useApiMutation("put");
   const { mutate: deleteFaq } = useApiMutation("delete");
@@ -92,7 +94,7 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
   };
 
   const handleUpdateFaq = async (faqId: number, updatedFaq: FaqItem) => {
-    const data = await updateFaq(`/api/blogs/faqs/${faqId}`, updatedFaq) as any;
+    const data = (await updateFaq(`/api/blogs/faqs/${faqId}`, updatedFaq)) as any;
     if (data) {
       setFaqs(faqs.map((faq) => (faq.id === faqId ? data.faq : faq)));
       setEditingFaq(null);
@@ -214,7 +216,12 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
       <div className="max-h-[90vh] w-full max-w-4xl overflow-auto rounded-lg bg-gray-800 p-6 text-gray-200 shadow-xl">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-bold">مدیریت سوالات متداول</h2>
-          <button type="button" onClick={onClose} className="text-gray-400 transition-colors hover:text-gray-200">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-400 transition-colors hover:text-gray-200"
+            aria-label="بستن"
+          >
             ✕
           </button>
         </div>
@@ -256,7 +263,8 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
                 />
                 <span className="text-sm">فعال</span>
               </label>
-              <button type="button"
+              <button
+                type="button"
                 onClick={handleAddFaq}
                 className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
               >
@@ -352,17 +360,21 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
                       </div>
 
                       <div className="ml-4 flex gap-2">
-                        <button type="button"
+                        <button
+                          type="button"
                           onClick={() => setEditingFaq(faq.id!)}
                           className="rounded bg-blue-600 p-2 text-white transition-colors hover:bg-blue-700"
                           title="ویرایش"
+                          aria-label="ویرایش"
                         >
                           <BiEdit size={16} />
                         </button>
-                        <button type="button"
+                        <button
+                          type="button"
                           onClick={() => handleDeleteFaq(faq.id!)}
                           className="rounded bg-red-600 p-2 text-white transition-colors hover:bg-red-700"
                           title="حذف"
+                          aria-label="حذف"
                         >
                           <BiTrash size={16} />
                         </button>
@@ -375,7 +387,8 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button type="button"
+          <button
+            type="button"
             onClick={onClose}
             className="rounded-lg bg-gray-600 px-6 py-2 text-white transition-colors hover:bg-gray-700"
           >
@@ -439,14 +452,16 @@ const EditFaqForm: React.FC<EditFaqFormProps> = ({ faq, onSave, onCancel }) => {
           <span className="text-sm">فعال</span>
         </label>
         <div className="flex gap-2">
-          <button type="button"
+          <button
+            type="button"
             onClick={handleSave}
             className="flex items-center gap-2 rounded bg-green-600 px-3 py-1 text-white transition-colors hover:bg-green-700"
           >
             <BiCheck size={16} />
             ذخیره
           </button>
-          <button type="button"
+          <button
+            type="button"
             onClick={onCancel}
             className="flex items-center gap-2 rounded bg-gray-600 px-3 py-1 text-white transition-colors hover:bg-gray-700"
           >

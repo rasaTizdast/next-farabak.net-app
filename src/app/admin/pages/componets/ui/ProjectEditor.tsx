@@ -389,7 +389,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
                     <div className="group relative">
                       <img
                         src={getPreviewUrl(mainImage)}
-                        alt="Main"
+                        alt="تصویر اصلی"
                         className="mx-auto max-h-48 rounded-lg"
                       />
                       <button

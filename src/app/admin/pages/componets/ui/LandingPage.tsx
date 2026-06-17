@@ -41,7 +41,7 @@ const ImagePreview = ({ imageUrl, onClose }: { imageUrl: string; onClose: () => 
     <div className="relative max-h-[90vh] max-w-4xl">
       <img
         src={imageUrl}
-        alt="Full size preview"
+        alt="پیش‌نمایش کامل"
         className="max-h-[90vh] max-w-full rounded-lg object-contain"
       />
       <button type="button"
@@ -758,7 +758,7 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
       <div className="relative max-h-[95vh] w-full max-w-4xl overflow-auto rounded-lg bg-gray-900 p-6 text-gray-200 shadow-xl">
         <div className="mb-6 flex items-center justify-between bg-gray-900 py-2">
           <h2 className="text-2xl font-bold">ویرایش صفحه اصلی</h2>
-          <button type="button" onClick={onClose} className="rounded-lg p-2 transition-colors hover:bg-gray-800">
+          <button type="button" onClick={onClose} className="rounded-lg p-2 transition-colors hover:bg-gray-800" aria-label="بستن">
             <FiX className="h-6 w-6 text-red-400 transition-all hover:text-red-500" />
           </button>
         </div>

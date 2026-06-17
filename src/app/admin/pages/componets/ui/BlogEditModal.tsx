@@ -568,7 +568,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                             }
                             height={144}
                             width={250}
-                            alt="Preview"
+                            alt="پیش‌نمایش"
                             className="h-36 rounded-lg border-2 border-gray-600 object-cover"
                           />
                           <button

@@ -148,6 +148,7 @@ const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
             resetState();
           }}
           className="absolute right-4 top-4 text-red-400 transition-all hover:text-red-500"
+          aria-label="بستن"
         >
           <IoIosClose size={50} />
         </button>

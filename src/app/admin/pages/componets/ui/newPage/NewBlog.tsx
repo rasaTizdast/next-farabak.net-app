@@ -473,7 +473,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                             height={128}
                             width={128}
                             src={previewImage}
-                            alt="Preview"
+                            alt="پیش‌نمایش"
                             className="h-32 w-32 rounded-lg border-2 border-gray-600 object-cover"
                           />
                           <button

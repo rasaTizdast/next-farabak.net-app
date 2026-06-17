@@ -199,6 +199,7 @@ const UserDropDown = () => {
                                       }
                                       disabled={!canIncrease}
                                       title={!canIncrease ? `حداکثر ${max} عدد` : ""}
+                                      aria-label="افزایش تعداد"
                                     >
                                       +
                                     </button>
@@ -217,6 +218,7 @@ const UserDropDown = () => {
                                       }
                                       disabled={current <= min}
                                       title={current <= min ? `حداقل ${min} عدد` : ""}
+                                      aria-label="کاهش تعداد"
                                     >
                                       -
                                     </button>

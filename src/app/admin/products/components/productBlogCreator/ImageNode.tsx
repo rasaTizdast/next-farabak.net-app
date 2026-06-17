@@ -62,6 +62,7 @@ const ImageNode = ({ node, editor, getPos }: NodeViewProps) => {
               onClick={handleDelete}
               className="rounded-md bg-red-600 p-1 hover:bg-red-700"
               disabled={isDeleting}
+              aria-label="حذف تصویر"
             >
               <Trash2 className="text-white" size={20} />
             </button>

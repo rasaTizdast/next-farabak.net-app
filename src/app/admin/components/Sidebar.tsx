@@ -77,6 +77,10 @@ const Sidebar = () => {
           isCollapsed ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
         onClick={() => setIsCollapsed(true)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsCollapsed(true); }}
+        aria-label="بستن منو"
       ></div>
 
       {/* Sidebar */}

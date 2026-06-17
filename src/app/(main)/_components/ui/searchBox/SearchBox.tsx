@@ -107,7 +107,7 @@ const SearchInput = ({
       ref={inputRef}
       onKeyDown={onKeyDown}
     />
-    <button type="button" onClick={onSearchClick}>
+    <button type="button" onClick={onSearchClick} aria-label="جستجو">
       <CgSearch />
     </button>
   </div>

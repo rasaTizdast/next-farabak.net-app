@@ -79,10 +79,11 @@ export default async function SimilarProducts({
 
   const usdRate = await fetchUsdToRialRate();
 
+  const priceValidUntil = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+
   return (
     <section id="similar-products" className="mt-12">
       {(() => {
-        const priceValidUntil = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
         const itemList = {
           "@context": "https://schema.org",
           "@type": "ItemList",

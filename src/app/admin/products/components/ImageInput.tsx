@@ -28,7 +28,7 @@ const ImageInput: React.FC<ImageInputProps> = ({ label, imageUrl, onChange }) =>
           height={1080}
           quality={100}
           src={preview}
-          alt="Upload"
+          alt="آپلود تصویر"
           className="h-full w-full rounded-lg bg-gray-900 object-contain transition-all"
         />
 

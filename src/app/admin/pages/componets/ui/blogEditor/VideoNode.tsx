@@ -60,7 +60,8 @@ const VideoNode = ({ node, editor, getPos }: NodeViewProps) => {
             onClick={handleDelete}
             disabled={isDeleting}
             className="rounded bg-red-500 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
-            title="Delete video"
+            title="حذف ویدیو"
+            aria-label="حذف ویدیو"
           >
             <Trash2 size={20} />
           </button>

@@ -257,7 +257,7 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
                     height={480}
                     quality={100}
                     src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/member-images/${member.main_pic}`}
-                    alt="Current Profile"
+                    alt="پروفایل فعلی"
                     className="rounded-lg object-cover"
                   />
                 </div>

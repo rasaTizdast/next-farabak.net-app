@@ -60,6 +60,10 @@ const HamburgerMenu = () => {
         <div
           className={`${styles.overlay} ${isOpen ? styles.show : ""}`}
           onClick={() => setOpen(false)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setOpen(false); }}
+          aria-label="بستن منو"
         />
       )}
 

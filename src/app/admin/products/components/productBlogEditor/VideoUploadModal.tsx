@@ -84,6 +84,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({ onClose, onVideoUpl
             className="text-gray-300 hover:text-white"
             disabled={uploading}
             type="button"
+            aria-label="بستن"
           >
             <X size={24} />
           </button>
@@ -129,7 +130,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({ onClose, onVideoUpl
               onClick={() => setSelectedFile(null)}
               className="text-gray-400 hover:text-white"
               disabled={uploading}
-              type="button"
+              aria-label="حذف فایل انتخاب شده"
             >
               <X size={18} />
             </button>
