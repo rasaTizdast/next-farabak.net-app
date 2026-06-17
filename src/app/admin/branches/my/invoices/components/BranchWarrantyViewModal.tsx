@@ -16,7 +16,6 @@ type BranchWarrantyViewModalProps = {
 const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item, onClose }) => {
   const { componentRef, handlePrint } = usePrint();
   const [branchName, setBranchName] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
   const [showPrintView, setShowPrintView] = useState<boolean>(false);
 
   // Determine branch ID from warranty
@@ -53,11 +52,6 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
       setBranchName("تعیین نشده");
     }
   }, [item, branchData, branchId]);
-
-  useEffect(() => {
-    if (branchLoading) setLoading(true);
-    else setLoading(false);
-  }, [branchLoading]);
 
   if (!item || !item.individualWarranty) return null;
 
@@ -236,11 +230,11 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
                   id="branchname"
                   name="branchname"
                   className="no-print w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:bg-slate-700"
-                  value={loading ? "در حال بارگذاری..." : displayBranchName}
+                  value={branchLoading ? "در حال بارگذاری..." : displayBranchName}
                   disabled
                   readOnly
                 />
-                {loading && (
+                {branchLoading && (
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 transform">
                     <Spin size="small" />
                   </div>

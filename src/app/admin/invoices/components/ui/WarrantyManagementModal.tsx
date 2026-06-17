@@ -57,8 +57,6 @@ const WarrantyManagementModal = ({
   onClose,
   onSuccess,
 }: WarrantyManagementModalProps) => {
-  const [loading, setLoading] = useState(false);
-  const [loadingWarrantyCode, setLoadingWarrantyCode] = useState(false);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [warrantyData, setWarrantyData] = useState<{
     warrantycode: string;
@@ -86,9 +84,9 @@ const WarrantyManagementModal = ({
 
   const isUpdate = !!item.individualWarranty;
 
-  const { mutate: generateWarrantyMutate } = useApiMutation("post");
-  const { mutate: createUpdateWarrantyMutate } = useApiMutation("post");
-  const { mutate: deleteWarrantyMutate } = useApiMutation("post");
+  const { mutate: generateWarrantyMutate, loading: generatingCode } = useApiMutation("post");
+  const { mutate: createUpdateWarrantyMutate, loading: submittingCreate } = useApiMutation("post");
+  const { mutate: deleteWarrantyMutate, loading: submittingDelete } = useApiMutation("post");
 
   const {
     data: branchesData,
@@ -151,8 +149,6 @@ const WarrantyManagementModal = ({
 
   const generateWarrantyCode = async () => {
     try {
-      setLoadingWarrantyCode(true);
-
       const selectedBranch = branches.find(
         (b) => b.branchid === Number(item.individualWarranty?.branchid)
       );
@@ -203,8 +199,6 @@ const WarrantyManagementModal = ({
         ...prev,
         warrantycode: `${branchCode}-${yearMonth}-${randomCode}`,
       }));
-    } finally {
-      setLoadingWarrantyCode(false);
     }
   };
 
@@ -314,8 +308,6 @@ const WarrantyManagementModal = ({
     e.preventDefault();
 
     if (!warrantyData.hasWarranty) {
-      setLoading(true);
-
       if (isUpdate) {
         const result = await deleteWarrantyMutate("/api/admin/warranty/delete", {
           warrantyId: item.individualWarranty?.warrantyid,
@@ -330,7 +322,6 @@ const WarrantyManagementModal = ({
       } else {
         onClose();
       }
-      setLoading(false);
       return;
     }
 
@@ -338,8 +329,6 @@ const WarrantyManagementModal = ({
       toast.error("لطفا شعبه را انتخاب کنید");
       return;
     }
-
-    setLoading(true);
 
     const endpoint = `/api/admin/warranty/${isUpdate ? "update" : "create"}`;
     const payload = {
@@ -363,8 +352,6 @@ const WarrantyManagementModal = ({
     } else {
       toast.error("خطا در مدیریت گارانتی");
     }
-
-    setLoading(false);
   };
 
   // Get selected branch name
@@ -514,7 +501,7 @@ const WarrantyManagementModal = ({
                   <p className="mb-1 text-sm text-amber-400">
                     برای تولید کد گارانتی ابتدا شعبه را انتخاب کنید
                   </p>
-                ) : loadingWarrantyCode ? (
+                ) : generatingCode ? (
                   <div className="flex justify-center p-2">
                     <Spin size="small" />
                   </div>
@@ -535,9 +522,9 @@ const WarrantyManagementModal = ({
                         type="button"
                         onClick={generateWarrantyCode}
                         className="rounded-lg bg-blue-700 px-2 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-600"
-                        disabled={loadingWarrantyCode}
+                        disabled={generatingCode}
                       >
-                        {loadingWarrantyCode ? <Spin size="small" /> : <RotateCcw size={20} />}
+                        {generatingCode ? <Spin size="small" /> : <RotateCcw size={20} />}
                       </button>
                     )}
                   </div>
@@ -628,7 +615,8 @@ const WarrantyManagementModal = ({
                 type="submit"
                 onClick={handleSubmit}
                 disabled={
-                  loading ||
+                  submittingCreate ||
+                  submittingDelete ||
                   (warrantyData.hasWarranty &&
                     (!warrantyData.warrantycode ||
                       (!isUpdate && (branches.length === 0 || !warrantyData.branchId)) ||
@@ -637,7 +625,7 @@ const WarrantyManagementModal = ({
                 }
                 className="rounded-lg bg-blue-700 px-4 py-2 text-white hover:bg-blue-600 disabled:bg-blue-900 disabled:text-gray-300"
               >
-                {loading
+                {submittingCreate || submittingDelete
                   ? "در حال پردازش..."
                   : !warrantyData.hasWarranty && isUpdate
                     ? "حذف گارانتی"

@@ -17,10 +17,9 @@ import styles from "../FormStyles.module.css";
 
 const SignIn = () => {
   const [errorMessage, setErrorMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
   const router = useRouter();
-  const { mutate: login } = useApiMutation("post");
+  const { mutate: login, loading: isSubmitting } = useApiMutation("post");
 
   const { updateUserContext } = useUser();
 
@@ -39,7 +38,6 @@ const SignIn = () => {
   } = methods;
 
   const onSubmit = async (data: { username: string; password: string }) => {
-    setIsSubmitting(true);
     setErrorMessage("");
 
     const response = await login("/api/auth/login", data) as any;
@@ -67,7 +65,6 @@ const SignIn = () => {
     } else {
       setErrorMessage("خطا در فرایند ورود.");
     }
-    setIsSubmitting(false);
   };
 
   return (

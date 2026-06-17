@@ -1,7 +1,8 @@
-import axios from "axios";
 import React, { useState, useMemo } from "react";
 import toast from "react-hot-toast";
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
+
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import CategoryRow from "./CategoryRow";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
@@ -50,6 +51,8 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
 
   const [deleteItem, setDeleteItem] = useState<Category | Subcategory | null>(null);
   const [confirmationText, setConfirmationText] = useState(""); // State for the confirmation input
+
+  const { mutate: deleteMutate } = useApiMutation("delete");
 
   // Sorting function
   const sortedCategories = useMemo(() => {
@@ -118,17 +121,16 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
       subCategoryId: !isCategoryItem ? deleteItem.CategoryContentId.toString() : undefined,
     };
 
-    try {
-      await axios.delete("/api/categories/delete", { data: requestBody });
+    const result = await deleteMutate("/api/categories/delete", requestBody);
+    if (result) {
       toast.success(
         `${isCategoryItem ? "دسته‌بندی" : "زیرمجموعه"} با موفقیت حذف شد، و محصولات مرتبط پاک شدند.`
       );
       refetchCategories();
-      setDeleteItem(null); // Reset the delete item state
-      setIsDeleteModalOpen(false); // Close the modal
-      setConfirmationText(""); // Clear the confirmation text
-    } catch (error) {
-      console.error(error);
+      setDeleteItem(null);
+      setIsDeleteModalOpen(false);
+      setConfirmationText("");
+    } else {
       toast.error("خطا در حذف، لطفاً دوباره تلاش کنید.");
     }
   };

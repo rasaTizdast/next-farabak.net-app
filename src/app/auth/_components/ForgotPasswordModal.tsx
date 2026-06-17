@@ -33,10 +33,9 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
   const [verificationCode, setVerificationCode] = useState<string>("");
   const [resetToken, setResetToken] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const { mutate: forgotPassword } = useApiMutation("post");
-  const { mutate: verifyCode } = useApiMutation("post");
-  const { mutate: resetPassword } = useApiMutation("post");
+  const { mutate: forgotPassword, loading: submittingForgot } = useApiMutation("post");
+  const { mutate: verifyCode, loading: submittingVerify } = useApiMutation("post");
+  const { mutate: resetPassword, loading: submittingReset } = useApiMutation("post");
 
   // Form for email step
   const emailMethods = useForm({
@@ -68,7 +67,6 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
 
   // Handle email submission
   const handleEmailSubmit = async (data: { email: string }) => {
-    setIsSubmitting(true);
     setErrorMessage("");
 
     const response = await forgotPassword("/api/auth/forgot-password", data) as any;
@@ -83,12 +81,10 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     } else {
       setErrorMessage("خطا در ارسال ایمیل");
     }
-    setIsSubmitting(false);
   };
 
   // Handle verification code submission
   const handleCodeSubmit = async (data: { code: string }) => {
-    setIsSubmitting(true);
     setErrorMessage("");
 
     const response = await verifyCode("/api/auth/verify-reset-code", {
@@ -106,12 +102,10 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     } else {
       setErrorMessage("کد تایید نامعتبر است");
     }
-    setIsSubmitting(false);
   };
 
   // Handle password reset submission
   const handlePasswordSubmit = async (data: { password: string; confirmPassword: string }) => {
-    setIsSubmitting(true);
     setErrorMessage("");
 
     const response = await resetPassword("/api/auth/reset-password", {
@@ -129,7 +123,6 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     } else {
       setErrorMessage("خطا در بازیابی رمز عبور");
     }
-    setIsSubmitting(false);
   };
 
   // Close modal and reset state
@@ -139,7 +132,6 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     setVerificationCode("");
     setResetToken("");
     setErrorMessage("");
-    setIsSubmitting(false);
     emailMethods.reset();
     codeMethods.reset();
     passwordMethods.reset();
@@ -175,8 +167,8 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
               {errorMessage && <p className={styles.error}>{errorMessage}</p>}
 
               <div className={styles.buttonGroup}>
-                <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
-                  {isSubmitting ? "در حال ارسال..." : "ارسال کد بازیابی"}
+                <button type="submit" className={styles.submitButton} disabled={submittingForgot}>
+                  {submittingForgot ? "در حال ارسال..." : "ارسال کد بازیابی"}
                 </button>
               </div>
             </form>
@@ -203,8 +195,8 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
               {errorMessage && <p className={styles.error}>{errorMessage}</p>}
 
               <div className={styles.buttonGroup}>
-                <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
-                  {isSubmitting ? "در حال تایید..." : "تایید کد"}
+                <button type="submit" className={styles.submitButton} disabled={submittingVerify}>
+                  {submittingVerify ? "در حال تایید..." : "تایید کد"}
                 </button>
 
                 <button
@@ -248,8 +240,8 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
               {errorMessage && <p className={styles.error}>{errorMessage}</p>}
 
               <div className={styles.buttonGroup}>
-                <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
-                  {isSubmitting ? "در حال ذخیره..." : "تغییر رمز عبور"}
+                <button type="submit" className={styles.submitButton} disabled={submittingReset}>
+                  {submittingReset ? "در حال ذخیره..." : "تغییر رمز عبور"}
                 </button>
 
                 <button

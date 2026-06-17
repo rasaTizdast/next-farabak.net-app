@@ -30,9 +30,8 @@ interface SignUpFormValues {
 const SignUp = () => {
   const [step, setStep] = useState(1);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
-  const { mutate: signup } = useApiMutation("post");
+  const { mutate: signup, loading: isSubmitting } = useApiMutation("post");
 
   const { updateUserContext } = useUser();
 
@@ -70,7 +69,6 @@ const SignUp = () => {
       password: data.password,
     };
 
-    setIsSubmitting(true);
     setErrorMessage("");
 
     const response = await signup("/api/auth/signup", signUpData) as any;
@@ -84,7 +82,6 @@ const SignUp = () => {
     } else {
       setErrorMessage("خطا در فرایند ثبت‌نام.");
     }
-    setIsSubmitting(false);
   };
 
   const nextStep = async () => {

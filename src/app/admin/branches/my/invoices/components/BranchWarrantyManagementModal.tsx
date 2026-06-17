@@ -62,11 +62,10 @@ const BranchWarrantyManagementModal = ({
       ? `/api/admin/branches/check-product?branchId=${currentBranchData.branchid}&productId=${item.ProductId}&invoiceId=${invoiceId}`
       : null
   );
-  const { mutate: generateWarrantyMutate } = useApiMutation("post");
-  const { mutate: createWarrantyMutate } = useApiMutation("post");
+  const { mutate: generateWarrantyMutate, loading: generatingCode } = useApiMutation("post");
+  const { mutate: createWarrantyMutate, loading: submittingCreate } = useApiMutation("post");
 
   const [loading, setLoading] = useState(true);
-  const [loadingWarrantyCode, setLoadingWarrantyCode] = useState(false);
   const [currentBranch, setCurrentBranch] = useState<Branch | null>(null);
   const [branchHasProduct, setBranchHasProduct] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -135,8 +134,6 @@ const BranchWarrantyManagementModal = ({
     if (!branchId && !warrantyData.branchId) return null;
 
     try {
-      setLoadingWarrantyCode(true);
-
       const selectedBranchId = branchId || warrantyData.branchId;
 
       const selectedBranch =
@@ -199,8 +196,6 @@ const BranchWarrantyManagementModal = ({
         return fallbackCode;
       }
       return null;
-    } finally {
-      setLoadingWarrantyCode(false);
     }
   };
 
@@ -323,8 +318,6 @@ const BranchWarrantyManagementModal = ({
       return;
     }
 
-    setLoading(true);
-
     const payload = {
       invoiceId,
       invoiceDetailId: item.Invoice_Details,
@@ -344,13 +337,12 @@ const BranchWarrantyManagementModal = ({
     } else {
       toast.error("خطا در ایجاد گارانتی");
     }
-
-    setLoading(false);
   };
 
   // Check if the submit button should be disabled
   const isSubmitDisabled = () => {
     const disabled =
+      submittingCreate ||
       loading ||
       !warrantyData.warrantycode ||
       !branchHasProduct ||
@@ -446,7 +438,7 @@ const BranchWarrantyManagementModal = ({
                 <p className="no-print mb-1 text-sm text-amber-400">
                   شعبه شما این محصول را در موجودی ندارد
                 </p>
-              ) : loadingWarrantyCode ? (
+              ) : generatingCode ? (
                 <div className="no-print flex justify-center p-2">
                   <Spin size="small" />
                 </div>
@@ -466,9 +458,9 @@ const BranchWarrantyManagementModal = ({
                     type="button"
                     onClick={() => generateWarrantyCode()}
                     className="no-print rounded-lg bg-blue-700 px-2 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-600"
-                    disabled={loadingWarrantyCode || !branchHasProduct}
+                    disabled={generatingCode || !branchHasProduct}
                   >
-                    {loadingWarrantyCode ? <Spin size="small" /> : <RotateCcw size={20} />}
+                    {generatingCode ? <Spin size="small" /> : <RotateCcw size={20} />}
                   </button>
                 </div>
               )}
@@ -586,7 +578,7 @@ const BranchWarrantyManagementModal = ({
                 disabled={isSubmitDisabled()}
                 className="rounded-lg bg-blue-700 px-4 py-2 text-white hover:bg-blue-600 disabled:bg-blue-900 disabled:text-gray-300"
               >
-                {loading ? "در حال پردازش..." : "ثبت گارانتی"}
+                {submittingCreate ? "در حال پردازش..." : "ثبت گارانتی"}
               </button>
             </div>
           </div>

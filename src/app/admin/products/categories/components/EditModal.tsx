@@ -3,6 +3,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
 
+import { useApiMutation } from "@/hooks/useApiMutation";
+
 import CategoryBlogEditor from "./CategoryBlogEditor";
 import { Category, Subcategory } from "../types/types";
 
@@ -35,6 +37,8 @@ const EditModal: React.FC<EditModalProps> = ({
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string>("");
   const [bannerDeleteRequested, setBannerDeleteRequested] = useState<boolean>(false);
+  const { mutate: editMutate } = useApiMutation("patch");
+  const { mutate: deleteS3Mutate } = useApiMutation("delete");
 
   // Retry helper for 401 errors
   const withRetry401 = async <T,>(
@@ -281,25 +285,16 @@ const EditModal: React.FC<EditModalProps> = ({
           },
         };
 
-    try {
-      await withRetry401(() => axios.patch(endpoint, payload));
+    const result = await editMutate(endpoint, payload);
+    if (result) {
       if (bannerDeleteRequested && existingKey && !bannerKey) {
-        try {
-          await withRetry401(() =>
-            axios.delete("/api/s3/delete", {
-              data: { type: "categoryBanner", key: existingKey },
-            })
-          );
-        } catch (e) {
-          console.error(e);
-        }
+        await deleteS3Mutate("/api/s3/delete", { type: "categoryBanner", key: existingKey });
       }
       toast.success("تغییرات با موفقیت اعمال شدند!");
       refetchCategories();
       setEditCategory(null);
       setIsEditModalOpen(false);
-    } catch (error) {
-      console.error(error);
+    } else {
       toast.error("خطا در بروزرسانی، لطفا مجددا تلاش کنید.");
     }
   };

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 import {
@@ -60,7 +61,7 @@ export default function ProductsModal({
   const [products, setProducts] = useState<WarehouseProduct[]>([]);
   const { mutate: updateMutate } = useApiMutation("put");
   const { mutate: deleteMutate } = useApiMutation("delete");
-  const { mutate: addMutate } = useApiMutation("post");
+  const { mutate: addMutate, loading: addingProduct } = useApiMutation("post");
   const [addProductId, setAddProductId] = useState("");
   const [addProductName, setAddProductName] = useState("");
   const [addQuantity, setAddQuantity] = useState("0");
@@ -142,8 +143,8 @@ export default function ProductsModal({
         );
       }
 
-      const res = await fetch(`/api/admin/warehouses/${warehouseId}/products`);
-      setProducts(await res.json());
+      const res = await axios.get(`/api/admin/warehouses/${warehouseId}/products`);
+      setProducts(res.data);
       refreshWarehouses();
     } catch (e) {
       console.error("Error updating grade:", e);
@@ -265,7 +266,7 @@ export default function ProductsModal({
           <ButtonBase
             variant="primary"
             className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700"
-            loading={actionLoading.add}
+            loading={addingProduct}
             disabled={!addProductId || !addQuantity || parseInt(addQuantity || "0") < 1}
             onClick={async () => {
               if (!warehouseId) return;
@@ -273,17 +274,14 @@ export default function ProductsModal({
               const qty = Math.max(1, parseInt(addQuantity || "0"));
               if (!pid || qty < 1) return;
 
-              // No need to validate grade selection - it's optional
-
-              setActionLoading((prev) => ({ ...prev, add: true }));
               const result = await addMutate(`/api/admin/warehouses/${warehouseId}/products`, {
                 productId: pid,
                 quantity: qty,
                 ProductGradeId: addGradeId ? parseInt(addGradeId) : null,
               });
               if (result) {
-                const res = await fetch(`/api/admin/warehouses/${warehouseId}/products`);
-                setProducts(await res.json());
+                const res = await axios.get(`/api/admin/warehouses/${warehouseId}/products`);
+                setProducts(res.data);
 
                 setAddProductId("");
                 setAddProductName("");
@@ -293,7 +291,6 @@ export default function ProductsModal({
               } else {
                 alert("خطا در افزودن محصول به انبار");
               }
-              setActionLoading((prev) => ({ ...prev, add: false }));
             }}
           >
             <span className="-mt-0.5 text-lg">＋</span>
