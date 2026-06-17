@@ -485,7 +485,7 @@ const EditModal: React.FC<EditModalProps> = ({
 
           <div className="mb-10 mt-3 flex flex-wrap gap-2">
             {seoKeywords.map((keyword: string) => (
-              <button
+              <button type="button"
                 key={keyword}
                 className="flex animate-fade-in items-center gap-2 rounded-lg bg-green-700 px-4 py-1 transition-all hover:bg-red-700 hover:text-white"
                 onClick={() => removeKeyword(keyword)}
@@ -511,13 +511,13 @@ const EditModal: React.FC<EditModalProps> = ({
         />
 
         <div className="flex justify-end gap-2">
-          <button
+          <button type="button"
             onClick={handleClose}
             className="rounded bg-gray-50 px-4 py-2 text-black hover:bg-gray-100"
           >
             بستن
           </button>
-          <button
+          <button type="button"
             onClick={handleSave}
             className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >

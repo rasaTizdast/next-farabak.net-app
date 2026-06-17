@@ -77,7 +77,7 @@ const BranchForm: React.FC<BranchFormProps> = ({
       </Form.Item>
 
       <Form.Item className="mb-0 flex justify-end">
-        <Button onClick={onCancel} className="dark-button-secondary ml-2">
+        <Button htmlType="button" onClick={onCancel} className="dark-button-secondary ml-2">
           انصراف
         </Button>
         <Button

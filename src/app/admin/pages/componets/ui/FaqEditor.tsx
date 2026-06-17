@@ -299,13 +299,13 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
             </div>
 
             <div className="mt-6 flex justify-end gap-2">
-              <Button
+              <Button htmlType="button"
                 onClick={() => setModalVisible(false)}
                 className="border-gray-600 bg-gray-800 text-gray-300 hover:border-gray-500 hover:text-white"
               >
                 انصراف
               </Button>
-              <Button
+              <Button htmlType="button"
                 type="primary"
                 onClick={handleSubmit}
                 className="border-none bg-blue-600 hover:bg-blue-700"

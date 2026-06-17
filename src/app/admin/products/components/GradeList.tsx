@@ -220,13 +220,13 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                     </div>
 
                     <div className="flex gap-2 pt-2">
-                      <button
+                      <button type="button"
                         onClick={handleUpdate}
                         className="flex-1 rounded-md bg-green-600 p-3 font-medium text-white transition-all hover:bg-green-700"
                       >
                         ذخیره تغییرات
                       </button>
-                      <button
+                      <button type="button"
                         onClick={() => setEditingGrade(null)}
                         className="flex-1 rounded-md bg-slate-600 p-3 font-medium text-white transition-all hover:bg-slate-700"
                       >
@@ -240,14 +240,14 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                   <div className="flex items-center justify-between border-b border-slate-600 p-3">
                     <span className="text-xl font-semibold text-white">گرید {grade.Grade}</span>
                     <div className="flex gap-2">
-                      <button
+                      <button type="button"
                         onClick={() => handleEdit(grade)}
                         className="rounded-md bg-blue-500/20 p-2 text-blue-400 transition-all hover:bg-blue-500/30"
                         title="ویرایش"
                       >
                         <FaEdit size={16} />
                       </button>
-                      <button
+                      <button type="button"
                         onClick={() => handleDelete(grade.ProductGradeId)}
                         className="rounded-md bg-red-500/20 p-2 text-red-400 transition-all hover:bg-red-500/30"
                         title="حذف"

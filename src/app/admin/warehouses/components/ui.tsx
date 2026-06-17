@@ -17,7 +17,7 @@ export function ButtonBase(
         ? "bg-red-600 hover:bg-red-700"
         : "bg-slate-700 hover:bg-slate-600";
   return (
-    <button
+    <button type="button"
       {...rest}
       disabled={disabled || loading}
       className={`rounded px-3 py-1.5 text-sm text-white transition-colors disabled:opacity-60 ${base} ${className}`}

@@ -17,7 +17,7 @@ export const ToolbarButton = ({
   title,
   className = "",
 }: ToolbarButtonProps) => (
-  <button
+  <button type="button"
     onClick={onClick}
     title={title}
     className={`rounded-md p-2 hover:bg-gray-600 ${

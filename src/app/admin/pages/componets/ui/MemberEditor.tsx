@@ -153,7 +153,7 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
         <div className="rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg">
           <p>{error}</p>
-          <button onClick={onClose} className="mt-4 rounded-lg bg-red-600 px-4 py-2">
+          <button type="button" onClick={onClose} className="mt-4 rounded-lg bg-red-600 px-4 py-2">
             بستن
           </button>
         </div>
@@ -166,7 +166,7 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
         <div className="rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg">
           <p>عضو یافت نشد.</p>
-          <button onClick={onClose} className="mt-4 rounded-lg bg-red-600 px-4 py-2">
+          <button type="button" onClick={onClose} className="mt-4 rounded-lg bg-red-600 px-4 py-2">
             بستن
           </button>
         </div>

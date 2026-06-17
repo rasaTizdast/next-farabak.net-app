@@ -4,9 +4,11 @@ import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 const ImageNode = ({ node, editor, getPos }: NodeViewProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const { mutate: deleteImage } = useApiMutation("delete");
 
   const handleDelete = async () => {
     const confirmed = window.confirm("آیا میخواهید این عکس حذف شود؟");
@@ -14,23 +16,16 @@ const ImageNode = ({ node, editor, getPos }: NodeViewProps) => {
 
     setIsDeleting(true);
 
-    try {
-      const key = node.attrs.src;
+    const key = node.attrs.src;
+    const result = await deleteImage("/api/manageBlog/delete", { key });
 
-      await fetch("/api/manageBlog/delete", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key }),
-      });
-
+    if (result) {
       const pos = getPos();
       editor.commands.deleteRange({ from: pos, to: pos + 1 });
-    } catch (error) {
-      console.error("Delete failed:", error);
+    } else {
       alert("Failed to delete image");
-    } finally {
-      setIsDeleting(false);
     }
+    setIsDeleting(false);
   };
 
   return (

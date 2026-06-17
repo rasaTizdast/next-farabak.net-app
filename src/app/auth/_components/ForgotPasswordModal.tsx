@@ -1,9 +1,9 @@
 "use client";
 
 import { yupResolver } from "@hookform/resolvers/yup";
-import axios from "axios";
 import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import {
   forgotPasswordSchema,
@@ -34,6 +34,9 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
   const [resetToken, setResetToken] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const { mutate: forgotPassword } = useApiMutation("post");
+  const { mutate: verifyCode } = useApiMutation("post");
+  const { mutate: resetPassword } = useApiMutation("post");
 
   // Form for email step
   const emailMethods = useForm({
@@ -68,25 +71,19 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     setIsSubmitting(true);
     setErrorMessage("");
 
-    try {
-      const response = await axios.post("/api/auth/forgot-password", data);
-
-      if (response.data.emailSent && response.data.resetToken) {
+    const response = await forgotPassword("/api/auth/forgot-password", data) as any;
+    if (response) {
+      if (response.emailSent && response.resetToken) {
         setEmail(data.email);
-        setResetToken(response.data.resetToken);
+        setResetToken(response.resetToken);
         setCurrentStep(ForgotPasswordStep.VERIFY_CODE);
       } else {
-        setErrorMessage(response.data.message || "خطا در ارسال ایمیل");
+        setErrorMessage(response.message || "خطا در ارسال ایمیل");
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setErrorMessage(error.response?.data.error || "خطا در ارسال ایمیل");
-      } else {
-        setErrorMessage("خطا در ارسال ایمیل");
-      }
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      setErrorMessage("خطا در ارسال ایمیل");
     }
+    setIsSubmitting(false);
   };
 
   // Handle verification code submission
@@ -94,28 +91,22 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     setIsSubmitting(true);
     setErrorMessage("");
 
-    try {
-      const response = await axios.post("/api/auth/verify-reset-code", {
-        email,
-        code: data.code,
-        resetToken,
-      });
-
-      if (response.data.valid) {
+    const response = await verifyCode("/api/auth/verify-reset-code", {
+      email,
+      code: data.code,
+      resetToken,
+    }) as any;
+    if (response) {
+      if (response.valid) {
         setVerificationCode(data.code);
         setCurrentStep(ForgotPasswordStep.RESET_PASSWORD);
       } else {
-        setErrorMessage(response.data.error || "کد تایید نامعتبر است");
+        setErrorMessage(response.error || "کد تایید نامعتبر است");
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setErrorMessage(error.response?.data.error || "کد تایید نامعتبر است");
-      } else {
-        setErrorMessage("خطا در تایید کد");
-      }
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      setErrorMessage("کد تایید نامعتبر است");
     }
+    setIsSubmitting(false);
   };
 
   // Handle password reset submission
@@ -123,28 +114,22 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     setIsSubmitting(true);
     setErrorMessage("");
 
-    try {
-      const response = await axios.post("/api/auth/reset-password", {
-        email,
-        code: verificationCode,
-        newPassword: data.password,
-        resetToken,
-      });
-
-      if (response.data.success) {
+    const response = await resetPassword("/api/auth/reset-password", {
+      email,
+      code: verificationCode,
+      newPassword: data.password,
+      resetToken,
+    }) as any;
+    if (response) {
+      if (response.success) {
         setCurrentStep(ForgotPasswordStep.SUCCESS);
       } else {
-        setErrorMessage(response.data.error || "خطا در بازیابی رمز عبور");
+        setErrorMessage(response.error || "خطا در بازیابی رمز عبور");
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setErrorMessage(error.response?.data.error || "خطا در بازیابی رمز عبور");
-      } else {
-        setErrorMessage("خطا در بازیابی رمز عبور");
-      }
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      setErrorMessage("خطا در بازیابی رمز عبور");
     }
+    setIsSubmitting(false);
   };
 
   // Close modal and reset state
@@ -166,7 +151,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
-        <button className={styles.closeButton} onClick={handleClose}>
+        <button type="button" className={styles.closeButton} onClick={handleClose}>
           ×
         </button>
 

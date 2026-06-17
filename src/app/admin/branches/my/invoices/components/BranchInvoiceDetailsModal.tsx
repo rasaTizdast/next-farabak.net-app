@@ -1,5 +1,4 @@
 import { message } from "antd";
-import axios from "axios";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
 
@@ -76,33 +75,32 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
   // Fetch product names
   useEffect(() => {
     const fetchProductNames = async () => {
-      try {
-        if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
-          return;
-        }
-
-        // Map over Invoice_Details and make async calls for each product
-        const productNameRequests = invoice.Invoice_Details.map(async (product) => {
-          const res = await axios.get(`/api/products/getProductType/${product.ProductId}`);
-          return { id: product.ProductId, name: res.data.productType };
-        });
-
-        // Wait for all promises to resolve
-        const results = await Promise.all(productNameRequests);
-
-        // Update state with the resolved product names
-        const names = results.reduce(
-          (acc, curr) => {
-            acc[curr.id] = curr.name;
-            return acc;
-          },
-          {} as { [key: string]: string }
-        );
-
-        setProductNames(names);
-      } catch (error) {
-        console.error("Error fetching product names:", error);
+      if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
+        return;
       }
+
+      const productNameRequests = invoice.Invoice_Details.map(async (product) => {
+        try {
+          const res = await fetch(`/api/products/getProductType/${product.ProductId}`);
+          if (!res.ok) return { id: product.ProductId, name: "" };
+          const data = await res.json();
+          return { id: product.ProductId, name: data.productType };
+        } catch {
+          return { id: product.ProductId, name: "" };
+        }
+      });
+
+      const results = await Promise.all(productNameRequests);
+
+      const names = results.reduce(
+        (acc, curr) => {
+          acc[curr.id] = curr.name;
+          return acc;
+        },
+        {} as { [key: string]: string }
+      );
+
+      setProductNames(names);
     };
 
     fetchProductNames();
@@ -215,24 +213,15 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
 
   // Handle refresh after warranty actions
   const handleWarrantyUpdated = async () => {
-    // Close the warranty management modal
     setAddWarrantyItem(null);
-
-    // Show success message
     message.success("گارانتی با موفقیت اضافه شد");
 
-    // Fetch updated invoice data directly instead of just triggering useEffect
     try {
-      const response = await axios.get(`/api/admin/invoices/${invoice.Invoiceid}`);
-      if (response.data && response.data.invoice) {
-        // Update with fresh data that includes branchid
-        const updatedInvoice = response.data.invoice;
-
-        // Update the invoice data
-        if (updatedInvoice.Invoice_Details) {
-          Object.assign(invoice, updatedInvoice);
-
-          // Increment refresh counter to trigger re-render
+      const res = await fetch(`/api/admin/invoices/${invoice.Invoiceid}`);
+      if (res.ok) {
+        const response = await res.json();
+        if (response && response.invoice && response.invoice.Invoice_Details) {
+          Object.assign(invoice, response.invoice);
           setRefreshCounter((prev) => prev + 1);
         }
       }
@@ -280,15 +269,11 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
     if (refreshCounter > 0) {
       const fetchUpdatedInvoiceData = async () => {
         try {
-          const response = await axios.get(`/api/admin/invoices/${invoice.Invoiceid}`);
-          if (response.data && response.data.invoice) {
-            // Update with fresh data
-            const updatedInvoice = response.data.invoice;
-
-            // Update invoice details with fresh data that includes the branchid
-            if (updatedInvoice.Invoice_Details) {
-              // The refresh will happen through existing useEffects that depend on invoice
-              Object.assign(invoice, updatedInvoice);
+          const res = await fetch(`/api/admin/invoices/${invoice.Invoiceid}`);
+          if (res.ok) {
+            const response = await res.json();
+            if (response && response.invoice && response.invoice.Invoice_Details) {
+              Object.assign(invoice, response.invoice);
             }
           }
         } catch (error) {
@@ -486,6 +471,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                               <td className="no-print p-2 sm:p-4">
                                 {item.individualWarranty && item.individualWarranty.warrantycode ? (
                                   <button
+                                    type="button"
                                     onClick={() => handleViewWarranty(item)}
                                     className="rounded bg-blue-700 px-2 py-1 text-xs text-white transition-colors hover:bg-blue-600"
                                   >
@@ -493,6 +479,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                                   </button>
                                 ) : (
                                   <button
+                                    type="button"
                                     onClick={() => handleAddWarranty(item)}
                                     className="rounded bg-green-700 px-2 py-1 text-xs text-white transition-colors hover:bg-green-600"
                                   >
@@ -538,6 +525,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
         <div className="no-print flex justify-between gap-4 border-t border-slate-700 p-3 sm:p-6">
           <PrintButton onPrint={handleInvoicePrint} />
           <button
+            type="button"
             onClick={onClose}
             className="w-full rounded-lg bg-slate-700 px-4 py-2 text-sm text-gray-100 transition-colors duration-200 hover:bg-slate-600 sm:w-auto sm:px-6 sm:text-base"
           >

@@ -167,7 +167,7 @@ const SettingsPage = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <button
+              <button type="button"
                 onClick={handlePasswordChange}
                 disabled={changingPassword}
                 className="rounded-lg bg-green-500 p-2 text-white transition-colors hover:bg-green-600 disabled:bg-green-300"
@@ -192,7 +192,7 @@ const SettingsPage = () => {
               />
 
               {/* Search Button */}
-              <button
+              <button type="button"
                 onClick={handleSearch}
                 disabled={loading}
                 className="rounded-lg bg-blue-500 p-2 text-white transition-colors hover:bg-blue-600 disabled:bg-blue-300"
@@ -229,7 +229,7 @@ const SettingsPage = () => {
 
                 {/* Make Admin Button */}
                 {selectedUser && (
-                  <button
+                  <button type="button"
                     onClick={handleMakeAdmin}
                     disabled={loading}
                     className="mt-4 w-full rounded-lg bg-green-500 p-2 text-white transition-colors hover:bg-green-600 disabled:bg-green-300"
@@ -260,7 +260,7 @@ const SettingsPage = () => {
                       </p>
                       <p className="text-sm text-gray-400">{admin.PhoneNumber}</p>
                     </div>
-                    <button
+                    <button type="button"
                       onClick={() => handleDemoteAdmin(admin.UserID)}
                       disabled={loading}
                       className="rounded-lg bg-red-500 p-2 text-white transition-colors hover:bg-red-600 disabled:bg-red-300"

@@ -952,7 +952,7 @@ function MyBranchContent() {
         key: "actions",
         className: "text-center font-medium",
         render: (_: any, invoice: AdminInvoice) => (
-          <Button
+          <Button htmlType="button"
             type="primary"
             className="flex items-center border-blue-700 bg-blue-600 hover:bg-blue-700"
             onClick={() => setSelectedInvoice(invoice)}
@@ -984,7 +984,7 @@ function MyBranchContent() {
                 <p className="mb-4 text-gray-300">
                   ممکن است نشست کاری شما منقضی شده باشد. لطفاً دوباره وارد شوید.
                 </p>
-                <Button
+                <Button htmlType="button"
                   type="primary"
                   onClick={() => router.push("/auth/login")}
                   className="bg-blue-500 hover:bg-blue-600"
@@ -1097,7 +1097,7 @@ function MyBranchContent() {
                   title={
                     <div className="flex items-center justify-between">
                       <span className="text-lg font-medium">محصولات شعبه</span>
-                      <Button
+                      <Button htmlType="button"
                         type="primary"
                         onClick={() => setProductDrawerVisible(true)}
                         className="flex items-center justify-center border-blue-700 bg-blue-600 hover:bg-blue-700"
@@ -1209,7 +1209,7 @@ function MyBranchContent() {
                         فاکتورها و گارانتی‌های شعبه
                       </h2>
                       <div className="flex items-center gap-2">
-                        <Button
+                        <Button htmlType="button"
                           onClick={() => fetchInvoices()}
                           className="flex items-center border-blue-600 bg-blue-600 text-white hover:bg-blue-700"
                           loading={invoicesLoading}
@@ -1217,7 +1217,7 @@ function MyBranchContent() {
                         >
                           به‌روزرسانی
                         </Button>
-                        <Button
+                        <Button htmlType="button"
                           type="primary"
                           onClick={handleCreateInvoice}
                           className="flex items-center bg-green-600 hover:bg-green-700"
@@ -1494,7 +1494,7 @@ function MyBranchContent() {
                               key: "actions",
                               className: "text-center font-medium",
                               render: (_, warranty) => (
-                                <Button
+                                <Button htmlType="button"
                                   type="primary"
                                   className="flex items-center border-blue-700 bg-blue-600 hover:bg-blue-700"
                                   onClick={() => {

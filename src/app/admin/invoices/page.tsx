@@ -4,7 +4,6 @@ export const dynamic = "force-dynamic";
 
 import { SearchOutlined } from "@ant-design/icons";
 import { Input, Button, Select } from "antd";
-import axios from "axios";
 import jalaali from "jalali-moment";
 import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
@@ -32,6 +31,10 @@ const AdminInvoicesPage = () => {
   const [searchMode, setSearchMode] = useState<"basic" | "warranty">("basic");
   const [isCheckingWarranties, setIsCheckingWarranties] = useState(false);
 
+  const { mutate: checkWarrantyMutate } = useApiMutation("post");
+  const { mutate: updateStatusMutate } = useApiMutation("patch");
+  const { mutate: deleteInvoiceMutate } = useApiMutation("delete");
+
   const {
     data: invoicesData,
     loading,
@@ -49,32 +52,22 @@ const AdminInvoicesPage = () => {
 
   // Check and update warranty status
   const checkWarrantyStatus = async () => {
-    try {
-      setIsCheckingWarranties(true);
-      const response = await fetch("/api/admin/warranty/check-status", {
-        method: "POST",
-      });
-
-      if (!response.ok) {
-        toast.error("خطا در بررسی وضعیت گارانتی‌ها");
-        return;
-      }
-
-      const data = await response.json();
+    setIsCheckingWarranties(true);
+    const data = await checkWarrantyMutate<{ updatedCount: number }>(
+      "/api/admin/warranty/check-status"
+    );
+    if (data) {
       const updatedCount = data.updatedCount || 0;
-
       if (updatedCount > 0) {
         toast.success(`${updatedCount} گارانتی‌ بروزرسانی شدند`);
         refetch();
       } else {
         toast.success("تمام گارانتی‌ها به روز هستند");
       }
-    } catch (error) {
-      console.error("Error checking warranty status:", error);
+    } else {
       toast.error("خطا در بررسی وضعیت گارانتی‌ها");
-    } finally {
-      setIsCheckingWarranties(false);
     }
+    setIsCheckingWarranties(false);
   };
 
   // Calculate time remaining before invoice expires (48 hours after creation)
@@ -303,35 +296,24 @@ const AdminInvoicesPage = () => {
 
   // Handler to update invoice status
   const handleStatusChange = async (Invoiceid: string, status: boolean) => {
-    const payload = { checked: status };
-
-    try {
-      const response = await axios.patch(`/api/admin/invoices?id=${Invoiceid}`, payload);
-
-      if (!response) {
-        toast.error("آپدیت فاکتور با شکست مواجه شد");
-        return;
-      }
+    const result = await updateStatusMutate(`/api/admin/invoices?id=${Invoiceid}`, {
+      checked: status,
+    });
+    if (result) {
       refetch();
       toast.success("وضعیت با موفقیت آپدیت شد");
-    } catch (error) {
-      console.error(error);
+    } else {
       toast.error("آپدیت فاکتور با شکست مواجه شد");
     }
   };
 
   // Handler to delete an invoice
   const handleDelete = async (Invoiceid: string) => {
-    try {
-      const response = await axios.delete(`/api/admin/invoices?invoiceId=${Invoiceid}`);
-      if (!response) {
-        toast.error("حذف فاکتور با شکست مواجه شد");
-        return;
-      }
+    const result = await deleteInvoiceMutate(`/api/admin/invoices?invoiceId=${Invoiceid}`);
+    if (result) {
       refetch();
       toast.success("فاکتور با موفقیت حذف شد");
-    } catch (error) {
-      console.error(error);
+    } else {
       toast.error("حذف فاکتور با شکست مواجه شد");
     }
   };
@@ -448,6 +430,7 @@ const AdminInvoicesPage = () => {
             </div>
 
             <Button
+              htmlType="button"
               onClick={checkWarrantyStatus}
               loading={isCheckingWarranties}
               className="w-full border-blue-800 bg-blue-700 px-3 text-white hover:bg-blue-600 sm:w-auto"
@@ -579,24 +562,28 @@ const AdminInvoicesPage = () => {
 
                     <td className="flex flex-wrap justify-center gap-2 px-6 py-4">
                       <button
+                        type="button"
                         onClick={() => handleViewInvoice(invoice)}
                         className="flex items-center justify-center rounded-lg bg-blue-700 px-2 py-1 text-white transition-all hover:bg-blue-600"
                       >
                         مشاهده فاکتور
                       </button>
                       <button
+                        type="button"
                         className="flex items-center justify-center rounded-lg bg-green-700 px-2 py-1 text-white transition-all hover:bg-green-600"
                         onClick={() => handlePhoneNumberClick(invoice)}
                       >
                         تماس با مشتری
                       </button>
                       <button
+                        type="button"
                         className="flex items-center justify-center rounded-lg bg-orange-700 px-2 py-1 text-white transition-all hover:bg-orange-600"
                         onClick={() => setStatusModalInvoice(invoice)}
                       >
                         تغییر وضعیت
                       </button>
                       <button
+                        type="button"
                         className="flex items-center justify-center rounded-lg bg-red-700 px-2 py-1 text-white transition-all hover:bg-red-600"
                         onClick={() => setDeleteModalInvoice(invoice)}
                       >

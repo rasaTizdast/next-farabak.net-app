@@ -227,7 +227,7 @@ const AdminProductsPage = () => {
                 className="w-full rounded-lg border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 lg:min-w-[200px] lg:max-w-[350px]"
               />
             </div>
-            <button
+            <button type="button"
               onClick={() => setShowFilterModal(true)}
               className={`w-full px-4 py-2 lg:w-auto ${
                 hasFilters(filters)
@@ -238,7 +238,7 @@ const AdminProductsPage = () => {
               {hasFilters(filters) ? "فیلتر فعال" : "فیلتر"}
             </button>
             {hasFilters(filters) && (
-              <button
+              <button type="button"
                 onClick={clearFilters}
                 className="w-full rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 lg:w-auto"
               >
@@ -247,7 +247,7 @@ const AdminProductsPage = () => {
             )}
           </div>
           {/* New Product Button */}
-          <button
+          <button type="button"
             data-testid="new-product-button"
             className="mt-4 w-full rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700 lg:mt-0 lg:w-auto"
             onClick={() => setShowNewProductModal(true)}

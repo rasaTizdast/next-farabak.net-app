@@ -110,7 +110,7 @@ const HamburgerMenu = () => {
             href="/auth/signup"
             className={`${styles.signup} ${isOpen ? styles.show : ""}`}
           >
-            <button>ورود / ثبت‌نام</button>
+            <button type="button">ورود / ثبت‌نام</button>
           </Link>
         )}
       </div>

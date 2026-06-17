@@ -35,25 +35,25 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
     <td className="px-6 py-4 text-gray-300">{category.Available ? "موجود" : "ناموجود"}</td>
     <td className="flex w-full items-center justify-center gap-2 px-6 py-4">
       <Link href={category.Link} target="_blank">
-        <button className="rounded bg-blue-600 px-5 py-2 text-white transition-all hover:bg-blue-700">
+        <button type="button" className="rounded bg-blue-600 px-5 py-2 text-white transition-all hover:bg-blue-700">
           مشاهده
         </button>
       </Link>
-      <button
+      <button type="button"
         onClick={(e) => onEditClick(category, e)}
         className="flex items-center justify-center gap-1 rounded bg-yellow-600 px-5 py-2 text-white transition-all hover:bg-yellow-700"
       >
         ویرایش
         <FaEdit />
       </button>
-      <button
+      <button type="button"
         onClick={() => onDeleteClick(category)}
         className="flex items-center gap-1 rounded bg-red-600 px-5 py-2 text-white transition-all hover:bg-red-700"
       >
         حذف
         <FaTrash className="mb-1" />
       </button>
-      <button
+      <button type="button"
         onClick={() => onToggleExpand(category.CategoryID)}
         className={`rounded bg-green-600 px-5 py-2 text-white transition-all hover:bg-green-700 ${
           !category.Subcategories.length ? "cursor-not-allowed opacity-30" : ""

@@ -79,7 +79,7 @@ export default function CategorySliderContent({ items }: CategorySliderContentPr
   return (
     <div className="flex items-center gap-2 pb-10 md:gap-4">
       {/* Right Button (Previous in RTL) */}
-      <button
+      <button type="button"
         onClick={() => scroll("right")}
         disabled={!canScrollRight}
         className="order-1 hidden h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white shadow-md transition-all duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-30 mobile:flex"
@@ -127,7 +127,7 @@ export default function CategorySliderContent({ items }: CategorySliderContentPr
       </div>
 
       {/* Left Button (Next in RTL) */}
-      <button
+      <button type="button"
         onClick={() => scroll("left")}
         disabled={!canScrollLeft}
         className="order-3 hidden h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white shadow-md transition-all duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-30 mobile:flex"

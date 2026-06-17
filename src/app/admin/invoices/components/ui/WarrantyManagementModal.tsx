@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { DatePicker } from "zaman";
 
-import { useApiFetch } from "@/hooks/useApiFetch";
 import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import { ExpandedInvoiceItem } from "./types";
 
@@ -85,6 +86,10 @@ const WarrantyManagementModal = ({
 
   const isUpdate = !!item.individualWarranty;
 
+  const { mutate: generateWarrantyMutate } = useApiMutation("post");
+  const { mutate: createUpdateWarrantyMutate } = useApiMutation("post");
+  const { mutate: deleteWarrantyMutate } = useApiMutation("post");
+
   const {
     data: branchesData,
     loading: loadingBranches,
@@ -148,89 +153,50 @@ const WarrantyManagementModal = ({
     try {
       setLoadingWarrantyCode(true);
 
-      // Find selected branch
       const selectedBranch = branches.find(
         (b) => b.branchid === Number(item.individualWarranty?.branchid)
       );
       if (!selectedBranch) {
         toast.error("شعبه انتخاب شده یافت نشد");
-        setWarrantyData((prev) => ({
-          ...prev,
-          warrantycode: "",
-        }));
+        setWarrantyData((prev) => ({ ...prev, warrantycode: "" }));
         return;
       }
 
-      // Use branch location code or name as branch code
       const branchCode =
         selectedBranch.location || selectedBranch.name.substring(0, 2).toUpperCase();
 
-      // Get current date for year-month format
       const date = new Date();
-
-      // Get Persian year in English digits
-      const persianYear = new Intl.DateTimeFormat("fa-IR", {
-        year: "numeric",
-      }).format(date);
-
-      // Convert Persian digits to English digits and get last 3 digits of year (404 from 1404)
+      const persianYear = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(date);
       const yearStr = persianToEnglishDigits(persianYear);
-      const yearNum = yearStr.slice(-3); // Get last 3 digits, e.g., 404 from 1404
-
-      // Get Persian month with leading zero
-      const persianMonth = new Intl.DateTimeFormat("fa-IR", {
-        month: "2-digit",
-      }).format(date);
-
-      // Convert Persian digits to English digits
+      const yearNum = yearStr.slice(-3);
+      const persianMonth = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" }).format(date);
       const monthNum = persianToEnglishDigits(persianMonth);
-
-      // Combine to get the format 404 (for year 1404) + 01 (for month 1) = 40401
       const yearMonth = yearNum + monthNum.padStart(2, "0");
 
-      // Call API to generate unique warranty code
-      const response = await fetch("/api/admin/warranty/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ branchCode, yearMonth }),
-      });
+      const data = await generateWarrantyMutate<{ warrantyCode: string }>(
+        "/api/admin/warranty/generate",
+        { branchCode, yearMonth }
+      );
 
-      if (!response.ok) {
+      if (data && data.warrantyCode) {
+        setWarrantyData((prev) => ({ ...prev, warrantycode: data.warrantyCode }));
+      } else {
         throw new Error("خطا در تولید کد گارانتی");
       }
-
-      const data = await response.json();
-
-      // Update state with generated code
-      setWarrantyData((prev) => ({
-        ...prev,
-        warrantycode: data.warrantyCode,
-      }));
     } catch (error) {
       console.error("Error generating warranty code:", error);
 
-      // Fallback to local generation
       const selectedBranch = branches.find((b) => b.branchid === warrantyData.branchId);
       const branchCode =
         selectedBranch?.location || selectedBranch?.name.substring(0, 2).toUpperCase() || "FA";
 
       const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-
-      // Use Persian date for the fallback as well
       const date = new Date();
-      const persianYear = new Intl.DateTimeFormat("fa-IR", {
-        year: "numeric",
-      }).format(date);
-      const persianMonth = new Intl.DateTimeFormat("fa-IR", {
-        month: "2-digit",
-      }).format(date);
-
+      const persianYear = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(date);
+      const persianMonth = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" }).format(date);
       const yearStr = persianToEnglishDigits(persianYear);
       const monthStr = persianToEnglishDigits(persianMonth);
-
-      const yearNum = yearStr.slice(-3); // Get last 3 digits, e.g., 404 from 1404
+      const yearNum = yearStr.slice(-3);
       const yearMonth = yearNum + monthStr.padStart(2, "0");
 
       setWarrantyData((prev) => ({
@@ -347,49 +313,27 @@ const WarrantyManagementModal = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // If no warranty, skip validation and proceed differently
     if (!warrantyData.hasWarranty) {
       setLoading(true);
 
-      try {
-        // If updating an existing warranty, we need to delete it
-        if (isUpdate) {
-          const deleteEndpoint = `/api/admin/warranty/delete`;
-          const deletePayload = {
-            warrantyId: item.individualWarranty?.warrantyid,
-          };
-
-          const deleteResponse = await fetch(deleteEndpoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(deletePayload),
-          });
-
-          if (!deleteResponse.ok) {
-            const errorData = await deleteResponse.json();
-            toast.error(errorData.error || "خطا در حذف گارانتی");
-            return;
-          }
-
+      if (isUpdate) {
+        const result = await deleteWarrantyMutate("/api/admin/warranty/delete", {
+          warrantyId: item.individualWarranty?.warrantyid,
+        });
+        if (result) {
           toast.success("گارانتی با موفقیت حذف شد");
           onSuccess();
           onClose();
         } else {
-          // If not updating, just close the modal without doing anything
-          onClose();
+          toast.error("خطا در حذف گارانتی");
         }
-        return;
-      } catch (error: any) {
-        toast.error(error.message || "خطا در حذف گارانتی");
-      } finally {
-        setLoading(false);
+      } else {
+        onClose();
       }
+      setLoading(false);
       return;
     }
 
-    // Original warranty submission logic
     if (warrantyData.hasWarranty && !isUpdate && !warrantyData.branchId) {
       toast.error("لطفا شعبه را انتخاب کنید");
       return;
@@ -397,43 +341,30 @@ const WarrantyManagementModal = ({
 
     setLoading(true);
 
-    try {
-      const endpoint = `/api/admin/warranty/${isUpdate ? "update" : "create"}`;
-      const payload = {
-        invoiceId: invoiceId,
-        invoiceDetailId: item.Invoice_Details,
-        productId: item.ProductId,
-        warrantyData: {
-          ...warrantyData,
-          warrantyid: item.individualWarranty?.warrantyid,
-          branchId: warrantyData.branchId,
-        },
-      };
+    const endpoint = `/api/admin/warranty/${isUpdate ? "update" : "create"}`;
+    const payload = {
+      invoiceId,
+      invoiceDetailId: item.Invoice_Details,
+      productId: item.ProductId,
+      warrantyData: {
+        ...warrantyData,
+        warrantyid: item.individualWarranty?.warrantyid,
+        branchId: warrantyData.branchId,
+      },
+    };
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        toast.error(errorData.error || "خطا در مدیریت گارانتی");
-        return;
-      }
-
+    const result = await createUpdateWarrantyMutate(endpoint, payload);
+    if (result) {
       toast.success(
         isUpdate ? "گارانتی با موفقیت به‌روزرسانی شد" : "گارانتی جدید با موفقیت ایجاد شد"
       );
       onSuccess();
       onClose();
-    } catch (error: any) {
-      toast.error(error.message || "خطا در مدیریت گارانتی");
-    } finally {
-      setLoading(false);
+    } else {
+      toast.error("خطا در مدیریت گارانتی");
     }
+
+    setLoading(false);
   };
 
   // Get selected branch name

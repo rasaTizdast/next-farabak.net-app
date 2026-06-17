@@ -58,7 +58,7 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity">
       <div className="relative w-full max-w-lg animate-fade-in rounded-xl bg-gray-800 p-6 text-white shadow-lg">
         {/* Close Button */}
-        <button
+        <button type="button"
           onClick={() => setShowFilterModal(false)}
           className="absolute right-4 top-4 text-gray-400 transition hover:text-white"
         >
@@ -150,13 +150,13 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
 
             {/* Buttons */}
             <div className="mt-6 flex justify-end gap-4">
-              <button
+              <button type="button"
                 onClick={handleResetFilters}
                 className="rounded-lg bg-gray-600 px-4 py-2 text-gray-300 transition hover:bg-gray-500"
               >
                 تنظیم مجدد
               </button>
-              <button
+              <button type="button"
                 onClick={handleApplyFilters}
                 className="rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
               >

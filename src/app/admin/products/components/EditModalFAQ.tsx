@@ -1,7 +1,7 @@
-import axios from "axios";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { FaTrashAlt } from "react-icons/fa";
+import { useApiFetch } from "@/hooks/useApiFetch";
 
 type FAQItem = {
   question: string;
@@ -15,45 +15,32 @@ type Props = {
 
 const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
   const [localFaqs, setLocalFaqs] = useState<FAQItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const hasFetched = useRef(false);
+  const { data: faqsResponse, loading: isLoading } = useApiFetch<any>(
+    productId ? `/api/faqs/product/${productId}` : null
+  );
   const [localErrors, setLocalErrors] = useState<{ [key: string]: string }>({});
   const [touchedFields, setTouchedFields] = useState<{
     [key: string]: boolean;
   }>({});
 
-  // Fetch existing FAQs when the component mounts
   useEffect(() => {
-    const fetchFAQs = async () => {
-      setIsLoading(true);
-      try {
-        const response = await axios.get(`/api/faqs/product/${productId}`);
-        // Map API response format to our internal format
-        const mappedFaqs = response.data.map((faq: any) => ({
-          question: faq.Title,
-          answer: faq.Description,
-        }));
-        setLocalFaqs(mappedFaqs);
-        setFaqs(mappedFaqs); // Update parent's state
-
-        // Initialize validation for existing FAQs
-        const initialErrors: { [key: string]: string } = {};
-        mappedFaqs.forEach((faq, index) => {
-          initialErrors[`question-${index}`] = validateField("question", faq.question);
-          initialErrors[`answer-${index}`] = validateField("answer", faq.answer);
-        });
-        setLocalErrors(initialErrors);
-      } catch (error) {
-        console.error("Error fetching FAQs:", error);
-        toast.error("در بارگذاری سوالات متداول مشکلی پیش آمد");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (productId) {
-      fetchFAQs();
+    if (faqsResponse && !hasFetched.current) {
+      hasFetched.current = true;
+      const mappedFaqs = (Array.isArray(faqsResponse) ? faqsResponse : []).map((faq: any) => ({
+        question: faq.Title,
+        answer: faq.Description,
+      }));
+      setLocalFaqs(mappedFaqs);
+      setFaqs(mappedFaqs);
+      const initialErrors: { [key: string]: string } = {};
+      mappedFaqs.forEach((faq, index) => {
+        initialErrors[`question-${index}`] = validateField("question", faq.question);
+        initialErrors[`answer-${index}`] = validateField("answer", faq.answer);
+      });
+      setLocalErrors(initialErrors);
     }
-  }, [productId, setFaqs]);
+  }, [faqsResponse, setFaqs]);
 
   const validateField = (field: string, value: string) => {
     let error = "";

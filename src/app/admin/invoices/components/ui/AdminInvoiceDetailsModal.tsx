@@ -1,4 +1,3 @@
-import axios from "axios";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -49,38 +48,36 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
   // Fetch product names
   useEffect(() => {
     const fetchProductNames = async () => {
-      try {
-        if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
-          return;
-        }
-
-        // Map over Invoice_Details and make async calls for each product
-        const productNameRequests = invoice.Invoice_Details.map(async (product) => {
-          const res = await axios.get(`/api/products/getProductType/${product.ProductId}`);
-          return { id: product.ProductId, name: res.data.productType };
-        });
-
-        // Wait for all promises to resolve
-        const results = await Promise.all(productNameRequests);
-
-        // Update state with the resolved product names
-        const names = results.reduce(
-          (acc, curr) => {
-            acc[curr.id] = curr.name;
-            return acc;
-          },
-          {} as { [key: string]: string }
-        );
-
-        setProductNames(names);
-      } catch (error) {
-        console.error(error);
-        throw new Error("Error fetching product names:");
+      if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
+        return;
       }
+
+      const productNameRequests = invoice.Invoice_Details.map(async (product) => {
+        try {
+          const res = await fetch(`/api/products/getProductType/${product.ProductId}`);
+          if (!res.ok) return { id: product.ProductId, name: "" };
+          const data = await res.json();
+          return { id: product.ProductId, name: data.productType };
+        } catch {
+          return { id: product.ProductId, name: "" };
+        }
+      });
+
+      const results = await Promise.all(productNameRequests);
+
+      const names = results.reduce(
+        (acc, curr) => {
+          acc[curr.id] = curr.name;
+          return acc;
+        },
+        {} as { [key: string]: string }
+      );
+
+      setProductNames(names);
     };
 
     fetchProductNames();
-  }, [invoice, refreshCounter]); // Add refreshCounter to dependencies
+  }, [invoice, refreshCounter]);
 
   // Create expanded items list
   useEffect(() => {
@@ -348,6 +345,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                               </td>
                               <td className="no-print p-2 sm:p-4">
                                 <button
+                                  type="button"
                                   onClick={() => handleManageWarranty(item)}
                                   className="rounded bg-blue-700 px-2 py-1 text-xs text-white transition-colors hover:bg-blue-600"
                                 >
@@ -392,6 +390,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
         <div className="no-print flex justify-between gap-4 border-t border-slate-700 p-3 sm:p-6">
           <PrintButton onPrint={handleInvoicePrint} />
           <button
+            type="button"
             onClick={onClose}
             className="w-full rounded-lg bg-slate-700 px-4 py-2 text-sm text-gray-100 transition-colors duration-200 hover:bg-slate-600 sm:w-auto sm:px-6 sm:text-base"
           >

@@ -1,7 +1,8 @@
 import { QRCodeCanvas } from "qrcode.react";
 import { useState, useEffect } from "react";
-import toast from "react-hot-toast"; // Importing react-hot-toast
+import toast from "react-hot-toast";
 import { IoIosClose } from "react-icons/io";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import { Product } from "../types";
 
@@ -13,6 +14,8 @@ type Props = {
 
 const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const { mutate: deleteQrCode } = useApiMutation("delete");
+  const { mutate: createQrCode } = useApiMutation("post");
   const [expiryDays, setExpiryDays] = useState<number | null>(2);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [uniqueQrCodeDetails, setUniqueQrCodeDetails] = useState<any>(null);
@@ -57,25 +60,15 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
   const deleteUniqueQrCode = async () => {
     if (!product) return;
 
-    try {
-      const response = await fetch("/api/products/qrCode", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId: product.ProductId,
-        }),
-      });
+    const res = await deleteQrCode("/api/products/qrCode", {
+      productId: product.ProductId,
+    });
 
-      if (!response.ok) return;
-
-      toast.success("کد QR یکتا با موفقیت حذف شد."); // Adding success toast notification
-
+    if (res) {
+      toast.success("کد QR یکتا با موفقیت حذف شد.");
       onClose(false);
       refetchProducts();
-    } catch (error) {
-      console.error(error);
+    } else {
       toast.error("خطایی در ارتباط با سرور رخ داده است.");
     }
   };
@@ -88,29 +81,18 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
     const uniqueKey = generateUniqueKey();
     const expiry = calculateExpiryTimestamp(expiryDays);
 
-    try {
-      const response = await fetch("/api/products/qrCode", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId: product.ProductId,
-          qrCodeKey: uniqueKey,
-          qrCodeExpiryDays: expiryDays === null ? "never" : expiry || "",
-        }),
-      });
+    const res = await createQrCode("/api/products/qrCode", {
+      productId: product.ProductId,
+      qrCodeKey: uniqueKey,
+      qrCodeExpiryDays: expiryDays === null ? "never" : expiry || "",
+    });
 
-      if (!response.ok) {
-        toast.error("خطایی در ذخیره اطلاعات کد QR رخ داده است.");
-        return;
-      }
+    if (res) {
       toast.success("کد Qr یکتا با موفقیت ساخته شد.");
       onClose(false);
       refetchProducts();
-    } catch (error) {
-      console.error(error);
-      toast.error("خطایی در ارتباط با سرور رخ داده است.");
+    } else {
+      toast.error("خطایی در ذخیره اطلاعات کد QR رخ داده است.");
     }
   };
 
@@ -139,7 +121,7 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
       dir="rtl"
     >
       <div className="relative max-h-[90dvh] w-full max-w-2xl animate-fade-in overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg">
-        <button
+        <button type="button"
           onClick={() => {
             onClose(false);
             resetState();
@@ -152,7 +134,7 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
 
         {/* Normal QR Code */}
         <div className="mb-6">
-          <button
+          <button type="button"
             onClick={() => {
               setQrCodeUrl(`${process.env.NEXT_PUBLIC_BASE_URL}/products/${product.link}`);
             }}
@@ -180,7 +162,7 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
             <option value="">بدون محدودیت</option>
           </select>
 
-          <button
+          <button type="button"
             onClick={() => setShowConfirmModal(true)}
             className="rounded bg-green-600 px-4 py-2 hover:bg-green-700 disabled:bg-gray-500"
             disabled={uniqueQrCodeDetails}
@@ -198,7 +180,7 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
             <p className="mt-4 break-all text-gray-500">
               <strong>لینک:</strong> {qrCodeUrl}
             </p>
-            <button
+            <button type="button"
               onClick={downloadQrCode}
               className="mt-4 rounded bg-indigo-600 px-4 py-2 hover:bg-indigo-700"
             >
@@ -225,14 +207,14 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
                   )} روز`}
             </p>
             <div className="flex w-full gap-5">
-              <button
+              <button type="button"
                 onClick={downloadQrCode}
                 className="mt-4 w-full rounded bg-blue-600 px-4 py-2 hover:bg-blue-700"
               >
                 دانلود تصویر کد QR
               </button>
 
-              <button
+              <button type="button"
                 onClick={deleteUniqueQrCode}
                 className="mt-4 w-full rounded bg-red-600 px-4 py-2 hover:bg-red-700"
               >
@@ -261,13 +243,13 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
               . آیا مطمئن هستید؟
             </p>
             <div className="flex justify-center gap-4">
-              <button
+              <button type="button"
                 onClick={generateUniqueQrCode}
                 className="rounded bg-green-600 px-4 py-2 hover:bg-green-700"
               >
                 بله، تولید کن
               </button>
-              <button
+              <button type="button"
                 onClick={() => setShowConfirmModal(false)}
                 className="rounded bg-red-600 px-4 py-2 hover:bg-red-700"
               >

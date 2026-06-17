@@ -196,7 +196,7 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
           </div>
         </div>
 
-        <button
+        <button type="button"
           className="absolute right-2 top-2 text-gray-400 hover:text-white"
           onClick={(e) => {
             e.stopPropagation();

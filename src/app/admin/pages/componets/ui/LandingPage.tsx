@@ -44,7 +44,7 @@ const ImagePreview = ({ imageUrl, onClose }: { imageUrl: string; onClose: () => 
         alt="Full size preview"
         className="max-h-[90vh] max-w-full rounded-lg object-contain"
       />
-      <button
+      <button type="button"
         onClick={onClose}
         className="absolute left-4 top-4 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/80"
       >
@@ -74,13 +74,13 @@ const ConfirmationDialog = ({
         </p>
       </div>
       <div className="mt-2 flex justify-center gap-4">
-        <button
+        <button type="button"
           onClick={onCancel}
           className="flex-1 rounded-lg bg-gray-700 px-5 py-2.5 font-medium transition-colors hover:bg-gray-600"
         >
           انصراف
         </button>
-        <button
+        <button type="button"
           onClick={onConfirm}
           className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 px-5 py-2.5 font-medium text-white transition-colors hover:bg-red-700"
         >
@@ -153,7 +153,7 @@ const SliderItem = ({
         {slider.image_alt && <p className="mt-1 text-xs text-gray-400">{slider.image_alt}</p>}
       </div>
     </div>
-    <button
+    <button type="button"
       onClick={() => onDelete(slider.id)}
       className="rounded-lg p-2 transition-colors hover:bg-gray-700"
       disabled={isDeleting}
@@ -213,7 +213,7 @@ const NewSliderForm = ({
         />
       </label>
     </div>
-    <button
+    <button type="button"
       onClick={onSubmit}
       className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
       disabled={isUploading}
@@ -334,7 +334,7 @@ const ShowcaseProductItem = ({
 
     <div className="flex items-center">
       <div className="mr-2 flex flex-col">
-        <button
+        <button type="button"
           onClick={() => onMoveUp(product.id, product.order)}
           disabled={isFirst}
           className={`mb-1 rounded-md p-1 ${
@@ -343,7 +343,7 @@ const ShowcaseProductItem = ({
         >
           <FiArrowUp className="h-4 w-4" />
         </button>
-        <button
+        <button type="button"
           onClick={() => onMoveDown(product.id, product.order)}
           disabled={isLast}
           className={`rounded-md p-1 ${
@@ -354,7 +354,7 @@ const ShowcaseProductItem = ({
         </button>
       </div>
 
-      <button
+      <button type="button"
         onClick={() => onDelete(product.id)}
         className="rounded-lg p-2 transition-colors hover:bg-gray-700"
         disabled={isDeleting}
@@ -438,7 +438,7 @@ const NewShowcaseProductForm = ({
         />
       </label>
     </div>
-    <button
+    <button type="button"
       onClick={onSubmit}
       className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
       disabled={isUploading}
@@ -758,7 +758,7 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
       <div className="relative max-h-[95vh] w-full max-w-4xl overflow-auto rounded-lg bg-gray-900 p-6 text-gray-200 shadow-xl">
         <div className="mb-6 flex items-center justify-between bg-gray-900 py-2">
           <h2 className="text-2xl font-bold">ویرایش صفحه اصلی</h2>
-          <button onClick={onClose} className="rounded-lg p-2 transition-colors hover:bg-gray-800">
+          <button type="button" onClick={onClose} className="rounded-lg p-2 transition-colors hover:bg-gray-800">
             <FiX className="h-6 w-6 text-red-400 transition-all hover:text-red-500" />
           </button>
         </div>

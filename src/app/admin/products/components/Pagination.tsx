@@ -13,7 +13,7 @@ const Pagination = ({ pagination, setPagination }: Props) => {
 
   return (
     <div className="mt-5 flex w-full items-center justify-center gap-2">
-      <button
+      <button type="button"
         onClick={() => changePage(currentPage - 1)}
         disabled={currentPage === 1}
         className={`rounded-lg px-4 py-2 ${
@@ -23,7 +23,7 @@ const Pagination = ({ pagination, setPagination }: Props) => {
         قبلی
       </button>
       {[...Array(totalPages)].map((_, index) => (
-        <button
+        <button type="button"
           key={index}
           onClick={() => changePage(index + 1)}
           className={`rounded-lg px-3 py-2 ${
@@ -35,7 +35,7 @@ const Pagination = ({ pagination, setPagination }: Props) => {
           {index + 1}
         </button>
       ))}
-      <button
+      <button type="button"
         onClick={() => changePage(currentPage + 1)}
         disabled={currentPage === totalPages}
         className={`rounded-lg px-4 py-2 ${

@@ -320,7 +320,7 @@ const ClientInvoiceSection = ({
             {currentQuantity > 0 ? (
               <div className={styles.actions}>
                 {/* + button */}
-                <button
+                <button type="button"
                   className={`${styles.action} origin-right transition-all ${
                     !canIncrease
                       ? "cursor-not-allowed bg-gray-300 opacity-50"
@@ -341,7 +341,7 @@ const ClientInvoiceSection = ({
 
                 {/* - button OR trash */}
                 {currentQuantity <= (hasMinimum ? minimumAmount! : 1) ? (
-                  <button
+                  <button type="button"
                     onClick={() => removeProductFromInvoice(ProductId)}
                     className={`${styles.action} origin-left transition-all hover:bg-red-600 hover:brightness-110`}
                     title="حذف کامل از فاکتور"
@@ -349,7 +349,7 @@ const ClientInvoiceSection = ({
                     <FaRegTrashAlt />
                   </button>
                 ) : (
-                  <button
+                  <button type="button"
                     className={`${styles.action} origin-left transition-all hover:bg-yellow-600 hover:brightness-110`}
                     onClick={() => handleQuantityChange(-1)}
                     title="کاهش تعداد"
@@ -359,7 +359,7 @@ const ClientInvoiceSection = ({
                 )}
               </div>
             ) : (
-              <button
+              <button type="button"
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#003262] p-3 text-sm text-white transition-all hover:bg-[#00244a] hover:shadow-lg sm:mt-0 md:text-base"
                 onClick={handleInitialAdd}
               >

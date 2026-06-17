@@ -4,33 +4,21 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
+import { useApiFetch } from "@/hooks/useApiFetch";
 
 import CategoryTable from "./components/CategoryTable";
 import CreateNewItem from "./components/CreateNewItem";
 import { Category } from "./types/types";
 
 const ProductCategories = () => {
-  // State to manage categories and loading state
+  const { data: categoriesData, loading: isLoading, refetch: fetchCategories } = useApiFetch<Category[]>("/api/categories/getAll");
   const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Fetch categories when the component mounts
-  const fetchCategories = async () => {
-    try {
-      setIsLoading(true);
-      const res = await fetch(`/api/categories/getAll`);
-      const data = await res.json();
-      setCategories(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
+    if (categoriesData) {
+      setCategories(categoriesData);
+    }
+  }, [categoriesData]);
 
   return (
     <>

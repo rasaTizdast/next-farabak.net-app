@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, Suspense } from "react";
 
 import { useUser } from "@/context/UserContext";
+import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 import BranchTable from "./components/BranchTable";
@@ -68,6 +69,8 @@ function BranchesPageContent() {
   const { mutate: updateProductQtyMutate } = useApiMutation("put");
   const { mutate: removeProductMutate } = useApiMutation("delete");
 
+  const { data: usersData } = useApiFetch<User[]>("/api/admin/users");
+
   // Check URL for productId param
   useEffect(() => {
     const productId = searchParams.get("productId");
@@ -91,7 +94,7 @@ function BranchesPageContent() {
       setInitialLoading(true);
 
       try {
-        await Promise.all([fetchBranches(), fetchUsers(), fetchAllProducts()]);
+        await Promise.all([fetchBranches(), fetchAllProducts()]);
       } catch (error) {
         console.error("Error loading initial data:", error);
       } finally {
@@ -160,20 +163,10 @@ function BranchesPageContent() {
     fetchBranchesRef.current = () => fetchBranches(pagination.current, pagination.pageSize);
   }, [searchProductId, pagination.current, pagination.pageSize]);
 
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch("/api/admin/users");
-      if (!response.ok) {
-        message.error("خطا در بارگذاری کاربران");
-        return;
-      }
-      const data = await response.json();
-      setUsers(data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      message.error("خطا در بارگذاری کاربران");
-    }
-  };
+  // usersData is auto-fetched via useApiFetch above
+  useEffect(() => {
+    if (usersData) setUsers(usersData);
+  }, [usersData]);
 
   const fetchAllProducts = async () => {
     try {
@@ -313,7 +306,10 @@ function BranchesPageContent() {
   const handleUpdateBranch = async (values: any) => {
     if (!currentBranch) return;
 
-    const result = await updateBranchMutate(`/api/admin/branches/${currentBranch.branchid}`, values);
+    const result = await updateBranchMutate(
+      `/api/admin/branches/${currentBranch.branchid}`,
+      values
+    );
     if (result) {
       message.success("شعبه با موفقیت بروزرسانی شد");
       setEditBranchModalVisible(false);
@@ -353,10 +349,13 @@ function BranchesPageContent() {
   const handleAddProduct = async () => {
     if (!currentBranch || !selectedProduct) return;
 
-    const result = await addProductMutate(`/api/admin/branches/${currentBranch.branchid}/products`, {
-      productId: selectedProduct,
-      quantity: productQuantity,
-    });
+    const result = await addProductMutate(
+      `/api/admin/branches/${currentBranch.branchid}/products`,
+      {
+        productId: selectedProduct,
+        quantity: productQuantity,
+      }
+    );
     if (result) {
       message.success("محصول با موفقیت به شعبه اضافه شد");
       productForm.resetFields();

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 
 import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
+import { useApiFetch } from "@/hooks/useApiFetch";
 
 import { ExpandedInvoiceItem } from "./types";
 
@@ -13,13 +14,24 @@ type BranchWarrantyViewModalProps = {
 };
 
 const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item, onClose }) => {
-  // Use the print hook for printing
   const { componentRef, handlePrint } = usePrint();
   const [branchName, setBranchName] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [showPrintView, setShowPrintView] = useState<boolean>(false);
 
-  // Must be before early return so hook order is consistent on every render
+  // Determine branch ID from warranty
+  const branchId =
+    item?.individualWarranty?.branchid || (item?.individualWarranty as any)?.branchId;
+
+  // Fetch branch name if needed
+  const { data: branchData, loading: branchLoading } = useApiFetch<{ name: string }>(
+    branchId &&
+      !(item?.individualWarranty as any)?.branchname &&
+      !(item?.individualWarranty as any)?.branch?.name
+      ? `/api/admin/branches/${branchId}`
+      : null
+  );
+
   useEffect(() => {
     if (!item?.individualWarranty) return;
 
@@ -35,38 +47,17 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
       return;
     }
 
-    const branchId = w.branchid;
-
-    const fetchBranchName = async () => {
-      if (!branchId) {
-        setBranchName("تعیین نشده");
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/admin/branches/${branchId}`);
-
-        if (response.ok) {
-          const branchData = await response.json();
-          setBranchName(branchData.name || "تعیین نشده");
-        } else {
-          setBranchName("خطا در دریافت اطلاعات شعبه");
-        }
-      } catch (error) {
-        console.error("Error fetching branch name:", error);
-        setBranchName("خطا در ارتباط با سرور");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (!branchName && branchId) {
-      fetchBranchName();
+    if (branchData) {
+      setBranchName(branchData.name || "تعیین نشده");
     } else if (!branchId) {
       setBranchName("تعیین نشده");
     }
-  }, [item, branchName]);
+  }, [item, branchData, branchId]);
+
+  useEffect(() => {
+    if (branchLoading) setLoading(true);
+    else setLoading(false);
+  }, [branchLoading]);
 
   if (!item || !item.individualWarranty) return null;
 

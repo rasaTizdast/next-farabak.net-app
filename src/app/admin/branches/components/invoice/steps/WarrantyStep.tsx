@@ -5,6 +5,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { DatePicker } from "zaman";
 
 import { useUser } from "@/context/UserContext";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import { Branch } from "../../types";
 
@@ -61,37 +62,31 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
   const [isGeneratingCodes, setIsGeneratingCodes] = useState(false);
   const [isDatePickerLoading, setIsDatePickerLoading] = useState(false);
 
+  const { mutate: generateBatchMutate } = useApiMutation("post");
+
   // Generate warranty codes in a batch to reduce API calls
   const generateBatchWarrantyCodes = async (
     branchCode: string,
     yearMonth: string,
     count: number
   ): Promise<string[]> => {
-    try {
-      const response = await fetch("/api/admin/warranty/generate-batch", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ branchCode, yearMonth, count }),
-      });
+    const data = await generateBatchMutate<{ warrantyCodes: string[] }>(
+      "/api/admin/warranty/generate-batch",
+      { branchCode, yearMonth, count }
+    );
 
-      if (!response.ok) {
-        throw new Error("خطا در تولید کدهای گارانتی");
-      }
-
-      const data = await response.json();
+    if (data && data.warrantyCodes) {
       return data.warrantyCodes;
-    } catch (error) {
-      console.error("Error generating batch warranty codes:", error);
-      // Fallback to local generation if API fails
-      return Array(count)
-        .fill(null)
-        .map(() => {
-          const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-          return `${branchCode}-${yearMonth}-${randomCode}`;
-        });
     }
+
+    console.error("Error generating batch warranty codes");
+    // Fallback to local generation if API fails
+    return Array(count)
+      .fill(null)
+      .map(() => {
+        const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        return `${branchCode}-${yearMonth}-${randomCode}`;
+      });
   };
 
   // Only generate codes for products that do not already have warranty data from API
@@ -537,7 +532,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
       key: "action",
       render: (_, record) => (
         <Space size="middle">
-          <Button type="primary" size="small" onClick={() => handleEdit(record)}>
+          <Button htmlType="button" type="primary" size="small" onClick={() => handleEdit(record)}>
             تنظیم گارانتی
           </Button>
         </Space>

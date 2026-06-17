@@ -22,7 +22,7 @@ const MinimumAmountSelector = ({ product, refetchProducts }: ButtonProps) => {
 
   return (
     <>
-      <button
+      <button type="button"
         onClick={() => setIsModalOpen(true)}
         className={`rounded-lg p-2 transition-all ${product.Minimum_Amount || product.Maximum_Amount ? "bg-orange-700 ring-2 ring-orange-300 hover:bg-orange-800" : "bg-orange-700 hover:bg-orange-800"}`}
         title="محدودیت‌ مقدار‌ محصول"

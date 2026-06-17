@@ -127,7 +127,7 @@ const Sidebar = () => {
         </Link>
 
         {/* Logout Button */}
-        <button
+        <button type="button"
           onClick={logout}
           className={`flex items-center bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 ${
             isCollapsed ? "justify-center" : "gap-4"

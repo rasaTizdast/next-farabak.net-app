@@ -1,7 +1,7 @@
-import axios from "axios";
 import { useState, useEffect, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-hot-toast";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import CategoryBlogEditor from "./CategoryBlogEditor";
 import { Category } from "../types/types";
@@ -45,7 +45,8 @@ const CreateNewItemModal = ({
   const [seoKeywords, setSeoKeywords] = useState<string[]>([]);
   const [keywordInput, setKeywordInput] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false); // Loading state for submission
+  const [loading, setLoading] = useState(false);
+  const { mutate: createMutate } = useApiMutation("post");
   const [topBlog, setTopBlog] = useState("");
   const [bottomBlog, setBottomBlog] = useState("");
   const [bannerFile, setBannerFile] = useState<File | null>(null);
@@ -62,9 +63,9 @@ const CreateNewItemModal = ({
     for (let attempt = 0; attempt < retries; attempt++) {
       try {
         return await requestFn();
-      } catch (error) {
+      } catch (error: any) {
         lastError = error;
-        if (axios.isAxiosError(error) && error.response?.status === 401 && attempt < retries - 1) {
+        if (error?.response?.status === 401 && attempt < retries - 1) {
           await new Promise((r) => setTimeout(r, baseDelayMs * (attempt + 1)));
           continue;
         }
@@ -159,15 +160,23 @@ const CreateNewItemModal = ({
         result.data.banner = presign.key; // store returned key
       }
       if (activeTab === "Category") {
-        await withRetry401(() => axios.post("/api/categories/createCategory", result));
-        toast.success("دسته‌بندی با موفقیت ایجاد شد!");
-        onClose();
-        refetchCategories();
+        const catRes = await createMutate("/api/categories/createCategory", result);
+        if (catRes) {
+          toast.success("دسته‌بندی با موفقیت ایجاد شد!");
+          onClose();
+          refetchCategories();
+        } else {
+          throw new Error("خطا در ایجاد دسته‌بندی");
+        }
       } else if (activeTab === "Subcategory") {
-        await withRetry401(() => axios.post("/api/categories/createSubcategory", result));
-        toast.success("زیردسته‌بندی با موفقیت ایجاد شد!");
-        onClose();
-        refetchCategories();
+        const subRes = await createMutate("/api/categories/createSubcategory", result);
+        if (subRes) {
+          toast.success("زیردسته‌بندی با موفقیت ایجاد شد!");
+          onClose();
+          refetchCategories();
+        } else {
+          throw new Error("خطا در ایجاد زیردسته‌بندی");
+        }
       }
 
       // Clear the form fields after success
@@ -235,7 +244,7 @@ const CreateNewItemModal = ({
     >
       <div className="w-full max-w-3xl animate-fade-in">
         <div className="rtl flex justify-center gap-6">
-          <button
+          <button type="button"
             data-testid="newCategoryButton"
             onClick={() => setActiveTab("Category")}
             className={`rounded-t-xl px-6 py-3 font-medium transition-all ${
@@ -246,7 +255,7 @@ const CreateNewItemModal = ({
           >
             دسته‌بندی جدید
           </button>
-          <button
+          <button type="button"
             data-testid="newSubCategoryButton"
             onClick={() => setActiveTab("Subcategory")}
             className={`rounded-t-xl px-6 py-3 font-medium transition-all ${
@@ -395,13 +404,13 @@ const CreateNewItemModal = ({
 
           {error && <div className="mt-4 text-sm text-red-500">{error}</div>}
           <div className="mt-5 flex items-center justify-between">
-            <button
+            <button type="button"
               onClick={onClose}
               className="rounded-xl bg-white px-6 py-3 font-medium text-gray-700"
             >
               انصراف
             </button>
-            <button
+            <button type="button"
               onClick={handleSubmit}
               disabled={isSubmitDisabled() || loading} // Disable the button if loading
               className={`rounded-xl bg-blue-500 px-6 py-3 font-medium text-white disabled:cursor-not-allowed disabled:bg-gray-400 ${

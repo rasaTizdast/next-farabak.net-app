@@ -67,8 +67,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({ onClose, onVideoUpl
     try {
       await onVideoUpload(selectedFile);
       onClose();
-    } catch (error) {
-      console.error("Upload failed:", error);
+    } catch {
       setError("آپلود ویدیو با خطا مواجه شد");
     } finally {
       setUploading(false);
@@ -80,7 +79,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({ onClose, onVideoUpl
       <div className="w-full max-w-lg rounded-lg bg-gray-900 p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-bold text-white">آپلود ویدیو</h2>
-          <button onClick={onClose} className="text-gray-300 hover:text-white" disabled={uploading}>
+          <button type="button" onClick={onClose} className="text-gray-300 hover:text-white" disabled={uploading}>
             <X size={24} />
           </button>
         </div>
@@ -121,7 +120,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({ onClose, onVideoUpl
                 {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
               </p>
             </div>
-            <button
+            <button type="button"
               onClick={() => setSelectedFile(null)}
               className="text-gray-400 hover:text-white"
               disabled={uploading}
@@ -136,14 +135,14 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({ onClose, onVideoUpl
         )}
 
         <div className="flex justify-end gap-3">
-          <button
+          <button type="button"
             onClick={onClose}
             className="rounded-md bg-gray-700 px-4 py-2 text-white transition hover:bg-gray-600"
             disabled={uploading}
           >
             انصراف
           </button>
-          <button
+          <button type="button"
             onClick={handleUpload}
             className="flex items-center rounded-md bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-500"
             disabled={!selectedFile || uploading}

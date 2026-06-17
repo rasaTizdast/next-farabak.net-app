@@ -5,6 +5,7 @@ import moment from "jalali-moment";
 import React, { useState, useEffect } from "react";
 
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import { Branch, Invoice } from "../types";
 import CustomerInfoStep from "./steps/CustomerInfoStep";
@@ -20,6 +21,7 @@ interface InvoiceModalProps {
 }
 
 const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, onSuccess }) => {
+  const { mutate: createInvoiceMutate, loading: isSubmitting } = useApiMutation("post");
   const [currentStep, setCurrentStep] = useState(0);
   const [usdToRialRate, setUsdToRialRate] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -155,20 +157,14 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
       };
 
       // Submit invoice data
-      const response = await fetch("/api/admin/invoices", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          branchId: branch.branchid,
-          invoiceData,
-        }),
+      const result = await createInvoiceMutate("/api/admin/invoices", {
+        branchId: branch.branchid,
+        invoiceData,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "خطا در ثبت فاکتور");
+      if (!result) {
+        message.error("خطا در ثبت فاکتور");
+        return;
       }
 
       message.success("فاکتور با موفقیت ثبت شد");
@@ -212,6 +208,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
         <div className="mt-4 flex justify-between">
           {currentStep > 0 && (
             <Button
+              htmlType="button"
               onClick={handlePrev}
               disabled={isLoading}
               className="border-gray-600 bg-gray-700 text-white hover:border-gray-500 hover:bg-gray-600 hover:text-white"
@@ -222,6 +219,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
           <div className="flex-grow"></div>
           {currentStep < steps.length - 1 ? (
             <Button
+              htmlType="button"
               type="primary"
               onClick={handleNext}
               disabled={isLoading}
@@ -231,10 +229,11 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
             </Button>
           ) : (
             <Button
+              htmlType="button"
               type="primary"
               onClick={handleSubmit}
-              loading={isLoading}
-              disabled={isLoading}
+              loading={isSubmitting || isLoading}
+              disabled={isSubmitting || isLoading}
               className="border-green-600 bg-green-600 hover:bg-green-700"
             >
               ثبت فاکتور

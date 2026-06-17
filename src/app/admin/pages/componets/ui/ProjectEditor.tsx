@@ -306,7 +306,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
             {/* Header */}
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-2xl font-bold">ساخت پروژه جدید</h2>
-              <button
+              <button type="button"
                 onClick={onClose}
                 className="rounded-full p-2 transition-colors hover:bg-gray-700"
               >
@@ -497,13 +497,13 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
 
               {/* Buttons */}
               <div className="flex justify-end gap-4">
-                <button
+                <button type="button"
                   onClick={onClose}
                   className="rounded-lg bg-gray-600 px-6 py-2 transition-colors hover:bg-gray-500"
                 >
                   بستن
                 </button>
-                <button
+                <button type="button"
                   onClick={handleSubmit}
                   disabled={isSubmitting}
                   className="rounded-lg bg-blue-600 px-6 py-2 transition-colors hover:bg-blue-500 disabled:opacity-50"

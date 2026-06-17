@@ -1,6 +1,7 @@
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface VideoAttributes {
   src: string;
@@ -11,6 +12,7 @@ interface VideoAttributes {
 const VideoNode = ({ node, editor, getPos }: NodeViewProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const attrs = node.attrs as VideoAttributes;
+  const { mutate: deleteVideo } = useApiMutation("delete");
 
   const handleDelete = async () => {
     const confirmed = window.confirm("آیا میخواهید این ویدیو حذف شود؟");
@@ -18,23 +20,16 @@ const VideoNode = ({ node, editor, getPos }: NodeViewProps) => {
 
     setIsDeleting(true);
 
-    try {
-      const key = node.attrs.src;
+    const key = node.attrs.src;
+    const result = await deleteVideo("/api/products/productBlog/delete", { key });
 
-      await fetch("/api/products/productBlog/delete", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key }),
-      });
-
+    if (result) {
       const pos = getPos();
       editor.commands.deleteRange({ from: pos, to: pos + 1 });
-    } catch (error) {
-      console.error("Delete failed:", error);
+    } else {
       alert("Failed to delete video");
-    } finally {
-      setIsDeleting(false);
     }
+    setIsDeleting(false);
   };
 
   const isExternalUrl = (url: string): boolean => {

@@ -659,13 +659,13 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                   <h3 className="mb-4 text-lg font-bold">حذف دسته بندی</h3>
                   <p>آیا مطمئن هستید که می‌خواهید این دسته بندی را حذف کنید؟</p>
                   <div className="mt-4 flex justify-end gap-2">
-                    <button
+                    <button type="button"
                       onClick={() => setShowDeleteConfirm(null)}
                       className="px-4 py-2 text-gray-400 hover:text-gray-200"
                     >
                       انصراف
                     </button>
-                    <button
+                    <button type="button"
                       onClick={() => handleDeleteCategory(showDeleteConfirm)}
                       className="rounded-lg bg-red-600 px-4 py-2 hover:bg-red-700"
                     >
@@ -718,13 +718,13 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                       </span>
                     </div>
                     <div className="flex justify-end gap-2">
-                      <button
+                      <button type="button"
                         onClick={() => setShowCreateModal(false)}
                         className="px-4 py-2 text-gray-400 hover:text-gray-200"
                       >
                         انصراف
                       </button>
-                      <button
+                      <button type="button"
                         onClick={handleCreateCategory}
                         className="rounded-lg bg-blue-600 px-4 py-2 hover:bg-blue-700"
                         disabled={
@@ -759,13 +759,13 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                     </ul>
                   </div>
                   <div className="mt-4 flex justify-end gap-2">
-                    <button
+                    <button type="button"
                       onClick={() => setConfirmationModalData(null)}
                       className="px-4 py-2 text-gray-400 hover:text-gray-200"
                     >
                       انصراف
                     </button>
-                    <button
+                    <button type="button"
                       onClick={handleForceCategoryDelete}
                       className="rounded-lg bg-red-600 px-4 py-2 hover:bg-red-700"
                     >
@@ -782,14 +782,14 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               <h2 className="text-xl font-bold">نوشتن محتوای وبلاگ</h2>
               <div className="flex gap-3">
                 {blogId && (
-                  <button
+                  <button type="button"
                     onClick={() => setShowFaqManager(true)}
                     className="rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
                   >
                     مدیریت سوالات متداول
                   </button>
                 )}
-                <button
+                <button type="button"
                   onClick={onClose}
                   className="text-gray-400 transition-colors hover:text-gray-200"
                 >

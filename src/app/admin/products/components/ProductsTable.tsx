@@ -264,7 +264,7 @@ const ProductsTable = ({
         {/* Sort reset bar */}
         {sortConfig.key !== null && (
           <div className="flex justify-end rounded-t-xl bg-blue-600 p-2">
-            <button
+            <button type="button"
               onClick={resetSorting}
               className="flex items-center gap-1 rounded-lg bg-blue-800 px-3 py-1 text-xs text-white transition-all hover:bg-blue-900"
             >
@@ -278,7 +278,7 @@ const ProductsTable = ({
           <div className="flex flex-wrap items-center justify-between rounded-t-xl bg-slate-600 p-4 text-xs lg:text-sm">
             <span className="text-white">{selectedProducts.length} محصول انتخاب شده</span>
             <div className="flex flex-wrap justify-end gap-2">
-              <button
+              <button type="button"
                 onClick={() => handleBulkAction("delete")}
                 className="rounded-lg bg-red-600 px-3 py-1 text-xs text-white transition-all hover:bg-red-700"
               >
@@ -348,7 +348,7 @@ const ProductsTable = ({
                     <td className="px-6 py-4">{product.categoryName}</td>
                     <td className="px-6 py-4">
                       {product.CategoryContentIds?.length > 1 ? (
-                        <button
+                        <button type="button"
                           onClick={() =>
                             setActiveSubCategories({
                               name: product.Type,
@@ -419,7 +419,7 @@ const ProductsTable = ({
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex justify-center gap-2">
-                        <button
+                        <button type="button"
                           onClick={() => qrCodeModalHandler(product)}
                           className={`${product.QrCode_Key ? "bg-violet-800" : "bg-sky-600"} ${
                             product.QrCode_Key ? "hover:bg-violet-900" : "hover:bg-sky-700"
@@ -434,14 +434,14 @@ const ProductsTable = ({
                           refetchProducts={refetchProducts}
                         />
 
-                        <button
+                        <button type="button"
                           onClick={() => handleEditProduct(product)}
                           className="rounded-lg bg-yellow-600 px-2 py-1 text-white transition-all hover:bg-yellow-700"
                         >
                           ویرایش
                         </button>
 
-                        <button
+                        <button type="button"
                           onClick={() => {
                             setIsModalOpen(true);
                             setCurrentAction({
@@ -483,7 +483,7 @@ const ProductsTable = ({
                   </li>
                 ))}
               </ul>
-              <button
+              <button type="button"
                 onClick={() => setActiveSubCategories(null)}
                 className="mt-8 rounded-lg bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-800"
               >

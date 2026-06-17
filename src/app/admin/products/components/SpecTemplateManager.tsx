@@ -133,7 +133,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <button
+                    <button type="button"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -143,7 +143,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
                     >
                       انتخاب
                     </button>
-                    <button
+                    <button type="button"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -153,7 +153,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
                     >
                       <FiEdit />
                     </button>
-                    <button
+                    <button type="button"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();

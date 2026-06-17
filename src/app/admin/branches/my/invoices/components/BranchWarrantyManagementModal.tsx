@@ -5,6 +5,9 @@ import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { DatePicker } from "zaman";
 
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
+
 import { ExpandedInvoiceItem } from "./types";
 
 // Format a Date object to YYYY-MM-DD string
@@ -51,6 +54,17 @@ const BranchWarrantyManagementModal = ({
   onClose,
   onSuccess,
 }: BranchWarrantyManagementModalProps) => {
+  const { data: currentBranchData, error: branchError } = useApiFetch<Branch>(
+    "/api/admin/branches/current"
+  );
+  const { data: productCheckData, error: productCheckError } = useApiFetch<{ hasProduct: boolean }>(
+    currentBranchData?.branchid
+      ? `/api/admin/branches/check-product?branchId=${currentBranchData.branchid}&productId=${item.ProductId}&invoiceId=${invoiceId}`
+      : null
+  );
+  const { mutate: generateWarrantyMutate } = useApiMutation("post");
+  const { mutate: createWarrantyMutate } = useApiMutation("post");
+
   const [loading, setLoading] = useState(true);
   const [loadingWarrantyCode, setLoadingWarrantyCode] = useState(false);
   const [currentBranch, setCurrentBranch] = useState<Branch | null>(null);
@@ -76,9 +90,26 @@ const BranchWarrantyManagementModal = ({
   // Use the print hook with ref for the warranty card area
   const componentRef = useRef<HTMLDivElement>(null);
 
-  // Add additional effect specifically for warranty code generation
+  // Sync current branch data from useApiFetch
   useEffect(() => {
-    // If product is available but we don't have a warranty code yet, generate one
+    if (currentBranchData) {
+      setCurrentBranch(currentBranchData);
+      setWarrantyData((prev) => ({
+        ...prev,
+        branchId: currentBranchData.branchid,
+      }));
+    }
+  }, [currentBranchData]);
+
+  // Sync product check data from useApiFetch
+  useEffect(() => {
+    if (productCheckData !== null && productCheckData !== undefined) {
+      setBranchHasProduct(productCheckData.hasProduct);
+    }
+  }, [productCheckData]);
+
+  // Generate warranty code when branch is available and product exists
+  useEffect(() => {
     if (
       branchHasProduct &&
       currentBranch &&
@@ -88,92 +119,16 @@ const BranchWarrantyManagementModal = ({
     }
   }, [branchHasProduct, currentBranch, warrantyData.warrantycode]);
 
-  // Fetch current branch info when component mounts
+  // Mark initialized when we have branch data or error
   useEffect(() => {
-    const initializeComponent = async () => {
-      try {
-        setLoading(true);
-
-        // Step 1: Fetch branch data
-        const branchData = await fetchCurrentBranch();
-        if (!branchData) return;
-
-        // Step 2: Check product availability
-        const hasProduct = await checkProductAvailability(branchData.branchid);
-
-        // Step 3: Generate warranty code if product is available
-        if (hasProduct) {
-          await generateWarrantyCode(branchData.branchid);
-        }
-
-        // Mark initialization as complete
-        setIsInitialized(true);
-      } catch (error) {
-        console.error("Error during initialization:", error);
-        toast.error("خطا در راه‌اندازی فرم گارانتی");
-        setIsInitialized(true); // Still mark as initialized to prevent infinite loading
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initializeComponent();
-  }, []);
-
-  // Fetch information about the current logged-in branch
-  const fetchCurrentBranch = async (): Promise<Branch | null> => {
-    try {
-      const response = await fetch(`/api/admin/branches/current`);
-
-      if (!response.ok) {
-        console.error("Failed to fetch current branch");
-        toast.error("خطا در دریافت اطلاعات شعبه");
-        return null;
-      }
-
-      const branchData = await response.json();
-      setCurrentBranch(branchData);
-
-      // Set the branch ID in warranty data
-      setWarrantyData((prev) => ({
-        ...prev,
-        branchId: branchData.branchid,
-      }));
-
-      return branchData;
-    } catch (error) {
-      console.error("Error fetching current branch:", error);
-      toast.error("خطا در دریافت اطلاعات شعبه");
-      return null;
+    if (
+      (currentBranchData || branchError) &&
+      (productCheckData !== undefined || productCheckError)
+    ) {
+      setLoading(false);
+      setIsInitialized(true);
     }
-  };
-
-  // Check if this branch has this product in inventory
-  const checkProductAvailability = async (branchId: number): Promise<boolean> => {
-    try {
-      const response = await fetch(
-        `/api/admin/branches/check-product?branchId=${branchId}&productId=${item.ProductId}&invoiceId=${invoiceId}`
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Product availability check failed:", errorData);
-        toast.error("خطا در بررسی موجودی محصول");
-        setBranchHasProduct(false);
-        return false;
-      }
-
-      const data = await response.json();
-
-      setBranchHasProduct(data.hasProduct);
-      return data.hasProduct;
-    } catch (error) {
-      console.error("Error checking product availability:", error);
-      toast.error("خطا در بررسی موجودی محصول");
-      setBranchHasProduct(false);
-      return false;
-    }
-  };
+  }, [currentBranchData, branchError, productCheckData, productCheckError]);
 
   // Generate a unique warranty code for the current branch
   const generateWarrantyCode = async (branchId?: number): Promise<string | null> => {
@@ -182,10 +137,8 @@ const BranchWarrantyManagementModal = ({
     try {
       setLoadingWarrantyCode(true);
 
-      // Use provided branchId or get from state
       const selectedBranchId = branchId || warrantyData.branchId;
 
-      // Find selected branch info
       const selectedBranch =
         currentBranch && currentBranch.branchid === selectedBranchId ? currentBranch : null;
 
@@ -194,78 +147,46 @@ const BranchWarrantyManagementModal = ({
         return null;
       }
 
-      // Use branch location code or name as branch code
       const branchCode =
         selectedBranch.location || selectedBranch.name.substring(0, 2).toUpperCase();
 
-      // Get current date for year-month format
       const date = new Date();
-
-      // Get Persian year in English digits
-      const persianYear = new Intl.DateTimeFormat("fa-IR", {
-        year: "numeric",
-      }).format(date);
-
-      // Convert Persian digits to English digits and get last 3 digits of year (404 from 1404)
+      const persianYear = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(date);
       const yearStr = persianToEnglishDigits(persianYear);
-      const yearNum = yearStr.slice(-3); // Get last 3 digits, e.g., 404 from 1404
-
-      // Get Persian month with leading zero
-      const persianMonth = new Intl.DateTimeFormat("fa-IR", {
-        month: "2-digit",
-      }).format(date);
-
-      // Convert Persian digits to English digits
+      const yearNum = yearStr.slice(-3);
+      const persianMonth = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" }).format(date);
       const monthNum = persianToEnglishDigits(persianMonth);
-
-      // Combine to get the format 404 (for year 1404) + 01 (for month 1) = 40401
       const yearMonth = yearNum + monthNum.padStart(2, "0");
 
-      // Call API to generate unique warranty code
-      const response = await fetch("/api/admin/warranty/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ branchCode, yearMonth }),
-      });
+      const data = await generateWarrantyMutate<{ warrantyCode: string }>(
+        "/api/admin/warranty/generate",
+        { branchCode, yearMonth }
+      );
 
-      if (!response.ok) {
+      if (data && data.warrantyCode) {
+        setWarrantyData((prev) => ({
+          ...prev,
+          warrantycode: data.warrantyCode,
+          hasWarranty: true,
+        }));
+        return data.warrantyCode;
+      } else {
         throw new Error("خطا در تولید کد گارانتی");
       }
-
-      const data = await response.json();
-
-      // Update state with generated code and set hasWarranty to true
-      setWarrantyData((prev) => ({
-        ...prev,
-        warrantycode: data.warrantyCode,
-        hasWarranty: true,
-      }));
-      return data.warrantyCode;
     } catch (error) {
       console.error("Error generating warranty code:", error);
 
-      // Fallback to local generation
       if (currentBranch) {
         const branchCode =
           currentBranch.location || currentBranch.name.substring(0, 2).toUpperCase() || "FA";
 
         const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-
-        // Use Persian date for the fallback as well
         const date = new Date();
-        const persianYear = new Intl.DateTimeFormat("fa-IR", {
-          year: "numeric",
-        }).format(date);
-        const persianMonth = new Intl.DateTimeFormat("fa-IR", {
-          month: "2-digit",
-        }).format(date);
-
+        const persianYear = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(date);
+        const persianMonth = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" }).format(date);
         const yearStr = persianToEnglishDigits(persianYear);
         const monthStr = persianToEnglishDigits(persianMonth);
-
-        const yearNum = yearStr.slice(-3); // Get last 3 digits, e.g., 404 from 1404
+        const yearNum = yearStr.slice(-3);
         const yearMonth = yearNum + monthStr.padStart(2, "0");
 
         const fallbackCode = `${branchCode}-${yearMonth}-${randomCode}`;
@@ -402,46 +323,29 @@ const BranchWarrantyManagementModal = ({
       return;
     }
 
-    // Log current state before submission
-
     setLoading(true);
 
-    try {
-      const endpoint = `/api/admin/warranty/create`;
-      const payload = {
-        invoiceId: invoiceId,
-        invoiceDetailId: item.Invoice_Details,
-        productId: item.ProductId,
-        warrantyData: {
-          ...warrantyData,
-          branchId: warrantyData.branchId,
-          dontReduceStock: true, // Flag to indicate not to reduce stock again
-        },
-      };
+    const payload = {
+      invoiceId,
+      invoiceDetailId: item.Invoice_Details,
+      productId: item.ProductId,
+      warrantyData: {
+        ...warrantyData,
+        branchId: warrantyData.branchId,
+        dontReduceStock: true,
+      },
+    };
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        toast.error(errorData.error || "خطا در مدیریت گارانتی");
-        return;
-      }
-
+    const result = await createWarrantyMutate("/api/admin/warranty/create", payload);
+    if (result) {
       toast.success("گارانتی جدید با موفقیت ایجاد شد");
       onSuccess();
       onClose();
-    } catch (error) {
-      console.error("Error creating warranty:", error);
+    } else {
       toast.error("خطا در ایجاد گارانتی");
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
   // Check if the submit button should be disabled

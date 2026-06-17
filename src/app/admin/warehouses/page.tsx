@@ -1,9 +1,10 @@
 "use client";
 
 // Custom lightweight UI replacing antd components
-import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import ProductsModal from "./components/ProductsModal";
 import { AutoCompleteBase, ButtonBase, InputBase } from "./components/ui";
@@ -45,6 +46,9 @@ function WarehousesPageContent() {
   const [editing, setEditing] = useState<Warehouse | null>(null);
   const [formName, setFormName] = useState("");
   const [formLocation, setFormLocation] = useState<string | undefined>(undefined);
+
+  const { mutate: saveWarehouseMutate } = useApiMutation();
+  const { mutate: deleteWarehouseMutate } = useApiMutation("delete");
 
   const [productModal, setProductModal] = useState<{
     open: boolean;
@@ -132,33 +136,21 @@ function WarehousesPageContent() {
     }
   };
 
-  const fetchAllProducts = async () => {
-    try {
-      const response = await axios.get("/api/admin/products/all", {
-        headers: {
-          "Cache-Control": "no-cache",
-        },
-      });
-      const products = response.data?.data || response.data || [];
-      if (Array.isArray(products)) {
-        setAllProducts(products);
-        if (productId && !selectedProduct) {
-          const urlProduct = products.find((p: Product) => p.ProductId === parseInt(productId));
-          if (urlProduct) {
-            setSelectedProduct(urlProduct);
-            setSearchQuery(urlProduct.Type || "");
-          }
-        }
-      }
-    } catch (e) {
-      console.error(e);
-      notify("error", "خطا در دریافت لیست محصولات");
-    }
-  };
+  const { data: allProductsRaw } = useApiFetch<Product[]>("/api/admin/products/all");
 
   useEffect(() => {
-    fetchAllProducts();
-  }, []);
+    if (allProductsRaw) {
+      const products = Array.isArray(allProductsRaw) ? allProductsRaw : [];
+      setAllProducts(products);
+      if (productId && !selectedProduct) {
+        const urlProduct = products.find((p: Product) => p.ProductId === parseInt(productId));
+        if (urlProduct) {
+          setSelectedProduct(urlProduct);
+          setSearchQuery(urlProduct.Type || "");
+        }
+      }
+    }
+  }, [allProductsRaw, productId]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -187,41 +179,27 @@ function WarehousesPageContent() {
     setIsModalOpen(true);
   };
   const saveWarehouse = async () => {
-    try {
-      const trimmedName = (formName || "").trim();
-      const trimmedLocation = (formLocation || "").trim();
-      if (!trimmedName || !trimmedLocation) {
-        notify("warning", "نام و مکان انبار الزامی است");
-        return;
-      }
-      if (editing) {
-        await axios.put(`/api/admin/warehouses/${editing.warehouseid}`, {
-          name: trimmedName,
-          location: trimmedLocation,
-        });
-        notify("success", "انبار با موفقیت بروزرسانی شد");
-      } else {
-        await axios.post(`/api/admin/warehouses`, { name: trimmedName, location: trimmedLocation });
-        notify("success", "انبار با موفقیت ایجاد شد");
-      }
+    const trimmedName = (formName || "").trim();
+    const trimmedLocation = (formLocation || "").trim();
+    if (!trimmedName || !trimmedLocation) {
+      notify("warning", "نام و مکان انبار الزامی است");
+      return;
+    }
+    const payload = { name: trimmedName, location: trimmedLocation };
+    const res = editing
+      ? await saveWarehouseMutate(`/api/admin/warehouses/${editing.warehouseid}`, payload)
+      : await saveWarehouseMutate(`/api/admin/warehouses`, payload);
+    if (res) {
+      notify("success", editing ? "انبار با موفقیت بروزرسانی شد" : "انبار با موفقیت ایجاد شد");
       setIsModalOpen(false);
       fetchWarehouses();
-    } catch (e: any) {
-      console.error(e);
-      if (e.response?.status === 409) {
-        notify("error", e.response.data.error || "نام انبار تکراری است");
-      } else {
-        notify("error", editing ? "خطا در بروزرسانی انبار" : "خطا در ایجاد انبار");
-      }
+    } else {
+      notify("error", editing ? "خطا در بروزرسانی انبار" : "خطا در ایجاد انبار");
     }
   };
   const deleteWarehouse = async (wh: Warehouse) => {
-    try {
-      await axios.delete(`/api/admin/warehouses/${wh.warehouseid}`);
-      fetchWarehouses();
-    } catch (e) {
-      console.error(e);
-    }
+    await deleteWarehouseMutate(`/api/admin/warehouses/${wh.warehouseid}`);
+    fetchWarehouses();
   };
   const confirmAndDeleteWarehouse = async (wh: Warehouse) => {
     const ok =
@@ -258,7 +236,7 @@ function WarehousesPageContent() {
               onChange={(e) => setQ((e.target as HTMLInputElement).value)}
               className="w-64"
             />
-            <button
+            <button type="button"
               onClick={openCreate}
               className="inline-flex items-center gap-2 whitespace-nowrap rounded bg-emerald-600 px-4 py-1 text-white transition-all hover:bg-emerald-700"
             >

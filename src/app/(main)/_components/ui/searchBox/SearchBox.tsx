@@ -107,7 +107,7 @@ const SearchInput = ({
       ref={inputRef}
       onKeyDown={onKeyDown}
     />
-    <button onClick={onSearchClick}>
+    <button type="button" onClick={onSearchClick}>
       <CgSearch />
     </button>
   </div>

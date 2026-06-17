@@ -86,7 +86,7 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
             </li>
           ))}
           {width && width <= 576 && (
-            <button
+            <button type="button"
               className={styles.toggleButton}
               onClick={() => {
                 setTextVis((v) => !v);

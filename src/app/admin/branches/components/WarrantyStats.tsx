@@ -9,7 +9,8 @@ import {
   ReloadOutlined,
 } from "@ant-design/icons";
 import { Card, Spin, Alert, Statistic, Row, Col, Typography, Empty, Button } from "antd";
-import { useState, useEffect, useCallback } from "react";
+
+import { useApiFetch } from "@/hooks/useApiFetch";
 
 const { Title, Text } = Typography;
 
@@ -21,58 +22,23 @@ interface BranchStats {
   requested_count: number;
 }
 
+interface StatsResponse {
+  allBranches?: BranchStats[];
+  myBranches?: BranchStats[];
+}
+
 interface WarrantyStatsProps {
   isTabActive?: boolean;
 }
 
 export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps) {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [statistics, setStatistics] = useState<BranchStats[]>([]);
-  const [dataFetched, setDataFetched] = useState(false);
-  const [lastFetchTime, setLastFetchTime] = useState<number>(0);
-
-  // Create a memoized fetch function using useCallback
-  const fetchWarrantyStats = useCallback(
-    async (force = false) => {
-      // Skip if not active and not forced
-      if (!isTabActive && !force) return;
-
-      // Skip if we've fetched in the last 10 seconds and not forced
-      const now = Date.now();
-      if (!force && now - lastFetchTime < 10000 && dataFetched) return;
-
-      try {
-        setLoading(true);
-        const response = await fetch("/api/admin/warranty/statistics");
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch warranty statistics");
-        }
-
-        const data = await response.json();
-
-        // Use either allBranches or myBranches, whichever has data
-        const stats = data.allBranches?.length > 0 ? data.allBranches : data.myBranches || [];
-        setStatistics(stats);
-        setDataFetched(true);
-        setLastFetchTime(now);
-      } catch (err: any) {
-        console.error("[Client] Error fetching warranty stats:", err);
-        setError(err.message || "خطا در دریافت آمار گارانتی‌ها");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [isTabActive, lastFetchTime, dataFetched]
+  const { data, loading, error, refetch } = useApiFetch<StatsResponse>(
+    isTabActive ? "/api/admin/warranty/statistics" : null,
+    true
   );
 
-  // Effect to fetch data when tab becomes active
-  useEffect(() => {
-    if (isTabActive) {
-      fetchWarrantyStats(false);
-    }
-  }, [isTabActive, fetchWarrantyStats]);
+  const statistics: BranchStats[] =
+    (data?.allBranches?.length ? data.allBranches : data?.myBranches) || [];
 
   // Calculate total statistics across all branches
   const totalStats = statistics.reduce(
@@ -97,8 +63,9 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
           <div>
             <p>{error}</p>
             <Button
+              htmlType="button"
               type="primary"
-              onClick={() => fetchWarrantyStats(true)}
+              onClick={() => refetch()}
               icon={<ReloadOutlined />}
               className="mt-4"
             >
@@ -117,7 +84,8 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
       {/* Refresh Button */}
       <div className="mb-2 flex justify-end">
         <Button
-          onClick={() => fetchWarrantyStats(true)}
+          htmlType="button"
+          onClick={() => refetch()}
           icon={<ReloadOutlined />}
           loading={loading}
           className="bg-blue-600 text-white hover:bg-blue-700"

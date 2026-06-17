@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { BiTrash, BiEdit, BiPlus, BiCheck, BiX, BiMenu } from "react-icons/bi";
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import { formatJalaliDate } from "@/utils/jalaliDate";
 
@@ -23,8 +25,13 @@ interface FaqManagerProps {
 
 const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [editingFaq, setEditingFaq] = useState<number | null>(null);
+  const { data: faqsData, loading: isLoading, refetch: fetchFaqs } = useApiFetch<any>(
+    blogId ? `/api/blogs/manage/${blogId}/faqs` : null
+  );
+  const { mutate: createFaq } = useApiMutation("post");
+  const { mutate: updateFaq } = useApiMutation("put");
+  const { mutate: deleteFaq } = useApiMutation("delete");
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [newFaq, setNewFaq] = useState<FaqItem>({
     question: "",
@@ -34,36 +41,19 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
   });
 
   useEffect(() => {
-    if (blogId) {
-      fetchFaqs();
+    if (faqsData) {
+      const items = faqsData.faqs || [];
+      console.log(
+        "Fetched FAQs from database:",
+        items.map((f: any) => ({
+          id: f.id,
+          order: f.order,
+          question: f.question.substring(0, 30) + "...",
+        }))
+      );
+      setFaqs(items);
     }
-  }, [blogId]);
-
-  const fetchFaqs = async () => {
-    if (!blogId) return;
-
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/blogs/manage/${blogId}/faqs`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log(
-          "Fetched FAQs from database:",
-          data.faqs?.map((f: any) => ({
-            id: f.id,
-            order: f.order,
-            question: f.question.substring(0, 30) + "...",
-          }))
-        );
-        setFaqs(data.faqs || []);
-      }
-    } catch (error) {
-      console.error("Error fetching FAQs:", error);
-      toast.error("خطا در بارگذاری سوالات متداول");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [faqsData]);
 
   const handleAddFaq = async () => {
     if (!blogId) {
@@ -88,50 +78,26 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
       faqs.map((f) => ({ id: f.id, order: f.order }))
     );
 
-    try {
-      const response = await fetch(`/api/blogs/manage/${blogId}/faqs`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...newFaq,
-          order: nextOrder,
-        }),
-      });
-
-      if (response.ok) {
-        // Refresh the FAQs list to ensure correct order
-        await fetchFaqs();
-        setNewFaq({ question: "", answer: "", order: 0, available: true });
-        toast.success("سوال متداول با موفقیت اضافه شد");
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.message || "خطا در اضافه کردن سوال");
-      }
-    } catch (error) {
-      console.error("Error adding FAQ:", error);
+    const res = await createFaq(`/api/blogs/manage/${blogId}/faqs`, {
+      ...newFaq,
+      order: nextOrder,
+    });
+    if (res) {
+      fetchFaqs();
+      setNewFaq({ question: "", answer: "", order: 0, available: true });
+      toast.success("سوال متداول با موفقیت اضافه شد");
+    } else {
       toast.error("خطا در اضافه کردن سوال متداول");
     }
   };
 
   const handleUpdateFaq = async (faqId: number, updatedFaq: FaqItem) => {
-    try {
-      const response = await fetch(`/api/blogs/faqs/${faqId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedFaq),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setFaqs(faqs.map((faq) => (faq.id === faqId ? data.faq : faq)));
-        setEditingFaq(null);
-        toast.success("سوال متداول با موفقیت بروزرسانی شد");
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.message || "خطا در بروزرسانی سوال");
-      }
-    } catch (error) {
-      console.error("Error updating FAQ:", error);
+    const data = await updateFaq(`/api/blogs/faqs/${faqId}`, updatedFaq) as any;
+    if (data) {
+      setFaqs(faqs.map((faq) => (faq.id === faqId ? data.faq : faq)));
+      setEditingFaq(null);
+      toast.success("سوال متداول با موفقیت بروزرسانی شد");
+    } else {
       toast.error("خطا در بروزرسانی سوال متداول");
     }
   };
@@ -141,20 +107,11 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
       return;
     }
 
-    try {
-      const response = await fetch(`/api/blogs/faqs/${faqId}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        setFaqs(faqs.filter((faq) => faq.id !== faqId));
-        toast.success("سوال متداول با موفقیت حذف شد");
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.message || "خطا در حذف سوال");
-      }
-    } catch (error) {
-      console.error("Error deleting FAQ:", error);
+    const res = await deleteFaq(`/api/blogs/faqs/${faqId}`);
+    if (res) {
+      setFaqs(faqs.filter((faq) => faq.id !== faqId));
+      toast.success("سوال متداول با موفقیت حذف شد");
+    } else {
       toast.error("خطا در حذف سوال متداول");
     }
   };
@@ -224,29 +181,24 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
       );
 
       // Update all changed FAQs
-      await Promise.all(
+      const results = await Promise.all(
         faqsToUpdate.map(async (faq) => {
           if (faq.id) {
-            const response = await fetch(`/api/blogs/faqs/${faq.id}`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ order: faq.order }),
-            });
-
-            if (!response.ok) {
-              throw new Error(`Failed to update FAQ ${faq.id} order`);
-            }
+            return updateFaq(`/api/blogs/faqs/${faq.id}`, { order: faq.order });
           }
+          return null;
         })
       );
 
-      // Refresh the FAQs from database to ensure consistency
-      await fetchFaqs();
-      toast.success("ترتیب سوالات با موفقیت تغییر کرد");
+      if (results.every((r) => r !== null)) {
+        fetchFaqs();
+        toast.success("ترتیب سوالات با موفقیت تغییر کرد");
+      } else {
+        throw new Error("Failed to update FAQ order");
+      }
     } catch (error) {
       console.error("Error updating FAQ order:", error);
       toast.error("خطا در تغییر ترتیب سوالات");
-      // Revert the UI change on error
       setFaqs(faqs);
     }
 
@@ -262,7 +214,7 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
       <div className="max-h-[90vh] w-full max-w-4xl overflow-auto rounded-lg bg-gray-800 p-6 text-gray-200 shadow-xl">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-bold">مدیریت سوالات متداول</h2>
-          <button onClick={onClose} className="text-gray-400 transition-colors hover:text-gray-200">
+          <button type="button" onClick={onClose} className="text-gray-400 transition-colors hover:text-gray-200">
             ✕
           </button>
         </div>
@@ -304,7 +256,7 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
                 />
                 <span className="text-sm">فعال</span>
               </label>
-              <button
+              <button type="button"
                 onClick={handleAddFaq}
                 className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
               >
@@ -400,14 +352,14 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
                       </div>
 
                       <div className="ml-4 flex gap-2">
-                        <button
+                        <button type="button"
                           onClick={() => setEditingFaq(faq.id!)}
                           className="rounded bg-blue-600 p-2 text-white transition-colors hover:bg-blue-700"
                           title="ویرایش"
                         >
                           <BiEdit size={16} />
                         </button>
-                        <button
+                        <button type="button"
                           onClick={() => handleDeleteFaq(faq.id!)}
                           className="rounded bg-red-600 p-2 text-white transition-colors hover:bg-red-700"
                           title="حذف"
@@ -423,7 +375,7 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button
+          <button type="button"
             onClick={onClose}
             className="rounded-lg bg-gray-600 px-6 py-2 text-white transition-colors hover:bg-gray-700"
           >
@@ -487,14 +439,14 @@ const EditFaqForm: React.FC<EditFaqFormProps> = ({ faq, onSave, onCancel }) => {
           <span className="text-sm">فعال</span>
         </label>
         <div className="flex gap-2">
-          <button
+          <button type="button"
             onClick={handleSave}
             className="flex items-center gap-2 rounded bg-green-600 px-3 py-1 text-white transition-colors hover:bg-green-700"
           >
             <BiCheck size={16} />
             ذخیره
           </button>
-          <button
+          <button type="button"
             onClick={onCancel}
             className="flex items-center gap-2 rounded bg-gray-600 px-3 py-1 text-white transition-colors hover:bg-gray-700"
           >

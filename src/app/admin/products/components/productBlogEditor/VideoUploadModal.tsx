@@ -67,8 +67,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({ onClose, onVideoUpl
     try {
       await onVideoUpload(selectedFile);
       onClose();
-    } catch (error) {
-      console.error("Upload failed:", error);
+    } catch {
       setError("آپلود ویدیو با خطا مواجه شد");
     } finally {
       setUploading(false);
@@ -126,7 +125,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({ onClose, onVideoUpl
                 {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
               </p>
             </div>
-            <button
+            <button type="button"
               onClick={() => setSelectedFile(null)}
               className="text-gray-400 hover:text-white"
               disabled={uploading}

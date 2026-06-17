@@ -48,7 +48,7 @@ const ProductDeletionModal = ({ currentAction, handleModalConfirm, setIsModalOpe
         className={`relative w-full max-w-md animate-fade-in rounded-lg p-8 shadow-lg ${modalStyles}`}
       >
         {/* Close Button */}
-        <button
+        <button type="button"
           onClick={() => setIsModalOpen(false)}
           className="absolute right-4 top-4 font-bold text-gray-900 hover:text-gray-600 focus:outline-none"
         >
@@ -73,13 +73,13 @@ const ProductDeletionModal = ({ currentAction, handleModalConfirm, setIsModalOpe
 
         {/* Actions */}
         <div className="mt-6 flex justify-center gap-4">
-          <button
+          <button type="button"
             onClick={handleModalConfirm}
             className={`rounded-lg px-6 py-2 text-white transition-all focus:outline-none ${buttonStyles}`}
           >
             تایید
           </button>
-          <button
+          <button type="button"
             onClick={() => setIsModalOpen(false)}
             className={`rounded-lg px-6 py-2 text-gray-800 transition-all focus:outline-none ${cancelButtonStyles}`}
           >

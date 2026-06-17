@@ -76,61 +76,61 @@ export default function CategoryBlogEditor({
     <div className="mb-4">
       <label className="mb-2 block text-sm">{label}</label>
       <div className="mb-2 flex flex-wrap items-center gap-2">
-        <button
+        <button type="button"
           onClick={() => editor.chain().focus().setParagraph().run()}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
           <Pilcrow className="inline h-4 w-4" />
         </button>
-        <button
+        <button type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
           <Heading1 className="inline h-4 w-4" />
         </button>
-        <button
+        <button type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
           <Heading2 className="inline h-4 w-4" />
         </button>
-        <button
+        <button type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
           <Heading3 className="inline h-4 w-4" />
         </button>
-        <button
+        <button type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
           <Bold className="inline h-4 w-4" />
         </button>
-        <button
+        <button type="button"
           onClick={() => editor.chain().focus().toggleItalic().run()}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
           <Italic className="inline h-4 w-4" />
         </button>
-        <button
+        <button type="button"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
           <List className="inline h-4 w-4" />
         </button>
-        <button
+        <button type="button"
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
           <ListOrdered className="inline h-4 w-4" />
         </button>
-        <button
+        <button type="button"
           onClick={promptLink}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
           <Link2 className="inline h-4 w-4" />
         </button>
-        <button
+        <button type="button"
           onClick={() => setIsTableModalOpen(true)}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
@@ -149,7 +149,7 @@ export default function CategoryBlogEditor({
               <div className="flex-1">
                 <label className="mb-1 block text-sm">سطر</label>
                 <div className="flex items-center">
-                  <button
+                  <button type="button"
                     onClick={() => setTableRows(Math.max(1, tableRows - 1))}
                     className="rounded-r border border-gray-600 bg-gray-700 px-2 py-1"
                   >
@@ -163,7 +163,7 @@ export default function CategoryBlogEditor({
                     onChange={(e) => setTableRows(parseInt(e.target.value) || 3)}
                     className="w-14 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center"
                   />
-                  <button
+                  <button type="button"
                     onClick={() => setTableRows(Math.min(20, tableRows + 1))}
                     className="rounded-l border border-gray-600 bg-gray-700 px-2 py-1"
                   >
@@ -174,7 +174,7 @@ export default function CategoryBlogEditor({
               <div className="flex-1">
                 <label className="mb-1 block text-sm">ستون</label>
                 <div className="flex items-center">
-                  <button
+                  <button type="button"
                     onClick={() => setTableCols(Math.max(1, tableCols - 1))}
                     className="rounded-r border border-gray-600 bg-gray-700 px-2 py-1"
                   >
@@ -188,7 +188,7 @@ export default function CategoryBlogEditor({
                     onChange={(e) => setTableCols(parseInt(e.target.value) || 3)}
                     className="w-14 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center"
                   />
-                  <button
+                  <button type="button"
                     onClick={() => setTableCols(Math.min(10, tableCols + 1))}
                     className="rounded-l border border-gray-600 bg-gray-700 px-2 py-1"
                   >
@@ -198,13 +198,13 @@ export default function CategoryBlogEditor({
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              <button
+              <button type="button"
                 onClick={() => setIsTableModalOpen(false)}
                 className="rounded bg-gray-600 px-3 py-1"
               >
                 انصراف
               </button>
-              <button
+              <button type="button"
                 onClick={() => {
                   if (!editor) return;
                   editor
@@ -224,31 +224,31 @@ export default function CategoryBlogEditor({
       )}
       {editor?.isActive("table") && (
         <div className="mt-2 flex flex-wrap gap-2">
-          <button
+          <button type="button"
             onClick={() => editor.chain().focus().addColumnAfter().run()}
             className="rounded bg-blue-600 px-2 py-1 text-sm"
           >
             ستون +
           </button>
-          <button
+          <button type="button"
             onClick={() => editor.chain().focus().deleteColumn().run()}
             className="rounded bg-red-600 px-2 py-1 text-sm"
           >
             ستون -
           </button>
-          <button
+          <button type="button"
             onClick={() => editor.chain().focus().addRowBefore().run()}
             className="rounded bg-green-600 px-2 py-1 text-sm"
           >
             سطر +
           </button>
-          <button
+          <button type="button"
             onClick={() => editor.chain().focus().deleteRow().run()}
             className="rounded bg-red-600 px-2 py-1 text-sm"
           >
             سطر -
           </button>
-          <button
+          <button type="button"
             onClick={() => editor.chain().focus().deleteTable().run()}
             className="rounded bg-gray-600 px-2 py-1 text-sm"
           >

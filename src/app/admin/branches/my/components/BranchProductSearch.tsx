@@ -2,8 +2,9 @@
 
 import { SearchOutlined, ShopOutlined } from "@ant-design/icons";
 import { Button, Table, Empty, Spin, message, Select, Card, Alert, Tag } from "antd";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
+import { useApiFetch } from "@/hooks/useApiFetch";
 import { Product } from "../../components/types";
 
 interface BranchProduct {
@@ -19,49 +20,20 @@ interface BranchProductSearchProps {
   isTabActive: boolean;
 }
 
+interface ProductsResponse {
+  data?: Product[];
+}
+
 const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }) => {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [searchLoading, setSearchLoading] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
   const [branchProducts, setBranchProducts] = useState<BranchProduct[]>([]);
   const [searchPerformed, setSearchPerformed] = useState<boolean>(false);
 
-  // Fetch product list when component mounts
-  useEffect(() => {
-    if (isTabActive) {
-      fetchProducts();
-    }
-  }, [isTabActive]);
-
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("/api/admin/products/all");
-      if (!response.ok) {
-        throw new Error("Failed to fetch products");
-      }
-      const data = await response.json();
-
-      if (data && data.data && Array.isArray(data.data)) {
-        setProducts(data.data);
-      } else {
-        // Fallback to standard endpoint if new one fails
-        const fallbackResponse = await fetch("/api/admin/products?page=1&limit=1000");
-        if (!fallbackResponse.ok) {
-          throw new Error("Failed to fetch products");
-        }
-        const fallbackData = await fallbackResponse.json();
-        if (fallbackData && fallbackData.data && Array.isArray(fallbackData.data)) {
-          setProducts(fallbackData.data);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      message.error("خطا در بارگذاری محصولات");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: productsData, loading: productsLoading } = useApiFetch<ProductsResponse>(
+    isTabActive ? "/api/admin/products/all" : null
+  );
+  const products: Product[] = productsData?.data || [];
 
   const handleSearch = async () => {
     if (!selectedProduct) {
@@ -70,10 +42,9 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
     }
 
     try {
-      setLoading(true);
+      setSearchLoading(true);
       setSearchPerformed(true);
 
-      // Use the existing endpoint that was created for the warranty system
       const response = await fetch(
         `/api/admin/branches/product-stock?productId=${selectedProduct}`
       );
@@ -85,9 +56,8 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
       let processedData: BranchProduct[] = [];
 
       if (Array.isArray(data)) {
-        // Transform data format to match what our component expects
         processedData = data
-          .filter((branch) => branch && branch.branchid && branch.name) // Filter out invalid entries
+          .filter((branch) => branch && branch.branchid && branch.name)
           .map((branch) => ({
             branchid: branch.branchid,
             branchName: branch.name,
@@ -97,7 +67,6 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
             quantity: branch.quantity || 0,
           }));
       } else if (data && Array.isArray(data.branches)) {
-        // Original response format from our custom endpoint
         processedData = data.branches.filter((branch) => branch && branch.branchid);
       }
 
@@ -107,7 +76,7 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
       message.error("خطا در جستجوی شعبه‌ها");
       setBranchProducts([]);
     } finally {
-      setLoading(false);
+      setSearchLoading(false);
     }
   };
 
@@ -172,7 +141,7 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
               optionFilterProp="children"
               onChange={(value) => setSelectedProduct(value)}
               value={selectedProduct}
-              loading={loading}
+              loading={productsLoading}
               className="w-full border-gray-600 bg-gray-700 text-white"
               popupClassName="custom-dropdown enhanced-dropdown"
               filterOption={(input, option) =>
@@ -189,7 +158,7 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
             <Button
               type="primary"
               onClick={handleSearch}
-              loading={loading}
+              loading={searchLoading}
               icon={<SearchOutlined />}
               className="w-full bg-blue-600 hover:bg-blue-700"
             >
@@ -213,7 +182,7 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
               </div>
             </div>
 
-            {loading ? (
+            {searchLoading ? (
               <div className="flex items-center justify-center p-6">
                 <Spin size="large" tip="در حال جستجو..." />
               </div>
