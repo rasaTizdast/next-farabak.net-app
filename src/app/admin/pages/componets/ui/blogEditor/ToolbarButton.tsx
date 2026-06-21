@@ -17,7 +17,8 @@ export const ToolbarButton = ({
   title,
   className = "",
 }: ToolbarButtonProps) => (
-  <button type="button"
+  <button
+    type="button"
     onClick={onClick}
     title={title}
     aria-label={title}

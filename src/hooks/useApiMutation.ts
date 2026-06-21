@@ -1,6 +1,6 @@
 "use client";
-import { useState, useCallback } from "react";
 import axios from "axios";
+import { useState, useCallback } from "react";
 
 type MutationMethod = "post" | "put" | "patch" | "delete";
 
@@ -15,9 +15,7 @@ async function executeMutation<TResponse, TData>(
   setError(null);
   try {
     const response =
-      method === "delete"
-        ? await axios[method](url, { data })
-        : await axios[method](url, data);
+      method === "delete" ? await axios[method](url, { data }) : await axios[method](url, data);
     if (response.status >= 400) {
       const msg = "خطا در عملیات";
       setError(msg);
@@ -25,8 +23,7 @@ async function executeMutation<TResponse, TData>(
     }
     return response.data as TResponse;
   } catch (e: any) {
-    const message =
-      e?.response?.data?.message || e?.message || "خطا در عملیات";
+    const message = e?.response?.data?.message || e?.message || "خطا در عملیات";
     setError(message);
     return null;
   } finally {

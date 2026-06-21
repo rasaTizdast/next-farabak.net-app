@@ -137,11 +137,7 @@ const AdminPageManager: React.FC = () => {
     }
   };
 
-  async function doDeleteItem(
-    type: string,
-    id: number,
-    fetchPageData: () => void
-  ) {
+  async function doDeleteItem(type: string, id: number, fetchPageData: () => void) {
     try {
       let endpoint = "";
 
@@ -329,7 +325,8 @@ const AdminPageManager: React.FC = () => {
 
                       {/* Edit Button (Single Page) */}
                       {!row.multiPage && (
-                        <button type="button"
+                        <button
+                          type="button"
                           className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md active:bg-blue-800 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
                           onClick={() => openEditor(row.editorType)}
                         >
@@ -340,7 +337,8 @@ const AdminPageManager: React.FC = () => {
 
                       {/* Add New Button (Multi Page) */}
                       {row.multiPage && (
-                        <button type="button"
+                        <button
+                          type="button"
                           className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-green-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-all hover:bg-green-700 hover:shadow-md active:bg-green-800 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
                           onClick={() => openNewPageBuilder(row.newType)}
                         >
@@ -351,7 +349,8 @@ const AdminPageManager: React.FC = () => {
 
                       {/* Expand Button (Multi Page with items) */}
                       {row.multiPage && row.pages > 0 && (
-                        <button type="button"
+                        <button
+                          type="button"
                           onClick={() => toggleExpand(row.link)}
                           className={`flex min-w-[36px] items-center justify-center rounded-lg p-2 shadow-sm transition-all hover:shadow-md sm:min-w-[40px] sm:p-2.5 ${
                             expanded === row.link
@@ -407,7 +406,8 @@ const AdminPageManager: React.FC = () => {
                               </Link>
 
                               {/* Edit */}
-                              <button type="button"
+                              <button
+                                type="button"
                                 className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg bg-blue-600 p-2 text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow active:bg-blue-800 sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5"
                                 onClick={() => openEditor(row.editorType, subPage.id)}
                                 title="ویرایش"
@@ -417,7 +417,8 @@ const AdminPageManager: React.FC = () => {
                               </button>
 
                               {/* Delete */}
-                              <button type="button"
+                              <button
+                                type="button"
                                 className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg bg-red-600 p-2 text-white shadow-sm transition-all hover:bg-red-700 hover:shadow active:bg-red-800 sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5"
                                 onClick={() => deleteItem(row.editorType, subPage.id)}
                                 title="حذف"
@@ -428,7 +429,8 @@ const AdminPageManager: React.FC = () => {
 
                               {/* QR Code (Blog only) */}
                               {row.editorType === "blog" && (
-                                <button type="button"
+                                <button
+                                  type="button"
                                   className={`flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg p-2 shadow-sm transition-all hover:shadow sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5 ${
                                     subPage.QrCode_key
                                       ? "bg-violet-600 hover:bg-violet-700 active:bg-violet-800"

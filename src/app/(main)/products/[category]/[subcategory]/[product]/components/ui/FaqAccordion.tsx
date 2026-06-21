@@ -25,7 +25,8 @@ const FaqAccordion: React.FC<FaqAccordionProps> = ({ faqs }) => {
       {faqs.map((faq) => (
         <div key={faq.FAQsId} className="overflow-hidden rounded-lg border border-gray-200">
           <h3>
-            <button type="button"
+            <button
+              type="button"
               onClick={() => toggleFaq(faq.FAQsId)}
               className="flex w-full items-start justify-between bg-gray-50 p-4 text-right transition-all hover:bg-gray-100"
               aria-expanded={expandedId === faq.FAQsId}

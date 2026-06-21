@@ -338,7 +338,12 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
           </div>
         )}
         <div className={styles.actions}>
-          <button type="button" className={styles.downloadButton} onClick={handleDownload} title="دانلود فاکتور">
+          <button
+            type="button"
+            className={styles.downloadButton}
+            onClick={handleDownload}
+            title="دانلود فاکتور"
+          >
             دانلود فاکتور
           </button>
           <button type="button" className={styles.closeButton} onClick={onClose} title="بستن">

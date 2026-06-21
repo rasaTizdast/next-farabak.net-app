@@ -4,6 +4,7 @@ import { FiPlus } from "react-icons/fi";
 import { IoIosClose } from "react-icons/io";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
+
 import SpecTemplateManager from "./SpecTemplateManager";
 import { Specs } from "../types";
 
@@ -35,19 +36,53 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
   const [showTemplateManager, setShowTemplateManager] = useState(false);
   const [internalSpecs, setInternalSpecs] = useState<SpecsInternal | null>(null);
 
-  const {
-    data: fetchedSpecs,
-    loading: isLoading,
-  } = useApiFetch<any[]>(productId ? `/api/specs/${productId}` : null);
+  const { data: fetchedSpecs, loading: isLoading } = useApiFetch<any[]>(
+    productId ? `/api/specs/${productId}` : null
+  );
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (fetchedSpecs && !internalSpecs) { setInternalSpecs({ isChanged: false, data: fetchedSpecs.map((s: any) => ({ ProductSpecsId: s.ProductSpecsId, Title: s.Title, Description: s.Description })) }); } }, [fetchedSpecs]);
+  useEffect(() => {
+    if (fetchedSpecs && !internalSpecs) {
+      setInternalSpecs({
+        isChanged: false,
+        data: fetchedSpecs.map((s: any) => ({
+          ProductSpecsId: s.ProductSpecsId,
+          Title: s.Title,
+          Description: s.Description,
+        })),
+      });
+    }
+  }, [fetchedSpecs]);
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (internalSpecs && internalSpecs.isChanged) { setSpecs({ data: internalSpecs.data.map((s) => ({ ProductSpecsId: s.ProductSpecsId, Name: productName, Title: s.Title, Description: s.Description, ProductId: productId, Available: true })) }); } }, [internalSpecs]);
+  useEffect(() => {
+    if (internalSpecs && internalSpecs.isChanged) {
+      setSpecs({
+        data: internalSpecs.data.map((s) => ({
+          ProductSpecsId: s.ProductSpecsId,
+          Name: productName,
+          Title: s.Title,
+          Description: s.Description,
+          ProductId: productId,
+          Available: true,
+        })),
+      });
+    }
+  }, [internalSpecs]);
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (specs && !internalSpecs) { setInternalSpecs({ isChanged: false, data: specs.data.map((s) => ({ ProductSpecsId: s.ProductSpecsId, Title: s.Title, Description: s.Description })) }); } }, [specs]);
+  useEffect(() => {
+    if (specs && !internalSpecs) {
+      setInternalSpecs({
+        isChanged: false,
+        data: specs.data.map((s) => ({
+          ProductSpecsId: s.ProductSpecsId,
+          Title: s.Title,
+          Description: s.Description,
+        })),
+      });
+    }
+  }, [specs]);
 
   const handleSpecChange = (index: number, field: "Title" | "Description", value: string) => {
     if (!internalSpecs) return;

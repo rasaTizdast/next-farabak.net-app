@@ -166,7 +166,8 @@ const NewInvoicePage = () => {
                     </td>
 
                     <td>
-                      <button type="button"
+                      <button
+                        type="button"
                         className={styles.clearButton}
                         onClick={() => removeProductFromInvoice(product.ProductId)}
                       >
@@ -184,7 +185,8 @@ const NewInvoicePage = () => {
           <p className={styles.total}>
             تعداد کل محصولات: {Intl.NumberFormat("fa-IR").format(invoice.TotalAmount)}
           </p>
-          <button type="button"
+          <button
+            type="button"
             className={styles.finalizeButton}
             onClick={addNewInvoiceHandler}
             disabled={invoice.products.length === 0}

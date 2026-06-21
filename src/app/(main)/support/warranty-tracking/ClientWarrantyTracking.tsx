@@ -449,7 +449,8 @@ const WarrantyTrackingPage = () => {
                 )}
 
                 <div className="flex justify-center">
-                  <Button htmlType="button"
+                  <Button
+                    htmlType="button"
                     onClick={() => {
                       setCurrentStep(0);
                       setWarrantyCode("");

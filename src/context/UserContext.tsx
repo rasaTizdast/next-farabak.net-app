@@ -71,7 +71,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const userFullName = `${user?.firstName || ""} ${user?.lastName || ""}`;
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { updateUserContext(); }, []);
+  useEffect(() => {
+    updateUserContext();
+  }, []);
 
   return (
     <UserContext.Provider

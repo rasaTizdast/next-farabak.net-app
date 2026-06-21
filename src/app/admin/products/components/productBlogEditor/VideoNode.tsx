@@ -1,6 +1,7 @@
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
+
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface VideoAttributes {

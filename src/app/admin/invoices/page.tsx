@@ -31,7 +31,7 @@ const AdminInvoicesPage = () => {
   const [searchMode, setSearchMode] = useState<"basic" | "warranty">("basic");
   const [isCheckingWarranties, setIsCheckingWarranties] = useState(false);
 
-  const { mutate: checkWarrantyMutate } = useApiMutation("post");
+  const { mutate: checkWarrantyMutate } = useApiMutation<{ updatedCount: number }>("post");
   const { mutate: updateStatusMutate } = useApiMutation("patch");
   const { mutate: deleteInvoiceMutate } = useApiMutation("delete");
 
@@ -43,12 +43,17 @@ const AdminInvoicesPage = () => {
   } = useApiFetch<AdminInvoice[]>("/api/admin/invoices");
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (invoicesData) { setInvoices(invoicesData); setFilteredInvoices(invoicesData); } }, [invoicesData]);
+  useEffect(() => {
+    if (invoicesData) {
+      setInvoices(invoicesData);
+      setFilteredInvoices(invoicesData);
+    }
+  }, [invoicesData]);
 
   // Check and update warranty status
   const checkWarrantyStatus = async () => {
     setIsCheckingWarranties(true);
-    const data = await checkWarrantyMutate<{ updatedCount: number }>(
+    const data = await checkWarrantyMutate(
       "/api/admin/warranty/check-status"
     );
     if (data) {
@@ -302,14 +307,10 @@ const AdminInvoicesPage = () => {
         const updatedInvoice = await response.json();
         setSelectedInvoice(updatedInvoice);
         setInvoices((prev) =>
-          prev.map((inv) =>
-            inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv
-          )
+          prev.map((inv) => (inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv))
         );
         setFilteredInvoices((prev) =>
-          prev.map((inv) =>
-            inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv
-          )
+          prev.map((inv) => (inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv))
         );
       }
     } catch (error) {
@@ -623,7 +624,10 @@ const AdminInvoicesPage = () => {
                 onClose={() => setSelectedInvoice(null)}
                 onWarrantyUpdate={async () => {
                   await refreshInvoiceAfterWarrantyUpdate(
-                    selectedInvoice, setSelectedInvoice, setInvoices, setFilteredInvoices
+                    selectedInvoice,
+                    setSelectedInvoice,
+                    setInvoices,
+                    setFilteredInvoices
                   );
                 }}
               />

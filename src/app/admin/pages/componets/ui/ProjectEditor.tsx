@@ -34,7 +34,25 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
   const { mutate: saveProjectMutate } = useApiMutation("put");
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (projectData) { setFormData({ title: projectData.project.Title, description: projectData.project.Description, slug: projectData.project.Slug, isActive: projectData.project.IsActive, date: projectData.project.date, city: projectData.project.city }); setMainImage(projectData.project.Main_img_URL); setDetailImages(projectData.media.filter((m: any) => m.MediaType === "image").map((m: any) => m.MediaURL)); setVideos(projectData.media.filter((m: any) => m.MediaType === "video").map((m: any) => m.MediaURL)); } }, [projectData]);
+  useEffect(() => {
+    if (projectData) {
+      setFormData({
+        title: projectData.project.Title,
+        description: projectData.project.Description,
+        slug: projectData.project.Slug,
+        isActive: projectData.project.IsActive,
+        date: projectData.project.date,
+        city: projectData.project.city,
+      });
+      setMainImage(projectData.project.Main_img_URL);
+      setDetailImages(
+        projectData.media.filter((m: any) => m.MediaType === "image").map((m: any) => m.MediaURL)
+      );
+      setVideos(
+        projectData.media.filter((m: any) => m.MediaType === "video").map((m: any) => m.MediaURL)
+      );
+    }
+  }, [projectData]);
 
   // Update handleInputChange
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -285,7 +303,8 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
             {/* Header */}
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-2xl font-bold">ساخت پروژه جدید</h2>
-              <button type="button"
+              <button
+                type="button"
                 onClick={onClose}
                 className="rounded-full p-2 transition-colors hover:bg-gray-700"
               >
@@ -476,13 +495,15 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
 
               {/* Buttons */}
               <div className="flex justify-end gap-4">
-                <button type="button"
+                <button
+                  type="button"
                   onClick={onClose}
                   className="rounded-lg bg-gray-600 px-6 py-2 transition-colors hover:bg-gray-500"
                 >
                   بستن
                 </button>
-                <button type="button"
+                <button
+                  type="button"
                   onClick={handleSubmit}
                   disabled={isSubmitting}
                   className="rounded-lg bg-blue-600 px-6 py-2 transition-colors hover:bg-blue-500 disabled:opacity-50"

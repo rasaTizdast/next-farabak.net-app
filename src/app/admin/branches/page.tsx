@@ -29,7 +29,6 @@ function BranchesPageContent() {
   const { user } = useUser();
   const currentUserId = user?.userId ? parseInt(user.userId) : undefined;
   const [branches, setBranches] = useState<Branch[]>([]);
-  const users = usersData || [];
   const [products, setProducts] = useState<Product[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,8 +152,6 @@ function BranchesPageContent() {
   useEffect(() => {
     fetchBranchesRef.current = () => fetchBranches(pagination.current, pagination.pageSize);
   }, [searchProductId, pagination.current, pagination.pageSize]);
-
-
 
   const fetchAllProducts = async () => {
     try {
@@ -636,7 +633,7 @@ function BranchesPageContent() {
         onClose={() => setModalVisible(false)}
         onFinish={handleCreateBranch}
         form={form}
-        users={users}
+        users={usersData ?? []}
         currentUserId={currentUserId}
       />
       {/* Edit Branch Modal */}
@@ -647,7 +644,7 @@ function BranchesPageContent() {
           onFinish={handleUpdateBranch}
           form={editForm}
           branch={currentBranch}
-          users={users}
+          users={usersData ?? []}
         />
       )}
       {/* Products Drawer */}

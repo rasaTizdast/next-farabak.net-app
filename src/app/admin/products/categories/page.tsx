@@ -2,8 +2,8 @@
 
 export const dynamic = "force-dynamic";
 
-
 import { Toaster } from "react-hot-toast";
+
 import { useApiFetch } from "@/hooks/useApiFetch";
 
 import CategoryTable from "./components/CategoryTable";
@@ -11,7 +11,11 @@ import CreateNewItem from "./components/CreateNewItem";
 import { Category } from "./types/types";
 
 const ProductCategories = () => {
-  const { data: categoriesData, loading: isLoading, refetch: fetchCategories } = useApiFetch<Category[]>("/api/categories/getAll");
+  const {
+    data: categoriesData,
+    loading: isLoading,
+    refetch: fetchCategories,
+  } = useApiFetch<Category[]>("/api/categories/getAll");
   const categories = categoriesData || [];
 
   return (

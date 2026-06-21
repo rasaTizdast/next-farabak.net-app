@@ -5,12 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm, FormProvider, SubmitHandler } from "react-hook-form";
-import { useApiMutation } from "@/hooks/useApiMutation";
 
 import CitySelector from "@/app/auth/_components/CitySelector";
 import TextInput from "@/app/auth/_components/TextInput";
 import { useUser } from "@/context/UserContext";
 import { signUpSchema } from "@/helpers/validationSchema"; // Import schema from helper
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import styles from "../FormStyles.module.css"; // Adjust CSS import
 
@@ -71,7 +71,7 @@ const SignUp = () => {
 
     setErrorMessage("");
 
-    const response = await signup("/api/auth/signup", signUpData) as any;
+    const response = (await signup("/api/auth/signup", signUpData)) as any;
     if (response) {
       if (response.message === "ثبت نام با موفقیت انجام شد") {
         updateUserContext();

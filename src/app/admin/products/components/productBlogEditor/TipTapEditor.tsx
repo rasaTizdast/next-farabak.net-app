@@ -36,6 +36,7 @@ import {
   FileUp,
 } from "lucide-react";
 import { useState, useCallback, useEffect, useRef } from "react";
+
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 import { Divider } from "./Divider";
@@ -180,7 +181,9 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
       formData.append("file", file);
       formData.append("slug", slug);
 
-      const result = await uploadImage("/api/products/productBlog/upload", formData) as { url: string } | null;
+      const result = (await uploadImage("/api/products/productBlog/upload", formData)) as {
+        url: string;
+      } | null;
       if (!result) {
         alert("Failed to upload image");
         setIsImageLoading(false);
@@ -352,7 +355,9 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
       formData.append("file", file);
       formData.append("slug", slug);
 
-      const result = await uploadVideo("/api/products/productBlog/uploadVideo", formData) as { url: string } | null;
+      const result = (await uploadVideo("/api/products/productBlog/uploadVideo", formData)) as {
+        url: string;
+      } | null;
       if (!result) {
         alert("Failed to upload video");
         setIsVideoLoading(false);
@@ -582,7 +587,8 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
               <div className="flex-1">
                 <label className="mb-2 block text-right text-sm text-gray-300">تعداد سطرها</label>
                 <div className="flex items-center">
-                  <button type="button"
+                  <button
+                    type="button"
                     onClick={() => setTableRows(Math.max(1, tableRows - 1))}
                     className="rounded-r border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
@@ -596,7 +602,8 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
                     onChange={(e) => setTableRows(parseInt(e.target.value) || 3)}
                     className="w-12 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center text-white"
                   />
-                  <button type="button"
+                  <button
+                    type="button"
                     onClick={() => setTableRows(Math.min(20, tableRows + 1))}
                     className="rounded-l border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
@@ -608,7 +615,8 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
               <div className="flex-1">
                 <label className="mb-2 block text-right text-sm text-gray-300">تعداد ستون‌ها</label>
                 <div className="flex items-center">
-                  <button type="button"
+                  <button
+                    type="button"
                     onClick={() => setTableCols(Math.max(1, tableCols - 1))}
                     className="rounded-r border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
@@ -622,7 +630,8 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
                     onChange={(e) => setTableCols(parseInt(e.target.value) || 3)}
                     className="w-12 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center text-white"
                   />
-                  <button type="button"
+                  <button
+                    type="button"
                     onClick={() => setTableCols(Math.min(10, tableCols + 1))}
                     className="rounded-l border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
@@ -719,35 +728,40 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
               transform: "translateX(-50%)",
             }}
           >
-            <button type="button"
+            <button
+              type="button"
               onClick={() => editor.chain().focus().addColumnBefore().run()}
               className="rounded bg-blue-600 px-3 py-0.5 text-sm text-white hover:bg-blue-700"
               title="افزودن ستون قبل"
             >
               ستون +
             </button>
-            <button type="button"
+            <button
+              type="button"
               onClick={() => editor.chain().focus().deleteColumn().run()}
               className="rounded bg-red-600 px-3 py-0.5 text-sm text-white hover:bg-red-700"
               title="حذف ستون"
             >
               ستون -
             </button>
-            <button type="button"
+            <button
+              type="button"
               onClick={() => editor.chain().focus().addRowBefore().run()}
               className="rounded bg-green-600 px-3 py-0.5 text-sm text-white hover:bg-green-700"
               title="افزودن سطر قبل"
             >
               سطر +
             </button>
-            <button type="button"
+            <button
+              type="button"
               onClick={() => editor.chain().focus().deleteRow().run()}
               className="rounded bg-red-600 px-3 py-0.5 text-sm text-white hover:bg-red-700"
               title="حذف سطر"
             >
               سطر -
             </button>
-            <button type="button"
+            <button
+              type="button"
               onClick={() => editor.chain().focus().deleteTable().run()}
               className="rounded bg-gray-600 px-3 py-0.5 text-sm text-white hover:bg-gray-700"
               title="حذف جدول"

@@ -55,7 +55,11 @@ async function doUpdateWarranties(
   productsWithWarranty: any[],
   setProductsWithWarranty: React.Dispatch<React.SetStateAction<any[]>>,
   setIsGeneratingCodes: React.Dispatch<React.SetStateAction<boolean>>,
-  generateBatchWarrantyCodes: (branchCode: string, yearMonth: string, count: number) => Promise<string[]>
+  generateBatchWarrantyCodes: (
+    branchCode: string,
+    yearMonth: string,
+    count: number
+  ) => Promise<string[]>
 ) {
   if (selectedProducts.length === 0 || isGeneratingCodes) return;
 
@@ -182,7 +186,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
   const [isGeneratingCodes, setIsGeneratingCodes] = useState(false);
   const [isDatePickerLoading, setIsDatePickerLoading] = useState(false);
 
-  const { mutate: generateBatchMutate } = useApiMutation("post");
+  const { mutate: generateBatchMutate } = useApiMutation<{ warrantyCodes: string[] }>("post");
 
   // Generate warranty codes in a batch to reduce API calls
   const generateBatchWarrantyCodes = async (
@@ -190,7 +194,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
     yearMonth: string,
     count: number
   ): Promise<string[]> => {
-    const data = await generateBatchMutate<{ warrantyCodes: string[] }>(
+    const data = await generateBatchMutate(
       "/api/admin/warranty/generate-batch",
       { branchCode, yearMonth, count }
     );
@@ -212,8 +216,13 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
   // Only generate codes for products that do not already have warranty data from API
   const updateWarranties = useCallback(async () => {
     await doUpdateWarranties(
-      selectedProducts, isGeneratingCodes, branch, productsWithWarranty,
-      setProductsWithWarranty, setIsGeneratingCodes, generateBatchWarrantyCodes
+      selectedProducts,
+      isGeneratingCodes,
+      branch,
+      productsWithWarranty,
+      setProductsWithWarranty,
+      setIsGeneratingCodes,
+      generateBatchWarrantyCodes
     );
   }, [selectedProducts, isGeneratingCodes, branch, productsWithWarranty, setProductsWithWarranty]);
 

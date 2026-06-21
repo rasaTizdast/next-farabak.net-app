@@ -225,7 +225,8 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
       key: "actions",
       className: "text-center",
       render: (_, record: WarrantyRequest) => (
-        <Button htmlType="button"
+        <Button
+          htmlType="button"
           type="primary"
           onClick={() => handleResolveRequest(record.warrantyid)}
           icon={<CheckCircleOutlined />}
@@ -246,7 +247,8 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
       {/* Header with refresh button */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-bold text-white">درخواست‌های بررسی گارانتی</h2>
-        <Button htmlType="button"
+        <Button
+          htmlType="button"
           onClick={() => fetchRequests(pagination.current, pagination.pageSize, true)}
           icon={<ReloadOutlined />}
           loading={loading}
@@ -262,7 +264,8 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
           description={
             <div>
               <p>{error}</p>
-              <Button htmlType="button"
+              <Button
+                htmlType="button"
                 type="primary"
                 onClick={() => fetchRequests(pagination.current, pagination.pageSize, true)}
                 icon={<ReloadOutlined />}

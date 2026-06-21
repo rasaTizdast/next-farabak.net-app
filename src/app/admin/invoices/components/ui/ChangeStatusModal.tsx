@@ -80,13 +80,15 @@ const ChangeStatusModal = ({ invoice, onClose, onStatusChange }: ChangeStatusMod
 
         {/* Modal Footer */}
         <div className="flex justify-end gap-4 border-t border-slate-700 p-6">
-          <button type="button"
+          <button
+            type="button"
             onClick={onClose}
             className="rounded-lg bg-slate-700 px-6 py-2 text-sm text-gray-100 transition hover:bg-slate-600 focus:ring focus:ring-slate-500 sm:text-base"
           >
             بستن
           </button>
-          <button type="button"
+          <button
+            type="button"
             onClick={handleSave}
             className="rounded-lg bg-green-600 px-6 py-2 text-sm font-medium text-gray-100 transition hover:bg-green-500 focus:ring focus:ring-green-400 sm:text-base"
           >

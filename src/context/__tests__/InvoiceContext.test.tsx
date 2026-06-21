@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, renderHook, act, waitFor } from "@testing-library/react";
 import React from "react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { InvoiceProvider, useInvoice } from "../InvoiceContext";
 
@@ -23,13 +23,18 @@ function TestConsumer() {
     <div>
       <div data-testid="total-amount">{invoice.invoice.TotalAmount}</div>
       <div data-testid="product-count">{invoice.invoice.products.length}</div>
-      <button type="button"
+      <button
+        type="button"
         data-testid="add-product"
         onClick={() => invoice.addProductToInvoice(1, 2, "Test Product", 100)}
       >
         Add
       </button>
-      <button type="button" data-testid="remove-product" onClick={() => invoice.removeProductFromInvoice(1)}>
+      <button
+        type="button"
+        data-testid="remove-product"
+        onClick={() => invoice.removeProductFromInvoice(1)}
+      >
         Remove
       </button>
       <button type="button" data-testid="clear-invoice" onClick={() => invoice.clearInvoice()}>

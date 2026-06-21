@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { FaTimes } from "react-icons/fa";
 
-import { useApiMutation } from "@/hooks/useApiMutation";
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import { Product } from "../types";
 import GradeList from "./GradeList";
@@ -83,7 +83,8 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
       <div className="min-w-[450px] rounded-lg bg-slate-800 p-6 text-white shadow-xl">
         <div className="mb-6 flex items-center justify-between">
           <h3 className="text-2xl font-bold">مدیریت گرید‌های محصول</h3>
-          <button type="button"
+          <button
+            type="button"
             onClick={onClose}
             className="rounded-full bg-slate-700 p-2 transition-colors hover:bg-slate-600"
           >

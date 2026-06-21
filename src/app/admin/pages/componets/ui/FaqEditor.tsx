@@ -41,7 +41,12 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
   const { mutate: updateFaqMutate } = useApiMutation("put");
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (faqsData) { setFaqs(faqsData.faqs); setLoading(false); } }, [faqsData]);
+  useEffect(() => {
+    if (faqsData) {
+      setFaqs(faqsData.faqs);
+      setLoading(false);
+    }
+  }, [faqsData]);
 
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -295,13 +300,15 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
             </div>
 
             <div className="mt-6 flex justify-end gap-2">
-              <Button htmlType="button"
+              <Button
+                htmlType="button"
                 onClick={() => setModalVisible(false)}
                 className="border-gray-600 bg-gray-800 text-gray-300 hover:border-gray-500 hover:text-white"
               >
                 انصراف
               </Button>
-              <Button htmlType="button"
+              <Button
+                htmlType="button"
                 type="primary"
                 onClick={handleSubmit}
                 className="border-none bg-blue-600 hover:bg-blue-700"

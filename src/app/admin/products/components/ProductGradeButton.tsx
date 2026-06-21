@@ -14,7 +14,8 @@ const ProductGradeButton = ({ product, refetchProducts }: Props) => {
 
   return (
     <>
-      <button type="button"
+      <button
+        type="button"
         onClick={() => setIsModalOpen(true)}
         className="rounded-lg bg-indigo-600 p-2 transition-all hover:bg-indigo-700"
         title="مدیریت گرید‌های محصول"

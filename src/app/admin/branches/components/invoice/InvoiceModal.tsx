@@ -148,9 +148,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
         quantity: 1,
         price: item.price,
         total_price: item.price,
-        warranty: item.warranty.hasWarranty
-          ? { ...item.warranty, hasWarranty: true }
-          : null,
+        warranty: item.warranty.hasWarranty ? { ...item.warranty, hasWarranty: true } : null,
       }));
 
       const invoiceData = {
@@ -185,8 +183,13 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
 
   const handleSubmit = async () => {
     await doSubmitInvoice(
-      setIsLoading, productsWithWarranty, invoice, branch,
-      createInvoiceMutate, onSuccess, handleClose
+      setIsLoading,
+      productsWithWarranty,
+      invoice,
+      branch,
+      createInvoiceMutate,
+      onSuccess,
+      handleClose
     );
   };
 

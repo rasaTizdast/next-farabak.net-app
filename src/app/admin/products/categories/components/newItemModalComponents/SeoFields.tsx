@@ -111,7 +111,8 @@ const SeoFields = ({
         {/* Display keywords */}
         <div className="mt-4 flex flex-wrap gap-2">
           {seoKeywords.map((keyword, index) => (
-            <button type="button"
+            <button
+              type="button"
               key={index}
               className="flex animate-fade-in items-center gap-2 rounded-lg bg-green-700 px-4 py-1 transition-all hover:bg-red-700"
               onClick={() => removeKeyword(keyword)}

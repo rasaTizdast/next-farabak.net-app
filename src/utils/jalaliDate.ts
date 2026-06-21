@@ -60,5 +60,3 @@ export const formatJalaliDate = (
     return jalaliDateString || "تاریخ نامشخص";
   }
 };
-
-

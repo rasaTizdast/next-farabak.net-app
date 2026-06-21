@@ -48,7 +48,13 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const { mutate: saveActivities, loading: isSaving } = useApiMutation("put");
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (activitiesData) { setActivities(activitiesData); setExpandedSections(new Set<number>(activitiesData.map((_: Activity, i: number) => i))); setIsFetching(false); } }, [activitiesData]);
+  useEffect(() => {
+    if (activitiesData) {
+      setActivities(activitiesData);
+      setExpandedSections(new Set<number>(activitiesData.map((_: Activity, i: number) => i)));
+      setIsFetching(false);
+    }
+  }, [activitiesData]);
 
   // Toggle section expansion
   const toggleSection = (index: number) => {
@@ -133,7 +139,8 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
         dir="rtl"
       >
         {/* Updated Close Button */}
-        <button type="button"
+        <button
+          type="button"
           onClick={onClose}
           className="absolute left-4 top-4 rounded-full p-2 text-red-500 hover:text-red-600"
         >
@@ -162,7 +169,8 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                     />
                   </label>
                   {/* Expand/Collapse Button */}
-                  <button type="button"
+                  <button
+                    type="button"
                     onClick={() => toggleSection(activityIndex)}
                     className="mb-3 p-2 pl-0 text-gray-100 hover:text-blue-500"
                   >
@@ -173,7 +181,8 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                     )}
                   </button>
                 </div>
-                <button type="button"
+                <button
+                  type="button"
                   onClick={() => handleDeleteSection(activityIndex)}
                   className="mb-3 mt-1 rounded-lg bg-red-500 p-2 text-gray-100 hover:bg-red-600"
                 >
@@ -199,7 +208,8 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                             className="w-full rounded-lg bg-gray-600 p-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </label>
-                        <button type="button"
+                        <button
+                          type="button"
                           onClick={() => handleDeleteDetail(activityIndex, detailIndex)}
                           className="mt-3 rounded-lg bg-red-500 p-2 text-gray-100 hover:bg-red-600"
                         >
@@ -207,7 +217,8 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                         </button>
                       </div>
                     ))}
-                    <button type="button"
+                    <button
+                      type="button"
                       onClick={() => handleAddDetail(activityIndex)}
                       className="mt-4 rounded-lg bg-green-600 px-3 py-1 text-white hover:bg-green-700"
                     >
@@ -218,7 +229,8 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
               </section>
             ))}
             <div className="flex w-full justify-center">
-              <button type="button"
+              <button
+                type="button"
                 onClick={handleAddSection}
                 className="mb-4 rounded-lg bg-blue-500 px-4 py-2 text-gray-100 hover:bg-blue-600"
               >
@@ -229,7 +241,8 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
             <hr className="my-5" />
 
             <div className="flex w-full justify-center">
-              <button type="button"
+              <button
+                type="button"
                 onClick={handleSubmit}
                 disabled={isLoading}
                 className={`${

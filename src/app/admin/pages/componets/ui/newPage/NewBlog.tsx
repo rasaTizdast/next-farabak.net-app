@@ -6,9 +6,9 @@ import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { BiTrash } from "react-icons/bi";
 
+import FaqManager from "@/components/FaqManager";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
-import FaqManager from "@/components/FaqManager";
 
 import TipTapBlogEditor from "../blogEditor/TipTapEditor";
 
@@ -146,7 +146,9 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { mutate: createBlogMutate } = useApiMutation("post");
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (categoriesData && categories.length === 0) setCategories(categoriesData); }, [categoriesData]);
+  useEffect(() => {
+    if (categoriesData && categories.length === 0) setCategories(categoriesData);
+  }, [categoriesData]);
 
   const filteredCategories = useMemo(() => {
     if (categoryInput) {
@@ -650,13 +652,15 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                   <h3 className="mb-4 text-lg font-bold">حذف دسته بندی</h3>
                   <p>آیا مطمئن هستید که می‌خواهید این دسته بندی را حذف کنید؟</p>
                   <div className="mt-4 flex justify-end gap-2">
-                    <button type="button"
+                    <button
+                      type="button"
                       onClick={() => setShowDeleteConfirm(null)}
                       className="px-4 py-2 text-gray-400 hover:text-gray-200"
                     >
                       انصراف
                     </button>
-                    <button type="button"
+                    <button
+                      type="button"
                       onClick={() => handleDeleteCategory(showDeleteConfirm)}
                       className="rounded-lg bg-red-600 px-4 py-2 hover:bg-red-700"
                     >
@@ -709,13 +713,15 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                       </span>
                     </div>
                     <div className="flex justify-end gap-2">
-                      <button type="button"
+                      <button
+                        type="button"
                         onClick={() => setShowCreateModal(false)}
                         className="px-4 py-2 text-gray-400 hover:text-gray-200"
                       >
                         انصراف
                       </button>
-                      <button type="button"
+                      <button
+                        type="button"
                         onClick={handleCreateCategory}
                         className="rounded-lg bg-blue-600 px-4 py-2 hover:bg-blue-700"
                         disabled={
@@ -750,13 +756,15 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                     </ul>
                   </div>
                   <div className="mt-4 flex justify-end gap-2">
-                    <button type="button"
+                    <button
+                      type="button"
                       onClick={() => setConfirmationModalData(null)}
                       className="px-4 py-2 text-gray-400 hover:text-gray-200"
                     >
                       انصراف
                     </button>
-                    <button type="button"
+                    <button
+                      type="button"
                       onClick={handleForceCategoryDelete}
                       className="rounded-lg bg-red-600 px-4 py-2 hover:bg-red-700"
                     >
@@ -773,14 +781,16 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               <h2 className="text-xl font-bold">نوشتن محتوای وبلاگ</h2>
               <div className="flex gap-3">
                 {blogId && (
-                  <button type="button"
+                  <button
+                    type="button"
                     onClick={() => setShowFaqManager(true)}
                     className="rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
                   >
                     مدیریت سوالات متداول
                   </button>
                 )}
-                <button type="button"
+                <button
+                  type="button"
                   onClick={onClose}
                   className="text-gray-400 transition-colors hover:text-gray-200"
                 >

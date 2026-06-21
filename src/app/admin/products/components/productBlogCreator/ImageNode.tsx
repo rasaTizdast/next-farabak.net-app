@@ -4,6 +4,7 @@ import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 const ImageNode = ({ node, editor, getPos }: NodeViewProps) => {

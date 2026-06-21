@@ -142,7 +142,8 @@ const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
       dir="rtl"
     >
       <div className="relative max-h-[90dvh] w-full max-w-2xl animate-fade-in overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg">
-        <button type="button"
+        <button
+          type="button"
           onClick={() => {
             onClose(false);
             resetState();
@@ -156,7 +157,8 @@ const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
 
         {/* Normal QR Code */}
         <div className="mb-6">
-          <button type="button"
+          <button
+            type="button"
             onClick={() => {
               setQrCodeUrl(`${process.env.NEXT_PUBLIC_BASE_URL}${blog.link}`);
             }}
@@ -184,7 +186,8 @@ const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
             <option value="">بدون محدودیت</option>
           </select>
 
-          <button type="button"
+          <button
+            type="button"
             onClick={() => setShowConfirmModal(true)}
             className="rounded bg-green-600 px-4 py-2 hover:bg-green-700 disabled:bg-gray-500"
             disabled={uniqueQrCodeDetails}
@@ -202,7 +205,8 @@ const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
             <p className="mt-4 break-all text-gray-500">
               <strong>لینک:</strong> {qrCodeUrl}
             </p>
-            <button type="button"
+            <button
+              type="button"
               onClick={downloadQrCode}
               className="mt-4 rounded bg-indigo-600 px-4 py-2 hover:bg-indigo-700"
             >
@@ -229,14 +233,16 @@ const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
                   )} روز`}
             </p>
             <div className="flex w-full gap-5">
-              <button type="button"
+              <button
+                type="button"
                 onClick={downloadQrCode}
                 className="mt-4 w-full rounded bg-blue-600 px-4 py-2 hover:bg-blue-700"
               >
                 دانلود تصویر کد QR
               </button>
 
-              <button type="button"
+              <button
+                type="button"
                 onClick={deleteUniqueQrCode}
                 className="mt-4 w-full rounded bg-red-600 px-4 py-2 hover:bg-red-700"
               >
@@ -265,13 +271,15 @@ const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
               . آیا مطمئن هستید؟
             </p>
             <div className="flex justify-center gap-4">
-              <button type="button"
+              <button
+                type="button"
                 onClick={generateUniqueQrCode}
                 className="rounded bg-green-600 px-4 py-2 hover:bg-green-700"
               >
                 بله، تولید کن
               </button>
-              <button type="button"
+              <button
+                type="button"
                 onClick={() => setShowConfirmModal(false)}
                 className="rounded bg-red-600 px-4 py-2 hover:bg-red-700"
               >

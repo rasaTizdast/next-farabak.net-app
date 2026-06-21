@@ -1,6 +1,7 @@
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { IoIosClose } from "react-icons/io";
+
 import { useApiFetch } from "@/hooks/useApiFetch";
 
 import DeleteOverviewDetailButton from "../DeleteOverviewDetailButton";
@@ -26,9 +27,11 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
   const [overviewDetails, setOverviewDetails] = useState<OverviewDetail[]>([]);
   const [selectedDetail, setSelectedDetail] = useState<OverviewDetail | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const { data: detailsData, loading, refetch: fetchOverviewDetails } = useApiFetch<any>(
-    "/api/productOverviewDetails/getAll"
-  );
+  const {
+    data: detailsData,
+    loading,
+    refetch: fetchOverviewDetails,
+  } = useApiFetch<any>("/api/productOverviewDetails/getAll");
   const [showAll, setShowAll] = useState(false); // State to toggle between showing limited or all details
 
   useEffect(() => {
@@ -169,7 +172,8 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
       {selectedDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
           <div className="relative max-h-[700px] w-full max-w-lg overflow-y-scroll rounded-lg bg-gray-800 p-6 text-white shadow-lg">
-            <button type="button"
+            <button
+              type="button"
               onClick={closeDetailModal}
               className="absolute right-3 top-3 text-red-400 hover:text-red-500"
             >
@@ -210,7 +214,8 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
                   fetchOverviewDetails();
                 }}
               />
-              <button type="button"
+              <button
+                type="button"
                 onClick={() => {
                   toggleSelection(selectedDetail.ProductOverviewDetailsId);
                   closeDetailModal();

@@ -5,6 +5,7 @@ import { Button, Table, Empty, Spin, message, Select, Card, Alert, Tag } from "a
 import { useState } from "react";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
+
 import { Product } from "../../components/types";
 
 interface BranchProduct {
@@ -87,7 +88,13 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
       return;
     }
 
-    await doBranchProductSearch(selectedProduct, setSearchLoading, setSearchPerformed, setBranchProducts, products);
+    await doBranchProductSearch(
+      selectedProduct,
+      setSearchLoading,
+      setSearchPerformed,
+      setBranchProducts,
+      products
+    );
   };
 
   // More compact columns for side-by-side layout

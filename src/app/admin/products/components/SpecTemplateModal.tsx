@@ -95,7 +95,9 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
     }
 
     if (res) {
-      toast.success(templateToEdit ? "قالب با موفقیت به‌روزرسانی شد" : "قالب جدید با موفقیت ایجاد شد");
+      toast.success(
+        templateToEdit ? "قالب با موفقیت به‌روزرسانی شد" : "قالب جدید با موفقیت ایجاد شد"
+      );
       if (onTemplateAdded) onTemplateAdded();
       onClose();
     }
@@ -196,7 +198,8 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
           </div>
         </div>
 
-        <button type="button"
+        <button
+          type="button"
           className="absolute right-2 top-2 text-gray-400 hover:text-white"
           onClick={(e) => {
             e.stopPropagation();

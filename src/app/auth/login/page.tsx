@@ -6,10 +6,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
-import { useApiMutation } from "@/hooks/useApiMutation";
 
 import { useUser } from "@/context/UserContext";
 import { signInSchema } from "@/helpers/validationSchema";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import ForgotPasswordModal from "../_components/ForgotPasswordModal";
 import TextInput from "../_components/TextInput";
@@ -40,7 +40,7 @@ const SignIn = () => {
   const onSubmit = async (data: { username: string; password: string }) => {
     setErrorMessage("");
 
-    const response = await login("/api/auth/login", data) as any;
+    const response = (await login("/api/auth/login", data)) as any;
     if (response) {
       if (response.message === "ورود با موفقیت انجام شد") {
         await new Promise((resolve) => setTimeout(resolve, 100));

@@ -8,7 +8,8 @@ export default function ProductsError({ error, reset }: { error: Error; reset: (
       <p className="mb-6 max-w-md text-sm text-gray-500">
         {error.message || "متأسفانه در دریافت لیست محصولات خطایی رخ داده است."}
       </p>
-      <button type="button"
+      <button
+        type="button"
         onClick={reset}
         className="rounded-lg bg-[#00bfff] px-8 py-3 text-white transition-colors hover:bg-[#318ce7]"
       >

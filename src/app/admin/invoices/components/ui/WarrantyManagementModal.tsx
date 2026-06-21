@@ -84,7 +84,7 @@ const WarrantyManagementModal = ({
 
   const isUpdate = !!item.individualWarranty;
 
-  const { mutate: generateWarrantyMutate, loading: generatingCode } = useApiMutation("post");
+  const { mutate: generateWarrantyMutate, loading: generatingCode } = useApiMutation<{ warrantyCode: string }>("post");
   const { mutate: createUpdateWarrantyMutate, loading: submittingCreate } = useApiMutation("post");
   const { mutate: deleteWarrantyMutate, loading: submittingDelete } = useApiMutation("post");
 
@@ -169,7 +169,7 @@ const WarrantyManagementModal = ({
       const monthNum = persianToEnglishDigits(persianMonth);
       const yearMonth = yearNum + monthNum.padStart(2, "0");
 
-      const data = await generateWarrantyMutate<{ warrantyCode: string }>(
+      const data = await generateWarrantyMutate(
         "/api/admin/warranty/generate",
         { branchCode, yearMonth }
       );

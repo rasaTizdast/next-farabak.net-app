@@ -26,7 +26,6 @@ interface WarrantyStatsProps {
 export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps) {
   const url = isTabActive ? "/api/admin/warranty/statistics" : null;
   const { data, loading, error, refetch } = useApiFetch<BranchStatsResponse>(url, true, {
-    cache: "no-cache",
     headers: { "Cache-Control": "no-cache" },
   });
 

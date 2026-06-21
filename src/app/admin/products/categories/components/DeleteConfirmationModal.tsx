@@ -36,13 +36,15 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
           placeholder="نام را وارد کنید"
         />
         <div className="mt-6 flex justify-around">
-          <button type="button"
+          <button
+            type="button"
             onClick={onDeleteConfirm}
             className="rounded bg-red-700 px-4 py-2 text-white transition-all hover:bg-red-800"
           >
             بله، حذف کن
           </button>
-          <button type="button"
+          <button
+            type="button"
             onClick={onClose}
             className="rounded bg-gray-500 px-4 py-2 text-white transition-all hover:bg-gray-600"
           >

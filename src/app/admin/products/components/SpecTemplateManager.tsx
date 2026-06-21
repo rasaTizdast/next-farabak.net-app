@@ -7,6 +7,7 @@ import { IoIosClose } from "react-icons/io";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+
 import SpecTemplateModal from "./SpecTemplateModal";
 
 type SpecTemplate = {
@@ -114,13 +115,13 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
             <div className="flex justify-center py-8">
               <CgSpinnerTwo className="animate-spin" size={40} />
             </div>
-          ) : templates.length === 0 ? (
+          ) : templates?.length === 0 ? (
             <div className="py-8 text-center text-gray-400">
               هیچ قالبی یافت نشد. لطفاً یک قالب جدید ایجاد کنید.
             </div>
           ) : (
             <div className="space-y-3">
-              {templates.map((template) => (
+              {templates?.map((template) => (
                 <div
                   key={template.SpecTemplateId}
                   className="flex items-center justify-between rounded-lg bg-gray-700 p-4"
@@ -133,7 +134,8 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <button type="button"
+                    <button
+                      type="button"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -143,7 +145,8 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
                     >
                       انتخاب
                     </button>
-                    <button type="button"
+                    <button
+                      type="button"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -153,7 +156,8 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
                     >
                       <FiEdit />
                     </button>
-                    <button type="button"
+                    <button
+                      type="button"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();

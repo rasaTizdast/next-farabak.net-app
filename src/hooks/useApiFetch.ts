@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
 import axios, { type AxiosRequestConfig } from "axios";
+import { useState, useEffect, useCallback } from "react";
 
 type UseApiFetchResult<T> = {
   data: T | null;
@@ -50,7 +50,9 @@ export function useApiFetch<T = any>(
   }, [url]);
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (fetchOnMount) fetchData(); }, [fetchData, fetchOnMount]);
+  useEffect(() => {
+    if (fetchOnMount) fetchData();
+  }, [fetchData, fetchOnMount]);
 
   return { data, loading, error, refetch: fetchData };
 }

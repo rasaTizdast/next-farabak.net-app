@@ -22,7 +22,14 @@ const NotFound = () => {
       >
         بازگشت به صفحه اصلی
       </Link>
-      <Image src="/404.png" alt="تصویر ۴۰۴" width={700} height={600} quality={100} className="mt-10" />
+      <Image
+        src="/404.png"
+        alt="تصویر ۴۰۴"
+        width={700}
+        height={600}
+        quality={100}
+        className="mt-10"
+      />
     </div>
   );
 };

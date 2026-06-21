@@ -4,6 +4,7 @@ import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { Trash2, Maximize2, Minimize2 } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
+
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface ImageAttributes {
@@ -47,10 +48,21 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
 
   // Initialize dimension values
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { setCustomWidth(safeWidth.toString()); setCustomHeight(safeHeight.toString()); if (attrs.width !== safeWidth || attrs.height !== safeHeight) { updateAttributes({ width: safeWidth, height: safeHeight, size: attrs.size || "full" }); } }, []);
+  useEffect(() => {
+    setCustomWidth(safeWidth.toString());
+    setCustomHeight(safeHeight.toString());
+    if (attrs.width !== safeWidth || attrs.height !== safeHeight) {
+      updateAttributes({ width: safeWidth, height: safeHeight, size: attrs.size || "full" });
+    }
+  }, []);
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (safeWidth > 0 && safeHeight > 0) { setCustomWidth(safeWidth.toString()); setCustomHeight(safeHeight.toString()); } }, [safeWidth, safeHeight]);
+  useEffect(() => {
+    if (safeWidth > 0 && safeHeight > 0) {
+      setCustomWidth(safeWidth.toString());
+      setCustomHeight(safeHeight.toString());
+    }
+  }, [safeWidth, safeHeight]);
 
   useEffect(() => {
     // Add resize event handlers when resizing
@@ -393,7 +405,8 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
             <div className="mb-2 text-right font-bold">تغییر اندازه تصویر</div>
 
             <div className="mb-5 flex flex-col gap-2">
-              <button type="button"
+              <button
+                type="button"
                 onClick={() => handleResize("full")}
                 className={`rounded-md px-3 py-1 text-right ${
                   attrs.size === "full" ? "bg-blue-600" : "bg-gray-700 hover:bg-gray-600"
@@ -401,7 +414,8 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
               >
                 عرض کامل صفحه
               </button>
-              <button type="button"
+              <button
+                type="button"
                 onClick={() => handleResize("half")}
                 className={`rounded-md px-3 py-1 text-right ${
                   attrs.size === "half" ? "bg-blue-600" : "bg-gray-700 hover:bg-gray-600"
@@ -409,7 +423,8 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
               >
                 نصف عرض صفحه
               </button>
-              <button type="button"
+              <button
+                type="button"
                 onClick={() => handleResize("third")}
                 className={`rounded-md px-3 py-1 text-right ${
                   attrs.size === "third" ? "bg-blue-600" : "bg-gray-700 hover:bg-gray-600"
@@ -447,7 +462,8 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
                   />
                 </div>
               </div>
-              <button type="button"
+              <button
+                type="button"
                 onClick={applyCustomSize}
                 className="mt-2 w-full rounded-md bg-green-600 px-3 py-1 text-center hover:bg-green-700"
               >

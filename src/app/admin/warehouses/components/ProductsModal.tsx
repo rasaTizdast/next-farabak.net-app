@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import axios from "axios";
+import { useEffect, useState } from "react";
+
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 import {
@@ -168,7 +169,9 @@ export default function ProductsModal({
       `/api/admin/warehouses/${warehouseId}/products/${product.warehouseproductid}`
     );
     if (res) {
-      setProducts((prev) => prev.filter((p) => p.warehouseproductid !== product.warehouseproductid));
+      setProducts((prev) =>
+        prev.filter((p) => p.warehouseproductid !== product.warehouseproductid)
+      );
       refreshWarehouses();
     } else {
       alert("خطا در حذف محصول از انبار");

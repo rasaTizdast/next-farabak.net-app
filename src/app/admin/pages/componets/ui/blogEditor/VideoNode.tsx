@@ -1,6 +1,7 @@
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
+
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface VideoAttributes {
@@ -56,7 +57,8 @@ const VideoNode = ({ node, editor, getPos }: NodeViewProps) => {
         </div>
 
         <div className="mt-2 flex justify-end space-x-2">
-          <button type="button"
+          <button
+            type="button"
             onClick={handleDelete}
             disabled={isDeleting}
             className="rounded bg-red-500 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"

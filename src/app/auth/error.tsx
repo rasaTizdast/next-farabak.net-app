@@ -8,7 +8,8 @@ export default function AuthError({ error, reset }: { error: Error; reset: () =>
       <p className="mb-6 max-w-md text-sm text-gray-500">
         {error.message || "متأسفانه خطایی رخ داده است. لطفاً مجدداً تلاش کنید."}
       </p>
-      <button type="button"
+      <button
+        type="button"
         onClick={reset}
         className="rounded-lg bg-[#00bfff] px-8 py-3 text-white transition-colors hover:bg-[#318ce7]"
       >

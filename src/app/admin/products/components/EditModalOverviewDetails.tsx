@@ -188,7 +188,8 @@ const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Prop
       {showDetailModal && selectedDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
           <div className="relative max-h-[700px] w-full max-w-lg overflow-y-scroll rounded-lg bg-gray-800 p-6 text-white shadow-lg">
-            <button type="button"
+            <button
+              type="button"
               onClick={closeDetailModal}
               className="absolute right-3 top-3 text-red-400 hover:text-red-500"
             >
@@ -227,7 +228,8 @@ const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Prop
                   fetchData();
                 }}
               />
-              <button type="button"
+              <button
+                type="button"
                 onClick={() => {
                   toggleSelection(selectedDetail.ProductOverviewDetailsId);
                   closeDetailModal();

@@ -1,29 +1,29 @@
-import axios from "axios";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Script from "next/script";
+import { Suspense } from "react";
 
-import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
-import { fetchProducts } from "@/app/(main)/products/_utils/fetchProducts";
-import Breadcrumb from "@/app/_components/ui/Breadcrumb";
-import { calculateProductPricing, formatPriceForSchema } from "@/helpers/pricingHelper";
+import BreadcrumbWrapper from "../../../_components/BreadcrumbWrapper";
+import CategoryPageWrapper from "../../../_components/CategoryPageWrapper";
+import {
+  BreadcrumbSkeleton,
+  CategoryPageSkeleton,
+} from "../../../_components/ProductListSkeletons";
 
 interface CategoryPageProps {
   params: Promise<{ category: string; pageNumber: string }>;
 }
 
-// Dynamic Metadata
 export const generateMetadata = async (props: CategoryPageProps): Promise<Metadata> => {
   const params = await props.params;
   const categoryName = params.category;
 
   try {
-    // Fetch category name from the API
-    const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsByCategory/${categoryName}?page=1&limit=1`
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsByCategory/${categoryName}?page=1&limit=1`,
+      { next: { revalidate: 60 } }
     );
 
-    if (!res || !res.data || !res.data.seoDetails) {
+    if (!res || !res.ok) {
       return {
         title: "دسته بندی یافت نشد!",
         description: "دسته بندی مورد نظر یافت نشد!",
@@ -34,7 +34,19 @@ export const generateMetadata = async (props: CategoryPageProps): Promise<Metada
       };
     }
 
-    const { seoDetails } = res.data;
+    const data = await res.json();
+    if (!data.seoDetails) {
+      return {
+        title: "دسته بندی یافت نشد!",
+        description: "دسته بندی مورد نظر یافت نشد!",
+        robots: {
+          index: false,
+          follow: true,
+        },
+      };
+    }
+
+    const { seoDetails } = data;
 
     const canonicalUrl =
       params.pageNumber === "1"
@@ -65,211 +77,32 @@ export const generateMetadata = async (props: CategoryPageProps): Promise<Metada
   }
 };
 
-const CategoryPage = async (props: CategoryPageProps) => {
+export default async function CategoryPage(props: CategoryPageProps) {
   const params = await props.params;
   const categoryName = params.category;
   const currentPage = parseInt(params.pageNumber || "1", 10);
   const limit = 30;
 
-  // API endpoint for fetching products by category
-  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsByCategory/${categoryName}?page=${currentPage}&limit=${limit}`;
+  const canonicalUrl =
+    params.pageNumber === "1"
+      ? `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}`
+      : `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/page/${params.pageNumber}`;
 
-  // Fetch category title
-  let categoryTitle = categoryName;
-
-  try {
-    const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getCategoryName/${categoryName}`
-    );
-
-    if (!res.data || !res.data.categoryName) {
-      throw new Error("Category not found");
-    }
-
-    categoryTitle = res.data.categoryName;
-  } catch (error) {
-    console.error(error);
-    notFound(); // Trigger 404 page if category not found
-  }
-
-  // Fetch products to calculate pricing
-  const { data: products } = await fetchProducts(apiUrl);
-  const availableProducts = products.filter((product: any) => product.Available);
-
-  // Calculate pricing for JSON-LD
-  let minPrice = "0";
-  let maxPrice = "0";
-  let hasValidPricing = false;
-
-  if (availableProducts.length > 0) {
-    const pricingPromises = availableProducts.map(async (product: any) => {
-      return await calculateProductPricing(product.Price, product.Discount);
-    });
-
-    const pricingResults = await Promise.all(pricingPromises);
-    const validPrices = pricingResults
-      .filter((pricing) => pricing.isValidRate && pricing.originalPrice !== null)
-      .map((pricing) => pricing.originalPrice!);
-
-    if (validPrices.length > 0) {
-      minPrice = formatPriceForSchema(Math.min(...validPrices));
-      maxPrice = formatPriceForSchema(Math.max(...validPrices));
-      hasValidPricing = true;
-    }
-  }
-
-  // Breadcrumbs for navigation
   const breadcrumbs = ["/", "/products", `/products/${categoryName}`];
-
-  const priceValidUntil = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "CollectionPage",
-        "@id": `https://farabak.net/products/${categoryName}/page/${currentPage}`,
-        url: `https://farabak.net/products/${categoryName}/page/${currentPage}`,
-        name: `محصولات دسته‌بندی ${categoryTitle} - صفحه ${currentPage} | فرابک`,
-        description: `صفحه ${currentPage} از محصولات ${categoryTitle} با کیفیت بالا و گارانتی معتبر از فرابک`,
-        isPartOf: {
-          "@type": "WebSite",
-          "@id": "https://farabak.net",
-        },
-        about: {
-          "@type": "Organization",
-          "@id": "https://farabak.net",
-        },
-        breadcrumb: {
-          "@type": "BreadcrumbList",
-          itemListElement: [
-            {
-              "@type": "ListItem",
-              position: 1,
-              name: "خانه",
-              item: "https://farabak.net",
-            },
-            {
-              "@type": "ListItem",
-              position: 2,
-              name: "محصولات",
-              item: "https://farabak.net/products",
-            },
-            {
-              "@type": "ListItem",
-              position: 3,
-              name: categoryTitle,
-              item: `https://farabak.net/products/${categoryName}`,
-            },
-            {
-              "@type": "ListItem",
-              position: 4,
-              name: `صفحه ${currentPage}`,
-              item: `https://farabak.net/products/${categoryName}/page/${currentPage}`,
-            },
-          ],
-        },
-        mainEntity: {
-          "@type": "ItemList",
-          name: `محصولات ${categoryTitle} - صفحه ${currentPage}`,
-          description: `صفحه ${currentPage} از مجموعه محصولات ${categoryTitle} شامل دوربین‌های مداربسته، سیستم‌های نظارتی و محصولات امنیتی`,
-          numberOfItems: "30+",
-          itemListElement: {
-            "@type": "Product",
-            name: `محصولات ${categoryTitle}`,
-            description: `محصولات ${categoryTitle} با کیفیت بالا و گارانتی معتبر`,
-            image: "https://farabak.net/Farabak_Logo.webp",
-            brand: {
-              "@type": "Brand",
-              name: "فرابک",
-            },
-            category: categoryTitle,
-            offers: {
-              "@type": "Offer",
-              priceSpecification: hasValidPricing
-                ? {
-                    "@type": "PriceSpecification",
-                    price: minPrice,
-                    priceCurrency: "IRR",
-                    minPrice: minPrice,
-                    maxPrice: maxPrice,
-                    valueAddedTaxIncluded: true,
-                  }
-                : {
-                    "@type": "PriceSpecification",
-                    price: "0",
-                    priceCurrency: "IRR",
-                    valueAddedTaxIncluded: true,
-                  },
-              priceValidUntil: priceValidUntil,
-              hasMerchantReturnPolicy: {
-                "@type": "MerchantReturnPolicy",
-                applicableCountry: "IR",
-                returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-                merchantReturnDays: 7,
-                returnMethod: "https://schema.org/ReturnByMail",
-                returnFees: "https://schema.org/FreeReturn",
-              },
-              shippingDetails: [
-                {
-                  "@type": "OfferShippingDetails",
-                  shippingDestination: {
-                    "@type": "DefinedRegion",
-                    addressCountry: "IR",
-                  },
-                  shippingRate: {
-                    "@type": "MonetaryAmount",
-                    value: "0",
-                    currency: "IRR",
-                  },
-                  deliveryTime: {
-                    "@type": "ShippingDeliveryTime",
-                    handlingTime: {
-                      "@type": "QuantitativeValue",
-                      minValue: 1,
-                      maxValue: 5,
-                      unitCode: "DAY",
-                    },
-                    transitTime: {
-                      "@type": "QuantitativeValue",
-                      minValue: 2,
-                      maxValue: 5,
-                      unitCode: "DAY",
-                    },
-                  },
-                },
-              ],
-              availability: "https://schema.org/InStock",
-              seller: {
-                "@type": "Organization",
-                "@id": "https://farabak.net",
-                name: "فرابک",
-              },
-            },
-          },
-        },
-        inLanguage: "fa-IR",
-      },
-    ],
-  };
 
   return (
     <>
-      <Script
-        id="json-ld"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <div>
-        <Breadcrumb breadcrumbs={breadcrumbs} />
-        <ProductGrid
-          title={categoryTitle} // Dynamically fetched category title
-          apiUrl={apiUrl} // API URL for products
+      <Suspense fallback={<BreadcrumbSkeleton />}>
+        <BreadcrumbWrapper breadcrumbs={breadcrumbs} />
+      </Suspense>
+      <Suspense fallback={<CategoryPageSkeleton />}>
+        <CategoryPageWrapper
+          categoryName={categoryName}
           currentPage={currentPage}
-          categorySlug={categoryName} // Category slug for additional logic if needed
+          limit={limit}
+          canonicalUrl={canonicalUrl}
         />
-      </div>
+      </Suspense>
     </>
   );
-};
-
-export default CategoryPage;
+}

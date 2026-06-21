@@ -5,9 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { BiTrash } from "react-icons/bi";
 
+import FaqManager from "@/components/FaqManager";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
-import FaqManager from "@/components/FaqManager";
 
 import TipTapBlogEditor from "./blogEditor/TipTapEditor";
 
@@ -91,10 +91,30 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   const { mutate: patchBlogMutate } = useApiMutation("patch");
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (blogData) { setFormData({ title: blogData.blog.title, SEO_Title: blogData.blog.SEO_Title, slug: blogData.blog.slug, author: blogData.blog.author, SEO_description: blogData.blog.SEO_description, image_URL: blogData.blog.image_URL, image_alt: blogData.blog.image_alt, categories: blogData.categories.map((c: Category) => c.id) }); setPreviewImage(blogData.blog.image_URL); setBlogContent(blogData.blog.content); } }, [blogData]);
+  useEffect(() => {
+    if (blogData) {
+      setFormData({
+        title: blogData.blog.title,
+        SEO_Title: blogData.blog.SEO_Title,
+        slug: blogData.blog.slug,
+        author: blogData.blog.author,
+        SEO_description: blogData.blog.SEO_description,
+        image_URL: blogData.blog.image_URL,
+        image_alt: blogData.blog.image_alt,
+        categories: blogData.categories.map((c: Category) => c.id),
+      });
+      setPreviewImage(blogData.blog.image_URL);
+      setBlogContent(blogData.blog.content);
+    }
+  }, [blogData]);
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (blogError) { console.error("Error fetching blog:", blogError); toast.error("Error loading blog data"); } }, [blogError]);
+  useEffect(() => {
+    if (blogError) {
+      console.error("Error fetching blog:", blogError);
+      toast.error("Error loading blog data");
+    }
+  }, [blogError]);
 
   const handleImageUpload = async (file: File) => {
     const payload = new FormData();
@@ -167,7 +187,9 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   const { data: categoriesData } = useApiFetch("/api/blogs/categories");
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (categoriesData && categories.length === 0) setCategories(categoriesData); }, [categoriesData]);
+  useEffect(() => {
+    if (categoriesData && categories.length === 0) setCategories(categoriesData);
+  }, [categoriesData]);
 
   const filteredCategories = useMemo(() => {
     if (categoryInput) {
@@ -269,7 +291,9 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
 
   const handleAddCategory = async (category: Category | string) => {
     if (typeof category === "string") {
-      const createdCategory = await createCategoryMutate("/api/blogs/categories", { name: category });
+      const createdCategory = await createCategoryMutate("/api/blogs/categories", {
+        name: category,
+      });
 
       if (createdCategory) {
         setCategories((prev) => [...prev, createdCategory]);
@@ -727,13 +751,15 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                   <h3 className="mb-4 text-lg font-bold">حذف دسته بندی</h3>
                   <p>آیا مطمئن هستید که می‌خواهید این دسته بندی را حذف کنید؟</p>
                   <div className="mt-4 flex justify-end gap-2">
-                    <button type="button"
+                    <button
+                      type="button"
                       onClick={() => setShowDeleteConfirm(null)}
                       className="px-4 py-2 text-gray-400 hover:text-gray-200"
                     >
                       انصراف
                     </button>
-                    <button type="button"
+                    <button
+                      type="button"
                       onClick={() => handleDeleteCategory(showDeleteConfirm)}
                       className="rounded-lg bg-red-600 px-4 py-2 hover:bg-red-700"
                     >
@@ -786,13 +812,15 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                       </span>
                     </div>
                     <div className="flex justify-end gap-2">
-                      <button type="button"
+                      <button
+                        type="button"
                         onClick={() => setShowCreateModal(false)}
                         className="px-4 py-2 text-gray-400 hover:text-gray-200"
                       >
                         انصراف
                       </button>
-                      <button type="button"
+                      <button
+                        type="button"
                         onClick={handleCreateCategory}
                         className="rounded-lg bg-blue-600 px-4 py-2 hover:bg-blue-700"
                         disabled={
@@ -827,13 +855,15 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                     </ul>
                   </div>
                   <div className="mt-4 flex justify-end gap-2">
-                    <button type="button"
+                    <button
+                      type="button"
                       onClick={() => setConfirmationModalData(null)}
                       className="px-4 py-2 text-gray-400 hover:text-gray-200"
                     >
                       انصراف
                     </button>
-                    <button type="button"
+                    <button
+                      type="button"
                       onClick={handleForceCategoryDelete}
                       className="rounded-lg bg-red-600 px-4 py-2 hover:bg-red-700"
                     >
@@ -849,13 +879,15 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-bold">نوشتن محتوای وبلاگ</h2>
               <div className="flex gap-3">
-                <button type="button"
+                <button
+                  type="button"
                   onClick={() => setShowFaqManager(true)}
                   className="rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
                 >
                   مدیریت سوالات متداول
                 </button>
-                <button type="button"
+                <button
+                  type="button"
                   onClick={onClose}
                   className="text-gray-400 transition-colors hover:text-gray-200"
                 >

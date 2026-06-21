@@ -40,5 +40,3 @@ export async function verifyInvoiceData(token: string): Promise<InvoiceData | nu
     return null;
   }
 }
-
-

@@ -57,10 +57,22 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
   const { mutate: saveContact, loading: saving } = useApiMutation("put");
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (contactData) { const { address: a, emails: e, phone_numbers: p } = contactData; setAddress(a); setEmails(e); setPhoneNumbers(p); setLoading(false); } }, [contactData]);
+  useEffect(() => {
+    if (contactData) {
+      const { address: a, emails: e, phone_numbers: p } = contactData;
+      setAddress(a);
+      setEmails(e);
+      setPhoneNumbers(p);
+      setLoading(false);
+    }
+  }, [contactData]);
 
   const handleSave = async () => {
-    const res = await saveContact("/api/contact-us", { address, emails, phone_numbers: phoneNumbers });
+    const res = await saveContact("/api/contact-us", {
+      address,
+      emails,
+      phone_numbers: phoneNumbers,
+    });
     if (res) {
       toast.success("اطلاعات با موفقیت ذخیره شد.");
       onClose();
@@ -161,7 +173,8 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
                       </span>
                     </div>
                     <div className="flex gap-3">
-                      <button type="button"
+                      <button
+                        type="button"
                         onClick={() => moveEmailUp(index)}
                         disabled={index === 0}
                         className="rounded bg-blue-600 p-2 text-white transition-all duration-200 hover:bg-blue-700 disabled:opacity-50"
@@ -177,7 +190,8 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
                           <path d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z" />
                         </svg>
                       </button>
-                      <button type="button"
+                      <button
+                        type="button"
                         onClick={() => moveEmailDown(index)}
                         disabled={index === emails.length - 1}
                         className="rounded bg-blue-600 p-2 text-white transition-all duration-200 hover:bg-blue-700 disabled:opacity-50"
@@ -237,7 +251,8 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
                       </span>
                     </div>
                     <div className="flex gap-3">
-                      <button type="button"
+                      <button
+                        type="button"
                         onClick={() => movePhoneUp(index)}
                         disabled={index === 0}
                         className="rounded bg-blue-600 p-2 text-white transition-all duration-200 hover:bg-blue-700 disabled:opacity-50"
@@ -253,7 +268,8 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
                           <path d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z" />
                         </svg>
                       </button>
-                      <button type="button"
+                      <button
+                        type="button"
                         onClick={() => movePhoneDown(index)}
                         disabled={index === phoneNumbers.length - 1}
                         className="rounded bg-blue-600 p-2 text-white transition-all duration-200 hover:bg-blue-700 disabled:opacity-50"
@@ -291,13 +307,15 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
         )}
 
         <div className="flex justify-between">
-          <button type="button"
+          <button
+            type="button"
             onClick={onClose}
             className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
           >
             بستن
           </button>
-          <button type="button"
+          <button
+            type="button"
             onClick={handleSave}
             className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
           >

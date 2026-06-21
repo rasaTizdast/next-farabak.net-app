@@ -85,33 +85,30 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     el.style.userSelect = "none";
   }, []);
 
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      if (!isDraggingRef.current) return;
-      e.preventDefault();
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDraggingRef.current) return;
+    e.preventDefault();
 
-      const el = scrollerRef.current;
-      if (!el) return;
+    const el = scrollerRef.current;
+    if (!el) return;
 
-      const currentTime = Date.now();
-      const currentX = e.pageX;
-      const deltaX = currentX - lastXRef.current;
-      const deltaTime = currentTime - lastTimeRef.current;
+    const currentTime = Date.now();
+    const currentX = e.pageX;
+    const deltaX = currentX - lastXRef.current;
+    const deltaTime = currentTime - lastTimeRef.current;
 
-      if (deltaTime > 0) {
-        setVelocity((deltaX / deltaTime) * 1000);
-      }
+    if (deltaTime > 0) {
+      setVelocity((deltaX / deltaTime) * 1000);
+    }
 
-      const x = e.pageX - el.offsetLeft;
-      const walk = x - startXRef.current;
-      el.scrollLeft = scrollLeftRef.current - walk;
+    const x = e.pageX - el.offsetLeft;
+    const walk = x - startXRef.current;
+    el.scrollLeft = scrollLeftRef.current - walk;
 
-      lastXRef.current = currentX;
-      lastTimeRef.current = currentTime;
-      setLastX(currentX);
-    },
-    []
-  );
+    lastXRef.current = currentX;
+    lastTimeRef.current = currentTime;
+    setLastX(currentX);
+  }, []);
 
   const handleMouseUp = useCallback(() => {
     if (!isDraggingRef.current) return;
@@ -144,33 +141,30 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     setVelocity(0);
   }, []);
 
-  const handleTouchMove = useCallback(
-    (e: TouchEvent) => {
-      if (!isDraggingRef.current) return;
-      e.preventDefault();
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (!isDraggingRef.current) return;
+    e.preventDefault();
 
-      const el = scrollerRef.current;
-      if (!el) return;
+    const el = scrollerRef.current;
+    if (!el) return;
 
-      const currentTime = Date.now();
-      const currentX = e.touches[0].pageX;
-      const deltaX = currentX - lastXRef.current;
-      const deltaTime = currentTime - lastTimeRef.current;
+    const currentTime = Date.now();
+    const currentX = e.touches[0].pageX;
+    const deltaX = currentX - lastXRef.current;
+    const deltaTime = currentTime - lastTimeRef.current;
 
-      if (deltaTime > 0) {
-        setVelocity((deltaX / deltaTime) * 1000);
-      }
+    if (deltaTime > 0) {
+      setVelocity((deltaX / deltaTime) * 1000);
+    }
 
-      const x = e.touches[0].pageX - el.offsetLeft;
-      const walk = x - startXRef.current;
-      el.scrollLeft = scrollLeftRef.current - walk;
+    const x = e.touches[0].pageX - el.offsetLeft;
+    const walk = x - startXRef.current;
+    el.scrollLeft = scrollLeftRef.current - walk;
 
-      lastXRef.current = currentX;
-      lastTimeRef.current = currentTime;
-      setLastX(currentX);
-    },
-    []
-  );
+    lastXRef.current = currentX;
+    lastTimeRef.current = currentTime;
+    setLastX(currentX);
+  }, []);
 
   const handleTouchEnd = useCallback(() => {
     if (!isDraggingRef.current) return;

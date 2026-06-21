@@ -11,9 +11,7 @@ function generateVerificationCode(): string {
 // Function to create a signed JWT token that can be validated later
 async function createResetCodeToken(email: string, code: string): Promise<string> {
   // Create a JWT with the email and code that expires in 15 minutes
-  const secret = new TextEncoder().encode(
-    process.env.JWT_SECRET
-  );
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET);
   const expiresIn = 15 * 60; // 15 minutes
 
   const token = await new SignJWT({ email, code })

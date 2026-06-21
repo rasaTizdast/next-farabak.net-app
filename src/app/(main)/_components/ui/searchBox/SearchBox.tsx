@@ -143,7 +143,7 @@ const SearchResults = ({
               height={280}
               quality={100}
               src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/productImages/${product.img1}`}
-              alt={product.name}
+              alt={product.Slug!}
             />
             <p>{product.Type}</p>
             <div className="mt-3 font-extralight">

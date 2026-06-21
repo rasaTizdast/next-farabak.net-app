@@ -86,7 +86,7 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
               alt={slide.alt}
               width={1920}
               height={900}
-              quality={90}
+              quality={100}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
               onLoad={() => handleImageLoad(index)}
               priority={index === 0}

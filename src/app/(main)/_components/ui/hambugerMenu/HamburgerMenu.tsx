@@ -56,7 +56,9 @@ const HamburgerMenu = () => {
           onClick={() => setOpen(false)}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setOpen(false); }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") setOpen(false);
+          }}
           aria-label="بستن منو"
         />
       )}

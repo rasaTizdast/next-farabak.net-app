@@ -58,14 +58,21 @@ export default function AdminPartnerPricesPage() {
   };
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   async function loadUsdRate() {
-    try { const rate = await fetchUsdToRialRate(); if (rate && rate > 0) setUsdRate(rate); } catch {}
+    try {
+      const rate = await fetchUsdToRialRate();
+      if (rate && rate > 0) setUsdRate(rate);
+    } catch {}
   }
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { loadUsdRate(); }, []);
+  useEffect(() => {
+    loadUsdRate();
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedKeyword(keyword), 300);
@@ -283,7 +290,8 @@ export default function AdminPartnerPricesPage() {
                           ? formatRial(parseFloat(partnerValues[p.ProductId] || "0"))
                           : "-"}
                       </span>
-                      <button type="button"
+                      <button
+                        type="button"
                         disabled={updatingId === p.ProductId}
                         onClick={() => {
                           const val = inputRefs.current[p.ProductId]?.value ?? "";
@@ -320,14 +328,16 @@ export default function AdminPartnerPricesPage() {
               صفحه {page} از {totalPages}
             </span>
             <div className="flex gap-2">
-              <button type="button"
+              <button
+                type="button"
                 className="rounded-md bg-slate-800 px-3 py-1 disabled:opacity-50"
                 disabled={page === 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
               >
                 قبلی
               </button>
-              <button type="button"
+              <button
+                type="button"
                 className="rounded-md bg-slate-800 px-3 py-1 disabled:opacity-50"
                 disabled={page === totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}

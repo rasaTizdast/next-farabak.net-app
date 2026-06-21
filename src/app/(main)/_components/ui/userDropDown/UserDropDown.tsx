@@ -183,7 +183,8 @@ const UserDropDown = () => {
                                 </div>
 
                                 <div className={styles.quantityControls}>
-                                  <button type="button"
+                                  <button
+                                    type="button"
                                     className={styles.removeBtn}
                                     onClick={() => removeProductFromInvoice(product.ProductId)}
                                   >
@@ -191,7 +192,8 @@ const UserDropDown = () => {
                                   </button>
 
                                   <div className={styles.quantityButtons}>
-                                    <button type="button"
+                                    <button
+                                      type="button"
                                       className={`${styles.quantityBtn} ${!canIncrease ? styles.disabled : ""}`}
                                       onClick={() =>
                                         canIncrease &&
@@ -210,7 +212,8 @@ const UserDropDown = () => {
                                       {max < Infinity && current === max && " (حداکثر)"}
                                     </span>
 
-                                    <button type="button"
+                                    <button
+                                      type="button"
                                       className={`${styles.quantityBtn} ${current <= min ? styles.disabled : ""}`}
                                       onClick={() =>
                                         current > min &&
@@ -233,7 +236,8 @@ const UserDropDown = () => {
                             <span className={styles.totalLabel}>مجموع:</span>
                             <span className={styles.totalAmount}>{formattedAmount} تومان</span>
                           </div>
-                          <button type="button"
+                          <button
+                            type="button"
                             className={styles.checkoutBtn}
                             onClick={(e) => {
                               e.preventDefault();

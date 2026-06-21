@@ -14,9 +14,7 @@ export async function POST(request: Request) {
 
     // Verify the JWT token
     try {
-      const secret = new TextEncoder().encode(
-        process.env.JWT_SECRET
-      );
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET);
       const { payload } = await jwtVerify(resetToken, secret);
 
       // Check if the email and code in the token match the provided ones

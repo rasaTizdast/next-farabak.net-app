@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-hot-toast";
+import axios from "axios";
+
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 import CategoryBlogEditor from "./CategoryBlogEditor";
@@ -118,7 +120,10 @@ const CreateNewItemModal = ({
     bannerCleared: boolean,
     activeTab: string,
     categories: Category[],
-    withRetry401: <T>(fn: () => Promise<T>, opts?: { retries?: number; baseDelayMs?: number }) => Promise<T>,
+    withRetry401: <T>(
+      fn: () => Promise<T>,
+      opts?: { retries?: number; baseDelayMs?: number }
+    ) => Promise<T>,
     createMutate: any,
     setLoading: React.Dispatch<React.SetStateAction<boolean>>,
     setError: React.Dispatch<React.SetStateAction<string | null>>,
@@ -168,7 +173,8 @@ const CreateNewItemModal = ({
                 subcategorySlug: slug,
               };
 
-        const { data: presign } = await withRetry401(() => axios.post("/api/s3/upload", payload));
+        const presignRes = await withRetry401(() => axios.post("/api/s3/upload", payload)) as any;
+        const presign = presignRes.data;
         await axios.put(presign.uploadUrl, bannerFile, {
           headers: { "Content-Type": bannerFile.type },
         });
@@ -239,14 +245,38 @@ const CreateNewItemModal = ({
     }
 
     await doCreateItem(
-      name, slug, available, parentCategoryId, seoTitle, seoDescription, seoKeywords,
-      topBlog, bottomBlog, bannerFile, bannerCleared, activeTab, categories,
-      withRetry401, createMutate,
-      setLoading, setError,
-      setName, setSlug, setAvailable, setParentCategoryId,
-      setSeoTitle, setSeoDescription, setSeoKeywords, setKeywordInput,
-      setTopBlog, setBottomBlog, setBannerFile, setBannerPreview, setBannerCleared,
-      onClose, refetchCategories
+      name,
+      slug,
+      available,
+      parentCategoryId,
+      seoTitle,
+      seoDescription,
+      seoKeywords,
+      topBlog,
+      bottomBlog,
+      bannerFile,
+      bannerCleared,
+      activeTab,
+      categories,
+      withRetry401,
+      createMutate,
+      setLoading,
+      setError,
+      setName,
+      setSlug,
+      setAvailable,
+      setParentCategoryId,
+      setSeoTitle,
+      setSeoDescription,
+      setSeoKeywords,
+      setKeywordInput,
+      setTopBlog,
+      setBottomBlog,
+      setBannerFile,
+      setBannerPreview,
+      setBannerCleared,
+      onClose,
+      refetchCategories
     );
   };
 
@@ -288,7 +318,8 @@ const CreateNewItemModal = ({
     >
       <div className="w-full max-w-3xl animate-fade-in">
         <div className="rtl flex justify-center gap-6">
-          <button type="button"
+          <button
+            type="button"
             data-testid="newCategoryButton"
             onClick={() => setActiveTab("Category")}
             className={`rounded-t-xl px-6 py-3 font-medium transition-all ${
@@ -299,7 +330,8 @@ const CreateNewItemModal = ({
           >
             دسته‌بندی جدید
           </button>
-          <button type="button"
+          <button
+            type="button"
             data-testid="newSubCategoryButton"
             onClick={() => setActiveTab("Subcategory")}
             className={`rounded-t-xl px-6 py-3 font-medium transition-all ${
@@ -448,13 +480,15 @@ const CreateNewItemModal = ({
 
           {error && <div className="mt-4 text-sm text-red-500">{error}</div>}
           <div className="mt-5 flex items-center justify-between">
-            <button type="button"
+            <button
+              type="button"
               onClick={onClose}
               className="rounded-xl bg-white px-6 py-3 font-medium text-gray-700"
             >
               انصراف
             </button>
-            <button type="button"
+            <button
+              type="button"
               onClick={handleSubmit}
               disabled={isSubmitDisabled() || loading} // Disable the button if loading
               className={`rounded-xl bg-blue-500 px-6 py-3 font-medium text-white disabled:cursor-not-allowed disabled:bg-gray-400 ${

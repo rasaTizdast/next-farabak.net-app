@@ -5,6 +5,7 @@ import { CgSpinnerTwo } from "react-icons/cg";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+
 import { Overview, OverviewDetail, Product, Specs } from "../types";
 import EditModalFAQ from "./EditModalFAQ";
 import EditModalOverview from "./EditModalOverview";
@@ -140,7 +141,10 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const categories = categoriesData || [];
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (categoriesError) toast.error("در دریافت دسته بندی ها مشکلی به وجود آمده است، دوباره تلاش کنید"); }, [categoriesError]);
+  useEffect(() => {
+    if (categoriesError)
+      toast.error("در دریافت دسته بندی ها مشکلی به وجود آمده است، دوباره تلاش کنید");
+  }, [categoriesError]);
 
   // Validate FAQs whenever they change
   // eslint-disable-next-line react-compiler/set-state-in-effect
@@ -447,22 +451,25 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
 
     setIsloading(true);
 
-    const mainRes = await patchProduct.mutate(`/api/admin/products/${+updatedFormState.ProductId}`, {
-      Name: updatedFormState.Name || "",
-      Type: updatedFormState.Type || "",
-      Price: updatedFormState.Price?.toString() || "0",
-      Discount: updatedFormState.Discount?.toString() || "0",
-      CategoryContentId: updatedFormState.CategoryContentId || "",
-      Available: updatedFormState.Available ?? false,
-      Description: updatedFormState.Description || "",
-      CategoryId: updatedFormState.CategoryId || 0,
-      img1: updatedFormState.img1,
-      img2: updatedFormState.img2,
-      Slug: updatedFormState.productSlug || "",
-      SEO_Title: updatedFormState.SEO_Title || "",
-      SEO_Description: updatedFormState.SEO_Description || "",
-      productBlog: updatedFormState.productBlog || "",
-    });
+    const mainRes = await patchProduct.mutate(
+      `/api/admin/products/${+updatedFormState.ProductId}`,
+      {
+        Name: updatedFormState.Name || "",
+        Type: updatedFormState.Type || "",
+        Price: updatedFormState.Price?.toString() || "0",
+        Discount: updatedFormState.Discount?.toString() || "0",
+        CategoryContentId: updatedFormState.CategoryContentId || "",
+        Available: updatedFormState.Available ?? false,
+        Description: updatedFormState.Description || "",
+        CategoryId: updatedFormState.CategoryId || 0,
+        img1: updatedFormState.img1,
+        img2: updatedFormState.img2,
+        Slug: updatedFormState.productSlug || "",
+        SEO_Title: updatedFormState.SEO_Title || "",
+        SEO_Description: updatedFormState.SEO_Description || "",
+        productBlog: updatedFormState.productBlog || "",
+      }
+    );
 
     if (!mainRes) {
       toast.error("آپدیت ثبت محصول مورد نظر با شکست مواجه شد، مجدد تلاش کنید");
@@ -474,10 +481,13 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     const { img1, img2 } = await handleImageUpdate(formState.ProductId, formState.productSlug);
 
     if (img1 || img2) {
-      const imgRes = await patchProduct.mutate(`/api/admin/products/${updatedFormState.ProductId}/updateImages`, {
-        img1,
-        img2,
-      });
+      const imgRes = await patchProduct.mutate(
+        `/api/admin/products/${updatedFormState.ProductId}/updateImages`,
+        {
+          img1,
+          img2,
+        }
+      );
       if (!imgRes) {
         toast.error("آپدیت ثبت محصول مورد نظر با شکست مواجه شد، مجدد تلاش کنید");
         setIsEditModalOpen(false);

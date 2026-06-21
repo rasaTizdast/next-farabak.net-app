@@ -4,6 +4,7 @@ import { FaTimes } from "react-icons/fa";
 import { TbShoppingCartCog } from "react-icons/tb";
 
 import { useApiMutation } from "@/hooks/useApiMutation";
+
 import { Product } from "../types";
 
 type ButtonProps = {
@@ -22,7 +23,8 @@ const MinimumAmountSelector = ({ product, refetchProducts }: ButtonProps) => {
 
   return (
     <>
-      <button type="button"
+      <button
+        type="button"
         onClick={() => setIsModalOpen(true)}
         className={`rounded-lg p-2 transition-all ${product.Minimum_Amount || product.Maximum_Amount ? "bg-orange-700 ring-2 ring-orange-300 hover:bg-orange-800" : "bg-orange-700 hover:bg-orange-800"}`}
         title="محدودیت‌ مقدار‌ محصول"
@@ -43,8 +45,12 @@ const MinimumAmountSelector = ({ product, refetchProducts }: ButtonProps) => {
 export default MinimumAmountSelector;
 
 const MinimumAmountSelectorModal = ({ product, onClose, refetchProducts }: ModalProps) => {
-  const [minAmount, setMinAmount] = useState<string>(() => product.Minimum_Amount?.toString() || "");
-  const [maxAmount, setMaxAmount] = useState<string>(() => product.Maximum_Amount?.toString() || "");
+  const [minAmount, setMinAmount] = useState<string>(
+    () => product.Minimum_Amount?.toString() || ""
+  );
+  const [maxAmount, setMaxAmount] = useState<string>(
+    () => product.Maximum_Amount?.toString() || ""
+  );
   const { mutate: saveLimits, loading: isLoading } = useApiMutation("patch");
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
 
+import { ExpandedInvoiceItem } from "./types";
 import WarrantyManagementModal from "./WarrantyManagementModal";
 import { AdminInvoice } from "../../type";
-import { ExpandedInvoiceItem } from "./types";
 
 type Props = {
   invoice: AdminInvoice | null;
@@ -22,6 +22,8 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
 
   // Use the print hook
   const { componentRef, handlePrint } = usePrint();
+
+  if (!invoice) return null;
 
   // Helper function to format the date and time
   const formatDateTime = (isoString: string) => {
@@ -48,7 +50,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
   // Fetch product names
   useEffect(() => {
     const fetchProductNames = async () => {
-      if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
+      if (!invoice?.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
         return;
       }
 
@@ -80,7 +82,57 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
   }, [invoice, refreshCounter]);
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) { setExpandedItems([]); return; } const items: ExpandedInvoiceItem[] = []; invoice.Invoice_Details.forEach((product) => { const warrantyCodes = product.warranty?.warrantycodes || []; if (!product.warranty || product.quantity === 1 || !Array.isArray(warrantyCodes) || warrantyCodes.length === 0) { items.push({ ...product, itemNumber: 1, individualWarranty: product.warranty, Name: productNames[product.ProductId] }); return; } for (let i = 0; i < product.quantity; i++) { const code = warrantyCodes[i]; items.push({ ...product, itemNumber: i + 1, individualWarranty: code ? { ...product.warranty!, warrantycode: typeof code === "string" ? code : code.code, startdate: typeof code === "string" ? product.warranty?.startdate : code.startdate || product.warranty?.startdate, expirydate: typeof code === "string" ? product.warranty?.expirydate : code.expirydate || product.warranty?.expirydate, status: typeof code === "string" ? product.warranty?.status : code.status || product.warranty?.status || "Active" } : product.warranty, Name: productNames[product.ProductId] }); } }); setExpandedItems(items); }, [invoice.Invoice_Details, productNames, refreshCounter]);
+  useEffect(() => {
+    if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
+      setExpandedItems([]);
+      return;
+    }
+    const items: ExpandedInvoiceItem[] = [];
+    invoice.Invoice_Details.forEach((product) => {
+      const warrantyCodes = product.warranty?.warrantycodes || [];
+      if (
+        !product.warranty ||
+        product.quantity === 1 ||
+        !Array.isArray(warrantyCodes) ||
+        warrantyCodes.length === 0
+      ) {
+        items.push({
+          ...product,
+          itemNumber: 1,
+          individualWarranty: product.warranty,
+          Name: productNames[product.ProductId],
+        });
+        return;
+      }
+      for (let i = 0; i < product.quantity; i++) {
+        const code = warrantyCodes[i];
+        items.push({
+          ...product,
+          itemNumber: i + 1,
+          individualWarranty: code
+            ? {
+                ...product.warranty!,
+                warrantycode: typeof code === "string" ? code : code.code,
+                startdate:
+                  typeof code === "string"
+                    ? product.warranty?.startdate
+                    : code.startdate || product.warranty?.startdate,
+                expirydate:
+                  typeof code === "string"
+                    ? product.warranty?.expirydate
+                    : code.expirydate || product.warranty?.expirydate,
+                status:
+                  typeof code === "string"
+                    ? product.warranty?.status
+                    : code.status || product.warranty?.status || "Active",
+              }
+            : product.warranty,
+          Name: productNames[product.ProductId],
+        });
+      }
+    });
+    setExpandedItems(items);
+  }, [invoice.Invoice_Details, productNames, refreshCounter]);
 
   // Function to handle opening the warranty modal
   const handleManageWarranty = (item: ExpandedInvoiceItem) => {

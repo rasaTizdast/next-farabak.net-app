@@ -1,9 +1,10 @@
 "use client";
 
 // Custom lightweight UI replacing antd components
+import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import axios from "axios";
+
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
@@ -249,7 +250,8 @@ function WarehousesPageContent() {
               onChange={(e) => setQ((e.target as HTMLInputElement).value)}
               className="w-64"
             />
-            <button type="button"
+            <button
+              type="button"
               onClick={openCreate}
               className="inline-flex items-center gap-2 whitespace-nowrap rounded bg-emerald-600 px-4 py-1 text-white transition-all hover:bg-emerald-700"
             >

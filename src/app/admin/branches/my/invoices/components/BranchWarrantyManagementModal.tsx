@@ -62,7 +62,7 @@ const BranchWarrantyManagementModal = ({
       ? `/api/admin/branches/check-product?branchId=${currentBranchData.branchid}&productId=${item.ProductId}&invoiceId=${invoiceId}`
       : null
   );
-  const { mutate: generateWarrantyMutate, loading: generatingCode } = useApiMutation("post");
+  const { mutate: generateWarrantyMutate, loading: generatingCode } = useApiMutation<{ warrantyCode: string }>("post");
   const { mutate: createWarrantyMutate, loading: submittingCreate } = useApiMutation("post");
 
   const [loading, setLoading] = useState(true);
@@ -90,16 +90,41 @@ const BranchWarrantyManagementModal = ({
   const componentRef = useRef<HTMLDivElement>(null);
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (currentBranchData) { setCurrentBranch(currentBranchData); setWarrantyData((prev) => ({ ...prev, branchId: currentBranchData.branchid })); } }, [currentBranchData]);
+  useEffect(() => {
+    if (currentBranchData) {
+      setCurrentBranch(currentBranchData);
+      setWarrantyData((prev) => ({ ...prev, branchId: currentBranchData.branchid }));
+    }
+  }, [currentBranchData]);
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (productCheckData !== null && productCheckData !== undefined) { setBranchHasProduct(productCheckData.hasProduct); } }, [productCheckData]);
+  useEffect(() => {
+    if (productCheckData !== null && productCheckData !== undefined) {
+      setBranchHasProduct(productCheckData.hasProduct);
+    }
+  }, [productCheckData]);
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if (branchHasProduct && currentBranch && (!warrantyData.warrantycode || warrantyData.warrantycode === "")) { generateWarrantyCode(currentBranch.branchid); } }, [branchHasProduct, currentBranch, warrantyData.warrantycode]);
+  useEffect(() => {
+    if (
+      branchHasProduct &&
+      currentBranch &&
+      (!warrantyData.warrantycode || warrantyData.warrantycode === "")
+    ) {
+      generateWarrantyCode(currentBranch.branchid);
+    }
+  }, [branchHasProduct, currentBranch, warrantyData.warrantycode]);
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { if ((currentBranchData || branchError) && (productCheckData !== undefined || productCheckError)) { setLoading(false); setIsInitialized(true); } }, [currentBranchData, branchError, productCheckData, productCheckError]);
+  useEffect(() => {
+    if (
+      (currentBranchData || branchError) &&
+      (productCheckData !== undefined || productCheckError)
+    ) {
+      setLoading(false);
+      setIsInitialized(true);
+    }
+  }, [currentBranchData, branchError, productCheckData, productCheckError]);
 
   // Generate a unique warranty code for the current branch
   const generateWarrantyCode = async (branchId?: number): Promise<string | null> => {
@@ -127,7 +152,7 @@ const BranchWarrantyManagementModal = ({
       const monthNum = persianToEnglishDigits(persianMonth);
       const yearMonth = yearNum + monthNum.padStart(2, "0");
 
-      const data = await generateWarrantyMutate<{ warrantyCode: string }>(
+      const data = await generateWarrantyMutate(
         "/api/admin/warranty/generate",
         { branchCode, yearMonth }
       );
@@ -172,7 +197,16 @@ const BranchWarrantyManagementModal = ({
   };
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => { calculateDuration(new Date(warrantyData.startdate), new Date(warrantyData.expirydate)); const cd = new Date(); const ed = new Date(warrantyData.expirydate); if (ed < cd) { setWarrantyData((p) => ({ ...p, status: "Expired" })); } else if (warrantyData.status === "Expired") { setWarrantyData((p) => ({ ...p, status: "Active" })); } }, [warrantyData.startdate, warrantyData.expirydate]);
+  useEffect(() => {
+    calculateDuration(new Date(warrantyData.startdate), new Date(warrantyData.expirydate));
+    const cd = new Date();
+    const ed = new Date(warrantyData.expirydate);
+    if (ed < cd) {
+      setWarrantyData((p) => ({ ...p, status: "Expired" }));
+    } else if (warrantyData.status === "Expired") {
+      setWarrantyData((p) => ({ ...p, status: "Active" }));
+    }
+  }, [warrantyData.startdate, warrantyData.expirydate]);
 
   const calculateDuration = (startDate: Date | string | null, endDate: Date | string | null) => {
     if (!startDate || !endDate) {

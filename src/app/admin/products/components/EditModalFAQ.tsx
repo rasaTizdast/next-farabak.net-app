@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { FaTrashAlt } from "react-icons/fa";
+
 import { useApiFetch } from "@/hooks/useApiFetch";
 
 type FAQItem = {

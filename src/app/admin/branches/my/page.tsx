@@ -30,6 +30,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from "react";
 
 import { AdminInvoice } from "@/app/admin/invoices/type";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import InvoiceModal from "../components/invoice/InvoiceModal";
 import ProductDrawer from "../components/ProductDrawer";
@@ -37,7 +38,6 @@ import Styles from "../components/Styles";
 import { Branch, Product, toPersianDate } from "../components/types";
 import BranchProductSearch from "./components/BranchProductSearch";
 import SkeletonLoading from "./components/SkeletonLoading";
-import { useApiMutation } from "@/hooks/useApiMutation";
 import WarrantyStats from "./components/WarrantyStats";
 import WarrantyRequests from "../components/WarrantyRequests";
 import BranchInvoiceDetailsModal from "./invoices/components/BranchInvoiceDetailsModal";
@@ -664,7 +664,9 @@ function MyBranchContent() {
   async function doAutoRefresh(
     setRefreshing: React.Dispatch<React.SetStateAction<boolean>>,
     setBranch: React.Dispatch<React.SetStateAction<Branch | null>>,
-    fetchBranchProductsRef: React.MutableRefObject<(branchId: number, page?: number, pageSize?: number) => Promise<void>>
+    fetchBranchProductsRef: React.MutableRefObject<
+      (branchId: number, page?: number, pageSize?: number) => Promise<void>
+    >
   ) {
     try {
       setRefreshing(true);
@@ -688,8 +690,13 @@ function MyBranchContent() {
   // Update the fetchInitialData function to also get invoices
   useEffect(() => {
     loadInitialBranchData(
-      setLoading, setError, setAuthError, setBranch,
-      fetchBranchProducts, fetchInvoices, fetchAllProducts
+      setLoading,
+      setError,
+      setAuthError,
+      setBranch,
+      fetchBranchProducts,
+      fetchInvoices,
+      fetchAllProducts
     );
 
     // Set up auto-refresh interval (30 seconds)
@@ -794,7 +801,10 @@ function MyBranchContent() {
   // Add function to update invoice status
   const updateInvoiceStatus = useCallback(
     async (invoice: AdminInvoice, checked: boolean) => {
-      const result = await updateInvoiceStatusMutate(`/api/admin/invoices?id=${invoice.Invoiceid}`, { checked });
+      const result = await updateInvoiceStatusMutate(
+        `/api/admin/invoices?id=${invoice.Invoiceid}`,
+        { checked }
+      );
       if (result) {
         const updatedInvoices = invoices.map((inv) => {
           if (inv.Invoiceid === invoice.Invoiceid) {
@@ -974,7 +984,8 @@ function MyBranchContent() {
         key: "actions",
         className: "text-center font-medium",
         render: (_: any, invoice: AdminInvoice) => (
-          <Button htmlType="button"
+          <Button
+            htmlType="button"
             type="primary"
             className="flex items-center border-blue-700 bg-blue-600 hover:bg-blue-700"
             onClick={() => setSelectedInvoice(invoice)}
@@ -1006,7 +1017,8 @@ function MyBranchContent() {
                 <p className="mb-4 text-gray-300">
                   ممکن است نشست کاری شما منقضی شده باشد. لطفاً دوباره وارد شوید.
                 </p>
-                <Button htmlType="button"
+                <Button
+                  htmlType="button"
                   type="primary"
                   onClick={() => router.push("/auth/login")}
                   className="bg-blue-500 hover:bg-blue-600"
@@ -1119,7 +1131,8 @@ function MyBranchContent() {
                   title={
                     <div className="flex items-center justify-between">
                       <span className="text-lg font-medium">محصولات شعبه</span>
-                      <Button htmlType="button"
+                      <Button
+                        htmlType="button"
                         type="primary"
                         onClick={() => setProductDrawerVisible(true)}
                         className="flex items-center justify-center border-blue-700 bg-blue-600 hover:bg-blue-700"
@@ -1231,7 +1244,8 @@ function MyBranchContent() {
                         فاکتورها و گارانتی‌های شعبه
                       </h2>
                       <div className="flex items-center gap-2">
-                        <Button htmlType="button"
+                        <Button
+                          htmlType="button"
                           onClick={() => fetchInvoices()}
                           className="flex items-center border-blue-600 bg-blue-600 text-white hover:bg-blue-700"
                           loading={invoicesLoading}
@@ -1239,7 +1253,8 @@ function MyBranchContent() {
                         >
                           به‌روزرسانی
                         </Button>
-                        <Button htmlType="button"
+                        <Button
+                          htmlType="button"
                           type="primary"
                           onClick={handleCreateInvoice}
                           className="flex items-center bg-green-600 hover:bg-green-700"
@@ -1462,7 +1477,9 @@ function MyBranchContent() {
                               key: "startdate",
                               className: "text-right font-medium",
                               render: (date: string) => (
-                                <span className="text-gray-200">{formatPersianDate(date, formatDate)}</span>
+                                <span className="text-gray-200">
+                                  {formatPersianDate(date, formatDate)}
+                                </span>
                               ),
                             },
                             {
@@ -1471,7 +1488,9 @@ function MyBranchContent() {
                               key: "expirydate",
                               className: "text-right font-medium",
                               render: (date: string) => (
-                                <span className="text-gray-200">{formatPersianDate(date, formatDate)}</span>
+                                <span className="text-gray-200">
+                                  {formatPersianDate(date, formatDate)}
+                                </span>
                               ),
                             },
                             {
@@ -1497,7 +1516,8 @@ function MyBranchContent() {
                               key: "actions",
                               className: "text-center font-medium",
                               render: (_, warranty) => (
-                                <Button htmlType="button"
+                                <Button
+                                  htmlType="button"
                                   type="primary"
                                   className="flex items-center border-blue-700 bg-blue-600 hover:bg-blue-700"
                                   onClick={() => {
