@@ -51,6 +51,83 @@ type WarrantyManagementModalProps = {
 
 const { Option } = Select;
 
+async function generateWarrantyCodeForInvoice(
+  branches: Branch[],
+  item: ExpandedInvoiceItem,
+  warrantyData: {
+    warrantycode: string;
+    startdate: string;
+    expirydate: string;
+    status: string;
+    branchId: number | null;
+    hasWarranty: boolean;
+  },
+  setWarrantyData: React.Dispatch<
+    React.SetStateAction<{
+      warrantycode: string;
+      startdate: string;
+      expirydate: string;
+      status: string;
+      branchId: number | null;
+      hasWarranty: boolean;
+    }>
+  >,
+  generateWarrantyMutate: any
+) {
+  try {
+    const selectedBranch = branches.find(
+      (b) => b.branchid === Number(item.individualWarranty?.branchid)
+    );
+    if (!selectedBranch) {
+      toast.error("شعبه انتخاب شده یافت نشد");
+      setWarrantyData((prev) => ({ ...prev, warrantycode: "" }));
+      return;
+    }
+
+    const branchCode =
+      selectedBranch.location || selectedBranch.name.substring(0, 2).toUpperCase();
+
+    const date = new Date();
+    const persianYear = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(date);
+    const yearStr = persianToEnglishDigits(persianYear);
+    const yearNum = yearStr.slice(-3);
+    const persianMonth = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" }).format(date);
+    const monthNum = persianToEnglishDigits(persianMonth);
+    const yearMonth = yearNum + monthNum.padStart(2, "0");
+
+    const data = await generateWarrantyMutate(
+      "/api/admin/warranty/generate",
+      { branchCode, yearMonth }
+    );
+
+    if (data && data.warrantyCode) {
+      setWarrantyData((prev) => ({ ...prev, warrantycode: data.warrantyCode }));
+    } else {
+      toast.error("خطا در تولید کد گارانتی");
+    }
+  } catch (error) {
+    console.error("Error generating warranty code:", error);
+
+    const selectedBranch = branches.find((b) => b.branchid === warrantyData.branchId);
+    const branchCode =
+      selectedBranch?.location || selectedBranch?.name.substring(0, 2).toUpperCase() || "FA";
+
+    const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const date = new Date();
+    const persianYear = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(date);
+    const persianMonth = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" }).format(date);
+    const yearStr = persianToEnglishDigits(persianYear);
+    const monthStr = persianToEnglishDigits(persianMonth);
+    const yearNum = yearStr.slice(-3);
+    const yearMonth = yearNum + monthStr.padStart(2, "0");
+
+    setWarrantyData((prev) => ({
+      ...prev,
+      warrantycode: `${branchCode}-${yearMonth}-${randomCode}`,
+    }));
+  }
+}
+
 const WarrantyManagementModal = ({
   item,
   invoiceId,
@@ -148,58 +225,7 @@ const WarrantyManagementModal = ({
   }, [warrantyData.startdate, warrantyData.expirydate]);
 
   const generateWarrantyCode = async () => {
-    try {
-      const selectedBranch = branches.find(
-        (b) => b.branchid === Number(item.individualWarranty?.branchid)
-      );
-      if (!selectedBranch) {
-        toast.error("شعبه انتخاب شده یافت نشد");
-        setWarrantyData((prev) => ({ ...prev, warrantycode: "" }));
-        return;
-      }
-
-      const branchCode =
-        selectedBranch.location || selectedBranch.name.substring(0, 2).toUpperCase();
-
-      const date = new Date();
-      const persianYear = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(date);
-      const yearStr = persianToEnglishDigits(persianYear);
-      const yearNum = yearStr.slice(-3);
-      const persianMonth = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" }).format(date);
-      const monthNum = persianToEnglishDigits(persianMonth);
-      const yearMonth = yearNum + monthNum.padStart(2, "0");
-
-      const data = await generateWarrantyMutate(
-        "/api/admin/warranty/generate",
-        { branchCode, yearMonth }
-      );
-
-      if (data && data.warrantyCode) {
-        setWarrantyData((prev) => ({ ...prev, warrantycode: data.warrantyCode }));
-      } else {
-        throw new Error("خطا در تولید کد گارانتی");
-      }
-    } catch (error) {
-      console.error("Error generating warranty code:", error);
-
-      const selectedBranch = branches.find((b) => b.branchid === warrantyData.branchId);
-      const branchCode =
-        selectedBranch?.location || selectedBranch?.name.substring(0, 2).toUpperCase() || "FA";
-
-      const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const date = new Date();
-      const persianYear = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(date);
-      const persianMonth = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" }).format(date);
-      const yearStr = persianToEnglishDigits(persianYear);
-      const monthStr = persianToEnglishDigits(persianMonth);
-      const yearNum = yearStr.slice(-3);
-      const yearMonth = yearNum + monthStr.padStart(2, "0");
-
-      setWarrantyData((prev) => ({
-        ...prev,
-        warrantycode: `${branchCode}-${yearMonth}-${randomCode}`,
-      }));
-    }
+    await generateWarrantyCodeForInvoice(branches, item, warrantyData, setWarrantyData, generateWarrantyMutate);
   };
 
   const calculateDuration = (startDate: Date | string | null, endDate: Date | string | null) => {

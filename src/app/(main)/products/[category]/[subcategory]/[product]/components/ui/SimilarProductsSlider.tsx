@@ -63,8 +63,12 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
   }, []);
 
   // Sync state to refs
-  isDraggingRef.current = isDragging;
-  velocityRef.current = velocity;
+  useEffect(() => {
+    isDraggingRef.current = isDragging;
+  }, [isDragging]);
+  useEffect(() => {
+    velocityRef.current = velocity;
+  }, [velocity]);
 
   // Mouse drag handlers
   const handleMouseDown = useCallback((e: React.MouseEvent) => {

@@ -89,7 +89,6 @@ function BranchesPageContent() {
 
   // Load data when component mounts and set up auto-refresh
   useEffect(() => {
-    setInitialLoading(true);
     Promise.all([fetchBranches(), fetchAllProducts()])
       .catch((error) => console.error("Error loading initial data:", error))
       .finally(() => setInitialLoading(false));

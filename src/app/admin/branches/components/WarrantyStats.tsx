@@ -11,7 +11,7 @@ import {
 import { Card, Spin, Alert, Statistic, Row, Col, Typography, Empty, Button } from "antd";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
-import { useRef } from "react";
+import { useEffect } from "react";
 
 const { Title, Text } = Typography;
 
@@ -33,14 +33,10 @@ interface WarrantyStatsProps {
 }
 
 export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps) {
-  const dataFetched = useRef(false);
   const { data, loading, error, refetch } = useApiFetch<StatsResponse>(
     isTabActive ? "/api/admin/warranty/statistics" : null,
     true
   );
-  if (data && !dataFetched.current) {
-    dataFetched.current = true;
-  }
 
   const statistics: BranchStats[] =
     (data?.allBranches?.length ? data.allBranches : data?.myBranches) || [];
@@ -56,7 +52,7 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
     { active: 0, expired: 0, requested: 0 }
   );
 
-  if (!isTabActive && !dataFetched.current) {
+  if (!isTabActive && !data) {
     return null; // Don't render anything if tab is not active and data hasn't been fetched yet
   }
 
