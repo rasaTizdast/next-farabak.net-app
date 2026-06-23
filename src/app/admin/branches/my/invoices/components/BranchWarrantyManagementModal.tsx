@@ -48,6 +48,98 @@ type BranchWarrantyManagementModalProps = {
   onSuccess: () => void;
 };
 
+async function generateWarrantyCodeForBranch(
+  currentBranch: Branch | null,
+  warrantyData: {
+    warrantycode: string;
+    startdate: string;
+    expirydate: string;
+    status: string;
+    branchId: number | null;
+    hasWarranty: boolean;
+  },
+  setWarrantyData: React.Dispatch<
+    React.SetStateAction<{
+      warrantycode: string;
+      startdate: string;
+      expirydate: string;
+      status: string;
+      branchId: number | null;
+      hasWarranty: boolean;
+    }>
+  >,
+  generateWarrantyMutate: any,
+  branchId?: number
+): Promise<string | null> {
+  if (!branchId && !warrantyData.branchId) return null;
+
+  try {
+    const selectedBranchId = branchId || warrantyData.branchId;
+
+    const selectedBranch =
+      currentBranch && currentBranch.branchid === selectedBranchId ? currentBranch : null;
+
+    if (!selectedBranch) {
+      toast.error("اطلاعات شعبه یافت نشد");
+      return null;
+    }
+
+    const branchCode =
+      selectedBranch.location || selectedBranch.name.substring(0, 2).toUpperCase();
+
+    const date = new Date();
+    const persianYear = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(date);
+    const yearStr = persianToEnglishDigits(persianYear);
+    const yearNum = yearStr.slice(-3);
+    const persianMonth = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" }).format(date);
+    const monthNum = persianToEnglishDigits(persianMonth);
+    const yearMonth = yearNum + monthNum.padStart(2, "0");
+
+    const data = await generateWarrantyMutate(
+      "/api/admin/warranty/generate",
+      { branchCode, yearMonth }
+    );
+
+    if (data && data.warrantyCode) {
+      setWarrantyData((prev) => ({
+        ...prev,
+        warrantycode: data.warrantyCode,
+        hasWarranty: true,
+      }));
+      return data.warrantyCode;
+    } else {
+      toast.error("خطا در تولید کد گارانتی");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error generating warranty code:", error);
+
+    if (currentBranch) {
+      const branchCode =
+        currentBranch.location || currentBranch.name.substring(0, 2).toUpperCase() || "FA";
+
+      const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const date = new Date();
+      const persianYear = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(date);
+      const persianMonth = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" }).format(date);
+      const yearStr = persianToEnglishDigits(persianYear);
+      const monthStr = persianToEnglishDigits(persianMonth);
+      const yearNum = yearStr.slice(-3);
+      const yearMonth = yearNum + monthStr.padStart(2, "0");
+
+      const fallbackCode = `${branchCode}-${yearMonth}-${randomCode}`;
+
+      setWarrantyData((prev) => ({
+        ...prev,
+        warrantycode: fallbackCode,
+        hasWarranty: true,
+      }));
+      return fallbackCode;
+    }
+    return null;
+  }
+}
+
 const BranchWarrantyManagementModal = ({
   item,
   invoiceId,
@@ -126,74 +218,8 @@ const BranchWarrantyManagementModal = ({
     }
   }, [currentBranchData, branchError, productCheckData, productCheckError]);
 
-  // Generate a unique warranty code for the current branch
   const generateWarrantyCode = async (branchId?: number): Promise<string | null> => {
-    if (!branchId && !warrantyData.branchId) return null;
-
-    try {
-      const selectedBranchId = branchId || warrantyData.branchId;
-
-      const selectedBranch =
-        currentBranch && currentBranch.branchid === selectedBranchId ? currentBranch : null;
-
-      if (!selectedBranch) {
-        toast.error("اطلاعات شعبه یافت نشد");
-        return null;
-      }
-
-      const branchCode =
-        selectedBranch.location || selectedBranch.name.substring(0, 2).toUpperCase();
-
-      const date = new Date();
-      const persianYear = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(date);
-      const yearStr = persianToEnglishDigits(persianYear);
-      const yearNum = yearStr.slice(-3);
-      const persianMonth = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" }).format(date);
-      const monthNum = persianToEnglishDigits(persianMonth);
-      const yearMonth = yearNum + monthNum.padStart(2, "0");
-
-      const data = await generateWarrantyMutate(
-        "/api/admin/warranty/generate",
-        { branchCode, yearMonth }
-      );
-
-      if (data && data.warrantyCode) {
-        setWarrantyData((prev) => ({
-          ...prev,
-          warrantycode: data.warrantyCode,
-          hasWarranty: true,
-        }));
-        return data.warrantyCode;
-      } else {
-        throw new Error("خطا در تولید کد گارانتی");
-      }
-    } catch (error) {
-      console.error("Error generating warranty code:", error);
-
-      if (currentBranch) {
-        const branchCode =
-          currentBranch.location || currentBranch.name.substring(0, 2).toUpperCase() || "FA";
-
-        const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-        const date = new Date();
-        const persianYear = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(date);
-        const persianMonth = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" }).format(date);
-        const yearStr = persianToEnglishDigits(persianYear);
-        const monthStr = persianToEnglishDigits(persianMonth);
-        const yearNum = yearStr.slice(-3);
-        const yearMonth = yearNum + monthStr.padStart(2, "0");
-
-        const fallbackCode = `${branchCode}-${yearMonth}-${randomCode}`;
-
-        setWarrantyData((prev) => ({
-          ...prev,
-          warrantycode: fallbackCode,
-          hasWarranty: true,
-        }));
-        return fallbackCode;
-      }
-      return null;
-    }
+    return generateWarrantyCodeForBranch(currentBranch, warrantyData, setWarrantyData, generateWarrantyMutate, branchId);
   };
 
   // eslint-disable-next-line react-compiler/set-state-in-effect

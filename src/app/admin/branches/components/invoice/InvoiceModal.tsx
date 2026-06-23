@@ -20,6 +20,55 @@ interface InvoiceModalProps {
   onSuccess?: () => void;
 }
 
+async function submitInvoice(
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  productsWithWarranty: any[],
+  invoice: Partial<Invoice>,
+  branch: Branch,
+  createInvoiceMutate: any,
+  onSuccess?: () => void,
+  handleClose?: () => void
+) {
+  setIsLoading(true);
+  try {
+    const individualItems = productsWithWarranty.map((item) => ({
+      ProductId: item.ProductId,
+      quantity: 1,
+      price: item.price,
+      total_price: item.price,
+      warranty: item.warranty.hasWarranty ? { ...item.warranty, hasWarranty: true } : null,
+    }));
+
+    const invoiceData = {
+      ...invoice,
+      products: individualItems,
+    };
+
+    const result = await createInvoiceMutate("/api/admin/invoices", {
+      branchId: branch.branchid,
+      invoiceData,
+    });
+
+    if (!result) {
+      message.error("خطا در ثبت فاکتور");
+      return;
+    }
+
+    message.success("فاکتور با موفقیت ثبت شد");
+
+    if (onSuccess) {
+      onSuccess();
+    } else {
+      handleClose?.();
+    }
+  } catch (error) {
+    console.error("Error creating invoice:", error);
+    message.error("خطا در ثبت فاکتور");
+  } finally {
+    setIsLoading(false);
+  }
+}
+
 const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, onSuccess }) => {
   const { mutate: createInvoiceMutate, loading: isSubmitting } = useApiMutation("post");
   const [currentStep, setCurrentStep] = useState(0);
@@ -132,57 +181,8 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
     setCurrentStep(currentStep - 1);
   };
 
-  async function doSubmitInvoice(
-    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-    productsWithWarranty: any[],
-    invoice: Partial<Invoice>,
-    branch: Branch,
-    createInvoiceMutate: any,
-    onSuccess?: () => void,
-    handleClose?: () => void
-  ) {
-    setIsLoading(true);
-    try {
-      const individualItems = productsWithWarranty.map((item) => ({
-        ProductId: item.ProductId,
-        quantity: 1,
-        price: item.price,
-        total_price: item.price,
-        warranty: item.warranty.hasWarranty ? { ...item.warranty, hasWarranty: true } : null,
-      }));
-
-      const invoiceData = {
-        ...invoice,
-        products: individualItems,
-      };
-
-      const result = await createInvoiceMutate("/api/admin/invoices", {
-        branchId: branch.branchid,
-        invoiceData,
-      });
-
-      if (!result) {
-        message.error("خطا در ثبت فاکتور");
-        return;
-      }
-
-      message.success("فاکتور با موفقیت ثبت شد");
-
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        handleClose?.();
-      }
-    } catch (error) {
-      console.error("Error creating invoice:", error);
-      message.error("خطا در ثبت فاکتور");
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
   const handleSubmit = async () => {
-    await doSubmitInvoice(
+    await submitInvoice(
       setIsLoading,
       productsWithWarranty,
       invoice,

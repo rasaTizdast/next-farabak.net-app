@@ -25,6 +25,52 @@ interface ProductsResponse {
   data?: Product[];
 }
 
+async function branchProductSearch(
+  selectedProduct: number,
+  setSearchLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setSearchPerformed: React.Dispatch<React.SetStateAction<boolean>>,
+  setBranchProducts: React.Dispatch<React.SetStateAction<BranchProduct[]>>,
+  products: Product[]
+) {
+  try {
+    setSearchLoading(true);
+    setSearchPerformed(true);
+
+    const response = await fetch(
+      `/api/admin/branches/product-stock?productId=${selectedProduct}`
+    );
+    if (!response.ok) {
+      throw new Error("Failed to search branches");
+    }
+
+    const data = await response.json();
+    let processedData: BranchProduct[] = [];
+
+    if (Array.isArray(data)) {
+      processedData = data
+        .filter((branch) => branch && branch.branchid && branch.name)
+        .map((branch) => ({
+          branchid: branch.branchid,
+          branchName: branch.name,
+          location: branch.location,
+          ProductId: selectedProduct,
+          ProductType: products.find((p) => p.ProductId === selectedProduct)?.Type || "",
+          quantity: branch.quantity || 0,
+        }));
+    } else if (data && Array.isArray(data.branches)) {
+      processedData = data.branches.filter((branch) => branch && branch.branchid);
+    }
+
+    setBranchProducts(processedData);
+  } catch (error) {
+    console.error("Error searching branches:", error);
+    message.error("خطا در جستجوی شعبه‌ها");
+    setBranchProducts([]);
+  } finally {
+    setSearchLoading(false);
+  }
+}
+
 const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }) => {
   const [searchLoading, setSearchLoading] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
@@ -36,59 +82,13 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
   );
   const products: Product[] = productsData?.data || [];
 
-  async function doBranchProductSearch(
-    selectedProduct: number,
-    setSearchLoading: React.Dispatch<React.SetStateAction<boolean>>,
-    setSearchPerformed: React.Dispatch<React.SetStateAction<boolean>>,
-    setBranchProducts: React.Dispatch<React.SetStateAction<BranchProduct[]>>,
-    products: Product[]
-  ) {
-    try {
-      setSearchLoading(true);
-      setSearchPerformed(true);
-
-      const response = await fetch(
-        `/api/admin/branches/product-stock?productId=${selectedProduct}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to search branches");
-      }
-
-      const data = await response.json();
-      let processedData: BranchProduct[] = [];
-
-      if (Array.isArray(data)) {
-        processedData = data
-          .filter((branch) => branch && branch.branchid && branch.name)
-          .map((branch) => ({
-            branchid: branch.branchid,
-            branchName: branch.name,
-            location: branch.location,
-            ProductId: selectedProduct,
-            ProductType: products.find((p) => p.ProductId === selectedProduct)?.Type || "",
-            quantity: branch.quantity || 0,
-          }));
-      } else if (data && Array.isArray(data.branches)) {
-        processedData = data.branches.filter((branch) => branch && branch.branchid);
-      }
-
-      setBranchProducts(processedData);
-    } catch (error) {
-      console.error("Error searching branches:", error);
-      message.error("خطا در جستجوی شعبه‌ها");
-      setBranchProducts([]);
-    } finally {
-      setSearchLoading(false);
-    }
-  }
-
   const handleSearch = async () => {
     if (!selectedProduct) {
       message.warning("لطفا یک محصول انتخاب کنید");
       return;
     }
 
-    await doBranchProductSearch(
+    await branchProductSearch(
       selectedProduct,
       setSearchLoading,
       setSearchPerformed,
