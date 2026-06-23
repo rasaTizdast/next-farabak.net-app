@@ -11,6 +11,27 @@ type DeleteOverviewDetailButtonProps = {
   onSuccess: () => void;
 };
 
+async function checkDetailInUse(
+  detailId: number,
+  setIsLoading: (v: boolean) => void,
+  setInUseInfo: (info: { isInUse: boolean; productsCount: number }) => void,
+  setShowConfirmModal: (v: boolean) => void
+) {
+  setIsLoading(true);
+  try {
+    const response = await fetch(`/api/productOverviewDetails/checkUsage/${detailId}`);
+    if (response.ok) {
+      const data = await response.json();
+      setInUseInfo({ isInUse: data.isInUse, productsCount: data.productsCount });
+    }
+    setShowConfirmModal(true);
+  } catch (error) {
+    toast.error("بررسی وضعیت استفاده با خطا مواجه شد");
+  } finally {
+    setIsLoading(false);
+  }
+}
+
 const DeleteOverviewDetailButton = ({
   detailId,
   detailTitle,
@@ -24,29 +45,10 @@ const DeleteOverviewDetailButton = ({
     productsCount: number;
   }>({ isInUse: false, productsCount: 0 });
 
-  async function doCheckInUse(
-    detailId: number,
-    setIsLoading: (v: boolean) => void,
-    setInUseInfo: (info: { isInUse: boolean; productsCount: number }) => void,
-    setShowConfirmModal: (v: boolean) => void
-  ) {
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/productOverviewDetails/checkUsage/${detailId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setInUseInfo({ isInUse: data.isInUse, productsCount: data.productsCount });
-      }
-      setShowConfirmModal(true);
-    } catch (error) {
-      toast.error("بررسی وضعیت استفاده با خطا مواجه شد");
-    } finally {
-      setIsLoading(false);
-    }
-  }
+
 
   const checkIfInUse = async () => {
-    await doCheckInUse(detailId, setIsLoading, setInUseInfo, setShowConfirmModal);
+    await checkDetailInUse(detailId, setIsLoading, setInUseInfo, setShowConfirmModal);
   };
 
   const handleDelete = async () => {

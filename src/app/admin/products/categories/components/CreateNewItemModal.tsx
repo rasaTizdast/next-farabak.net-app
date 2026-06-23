@@ -26,6 +26,126 @@ const checkIfUnique = (
   return !parentCategory.Subcategories.some((subcategory) => subcategory.Name === name);
 };
 
+async function doCreateItem(
+  name: string,
+  slug: string,
+  available: boolean,
+  parentCategoryId: number | undefined,
+  seoTitle: string,
+  seoDescription: string,
+  seoKeywords: string[],
+  topBlog: string,
+  bottomBlog: string,
+  bannerFile: File | null,
+  bannerCleared: boolean,
+  activeTab: string,
+  categories: Category[],
+  withRetry401: <T>(
+    fn: () => Promise<T>,
+    opts?: { retries?: number; baseDelayMs?: number }
+  ) => Promise<T>,
+  createMutate: any,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setError: React.Dispatch<React.SetStateAction<string | null>>,
+  setName: React.Dispatch<React.SetStateAction<string>>,
+  setSlug: React.Dispatch<React.SetStateAction<string>>,
+  setAvailable: React.Dispatch<React.SetStateAction<boolean>>,
+  setParentCategoryId: React.Dispatch<React.SetStateAction<number | undefined>>,
+  setSeoTitle: React.Dispatch<React.SetStateAction<string>>,
+  setSeoDescription: React.Dispatch<React.SetStateAction<string>>,
+  setSeoKeywords: React.Dispatch<React.SetStateAction<string[]>>,
+  setKeywordInput: React.Dispatch<React.SetStateAction<string>>,
+  setTopBlog: React.Dispatch<React.SetStateAction<string>>,
+  setBottomBlog: React.Dispatch<React.SetStateAction<string>>,
+  setBannerFile: React.Dispatch<React.SetStateAction<File | null>>,
+  setBannerPreview: React.Dispatch<React.SetStateAction<string>>,
+  setBannerCleared: React.Dispatch<React.SetStateAction<boolean>>,
+  onClose: () => void,
+  refetchCategories: () => void
+) {
+  setLoading(true);
+  try {
+    const result: any = {
+      type: activeTab,
+      data: {
+        name,
+        slug,
+        available,
+        parentCategoryId: activeTab === "Subcategory" ? parentCategoryId : null,
+        seoTitle,
+        seoDescription,
+        seoKeywords,
+        topBlog,
+        bottomBlog,
+        banner: undefined as string | undefined,
+      },
+    };
+
+    if (bannerFile && !bannerCleared && slug) {
+      const payload =
+        activeTab === "Category"
+          ? { type: "categoryBanner", contentType: bannerFile.type, categorySlug: slug }
+          : {
+              type: "categoryBanner",
+              contentType: bannerFile.type,
+              categorySlug:
+                categories.find((c) => c.CategoryID === parentCategoryId)?.Slug || slug,
+              subcategorySlug: slug,
+            };
+
+      const presignRes = await withRetry401(() => axios.post("/api/s3/upload", payload)) as any;
+      const presign = presignRes.data;
+      await axios.put(presign.uploadUrl, bannerFile, {
+        headers: { "Content-Type": bannerFile.type },
+      });
+      result.data.banner = presign.key;
+    }
+    if (activeTab === "Category") {
+      const catRes = await createMutate("/api/categories/createCategory", result);
+      if (catRes) {
+        toast.success("دسته‌بندی با موفقیت ایجاد شد!");
+        onClose();
+        refetchCategories();
+      } else {
+        throw new Error("خطا در ایجاد دسته‌بندی");
+      }
+    } else if (activeTab === "Subcategory") {
+      const subRes = await createMutate("/api/categories/createSubcategory", result);
+      if (subRes) {
+        toast.success("زیردسته‌بندی با موفقیت ایجاد شد!");
+        onClose();
+        refetchCategories();
+      } else {
+        throw new Error("خطا در ایجاد زیردسته‌بندی");
+      }
+    }
+
+    setName("");
+    setSlug("");
+    setAvailable(true);
+    setParentCategoryId(undefined);
+    setSeoTitle("");
+    setSeoDescription("");
+    setSeoKeywords([]);
+    setKeywordInput("");
+    setTopBlog("");
+    setBottomBlog("");
+    setBannerFile(null);
+    setBannerPreview("");
+    setBannerCleared(false);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const errorMessage =
+        error.response?.data?.message || "خطا در ثبت آیتم. لطفاً دوباره تلاش کنید.";
+      setError(errorMessage);
+    } else {
+      setError("خطای ناشناخته‌ای رخ داده است. لطفاً دوباره تلاش کنید.");
+    }
+  } finally {
+    setLoading(false);
+  }
+}
+
 const CreateNewItemModal = ({
   isOpen,
   onClose,
@@ -105,126 +225,6 @@ const CreateNewItemModal = ({
   const removeKeyword = (keyword: string) => {
     setSeoKeywords(seoKeywords.filter((k) => k !== keyword));
   };
-
-  async function doCreateItem(
-    name: string,
-    slug: string,
-    available: boolean,
-    parentCategoryId: number | undefined,
-    seoTitle: string,
-    seoDescription: string,
-    seoKeywords: string[],
-    topBlog: string,
-    bottomBlog: string,
-    bannerFile: File | null,
-    bannerCleared: boolean,
-    activeTab: string,
-    categories: Category[],
-    withRetry401: <T>(
-      fn: () => Promise<T>,
-      opts?: { retries?: number; baseDelayMs?: number }
-    ) => Promise<T>,
-    createMutate: any,
-    setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-    setError: React.Dispatch<React.SetStateAction<string | null>>,
-    setName: React.Dispatch<React.SetStateAction<string>>,
-    setSlug: React.Dispatch<React.SetStateAction<string>>,
-    setAvailable: React.Dispatch<React.SetStateAction<boolean>>,
-    setParentCategoryId: React.Dispatch<React.SetStateAction<number | undefined>>,
-    setSeoTitle: React.Dispatch<React.SetStateAction<string>>,
-    setSeoDescription: React.Dispatch<React.SetStateAction<string>>,
-    setSeoKeywords: React.Dispatch<React.SetStateAction<string[]>>,
-    setKeywordInput: React.Dispatch<React.SetStateAction<string>>,
-    setTopBlog: React.Dispatch<React.SetStateAction<string>>,
-    setBottomBlog: React.Dispatch<React.SetStateAction<string>>,
-    setBannerFile: React.Dispatch<React.SetStateAction<File | null>>,
-    setBannerPreview: React.Dispatch<React.SetStateAction<string>>,
-    setBannerCleared: React.Dispatch<React.SetStateAction<boolean>>,
-    onClose: () => void,
-    refetchCategories: () => void
-  ) {
-    setLoading(true);
-    try {
-      const result: any = {
-        type: activeTab,
-        data: {
-          name,
-          slug,
-          available,
-          parentCategoryId: activeTab === "Subcategory" ? parentCategoryId : null,
-          seoTitle,
-          seoDescription,
-          seoKeywords,
-          topBlog,
-          bottomBlog,
-          banner: undefined as string | undefined,
-        },
-      };
-
-      if (bannerFile && !bannerCleared && slug) {
-        const payload =
-          activeTab === "Category"
-            ? { type: "categoryBanner", contentType: bannerFile.type, categorySlug: slug }
-            : {
-                type: "categoryBanner",
-                contentType: bannerFile.type,
-                categorySlug:
-                  categories.find((c) => c.CategoryID === parentCategoryId)?.Slug || slug,
-                subcategorySlug: slug,
-              };
-
-        const presignRes = await withRetry401(() => axios.post("/api/s3/upload", payload)) as any;
-        const presign = presignRes.data;
-        await axios.put(presign.uploadUrl, bannerFile, {
-          headers: { "Content-Type": bannerFile.type },
-        });
-        result.data.banner = presign.key;
-      }
-      if (activeTab === "Category") {
-        const catRes = await createMutate("/api/categories/createCategory", result);
-        if (catRes) {
-          toast.success("دسته‌بندی با موفقیت ایجاد شد!");
-          onClose();
-          refetchCategories();
-        } else {
-          throw new Error("خطا در ایجاد دسته‌بندی");
-        }
-      } else if (activeTab === "Subcategory") {
-        const subRes = await createMutate("/api/categories/createSubcategory", result);
-        if (subRes) {
-          toast.success("زیردسته‌بندی با موفقیت ایجاد شد!");
-          onClose();
-          refetchCategories();
-        } else {
-          throw new Error("خطا در ایجاد زیردسته‌بندی");
-        }
-      }
-
-      setName("");
-      setSlug("");
-      setAvailable(true);
-      setParentCategoryId(undefined);
-      setSeoTitle("");
-      setSeoDescription("");
-      setSeoKeywords([]);
-      setKeywordInput("");
-      setTopBlog("");
-      setBottomBlog("");
-      setBannerFile(null);
-      setBannerPreview("");
-      setBannerCleared(false);
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const errorMessage =
-          error.response?.data?.message || "خطا در ثبت آیتم. لطفاً دوباره تلاش کنید.";
-        setError(errorMessage);
-      } else {
-        setError("خطای ناشناخته‌ای رخ داده است. لطفاً دوباره تلاش کنید.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
 
   const handleSubmit = async () => {
     if (name.trim() === "") {

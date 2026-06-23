@@ -34,6 +34,44 @@ type SortConfig = {
   direction: "ascending" | "descending";
 };
 
+async function fetchProductQuantity(
+  productId: number,
+  loadingQuantities: Record<number, boolean>,
+  productQuantities: Record<number, { branches: number; warehouses: number; timestamp: number }>,
+  setLoadingQuantities: React.Dispatch<React.SetStateAction<Record<number, boolean>>>,
+  setProductQuantities: React.Dispatch<React.SetStateAction<Record<number, { branches: number; warehouses: number; timestamp: number }>>>
+) {
+  if (loadingQuantities[productId]) return;
+
+  const cached = productQuantities[productId];
+  const now = Date.now();
+  if (cached && now - cached.timestamp < 30000) {
+    return;
+  }
+
+  setLoadingQuantities((prev) => ({ ...prev, [productId]: true }));
+
+  try {
+    const [branchRes, warehouseRes] = await Promise.all([
+      axios.get(`/api/admin/branches/product-quantity/${productId}`),
+      axios.get(`/api/admin/warehouses/product-quantity/${productId}`),
+    ]);
+
+    setProductQuantities((prev) => ({
+      ...prev,
+      [productId]: {
+        branches: branchRes.status === 200 ? branchRes.data.totalQuantity || 0 : 0,
+        warehouses: warehouseRes.status === 200 ? warehouseRes.data.totalQuantity || 0 : 0,
+        timestamp: now,
+      },
+    }));
+  } catch (error) {
+    console.error("Error fetching product quantity:", error);
+  } finally {
+    setLoadingQuantities((prev) => ({ ...prev, [productId]: false }));
+  }
+}
+
 const SortableHeader = ({
   children,
   sortKey,
@@ -216,39 +254,8 @@ const ProductsTable = ({
     setQrCodeProduct(product);
   };
 
-  // Fetch branch quantities for a product with 30-second cache
   const fetchProductBranchQuantity = async (productId: number) => {
-    if (loadingQuantities[productId]) return;
-
-    // Check if we have cached data less than 30 seconds old
-    const cached = productQuantities[productId];
-    const now = Date.now();
-    if (cached && now - cached.timestamp < 30000) {
-      // Use cached data if it's less than 30 seconds old
-      return;
-    }
-
-    setLoadingQuantities((prev) => ({ ...prev, [productId]: true }));
-
-    try {
-      const [branchRes, warehouseRes] = await Promise.all([
-        axios.get(`/api/admin/branches/product-quantity/${productId}`),
-        axios.get(`/api/admin/warehouses/product-quantity/${productId}`),
-      ]);
-
-      setProductQuantities((prev) => ({
-        ...prev,
-        [productId]: {
-          branches: branchRes.status === 200 ? branchRes.data.totalQuantity || 0 : 0,
-          warehouses: warehouseRes.status === 200 ? warehouseRes.data.totalQuantity || 0 : 0,
-          timestamp: now,
-        },
-      }));
-    } catch (error) {
-      console.error("Error fetching product quantity:", error);
-    } finally {
-      setLoadingQuantities((prev) => ({ ...prev, [productId]: false }));
-    }
+    fetchProductQuantity(productId, loadingQuantities, productQuantities, setLoadingQuantities, setProductQuantities);
   };
 
   if (notFound) {
