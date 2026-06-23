@@ -39,6 +39,45 @@ type SubPage = {
   QrCode_expiryDays?: string;
 };
 
+async function doDeleteItem(type: string, id: number, fetchPageData: () => void) {
+  try {
+    let endpoint = "";
+
+    switch (type) {
+      case "member":
+        endpoint = `/api/members/${id}`;
+        break;
+      case "blog":
+        endpoint = `/api/blogs/delete/${id}`;
+        break;
+      case "project":
+        endpoint = `/api/projects/${id}`;
+        break;
+      case "faq":
+        endpoint = `/api/admin/faqs/${id}`;
+        break;
+      default:
+        toast.error("نوع آیتم نامعتبر است");
+        return;
+    }
+
+    const response = await fetch(endpoint, {
+      method: "DELETE",
+    });
+
+    if (response.ok) {
+      toast.success("عملیات حذف با موفقیت انجام شد");
+      fetchPageData();
+    } else {
+      const errorData = await response.json();
+      toast.error(`خطا در حذف: ${errorData.error || "خطای ناشناخته"}`);
+    }
+  } catch (error) {
+    console.error("Error deleting item:", error);
+    toast.error("خطا در ارتباط با سرور");
+  }
+}
+
 const AdminPageManager: React.FC = () => {
   const [rowNames, setRowNames] = useState<PageRow[]>([]);
   const [subPages, setSubPages] = useState<Record<string, SubPage[]>>({});
@@ -136,44 +175,6 @@ const AdminPageManager: React.FC = () => {
         return null;
     }
   };
-
-  async function doDeleteItem(type: string, id: number, fetchPageData: () => void) {
-    try {
-      let endpoint = "";
-
-      switch (type) {
-        case "member":
-          endpoint = `/api/members/${id}`;
-          break;
-        case "blog":
-          endpoint = `/api/blogs/delete/${id}`;
-          break;
-        case "project":
-          endpoint = `/api/projects/${id}`;
-          break;
-        case "faq":
-          endpoint = `/api/admin/faqs/${id}`;
-          break;
-        default:
-          throw new Error("Invalid delete type");
-      }
-
-      const response = await fetch(endpoint, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        toast.success("عملیات حذف با موفقیت انجام شد");
-        fetchPageData();
-      } else {
-        const errorData = await response.json();
-        toast.error(`خطا در حذف: ${errorData.error || "خطای ناشناخته"}`);
-      }
-    } catch (error) {
-      console.error("Error deleting item:", error);
-      toast.error("خطا در ارتباط با سرور");
-    }
-  }
 
   const deleteItem = async (type: string, id: number) => {
     await doDeleteItem(type, id, fetchPageData);

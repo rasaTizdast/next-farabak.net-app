@@ -42,6 +42,63 @@ type Product = {
   }[];
 };
 
+async function loadWarehouseProducts(
+  whId: number,
+  setProductLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setProducts: React.Dispatch<React.SetStateAction<WarehouseProduct[]>>
+) {
+  setProductLoading(true);
+  try {
+    const res = await axios.get(`/api/admin/warehouses/${whId}/products`);
+    setProducts(res.data);
+  } catch (e) {
+    console.error(e);
+  } finally {
+    setProductLoading(false);
+  }
+}
+
+async function updateProductGrade(
+  productId: number,
+  gradeId: number | null,
+  currentQuantity: number,
+  currentWarehouseProductId: number,
+  warehouseId: number,
+  products: WarehouseProduct[],
+  setProducts: React.Dispatch<React.SetStateAction<WarehouseProduct[]>>,
+  refreshWarehouses: () => void,
+  updateMutate: any,
+  deleteMutate: any
+) {
+  const existingWithGrade = products.find(
+    (p) =>
+      p.ProductId === productId &&
+      p.ProductGradeId === gradeId &&
+      p.warehouseproductid !== currentWarehouseProductId
+  );
+
+  if (existingWithGrade) {
+    const r1 = await updateMutate(
+      `/api/admin/warehouses/${warehouseId}/products/${existingWithGrade.warehouseproductid}`,
+      { quantity: existingWithGrade.quantity + currentQuantity }
+    );
+    if (r1) {
+      await deleteMutate(
+        `/api/admin/warehouses/${warehouseId}/products/${currentWarehouseProductId}`
+      );
+    }
+  } else {
+    await updateMutate(
+      `/api/admin/warehouses/${warehouseId}/products/${currentWarehouseProductId}`,
+      { ProductGradeId: gradeId, quantity: currentQuantity }
+    );
+  }
+
+  const res = await axios.get(`/api/admin/warehouses/${warehouseId}/products`);
+  setProducts(res.data);
+  refreshWarehouses();
+}
+
 export default function ProductsModal({
   open,
   onClose,
@@ -77,21 +134,9 @@ export default function ProductsModal({
     remove: Record<number, boolean>;
   }>({ add: false, modify: {}, remove: {} });
 
-  async function loadProducts(whId: number) {
-    setProductLoading(true);
-    try {
-      const res = await axios.get(`/api/admin/warehouses/${whId}/products`);
-      setProducts(res.data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setProductLoading(false);
-    }
-  }
-
   useEffect(() => {
     if (!open || !warehouseId) return;
-    loadProducts(warehouseId);
+    loadWarehouseProducts(warehouseId, setProductLoading, setProducts);
   }, [open, warehouseId]);
 
   const updateQuantity = async (wpId: number, value: number) => {
@@ -121,33 +166,10 @@ export default function ProductsModal({
       modify: { ...prev.modify, [currentWarehouseProductId]: true },
     }));
     try {
-      const existingWithGrade = products.find(
-        (p) =>
-          p.ProductId === productId &&
-          p.ProductGradeId === gradeId &&
-          p.warehouseproductid !== currentWarehouseProductId
+      await updateProductGrade(
+        productId, gradeId, currentQuantity, currentWarehouseProductId,
+        warehouseId, products, setProducts, refreshWarehouses, updateMutate, deleteMutate
       );
-
-      if (existingWithGrade) {
-        const r1 = await updateMutate(
-          `/api/admin/warehouses/${warehouseId}/products/${existingWithGrade.warehouseproductid}`,
-          { quantity: existingWithGrade.quantity + currentQuantity }
-        );
-        if (r1) {
-          await deleteMutate(
-            `/api/admin/warehouses/${warehouseId}/products/${currentWarehouseProductId}`
-          );
-        }
-      } else {
-        await updateMutate(
-          `/api/admin/warehouses/${warehouseId}/products/${currentWarehouseProductId}`,
-          { ProductGradeId: gradeId, quantity: currentQuantity }
-        );
-      }
-
-      const res = await axios.get(`/api/admin/warehouses/${warehouseId}/products`);
-      setProducts(res.data);
-      refreshWarehouses();
     } catch (e) {
       console.error("Error updating grade:", e);
       alert((e as any)?.response?.data?.error || "خطا در بروزرسانی گرید محصول");

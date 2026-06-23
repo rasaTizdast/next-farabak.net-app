@@ -16,6 +16,68 @@ type ProductRow = {
   link: string;
 };
 
+async function fetchPartnerPrices(
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setData: React.Dispatch<React.SetStateAction<ProductRow[]>>,
+  setPartnerValues: React.Dispatch<React.SetStateAction<Record<number, string>>>,
+  setError: React.Dispatch<React.SetStateAction<string | null>>
+) {
+  try {
+    setLoading(true);
+    const res = await axios.get("/api/admin/products", { params: { limit: 500 } });
+    const rows = (res.data?.data || []).map((p: any) => ({
+      ProductId: p.ProductId,
+      Type: p.Type,
+      Price: Number(p.Price ?? 0),
+      Discount: Number(p.Discount ?? 0),
+      Partner_Price: p.Partner_Price ?? null,
+      link: p.link,
+    })) as ProductRow[];
+    setData(rows);
+    const initial: Record<number, string> = {};
+    rows.forEach((r) => {
+      initial[r.ProductId] = r.Partner_Price ?? "";
+    });
+    setPartnerValues(initial);
+  } catch (e: any) {
+    setError(e?.message || "خطا در دریافت اطلاعات");
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function updatePartnerPrice(
+  productId: number,
+  partnerPrice: string,
+  inputRefs: React.MutableRefObject<Record<number, HTMLInputElement | null>>,
+  setUpdatingId: React.Dispatch<React.SetStateAction<number | null>>,
+  fetchData: () => Promise<void>
+) {
+  const trimmed = partnerPrice.trim();
+  if (trimmed !== "" && (isNaN(Number(trimmed)) || Number(trimmed) < 0)) {
+    if (inputRefs.current[productId]) {
+      inputRefs.current[productId]!.classList.add("ring-2", "ring-red-500");
+      setTimeout(
+        () => inputRefs.current[productId]?.classList.remove("ring-2", "ring-red-500"),
+        1000
+      );
+    }
+    message.error("ورودی نامعتبر است. فقط عدد و اعشار مجاز است.");
+    return;
+  }
+  try {
+    setUpdatingId(productId);
+    await axios.patch(`/api/admin/products/${productId}`, { Partner_Price: partnerPrice });
+    await fetchData();
+    message.success("قیمت همکار با موفقیت ذخیره شد.");
+  } catch (e) {
+    console.error(e);
+    message.error("ذخیره قیمت با خطا مواجه شد.");
+  } finally {
+    setUpdatingId(null);
+  }
+}
+
 export default function AdminPartnerPricesPage() {
   const [data, setData] = useState<ProductRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,29 +94,7 @@ export default function AdminPartnerPricesPage() {
   const [partnerValues, setPartnerValues] = useState<Record<number, string>>({});
 
   const fetchData = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get("/api/admin/products", { params: { limit: 500 } });
-      const rows = (res.data?.data || []).map((p: any) => ({
-        ProductId: p.ProductId,
-        Type: p.Type,
-        Price: Number(p.Price ?? 0),
-        Discount: Number(p.Discount ?? 0),
-        Partner_Price: p.Partner_Price ?? null,
-        link: p.link,
-      })) as ProductRow[];
-      setData(rows);
-      // Initialize controlled inputs for partner prices
-      const initial: Record<number, string> = {};
-      rows.forEach((r) => {
-        initial[r.ProductId] = r.Partner_Price ?? "";
-      });
-      setPartnerValues(initial);
-    } catch (e: any) {
-      setError(e?.message || "خطا در دریافت اطلاعات");
-    } finally {
-      setLoading(false);
-    }
+    await fetchPartnerPrices(setLoading, setData, setPartnerValues, setError);
   };
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
@@ -133,29 +173,7 @@ export default function AdminPartnerPricesPage() {
   };
 
   const handleUpdate = async (productId: number, partnerPrice: string) => {
-    const trimmed = partnerPrice.trim();
-    if (trimmed !== "" && (isNaN(Number(trimmed)) || Number(trimmed) < 0)) {
-      if (inputRefs.current[productId]) {
-        inputRefs.current[productId]!.classList.add("ring-2", "ring-red-500");
-        setTimeout(
-          () => inputRefs.current[productId]?.classList.remove("ring-2", "ring-red-500"),
-          1000
-        );
-      }
-      message.error("ورودی نامعتبر است. فقط عدد و اعشار مجاز است.");
-      return;
-    }
-    try {
-      setUpdatingId(productId);
-      await axios.patch(`/api/admin/products/${productId}`, { Partner_Price: partnerPrice });
-      await fetchData();
-      message.success("قیمت همکار با موفقیت ذخیره شد.");
-    } catch (e) {
-      console.error(e);
-      message.error("ذخیره قیمت با خطا مواجه شد.");
-    } finally {
-      setUpdatingId(null);
-    }
+    await updatePartnerPrice(productId, partnerPrice, inputRefs, setUpdatingId, fetchData);
   };
 
   return (

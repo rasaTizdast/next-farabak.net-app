@@ -6,6 +6,26 @@ interface VideoUploadModalProps {
   onVideoUpload: (file: File) => Promise<void>;
 }
 
+async function uploadVideoFile(
+  file: File,
+  onVideoUpload: (file: File) => Promise<void>,
+  setUploading: React.Dispatch<React.SetStateAction<boolean>>,
+  setError: React.Dispatch<React.SetStateAction<string | null>>,
+  onClose: () => void
+) {
+  setUploading(true);
+  setError(null);
+
+  try {
+    await onVideoUpload(file);
+    onClose();
+  } catch {
+    setError("آپلود ویدیو با خطا مواجه شد");
+  } finally {
+    setUploading(false);
+  }
+}
+
 const VideoUploadModal: React.FC<VideoUploadModalProps> = ({ onClose, onVideoUpload }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -58,29 +78,9 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({ onClose, onVideoUpl
     validateAndSetFile(file);
   };
 
-  async function doUploadVideo(
-    file: File,
-    onVideoUpload: (file: File) => Promise<void>,
-    setUploading: React.Dispatch<React.SetStateAction<boolean>>,
-    setError: React.Dispatch<React.SetStateAction<string | null>>,
-    onClose: () => void
-  ) {
-    setUploading(true);
-    setError(null);
-
-    try {
-      await onVideoUpload(file);
-      onClose();
-    } catch {
-      setError("آپلود ویدیو با خطا مواجه شد");
-    } finally {
-      setUploading(false);
-    }
-  }
-
   const handleUpload = async () => {
     if (!selectedFile) return;
-    await doUploadVideo(selectedFile, onVideoUpload, setUploading, setError, onClose);
+    await uploadVideoFile(selectedFile, onVideoUpload, setUploading, setError, onClose);
   };
 
   return (

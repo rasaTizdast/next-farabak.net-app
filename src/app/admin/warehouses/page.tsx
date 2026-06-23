@@ -30,6 +30,57 @@ type Product = {
   Type: string | null;
 };
 
+async function doFetchWarehouses(
+  searchProductId: string | undefined,
+  page: number,
+  q: string,
+  setLoading: (v: boolean) => void,
+  setItems: (items: any[]) => void,
+  setTotal: (total: number) => void,
+  notify: (type: "success" | "error" | "warning", text: string) => void
+) {
+  setLoading(true);
+  try {
+    const params: Record<string, any> = {
+      page: searchProductId ? 1 : page,
+      limit: searchProductId ? 100 : 20,
+      q: q || undefined,
+    };
+
+    if (searchProductId) {
+      params.productId = searchProductId;
+    }
+
+    const res = await axios.get("/api/admin/warehouses", { params });
+    const rawItems = res.data.items || res.data.data || [];
+    const normalized = (Array.isArray(rawItems) ? rawItems : []).map((it: any) => {
+      const possible =
+        it?.specificProductQuantity ??
+        it?.specific_product_quantity ??
+        it?.productSpecificQuantity ??
+        it?.product_specific_quantity ??
+        it?.productQuantity ??
+        it?.product_quantity ??
+        it?.quantity;
+      const qty = typeof possible === "string" ? parseInt(possible) : possible;
+      return {
+        ...it,
+        specificProductQuantity: Number.isFinite(qty) && qty >= 0 ? qty : undefined,
+      } as Warehouse;
+    });
+    setItems(normalized);
+    setTotal(res.data.total);
+  } catch (e) {
+    console.error(e);
+    notify(
+      "error",
+      searchProductId ? "خطا در جستجوی محصول در انبارها" : "خطا در دریافت لیست انبارها"
+    );
+  } finally {
+    setLoading(false);
+  }
+}
+
 function WarehousesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -67,57 +118,6 @@ function WarehousesPageContent() {
     setToasts((t) => [...t, { id, type, text }]);
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3000);
   };
-
-  async function doFetchWarehouses(
-    searchProductId: string | undefined,
-    page: number,
-    q: string,
-    setLoading: (v: boolean) => void,
-    setItems: (items: any[]) => void,
-    setTotal: (total: number) => void,
-    notify: (type: "success" | "error" | "warning", text: string) => void
-  ) {
-    setLoading(true);
-    try {
-      const params: Record<string, any> = {
-        page: searchProductId ? 1 : page,
-        limit: searchProductId ? 100 : 20,
-        q: q || undefined,
-      };
-
-      if (searchProductId) {
-        params.productId = searchProductId;
-      }
-
-      const res = await axios.get("/api/admin/warehouses", { params });
-      const rawItems = res.data.items || res.data.data || [];
-      const normalized = (Array.isArray(rawItems) ? rawItems : []).map((it: any) => {
-        const possible =
-          it?.specificProductQuantity ??
-          it?.specific_product_quantity ??
-          it?.productSpecificQuantity ??
-          it?.product_specific_quantity ??
-          it?.productQuantity ??
-          it?.product_quantity ??
-          it?.quantity;
-        const qty = typeof possible === "string" ? parseInt(possible) : possible;
-        return {
-          ...it,
-          specificProductQuantity: Number.isFinite(qty) && qty >= 0 ? qty : undefined,
-        } as Warehouse;
-      });
-      setItems(normalized);
-      setTotal(res.data.total);
-    } catch (e) {
-      console.error(e);
-      notify(
-        "error",
-        searchProductId ? "خطا در جستجوی محصول در انبارها" : "خطا در دریافت لیست انبارها"
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
 
   const fetchWarehouses = async (searchProductId?: string) => {
     await doFetchWarehouses(searchProductId, page, q, setLoading, setItems, setTotal, notify);
