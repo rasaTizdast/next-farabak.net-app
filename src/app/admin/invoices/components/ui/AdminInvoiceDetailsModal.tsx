@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
@@ -16,7 +16,6 @@ type Props = {
 
 const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props) => {
   const [productNames, setProductNames] = useState<{ [key: string]: string }>({});
-  const [expandedItems, setExpandedItems] = useState<ExpandedInvoiceItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<ExpandedInvoiceItem | null>(null);
   const [refreshCounter, setRefreshCounter] = useState(0);
 
@@ -81,12 +80,9 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
     fetchProductNames();
   }, [invoice, refreshCounter]);
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => {
-    if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
-      setExpandedItems([]);
-      return;
-    }
+  const expandedItems = useMemo(() => {
+    if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) return [];
+
     const items: ExpandedInvoiceItem[] = [];
     invoice.Invoice_Details.forEach((product) => {
       const warrantyCodes = product.warranty?.warrantycodes || [];
@@ -131,7 +127,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
         });
       }
     });
-    setExpandedItems(items);
+    return items;
   }, [invoice.Invoice_Details, productNames, refreshCounter]);
 
   // Function to handle opening the warranty modal

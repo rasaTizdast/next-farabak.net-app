@@ -62,14 +62,12 @@ function MyBranchContent() {
 
   // Added for invoices section
   const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
-  const [filteredInvoices, setFilteredInvoices] = useState<AdminInvoice[]>([]);
+  // filteredInvoices is derived via useMemo
   const [standaloneWarranties, setStandaloneWarranties] = useState<any[]>([]);
-  const [filteredStandaloneWarranties, setFilteredStandaloneWarranties] = useState<any[]>([]);
+  // filteredStandaloneWarranties is derived via useMemo
   const [invoicesLoading, setInvoicesLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [searchOptions, setSearchOptions] = useState<{ value: string; label: React.ReactNode }[]>(
-    []
-  );
+  // searchOptions is derived via useMemo
   const [selectedInvoice, setSelectedInvoice] = useState<AdminInvoice | null>(null);
   const [selectedStandaloneWarranty, setSelectedStandaloneWarranty] = useState<any | null>(null);
   const [warrantySummary, setWarrantySummary] = useState<{
@@ -84,16 +82,7 @@ function MyBranchContent() {
   }>({});
   const quantityTimersRef = useRef<{ [key: number]: NodeJS.Timeout }>({});
 
-  // Initialize debounced quantities when products change
-  useEffect(() => {
-    const initialValues: { [key: number]: number } = {};
-    if (products && Array.isArray(products)) {
-      products.forEach((product) => {
-        initialValues[product.ProductId] = product.quantity;
-      });
-    }
-    setDebouncedQuantities(initialValues);
-  }, [products]);
+  // Products are used as fallback via `?? record.quantity` in the quantity cell
 
   // Clean up timers on unmount
   useEffect(() => {
@@ -301,22 +290,17 @@ function MyBranchContent() {
       const data = await response.json();
       if (data.invoices) {
         setInvoices(data.invoices);
-        setFilteredInvoices(data.invoices);
 
-        // Handle standalone warranties
         if (data.standaloneWarranties) {
           setStandaloneWarranties(data.standaloneWarranties);
-          setFilteredStandaloneWarranties(data.standaloneWarranties);
         } else {
           setStandaloneWarranties([]);
-          setFilteredStandaloneWarranties([]);
         }
 
         if (data.warrantySummary) {
           setWarrantySummary(data.warrantySummary);
         }
 
-        // Update pagination if available
         if (data.pagination) {
           setInvoicePagination({
             current: data.pagination.currentPage,
@@ -325,11 +309,8 @@ function MyBranchContent() {
           });
         }
       } else {
-        // Handle case where response doesn't have expected structure
         setInvoices([]);
-        setFilteredInvoices([]);
         setStandaloneWarranties([]);
-        setFilteredStandaloneWarranties([]);
       }
     } catch (error) {
       console.error("Error fetching invoices:", error);
@@ -404,19 +385,14 @@ function MyBranchContent() {
     }
   };
 
-  // Update search options for invoices and standalone warranties
-  useEffect(() => {
-    if (!searchText.trim()) {
-      setSearchOptions([]);
-      return;
-    }
+  // Derive search options and filter results via useMemo
+  const searchOptions = useMemo(() => {
+    if (!searchText.trim()) return [];
 
     const lowerCaseSearch = searchText.toLowerCase();
     const options: { value: string; label: React.ReactNode }[] = [];
 
-    // Add options from invoices
     if (invoices && Array.isArray(invoices) && invoices.length) {
-      // Add invoice numbers
       invoices.forEach((invoice) => {
         if (invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch)) {
           options.push({
@@ -431,7 +407,6 @@ function MyBranchContent() {
         }
       });
 
-      // Add customer names
       invoices.forEach((invoice) => {
         if (invoice.Fullname.toLowerCase().includes(lowerCaseSearch)) {
           options.push({
@@ -446,7 +421,6 @@ function MyBranchContent() {
         }
       });
 
-      // Add phone numbers
       invoices.forEach((invoice) => {
         if (invoice.Phonenumber && invoice.Phonenumber.includes(lowerCaseSearch)) {
           options.push({
@@ -461,7 +435,6 @@ function MyBranchContent() {
         }
       });
 
-      // Add warranty codes from invoices
       invoices.forEach((invoice) => {
         if (invoice.Invoice_Details && Array.isArray(invoice.Invoice_Details)) {
           invoice.Invoice_Details.forEach((detail) => {
@@ -497,7 +470,6 @@ function MyBranchContent() {
       });
     }
 
-    // Add standalone warranty codes
     if (
       standaloneWarranties &&
       Array.isArray(standaloneWarranties) &&
@@ -530,7 +502,6 @@ function MyBranchContent() {
           });
         }
 
-        // Add product names from standalone warranties
         if (warranty.Type && warranty.Type.toLowerCase().includes(lowerCaseSearch)) {
           options.push({
             value: warranty.Type,
@@ -545,26 +516,19 @@ function MyBranchContent() {
       });
     }
 
-    setSearchOptions(options);
+    return options;
   }, [searchText, invoices, standaloneWarranties]);
 
-  // Filter invoices and standalone warranties based on search text
-  useEffect(() => {
-    if (!searchText.trim()) {
-      setFilteredInvoices(invoices);
-      setFilteredStandaloneWarranties(standaloneWarranties);
-      return;
-    }
+  const filteredInvoices = useMemo(() => {
+    if (!searchText.trim()) return invoices;
 
     const lowerCaseSearch = searchText.toLowerCase();
 
-    // Search in invoice number, customer name, phone number, or warranty code
-    const filteredInvoicesResult = invoices.filter(
+    return invoices.filter(
       (invoice) =>
         invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch) ||
         invoice.Fullname.toLowerCase().includes(lowerCaseSearch) ||
         (invoice.Phonenumber && invoice.Phonenumber.includes(lowerCaseSearch)) ||
-        // Search in warranty codes
         (invoice.Invoice_Details &&
           invoice.Invoice_Details.some(
             (detail) =>
@@ -573,18 +537,19 @@ function MyBranchContent() {
               detail.warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)
           ))
     );
+  }, [searchText, invoices]);
 
-    setFilteredInvoices(filteredInvoicesResult);
+  const filteredStandaloneWarranties = useMemo(() => {
+    if (!searchText.trim()) return standaloneWarranties;
 
-    // Filter standalone warranties
-    const filteredWarrantiesResult = standaloneWarranties.filter(
+    const lowerCaseSearch = searchText.toLowerCase();
+
+    return standaloneWarranties.filter(
       (warranty) =>
         (warranty.warrantycode && warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)) ||
         (warranty.Type && warranty.Type.toLowerCase().includes(lowerCaseSearch))
     );
-
-    setFilteredStandaloneWarranties(filteredWarrantiesResult);
-  }, [searchText, invoices, standaloneWarranties]);
+  }, [searchText, standaloneWarranties]);
 
   // Function to get warranty status summary for an invoice
   const getWarrantyStatusSummary = (invoice: AdminInvoice) => {
@@ -813,20 +778,12 @@ function MyBranchContent() {
           return inv;
         });
         setInvoices(updatedInvoices);
-        setFilteredInvoices(
-          filteredInvoices.map((inv) => {
-            if (inv.Invoiceid === invoice.Invoiceid) {
-              return { ...inv, Checked: checked };
-            }
-            return inv;
-          })
-        );
         message.success("وضعیت فاکتور با موفقیت بروزرسانی شد");
       } else {
         message.error("خطا در بروزرسانی وضعیت فاکتور");
       }
     },
-    [invoices, filteredInvoices]
+    [invoices]
   );
 
   const productColumns = [

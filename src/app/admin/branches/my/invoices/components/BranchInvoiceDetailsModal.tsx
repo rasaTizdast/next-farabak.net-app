@@ -1,6 +1,6 @@
 import { message } from "antd";
 import Image from "next/image";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
 import { AdminInvoice } from "@/app/admin/invoices/type";
 import PrintButton from "@/app/components/ui/PrintButton";
@@ -20,7 +20,6 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
   onClose,
 }) => {
   const [productNames, setProductNames] = useState<{ [key: string]: string }>({});
-  const [expandedItems, setExpandedItems] = useState<ExpandedInvoiceItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<ExpandedInvoiceItem | null>(null);
   const [addWarrantyItem, setAddWarrantyItem] = useState<ExpandedInvoiceItem | null>(null);
   const [refreshCounter, setRefreshCounter] = useState(0);
@@ -106,16 +105,14 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
     fetchProductNames();
   }, [invoice, refreshCounter]);
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => {
+  const expandedItems = useMemo(() => {
     if (
       !invoice ||
       !invoice.Invoice_Details ||
       !Array.isArray(invoice.Invoice_Details) ||
       invoice.Invoice_Details.length === 0
     ) {
-      setExpandedItems([]);
-      return;
+      return [];
     }
     const items: ExpandedInvoiceItem[] = [];
     invoice.Invoice_Details.forEach((product) => {
@@ -181,7 +178,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
         });
       }
     });
-    setExpandedItems(items);
+    return items;
   }, [invoice?.Invoice_Details, productNames, refreshCounter]);
 
   // Handle refresh after warranty actions

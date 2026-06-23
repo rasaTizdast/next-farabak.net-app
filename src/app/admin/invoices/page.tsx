@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import { SearchOutlined } from "@ant-design/icons";
 import { Input, Button, Select } from "antd";
 import jalaali from "jalali-moment";
-import { useEffect, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
@@ -21,7 +21,6 @@ const { Option } = Select;
 
 const AdminInvoicesPage = () => {
   const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
-  const [filteredInvoices, setFilteredInvoices] = useState<AdminInvoice[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<AdminInvoice | null>(null);
   const [showPhoneNumberModal, setShowPhoneNumberModal] = useState<AdminInvoice | null>(null);
 
@@ -42,13 +41,12 @@ const AdminInvoicesPage = () => {
     refetch,
   } = useApiFetch<AdminInvoice[]>("/api/admin/invoices");
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => {
-    if (invoicesData) {
-      setInvoices(invoicesData);
-      setFilteredInvoices(invoicesData);
-    }
-  }, [invoicesData]);
+  // Sync API data on first load (render-body setState is safe and avoids effect cascade)
+  const initialSyncDone = useRef(false);
+  if (invoicesData && !initialSyncDone.current) {
+    initialSyncDone.current = true;
+    setInvoices(invoicesData);
+  }
 
   // Check and update warranty status
   const checkWarrantyStatus = async () => {
@@ -125,7 +123,7 @@ const AdminInvoicesPage = () => {
           }
         }
       } else {
-        throw new Error("Unsupported date format");
+        return { hours: 0, minutes: 0, isExpired: true };
       }
 
       // Set the current time for comparison
@@ -256,25 +254,16 @@ const AdminInvoicesPage = () => {
   };
 
   // Filter invoices based on search text
-  // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => {
-    if (!searchText.trim()) {
-      setFilteredInvoices(invoices);
-      return;
-    }
+  const filteredInvoices = useMemo(() => {
+    if (!searchText.trim()) return invoices;
 
-    let filtered;
     const lowerCaseSearch = searchText.toLowerCase();
 
     if (searchMode === "warranty") {
-      // Search by warranty code
-      filtered = invoices.filter((invoice) => {
-        // Check if the invoice has details with warranty
+      return invoices.filter((invoice) => {
         if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
           return false;
         }
-
-        // Check if any product in the invoice has the searched warranty code
         return invoice.Invoice_Details.some(
           (detail) =>
             detail.warranty &&
@@ -282,24 +271,20 @@ const AdminInvoicesPage = () => {
             detail.warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)
         );
       });
-    } else {
-      // Regular search by invoice ID, customer name, or phone
-      filtered = invoices.filter(
-        (invoice) =>
-          invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch) ||
-          invoice.Fullname.toLowerCase().includes(lowerCaseSearch) ||
-          invoice.Phonenumber.includes(searchText)
-      );
     }
 
-    setFilteredInvoices(filtered);
+    return invoices.filter(
+      (invoice) =>
+        invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch) ||
+        invoice.Fullname.toLowerCase().includes(lowerCaseSearch) ||
+        invoice.Phonenumber.includes(searchText)
+    );
   }, [searchText, searchMode, invoices]);
 
   async function refreshInvoiceAfterWarrantyUpdate(
     selectedInvoice: AdminInvoice,
     setSelectedInvoice: React.Dispatch<React.SetStateAction<AdminInvoice | null>>,
-    setInvoices: React.Dispatch<React.SetStateAction<AdminInvoice[]>>,
-    setFilteredInvoices: React.Dispatch<React.SetStateAction<AdminInvoice[]>>
+    setInvoices: React.Dispatch<React.SetStateAction<AdminInvoice[]>>
   ) {
     try {
       const response = await fetch(`/api/admin/invoices/${selectedInvoice.Invoiceid}`);
@@ -307,9 +292,6 @@ const AdminInvoicesPage = () => {
         const updatedInvoice = await response.json();
         setSelectedInvoice(updatedInvoice);
         setInvoices((prev) =>
-          prev.map((inv) => (inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv))
-        );
-        setFilteredInvoices((prev) =>
           prev.map((inv) => (inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv))
         );
       }
@@ -378,10 +360,7 @@ const AdminInvoicesPage = () => {
               <Select
                 value={searchMode}
                 onChange={(value) => {
-                  setSearchMode(value as "basic" | "warranty");
-                  if (!searchText.trim()) {
-                    setFilteredInvoices(invoices);
-                  }
+                  setSearchMode(value);
                 }}
                 className="search-select"
                 popupClassName="bg-gray-800 text-white"
@@ -409,10 +388,6 @@ const AdminInvoicesPage = () => {
                 value={searchText}
                 onChange={(e) => {
                   setSearchText(e.target.value);
-                  // Clear search results when input is empty
-                  if (!e.target.value.trim()) {
-                    setFilteredInvoices(invoices);
-                  }
                 }}
                 className="search-input"
                 style={{
@@ -431,11 +406,7 @@ const AdminInvoicesPage = () => {
                 icon={<SearchOutlined style={{ fontSize: "14px" }} />}
                 type="primary"
                 onClick={() => {
-                  if (searchText.trim()) {
-                    // Search is handled by the useEffect
-                  } else {
-                    setFilteredInvoices(invoices);
-                  }
+                  // Search is handled by the useMemo filter
                 }}
                 className="search-button"
                 style={{
@@ -626,8 +597,7 @@ const AdminInvoicesPage = () => {
                   await refreshInvoiceAfterWarrantyUpdate(
                     selectedInvoice,
                     setSelectedInvoice,
-                    setInvoices,
-                    setFilteredInvoices
+                    setInvoices
                   );
                 }}
               />
