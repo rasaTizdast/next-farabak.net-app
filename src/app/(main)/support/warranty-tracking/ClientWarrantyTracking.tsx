@@ -18,82 +18,102 @@ import React, { useState } from "react";
 const { Title, Paragraph, Text } = Typography;
 const { Step } = Steps;
 
+type WarrantyResult = {
+  status: "success" | "expired" | "already_requested";
+  data?: {
+    productType?: string;
+    startDate: string;
+    expiryDate: string;
+    status: "Active" | "Expired" | "Requested";
+    customerPhone?: string;
+  };
+  error?: string;
+};
+
+async function searchWarranty(
+  warrantyCode: string,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setError: React.Dispatch<React.SetStateAction<string>>,
+  setResult: React.Dispatch<React.SetStateAction<WarrantyResult | null>>,
+  setCurrentStep: React.Dispatch<React.SetStateAction<number>>,
+  e: React.FormEvent
+) {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
+
+  try {
+    const response = await fetch("/api/public/warranty-check", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ warrantycode: warrantyCode, checkOnly: true }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "خطا در بررسی گارانتی");
+    }
+
+    setResult(data);
+    setCurrentStep(1);
+  } catch (err) {
+    setError("خطا در بررسی گارانتی");
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function confirmWarrantyRequest(
+  warrantyCode: string,
+  setConfirmLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setError: React.Dispatch<React.SetStateAction<string>>,
+  setResult: React.Dispatch<React.SetStateAction<WarrantyResult | null>>,
+  setCurrentStep: React.Dispatch<React.SetStateAction<number>>
+) {
+  setConfirmLoading(true);
+
+  try {
+    const response = await fetch("/api/public/warranty-check", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ warrantycode: warrantyCode, confirm: true }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "خطا در ثبت درخواست گارانتی");
+    }
+
+    setResult(data);
+    setCurrentStep(2);
+  } catch (err) {
+    setError("خطا در ثبت درخواست گارانتی");
+  } finally {
+    setConfirmLoading(false);
+  }
+}
+
 const WarrantyTrackingPage = () => {
   const [warrantyCode, setWarrantyCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  type WarrantyResult = {
-    status: "success" | "expired" | "already_requested";
-    data?: {
-      productType?: string;
-      startDate: string;
-      expiryDate: string;
-      status: "Active" | "Expired" | "Requested";
-      customerPhone?: string;
-    };
-    error?: string;
-  };
 
   const [result, setResult] = useState<WarrantyResult | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [confirmLoading, setConfirmLoading] = useState(false);
 
   const handleSearchWarranty = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch("/api/public/warranty-check", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ warrantycode: warrantyCode, checkOnly: true }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "خطا در بررسی گارانتی");
-      }
-
-      setResult(data);
-      setCurrentStep(1); // Move to confirmation step
-    } catch (err) {
-      setError("خطا در بررسی گارانتی");
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+    await searchWarranty(warrantyCode, setLoading, setError, setResult, setCurrentStep, e);
   };
 
   const handleConfirmRequest = async () => {
-    setConfirmLoading(true);
-
-    try {
-      const response = await fetch("/api/public/warranty-check", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ warrantycode: warrantyCode, confirm: true }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "خطا در ثبت درخواست گارانتی");
-      }
-
-      setResult(data);
-      setCurrentStep(2); // Move to the final step after confirmation
-    } catch (err) {
-      setError("خطا در ثبت درخواست گارانتی");
-      throw err;
-    } finally {
-      setConfirmLoading(false);
-    }
+    await confirmWarrantyRequest(warrantyCode, setConfirmLoading, setError, setResult, setCurrentStep);
   };
 
   const handleCancel = () => {

@@ -16,24 +16,24 @@ interface SwaggerSpec {
   paths: Record<string, unknown>;
 }
 
+async function fetchSwaggerSpec(setSpec: React.Dispatch<React.SetStateAction<SwaggerSpec | null>>) {
+  try {
+    const response = await fetch("/api/swagger");
+    if (!response.ok) {
+      throw new Error("Failed to fetch Swagger spec");
+    }
+    const data = await response.json();
+    setSpec(data);
+  } catch (error) {
+    console.error("Error fetching Swagger spec:", error);
+  }
+}
+
 export default function SwaggerClient() {
   const [spec, setSpec] = useState<SwaggerSpec | null>(null);
 
-  async function fetchSwaggerSpec() {
-    try {
-      const response = await fetch("/api/swagger");
-      if (!response.ok) {
-        throw new Error("Failed to fetch Swagger spec");
-      }
-      const data = await response.json();
-      setSpec(data);
-    } catch (error) {
-      console.error("Error fetching Swagger spec:", error);
-    }
-  }
-
   useEffect(() => {
-    fetchSwaggerSpec();
+    fetchSwaggerSpec(setSpec);
   }, []);
 
   if (!spec) {
