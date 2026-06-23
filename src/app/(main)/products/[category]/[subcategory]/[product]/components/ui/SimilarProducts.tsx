@@ -1,3 +1,4 @@
+import { getPriceValidUntil } from "@/utils/priceValidUntil";
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 
 import SimilarProductsSlider from "./SimilarProductsSlider";
@@ -79,7 +80,7 @@ export default async function SimilarProducts({
 
   const usdRate = await fetchUsdToRialRate();
 
-  const priceValidUntil = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+  const priceValidUntil = getPriceValidUntil();
 
   return (
     <section id="similar-products" className="mt-12">

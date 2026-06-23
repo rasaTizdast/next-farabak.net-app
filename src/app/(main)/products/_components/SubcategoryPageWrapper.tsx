@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Suspense } from "react";
 
 import { calculateProductPricing, formatPriceForSchema } from "@/helpers/pricingHelper";
+import { getPriceValidUntil } from "@/utils/priceValidUntil";
 
 import ProductGridWrapper from "./ProductGridWrapper";
 import { ProductGridSkeleton } from "./ProductListSkeletons";
@@ -68,7 +69,7 @@ export default async function SubcategoryPageWrapper({
 
   const { minPrice, maxPrice, hasValidPricing } = await fetchProductsAndPricing(apiUrl);
 
-  const priceValidUntil = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+  const priceValidUntil = getPriceValidUntil();
 
   const jsonLd = {
     "@context": "https://schema.org",

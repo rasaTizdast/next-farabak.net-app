@@ -1,6 +1,7 @@
 import Script from "next/script";
 
 import { calculateProductPricing, formatPriceForSchema } from "@/helpers/pricingHelper";
+import { getPriceValidUntil } from "@/utils/priceValidUntil";
 
 import ProductGrid from "./ProductGrid";
 import { fetchProducts } from "../_utils/fetchProducts";
@@ -52,7 +53,7 @@ export default async function ProductGridWrapper({
 }: ProductGridWrapperProps) {
   const { products, minPrice, maxPrice, hasValidPricing } = await fetchProductsAndPricing(apiUrl);
 
-  const priceValidUntil = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+  const priceValidUntil = getPriceValidUntil();
 
   const breadcrumbItems = [
     { position: 1, name: "خانه", item: "https://farabak.net" },

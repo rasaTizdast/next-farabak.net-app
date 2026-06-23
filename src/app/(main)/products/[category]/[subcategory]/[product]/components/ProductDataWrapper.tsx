@@ -3,6 +3,8 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { getPriceValidUntil } from "@/utils/priceValidUntil";
+
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 
 import styles from "../ProductPage.module.css";
@@ -99,7 +101,7 @@ export default async function ProductDataWrapper({ params, searchParams }: {
   const hasValidDiscount =
     Number.isFinite(rawDiscount) && rawDiscount > 0 && rawDiscount < rawPrice;
   const finalPrice = hasValidDiscount ? rawPrice - rawDiscount : rawPrice;
-  const priceValidUntil = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+  const priceValidUntil = getPriceValidUntil();
 
   const structuredData = {
     "@context": "https://schema.org",

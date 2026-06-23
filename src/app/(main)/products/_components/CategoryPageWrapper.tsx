@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Suspense } from "react";
 
 import { calculateProductPricing, formatPriceForSchema } from "@/helpers/pricingHelper";
+import { getPriceValidUntil } from "@/utils/priceValidUntil";
 
 import CategorySliderWrapper from "./CategorySliderWrapper";
 import ProductGridWrapper from "./ProductGridWrapper";
@@ -87,7 +88,7 @@ export default async function CategoryPageWrapper({
 
   const { minPrice, maxPrice, hasValidPricing } = await fetchProductsAndPricing(apiUrl);
 
-  const priceValidUntil = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+  const priceValidUntil = getPriceValidUntil();
 
   const subcategoryItemList = subcategories.map((subcat: any, index: number) => ({
     "@type": "ListItem",
