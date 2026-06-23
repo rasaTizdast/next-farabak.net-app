@@ -1,17 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function BannerImage({ src, alt }: { src: string; alt?: string }) {
   const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => {
-    setLoaded(false);
-  }, [src]);
-
   return (
-    <div className="relative mb-8 w-full mobile:mb-12" style={{ aspectRatio: "1920 / 600" }}>
+    <div
+      key={src}
+      className="relative mb-8 w-full mobile:mb-12"
+      style={{ aspectRatio: "1920 / 600" }}
+    >
       {!loaded && (
         <div
           className="absolute inset-0 animate-pulse rounded-md bg-gray-700/60"

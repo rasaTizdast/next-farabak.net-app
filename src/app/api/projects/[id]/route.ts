@@ -82,15 +82,18 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
     const finalDetails = [...existingDetails];
 
     // Upload new detail images
-    for (const file of newDetails) {
-      const key = await uploadFile(file, "details");
-      finalDetails.push(key);
-    }
+    const uploadedDetailKeys = await Promise.all(
+      newDetails.map((file) => uploadFile(file, "details"))
+    );
+    finalDetails.push(...uploadedDetailKeys);
 
     // Find removed detail images
-    const removedDetails = existingProject.ProjectMedia.filter(
-      (m) => m.MediaType === "image" && !existingDetails.includes(m.MediaURL)
-    ).map((m) => m.MediaURL);
+    const removedDetails = existingProject.ProjectMedia.reduce((acc: string[], m) => {
+      if (m.MediaType === "image" && !existingDetails.includes(m.MediaURL)) {
+        acc.push(m.MediaURL);
+      }
+      return acc;
+    }, []);
 
     // Handle videos
     const existingVideos = formData.getAll("existingVideos") as string[];
@@ -98,15 +101,18 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
     const finalVideos = [...existingVideos];
 
     // Upload new videos
-    for (const file of newVideos) {
-      const key = await uploadFile(file, "videos");
-      finalVideos.push(key);
-    }
+    const uploadedVideoKeys = await Promise.all(
+      newVideos.map((file) => uploadFile(file, "videos"))
+    );
+    finalVideos.push(...uploadedVideoKeys);
 
     // Find removed videos
-    const removedVideos = existingProject.ProjectMedia.filter(
-      (m) => m.MediaType === "video" && !existingVideos.includes(m.MediaURL)
-    ).map((m) => m.MediaURL);
+    const removedVideos = existingProject.ProjectMedia.reduce((acc: string[], m) => {
+      if (m.MediaType === "video" && !existingVideos.includes(m.MediaURL)) {
+        acc.push(m.MediaURL);
+      }
+      return acc;
+    }, []);
 
     // Update project
     const updatedProject = await prisma.projects.update({
@@ -122,15 +128,13 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       },
     });
 
-    // Update media relationships
-    await prisma.projectMedia.deleteMany({
-      where: {
-        MediaURL: { in: [...removedDetails, ...removedVideos] },
-      },
-    });
-
-    // Delete removed files from storage
+    // Update media relationships and delete removed files in parallel
     await Promise.all([
+      prisma.projectMedia.deleteMany({
+        where: {
+          MediaURL: { in: [...removedDetails, ...removedVideos] },
+        },
+      }),
       ...removedDetails.map((key) => deleteFile(key)),
       ...removedVideos.map((key) => deleteFile(key)),
     ]);

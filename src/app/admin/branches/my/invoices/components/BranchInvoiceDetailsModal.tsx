@@ -1,29 +1,14 @@
 import { message } from "antd";
-import axios from "axios";
 import Image from "next/image";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
-import { AdminInvoice, InvoiceDetail, Warranty } from "@/app/admin/invoices/type";
+import { AdminInvoice } from "@/app/admin/invoices/type";
 import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
 
 import BranchWarrantyManagementModal from "./BranchWarrantyManagementModal";
 import BranchWarrantyViewModal from "./BranchWarrantyViewModal";
-
-// Extend the Warranty interface to include the hasWarranty property
-interface ExtendedWarranty extends Warranty {
-  hasWarranty?: boolean;
-  branchname?: string;
-  branchid?: string;
-}
-
-// Define an interface for expanded items with individual warranties
-export interface ExpandedInvoiceItem extends InvoiceDetail {
-  itemNumber?: number;
-  itemIndex?: number;
-  individualWarranty?: ExtendedWarranty | null;
-  Name?: string; // Add Name field for use in both components
-}
+import { ExpandedInvoiceItem, ExtendedWarranty } from "./types";
 
 interface BranchInvoiceDetailsModalProps {
   invoice: AdminInvoice;
@@ -35,15 +20,12 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
   onClose,
 }) => {
   const [productNames, setProductNames] = useState<{ [key: string]: string }>({});
-  const [expandedItems, setExpandedItems] = useState<ExpandedInvoiceItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<ExpandedInvoiceItem | null>(null);
   const [addWarrantyItem, setAddWarrantyItem] = useState<ExpandedInvoiceItem | null>(null);
   const [refreshCounter, setRefreshCounter] = useState(0);
 
   // Use the print hook for printing
   const { componentRef, handlePrint } = usePrint();
-
-  if (!invoice) return null;
 
   // Ensure invoice structure is valid
   if (!invoice.Invoice_Details) {
@@ -92,86 +74,65 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
   // Fetch product names
   useEffect(() => {
     const fetchProductNames = async () => {
-      try {
-        if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
-          return;
-        }
-
-        // Map over Invoice_Details and make async calls for each product
-        const productNameRequests = invoice.Invoice_Details.map(async (product) => {
-          const res = await axios.get(`/api/products/getProductType/${product.ProductId}`);
-          return { id: product.ProductId, name: res.data.productType };
-        });
-
-        // Wait for all promises to resolve
-        const results = await Promise.all(productNameRequests);
-
-        // Update state with the resolved product names
-        const names = results.reduce(
-          (acc, curr) => {
-            acc[curr.id] = curr.name;
-            return acc;
-          },
-          {} as { [key: string]: string }
-        );
-
-        setProductNames(names);
-      } catch (error) {
-        console.error("Error fetching product names:", error);
+      if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
+        return;
       }
+
+      const productNameRequests = invoice.Invoice_Details.map(async (product) => {
+        try {
+          const res = await fetch(`/api/products/getProductType/${product.ProductId}`);
+          if (!res.ok) return { id: product.ProductId, name: "" };
+          const data = await res.json();
+          return { id: product.ProductId, name: data.productType };
+        } catch {
+          return { id: product.ProductId, name: "" };
+        }
+      });
+
+      const results = await Promise.all(productNameRequests);
+
+      const names = results.reduce(
+        (acc, curr) => {
+          acc[curr.id] = curr.name;
+          return acc;
+        },
+        {} as { [key: string]: string }
+      );
+
+      setProductNames(names);
     };
 
     fetchProductNames();
   }, [invoice, refreshCounter]);
 
-  // Create expanded items list
-  useEffect(() => {
+  const expandedItems = useMemo(() => {
     if (
       !invoice ||
       !invoice.Invoice_Details ||
       !Array.isArray(invoice.Invoice_Details) ||
       invoice.Invoice_Details.length === 0
     ) {
-      setExpandedItems([]);
-      return;
+      return [];
     }
-
     const items: ExpandedInvoiceItem[] = [];
-
     invoice.Invoice_Details.forEach((product) => {
-      // Handle null or undefined product
       if (!product) {
         console.warn("Encountered null/undefined product in Invoice_Details");
         return;
       }
-
-      // Get product quantity (default to 1 if not specified)
       const quantity = product.quantity || 1;
-
-      // Check for warranty codes array
       let warrantyCodes: (
         | string
-        | {
-            code: string;
-            startdate?: string;
-            expirydate?: string;
-            status?: string;
-          }
+        | { code: string; startdate?: string; expirydate?: string; status?: string }
       )[] = [];
-
-      // Handle possible warranty data structures
       if (product.warranty) {
         if (Array.isArray(product.warranty.warrantycodes)) {
           warrantyCodes = product.warranty.warrantycodes;
         } else if (product.warranty.warrantycode) {
-          // Single warranty code - convert to array format
           warrantyCodes = [product.warranty.warrantycode];
         }
       }
-
-      // If no warranty, or only one item, or legacy single warranty code format
       if (!product.warranty || quantity <= 1 || warrantyCodes.length === 0) {
-        // Just add the single item with its warranty
         const individualWarranty: ExtendedWarranty | null = product.warranty
           ? {
               ...product.warranty,
@@ -179,7 +140,6 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
               branchid: product.warranty.branchid,
             }
           : null;
-
         items.push({
           ...product,
           itemNumber: 1,
@@ -188,13 +148,8 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
         });
         return;
       }
-
-      // Create individual items with their own warranty codes
       for (let i = 0; i < quantity; i++) {
-        // Get the warranty code for this item (string or object)
         const code = i < warrantyCodes.length ? warrantyCodes[i] : null;
-
-        // Create individual warranty object based on code type
         const individualWarranty: ExtendedWarranty | null = code
           ? {
               ...product.warranty,
@@ -215,8 +170,6 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
               branchid: product.warranty.branchid,
             }
           : product.warranty;
-
-        // Add the expanded item
         items.push({
           ...product,
           itemNumber: i + 1,
@@ -225,30 +178,20 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
         });
       }
     });
-
-    setExpandedItems(items);
+    return items;
   }, [invoice?.Invoice_Details, productNames, refreshCounter]);
 
   // Handle refresh after warranty actions
   const handleWarrantyUpdated = async () => {
-    // Close the warranty management modal
     setAddWarrantyItem(null);
-
-    // Show success message
     message.success("گارانتی با موفقیت اضافه شد");
 
-    // Fetch updated invoice data directly instead of just triggering useEffect
     try {
-      const response = await axios.get(`/api/admin/invoices/${invoice.Invoiceid}`);
-      if (response.data && response.data.invoice) {
-        // Update with fresh data that includes branchid
-        const updatedInvoice = response.data.invoice;
-
-        // Update the invoice data
-        if (updatedInvoice.Invoice_Details) {
-          Object.assign(invoice, updatedInvoice);
-
-          // Increment refresh counter to trigger re-render
+      const res = await fetch(`/api/admin/invoices/${invoice.Invoiceid}`);
+      if (res.ok) {
+        const response = await res.json();
+        if (response && response.invoice && response.invoice.Invoice_Details) {
+          Object.assign(invoice, response.invoice);
           setRefreshCounter((prev) => prev + 1);
         }
       }
@@ -296,15 +239,11 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
     if (refreshCounter > 0) {
       const fetchUpdatedInvoiceData = async () => {
         try {
-          const response = await axios.get(`/api/admin/invoices/${invoice.Invoiceid}`);
-          if (response.data && response.data.invoice) {
-            // Update with fresh data
-            const updatedInvoice = response.data.invoice;
-
-            // Update invoice details with fresh data that includes the branchid
-            if (updatedInvoice.Invoice_Details) {
-              // The refresh will happen through existing useEffects that depend on invoice
-              Object.assign(invoice, updatedInvoice);
+          const res = await fetch(`/api/admin/invoices/${invoice.Invoiceid}`);
+          if (res.ok) {
+            const response = await res.json();
+            if (response && response.invoice && response.invoice.Invoice_Details) {
+              Object.assign(invoice, response.invoice);
             }
           }
         } catch (error) {
@@ -315,6 +254,8 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
       fetchUpdatedInvoiceData();
     }
   }, [refreshCounter, invoice.Invoiceid]);
+
+  if (!invoice) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 backdrop-blur-sm sm:p-4">
@@ -500,6 +441,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                               <td className="no-print p-2 sm:p-4">
                                 {item.individualWarranty && item.individualWarranty.warrantycode ? (
                                   <button
+                                    type="button"
                                     onClick={() => handleViewWarranty(item)}
                                     className="rounded bg-blue-700 px-2 py-1 text-xs text-white transition-colors hover:bg-blue-600"
                                   >
@@ -507,6 +449,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                                   </button>
                                 ) : (
                                   <button
+                                    type="button"
                                     onClick={() => handleAddWarranty(item)}
                                     className="rounded bg-green-700 px-2 py-1 text-xs text-white transition-colors hover:bg-green-600"
                                   >
@@ -552,6 +495,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
         <div className="no-print flex justify-between gap-4 border-t border-slate-700 p-3 sm:p-6">
           <PrintButton onPrint={handleInvoicePrint} />
           <button
+            type="button"
             onClick={onClose}
             className="w-full rounded-lg bg-slate-700 px-4 py-2 text-sm text-gray-100 transition-colors duration-200 hover:bg-slate-600 sm:w-auto sm:px-6 sm:text-base"
           >

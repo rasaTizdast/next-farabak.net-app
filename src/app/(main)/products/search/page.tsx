@@ -1,11 +1,11 @@
 export const dynamic = "force-dynamic";
 
-// src/app/products/search/page.tsx
-
 import { Metadata } from "next";
+import { Suspense } from "react";
 
-import ProductGrid from "@/app/(main)/products/_components/ProductGrid";
-import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import BreadcrumbWrapper from "../_components/BreadcrumbWrapper";
+import ProductGridWrapper from "../_components/ProductGridWrapper";
+import { BreadcrumbSkeleton, ProductGridSkeleton } from "../_components/ProductListSkeletons";
 
 interface SearchPageProps {
   searchParams: Promise<{ q: string; page?: string }>;
@@ -18,8 +18,8 @@ export async function generateMetadata(props: SearchPageProps): Promise<Metadata
     title: `نتایج جستجو برای "${query}"`,
     description: `مشاهده ${query} در سایت فرابک`,
     robots: {
-      index: false, // This sets the noindex directive
-      follow: true, // Allows crawling of links on the page if needed
+      index: false,
+      follow: true,
     },
   };
 }
@@ -30,17 +30,22 @@ export default async function SearchPage(props: SearchPageProps) {
   const currentPage = parseInt(searchParams.page || "1", 10);
 
   const limit = 0;
-  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/search?q=${query}&page=${currentPage}&limit=${limit}`;
+  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/search?q=${encodeURIComponent(query)}&page=${currentPage}&limit=${limit}`;
 
   const breadcrumbs = ["/", "/products", "/products/search"];
 
   return (
-    <div>
-      {/* Breadcrumbs Navigation */}
-      <Breadcrumb breadcrumbs={breadcrumbs} />
-
-      {/* Product Grid with Pagination */}
-      <ProductGrid title={`نتایج جستجو برای: ${query}`} apiUrl={apiUrl} currentPage={currentPage} />
-    </div>
+    <>
+      <Suspense fallback={<BreadcrumbSkeleton />}>
+        <BreadcrumbWrapper breadcrumbs={breadcrumbs} />
+      </Suspense>
+      <Suspense fallback={<ProductGridSkeleton />}>
+        <ProductGridWrapper
+          title={`نتایج جستجو برای: ${query}`}
+          apiUrl={apiUrl}
+          currentPage={currentPage}
+        />
+      </Suspense>
+    </>
   );
 }

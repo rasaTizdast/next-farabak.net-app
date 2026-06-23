@@ -1,9 +1,9 @@
-import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { FaTimes } from "react-icons/fa";
 
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import { Product } from "../types";
 import GradeList from "./GradeList";
@@ -26,7 +26,7 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
     price: 0,
     discount: 0,
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { mutate: addGrade, loading: isSubmitting } = useApiMutation("post");
   const [usdRate, setUsdRate] = useState<number | null>(null);
 
   useEffect(() => {
@@ -62,22 +62,17 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      await axios.post("/api/products/grades", {
-        productId: product.ProductId,
-        grade: formData.grade,
-        price: Number(formData.price),
-        discount: Number(formData.discount),
-      });
+    const res = await addGrade("/api/products/grades", {
+      productId: product.ProductId,
+      grade: formData.grade,
+      price: Number(formData.price),
+      discount: Number(formData.discount),
+    });
+
+    if (res) {
       toast.success("گرید محصول با موفقیت اضافه شد");
       setFormData({ grade: "", price: 0, discount: 0 });
       refetchProducts();
-    } catch (error) {
-      toast.error("خطا در ثبت گرید محصول");
-      console.error("Error adding product grade:", error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -89,6 +84,7 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
         <div className="mb-6 flex items-center justify-between">
           <h3 className="text-2xl font-bold">مدیریت گرید‌های محصول</h3>
           <button
+            type="button"
             onClick={onClose}
             className="rounded-full bg-slate-700 p-2 transition-colors hover:bg-slate-600"
           >

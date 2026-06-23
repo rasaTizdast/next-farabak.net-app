@@ -23,22 +23,34 @@ const ProductTabs = () => {
     <nav className={styles.productTabs}>
       <ul>
         <li>
-          <button className={styles.navButton} onClick={() => scrollToSection("overview")}>
+          <button
+            type="button"
+            className={styles.navButton}
+            onClick={() => scrollToSection("overview")}
+          >
             توضیحات
           </button>
         </li>
         <li>
-          <button className={styles.navButton} onClick={() => scrollToSection("blog")}>
+          <button
+            type="button"
+            className={styles.navButton}
+            onClick={() => scrollToSection("blog")}
+          >
             توضیحات تکمیلی
           </button>
         </li>
         <li>
-          <button className={styles.navButton} onClick={() => scrollToSection("specs")}>
+          <button
+            type="button"
+            className={styles.navButton}
+            onClick={() => scrollToSection("specs")}
+          >
             مشخصات
           </button>
         </li>
         <li>
-          <button className={styles.navButton} onClick={() => scrollToSection("faq")}>
+          <button type="button" className={styles.navButton} onClick={() => scrollToSection("faq")}>
             سوالات
           </button>
         </li>

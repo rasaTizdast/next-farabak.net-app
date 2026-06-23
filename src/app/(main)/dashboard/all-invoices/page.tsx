@@ -66,6 +66,7 @@ const AllInvoices = () => {
     }
   }, []);
 
+  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
     fetchInvoices();
   }, [fetchInvoices]);
@@ -270,7 +271,9 @@ const AllInvoices = () => {
       <div className={styles.error}>
         <div className={styles.errorContent}>
           <span>مشکلی در دریافت اطلاعات به وجود آمده است، دوباره تلاش کنید.</span>
-          <button onClick={fetchInvoices}>تلاش مجدد</button>
+          <button type="button" onClick={fetchInvoices}>
+            تلاش مجدد
+          </button>
         </div>
       </div>
     );
@@ -356,7 +359,11 @@ const AllInvoices = () => {
                     </div>
                   </td>
                   <td className={styles.actionsParent}>
-                    <button onClick={() => handleShowInvoice(item)} className={styles.show}>
+                    <button
+                      type="button"
+                      onClick={() => handleShowInvoice(item)}
+                      className={styles.show}
+                    >
                       مشاهده فاکتور
                     </button>
                   </td>

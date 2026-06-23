@@ -1,14 +1,36 @@
-import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { FiTrash2 } from "react-icons/fi";
 import { IoIosClose } from "react-icons/io";
+
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 type DeleteOverviewDetailButtonProps = {
   detailId: number;
   detailTitle: string;
   onSuccess: () => void;
 };
+
+async function checkDetailInUse(
+  detailId: number,
+  setIsLoading: (v: boolean) => void,
+  setInUseInfo: (info: { isInUse: boolean; productsCount: number }) => void,
+  setShowConfirmModal: (v: boolean) => void
+) {
+  setIsLoading(true);
+  try {
+    const response = await fetch(`/api/productOverviewDetails/checkUsage/${detailId}`);
+    if (response.ok) {
+      const data = await response.json();
+      setInUseInfo({ isInUse: data.isInUse, productsCount: data.productsCount });
+    }
+    setShowConfirmModal(true);
+  } catch (error) {
+    toast.error("بررسی وضعیت استفاده با خطا مواجه شد");
+  } finally {
+    setIsLoading(false);
+  }
+}
 
 const DeleteOverviewDetailButton = ({
   detailId,
@@ -17,41 +39,29 @@ const DeleteOverviewDetailButton = ({
 }: DeleteOverviewDetailButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const { mutate: deleteDetail } = useApiMutation("delete");
   const [inUseInfo, setInUseInfo] = useState<{
     isInUse: boolean;
     productsCount: number;
   }>({ isInUse: false, productsCount: 0 });
 
+
+
   const checkIfInUse = async () => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get(`/api/productOverviewDetails/checkUsage/${detailId}`);
-      setInUseInfo({
-        isInUse: response.data.isInUse,
-        productsCount: response.data.productsCount,
-      });
-      setShowConfirmModal(true);
-    } catch (error) {
-      toast.error("بررسی وضعیت استفاده با خطا مواجه شد");
-      throw new Error("Failed to fetch categories:", error!);
-    } finally {
-      setIsLoading(false);
-    }
+    await checkDetailInUse(detailId, setIsLoading, setInUseInfo, setShowConfirmModal);
   };
 
   const handleDelete = async () => {
     setIsLoading(true);
-    try {
-      await axios.delete(`/api/productOverviewDetails/delete/${detailId}`);
+    const res = await deleteDetail(`/api/productOverviewDetails/delete/${detailId}`);
+    if (res) {
       toast.success("توضیحات محصول با موفقیت حذف شد");
       setShowConfirmModal(false);
-      onSuccess(); // Refresh the list after deletion
-    } catch (error) {
-      console.error(error);
+      onSuccess();
+    } else {
       toast.error("حذف توضیحات محصول با خطا مواجه شد");
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
   return (
@@ -71,6 +81,7 @@ const DeleteOverviewDetailButton = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
           <div className="relative w-full max-w-md rounded-lg bg-gray-800 p-6 text-white shadow-lg">
             <button
+              type="button"
               onClick={() => setShowConfirmModal(false)}
               className="absolute right-3 top-3 text-red-400 hover:text-red-500"
               disabled={isLoading}

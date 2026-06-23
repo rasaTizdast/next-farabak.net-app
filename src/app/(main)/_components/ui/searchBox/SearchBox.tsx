@@ -107,7 +107,7 @@ const SearchInput = ({
       ref={inputRef}
       onKeyDown={onKeyDown}
     />
-    <button onClick={onSearchClick}>
+    <button type="button" onClick={onSearchClick} aria-label="جستجو">
       <CgSearch />
     </button>
   </div>
@@ -143,7 +143,7 @@ const SearchResults = ({
               height={280}
               quality={100}
               src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/productImages/${product.img1}`}
-              alt={product.name}
+              alt={product.Slug!}
             />
             <p>{product.Type}</p>
             <div className="mt-3 font-extralight">
@@ -192,6 +192,25 @@ const LoadingSkeletons = () => (
   </div>
 );
 
+async function fetchExchangeRate(
+  exchangeRate: number | null,
+  isExchangeRateLoading: boolean,
+  setIsExchangeRateLoading: (v: boolean) => void,
+  setExchangeRate: (v: number | null) => void
+) {
+  if (exchangeRate === null && !isExchangeRateLoading) {
+    setIsExchangeRateLoading(true);
+    try {
+      const rate = await fetchUsdToRialRate();
+      setExchangeRate(rate);
+    } catch (error) {
+      console.error("Failed to fetch exchange rate:", error);
+    } finally {
+      setIsExchangeRateLoading(false);
+    }
+  }
+}
+
 // Main SearchBox component
 const SearchBox = () => {
   const [searchVis, setSearchVis] = useState(false);
@@ -208,23 +227,7 @@ const SearchBox = () => {
   // Fetch exchange rate only once when the component mounts
   useEffect(() => {
     // Define a function to fetch the exchange rate
-    const getExchangeRate = async () => {
-      // Only fetch if we don't already have a rate and aren't already loading
-      if (exchangeRate === null && !isExchangeRateLoading) {
-        setIsExchangeRateLoading(true);
-        try {
-          const rate = await fetchUsdToRialRate();
-          setExchangeRate(rate);
-        } catch (error) {
-          console.error("Failed to fetch exchange rate:", error);
-        } finally {
-          setIsExchangeRateLoading(false);
-        }
-      }
-    };
-
-    // Call the function
-    getExchangeRate();
+    fetchExchangeRate(exchangeRate, isExchangeRateLoading, setIsExchangeRateLoading, setExchangeRate);
   }, [exchangeRate, isExchangeRateLoading]);
 
   const inputChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {

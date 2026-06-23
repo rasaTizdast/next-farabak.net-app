@@ -39,6 +39,45 @@ type SubPage = {
   QrCode_expiryDays?: string;
 };
 
+async function doDeleteItem(type: string, id: number, fetchPageData: () => void) {
+  try {
+    let endpoint = "";
+
+    switch (type) {
+      case "member":
+        endpoint = `/api/members/${id}`;
+        break;
+      case "blog":
+        endpoint = `/api/blogs/delete/${id}`;
+        break;
+      case "project":
+        endpoint = `/api/projects/${id}`;
+        break;
+      case "faq":
+        endpoint = `/api/admin/faqs/${id}`;
+        break;
+      default:
+        toast.error("نوع آیتم نامعتبر است");
+        return;
+    }
+
+    const response = await fetch(endpoint, {
+      method: "DELETE",
+    });
+
+    if (response.ok) {
+      toast.success("عملیات حذف با موفقیت انجام شد");
+      fetchPageData();
+    } else {
+      const errorData = await response.json();
+      toast.error(`خطا در حذف: ${errorData.error || "خطای ناشناخته"}`);
+    }
+  } catch (error) {
+    console.error("Error deleting item:", error);
+    toast.error("خطا در ارتباط با سرور");
+  }
+}
+
 const AdminPageManager: React.FC = () => {
   const [rowNames, setRowNames] = useState<PageRow[]>([]);
   const [subPages, setSubPages] = useState<Record<string, SubPage[]>>({});
@@ -138,41 +177,7 @@ const AdminPageManager: React.FC = () => {
   };
 
   const deleteItem = async (type: string, id: number) => {
-    try {
-      let endpoint = "";
-
-      switch (type) {
-        case "member":
-          endpoint = `/api/members/${id}`;
-          break;
-        case "blog":
-          endpoint = `/api/blogs/delete/${id}`;
-          break;
-        case "project":
-          endpoint = `/api/projects/${id}`;
-          break;
-        case "faq":
-          endpoint = `/api/admin/faqs/${id}`;
-          break;
-        default:
-          throw new Error("Invalid delete type");
-      }
-
-      const response = await fetch(endpoint, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        toast.success("عملیات حذف با موفقیت انجام شد");
-        fetchPageData();
-      } else {
-        const errorData = await response.json();
-        toast.error(`خطا در حذف: ${errorData.error || "خطای ناشناخته"}`);
-      }
-    } catch (error) {
-      console.error("Error deleting item:", error);
-      toast.error("خطا در ارتباط با سرور");
-    }
+    await doDeleteItem(type, id, fetchPageData);
   };
 
   const handleQrCodeModal = (blog: {
@@ -322,6 +327,7 @@ const AdminPageManager: React.FC = () => {
                       {/* Edit Button (Single Page) */}
                       {!row.multiPage && (
                         <button
+                          type="button"
                           className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md active:bg-blue-800 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
                           onClick={() => openEditor(row.editorType)}
                         >
@@ -333,6 +339,7 @@ const AdminPageManager: React.FC = () => {
                       {/* Add New Button (Multi Page) */}
                       {row.multiPage && (
                         <button
+                          type="button"
                           className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-green-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-all hover:bg-green-700 hover:shadow-md active:bg-green-800 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
                           onClick={() => openNewPageBuilder(row.newType)}
                         >
@@ -344,6 +351,7 @@ const AdminPageManager: React.FC = () => {
                       {/* Expand Button (Multi Page with items) */}
                       {row.multiPage && row.pages > 0 && (
                         <button
+                          type="button"
                           onClick={() => toggleExpand(row.link)}
                           className={`flex min-w-[36px] items-center justify-center rounded-lg p-2 shadow-sm transition-all hover:shadow-md sm:min-w-[40px] sm:p-2.5 ${
                             expanded === row.link
@@ -400,6 +408,7 @@ const AdminPageManager: React.FC = () => {
 
                               {/* Edit */}
                               <button
+                                type="button"
                                 className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg bg-blue-600 p-2 text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow active:bg-blue-800 sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5"
                                 onClick={() => openEditor(row.editorType, subPage.id)}
                                 title="ویرایش"
@@ -410,6 +419,7 @@ const AdminPageManager: React.FC = () => {
 
                               {/* Delete */}
                               <button
+                                type="button"
                                 className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg bg-red-600 p-2 text-white shadow-sm transition-all hover:bg-red-700 hover:shadow active:bg-red-800 sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5"
                                 onClick={() => deleteItem(row.editorType, subPage.id)}
                                 title="حذف"
@@ -421,6 +431,7 @@ const AdminPageManager: React.FC = () => {
                               {/* QR Code (Blog only) */}
                               {row.editorType === "blog" && (
                                 <button
+                                  type="button"
                                   className={`flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg p-2 shadow-sm transition-all hover:shadow sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5 ${
                                     subPage.QrCode_key
                                       ? "bg-violet-600 hover:bg-violet-700 active:bg-violet-800"

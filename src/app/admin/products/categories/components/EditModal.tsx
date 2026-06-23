@@ -3,6 +3,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
 
+import { useApiMutation } from "@/hooks/useApiMutation";
+
 import CategoryBlogEditor from "./CategoryBlogEditor";
 import { Category, Subcategory } from "../types/types";
 
@@ -15,6 +17,14 @@ interface EditModalProps {
   refetchCategories: () => void;
   setIsEditModalOpen: (arg0: boolean) => void;
   setEditCategory: (arg0: Category | Subcategory | null) => void;
+}
+
+function parseSeoKeywords(value: string): string[] {
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {}
+  return [];
 }
 
 const EditModal: React.FC<EditModalProps> = ({
@@ -35,6 +45,8 @@ const EditModal: React.FC<EditModalProps> = ({
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string>("");
   const [bannerDeleteRequested, setBannerDeleteRequested] = useState<boolean>(false);
+  const { mutate: editMutate } = useApiMutation("patch");
+  const { mutate: deleteS3Mutate } = useApiMutation("delete");
 
   // Retry helper for 401 errors
   const withRetry401 = async <T,>(
@@ -58,32 +70,22 @@ const EditModal: React.FC<EditModalProps> = ({
     throw lastError as Error;
   };
 
+  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
-    if (item && item.SEO_Details) {
-      const seoDetails = item.SEO_Details;
-      let parsedKeywords: string[] = [];
-      if (Array.isArray(seoDetails.SEO_Keywords)) {
-        parsedKeywords = seoDetails.SEO_Keywords;
-      } else if (typeof seoDetails.SEO_Keywords === "string") {
-        try {
-          parsedKeywords = JSON.parse(seoDetails.SEO_Keywords);
-        } catch (e) {
-          parsedKeywords = [];
-          console.error(e);
-        }
+    if (!item) return;
+    if (item.SEO_Details) {
+      const sd = item.SEO_Details;
+      let k: string[] = [];
+      if (Array.isArray(sd.SEO_Keywords)) k = sd.SEO_Keywords;
+      else if (typeof sd.SEO_Keywords === "string") {
+        k = parseSeoKeywords(sd.SEO_Keywords);
       }
-      setSeoKeywords(parsedKeywords);
+      setSeoKeywords(k);
     }
-    if (item) {
-      setTopBlog((item as any).TopBlog || "");
-      setBottomBlog((item as any).BottomBlog || "");
-      const existingBanner = (item as any).Banner as string | undefined;
-      if (existingBanner) {
-        setBannerPreview(`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${existingBanner}`);
-      } else {
-        setBannerPreview("");
-      }
-    }
+    setTopBlog((item as any).TopBlog || "");
+    setBottomBlog((item as any).BottomBlog || "");
+    const b = (item as any).Banner as string | undefined;
+    setBannerPreview(b ? `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${b}` : "");
   }, [item]);
 
   // Banner drop handlers MUST be declared before any conditional return to avoid hook order changes
@@ -281,25 +283,16 @@ const EditModal: React.FC<EditModalProps> = ({
           },
         };
 
-    try {
-      await withRetry401(() => axios.patch(endpoint, payload));
+    const result = await editMutate(endpoint, payload);
+    if (result) {
       if (bannerDeleteRequested && existingKey && !bannerKey) {
-        try {
-          await withRetry401(() =>
-            axios.delete("/api/s3/delete", {
-              data: { type: "categoryBanner", key: existingKey },
-            })
-          );
-        } catch (e) {
-          console.error(e);
-        }
+        await deleteS3Mutate("/api/s3/delete", { type: "categoryBanner", key: existingKey });
       }
       toast.success("تغییرات با موفقیت اعمال شدند!");
       refetchCategories();
       setEditCategory(null);
       setIsEditModalOpen(false);
-    } catch (error) {
-      console.error(error);
+    } else {
       toast.error("خطا در بروزرسانی، لطفا مجددا تلاش کنید.");
     }
   };
@@ -486,6 +479,7 @@ const EditModal: React.FC<EditModalProps> = ({
           <div className="mb-10 mt-3 flex flex-wrap gap-2">
             {seoKeywords.map((keyword: string) => (
               <button
+                type="button"
                 key={keyword}
                 className="flex animate-fade-in items-center gap-2 rounded-lg bg-green-700 px-4 py-1 transition-all hover:bg-red-700 hover:text-white"
                 onClick={() => removeKeyword(keyword)}
@@ -512,12 +506,14 @@ const EditModal: React.FC<EditModalProps> = ({
 
         <div className="flex justify-end gap-2">
           <button
+            type="button"
             onClick={handleClose}
             className="rounded bg-gray-50 px-4 py-2 text-black hover:bg-gray-100"
           >
             بستن
           </button>
           <button
+            type="button"
             onClick={handleSave}
             className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >

@@ -5,6 +5,7 @@ import moment from "jalali-moment";
 import React, { useState, useEffect } from "react";
 
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import { Branch, Invoice } from "../types";
 import CustomerInfoStep from "./steps/CustomerInfoStep";
@@ -19,7 +20,57 @@ interface InvoiceModalProps {
   onSuccess?: () => void;
 }
 
+async function submitInvoice(
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  productsWithWarranty: any[],
+  invoice: Partial<Invoice>,
+  branch: Branch,
+  createInvoiceMutate: any,
+  onSuccess?: () => void,
+  handleClose?: () => void
+) {
+  setIsLoading(true);
+  try {
+    const individualItems = productsWithWarranty.map((item) => ({
+      ProductId: item.ProductId,
+      quantity: 1,
+      price: item.price,
+      total_price: item.price,
+      warranty: item.warranty.hasWarranty ? { ...item.warranty, hasWarranty: true } : null,
+    }));
+
+    const invoiceData = {
+      ...invoice,
+      products: individualItems,
+    };
+
+    const result = await createInvoiceMutate("/api/admin/invoices", {
+      branchId: branch.branchid,
+      invoiceData,
+    });
+
+    if (!result) {
+      message.error("خطا در ثبت فاکتور");
+      return;
+    }
+
+    message.success("فاکتور با موفقیت ثبت شد");
+
+    if (onSuccess) {
+      onSuccess();
+    } else {
+      handleClose?.();
+    }
+  } catch (error) {
+    console.error("Error creating invoice:", error);
+    message.error("خطا در ثبت فاکتور");
+  } finally {
+    setIsLoading(false);
+  }
+}
+
 const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, onSuccess }) => {
+  const { mutate: createInvoiceMutate, loading: isSubmitting } = useApiMutation("post");
   const [currentStep, setCurrentStep] = useState(0);
   const [usdToRialRate, setUsdToRialRate] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -131,60 +182,15 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
   };
 
   const handleSubmit = async () => {
-    setIsLoading(true);
-    try {
-      // With the new approach, each item already has its own warranty
-      // Just need to make sure each item has quantity=1
-      const individualItems = productsWithWarranty.map((item) => ({
-        ProductId: item.ProductId,
-        quantity: 1, // Each item has quantity 1
-        price: item.price,
-        total_price: item.price,
-        warranty: item.warranty.hasWarranty
-          ? {
-              ...item.warranty,
-              hasWarranty: true,
-            }
-          : null,
-      }));
-
-      // Prepare data for submission with individual items
-      const invoiceData = {
-        ...invoice,
-        products: individualItems,
-      };
-
-      // Submit invoice data
-      const response = await fetch("/api/admin/invoices", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          branchId: branch.branchid,
-          invoiceData,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "خطا در ثبت فاکتور");
-      }
-
-      message.success("فاکتور با موفقیت ثبت شد");
-
-      // Call onSuccess callback if provided
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        handleClose(); // Only close if onSuccess is not provided
-      }
-    } catch (error) {
-      console.error("Error creating invoice:", error);
-      message.error("خطا در ثبت فاکتور");
-    } finally {
-      setIsLoading(false);
-    }
+    await submitInvoice(
+      setIsLoading,
+      productsWithWarranty,
+      invoice,
+      branch,
+      createInvoiceMutate,
+      onSuccess,
+      handleClose
+    );
   };
 
   return (
@@ -212,6 +218,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
         <div className="mt-4 flex justify-between">
           {currentStep > 0 && (
             <Button
+              htmlType="button"
               onClick={handlePrev}
               disabled={isLoading}
               className="border-gray-600 bg-gray-700 text-white hover:border-gray-500 hover:bg-gray-600 hover:text-white"
@@ -222,6 +229,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
           <div className="flex-grow"></div>
           {currentStep < steps.length - 1 ? (
             <Button
+              htmlType="button"
               type="primary"
               onClick={handleNext}
               disabled={isLoading}
@@ -231,10 +239,11 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
             </Button>
           ) : (
             <Button
+              htmlType="button"
               type="primary"
               onClick={handleSubmit}
-              loading={isLoading}
-              disabled={isLoading}
+              loading={isSubmitting || isLoading}
+              disabled={isSubmitting || isLoading}
               className="border-green-600 bg-green-600 hover:bg-green-700"
             >
               ثبت فاکتور

@@ -1,7 +1,6 @@
 "use client";
 
 import { yupResolver } from "@hookform/resolvers/yup";
-import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,6 +9,7 @@ import { useForm, FormProvider } from "react-hook-form";
 
 import { useUser } from "@/context/UserContext";
 import { signInSchema } from "@/helpers/validationSchema";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import ForgotPasswordModal from "../_components/ForgotPasswordModal";
 import TextInput from "../_components/TextInput";
@@ -17,9 +17,9 @@ import styles from "../FormStyles.module.css";
 
 const SignIn = () => {
   const [errorMessage, setErrorMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
   const router = useRouter();
+  const { mutate: login, loading: isSubmitting } = useApiMutation("post");
 
   const { updateUserContext } = useUser();
 
@@ -38,43 +38,32 @@ const SignIn = () => {
   } = methods;
 
   const onSubmit = async (data: { username: string; password: string }) => {
-    setIsSubmitting(true);
-    setErrorMessage(""); // Clear previous errors
+    setErrorMessage("");
 
-    try {
-      const response = await axios.post("/api/auth/login", data);
-      if (response.data.message === "ورود با موفقیت انجام شد") {
-        // Add a small delay to ensure cookies are set
+    const response = (await login("/api/auth/login", data)) as any;
+    if (response) {
+      if (response.message === "ورود با موفقیت انجام شد") {
         await new Promise((resolve) => setTimeout(resolve, 100));
 
         try {
           await updateUserContext();
         } catch (userError) {
           console.error("Error updating user context:", userError);
-          // Continue with redirect even if user context update fails
         }
 
-        // Redirect based on user role
-        const userRole = response.data.role;
+        const userRole = response.role;
         if (userRole === "Admin") {
           router.push("/admin");
         } else if (userRole === "Branch") {
           router.push("/admin/branches/my");
         } else {
-          // Default case for regular users
           router.push("/dashboard");
         }
       } else {
-        setErrorMessage(response.data.message || "خطا در فرایند ورود.");
+        setErrorMessage(response.message || "خطا در فرایند ورود.");
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setErrorMessage(error.response?.data.message || "خطا در فرایند ورود.");
-      } else {
-        setErrorMessage("خطا در فرایند ورود.");
-      }
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      setErrorMessage("خطا در فرایند ورود.");
     }
   };
 
@@ -132,6 +121,7 @@ const SignIn = () => {
               type="submit"
               value={isSubmitting ? "در حال ورود..." : "ورود به حساب کاربری"}
               disabled={isSubmitting}
+              readOnly
               data-testid="submit-button"
             />
           </div>

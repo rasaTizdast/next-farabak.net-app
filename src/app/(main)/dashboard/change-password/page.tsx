@@ -146,7 +146,7 @@ const InputGroup = ({
             type="button"
             className={styles.password_toggle_icon}
             onClick={handleTogglePassword}
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-label={showPassword ? "مخفی کردن رمز" : "نمایش رمز"}
           >
             {showPassword ? <FaRegEye /> : <FaRegEyeSlash />}
           </button>

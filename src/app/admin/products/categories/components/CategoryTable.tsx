@@ -1,13 +1,42 @@
-import axios from "axios";
 import React, { useState, useMemo } from "react";
 import toast from "react-hot-toast";
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
+
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import CategoryRow from "./CategoryRow";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import EditModal from "./EditModal";
 import SubcategoryRow from "./SubcategoryRow";
 import { Category, CategoryTableProps, SortKey, Subcategory } from "../types/types";
+
+const SortableHeader = ({
+  children,
+  sortKey,
+  sortConfig,
+  onSort,
+}: {
+  children: React.ReactNode;
+  sortKey: SortKey;
+  sortConfig: { key: SortKey; direction: "ascending" | "descending" };
+  onSort: (key: SortKey) => void;
+}) => (
+  <th
+    className="px-6 py-3 text-gray-300 transition-colors hover:text-gray-100"
+    onClick={() => onSort(sortKey)}
+  >
+    <div className="flex items-center justify-center gap-2">
+      {children}
+      {sortConfig.key === sortKey &&
+        (sortConfig.direction === "ascending" ? (
+          <FaSortUp aria-label="Sort ascending" />
+        ) : (
+          <FaSortDown aria-label="Sort descending" />
+        ))}
+      {sortConfig.key !== sortKey && <FaSort className="text-gray-400" />}
+    </div>
+  </th>
+);
 
 const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTableProps) => {
   const [sortConfig, setSortConfig] = useState<{
@@ -23,10 +52,12 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
   const [deleteItem, setDeleteItem] = useState<Category | Subcategory | null>(null);
   const [confirmationText, setConfirmationText] = useState(""); // State for the confirmation input
 
+  const { mutate: deleteMutate } = useApiMutation("delete");
+
   // Sorting function
   const sortedCategories = useMemo(() => {
     if (!categories.length) return [];
-    return [...categories].sort((a, b) => {
+    return categories.toSorted((a, b) => {
       const key = sortConfig.key;
       if (a[key] < b[key]) {
         return sortConfig.direction === "ascending" ? -1 : 1;
@@ -90,44 +121,19 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
       subCategoryId: !isCategoryItem ? deleteItem.CategoryContentId.toString() : undefined,
     };
 
-    try {
-      await axios.delete("/api/categories/delete", { data: requestBody });
+    const result = await deleteMutate("/api/categories/delete", requestBody);
+    if (result) {
       toast.success(
         `${isCategoryItem ? "دسته‌بندی" : "زیرمجموعه"} با موفقیت حذف شد، و محصولات مرتبط پاک شدند.`
       );
       refetchCategories();
-      setDeleteItem(null); // Reset the delete item state
-      setIsDeleteModalOpen(false); // Close the modal
-      setConfirmationText(""); // Clear the confirmation text
-    } catch (error) {
-      console.error(error);
+      setDeleteItem(null);
+      setIsDeleteModalOpen(false);
+      setConfirmationText("");
+    } else {
       toast.error("خطا در حذف، لطفاً دوباره تلاش کنید.");
     }
   };
-
-  const SortableHeader = ({
-    children,
-    sortKey,
-  }: {
-    children: React.ReactNode;
-    sortKey: SortKey;
-  }) => (
-    <th
-      className="px-6 py-3 text-gray-300 transition-colors hover:text-gray-100"
-      onClick={() => handleSort(sortKey)}
-    >
-      <div className="flex items-center justify-center gap-2">
-        {children}
-        {sortConfig.key === sortKey &&
-          (sortConfig.direction === "ascending" ? (
-            <FaSortUp aria-label="Sort ascending" />
-          ) : (
-            <FaSortDown aria-label="Sort descending" />
-          ))}
-        {sortConfig.key !== sortKey && <FaSort className="text-gray-400" />}
-      </div>
-    </th>
-  );
 
   return (
     <>
@@ -136,9 +142,15 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
           <table className="w-full table-auto border-collapse border-spacing-0 overflow-hidden whitespace-nowrap rounded-xl text-center text-xs text-gray-100 lg:text-sm">
             <thead className="bg-slate-900 uppercase text-gray-100">
               <tr>
-                <SortableHeader sortKey="Name">دسته بندی</SortableHeader>
-                <SortableHeader sortKey="Slug">شناسه</SortableHeader>
-                <SortableHeader sortKey="Available">وضعیت</SortableHeader>
+                <SortableHeader sortKey="Name" sortConfig={sortConfig} onSort={handleSort}>
+                  دسته بندی
+                </SortableHeader>
+                <SortableHeader sortKey="Slug" sortConfig={sortConfig} onSort={handleSort}>
+                  شناسه
+                </SortableHeader>
+                <SortableHeader sortKey="Available" sortConfig={sortConfig} onSort={handleSort}>
+                  وضعیت
+                </SortableHeader>
                 <th scope="col" className="px-6 py-3">
                   عملیات
                 </th>

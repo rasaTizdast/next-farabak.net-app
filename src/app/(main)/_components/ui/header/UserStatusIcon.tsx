@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react"; // Import useEffect and useState for state management
+import { useState } from "react";
 import { PiUserCircleDashedFill } from "react-icons/pi"; // Icons remain the same
 
 import { useUser } from "@/context/UserContext"; // Access the context directly
@@ -11,17 +11,11 @@ import UserDropDown from "../userDropDown/UserDropDown";
 
 const UserStatusIcon = () => {
   const router = useRouter();
-  const { isLoggedIn } = useUser(); // Use the user context
-  const [userLoggedIn, setUserLoggedIn] = useState(isLoggedIn);
-
-  // Re-render when the isLoggedIn value changes in context
-  useEffect(() => {
-    setUserLoggedIn(isLoggedIn);
-  }, [isLoggedIn]);
+  const { isLoggedIn } = useUser();
 
   return (
     <div className={styles.icons}>
-      {userLoggedIn ? (
+      {isLoggedIn ? (
         <UserDropDown />
       ) : (
         <div className={styles.userIcon}>

@@ -141,42 +141,102 @@ type ProductType = {
   } | null;
 };
 
-// Helper function to calculate search relevance score
+/**
+ * Normalize text for better matching:
+ * - Convert to lowercase
+ * - Remove extra spaces
+ * - Remove special characters (keep alphanumeric and spaces)
+ */
+function normalizeText(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "") // Remove special chars
+    .replace(/\s+/g, " ") // Normalize spaces
+    .trim();
+}
+
+/**
+ * Create search variants to handle spacing issues
+ * "ultra studio" -> ["ultrastudio", "ultra studio", "ultra-studio"]
+ */
+function generateSearchVariants(query: string): string[] {
+  const normalized = normalizeText(query);
+  const variants = new Set<string>();
+
+  // Add original normalized
+  variants.add(normalized);
+
+  // Add version without spaces
+  variants.add(normalized.replace(/\s+/g, ""));
+
+  // Add version with hyphens
+  variants.add(normalized.replace(/\s+/g, "-"));
+
+  // Split into tokens for individual word matching
+  const tokens = normalized.split(/\s+/).filter((t) => t.length > 0);
+  tokens.forEach((token) => variants.add(token));
+
+  return Array.from(variants).filter((v) => v.length > 0);
+}
+
+/**
+ * Enhanced relevance scoring with fuzzy matching
+ */
 function calculateRelevanceScore(product: ProductType, query: string): number {
-  const normalizedQuery = query.toLowerCase().trim();
+  const searchVariants = generateSearchVariants(query);
+  const normalizedQuery = normalizeText(query);
   let score = 0;
 
-  // Type contains product name - highest priority (exact match)
-  if (product.Type?.toLowerCase() === normalizedQuery) {
-    score += 100;
-  }
-  // Type contains the query as a substring (product name partial match)
-  else if (product.Type?.toLowerCase().includes(normalizedQuery)) {
-    score += 70;
-  }
-  // Begin with query (higher priority)
-  else if (product.Type?.toLowerCase().startsWith(normalizedQuery)) {
-    score += 80;
+  // Normalize product fields
+  const normalizedType = normalizeText(product.Type || "");
+  const normalizedName = normalizeText(product.Name || "");
+  const normalizedDesc = normalizeText(product.Description || "");
+  const normalizedSlug = normalizeText(product.Slug || "");
+  const normalizedSeoTitle = normalizeText(product.SEO_Title || "");
+
+  // Check each search variant against product fields
+  for (const variant of searchVariants) {
+    // Type (product name) - highest priority
+    if (normalizedType === variant) {
+      score += 100;
+    } else if (normalizedType.includes(variant)) {
+      score += 70;
+    } else if (normalizedType.startsWith(variant)) {
+      score += 80;
+    }
+
+    // Name (brief description)
+    if (normalizedName.includes(variant)) {
+      score += 50;
+    }
+
+    // Description
+    if (normalizedDesc.includes(variant)) {
+      score += 30;
+    }
+
+    // Slug
+    if (normalizedSlug.includes(variant)) {
+      score += 25;
+    }
+
+    // SEO Title
+    if (normalizedSeoTitle.includes(variant)) {
+      score += 10;
+    }
   }
 
-  // Name contains brief description - high priority
-  if (product.Name?.toLowerCase().includes(normalizedQuery)) {
-    score += 50;
-  }
+  // Bonus: Check if ALL tokens from the query appear in the product
+  const queryTokens = normalizedQuery.split(/\s+/).filter((t) => t.length > 1);
+  const allTokensMatch = queryTokens.every(
+    (token) =>
+      normalizedType.includes(token) ||
+      normalizedName.includes(token) ||
+      normalizedDesc.includes(token)
+  );
 
-  // Description contains keywords - medium priority
-  if (product.Description?.toLowerCase().includes(normalizedQuery)) {
-    score += 30;
-  }
-
-  // Slug match - lower priority than direct name match
-  if (product.Slug?.toLowerCase().includes(normalizedQuery)) {
-    score += 25;
-  }
-
-  // Add match on other fields like SEO_Title, etc.
-  if (product.SEO_Title?.toLowerCase().includes(normalizedQuery)) {
-    score += 10;
+  if (allTokensMatch && queryTokens.length > 1) {
+    score += 40; // Bonus for matching all words
   }
 
   return score;
@@ -205,46 +265,49 @@ export async function GET(request: Request) {
   try {
     const conditions: any = {};
 
-    // Enhanced search logic
+    // Enhanced search logic with variants
     if (query.trim()) {
       const searchQuery = query.trim();
-      conditions.OR = [
-        // Product name (stored in Type field) - contains search
-        {
-          Type: {
-            contains: searchQuery,
-            mode: "insensitive",
+      const searchVariants = generateSearchVariants(searchQuery);
+      const orConditions: any[] = [];
+
+      // For each variant, search across all fields
+      for (const variant of searchVariants) {
+        orConditions.push(
+          {
+            Type: {
+              contains: variant,
+              mode: "insensitive",
+            },
           },
-        },
-        // Brief description (stored in Name field)
-        {
-          Name: {
-            contains: searchQuery,
-            mode: "insensitive",
+          {
+            Name: {
+              contains: variant,
+              mode: "insensitive",
+            },
           },
-        },
-        // Keywords (stored in Description field)
-        {
-          Description: {
-            contains: searchQuery,
-            mode: "insensitive",
+          {
+            Description: {
+              contains: variant,
+              mode: "insensitive",
+            },
           },
-        },
-        // Search by slug as well
-        {
-          Slug: {
-            contains: searchQuery,
-            mode: "insensitive",
+          {
+            Slug: {
+              contains: variant,
+              mode: "insensitive",
+            },
           },
-        },
-        // Also search in SEO fields
-        {
-          SEO_Title: {
-            contains: searchQuery,
-            mode: "insensitive",
-          },
-        },
-      ];
+          {
+            SEO_Title: {
+              contains: variant,
+              mode: "insensitive",
+            },
+          }
+        );
+      }
+
+      conditions.OR = orConditions;
     }
 
     if (category > 0) {
@@ -302,7 +365,7 @@ export async function GET(request: Request) {
 
     // Calculate correct pagination values
     const totalPages = Math.ceil(totalCount / limit);
-    const currentPageToUse = page > totalPages ? 1 : page; // Reset to page 1 if current page exceeds total pages
+    const currentPageToUse = page > totalPages ? 1 : page;
 
     // STEP 1: Get all categories and subcategories
     const allCategories = await prisma.category.findMany({
@@ -330,7 +393,7 @@ export async function GET(request: Request) {
         Category: true,
       },
       orderBy: {
-        ProductId: "desc", // Default ordering within subcategories
+        ProductId: "desc",
       },
     });
 
@@ -393,9 +456,7 @@ export async function GET(request: Request) {
       }
 
       // Add any products directly associated with the category (not in any subcategory)
-      // This should rarely happen but we handle it just in case
       const productsNotInSubcats = categoryData.products.filter((p: ProductType) => {
-        // Product is not in any subcategory we processed
         return !parseCategoryContentIds(p).some((id) => categoryData.subcategories[id]);
       });
 
@@ -407,7 +468,7 @@ export async function GET(request: Request) {
       }
     }
 
-    // Remove duplicate products - sometimes products can be in multiple subcategories
+    // Remove duplicate products
     const processedProductIds = new Set();
     allProcessedProducts = allProcessedProducts.filter((p) => {
       if (processedProductIds.has(p.ProductId)) {
@@ -417,11 +478,11 @@ export async function GET(request: Request) {
       return true;
     });
 
-    // STEP 5: If search query exists, calculate and sort by relevance
+    // STEP 5: If search query exists, calculate and sort by relevance with enhanced matching
     let finalSortedProducts;
 
     if (query.trim()) {
-      // Add relevance score and sort by it
+      // Add relevance score with enhanced matching
       const scoredProducts = allProcessedProducts.map((product) => ({
         product,
         score: calculateRelevanceScore(product, query.trim()),
@@ -487,7 +548,7 @@ export async function GET(request: Request) {
       data,
       pagination: {
         totalCount,
-        currentPage: currentPageToUse, // Use the adjusted current page
+        currentPage: currentPageToUse,
         totalPages,
         hasNextPage: currentPageToUse < totalPages,
         hasPrevPage: currentPageToUse > 1,

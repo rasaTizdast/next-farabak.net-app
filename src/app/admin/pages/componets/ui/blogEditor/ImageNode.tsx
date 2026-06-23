@@ -5,6 +5,8 @@ import { Trash2, Maximize2, Minimize2 } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 
+import { useApiMutation } from "@/hooks/useApiMutation";
+
 interface ImageAttributes {
   src: string;
   alt: string;
@@ -19,9 +21,10 @@ const DEFAULT_HEIGHT = 400;
 
 const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const { mutate: deleteImage } = useApiMutation("delete");
   const [showResizeOptions, setShowResizeOptions] = useState(false);
-  const [customWidth, setCustomWidth] = useState(DEFAULT_WIDTH.toString());
-  const [customHeight, setCustomHeight] = useState(DEFAULT_HEIGHT.toString());
+  const [customWidth, setCustomWidth] = useState(() => DEFAULT_WIDTH.toString());
+  const [customHeight, setCustomHeight] = useState(() => DEFAULT_HEIGHT.toString());
   const [isResizing, setIsResizing] = useState(false);
   const [startResizePos, setStartResizePos] = useState({ x: 0, y: 0 });
   const [startDimensions, setStartDimensions] = useState({
@@ -44,24 +47,17 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
       : DEFAULT_HEIGHT;
 
   // Initialize dimension values
+  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
-    // Set default values on mount
     setCustomWidth(safeWidth.toString());
     setCustomHeight(safeHeight.toString());
-
-    // Update attributes if they're invalid
     if (attrs.width !== safeWidth || attrs.height !== safeHeight) {
-      updateAttributes({
-        width: safeWidth,
-        height: safeHeight,
-        size: attrs.size || "full",
-      });
+      updateAttributes({ width: safeWidth, height: safeHeight, size: attrs.size || "full" });
     }
   }, []);
 
-  // Update form values when attributes change
+  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
-    // Only update when we have valid dimensions
     if (safeWidth > 0 && safeHeight > 0) {
       setCustomWidth(safeWidth.toString());
       setCustomHeight(safeHeight.toString());
@@ -91,23 +87,16 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
 
     setIsDeleting(true);
 
-    try {
-      const key = node.attrs.src;
+    const key = node.attrs.src;
+    const result = await deleteImage("/api/manageBlog/delete", { key });
 
-      await fetch("/api/manageBlog/delete", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key }),
-      });
-
+    if (result) {
       const pos = getPos();
       editor.commands.deleteRange({ from: pos, to: pos + 1 });
-    } catch (error) {
-      console.error("Delete failed:", error);
+    } else {
       alert("Failed to delete image");
-    } finally {
-      setIsDeleting(false);
     }
+    setIsDeleting(false);
   };
 
   const handleResize = (preset: string) => {
@@ -391,6 +380,7 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
             onClick={toggleResizeOptions}
             className="rounded-md bg-blue-600 p-1 text-white hover:bg-blue-700"
             title="تغییر اندازه"
+            aria-label="تغییر اندازه"
             type="button"
           >
             {showResizeOptions ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
@@ -402,6 +392,7 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
             className="rounded-md bg-red-600 p-1 text-white hover:bg-red-700"
             disabled={isDeleting}
             title="حذف تصویر"
+            aria-label="حذف تصویر"
             type="button"
           >
             <Trash2 size={20} />
@@ -415,6 +406,7 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
 
             <div className="mb-5 flex flex-col gap-2">
               <button
+                type="button"
                 onClick={() => handleResize("full")}
                 className={`rounded-md px-3 py-1 text-right ${
                   attrs.size === "full" ? "bg-blue-600" : "bg-gray-700 hover:bg-gray-600"
@@ -423,6 +415,7 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
                 عرض کامل صفحه
               </button>
               <button
+                type="button"
                 onClick={() => handleResize("half")}
                 className={`rounded-md px-3 py-1 text-right ${
                   attrs.size === "half" ? "bg-blue-600" : "bg-gray-700 hover:bg-gray-600"
@@ -431,6 +424,7 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
                 نصف عرض صفحه
               </button>
               <button
+                type="button"
                 onClick={() => handleResize("third")}
                 className={`rounded-md px-3 py-1 text-right ${
                   attrs.size === "third" ? "bg-blue-600" : "bg-gray-700 hover:bg-gray-600"
@@ -469,6 +463,7 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={applyCustomSize}
                 className="mt-2 w-full rounded-md bg-green-600 px-3 py-1 text-center hover:bg-green-700"
               >

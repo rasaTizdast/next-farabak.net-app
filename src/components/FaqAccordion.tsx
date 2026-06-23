@@ -84,6 +84,7 @@ const FaqAccordion = ({ faqs, className = "" }: FaqAccordionProps) => {
                 } transition-all duration-300`}
               >
                 <button
+                  type="button"
                   onClick={() => toggleFaq(index)}
                   className={`flex w-full items-center justify-between p-3 text-right focus:outline-none md:p-4 ${
                     isOpen ? "bg-blue-50" : "hover:bg-gray-50"

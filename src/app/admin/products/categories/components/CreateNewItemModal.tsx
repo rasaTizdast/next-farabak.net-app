@@ -1,7 +1,9 @@
-import axios from "axios";
 import { useState, useEffect, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-hot-toast";
+import axios from "axios";
+
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import CategoryBlogEditor from "./CategoryBlogEditor";
 import { Category } from "../types/types";
@@ -24,6 +26,126 @@ const checkIfUnique = (
   return !parentCategory.Subcategories.some((subcategory) => subcategory.Name === name);
 };
 
+async function doCreateItem(
+  name: string,
+  slug: string,
+  available: boolean,
+  parentCategoryId: number | undefined,
+  seoTitle: string,
+  seoDescription: string,
+  seoKeywords: string[],
+  topBlog: string,
+  bottomBlog: string,
+  bannerFile: File | null,
+  bannerCleared: boolean,
+  activeTab: string,
+  categories: Category[],
+  withRetry401: <T>(
+    fn: () => Promise<T>,
+    opts?: { retries?: number; baseDelayMs?: number }
+  ) => Promise<T>,
+  createMutate: any,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setError: React.Dispatch<React.SetStateAction<string | null>>,
+  setName: React.Dispatch<React.SetStateAction<string>>,
+  setSlug: React.Dispatch<React.SetStateAction<string>>,
+  setAvailable: React.Dispatch<React.SetStateAction<boolean>>,
+  setParentCategoryId: React.Dispatch<React.SetStateAction<number | undefined>>,
+  setSeoTitle: React.Dispatch<React.SetStateAction<string>>,
+  setSeoDescription: React.Dispatch<React.SetStateAction<string>>,
+  setSeoKeywords: React.Dispatch<React.SetStateAction<string[]>>,
+  setKeywordInput: React.Dispatch<React.SetStateAction<string>>,
+  setTopBlog: React.Dispatch<React.SetStateAction<string>>,
+  setBottomBlog: React.Dispatch<React.SetStateAction<string>>,
+  setBannerFile: React.Dispatch<React.SetStateAction<File | null>>,
+  setBannerPreview: React.Dispatch<React.SetStateAction<string>>,
+  setBannerCleared: React.Dispatch<React.SetStateAction<boolean>>,
+  onClose: () => void,
+  refetchCategories: () => void
+) {
+  setLoading(true);
+  try {
+    const result: any = {
+      type: activeTab,
+      data: {
+        name,
+        slug,
+        available,
+        parentCategoryId: activeTab === "Subcategory" ? parentCategoryId : null,
+        seoTitle,
+        seoDescription,
+        seoKeywords,
+        topBlog,
+        bottomBlog,
+        banner: undefined as string | undefined,
+      },
+    };
+
+    if (bannerFile && !bannerCleared && slug) {
+      const payload =
+        activeTab === "Category"
+          ? { type: "categoryBanner", contentType: bannerFile.type, categorySlug: slug }
+          : {
+              type: "categoryBanner",
+              contentType: bannerFile.type,
+              categorySlug:
+                categories.find((c) => c.CategoryID === parentCategoryId)?.Slug || slug,
+              subcategorySlug: slug,
+            };
+
+      const presignRes = await withRetry401(() => axios.post("/api/s3/upload", payload)) as any;
+      const presign = presignRes.data;
+      await axios.put(presign.uploadUrl, bannerFile, {
+        headers: { "Content-Type": bannerFile.type },
+      });
+      result.data.banner = presign.key;
+    }
+    if (activeTab === "Category") {
+      const catRes = await createMutate("/api/categories/createCategory", result);
+      if (catRes) {
+        toast.success("دسته‌بندی با موفقیت ایجاد شد!");
+        onClose();
+        refetchCategories();
+      } else {
+        throw new Error("خطا در ایجاد دسته‌بندی");
+      }
+    } else if (activeTab === "Subcategory") {
+      const subRes = await createMutate("/api/categories/createSubcategory", result);
+      if (subRes) {
+        toast.success("زیردسته‌بندی با موفقیت ایجاد شد!");
+        onClose();
+        refetchCategories();
+      } else {
+        throw new Error("خطا در ایجاد زیردسته‌بندی");
+      }
+    }
+
+    setName("");
+    setSlug("");
+    setAvailable(true);
+    setParentCategoryId(undefined);
+    setSeoTitle("");
+    setSeoDescription("");
+    setSeoKeywords([]);
+    setKeywordInput("");
+    setTopBlog("");
+    setBottomBlog("");
+    setBannerFile(null);
+    setBannerPreview("");
+    setBannerCleared(false);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const errorMessage =
+        error.response?.data?.message || "خطا در ثبت آیتم. لطفاً دوباره تلاش کنید.";
+      setError(errorMessage);
+    } else {
+      setError("خطای ناشناخته‌ای رخ داده است. لطفاً دوباره تلاش کنید.");
+    }
+  } finally {
+    setLoading(false);
+  }
+}
+
 const CreateNewItemModal = ({
   isOpen,
   onClose,
@@ -45,7 +167,8 @@ const CreateNewItemModal = ({
   const [seoKeywords, setSeoKeywords] = useState<string[]>([]);
   const [keywordInput, setKeywordInput] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false); // Loading state for submission
+  const [loading, setLoading] = useState(false);
+  const { mutate: createMutate } = useApiMutation("post");
   const [topBlog, setTopBlog] = useState("");
   const [bottomBlog, setBottomBlog] = useState("");
   const [bannerFile, setBannerFile] = useState<File | null>(null);
@@ -62,9 +185,9 @@ const CreateNewItemModal = ({
     for (let attempt = 0; attempt < retries; attempt++) {
       try {
         return await requestFn();
-      } catch (error) {
+      } catch (error: any) {
         lastError = error;
-        if (axios.isAxiosError(error) && error.response?.status === 401 && attempt < retries - 1) {
+        if (error?.response?.status === 401 && attempt < retries - 1) {
           await new Promise((r) => setTimeout(r, baseDelayMs * (attempt + 1)));
           continue;
         }
@@ -121,80 +244,40 @@ const CreateNewItemModal = ({
       return;
     }
 
-    const result = {
-      type: activeTab,
-      data: {
-        name,
-        slug,
-        available,
-        parentCategoryId: activeTab === "Subcategory" ? parentCategoryId : null,
-        seoTitle,
-        seoDescription,
-        seoKeywords,
-        topBlog,
-        bottomBlog,
-        banner: undefined as string | undefined,
-      },
-    };
-
-    setLoading(true); // Set loading to true when submitting
-    try {
-      // Upload banner if present and not cleared
-      if (bannerFile && !bannerCleared && slug) {
-        const payload =
-          activeTab === "Category"
-            ? { type: "categoryBanner", contentType: bannerFile.type, categorySlug: slug }
-            : {
-                type: "categoryBanner",
-                contentType: bannerFile.type,
-                categorySlug:
-                  categories.find((c) => c.CategoryID === parentCategoryId)?.Slug || slug,
-                subcategorySlug: slug,
-              };
-
-        const { data: presign } = await withRetry401(() => axios.post("/api/s3/upload", payload));
-        await axios.put(presign.uploadUrl, bannerFile, {
-          headers: { "Content-Type": bannerFile.type },
-        });
-        result.data.banner = presign.key; // store returned key
-      }
-      if (activeTab === "Category") {
-        await withRetry401(() => axios.post("/api/categories/createCategory", result));
-        toast.success("دسته‌بندی با موفقیت ایجاد شد!");
-        onClose();
-        refetchCategories();
-      } else if (activeTab === "Subcategory") {
-        await withRetry401(() => axios.post("/api/categories/createSubcategory", result));
-        toast.success("زیردسته‌بندی با موفقیت ایجاد شد!");
-        onClose();
-        refetchCategories();
-      }
-
-      // Clear the form fields after success
-      setName("");
-      setSlug("");
-      setAvailable(true);
-      setParentCategoryId(undefined);
-      setSeoTitle("");
-      setSeoDescription("");
-      setSeoKeywords([]);
-      setKeywordInput("");
-      setTopBlog("");
-      setBottomBlog("");
-      setBannerFile(null);
-      setBannerPreview("");
-      setBannerCleared(false);
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const errorMessage =
-          error.response?.data?.message || "خطا در ثبت آیتم. لطفاً دوباره تلاش کنید.";
-        setError(errorMessage);
-      } else {
-        setError("خطای ناشناخته‌ای رخ داده است. لطفاً دوباره تلاش کنید.");
-      }
-    } finally {
-      setLoading(false); // Set loading to false after request is complete
-    }
+    await doCreateItem(
+      name,
+      slug,
+      available,
+      parentCategoryId,
+      seoTitle,
+      seoDescription,
+      seoKeywords,
+      topBlog,
+      bottomBlog,
+      bannerFile,
+      bannerCleared,
+      activeTab,
+      categories,
+      withRetry401,
+      createMutate,
+      setLoading,
+      setError,
+      setName,
+      setSlug,
+      setAvailable,
+      setParentCategoryId,
+      setSeoTitle,
+      setSeoDescription,
+      setSeoKeywords,
+      setKeywordInput,
+      setTopBlog,
+      setBottomBlog,
+      setBannerFile,
+      setBannerPreview,
+      setBannerCleared,
+      onClose,
+      refetchCategories
+    );
   };
 
   const isSubmitDisabled = () => {
@@ -236,6 +319,7 @@ const CreateNewItemModal = ({
       <div className="w-full max-w-3xl animate-fade-in">
         <div className="rtl flex justify-center gap-6">
           <button
+            type="button"
             data-testid="newCategoryButton"
             onClick={() => setActiveTab("Category")}
             className={`rounded-t-xl px-6 py-3 font-medium transition-all ${
@@ -247,6 +331,7 @@ const CreateNewItemModal = ({
             دسته‌بندی جدید
           </button>
           <button
+            type="button"
             data-testid="newSubCategoryButton"
             onClick={() => setActiveTab("Subcategory")}
             className={`rounded-t-xl px-6 py-3 font-medium transition-all ${
@@ -396,12 +481,14 @@ const CreateNewItemModal = ({
           {error && <div className="mt-4 text-sm text-red-500">{error}</div>}
           <div className="mt-5 flex items-center justify-between">
             <button
+              type="button"
               onClick={onClose}
               className="rounded-xl bg-white px-6 py-3 font-medium text-gray-700"
             >
               انصراف
             </button>
             <button
+              type="button"
               onClick={handleSubmit}
               disabled={isSubmitDisabled() || loading} // Disable the button if loading
               className={`rounded-xl bg-blue-500 px-6 py-3 font-medium text-white disabled:cursor-not-allowed disabled:bg-gray-400 ${

@@ -2,7 +2,7 @@
 
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, use, useState, useEffect } from "react";
 
 interface User {
   userId: string;
@@ -28,31 +28,35 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
+async function fetchUserContext(
+  setUser: React.Dispatch<React.SetStateAction<User | null>>,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+) {
+  try {
+    setLoading(true);
+    const response = await axios.get("/api/auth/profile");
+    setUser(response.data);
+  } catch (error) {
+    if (
+      error instanceof AxiosError &&
+      error.response?.status !== 401 &&
+      error.response?.status !== 404
+    ) {
+      console.error("Error fetching user data:", error);
+    }
+    setUser(null);
+  } finally {
+    setLoading(false);
+  }
+}
+
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // Start with loading
   const router = useRouter();
 
-  // Function to manually fetch user data and update context
   const updateUserContext = async () => {
-    try {
-      setLoading(true); // Set loading to true while fetching data
-      const response = await axios.get("/api/auth/profile");
-      setUser(response.data); // Set the user data in context
-    } catch (error) {
-      // Only log error if it's not a 401 (unauthorized) or 404 (not found)
-      if (
-        error instanceof AxiosError &&
-        error.response?.status !== 401 &&
-        error.response?.status !== 404
-      ) {
-        console.error("Error fetching user data:", error);
-      }
-      // Silently handle authentication errors as they're expected when user is not logged in
-      setUser(null);
-    } finally {
-      setLoading(false); // Stop loading once the fetch is complete
-    }
+    await fetchUserContext(setUser, setLoading);
   };
 
   const logout = async () => {
@@ -70,9 +74,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isBranch = user?.role.toLowerCase() === "branch";
   const userFullName = `${user?.firstName || ""} ${user?.lastName || ""}`;
 
-  // Try to fetch user data on mount (e.g., when the page is first loaded)
+  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
-    updateUserContext(); // Fetch user data when the app is initialized
+    updateUserContext();
   }, []);
 
   return (
@@ -95,7 +99,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 export const useUser = () => {
-  const context = useContext(UserContext);
+  const context = use(UserContext);
   if (!context) {
     throw new Error("useUser must be used within a UserProvider");
   }

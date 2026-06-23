@@ -5,6 +5,75 @@ import { toast } from "react-hot-toast";
 import { FiUpload } from "react-icons/fi";
 import { IoIosClose } from "react-icons/io";
 
+async function submitOverviewDetails(
+  items: any[],
+  setIsSubmitting: (v: boolean) => void,
+  onClose: () => void
+) {
+  setIsSubmitting(true);
+  toast.loading("در حال ایجاد توضیحات محصول...");
+
+  try {
+    const itemsWithBase64 = await Promise.all(
+      items.map(async (item) => {
+        if (!item.image) return null;
+
+        return new Promise<{
+          title: string;
+          description: string;
+          image: string | { base64: string; contentType: string; fileName: string };
+        }>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const image = item.image!;
+            const fileName = image.name.includes(".")
+              ? image.name.substring(0, image.name.lastIndexOf("."))
+              : image.name;
+
+            resolve({
+              title: item.title,
+              description: item.description,
+              image: {
+                base64: (reader.result as string).split(",")[1],
+                contentType: image.type || "image/jpeg",
+                fileName: fileName,
+              },
+            });
+          };
+          reader.readAsDataURL(item.image!);
+        });
+      })
+    );
+
+    const validItems = itemsWithBase64.filter((item) => item !== null);
+
+    const response = await fetch("/api/productOverviewDetails/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ overviewDetails: validItems }),
+    });
+
+    if (!response.ok) {
+      throw new Error("خطا در ایجاد توضیحات محصول");
+    }
+
+    toast.dismiss();
+    toast.success("توضیحات محصول با موفقیت ایجاد شد!");
+
+    document.dispatchEvent(new CustomEvent("refreshOverviewDetails"));
+
+    onClose();
+  } catch (error) {
+    console.error("Error creating overview details:", error);
+    toast.dismiss();
+    toast.error("خطا در ایجاد توضیحات محصول. لطفاً دوباره تلاش کنید.");
+  } finally {
+    setIsSubmitting(false);
+  }
+}
+
 // NewOverviewDetailsModal component
 const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
   const [items, setItems] = useState<
@@ -51,11 +120,12 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
     });
   };
 
+
+
   // Function to handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate all fields
     const isValid = items.every(
       (item) => item.title.trim() !== "" && item.description.trim() !== "" && item.image !== null
     );
@@ -65,78 +135,7 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
       return;
     }
 
-    setIsSubmitting(true);
-    toast.loading("در حال ایجاد توضیحات محصول...");
-
-    try {
-      // Convert images to base64
-      const itemsWithBase64 = await Promise.all(
-        items.map(async (item) => {
-          // Skip items without an image (should not happen due to validation)
-          if (!item.image) return null;
-
-          return new Promise<{
-            title: string;
-            description: string;
-            image: string | { base64: string; contentType: string; fileName: string };
-          }>((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              // We already checked that item.image is not null above
-              const image = item.image!;
-
-              // Extract base name without extension to prevent duplicate extensions
-              const fileName = image.name.includes(".")
-                ? image.name.substring(0, image.name.lastIndexOf("."))
-                : image.name;
-
-              resolve({
-                title: item.title,
-                description: item.description,
-                image: {
-                  base64: (reader.result as string).split(",")[1],
-                  contentType: image.type || "image/jpeg",
-                  fileName: fileName,
-                },
-              });
-            };
-            // We're sure item.image is not null here since we checked above
-            reader.readAsDataURL(item.image!);
-          });
-        })
-      );
-
-      // Filter out any null items (shouldn't happen if validation is working)
-      const validItems = itemsWithBase64.filter((item) => item !== null);
-
-      // Send to API
-      const response = await fetch("/api/productOverviewDetails/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ overviewDetails: validItems }),
-      });
-
-      if (!response.ok) {
-        throw new Error("خطا در ایجاد توضیحات محصول");
-      }
-
-      toast.dismiss();
-      toast.success("توضیحات محصول با موفقیت ایجاد شد!");
-
-      // Force a refresh of the overview details list
-      // This will trigger a re-fetch of all overview details
-      document.dispatchEvent(new CustomEvent("refreshOverviewDetails"));
-
-      onClose();
-    } catch (error) {
-      console.error("Error creating overview details:", error);
-      toast.dismiss();
-      toast.error("خطا در ایجاد توضیحات محصول. لطفاً دوباره تلاش کنید.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    await submitOverviewDetails(items, setIsSubmitting, onClose);
   };
 
   return (

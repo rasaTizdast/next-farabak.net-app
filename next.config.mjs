@@ -22,21 +22,21 @@ const nextConfig = {
       port: "",
       pathname: "/**",
     })),
-    formats: ['image/webp', 'image/avif'],
+    formats: ["image/webp", "image/avif"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60,
+    imageSizes: [32, 48, 64, 96, 128, 256, 384],
+    qualities: [50, 75, 100],
   },
   // Performance optimizations
   experimental: {
-    optimizePackageImports: ['react-icons', 'axios'],
+    optimizePackageImports: ["react-icons", "axios"],
   },
   // Turbopack configuration (now stable)
   turbopack: {
     rules: {
-      '*.svg': {
-        loaders: ['@svgr/webpack'],
-        as: '*.js',
+      "*.svg": {
+        loaders: ["@svgr/webpack"],
+        as: "*.js",
       },
     },
   },
@@ -51,10 +51,10 @@ const nextConfig = {
     if (!dev && !isServer) {
       // Disable source maps in production for better performance
       config.devtool = false;
-      
+
       // Optimize bundle splitting for better caching
       config.optimization.splitChunks = {
-        chunks: 'all',
+        chunks: "all",
         minSize: 20000,
         maxSize: 244000,
         cacheGroups: {
@@ -65,31 +65,31 @@ const nextConfig = {
           },
           vendor: {
             test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
+            name: "vendors",
             priority: -10,
-            chunks: 'all',
+            chunks: "all",
             maxSize: 244000,
           },
           react: {
             test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
-            name: 'react',
+            name: "react",
             priority: 20,
-            chunks: 'all',
+            chunks: "all",
           },
           common: {
-            name: 'common',
+            name: "common",
             minChunks: 2,
-            chunks: 'all',
+            chunks: "all",
             priority: -5,
             reuseExistingChunk: true,
             maxSize: 244000,
           },
         },
       };
-      
+
       // CSS optimization
       config.optimization.minimize = true;
-      
+
       // Tree shaking optimization
       config.optimization.usedExports = true;
       config.optimization.sideEffects = false;

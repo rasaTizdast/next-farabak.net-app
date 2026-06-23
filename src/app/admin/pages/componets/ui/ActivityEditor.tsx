@@ -1,8 +1,10 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa"; // Icons for expand/collapse
 import { IoIosCloseCircle } from "react-icons/io";
+
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 type ActivityEditModalProps = {
   onClose: () => void;
@@ -20,30 +22,39 @@ type Activity = {
   Details_activity: Detail[];
 };
 
+const SkeletonLoader = () => (
+  <div className="space-y-4">
+    {[...Array(4)].map((_, index) => (
+      <div key={index} className="animate-pulse rounded-lg bg-gray-600 p-4">
+        <div className="mb-4 h-6 w-1/2 rounded bg-gray-500"></div>
+        <div className="space-y-2">
+          {[...Array(3)].map((_, idx) => (
+            <div key={idx} className="h-4 w-full rounded bg-gray-500"></div>
+          ))}
+        </div>
+        <div className="mt-4 h-8 w-1/4 rounded bg-gray-500"></div>
+      </div>
+    ))}
+  </div>
+);
+
 const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true); // Track data fetching state
-  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set<number>()); // Explicitly type the Set
+  const [isFetching, setIsFetching] = useState(true);
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set<number>());
 
+  const { data: activitiesData } = useApiFetch("/api/activities");
+  const { mutate: saveActivities, loading: isSaving } = useApiMutation("put");
+
+  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
-    axios
-      .get("/api/activities")
-      .then((response) => {
-        setActivities(response.data);
-        // Expand all sections by default
-        const defaultExpanded = new Set<number>(
-          response.data.map((activity: Activity, index: number) => index)
-        );
-        setExpandedSections(defaultExpanded);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch activities:", error);
-      })
-      .finally(() => {
-        setIsFetching(false); // Data fetching is complete
-      });
-  }, []);
+    if (activitiesData) {
+      setActivities(activitiesData);
+      setExpandedSections(new Set<number>(activitiesData.map((_: Activity, i: number) => i)));
+      setIsFetching(false);
+    }
+  }, [activitiesData]);
 
   // Toggle section expansion
   const toggleSection = (index: number) => {
@@ -102,43 +113,24 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    try {
-      const updatedActivities = activities.map((activity) => ({
-        id: activity.id,
-        title: activity.title,
-        details: activity.Details_activity.map((detail) => ({
-          id: detail.id || undefined,
-          description: detail.description,
-        })),
-      }));
+    const updatedActivities = activities.map((activity) => ({
+      id: activity.id,
+      title: activity.title,
+      details: activity.Details_activity.map((detail) => ({
+        id: detail.id || undefined,
+        description: detail.description,
+      })),
+    }));
 
-      await axios.put("/api/activities", updatedActivities);
+    const res = await saveActivities("/api/activities", updatedActivities);
+    if (res) {
       toast.success("فعالیت با موفقیت آپدیت شد!");
-    } catch (error) {
-      console.error(error);
+    } else {
       toast.error("آپدیت فعالیت به مشکل خورد!");
-    } finally {
-      setIsLoading(false);
-      onClose();
     }
+    setIsLoading(false);
+    onClose();
   };
-
-  // Skeleton Loading Component
-  const SkeletonLoader = () => (
-    <div className="space-y-4">
-      {[...Array(4)].map((_, index) => (
-        <div key={index} className="animate-pulse rounded-lg bg-gray-600 p-4">
-          <div className="mb-4 h-6 w-1/2 rounded bg-gray-500"></div>
-          <div className="space-y-2">
-            {[...Array(3)].map((_, idx) => (
-              <div key={idx} className="h-4 w-full rounded bg-gray-500"></div>
-            ))}
-          </div>
-          <div className="mt-4 h-8 w-1/4 rounded bg-gray-500"></div>
-        </div>
-      ))}
-    </div>
-  );
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 shadow-lg backdrop-blur-sm">
@@ -148,6 +140,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
       >
         {/* Updated Close Button */}
         <button
+          type="button"
           onClick={onClose}
           className="absolute left-4 top-4 rounded-full p-2 text-red-500 hover:text-red-600"
         >
@@ -177,6 +170,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                   </label>
                   {/* Expand/Collapse Button */}
                   <button
+                    type="button"
                     onClick={() => toggleSection(activityIndex)}
                     className="mb-3 p-2 pl-0 text-gray-100 hover:text-blue-500"
                   >
@@ -188,6 +182,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                   </button>
                 </div>
                 <button
+                  type="button"
                   onClick={() => handleDeleteSection(activityIndex)}
                   className="mb-3 mt-1 rounded-lg bg-red-500 p-2 text-gray-100 hover:bg-red-600"
                 >
@@ -214,6 +209,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                           />
                         </label>
                         <button
+                          type="button"
                           onClick={() => handleDeleteDetail(activityIndex, detailIndex)}
                           className="mt-3 rounded-lg bg-red-500 p-2 text-gray-100 hover:bg-red-600"
                         >
@@ -222,6 +218,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                       </div>
                     ))}
                     <button
+                      type="button"
                       onClick={() => handleAddDetail(activityIndex)}
                       className="mt-4 rounded-lg bg-green-600 px-3 py-1 text-white hover:bg-green-700"
                     >
@@ -233,6 +230,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
             ))}
             <div className="flex w-full justify-center">
               <button
+                type="button"
                 onClick={handleAddSection}
                 className="mb-4 rounded-lg bg-blue-500 px-4 py-2 text-gray-100 hover:bg-blue-600"
               >
@@ -244,6 +242,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
 
             <div className="flex w-full justify-center">
               <button
+                type="button"
                 onClick={handleSubmit}
                 disabled={isLoading}
                 className={`${

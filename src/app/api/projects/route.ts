@@ -107,28 +107,36 @@ export async function POST(request: NextRequest) {
 
     // Upload detail images
     const detailImages = formData.getAll("detailImages") as File[];
-    for (const image of detailImages) {
-      const imageKey = await uploadFile(image, "details");
-      await prisma.projectMedia.create({
-        data: {
-          ProjectID: project.ProjectID,
-          MediaType: "image",
-          MediaURL: imageKey,
-        },
-      });
+    if (detailImages.length > 0) {
+      await Promise.all(
+        detailImages.map(async (image) => {
+          const imageKey = await uploadFile(image, "details");
+          return prisma.projectMedia.create({
+            data: {
+              ProjectID: project.ProjectID,
+              MediaType: "image",
+              MediaURL: imageKey,
+            },
+          });
+        })
+      );
     }
 
     // Upload videos
     const videos = formData.getAll("videos") as File[];
-    for (const video of videos) {
-      const videoKey = await uploadFile(video, "videos");
-      await prisma.projectMedia.create({
-        data: {
-          ProjectID: project.ProjectID,
-          MediaType: "video",
-          MediaURL: videoKey,
-        },
-      });
+    if (videos.length > 0) {
+      await Promise.all(
+        videos.map(async (video) => {
+          const videoKey = await uploadFile(video, "videos");
+          return prisma.projectMedia.create({
+            data: {
+              ProjectID: project.ProjectID,
+              MediaType: "video",
+              MediaURL: videoKey,
+            },
+          });
+        })
+      );
     }
 
     return NextResponse.json(project, { status: 201 });

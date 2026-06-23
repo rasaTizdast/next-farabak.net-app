@@ -30,11 +30,15 @@ const SubcategoryRow: React.FC<SubcategoryRowProps> = ({
     <td className="px-6 py-4 text-gray-300">{subcategory.Available ? "موجود" : "ناموجود"}</td>
     <td className="flex justify-center gap-2 px-6 py-4">
       <Link href={subcategory.Link} target="_blank">
-        <button className="rounded bg-blue-600 px-5 py-2 text-white transition-all hover:bg-blue-700">
+        <button
+          type="button"
+          className="rounded bg-blue-600 px-5 py-2 text-white transition-all hover:bg-blue-700"
+        >
           مشاهده
         </button>
       </Link>
       <button
+        type="button"
         onClick={(e) => onEditClick(subcategory, e)}
         className="flex items-center justify-center gap-1 rounded bg-yellow-600 px-5 py-2 text-white transition-all hover:bg-yellow-700"
       >
@@ -42,6 +46,7 @@ const SubcategoryRow: React.FC<SubcategoryRowProps> = ({
         <FaEdit />
       </button>
       <button
+        type="button"
         onClick={() => onDeleteClick(subcategory)}
         className="flex items-center gap-1 rounded bg-red-600 px-5 py-2 text-white transition-all hover:bg-red-700"
       >

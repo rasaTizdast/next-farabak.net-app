@@ -1,7 +1,6 @@
 "use client";
 
 import { yupResolver } from "@hookform/resolvers/yup";
-import axios from "axios";
 import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 
@@ -10,6 +9,7 @@ import {
   verifyCodeSchema,
   resetPasswordSchema,
 } from "@/helpers/validationSchema";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import styles from "./ForgotPasswordModal.module.css";
 import TextInput from "./TextInput";
@@ -33,7 +33,9 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
   const [verificationCode, setVerificationCode] = useState<string>("");
   const [resetToken, setResetToken] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const { mutate: forgotPassword, loading: submittingForgot } = useApiMutation("post");
+  const { mutate: verifyCode, loading: submittingVerify } = useApiMutation("post");
+  const { mutate: resetPassword, loading: submittingReset } = useApiMutation("post");
 
   // Form for email step
   const emailMethods = useForm({
@@ -65,85 +67,61 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
 
   // Handle email submission
   const handleEmailSubmit = async (data: { email: string }) => {
-    setIsSubmitting(true);
     setErrorMessage("");
 
-    try {
-      const response = await axios.post("/api/auth/forgot-password", data);
-
-      if (response.data.emailSent && response.data.resetToken) {
+    const response = (await forgotPassword("/api/auth/forgot-password", data)) as any;
+    if (response) {
+      if (response.emailSent && response.resetToken) {
         setEmail(data.email);
-        setResetToken(response.data.resetToken);
+        setResetToken(response.resetToken);
         setCurrentStep(ForgotPasswordStep.VERIFY_CODE);
       } else {
-        setErrorMessage(response.data.message || "خطا در ارسال ایمیل");
+        setErrorMessage(response.message || "خطا در ارسال ایمیل");
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setErrorMessage(error.response?.data.error || "خطا در ارسال ایمیل");
-      } else {
-        setErrorMessage("خطا در ارسال ایمیل");
-      }
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      setErrorMessage("خطا در ارسال ایمیل");
     }
   };
 
   // Handle verification code submission
   const handleCodeSubmit = async (data: { code: string }) => {
-    setIsSubmitting(true);
     setErrorMessage("");
 
-    try {
-      const response = await axios.post("/api/auth/verify-reset-code", {
-        email,
-        code: data.code,
-        resetToken,
-      });
-
-      if (response.data.valid) {
+    const response = (await verifyCode("/api/auth/verify-reset-code", {
+      email,
+      code: data.code,
+      resetToken,
+    })) as any;
+    if (response) {
+      if (response.valid) {
         setVerificationCode(data.code);
         setCurrentStep(ForgotPasswordStep.RESET_PASSWORD);
       } else {
-        setErrorMessage(response.data.error || "کد تایید نامعتبر است");
+        setErrorMessage(response.error || "کد تایید نامعتبر است");
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setErrorMessage(error.response?.data.error || "کد تایید نامعتبر است");
-      } else {
-        setErrorMessage("خطا در تایید کد");
-      }
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      setErrorMessage("کد تایید نامعتبر است");
     }
   };
 
   // Handle password reset submission
   const handlePasswordSubmit = async (data: { password: string; confirmPassword: string }) => {
-    setIsSubmitting(true);
     setErrorMessage("");
 
-    try {
-      const response = await axios.post("/api/auth/reset-password", {
-        email,
-        code: verificationCode,
-        newPassword: data.password,
-        resetToken,
-      });
-
-      if (response.data.success) {
+    const response = (await resetPassword("/api/auth/reset-password", {
+      email,
+      code: verificationCode,
+      newPassword: data.password,
+      resetToken,
+    })) as any;
+    if (response) {
+      if (response.success) {
         setCurrentStep(ForgotPasswordStep.SUCCESS);
       } else {
-        setErrorMessage(response.data.error || "خطا در بازیابی رمز عبور");
+        setErrorMessage(response.error || "خطا در بازیابی رمز عبور");
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setErrorMessage(error.response?.data.error || "خطا در بازیابی رمز عبور");
-      } else {
-        setErrorMessage("خطا در بازیابی رمز عبور");
-      }
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      setErrorMessage("خطا در بازیابی رمز عبور");
     }
   };
 
@@ -154,7 +132,6 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     setVerificationCode("");
     setResetToken("");
     setErrorMessage("");
-    setIsSubmitting(false);
     emailMethods.reset();
     codeMethods.reset();
     passwordMethods.reset();
@@ -166,7 +143,12 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
-        <button className={styles.closeButton} onClick={handleClose}>
+        <button
+          type="button"
+          className={styles.closeButton}
+          onClick={handleClose}
+          aria-label="بستن"
+        >
           ×
         </button>
 
@@ -190,8 +172,8 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
               {errorMessage && <p className={styles.error}>{errorMessage}</p>}
 
               <div className={styles.buttonGroup}>
-                <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
-                  {isSubmitting ? "در حال ارسال..." : "ارسال کد بازیابی"}
+                <button type="submit" className={styles.submitButton} disabled={submittingForgot}>
+                  {submittingForgot ? "در حال ارسال..." : "ارسال کد بازیابی"}
                 </button>
               </div>
             </form>
@@ -218,8 +200,8 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
               {errorMessage && <p className={styles.error}>{errorMessage}</p>}
 
               <div className={styles.buttonGroup}>
-                <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
-                  {isSubmitting ? "در حال تایید..." : "تایید کد"}
+                <button type="submit" className={styles.submitButton} disabled={submittingVerify}>
+                  {submittingVerify ? "در حال تایید..." : "تایید کد"}
                 </button>
 
                 <button
@@ -263,8 +245,8 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
               {errorMessage && <p className={styles.error}>{errorMessage}</p>}
 
               <div className={styles.buttonGroup}>
-                <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
-                  {isSubmitting ? "در حال ذخیره..." : "تغییر رمز عبور"}
+                <button type="submit" className={styles.submitButton} disabled={submittingReset}>
+                  {submittingReset ? "در حال ذخیره..." : "تغییر رمز عبور"}
                 </button>
 
                 <button

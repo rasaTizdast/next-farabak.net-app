@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { Metadata } from "next";
 import dynamicImport from "next/dynamic";
 import Script from "next/script";

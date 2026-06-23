@@ -12,10 +12,6 @@ export async function calculateProductPricing(
   usdPrice: string | number | null,
   discount: string | number | null
 ): Promise<ProductPricing> {
-  // Get USD to IRR exchange rate
-  const usdRate = await fetchUsdToRialRate();
-  const isValidRate = usdRate && !isNaN(usdRate) && usdRate > 0;
-
   // Handle null/undefined prices
   if (!usdPrice || usdPrice === null || usdPrice === undefined || +usdPrice === 0) {
     return {
@@ -26,6 +22,10 @@ export async function calculateProductPricing(
       isValidRate: false,
     };
   }
+
+  // Get USD to IRR exchange rate
+  const usdRate = await fetchUsdToRialRate();
+  const isValidRate = usdRate && !isNaN(usdRate) && usdRate > 0;
 
   const price = +usdPrice;
   const discountAmount = discount ? +discount : 0;
@@ -64,9 +64,12 @@ export function getPriceRangeForSchema(products: any[]): { minPrice: string; max
     return { minPrice: "0", maxPrice: "0" };
   }
 
-  const validPrices = products
-    .filter((product) => product.Price && +product.Price > 0)
-    .map((product) => +product.Price);
+  const validPrices = products.reduce((acc: number[], product) => {
+    if (product.Price && +product.Price > 0) {
+      acc.push(+product.Price);
+    }
+    return acc;
+  }, []);
 
   if (validPrices.length === 0) {
     return { minPrice: "0", maxPrice: "0" };

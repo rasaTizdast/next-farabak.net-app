@@ -1,10 +1,46 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 type ContactUsEditModalProps = {
   onClose: () => void;
 };
+
+const SkeletonLoader = () => (
+  <div className="animate-pulse">
+    <div className="mb-6 rounded-lg bg-gray-600 p-3">
+      <div className="mb-4 h-6 w-1/4 rounded bg-gray-500"></div>
+      <div className="space-y-3">
+        <div className="h-4 w-3/4 rounded bg-gray-500"></div>
+        <div className="h-4 w-1/2 rounded bg-gray-500"></div>
+        <div className="h-4 w-2/3 rounded bg-gray-500"></div>
+      </div>
+    </div>
+    <div className="mb-6 rounded-lg bg-gray-600 p-3">
+      <div className="mb-4 h-6 w-1/4 rounded bg-gray-500"></div>
+      <div className="space-y-3">
+        {[1, 2].map((_, index) => (
+          <div key={index} className="space-y-2">
+            <div className="h-4 w-3/4 rounded bg-gray-500"></div>
+            <div className="h-4 w-1/2 rounded bg-gray-500"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+    <div className="mb-6 rounded-lg bg-gray-600 p-3">
+      <div className="mb-4 h-6 w-1/4 rounded bg-gray-500"></div>
+      <div className="space-y-3">
+        {[1].map((_, index) => (
+          <div key={index} className="space-y-2">
+            <div className="h-4 w-3/4 rounded bg-gray-500"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
 
 const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
   const [address, setAddress] = useState({
@@ -17,30 +53,34 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
   const [phoneNumbers, setPhoneNumbers] = useState<Array<{ id: number; number: string }>>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    axios.get("/api/contact-us").then((response) => {
-      const { address, emails, phone_numbers } = response.data;
-      setAddress(address);
-      setEmails(emails);
-      setPhoneNumbers(phone_numbers);
-      setLoading(false);
-    });
-  }, []);
+  const { data: contactData } = useApiFetch("/api/contact-us");
+  const { mutate: saveContact, loading: saving } = useApiMutation("put");
 
-  const handleSave = () => {
-    axios
-      .put("/api/contact-us", { address, emails, phone_numbers: phoneNumbers })
-      .then(() => {
-        toast.success("اطلاعات با موفقیت ذخیره شد.");
-        onClose();
-      })
-      .catch((error) => {
-        console.error(error);
-        toast.error("خطا در ذخیره اطلاعات.");
-      });
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => {
+    if (contactData) {
+      const { address: a, emails: e, phone_numbers: p } = contactData;
+      setAddress(a);
+      setEmails(e);
+      setPhoneNumbers(p);
+      setLoading(false);
+    }
+  }, [contactData]);
+
+  const handleSave = async () => {
+    const res = await saveContact("/api/contact-us", {
+      address,
+      emails,
+      phone_numbers: phoneNumbers,
+    });
+    if (res) {
+      toast.success("اطلاعات با موفقیت ذخیره شد.");
+      onClose();
+    } else {
+      toast.error("خطا در ذخیره اطلاعات.");
+    }
   };
 
-  // Move email up in order
   const moveEmailUp = (index: number) => {
     if (index === 0) return;
     const newEmails = [...emails];
@@ -50,7 +90,6 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
     setEmails(newEmails);
   };
 
-  // Move email down in order
   const moveEmailDown = (index: number) => {
     if (index === emails.length - 1) return;
     const newEmails = [...emails];
@@ -60,7 +99,6 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
     setEmails(newEmails);
   };
 
-  // Move phone number up in order
   const movePhoneUp = (index: number) => {
     if (index === 0) return;
     const newPhones = [...phoneNumbers];
@@ -70,7 +108,6 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
     setPhoneNumbers(newPhones);
   };
 
-  // Move phone number down in order
   const movePhoneDown = (index: number) => {
     if (index === phoneNumbers.length - 1) return;
     const newPhones = [...phoneNumbers];
@@ -79,40 +116,6 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
     newPhones[index + 1] = temp;
     setPhoneNumbers(newPhones);
   };
-
-  const SkeletonLoader = () => (
-    <div className="animate-pulse">
-      <div className="mb-6 rounded-lg bg-gray-600 p-3">
-        <div className="mb-4 h-6 w-1/4 rounded bg-gray-500"></div>
-        <div className="space-y-3">
-          <div className="h-4 w-3/4 rounded bg-gray-500"></div>
-          <div className="h-4 w-1/2 rounded bg-gray-500"></div>
-          <div className="h-4 w-2/3 rounded bg-gray-500"></div>
-        </div>
-      </div>
-      <div className="mb-6 rounded-lg bg-gray-600 p-3">
-        <div className="mb-4 h-6 w-1/4 rounded bg-gray-500"></div>
-        <div className="space-y-3">
-          {[1, 2].map((_, index) => (
-            <div key={index} className="space-y-2">
-              <div className="h-4 w-3/4 rounded bg-gray-500"></div>
-              <div className="h-4 w-1/2 rounded bg-gray-500"></div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="mb-6 rounded-lg bg-gray-600 p-3">
-        <div className="mb-4 h-6 w-1/4 rounded bg-gray-500"></div>
-        <div className="space-y-3">
-          {[1].map((_, index) => (
-            <div key={index} className="space-y-2">
-              <div className="h-4 w-3/4 rounded bg-gray-500"></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 shadow-lg backdrop-blur-sm">
@@ -126,7 +129,6 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
           <SkeletonLoader />
         ) : (
           <>
-            {/* Address Form */}
             <div className="mb-6 rounded-lg bg-gray-600 p-3">
               <h3 className="text-lg font-semibold">آدرس</h3>
               <hr className="mb-4 mt-2" />
@@ -159,7 +161,6 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
               </label>
             </div>
 
-            {/* Emails Form */}
             <div className="mb-6 rounded-lg bg-gray-600 p-3">
               <h3 className="text-lg font-semibold">ایمیل‌ها</h3>
               <hr className="mb-4 mt-2" />
@@ -173,6 +174,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
                     </div>
                     <div className="flex gap-3">
                       <button
+                        type="button"
                         onClick={() => moveEmailUp(index)}
                         disabled={index === 0}
                         className="rounded bg-blue-600 p-2 text-white transition-all duration-200 hover:bg-blue-700 disabled:opacity-50"
@@ -189,6 +191,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
                         </svg>
                       </button>
                       <button
+                        type="button"
                         onClick={() => moveEmailDown(index)}
                         disabled={index === emails.length - 1}
                         className="rounded bg-blue-600 p-2 text-white transition-all duration-200 hover:bg-blue-700 disabled:opacity-50"
@@ -236,7 +239,6 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
               ))}
             </div>
 
-            {/* Phone Numbers Form */}
             <div className="mb-6 rounded-lg bg-gray-600 p-3">
               <h3 className="text-lg font-semibold">شماره تلفن‌ها</h3>
               <hr className="mb-4 mt-2" />
@@ -250,6 +252,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
                     </div>
                     <div className="flex gap-3">
                       <button
+                        type="button"
                         onClick={() => movePhoneUp(index)}
                         disabled={index === 0}
                         className="rounded bg-blue-600 p-2 text-white transition-all duration-200 hover:bg-blue-700 disabled:opacity-50"
@@ -266,6 +269,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
                         </svg>
                       </button>
                       <button
+                        type="button"
                         onClick={() => movePhoneDown(index)}
                         disabled={index === phoneNumbers.length - 1}
                         className="rounded bg-blue-600 p-2 text-white transition-all duration-200 hover:bg-blue-700 disabled:opacity-50"
@@ -304,12 +308,14 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
 
         <div className="flex justify-between">
           <button
+            type="button"
             onClick={onClose}
             className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
           >
             بستن
           </button>
           <button
+            type="button"
             onClick={handleSave}
             className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
           >

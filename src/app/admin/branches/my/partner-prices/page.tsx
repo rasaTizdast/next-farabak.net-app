@@ -1,10 +1,14 @@
 "use client";
 
-import axios from "axios";
 import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+import { useApiFetch } from "@/hooks/useApiFetch";
+
+type ApiResponse = {
+  data: ProductRow[];
+};
 
 type ProductRow = {
   ProductId: number;
@@ -16,9 +20,6 @@ type ProductRow = {
 };
 
 export default function BranchPartnerPricesPage() {
-  const [data, setData] = useState<ProductRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [keyword, setKeyword] = useState("");
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
   const [usdRate, setUsdRate] = useState<number | null>(null);
@@ -27,37 +28,33 @@ export default function BranchPartnerPricesPage() {
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
-  const fetchData = async () => {
+  const {
+    data: apiData,
+    loading,
+    error,
+  } = useApiFetch<ApiResponse>("/api/admin/products?limit=500");
+
+  const data: ProductRow[] = (apiData?.data || []).map((p: any) => ({
+    ProductId: p.ProductId,
+    Type: p.Type,
+    Price: Number(p.Price ?? 0),
+    Discount: Number(p.Discount ?? 0),
+    Partner_Price: p.Partner_Price ?? null,
+    link: p.link,
+  }));
+
+  async function doFetchUsdRate(
+    fetchUsdToRialRate: () => Promise<number>,
+    setUsdRate: (rate: number) => void
+  ) {
     try {
-      setLoading(true);
-      const res = await axios.get("/api/admin/products", { params: { limit: 500 } });
-      const rows = (res.data?.data || []).map((p: any) => ({
-        ProductId: p.ProductId,
-        Type: p.Type,
-        Price: Number(p.Price ?? 0),
-        Discount: Number(p.Discount ?? 0),
-        Partner_Price: p.Partner_Price ?? null,
-        link: p.link,
-      })) as ProductRow[];
-      setData(rows);
-    } catch (e: any) {
-      setError(e?.message || "خطا در دریافت اطلاعات");
-    } finally {
-      setLoading(false);
-    }
-  };
+      const rate = await fetchUsdToRialRate();
+      if (rate && rate > 0) setUsdRate(rate);
+    } catch {}
+  }
 
   useEffect(() => {
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const rate = await fetchUsdToRialRate();
-        if (rate && rate > 0) setUsdRate(rate);
-      } catch {}
-    })();
+    doFetchUsdRate(fetchUsdToRialRate, setUsdRate);
   }, []);
 
   useEffect(() => {
@@ -246,6 +243,7 @@ export default function BranchPartnerPricesPage() {
             </span>
             <div className="flex gap-2">
               <button
+                type="button"
                 className="rounded-md bg-slate-800 px-3 py-1 disabled:opacity-50"
                 disabled={page === 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -253,6 +251,7 @@ export default function BranchPartnerPricesPage() {
                 قبلی
               </button>
               <button
+                type="button"
                 className="rounded-md bg-slate-800 px-3 py-1 disabled:opacity-50"
                 disabled={page === totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}

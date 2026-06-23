@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // PUT /api/products/grades/[gradeId] - Update a grade
-export async function PUT(request: NextRequest, { params }: { params: { productId: string } }) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ productId: string }> }) {
+  const params = await props.params;
   try {
     const gradeId = parseInt(params.productId); // Using productId param as gradeId
     const { grade, price, discount } = await request.json();
@@ -57,7 +58,11 @@ export async function PUT(request: NextRequest, { params }: { params: { productI
 }
 
 // DELETE /api/products/grades/[gradeId] - Delete a grade
-export async function DELETE(_request: NextRequest, { params }: { params: { productId: string } }) {
+export async function DELETE(
+  _request: NextRequest,
+  props: { params: Promise<{ productId: string }> }
+) {
+  const params = await props.params;
   try {
     const gradeId = parseInt(params.productId); // Using productId param as gradeId
 

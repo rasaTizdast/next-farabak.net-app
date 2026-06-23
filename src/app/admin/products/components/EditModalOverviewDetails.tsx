@@ -19,7 +19,6 @@ const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Prop
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isListening, setIsListening] = useState(false);
 
   // Number of items to show when collapsed
   const COLLAPSED_ITEM_COUNT = 3;
@@ -64,19 +63,12 @@ const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Prop
   useEffect(() => {
     fetchData();
 
-    // Set up event listener for refresh event
-    if (!isListening) {
-      document.addEventListener("refreshOverviewDetails", fetchData);
-      setIsListening(true);
-    }
+    document.addEventListener("refreshOverviewDetails", fetchData);
 
-    // Cleanup function
     return () => {
-      if (isListening) {
-        document.removeEventListener("refreshOverviewDetails", fetchData);
-      }
+      document.removeEventListener("refreshOverviewDetails", fetchData);
     };
-  }, [productId, isListening]);
+  }, [productId]);
 
   const toggleSelection = (detailId: number) => {
     const updatedDetails = allOverviewDetails.map((detail) =>
@@ -197,6 +189,7 @@ const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Prop
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
           <div className="relative max-h-[700px] w-full max-w-lg overflow-y-scroll rounded-lg bg-gray-800 p-6 text-white shadow-lg">
             <button
+              type="button"
               onClick={closeDetailModal}
               className="absolute right-3 top-3 text-red-400 hover:text-red-500"
             >
@@ -236,6 +229,7 @@ const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Prop
                 }}
               />
               <button
+                type="button"
                 onClick={() => {
                   toggleSelection(selectedDetail.ProductOverviewDetailsId);
                   closeDetailModal();

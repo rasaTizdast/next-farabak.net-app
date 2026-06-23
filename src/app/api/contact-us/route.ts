@@ -7,9 +7,11 @@ export const dynamic = "force-dynamic";
 // GET handler to fetch contact us data
 export async function GET() {
   try {
-    const address = await prisma.address.findFirst();
-    const emails = await prisma.emails.findMany();
-    const phoneNumbers = await prisma.phone_numbers.findMany();
+    const [address, emails, phoneNumbers] = await Promise.all([
+      prisma.address.findFirst(),
+      prisma.emails.findMany(),
+      prisma.phone_numbers.findMany(),
+    ]);
 
     // Filter out emails with empty address
     const filteredEmails = emails.filter((email) => email.address && email.address.trim() !== "");
@@ -52,30 +54,31 @@ export async function PUT(req: NextRequest) {
 
       // Update emails - preserve order by updating with index
       if (emails && emails.length > 0) {
-        // First, update each email record to maintain their data
-        for (let i = 0; i < emails.length; i++) {
-          const email = emails[i];
-          await tx.emails.update({
-            where: { id: email.id },
-            data: {
-              title: email.title,
-              address: email.address,
-            },
-          });
-        }
+        await Promise.all(
+          emails.map((email) =>
+            tx.emails.update({
+              where: { id: email.id },
+              data: {
+                title: email.title,
+                address: email.address,
+              },
+            })
+          )
+        );
       }
 
       // Update phone numbers - preserve order by updating with index
       if (phone_numbers && phone_numbers.length > 0) {
-        for (let i = 0; i < phone_numbers.length; i++) {
-          const phone = phone_numbers[i];
-          await tx.phone_numbers.update({
-            where: { id: phone.id },
-            data: {
-              number: phone.number,
-            },
-          });
-        }
+        await Promise.all(
+          phone_numbers.map((phone) =>
+            tx.phone_numbers.update({
+              where: { id: phone.id },
+              data: {
+                number: phone.number,
+              },
+            })
+          )
+        );
       }
     });
 

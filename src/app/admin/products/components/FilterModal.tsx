@@ -1,5 +1,6 @@
-import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+
+import { useApiFetch } from "@/hooks/useApiFetch";
 
 type Filters = {
   category: string;
@@ -13,32 +14,22 @@ type Props = {
   setShowFilterModal: (visible: boolean) => void;
 };
 
+type FilterData = {
+  categories: {
+    CategoryID: string;
+    Name: string;
+    subCategories: { CategoryContentID: string; Name: string }[];
+  }[];
+};
+
 const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
-  const [categories, setCategories] = useState<
-    {
-      CategoryID: string;
-      Name: string;
-      subCategories: { CategoryContentID: string; Name: string }[];
-    }[]
-  >([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: filterData, loading: isLoading } = useApiFetch<FilterData>(
+    "/api/admin/products/filterData"
+  );
 
-  const [tempFilters, setTempFilters] = useState<Filters>(filters);
+  const categories = filterData?.categories ?? [];
 
-  useEffect(() => {
-    const fetchCategoriesAndSubCategories = async () => {
-      try {
-        const { data } = await axios.get("/api/admin/products/filterData");
-        setCategories(data.categories); // API sends categories with subcategories
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCategoriesAndSubCategories();
-  }, []);
+  const [tempFilters, setTempFilters] = useState<Filters>(() => filters);
 
   const handleApplyFilters = () => {
     applyFilters(tempFilters);
@@ -67,6 +58,7 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
       <div className="relative w-full max-w-lg animate-fade-in rounded-xl bg-gray-800 p-6 text-white shadow-lg">
         {/* Close Button */}
         <button
+          type="button"
           onClick={() => setShowFilterModal(false)}
           className="absolute right-4 top-4 text-gray-400 transition hover:text-white"
         >
@@ -159,12 +151,14 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
             {/* Buttons */}
             <div className="mt-6 flex justify-end gap-4">
               <button
+                type="button"
                 onClick={handleResetFilters}
                 className="rounded-lg bg-gray-600 px-4 py-2 text-gray-300 transition hover:bg-gray-500"
               >
                 تنظیم مجدد
               </button>
               <button
+                type="button"
                 onClick={handleApplyFilters}
                 className="rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
               >

@@ -27,9 +27,10 @@ import {
 } from "antd";
 import moment from "jalali-moment";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState, useEffect, useRef, useMemo, Suspense } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from "react";
 
 import { AdminInvoice } from "@/app/admin/invoices/type";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import InvoiceModal from "../components/invoice/InvoiceModal";
 import ProductDrawer from "../components/ProductDrawer";
@@ -61,14 +62,12 @@ function MyBranchContent() {
 
   // Added for invoices section
   const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
-  const [filteredInvoices, setFilteredInvoices] = useState<AdminInvoice[]>([]);
+  // filteredInvoices is derived via useMemo
   const [standaloneWarranties, setStandaloneWarranties] = useState<any[]>([]);
-  const [filteredStandaloneWarranties, setFilteredStandaloneWarranties] = useState<any[]>([]);
+  // filteredStandaloneWarranties is derived via useMemo
   const [invoicesLoading, setInvoicesLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [searchOptions, setSearchOptions] = useState<{ value: string; label: React.ReactNode }[]>(
-    []
-  );
+  // searchOptions is derived via useMemo
   const [selectedInvoice, setSelectedInvoice] = useState<AdminInvoice | null>(null);
   const [selectedStandaloneWarranty, setSelectedStandaloneWarranty] = useState<any | null>(null);
   const [warrantySummary, setWarrantySummary] = useState<{
@@ -83,16 +82,7 @@ function MyBranchContent() {
   }>({});
   const quantityTimersRef = useRef<{ [key: number]: NodeJS.Timeout }>({});
 
-  // Initialize debounced quantities when products change
-  useEffect(() => {
-    const initialValues: { [key: number]: number } = {};
-    if (products && Array.isArray(products)) {
-      products.forEach((product) => {
-        initialValues[product.ProductId] = product.quantity;
-      });
-    }
-    setDebouncedQuantities(initialValues);
-  }, [products]);
+  // Products are used as fallback via `?? record.quantity` in the quantity cell
 
   // Clean up timers on unmount
   useEffect(() => {
@@ -120,6 +110,10 @@ function MyBranchContent() {
     pageSize: 10,
     total: 0,
   });
+
+  const { mutate: addProductMutate } = useApiMutation("post");
+  const { mutate: updateProductQtyMutate } = useApiMutation("put");
+  const { mutate: updateInvoiceStatusMutate } = useApiMutation("patch");
 
   // Define all fetch functions first
   const fetchAllProducts = async () => {
@@ -199,7 +193,10 @@ function MyBranchContent() {
       const response = await fetch(
         `/api/admin/branches/${branchId}/products?page=${page}&limit=${pageSize}`
       );
-      if (!response.ok) throw new Error("خطا در دریافت محصولات شعبه");
+      if (!response.ok) {
+        message.error("خطا در بارگذاری محصولات شعبه");
+        return;
+      }
       const responseData = await response.json();
 
       // Check if response is an array (new API format) or has pagination (old format)
@@ -286,28 +283,24 @@ function MyBranchContent() {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch invoices");
+        message.error("خطا در بارگذاری فاکتورها");
+        return;
       }
 
       const data = await response.json();
       if (data.invoices) {
         setInvoices(data.invoices);
-        setFilteredInvoices(data.invoices);
 
-        // Handle standalone warranties
         if (data.standaloneWarranties) {
           setStandaloneWarranties(data.standaloneWarranties);
-          setFilteredStandaloneWarranties(data.standaloneWarranties);
         } else {
           setStandaloneWarranties([]);
-          setFilteredStandaloneWarranties([]);
         }
 
         if (data.warrantySummary) {
           setWarrantySummary(data.warrantySummary);
         }
 
-        // Update pagination if available
         if (data.pagination) {
           setInvoicePagination({
             current: data.pagination.currentPage,
@@ -316,11 +309,8 @@ function MyBranchContent() {
           });
         }
       } else {
-        // Handle case where response doesn't have expected structure
         setInvoices([]);
-        setFilteredInvoices([]);
         setStandaloneWarranties([]);
-        setFilteredStandaloneWarranties([]);
       }
     } catch (error) {
       console.error("Error fetching invoices:", error);
@@ -386,19 +376,23 @@ function MyBranchContent() {
     }
   };
 
-  // Update search options for invoices and standalone warranties
-  useEffect(() => {
-    if (!searchText.trim()) {
-      setSearchOptions([]);
-      return;
+  const formatPersianDate = (date: string, formatDate: (d: string | Date | number) => string) => {
+    try {
+      return moment(date).locale("fa").format("jYYYY/jMM/jDD");
+    } catch (e) {
+      console.error(e);
+      return formatDate(date);
     }
+  };
+
+  // Derive search options and filter results via useMemo
+  const searchOptions = useMemo(() => {
+    if (!searchText.trim()) return [];
 
     const lowerCaseSearch = searchText.toLowerCase();
     const options: { value: string; label: React.ReactNode }[] = [];
 
-    // Add options from invoices
     if (invoices && Array.isArray(invoices) && invoices.length) {
-      // Add invoice numbers
       invoices.forEach((invoice) => {
         if (invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch)) {
           options.push({
@@ -413,7 +407,6 @@ function MyBranchContent() {
         }
       });
 
-      // Add customer names
       invoices.forEach((invoice) => {
         if (invoice.Fullname.toLowerCase().includes(lowerCaseSearch)) {
           options.push({
@@ -428,7 +421,6 @@ function MyBranchContent() {
         }
       });
 
-      // Add phone numbers
       invoices.forEach((invoice) => {
         if (invoice.Phonenumber && invoice.Phonenumber.includes(lowerCaseSearch)) {
           options.push({
@@ -443,7 +435,6 @@ function MyBranchContent() {
         }
       });
 
-      // Add warranty codes from invoices
       invoices.forEach((invoice) => {
         if (invoice.Invoice_Details && Array.isArray(invoice.Invoice_Details)) {
           invoice.Invoice_Details.forEach((detail) => {
@@ -479,7 +470,6 @@ function MyBranchContent() {
       });
     }
 
-    // Add standalone warranty codes
     if (
       standaloneWarranties &&
       Array.isArray(standaloneWarranties) &&
@@ -512,7 +502,6 @@ function MyBranchContent() {
           });
         }
 
-        // Add product names from standalone warranties
         if (warranty.Type && warranty.Type.toLowerCase().includes(lowerCaseSearch)) {
           options.push({
             value: warranty.Type,
@@ -527,26 +516,19 @@ function MyBranchContent() {
       });
     }
 
-    setSearchOptions(options);
+    return options;
   }, [searchText, invoices, standaloneWarranties]);
 
-  // Filter invoices and standalone warranties based on search text
-  useEffect(() => {
-    if (!searchText.trim()) {
-      setFilteredInvoices(invoices);
-      setFilteredStandaloneWarranties(standaloneWarranties);
-      return;
-    }
+  const filteredInvoices = useMemo(() => {
+    if (!searchText.trim()) return invoices;
 
     const lowerCaseSearch = searchText.toLowerCase();
 
-    // Search in invoice number, customer name, phone number, or warranty code
-    const filteredInvoicesResult = invoices.filter(
+    return invoices.filter(
       (invoice) =>
         invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch) ||
         invoice.Fullname.toLowerCase().includes(lowerCaseSearch) ||
         (invoice.Phonenumber && invoice.Phonenumber.includes(lowerCaseSearch)) ||
-        // Search in warranty codes
         (invoice.Invoice_Details &&
           invoice.Invoice_Details.some(
             (detail) =>
@@ -555,18 +537,19 @@ function MyBranchContent() {
               detail.warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)
           ))
     );
+  }, [searchText, invoices]);
 
-    setFilteredInvoices(filteredInvoicesResult);
+  const filteredStandaloneWarranties = useMemo(() => {
+    if (!searchText.trim()) return standaloneWarranties;
 
-    // Filter standalone warranties
-    const filteredWarrantiesResult = standaloneWarranties.filter(
+    const lowerCaseSearch = searchText.toLowerCase();
+
+    return standaloneWarranties.filter(
       (warranty) =>
         (warranty.warrantycode && warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)) ||
         (warranty.Type && warranty.Type.toLowerCase().includes(lowerCaseSearch))
     );
-
-    setFilteredStandaloneWarranties(filteredWarrantiesResult);
-  }, [searchText, invoices, standaloneWarranties]);
+  }, [searchText, standaloneWarranties]);
 
   // Function to get warranty status summary for an invoice
   const getWarrantyStatusSummary = (invoice: AdminInvoice) => {
@@ -595,75 +578,95 @@ function MyBranchContent() {
     return { active: activeWarranties, expired: expiredWarranties };
   };
 
-  // Update the fetchInitialData function to also get invoices
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      setLoading(true);
-      try {
-        // Fetch the current user's branch
-        const response = await fetch("/api/admin/branches/my");
+  async function loadInitialBranchData(
+    setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+    setError: React.Dispatch<React.SetStateAction<string | null>>,
+    setAuthError: React.Dispatch<React.SetStateAction<boolean>>,
+    setBranch: React.Dispatch<React.SetStateAction<Branch | null>>,
+    fetchBranchProducts: (branchId: number, page?: number, pageSize?: number) => Promise<void>,
+    fetchInvoices: () => Promise<void>,
+    fetchAllProducts: () => Promise<void>
+  ) {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/admin/branches/my");
 
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError("شما هنوز به عنوان شعبه تعریف نشده‌اید. لطفاً با مدیر سایت تماس بگیرید.");
-            setLoading(false);
-            return;
-          }
-
-          if (response.status === 401) {
-            setAuthError(true);
-            setError("دسترسی غیرمجاز - لطفا وارد حساب کاربری خود شوید.");
-            setLoading(false);
-            return;
-          }
-
-          throw new Error("خطا در دریافت اطلاعات شعبه");
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError("شما هنوز به عنوان شعبه تعریف نشده‌اید. لطفاً با مدیر سایت تماس بگیرید.");
+          setLoading(false);
+          return;
         }
 
+        if (response.status === 401) {
+          setAuthError(true);
+          setError("دسترسی غیرمجاز - لطفا وارد حساب کاربری خود شوید.");
+          setLoading(false);
+          return;
+        }
+
+        setError("خطا در دریافت اطلاعات شعبه");
+        setLoading(false);
+        return;
+      }
+
+      const branchData = await response.json();
+      setBranch(branchData);
+
+      await Promise.all([
+        fetchBranchProducts(branchData.branchid),
+        fetchInvoices(),
+        fetchAllProducts(),
+      ]);
+    } catch (error) {
+      console.error("Error fetching branch data:", error);
+      setError("خطا در بارگذاری اطلاعات شعبه");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function doAutoRefresh(
+    setRefreshing: React.Dispatch<React.SetStateAction<boolean>>,
+    setBranch: React.Dispatch<React.SetStateAction<Branch | null>>,
+    fetchBranchProductsRef: React.MutableRefObject<
+      (branchId: number, page?: number, pageSize?: number) => Promise<void>
+    >
+  ) {
+    try {
+      setRefreshing(true);
+      const response = await fetch("/api/admin/branches/my");
+      if (response.ok) {
         const branchData = await response.json();
         setBranch(branchData);
-
-        // Fetch branch products
-        await fetchBranchProducts(branchData.branchid);
-
-        // Fetch branch invoices
-        await fetchInvoices();
-
-        // Fetch all products for the product drawer
-        await fetchAllProducts();
-      } catch (error) {
-        console.error("Error fetching branch data:", error);
-        setError("خطا در بارگذاری اطلاعات شعبه");
-      } finally {
-        setLoading(false);
+        if (branchData && branchData.branchid) {
+          await fetchBranchProductsRef.current(branchData.branchid);
+        }
+      } else {
+        console.error("Failed to refresh branch data:", response.status);
       }
-    };
+    } catch (error) {
+      console.error("Error auto-refreshing branch data:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
-    fetchInitialData();
+  // Update the fetchInitialData function to also get invoices
+  useEffect(() => {
+    loadInitialBranchData(
+      setLoading,
+      setError,
+      setAuthError,
+      setBranch,
+      fetchBranchProducts,
+      fetchInvoices,
+      fetchAllProducts
+    );
 
     // Set up auto-refresh interval (30 seconds)
-    const intervalId = setInterval(async () => {
-      try {
-        setRefreshing(true);
-
-        // Fetch branch data
-        const response = await fetch("/api/admin/branches/my");
-        if (response.ok) {
-          const branchData = await response.json();
-          setBranch(branchData);
-
-          // Fetch products for the current branch
-          if (branchData && branchData.branchid) {
-            await fetchBranchProductsRef.current(branchData.branchid);
-          }
-        } else {
-          console.error("Failed to refresh branch data:", response.status);
-        }
-      } catch (error) {
-        console.error("Error auto-refreshing branch data:", error);
-      } finally {
-        setRefreshing(false);
-      }
+    const intervalId = setInterval(() => {
+      doAutoRefresh(setRefreshing, setBranch, fetchBranchProductsRef);
     }, 30000);
 
     // Clean up interval on component unmount
@@ -684,36 +687,22 @@ function MyBranchContent() {
   const handleAddProduct = async () => {
     if (!branch || !selectedProduct) return;
 
-    try {
-      const response = await fetch(`/api/admin/branches/${branch.branchid}/products`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId: selectedProduct,
-          quantity: productQuantity,
-        }),
-      });
-
-      if (!response.ok) throw new Error("خطا در افزودن محصول");
-
+    const result = await addProductMutate(`/api/admin/branches/${branch.branchid}/products`, {
+      productId: selectedProduct,
+      quantity: productQuantity,
+    });
+    if (result) {
       message.success("محصول با موفقیت به شعبه اضافه شد");
       productForm.resetFields();
       setSelectedProduct(null);
       setProductQuantity(1);
-
-      // Update branch products
       await fetchBranchProducts(branch.branchid);
-
-      // Refresh branch data to update product counts and totals
       const branchResponse = await fetch("/api/admin/branches/my");
       if (branchResponse.ok) {
         const branchData = await branchResponse.json();
         setBranch(branchData);
       }
-    } catch (error) {
-      console.error("Error adding product:", error);
+    } else {
       message.error("خطا در افزودن محصول به شعبه");
     }
   };
@@ -740,30 +729,19 @@ function MyBranchContent() {
   const handleUpdateProductQuantity = async (productId: number, quantity: number) => {
     if (!branch) return;
 
-    try {
-      const response = await fetch(`/api/admin/branches/${branch.branchid}/products/${productId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ quantity }),
-      });
-
-      if (!response.ok) throw new Error("خطا در بروزرسانی تعداد محصول");
-
+    const result = await updateProductQtyMutate(
+      `/api/admin/branches/${branch.branchid}/products/${productId}`,
+      { quantity }
+    );
+    if (result) {
       message.success("تعداد محصول با موفقیت بروزرسانی شد");
-
-      // Update branch products
       await fetchBranchProducts(branch.branchid);
-
-      // Refresh branch data to update product counts and totals
       const branchResponse = await fetch("/api/admin/branches/my");
       if (branchResponse.ok) {
         const branchData = await branchResponse.json();
         setBranch(branchData);
       }
-    } catch (error) {
-      console.error("Error updating product quantity:", error);
+    } else {
       message.error("خطا در بروزرسانی تعداد محصول");
     }
   };
@@ -786,46 +764,27 @@ function MyBranchContent() {
   };
 
   // Add function to update invoice status
-  const updateInvoiceStatus = async (invoice: AdminInvoice, checked: boolean) => {
-    try {
-      const response = await fetch(`/api/admin/invoices?id=${invoice.Invoiceid}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          checked: checked,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("خطا در بروزرسانی وضعیت فاکتور");
-      }
-
-      // Update the invoice in state
-      const updatedInvoices = invoices.map((inv) => {
-        if (inv.Invoiceid === invoice.Invoiceid) {
-          return { ...inv, Checked: checked };
-        }
-        return inv;
-      });
-
-      setInvoices(updatedInvoices);
-      setFilteredInvoices(
-        filteredInvoices.map((inv) => {
+  const updateInvoiceStatus = useCallback(
+    async (invoice: AdminInvoice, checked: boolean) => {
+      const result = await updateInvoiceStatusMutate(
+        `/api/admin/invoices?id=${invoice.Invoiceid}`,
+        { checked }
+      );
+      if (result) {
+        const updatedInvoices = invoices.map((inv) => {
           if (inv.Invoiceid === invoice.Invoiceid) {
             return { ...inv, Checked: checked };
           }
           return inv;
-        })
-      );
-
-      message.success("وضعیت فاکتور با موفقیت بروزرسانی شد");
-    } catch (error) {
-      console.error("Error updating invoice status:", error);
-      message.error("خطا در بروزرسانی وضعیت فاکتور");
-    }
-  };
+        });
+        setInvoices(updatedInvoices);
+        message.success("وضعیت فاکتور با موفقیت بروزرسانی شد");
+      } else {
+        message.error("خطا در بروزرسانی وضعیت فاکتور");
+      }
+    },
+    [invoices]
+  );
 
   const productColumns = [
     {
@@ -983,6 +942,7 @@ function MyBranchContent() {
         className: "text-center font-medium",
         render: (_: any, invoice: AdminInvoice) => (
           <Button
+            htmlType="button"
             type="primary"
             className="flex items-center border-blue-700 bg-blue-600 hover:bg-blue-700"
             onClick={() => setSelectedInvoice(invoice)}
@@ -1015,6 +975,7 @@ function MyBranchContent() {
                   ممکن است نشست کاری شما منقضی شده باشد. لطفاً دوباره وارد شوید.
                 </p>
                 <Button
+                  htmlType="button"
                   type="primary"
                   onClick={() => router.push("/auth/login")}
                   className="bg-blue-500 hover:bg-blue-600"
@@ -1128,6 +1089,7 @@ function MyBranchContent() {
                     <div className="flex items-center justify-between">
                       <span className="text-lg font-medium">محصولات شعبه</span>
                       <Button
+                        htmlType="button"
                         type="primary"
                         onClick={() => setProductDrawerVisible(true)}
                         className="flex items-center justify-center border-blue-700 bg-blue-600 hover:bg-blue-700"
@@ -1240,6 +1202,7 @@ function MyBranchContent() {
                       </h2>
                       <div className="flex items-center gap-2">
                         <Button
+                          htmlType="button"
                           onClick={() => fetchInvoices()}
                           className="flex items-center border-blue-600 bg-blue-600 text-white hover:bg-blue-700"
                           loading={invoicesLoading}
@@ -1248,6 +1211,7 @@ function MyBranchContent() {
                           به‌روزرسانی
                         </Button>
                         <Button
+                          htmlType="button"
                           type="primary"
                           onClick={handleCreateInvoice}
                           className="flex items-center bg-green-600 hover:bg-green-700"
@@ -1469,37 +1433,22 @@ function MyBranchContent() {
                               dataIndex: "startdate",
                               key: "startdate",
                               className: "text-right font-medium",
-                              render: (date: string) => {
-                                try {
-                                  // Try to use moment to format into Persian date
-                                  const persianDate = moment(date)
-                                    .locale("fa")
-                                    .format("jYYYY/jMM/jDD");
-                                  return <span className="text-gray-200">{persianDate}</span>;
-                                } catch (e) {
-                                  console.error(e);
-
-                                  return <span className="text-gray-200">{formatDate(date)}</span>;
-                                }
-                              },
+                              render: (date: string) => (
+                                <span className="text-gray-200">
+                                  {formatPersianDate(date, formatDate)}
+                                </span>
+                              ),
                             },
                             {
                               title: "تاریخ انقضا",
                               dataIndex: "expirydate",
                               key: "expirydate",
                               className: "text-right font-medium",
-                              render: (date: string) => {
-                                try {
-                                  // Try to use moment to format into Persian date
-                                  const persianDate = moment(date)
-                                    .locale("fa")
-                                    .format("jYYYY/jMM/jDD");
-                                  return <span className="text-gray-200">{persianDate}</span>;
-                                } catch (e) {
-                                  console.error(e);
-                                  return <span className="text-gray-200">{formatDate(date)}</span>;
-                                }
-                              },
+                              render: (date: string) => (
+                                <span className="text-gray-200">
+                                  {formatPersianDate(date, formatDate)}
+                                </span>
+                              ),
                             },
                             {
                               title: "وضعیت",
@@ -1525,6 +1474,7 @@ function MyBranchContent() {
                               className: "text-center font-medium",
                               render: (_, warranty) => (
                                 <Button
+                                  htmlType="button"
                                   type="primary"
                                   className="flex items-center border-blue-700 bg-blue-600 hover:bg-blue-700"
                                   onClick={() => {

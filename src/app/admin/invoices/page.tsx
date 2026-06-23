@@ -4,10 +4,12 @@ export const dynamic = "force-dynamic";
 
 import { SearchOutlined } from "@ant-design/icons";
 import { Input, Button, Select } from "antd";
-import axios from "axios";
 import jalaali from "jalali-moment";
-import { useEffect, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
+
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import AdminInvoiceDetailsModal from "./components/ui/AdminInvoiceDetailsModal";
 import AdminPhoneNumberModal from "./components/ui/AdminPhoneNumberModal";
@@ -19,9 +21,6 @@ const { Option } = Select;
 
 const AdminInvoicesPage = () => {
   const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
-  const [filteredInvoices, setFilteredInvoices] = useState<AdminInvoice[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<AdminInvoice | null>(null);
   const [showPhoneNumberModal, setShowPhoneNumberModal] = useState<AdminInvoice | null>(null);
 
@@ -31,57 +30,42 @@ const AdminInvoicesPage = () => {
   const [searchMode, setSearchMode] = useState<"basic" | "warranty">("basic");
   const [isCheckingWarranties, setIsCheckingWarranties] = useState(false);
 
-  // Function to fetch invoices
-  const fetchInvoices = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("/api/admin/invoices");
-      if (!response.ok) {
-        throw new Error("Failed to fetch invoices.");
-      }
-      const data: AdminInvoice[] = await response.json();
-      setInvoices(data);
-      setFilteredInvoices(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { mutate: checkWarrantyMutate } = useApiMutation<{ updatedCount: number }>("post");
+  const { mutate: updateStatusMutate } = useApiMutation("patch");
+  const { mutate: deleteInvoiceMutate } = useApiMutation("delete");
 
-  // Initial data fetch
-  useEffect(() => {
-    fetchInvoices();
-  }, []);
+  const {
+    data: invoicesData,
+    loading,
+    error,
+    refetch,
+  } = useApiFetch<AdminInvoice[]>("/api/admin/invoices");
+
+  // Sync API data on first load (render-body setState is safe and avoids effect cascade)
+  const initialSyncDone = useRef(false);
+  if (invoicesData && !initialSyncDone.current) {
+    initialSyncDone.current = true;
+    setInvoices(invoicesData);
+  }
 
   // Check and update warranty status
   const checkWarrantyStatus = async () => {
-    try {
-      setIsCheckingWarranties(true);
-      const response = await fetch("/api/admin/warranty/check-status", {
-        method: "POST",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to check warranty status");
-      }
-
-      const data = await response.json();
+    setIsCheckingWarranties(true);
+    const data = await checkWarrantyMutate(
+      "/api/admin/warranty/check-status"
+    );
+    if (data) {
       const updatedCount = data.updatedCount || 0;
-
       if (updatedCount > 0) {
         toast.success(`${updatedCount} گارانتی‌ بروزرسانی شدند`);
-        // Refresh invoices to get updated warranty data
-        fetchInvoices();
+        refetch();
       } else {
         toast.success("تمام گارانتی‌ها به روز هستند");
       }
-    } catch (error) {
-      console.error("Error checking warranty status:", error);
+    } else {
       toast.error("خطا در بررسی وضعیت گارانتی‌ها");
-    } finally {
-      setIsCheckingWarranties(false);
     }
+    setIsCheckingWarranties(false);
   };
 
   // Calculate time remaining before invoice expires (48 hours after creation)
@@ -139,7 +123,7 @@ const AdminInvoicesPage = () => {
           }
         }
       } else {
-        throw new Error("Unsupported date format");
+        return { hours: 0, minutes: 0, isExpired: true };
       }
 
       // Set the current time for comparison
@@ -270,24 +254,16 @@ const AdminInvoicesPage = () => {
   };
 
   // Filter invoices based on search text
-  useEffect(() => {
-    if (!searchText.trim()) {
-      setFilteredInvoices(invoices);
-      return;
-    }
+  const filteredInvoices = useMemo(() => {
+    if (!searchText.trim()) return invoices;
 
-    let filtered;
     const lowerCaseSearch = searchText.toLowerCase();
 
     if (searchMode === "warranty") {
-      // Search by warranty code
-      filtered = invoices.filter((invoice) => {
-        // Check if the invoice has details with warranty
+      return invoices.filter((invoice) => {
         if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
           return false;
         }
-
-        // Check if any product in the invoice has the searched warranty code
         return invoice.Invoice_Details.some(
           (detail) =>
             detail.warranty &&
@@ -295,48 +271,55 @@ const AdminInvoicesPage = () => {
             detail.warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)
         );
       });
-    } else {
-      // Regular search by invoice ID, customer name, or phone
-      filtered = invoices.filter(
-        (invoice) =>
-          invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch) ||
-          invoice.Fullname.toLowerCase().includes(lowerCaseSearch) ||
-          invoice.Phonenumber.includes(searchText)
-      );
     }
 
-    setFilteredInvoices(filtered);
+    return invoices.filter(
+      (invoice) =>
+        invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch) ||
+        invoice.Fullname.toLowerCase().includes(lowerCaseSearch) ||
+        invoice.Phonenumber.includes(searchText)
+    );
   }, [searchText, searchMode, invoices]);
+
+  async function refreshInvoiceAfterWarrantyUpdate(
+    selectedInvoice: AdminInvoice,
+    setSelectedInvoice: React.Dispatch<React.SetStateAction<AdminInvoice | null>>,
+    setInvoices: React.Dispatch<React.SetStateAction<AdminInvoice[]>>
+  ) {
+    try {
+      const response = await fetch(`/api/admin/invoices/${selectedInvoice.Invoiceid}`);
+      if (response.ok) {
+        const updatedInvoice = await response.json();
+        setSelectedInvoice(updatedInvoice);
+        setInvoices((prev) =>
+          prev.map((inv) => (inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv))
+        );
+      }
+    } catch (error) {
+      console.error("Failed to refresh invoice data:", error);
+    }
+  }
 
   // Handler to update invoice status
   const handleStatusChange = async (Invoiceid: string, status: boolean) => {
-    const payload = { checked: status };
-
-    try {
-      const response = await axios.patch(`/api/admin/invoices?id=${Invoiceid}`, payload);
-
-      if (!response) {
-        throw new Error("Failed to update invoice status.");
-      }
-      await fetchInvoices(); // Refresh the invoice list
+    const result = await updateStatusMutate(`/api/admin/invoices?id=${Invoiceid}`, {
+      checked: status,
+    });
+    if (result) {
+      refetch();
       toast.success("وضعیت با موفقیت آپدیت شد");
-    } catch (error) {
-      console.error(error);
+    } else {
       toast.error("آپدیت فاکتور با شکست مواجه شد");
     }
   };
 
   // Handler to delete an invoice
   const handleDelete = async (Invoiceid: string) => {
-    try {
-      const response = await axios.delete(`/api/admin/invoices?invoiceId=${Invoiceid}`);
-      if (!response) {
-        throw new Error("Failed to delete invoice.");
-      }
-      await fetchInvoices(); // Refresh the invoice list
+    const result = await deleteInvoiceMutate(`/api/admin/invoices?invoiceId=${Invoiceid}`);
+    if (result) {
+      refetch();
       toast.success("فاکتور با موفقیت حذف شد");
-    } catch (error) {
-      console.error(error);
+    } else {
       toast.error("حذف فاکتور با شکست مواجه شد");
     }
   };
@@ -377,10 +360,7 @@ const AdminInvoicesPage = () => {
               <Select
                 value={searchMode}
                 onChange={(value) => {
-                  setSearchMode(value as "basic" | "warranty");
-                  if (!searchText.trim()) {
-                    setFilteredInvoices(invoices);
-                  }
+                  setSearchMode(value);
                 }}
                 className="search-select"
                 popupClassName="bg-gray-800 text-white"
@@ -408,10 +388,6 @@ const AdminInvoicesPage = () => {
                 value={searchText}
                 onChange={(e) => {
                   setSearchText(e.target.value);
-                  // Clear search results when input is empty
-                  if (!e.target.value.trim()) {
-                    setFilteredInvoices(invoices);
-                  }
                 }}
                 className="search-input"
                 style={{
@@ -430,11 +406,7 @@ const AdminInvoicesPage = () => {
                 icon={<SearchOutlined style={{ fontSize: "14px" }} />}
                 type="primary"
                 onClick={() => {
-                  if (searchText.trim()) {
-                    // Search is handled by the useEffect
-                  } else {
-                    setFilteredInvoices(invoices);
-                  }
+                  // Search is handled by the useMemo filter
                 }}
                 className="search-button"
                 style={{
@@ -453,6 +425,7 @@ const AdminInvoicesPage = () => {
             </div>
 
             <Button
+              htmlType="button"
               onClick={checkWarrantyStatus}
               loading={isCheckingWarranties}
               className="w-full border-blue-800 bg-blue-700 px-3 text-white hover:bg-blue-600 sm:w-auto"
@@ -584,24 +557,28 @@ const AdminInvoicesPage = () => {
 
                     <td className="flex flex-wrap justify-center gap-2 px-6 py-4">
                       <button
+                        type="button"
                         onClick={() => handleViewInvoice(invoice)}
                         className="flex items-center justify-center rounded-lg bg-blue-700 px-2 py-1 text-white transition-all hover:bg-blue-600"
                       >
                         مشاهده فاکتور
                       </button>
                       <button
+                        type="button"
                         className="flex items-center justify-center rounded-lg bg-green-700 px-2 py-1 text-white transition-all hover:bg-green-600"
                         onClick={() => handlePhoneNumberClick(invoice)}
                       >
                         تماس با مشتری
                       </button>
                       <button
+                        type="button"
                         className="flex items-center justify-center rounded-lg bg-orange-700 px-2 py-1 text-white transition-all hover:bg-orange-600"
                         onClick={() => setStatusModalInvoice(invoice)}
                       >
                         تغییر وضعیت
                       </button>
                       <button
+                        type="button"
                         className="flex items-center justify-center rounded-lg bg-red-700 px-2 py-1 text-white transition-all hover:bg-red-600"
                         onClick={() => setDeleteModalInvoice(invoice)}
                       >
@@ -617,32 +594,11 @@ const AdminInvoicesPage = () => {
                 invoice={selectedInvoice}
                 onClose={() => setSelectedInvoice(null)}
                 onWarrantyUpdate={async () => {
-                  // Fetch updated invoice data
-                  try {
-                    const response = await fetch(
-                      `/api/admin/invoices/${selectedInvoice.Invoiceid}`
-                    );
-                    if (response.ok) {
-                      const updatedInvoice = await response.json();
-
-                      // Update the selected invoice with fresh data
-                      setSelectedInvoice(updatedInvoice);
-
-                      // Also update the invoice in the invoices list
-                      setInvoices((prev) =>
-                        prev.map((inv) =>
-                          inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv
-                        )
-                      );
-                      setFilteredInvoices((prev) =>
-                        prev.map((inv) =>
-                          inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv
-                        )
-                      );
-                    }
-                  } catch (error) {
-                    console.error("Failed to refresh invoice data:", error);
-                  }
+                  await refreshInvoiceAfterWarrantyUpdate(
+                    selectedInvoice,
+                    setSelectedInvoice,
+                    setInvoices
+                  );
                 }}
               />
             )}

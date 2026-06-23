@@ -10,8 +10,10 @@ import { useDropzone } from "react-dropzone";
 import { BiTrash } from "react-icons/bi";
 import { DatePicker } from "zaman";
 
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
+
 const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
-  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -26,46 +28,31 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Add this useEffect to load existing data
+  const projectUrl = id ? `/api/projects/${id}` : null;
+  const { data: projectData, loading: projectLoading } = useApiFetch(projectUrl);
+  const isLoading = projectUrl ? projectLoading || !projectData : false;
+  const { mutate: saveProjectMutate } = useApiMutation("put");
+
+  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
-    if (id) {
-      const fetchProject = async () => {
-        try {
-          setIsLoading(true);
-          const response = await fetch(`/api/projects/${id}`);
-          const data = await response.json();
-
-          setFormData({
-            title: data.project.Title,
-            description: data.project.Description,
-            slug: data.project.Slug,
-            isActive: data.project.IsActive,
-            date: data.project.date,
-            city: data.project.city,
-          });
-
-          setMainImage(data.project.Main_img_URL);
-
-          const images = data.media
-            .filter((m: any) => m.MediaType === "image")
-            .map((m: any) => m.MediaURL);
-          const videos = data.media
-            .filter((m: any) => m.MediaType === "video")
-            .map((m: any) => m.MediaURL);
-
-          setDetailImages(images);
-          setVideos(videos);
-        } catch (error) {
-          console.error("Error loading project:", error);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchProject();
-    } else {
-      setIsLoading(false);
+    if (projectData) {
+      setFormData({
+        title: projectData.project.Title,
+        description: projectData.project.Description,
+        slug: projectData.project.Slug,
+        isActive: projectData.project.IsActive,
+        date: projectData.project.date,
+        city: projectData.project.city,
+      });
+      setMainImage(projectData.project.Main_img_URL);
+      setDetailImages(
+        projectData.media.filter((m: any) => m.MediaType === "image").map((m: any) => m.MediaURL)
+      );
+      setVideos(
+        projectData.media.filter((m: any) => m.MediaType === "video").map((m: any) => m.MediaURL)
+      );
     }
-  }, [id]);
+  }, [projectData]);
 
   // Update handleInputChange
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -109,59 +96,46 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
 
     setIsSubmitting(true);
 
-    try {
-      const data = new FormData();
-      data.append("projectId", id?.toString() || "");
-      data.append("title", formData.title);
-      data.append("description", formData.description);
-      data.append("slug", formData.slug);
-      data.append("isActive", formData.isActive.toString());
-      data.append("date", formData.date);
-      data.append("city", formData.city);
+    const formDataToSend = new FormData();
+    formDataToSend.append("projectId", id?.toString() || "");
+    formDataToSend.append("title", formData.title);
+    formDataToSend.append("description", formData.description);
+    formDataToSend.append("slug", formData.slug);
+    formDataToSend.append("isActive", formData.isActive.toString());
+    formDataToSend.append("date", formData.date);
+    formDataToSend.append("city", formData.city);
 
-      // Handle main image - send existing URL or new file
-      if (typeof mainImage === "string") {
-        data.append("existingMainImage", mainImage);
-      } else if (mainImage) {
-        data.append("mainImage", mainImage);
-      }
-
-      // Handle detail images
-      detailImages.forEach((item) => {
-        if (typeof item === "string") {
-          data.append("existingDetailImages", item);
-        } else {
-          data.append("detailImages", item);
-        }
-      });
-
-      // Handle videos
-      videos.forEach((item) => {
-        if (typeof item === "string") {
-          data.append("existingVideos", item);
-        } else {
-          data.append("videos", item);
-        }
-      });
-
-      const response = await fetch(`/api/projects/${id}`, {
-        method: "PUT",
-        body: data,
-      });
-
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
-
-      onClose();
-    } catch (error) {
-      setErrors((prev) => ({
-        ...prev,
-        form: "خطا در ذخیره پروژه: " + (error instanceof Error ? error.message : "Unknown error"),
-      }));
-    } finally {
-      setIsSubmitting(false);
+    if (typeof mainImage === "string") {
+      formDataToSend.append("existingMainImage", mainImage);
+    } else if (mainImage) {
+      formDataToSend.append("mainImage", mainImage);
     }
+
+    detailImages.forEach((item) => {
+      if (typeof item === "string") {
+        formDataToSend.append("existingDetailImages", item);
+      } else {
+        formDataToSend.append("detailImages", item);
+      }
+    });
+
+    videos.forEach((item) => {
+      if (typeof item === "string") {
+        formDataToSend.append("existingVideos", item);
+      } else {
+        formDataToSend.append("videos", item);
+      }
+    });
+
+    const res = await saveProjectMutate(`/api/projects/${id}`, formDataToSend);
+
+    if (res) {
+      onClose();
+    } else {
+      setErrors((prev) => ({ ...prev, form: "خطا در ذخیره پروژه." }));
+    }
+
+    setIsSubmitting(false);
   };
 
   // Main image dropzone
@@ -330,6 +304,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-2xl font-bold">ساخت پروژه جدید</h2>
               <button
+                type="button"
                 onClick={onClose}
                 className="rounded-full p-2 transition-colors hover:bg-gray-700"
               >
@@ -412,7 +387,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
                     <div className="group relative">
                       <img
                         src={getPreviewUrl(mainImage)}
-                        alt="Main"
+                        alt="تصویر اصلی"
                         className="mx-auto max-h-48 rounded-lg"
                       />
                       <button
@@ -521,12 +496,14 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
               {/* Buttons */}
               <div className="flex justify-end gap-4">
                 <button
+                  type="button"
                   onClick={onClose}
                   className="rounded-lg bg-gray-600 px-6 py-2 transition-colors hover:bg-gray-500"
                 >
                   بستن
                 </button>
                 <button
+                  type="button"
                   onClick={handleSubmit}
                   disabled={isSubmitting}
                   className="rounded-lg bg-blue-600 px-6 py-2 transition-colors hover:bg-blue-500 disabled:opacity-50"

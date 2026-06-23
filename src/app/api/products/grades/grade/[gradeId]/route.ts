@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // PUT /api/products/grades/grade/[gradeId] - Update a specific grade
-export async function PUT(request: NextRequest, context: { params: { gradeId: string } }) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ gradeId: string }> }) {
   try {
     const { params } = context;
-    const gradeId = parseInt(params.gradeId);
+    const gradeId = parseInt((await params).gradeId);
     const { grade, price, discount } = await request.json();
 
     if (!grade || !price) {
@@ -56,10 +56,13 @@ export async function PUT(request: NextRequest, context: { params: { gradeId: st
 }
 
 // DELETE /api/products/grades/grade/[gradeId] - Delete a specific grade
-export async function DELETE(_request: NextRequest, context: { params: { gradeId: string } }) {
+export async function DELETE(
+  _request: NextRequest,
+  context: { params: Promise<{ gradeId: string }> }
+) {
   try {
     const { params } = context;
-    const gradeId = parseInt(params.gradeId);
+    const gradeId = parseInt((await params).gradeId);
 
     // Check if grade exists
     const grade = await prisma.productGrade.findUnique({

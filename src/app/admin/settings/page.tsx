@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
 import { useUser } from "@/context/UserContext";
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +22,6 @@ const SettingsPage = () => {
   const [searchResults, setSearchResults] = useState<Client[]>([]);
   const [selectedUser, setSelectedUser] = useState<Client | null>(null);
   const [loading, setLoading] = useState(false);
-  const [admins, setAdmins] = useState<Client[]>([]);
 
   // Password change states
   const [currentPassword, setCurrentPassword] = useState("");
@@ -30,20 +31,14 @@ const SettingsPage = () => {
 
   const { logout } = useUser();
 
-  // Fetch all admins on component mount
-  useEffect(() => {
-    const fetchAdmins = async () => {
-      try {
-        const response = await fetch("/api/admin/users/admins");
-        const data = await response.json();
-        setAdmins(data);
-      } catch (error) {
-        console.error(error);
-        toast.error("خطا در دریافت اطلاعات ادمین‌ها.");
-      }
-    };
-    fetchAdmins();
-  }, []);
+  const { data: adminsData, refetch: refetchAdmins } =
+    useApiFetch<Client[]>("/api/admin/users/admins");
+  const admins = adminsData || [];
+
+  const { mutate: searchUsersMutate } = useApiMutation("post");
+  const { mutate: makeAdminMutate } = useApiMutation("post");
+  const { mutate: demoteAdminMutate } = useApiMutation("post");
+  const { mutate: changePasswordMutate } = useApiMutation("patch");
 
   const handlePasswordChange = async () => {
     // Validation
@@ -64,36 +59,22 @@ const SettingsPage = () => {
 
     setChangingPassword(true);
 
-    try {
-      const response = await fetch("/api/auth/change-password", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-        }),
-      });
+    const data = await changePasswordMutate("/api/auth/change-password", {
+      currentPassword,
+      newPassword,
+    });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        toast.success("رمز عبور با موفقیت تغییر کرد.");
-        // Clear password fields
-        setCurrentPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-        logout();
-      } else {
-        toast.error(data.message || "خطا در تغییر رمز عبور.");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("خطا در ارتباط با سرور.");
-    } finally {
-      setChangingPassword(false);
+    if (data) {
+      toast.success("رمز عبور با موفقیت تغییر کرد.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      logout();
+    } else {
+      toast.error("خطا در تغییر رمز عبور.");
     }
+
+    setChangingPassword(false);
   };
 
   const handleSearch = async () => {
@@ -104,89 +85,54 @@ const SettingsPage = () => {
 
     setLoading(true);
 
-    try {
-      const response = await fetch("/api/admin/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ phoneNumber }),
-      });
-      const data = await response.json();
+    const data = await searchUsersMutate("/api/admin/users", { phoneNumber });
 
+    if (data) {
       if (data.length === 0) {
         toast.error("کاربری با این شماره تلفن یافت نشد.");
       } else {
         setSearchResults(data);
       }
-    } catch (error) {
-      console.error(error);
-
+    } else {
       toast.error("خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.");
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
   const handleMakeAdmin = async () => {
     if (selectedUser) {
       setLoading(true);
 
-      try {
-        const response = await fetch("/api/admin/users", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId: selectedUser.UserID }),
-        });
-        const data = await response.json();
+      const data = await makeAdminMutate("/api/admin/users", { userId: selectedUser.UserID });
 
-        if (data.UserID) {
-          toast.success("کاربر با موفقیت ادمین شد!");
-          setSearchResults([]);
-          setSelectedUser(null);
-          setPhoneNumber("");
-          // Refresh the admin list
-          const adminsResponse = await fetch("/api/admin/users/admins");
-          const adminsData = await adminsResponse.json();
-          setAdmins(adminsData);
-        }
-      } catch (error) {
-        console.error(error);
+      if (data?.UserID) {
+        toast.success("کاربر با موفقیت ادمین شد!");
+        setSearchResults([]);
+        setSelectedUser(null);
+        setPhoneNumber("");
+        refetchAdmins();
+      } else {
         toast.error("خطا در بروزرسانی نقش کاربر.");
-      } finally {
-        setLoading(false);
       }
+
+      setLoading(false);
     }
   };
 
   const handleDemoteAdmin = async (userId: number) => {
     setLoading(true);
 
-    try {
-      const response = await fetch("/api/admin/users/admins", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId }),
-      });
-      const data = await response.json();
+    const data = await demoteAdminMutate("/api/admin/users/admins", { userId });
 
-      if (data.UserID) {
-        toast.success("کاربر با موفقیت به کاربر عادی تبدیل شد!");
-        // Refresh the admin list
-        const adminsResponse = await fetch("/api/admin/users/admins");
-        const adminsData = await adminsResponse.json();
-        setAdmins(adminsData);
-      }
-    } catch (error) {
-      console.error(error);
+    if (data?.UserID) {
+      toast.success("کاربر با موفقیت به کاربر عادی تبدیل شد!");
+      refetchAdmins();
+    } else {
       toast.error("خطا در بروزرسانی نقش کاربر.");
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
   return (
@@ -223,6 +169,7 @@ const SettingsPage = () => {
                 className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
+                type="button"
                 onClick={handlePasswordChange}
                 disabled={changingPassword}
                 className="rounded-lg bg-green-500 p-2 text-white transition-colors hover:bg-green-600 disabled:bg-green-300"
@@ -248,6 +195,7 @@ const SettingsPage = () => {
 
               {/* Search Button */}
               <button
+                type="button"
                 onClick={handleSearch}
                 disabled={loading}
                 className="rounded-lg bg-blue-500 p-2 text-white transition-colors hover:bg-blue-600 disabled:bg-blue-300"
@@ -285,6 +233,7 @@ const SettingsPage = () => {
                 {/* Make Admin Button */}
                 {selectedUser && (
                   <button
+                    type="button"
                     onClick={handleMakeAdmin}
                     disabled={loading}
                     className="mt-4 w-full rounded-lg bg-green-500 p-2 text-white transition-colors hover:bg-green-600 disabled:bg-green-300"
@@ -316,6 +265,7 @@ const SettingsPage = () => {
                       <p className="text-sm text-gray-400">{admin.PhoneNumber}</p>
                     </div>
                     <button
+                      type="button"
                       onClick={() => handleDemoteAdmin(admin.UserID)}
                       disabled={loading}
                       className="rounded-lg bg-red-500 p-2 text-white transition-colors hover:bg-red-600 disabled:bg-red-300"

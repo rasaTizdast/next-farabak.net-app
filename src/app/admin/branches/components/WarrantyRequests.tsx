@@ -30,6 +30,51 @@ interface WarrantyRequestsProps {
   isTabActive?: boolean;
 }
 
+async function fetchWarrantyRequests(
+  page: number,
+  pageSize: number,
+  skipCheck: boolean,
+  isTabActive: boolean,
+  dataFetched: boolean,
+  lastFetchTime: number,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setRequests: React.Dispatch<React.SetStateAction<WarrantyRequest[]>>,
+  setPagination: React.Dispatch<React.SetStateAction<{ current: number; pageSize: number; total: number; totalPages: number }>>,
+  setDataFetched: React.Dispatch<React.SetStateAction<boolean>>,
+  setLastFetchTime: React.Dispatch<React.SetStateAction<number>>,
+  setError: React.Dispatch<React.SetStateAction<string>>
+) {
+  if (!isTabActive && !skipCheck) return;
+  const now = Date.now();
+  if (!skipCheck && now - lastFetchTime < 10000 && dataFetched) return;
+
+  try {
+    setLoading(true);
+    const response = await fetch(`/api/admin/warranty/requests?page=${page}&limit=${pageSize}`);
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch warranty requests");
+    }
+
+    const data = await response.json();
+
+    setRequests(data.requests);
+    setPagination({
+      current: data.pagination.currentPage,
+      pageSize: data.pagination.pageSize,
+      total: data.pagination.totalCount,
+      totalPages: data.pagination.totalPages,
+    });
+    setDataFetched(true);
+    setLastFetchTime(now);
+  } catch (err: any) {
+    console.error("[Client] Error fetching warranty requests:", err);
+    setError(err.message || "خطا در دریافت درخواست‌های گارانتی");
+  } finally {
+    setLoading(false);
+  }
+}
+
 export default function WarrantyRequests({ isTabActive = true }: WarrantyRequestsProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -45,38 +90,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
 
   const fetchRequests = useCallback(
     async (page: number = 1, pageSize: number = 10, force: boolean = false) => {
-      // Skip if not active and not forced
-      if (!isTabActive && !force) return;
-
-      // Skip if we've fetched in the last 10 seconds and not forced
-      const now = Date.now();
-      if (!force && now - lastFetchTime < 10000 && dataFetched) return;
-
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/admin/warranty/requests?page=${page}&limit=${pageSize}`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch warranty requests");
-        }
-
-        const data = await response.json();
-
-        setRequests(data.requests);
-        setPagination({
-          current: data.pagination.currentPage,
-          pageSize: data.pagination.pageSize,
-          total: data.pagination.totalCount,
-          totalPages: data.pagination.totalPages,
-        });
-        setDataFetched(true);
-        setLastFetchTime(now);
-      } catch (err: any) {
-        console.error("[Client] Error fetching warranty requests:", err);
-        setError(err.message || "خطا در دریافت درخواست‌های گارانتی");
-      } finally {
-        setLoading(false);
-      }
+      await fetchWarrantyRequests(page, pageSize, force, isTabActive, dataFetched, lastFetchTime, setLoading, setRequests, setPagination, setDataFetched, setLastFetchTime, setError);
     },
     [isTabActive, dataFetched, lastFetchTime]
   );
@@ -218,6 +232,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
       className: "text-center",
       render: (_, record: WarrantyRequest) => (
         <Button
+          htmlType="button"
           type="primary"
           onClick={() => handleResolveRequest(record.warrantyid)}
           icon={<CheckCircleOutlined />}
@@ -239,6 +254,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-bold text-white">درخواست‌های بررسی گارانتی</h2>
         <Button
+          htmlType="button"
           onClick={() => fetchRequests(pagination.current, pagination.pageSize, true)}
           icon={<ReloadOutlined />}
           loading={loading}
@@ -255,6 +271,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
             <div>
               <p>{error}</p>
               <Button
+                htmlType="button"
                 type="primary"
                 onClick={() => fetchRequests(pagination.current, pagination.pageSize, true)}
                 icon={<ReloadOutlined />}

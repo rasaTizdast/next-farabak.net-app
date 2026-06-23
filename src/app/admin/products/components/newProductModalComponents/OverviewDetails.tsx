@@ -1,7 +1,8 @@
-import axios from "axios";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { IoIosClose } from "react-icons/io";
+
+import { useApiFetch } from "@/hooks/useApiFetch";
 
 import DeleteOverviewDetailButton from "../DeleteOverviewDetailButton";
 
@@ -25,36 +26,24 @@ const truncateText = (text: string, maxLength: number): string =>
 const OverviewDetails = ({ dispatch, setErrors }: Props) => {
   const [overviewDetails, setOverviewDetails] = useState<OverviewDetail[]>([]);
   const [selectedDetail, setSelectedDetail] = useState<OverviewDetail | null>(null);
-  const [loading, setLoading] = useState(true); // Loading state
   const [imageLoaded, setImageLoaded] = useState(false);
+  const {
+    data: detailsData,
+    loading,
+    refetch: fetchOverviewDetails,
+  } = useApiFetch<any>("/api/productOverviewDetails/getAll");
   const [showAll, setShowAll] = useState(false); // State to toggle between showing limited or all details
 
-  // Function to fetch overview details
-  const fetchOverviewDetails = () => {
-    setLoading(true);
-    axios
-      .get("/api/productOverviewDetails/getAll")
-      .then((response) => {
-        const data = response.data.map((detail: any) => ({
-          ...detail,
-          selected: false,
-        }));
-        setOverviewDetails(data);
-        dispatch({ type: "SET_OVERVIEW_DETAILS", details: data });
-      })
-      .catch((error) => {
-        console.error(error);
-        setErrors({ apiError: "خطا در بارگذاری اطلاعات" });
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
-
-  // Fetch overview details from the API on mount
   useEffect(() => {
-    fetchOverviewDetails();
-  }, []);
+    if (detailsData) {
+      const data = (Array.isArray(detailsData) ? detailsData : []).map((detail: any) => ({
+        ...detail,
+        selected: false,
+      }));
+      setOverviewDetails(data);
+      dispatch({ type: "SET_OVERVIEW_DETAILS", details: data });
+    }
+  }, [detailsData]);
 
   // Listen for the refresh event
   useEffect(() => {
@@ -184,6 +173,7 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
           <div className="relative max-h-[700px] w-full max-w-lg overflow-y-scroll rounded-lg bg-gray-800 p-6 text-white shadow-lg">
             <button
+              type="button"
               onClick={closeDetailModal}
               className="absolute right-3 top-3 text-red-400 hover:text-red-500"
             >
@@ -225,6 +215,7 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
                 }}
               />
               <button
+                type="button"
                 onClick={() => {
                   toggleSelection(selectedDetail.ProductOverviewDetailsId);
                   closeDetailModal();

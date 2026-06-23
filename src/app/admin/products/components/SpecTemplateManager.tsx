@@ -1,9 +1,12 @@
 import axios from "axios";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { toast } from "react-hot-toast";
 import { CgSpinnerTwo } from "react-icons/cg";
 import { FiEdit, FiTrash, FiPlus } from "react-icons/fi";
 import { IoIosClose } from "react-icons/io";
+
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import SpecTemplateModal from "./SpecTemplateModal";
 
@@ -25,29 +28,16 @@ type SpecTemplateManagerProps = {
 };
 
 const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTemplateSelect }) => {
-  const [templates, setTemplates] = useState<SpecTemplate[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [templateToEdit, setTemplateToEdit] = useState<SpecTemplate | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
-  // Fetch all templates
-  const fetchTemplates = async () => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get("/api/specTemplates");
-      setTemplates(response.data);
-    } catch (error) {
-      console.error("Error fetching templates:", error);
-      toast.error("خطا در دریافت قالب‌ها");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    data: templates,
+    loading: isLoading,
+    refetch: fetchTemplates,
+  } = useApiFetch<SpecTemplate[]>("/api/specTemplates");
 
-  useEffect(() => {
-    fetchTemplates();
-  }, []);
+  const { mutate: deleteTemplate, loading: deleteLoading } = useApiMutation("delete");
 
   const handleCreateTemplate = () => {
     setTemplateToEdit(null);
@@ -60,38 +50,31 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
   };
 
   const handleDeleteTemplate = async (templateId: number) => {
-    if (confirm("آیا از حذف این قالب اطمینان دارید؟")) {
-      setDeleteLoading(templateId);
-      try {
-        await axios.delete(`/api/specTemplates/${templateId}`);
-        toast.success("قالب با موفقیت حذف شد");
-        fetchTemplates();
-      } catch (error) {
-        console.error("Error deleting template:", error);
-        toast.error("خطا در حذف قالب");
-      } finally {
-        setDeleteLoading(null);
-      }
+    if (!confirm("آیا از حذف این قالب اطمینان دارید؟")) return;
+
+    const res = await deleteTemplate(`/api/specTemplates/${templateId}`);
+    if (res) {
+      toast.success("قالب با موفقیت حذف شد");
+      fetchTemplates();
     }
   };
 
   const handleSelectTemplate = async (templateId: number) => {
-    try {
-      const response = await axios.get(`/api/specTemplates/${templateId}`);
-      const template = response.data;
-
-      // Convert template items to the format expected by the specs component
-      const specItems = template.Items.map((item: SpecTemplateItem) => ({
-        title: item.Title,
-        description: "",
-      }));
-
-      onTemplateSelect(specItems);
-      onClose();
-    } catch (error) {
-      console.error("Error selecting template:", error);
+    const response = await axios.get(`/api/specTemplates/${templateId}`).catch(() => null);
+    if (!response) {
       toast.error("خطا در انتخاب قالب");
+      return;
     }
+
+    const template = response.data;
+    // Convert template items to the format expected by the specs component
+    const specItems = template.Items.map((item: SpecTemplateItem) => ({
+      title: item.Title,
+      description: "",
+    }));
+
+    onTemplateSelect(specItems);
+    onClose();
   };
 
   return (
@@ -132,13 +115,13 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
             <div className="flex justify-center py-8">
               <CgSpinnerTwo className="animate-spin" size={40} />
             </div>
-          ) : templates.length === 0 ? (
+          ) : templates?.length === 0 ? (
             <div className="py-8 text-center text-gray-400">
               هیچ قالبی یافت نشد. لطفاً یک قالب جدید ایجاد کنید.
             </div>
           ) : (
             <div className="space-y-3">
-              {templates.map((template) => (
+              {templates?.map((template) => (
                 <div
                   key={template.SpecTemplateId}
                   className="flex items-center justify-between rounded-lg bg-gray-700 p-4"
@@ -152,6 +135,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
                   </div>
                   <div className="flex gap-2">
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -162,6 +146,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
                       انتخاب
                     </button>
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -172,15 +157,16 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
                       <FiEdit />
                     </button>
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         handleDeleteTemplate(template.SpecTemplateId);
                       }}
                       className="rounded bg-red-600 p-1 transition-colors hover:bg-red-500"
-                      disabled={deleteLoading === template.SpecTemplateId}
+                      disabled={deleteLoading}
                     >
-                      {deleteLoading === template.SpecTemplateId ? (
+                      {deleteLoading ? (
                         <CgSpinnerTwo className="animate-spin" size={16} />
                       ) : (
                         <FiTrash />

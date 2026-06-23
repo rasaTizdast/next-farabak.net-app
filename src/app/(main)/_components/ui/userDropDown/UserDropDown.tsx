@@ -184,6 +184,7 @@ const UserDropDown = () => {
 
                                 <div className={styles.quantityControls}>
                                   <button
+                                    type="button"
                                     className={styles.removeBtn}
                                     onClick={() => removeProductFromInvoice(product.ProductId)}
                                   >
@@ -192,6 +193,7 @@ const UserDropDown = () => {
 
                                   <div className={styles.quantityButtons}>
                                     <button
+                                      type="button"
                                       className={`${styles.quantityBtn} ${!canIncrease ? styles.disabled : ""}`}
                                       onClick={() =>
                                         canIncrease &&
@@ -199,6 +201,7 @@ const UserDropDown = () => {
                                       }
                                       disabled={!canIncrease}
                                       title={!canIncrease ? `حداکثر ${max} عدد` : ""}
+                                      aria-label="افزایش تعداد"
                                     >
                                       +
                                     </button>
@@ -210,6 +213,7 @@ const UserDropDown = () => {
                                     </span>
 
                                     <button
+                                      type="button"
                                       className={`${styles.quantityBtn} ${current <= min ? styles.disabled : ""}`}
                                       onClick={() =>
                                         current > min &&
@@ -217,6 +221,7 @@ const UserDropDown = () => {
                                       }
                                       disabled={current <= min}
                                       title={current <= min ? `حداقل ${min} عدد` : ""}
+                                      aria-label="کاهش تعداد"
                                     >
                                       -
                                     </button>
@@ -232,6 +237,7 @@ const UserDropDown = () => {
                             <span className={styles.totalAmount}>{formattedAmount} تومان</span>
                           </div>
                           <button
+                            type="button"
                             className={styles.checkoutBtn}
                             onClick={(e) => {
                               e.preventDefault();

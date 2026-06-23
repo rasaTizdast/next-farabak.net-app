@@ -14,6 +14,7 @@ export const ToolbarButton = ({ active, onClick, icon: Icon, title }: ToolbarBut
     type="button"
     onClick={onClick}
     title={title}
+    aria-label={title}
     className={`rounded-md p-2 hover:bg-gray-600 ${
       active ? "bg-gray-600 text-white" : "text-gray-300"
     }`}

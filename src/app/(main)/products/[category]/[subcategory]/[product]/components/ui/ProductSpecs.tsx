@@ -26,6 +26,14 @@ async function getProductSpecs(productId: number) {
 export default async function ProductSpecs({ productId }: { productId: number }) {
   const specsData = await getProductSpecs(productId);
 
+  if (!specsData || specsData.length === 0) {
+    return (
+      <div className="mt-6 flex w-full justify-center rounded-lg bg-gray-200 py-4 text-sm font-semibold text-slate-800 sm:mt-0 md:text-base">
+        مشخصاتی برای این محصول ثبت نشده است
+      </div>
+    );
+  }
+
   return (
     <div className={styles.specsParent}>
       <h3>مشخصات محصول</h3>

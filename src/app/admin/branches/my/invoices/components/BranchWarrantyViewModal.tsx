@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 
 import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
+import { useApiFetch } from "@/hooks/useApiFetch";
 
-import { ExpandedInvoiceItem } from "./BranchInvoiceDetailsModal";
+import { ExpandedInvoiceItem } from "./types";
 
 type BranchWarrantyViewModalProps = {
   item: ExpandedInvoiceItem;
@@ -13,79 +14,36 @@ type BranchWarrantyViewModalProps = {
 };
 
 const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item, onClose }) => {
-  // Use the print hook for printing
   const { componentRef, handlePrint } = usePrint();
-  const [branchName, setBranchName] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
   const [showPrintView, setShowPrintView] = useState<boolean>(false);
+
+  // Determine branch ID from warranty
+  const branchId =
+    item?.individualWarranty?.branchid || (item?.individualWarranty as any)?.branchId;
+
+  // Fetch branch name if needed
+  const { data: branchData, loading: branchLoading } = useApiFetch<{ name: string }>(
+    branchId &&
+      !(item?.individualWarranty as any)?.branchname &&
+      !(item?.individualWarranty as any)?.branch?.name
+      ? `/api/admin/branches/${branchId}`
+      : null
+  );
+
+  const branchName = (() => {
+    if (!item?.individualWarranty) return "";
+    const w = item.individualWarranty;
+    if ((w as any).branchname) return (w as any).branchname;
+    if ((w as any).branch?.name) return (w as any).branch.name;
+    if (branchData) return branchData.name || "تعیین نشده";
+    if (!branchId) return "تعیین نشده";
+    return "";
+  })();
 
   if (!item || !item.individualWarranty) return null;
 
   const warranty = item.individualWarranty;
   const hasValidWarranty = Boolean(warranty?.warrantycode);
-
-  // If the branch name is already present in the warranty data, use it directly
-  useEffect(() => {
-    // Check if branch name is already available in the data
-    if ((warranty as any).branchname) {
-      setBranchName((warranty as any).branchname);
-      return;
-    }
-
-    // Check if branch object with name is present
-    if ((warranty as any).branch?.name) {
-      setBranchName((warranty as any).branch.name);
-      return;
-    }
-
-    // If no branch name is available in data, then try API fetch
-    const branchId = warranty.branchid;
-
-    const fetchBranchName = async () => {
-      if (!branchId) {
-        setBranchName("تعیین نشده");
-        return;
-      }
-
-      try {
-        setLoading(true);
-
-        const url = `/api/admin/branches/${branchId}`;
-
-        const response = await fetch(url);
-
-        if (response.ok) {
-          const responseText = await response.text();
-
-          let branchData;
-          try {
-            branchData = JSON.parse(responseText);
-
-            // The API returns an object with a 'name' property
-            setBranchName(branchData.name || "تعیین نشده");
-          } catch (parseError) {
-            console.error("Error parsing JSON response:", parseError);
-            setBranchName("خطا در پردازش پاسخ");
-          }
-        } else {
-          console.error("Failed to fetch branch name, status:", response.status);
-          setBranchName("خطا در دریافت اطلاعات شعبه");
-        }
-      } catch (error) {
-        console.error("Error fetching branch name:", error);
-        setBranchName("خطا در ارتباط با سرور");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Only fetch if branch name isn't already set and we have a branch ID
-    if (!branchName && branchId) {
-      fetchBranchName();
-    } else if (!branchId) {
-      setBranchName("تعیین نشده");
-    }
-  }, [warranty, branchName]);
 
   // Format date for display
   const formatDate = (dateString: string | undefined) => {
@@ -259,11 +217,11 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
                   id="branchname"
                   name="branchname"
                   className="no-print w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:bg-slate-700"
-                  value={loading ? "در حال بارگذاری..." : displayBranchName}
+                  value={branchLoading ? "در حال بارگذاری..." : displayBranchName}
                   disabled
                   readOnly
                 />
-                {loading && (
+                {branchLoading && (
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 transform">
                     <Spin size="small" />
                   </div>

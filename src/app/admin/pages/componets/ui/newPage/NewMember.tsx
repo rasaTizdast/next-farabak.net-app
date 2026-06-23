@@ -1,6 +1,8 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 
+import { useApiMutation } from "@/hooks/useApiMutation";
+
 type NewMemberModalProps = {
   onClose: () => void;
 };
@@ -16,6 +18,7 @@ const NewMemberModal: React.FC<NewMemberModalProps> = ({ onClose }) => {
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
+  const { mutate: createMemberMutate } = useApiMutation("post");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -62,23 +65,16 @@ const NewMemberModal: React.FC<NewMemberModalProps> = ({ onClose }) => {
 
     setLoading(true);
 
-    try {
-      const response = await fetch("/api/members/create", {
-        method: "POST",
-        body: formDataToSend,
-      });
+    const res = await createMemberMutate("/api/members/create", formDataToSend);
 
-      if (!response.ok) {
-        throw new Error("Failed to create member");
-      }
-
+    if (res) {
       toast.success("کاربر جدید با موفقیت ساحته شد");
       onClose();
-    } catch (error) {
-      console.error("Error creating member:", error);
-    } finally {
-      setLoading(false);
+    } else {
+      console.error("Error creating member");
     }
+
+    setLoading(false);
   };
 
   return (

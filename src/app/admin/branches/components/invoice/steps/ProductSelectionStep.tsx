@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 
 import { useUser } from "@/context/UserContext";
+import { useApiFetch } from "@/hooks/useApiFetch";
 
 // Extended Product interface with additional properties
 interface ExtendedProduct extends Product {
@@ -36,10 +37,12 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
   usdToRialRate,
   onUpdate,
 }) => {
-  const [loading, setLoading] = useState(true);
+  const {
+    data: rawProducts,
+    loading,
+    error,
+  } = useApiFetch<Product[]>(branchId ? `/api/admin/branches/${branchId}/products` : null);
   const [products, setProducts] = useState<ExtendedProduct[]>([]);
-  const [rawProducts, setRawProducts] = useState<Product[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [localSelectedProducts, setLocalSelectedProducts] = useState<any[]>([]);
   const [manualExchangeRate, setManualExchangeRate] = useState<number | null>(null);
   const [rawInput, setRawInput] = useState<string>("");
@@ -62,37 +65,10 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     setLocalSelectedProducts(selectedProducts);
   }, [selectedProducts]);
 
-  // This effect only fetches raw product data from the API
-  useEffect(() => {
-    if (!branchId) return;
-
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/admin/branches/${branchId}/products`);
-
-        if (!response.ok) {
-          throw new Error("خطا در دریافت محصولات");
-        }
-
-        const data = await response.json();
-        setRawProducts(data);
-        setError(null);
-      } catch (err: any) {
-        console.error("Error fetching products:", err);
-        setError(err.message || "خطا در دریافت محصولات");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, [branchId]); // Only depends on branchId, not on rate changes
-
   // This effect processes the raw products with the current exchange rate
   // without triggering API calls
   useEffect(() => {
-    if (rawProducts.length === 0) return;
+    if (!rawProducts || rawProducts.length === 0) return;
 
     const processedProducts = rawProducts.map((product: Product) => {
       const price = product.Price ? parseFloat(product.Price) : 0;
@@ -343,6 +319,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
             <ul className="-mb-px flex flex-wrap">
               <li className="mr-4">
                 <button
+                  type="button"
                   className={`inline-block rounded-t-lg px-4 py-3 ${
                     activeTab === "products"
                       ? "border-b-2 border-blue-500 font-medium text-white"
@@ -355,6 +332,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
               </li>
               <li>
                 <button
+                  type="button"
                   className={`inline-block rounded-t-lg px-4 py-3 ${
                     activeTab === "selected"
                       ? "border-b-2 border-blue-500 font-medium text-white"

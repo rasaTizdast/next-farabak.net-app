@@ -2,16 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 
-export async function PATCH(request: NextRequest, { params }: { params: { productId: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  props: { params: Promise<{ productId: string }> }
+) {
+  const params = await props.params;
   try {
     const { productId } = params;
-    const body = await request.json();
-    const { minimum_amount, maximum_amount } = body;
-
     // Validate product ID
     if (!productId || isNaN(Number(productId))) {
       return NextResponse.json({ message: "شناسه محصول نامعتبر است" }, { status: 400 });
     }
+
+    const body = await request.json();
+    const { minimum_amount, maximum_amount } = body;
 
     // Validate amounts
     if (minimum_amount !== null && minimum_amount !== undefined) {

@@ -8,6 +8,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, Suspense } from "react";
 
 import { useUser } from "@/context/UserContext";
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import BranchTable from "./components/BranchTable";
 import CreateBranchModal from "./components/CreateBranchModal";
@@ -27,7 +29,6 @@ function BranchesPageContent() {
   const { user } = useUser();
   const currentUserId = user?.userId ? parseInt(user.userId) : undefined;
   const [branches, setBranches] = useState<Branch[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,6 +61,15 @@ function BranchesPageContent() {
   const fetchBranchesRef = useRef<() => Promise<void>>(undefined);
   const fetchBranchProductsRef = useRef<(branchId: number) => Promise<void>>(undefined);
 
+  const { mutate: createBranchMutate } = useApiMutation("post");
+  const { mutate: updateBranchMutate } = useApiMutation("put");
+  const { mutate: deleteBranchMutate } = useApiMutation("delete");
+  const { mutate: addProductMutate } = useApiMutation("post");
+  const { mutate: updateProductQtyMutate } = useApiMutation("put");
+  const { mutate: removeProductMutate } = useApiMutation("delete");
+
+  const { data: usersData } = useApiFetch<User[]>("/api/admin/users");
+
   // Check URL for productId param
   useEffect(() => {
     const productId = searchParams.get("productId");
@@ -79,19 +89,9 @@ function BranchesPageContent() {
 
   // Load data when component mounts and set up auto-refresh
   useEffect(() => {
-    const loadInitialData = async () => {
-      setInitialLoading(true);
-
-      try {
-        await Promise.all([fetchBranches(), fetchUsers(), fetchAllProducts()]);
-      } catch (error) {
-        console.error("Error loading initial data:", error);
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-
-    loadInitialData();
+    Promise.all([fetchBranches(), fetchAllProducts()])
+      .catch((error) => console.error("Error loading initial data:", error))
+      .finally(() => setInitialLoading(false));
 
     // Set up auto-refresh interval (30 seconds)
     const intervalId = setInterval(() => {
@@ -119,7 +119,10 @@ function BranchesPageContent() {
       }
 
       const response = await fetch(url);
-      if (!response.ok) throw new Error("خطا در دریافت شعبه‌ها");
+      if (!response.ok) {
+        message.error("خطا در بارگذاری شعبه‌ها");
+        return;
+      }
       const responseData = await response.json();
 
       // Update branches and pagination data
@@ -148,18 +151,6 @@ function BranchesPageContent() {
   useEffect(() => {
     fetchBranchesRef.current = () => fetchBranches(pagination.current, pagination.pageSize);
   }, [searchProductId, pagination.current, pagination.pageSize]);
-
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch("/api/admin/users");
-      if (!response.ok) throw new Error("خطا در دریافت کاربران");
-      const data = await response.json();
-      setUsers(data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      message.error("خطا در بارگذاری کاربران");
-    }
-  };
 
   const fetchAllProducts = async () => {
     try {
@@ -253,7 +244,11 @@ function BranchesPageContent() {
     try {
       setProductsLoading(true);
       const response = await fetch(`/api/admin/branches/${branchId}/products`);
-      if (!response.ok) throw new Error("خطا در دریافت محصولات شعبه");
+      if (!response.ok) {
+        message.error("خطا در بارگذاری محصولات شعبه");
+        setProducts([]);
+        return;
+      }
       const responseData = await response.json();
 
       // Extract products from the data property if it exists
@@ -281,69 +276,40 @@ function BranchesPageContent() {
   }, []);
 
   const handleCreateBranch = async (values: any) => {
-    try {
-      const response = await fetch("/api/admin/branches", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "خطا در ایجاد شعبه");
-      }
-
+    const result = await createBranchMutate("/api/admin/branches", values);
+    if (result) {
       message.success("شعبه با موفقیت ایجاد شد");
       setModalVisible(false);
       form.resetFields();
       fetchBranches();
-    } catch (error: any) {
-      console.error("Error creating branch:", error);
-      message.error(error.message || "خطا در ایجاد شعبه");
+    } else {
+      message.error("خطا در ایجاد شعبه");
     }
   };
 
   const handleUpdateBranch = async (values: any) => {
     if (!currentBranch) return;
 
-    try {
-      const response = await fetch(`/api/admin/branches/${currentBranch.branchid}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "خطا در بروزرسانی شعبه");
-      }
-
+    const result = await updateBranchMutate(
+      `/api/admin/branches/${currentBranch.branchid}`,
+      values
+    );
+    if (result) {
       message.success("شعبه با موفقیت بروزرسانی شد");
       setEditBranchModalVisible(false);
       editForm.resetFields();
       fetchBranches();
-    } catch (error: any) {
-      console.error("Error updating branch:", error);
-      message.error(error.message || "خطا در بروزرسانی شعبه");
+    } else {
+      message.error("خطا در بروزرسانی شعبه");
     }
   };
 
   const handleDeleteBranch = async (branchId: number) => {
-    try {
-      const response = await fetch(`/api/admin/branches/${branchId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) throw new Error("خطا در حذف شعبه");
-
+    const result = await deleteBranchMutate(`/api/admin/branches/${branchId}`);
+    if (result) {
       message.success("شعبه با موفقیت حذف شد");
       fetchBranches();
-    } catch (error) {
-      console.error("Error deleting branch:", error);
+    } else {
       message.error("خطا در حذف شعبه");
     }
   };
@@ -367,32 +333,21 @@ function BranchesPageContent() {
   const handleAddProduct = async () => {
     if (!currentBranch || !selectedProduct) return;
 
-    try {
-      const response = await fetch(`/api/admin/branches/${currentBranch.branchid}/products`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId: selectedProduct,
-          quantity: productQuantity,
-        }),
-      });
-
-      if (!response.ok) throw new Error("خطا در افزودن محصول");
-
+    const result = await addProductMutate(
+      `/api/admin/branches/${currentBranch.branchid}/products`,
+      {
+        productId: selectedProduct,
+        quantity: productQuantity,
+      }
+    );
+    if (result) {
       message.success("محصول با موفقیت به شعبه اضافه شد");
       productForm.resetFields();
       setSelectedProduct(null);
       setProductQuantity(1);
-
-      // Update branch products
       await fetchBranchProducts(currentBranch.branchid);
-
-      // Refresh all branches to update product counts and totals
       await fetchBranches();
-    } catch (error) {
-      console.error("Error adding product:", error);
+    } else {
       message.error("خطا در افزودن محصول به شعبه");
     }
   };
@@ -400,29 +355,15 @@ function BranchesPageContent() {
   const handleUpdateProductQuantity = async (productId: number, quantity: number) => {
     if (!currentBranch) return;
 
-    try {
-      const response = await fetch(
-        `/api/admin/branches/${currentBranch.branchid}/products/${productId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ quantity }),
-        }
-      );
-
-      if (!response.ok) throw new Error("خطا در بروزرسانی تعداد محصول");
-
+    const result = await updateProductQtyMutate(
+      `/api/admin/branches/${currentBranch.branchid}/products/${productId}`,
+      { quantity }
+    );
+    if (result) {
       message.success("تعداد محصول با موفقیت بروزرسانی شد");
-
-      // Update branch products
       await fetchBranchProducts(currentBranch.branchid);
-
-      // Refresh all branches to update product counts and totals
       await fetchBranches();
-    } catch (error) {
-      console.error("Error updating product quantity:", error);
+    } else {
       message.error("خطا در بروزرسانی تعداد محصول");
     }
   };
@@ -430,25 +371,14 @@ function BranchesPageContent() {
   const handleRemoveProduct = async (productId: number) => {
     if (!currentBranch) return;
 
-    try {
-      const response = await fetch(
-        `/api/admin/branches/${currentBranch.branchid}/products/${productId}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!response.ok) throw new Error("خطا در حذف محصول");
-
+    const result = await removeProductMutate(
+      `/api/admin/branches/${currentBranch.branchid}/products/${productId}`
+    );
+    if (result) {
       message.success("محصول با موفقیت از شعبه حذف شد");
-
-      // Update branch products
       await fetchBranchProducts(currentBranch.branchid);
-
-      // Refresh all branches to update product counts and totals
       await fetchBranches();
-    } catch (error) {
-      console.error("Error removing product:", error);
+    } else {
       message.error("خطا در حذف محصول از شعبه");
     }
   };
@@ -702,7 +632,7 @@ function BranchesPageContent() {
         onClose={() => setModalVisible(false)}
         onFinish={handleCreateBranch}
         form={form}
-        users={users}
+        users={usersData ?? []}
         currentUserId={currentUserId}
       />
       {/* Edit Branch Modal */}
@@ -713,7 +643,7 @@ function BranchesPageContent() {
           onFinish={handleUpdateBranch}
           form={editForm}
           branch={currentBranch}
-          users={users}
+          users={usersData ?? []}
         />
       )}
       {/* Products Drawer */}

@@ -1,8 +1,9 @@
-import axios from "axios";
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { FiPlus } from "react-icons/fi";
 import { IoIosClose } from "react-icons/io";
+
+import { useApiFetch } from "@/hooks/useApiFetch";
 
 import SpecTemplateManager from "./SpecTemplateManager";
 import { Specs } from "../types";
@@ -32,72 +33,56 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
   specs,
   setSpecs,
 }) => {
-  const [isLoading, setIsLoading] = useState(true);
   const [showTemplateManager, setShowTemplateManager] = useState(false);
   const [internalSpecs, setInternalSpecs] = useState<SpecsInternal | null>(null);
 
-  useEffect(() => {
-    fetchSpecs();
-  }, [productId]);
+  const { data: fetchedSpecs, loading: isLoading } = useApiFetch<any[]>(
+    productId ? `/api/specs/${productId}` : null
+  );
 
-  // Convert from internal format to the API format
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => {
+    if (fetchedSpecs && !internalSpecs) {
+      setInternalSpecs({
+        isChanged: false,
+        data: fetchedSpecs.map((s: any) => ({
+          ProductSpecsId: s.ProductSpecsId,
+          Title: s.Title,
+          Description: s.Description,
+        })),
+      });
+    }
+  }, [fetchedSpecs]);
+
+  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
     if (internalSpecs && internalSpecs.isChanged) {
-      const convertedSpecs: Specs = {
-        data: internalSpecs.data.map((spec) => ({
-          ProductSpecsId: spec.ProductSpecsId,
+      setSpecs({
+        data: internalSpecs.data.map((s) => ({
+          ProductSpecsId: s.ProductSpecsId,
           Name: productName,
-          Title: spec.Title,
-          Description: spec.Description,
+          Title: s.Title,
+          Description: s.Description,
           ProductId: productId,
           Available: true,
         })),
-      };
-      setSpecs(convertedSpecs);
+      });
     }
   }, [internalSpecs]);
 
-  // Convert from API format to the internal format
+  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
     if (specs && !internalSpecs) {
       setInternalSpecs({
         isChanged: false,
-        data: specs.data.map((spec) => ({
-          ProductSpecsId: spec.ProductSpecsId,
-          Title: spec.Title,
-          Description: spec.Description,
+        data: specs.data.map((s) => ({
+          ProductSpecsId: s.ProductSpecsId,
+          Title: s.Title,
+          Description: s.Description,
         })),
       });
     }
   }, [specs]);
-
-  const fetchSpecs = async () => {
-    if (!productId) return;
-
-    setIsLoading(true);
-    try {
-      const response = await axios.get(`/api/specs/${productId}`);
-      const specData = response.data.map((spec: any) => ({
-        ProductSpecsId: spec.ProductSpecsId,
-        Title: spec.Title,
-        Description: spec.Description,
-      }));
-
-      setInternalSpecs({
-        isChanged: false,
-        data: specData,
-      });
-    } catch (error) {
-      console.error("Error fetching specs:", error);
-      toast.error("خطا در دریافت مشخصات محصول");
-      setInternalSpecs({
-        isChanged: false,
-        data: [],
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleSpecChange = (index: number, field: "Title" | "Description", value: string) => {
     if (!internalSpecs) return;

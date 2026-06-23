@@ -111,13 +111,13 @@ export async function PATCH(request: Request, props: { params: Promise<{ product
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // Parse the request body
-    const { img1, img2 } = await request.json();
-
     // Validate input
     if (!productId) {
       return NextResponse.json({ error: "Product ID is required." }, { status: 400 });
     }
+
+    // Parse the request body
+    const { img1, img2 } = await request.json();
     if (!img1 && !img2) {
       return NextResponse.json(
         { error: "At least one of 'img1' or 'img2' is required to update." },

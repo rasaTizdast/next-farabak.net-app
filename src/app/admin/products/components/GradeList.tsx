@@ -1,9 +1,10 @@
-import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import GradeCardSkeleton from "./GradeCardSkeleton";
 
@@ -28,26 +29,14 @@ type EditingGrade = {
 } | null;
 
 const GradeList = ({ productId, refetchProducts }: Props) => {
-  const [grades, setGrades] = useState<Grade[]>([]);
-  const [loading, setLoading] = useState(true);
   const [editingGrade, setEditingGrade] = useState<EditingGrade>(null);
   const [usdRate, setUsdRate] = useState<number | null>(null);
 
-  const fetchGrades = async () => {
-    try {
-      const response = await axios.get(`/api/products/grades?productId=${productId}`);
-      setGrades(response.data);
-    } catch (error) {
-      console.error("Error fetching grades:", error);
-      toast.error("خطا در دریافت لیست گرید‌ها");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchGrades();
-  }, [productId]);
+  const {
+    data: grades,
+    loading,
+    refetch: fetchGrades,
+  } = useApiFetch<Grade[]>(`/api/products/grades?productId=${productId}`);
 
   useEffect(() => {
     const fetchExchangeRate = async () => {
@@ -62,17 +51,16 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
     fetchExchangeRate();
   }, []);
 
+  const { mutate: deleteGrade, loading: deletingGrade } = useApiMutation("delete");
+
   const handleDelete = async (gradeId: number) => {
     if (!confirm("آیا از حذف این گرید اطمینان دارید؟")) return;
 
-    try {
-      await axios.delete(`/api/products/grades/grade/${gradeId}`);
+    const res = await deleteGrade(`/api/products/grades/grade/${gradeId}`);
+    if (res) {
       toast.success("گرید با موفقیت حذف شد");
       fetchGrades();
       refetchProducts();
-    } catch (error) {
-      console.error("Error deleting grade:", error);
-      toast.error("خطا در حذف گرید");
     }
   };
 
@@ -85,28 +73,27 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
     });
   };
 
+  const { mutate: updateGrade, loading: updatingGrade } = useApiMutation("put");
+
   const handleUpdate = async () => {
     if (!editingGrade) return;
 
-    try {
-      if (!editingGrade.grade || editingGrade.price <= 0) {
-        toast.error("لطفاً تمام فیلدها را پر کنید");
-        return;
-      }
+    if (!editingGrade.grade || editingGrade.price <= 0) {
+      toast.error("لطفاً تمام فیلدها را پر کنید");
+      return;
+    }
 
-      await axios.put(`/api/products/grades/grade/${editingGrade.id}`, {
-        grade: editingGrade.grade,
-        price: editingGrade.price,
-        discount: editingGrade.discount,
-      });
+    const res = await updateGrade(`/api/products/grades/grade/${editingGrade.id}`, {
+      grade: editingGrade.grade,
+      price: editingGrade.price,
+      discount: editingGrade.discount,
+    });
 
+    if (res) {
       toast.success("گرید با موفقیت بروزرسانی شد");
       setEditingGrade(null);
       fetchGrades();
       refetchProducts();
-    } catch (error) {
-      console.error("Error updating grade:", error);
-      toast.error("خطا در بروزرسانی گرید");
     }
   };
 
@@ -139,7 +126,7 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
   return (
     <div className="rounded-lg bg-slate-700/50 p-4">
       <h4 className="mb-4 text-lg font-semibold text-white">گرید‌های موجود</h4>
-      {grades.length === 0 ? (
+      {!grades || grades.length === 0 ? (
         <div className="flex h-20 items-center justify-center rounded-md bg-slate-700 text-gray-400">
           هیچ گرید‌ای ثبت نشده است
         </div>
@@ -234,12 +221,14 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
 
                     <div className="flex gap-2 pt-2">
                       <button
+                        type="button"
                         onClick={handleUpdate}
                         className="flex-1 rounded-md bg-green-600 p-3 font-medium text-white transition-all hover:bg-green-700"
                       >
                         ذخیره تغییرات
                       </button>
                       <button
+                        type="button"
                         onClick={() => setEditingGrade(null)}
                         className="flex-1 rounded-md bg-slate-600 p-3 font-medium text-white transition-all hover:bg-slate-700"
                       >
@@ -254,6 +243,7 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                     <span className="text-xl font-semibold text-white">گرید {grade.Grade}</span>
                     <div className="flex gap-2">
                       <button
+                        type="button"
                         onClick={() => handleEdit(grade)}
                         className="rounded-md bg-blue-500/20 p-2 text-blue-400 transition-all hover:bg-blue-500/30"
                         title="ویرایش"
@@ -261,6 +251,7 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                         <FaEdit size={16} />
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleDelete(grade.ProductGradeId)}
                         className="rounded-md bg-red-500/20 p-2 text-red-400 transition-all hover:bg-red-500/30"
                         title="حذف"

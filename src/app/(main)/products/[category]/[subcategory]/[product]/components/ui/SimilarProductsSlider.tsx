@@ -28,8 +28,13 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
   const [scrollLeft, setScrollLeft] = useState(0);
   const [velocity, setVelocity] = useState(0);
   const [lastX, setLastX] = useState(0);
-  const [lastTime, setLastTime] = useState(0);
+  const lastTimeRef = useRef(0);
   const animationFrameRef = useRef<number | null>(null);
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const lastXRef = useRef(0);
+  const velocityRef = useRef(0);
 
   const isValidRate = usdRate && !isNaN(usdRate) && (usdRate as number) > 0;
 
@@ -42,18 +47,28 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
 
   // Smooth momentum scrolling
   const momentumScroll = useCallback(() => {
-    if (!isDragging && Math.abs(velocity) > 0.5) {
+    if (!isDraggingRef.current && Math.abs(velocityRef.current) > 0.5) {
       const el = scrollerRef.current;
       if (!el) return;
 
-      el.scrollLeft -= velocity;
-      setVelocity(velocity * 0.92); // Friction
+      el.scrollLeft -= velocityRef.current;
+      velocityRef.current *= 0.92;
+      setVelocity(velocityRef.current);
 
       animationFrameRef.current = requestAnimationFrame(momentumScroll);
     } else {
+      velocityRef.current = 0;
       setVelocity(0);
     }
-  }, [isDragging, velocity]);
+  }, []);
+
+  // Sync state to refs
+  useEffect(() => {
+    isDraggingRef.current = isDragging;
+  }, [isDragging]);
+  useEffect(() => {
+    velocityRef.current = velocity;
+  }, [velocity]);
 
   // Mouse drag handlers
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -62,45 +77,45 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
 
     e.preventDefault();
     setIsDragging(true);
+    startXRef.current = e.pageX - el.offsetLeft;
+    scrollLeftRef.current = el.scrollLeft;
+    lastXRef.current = e.pageX;
+    lastTimeRef.current = Date.now();
+    setVelocity(0);
     setStartX(e.pageX - el.offsetLeft);
     setScrollLeft(el.scrollLeft);
     setLastX(e.pageX);
-    setLastTime(Date.now());
-    setVelocity(0);
     el.style.cursor = "grabbing";
     el.style.userSelect = "none";
   }, []);
 
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      if (!isDragging) return;
-      e.preventDefault();
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDraggingRef.current) return;
+    e.preventDefault();
 
-      const el = scrollerRef.current;
-      if (!el) return;
+    const el = scrollerRef.current;
+    if (!el) return;
 
-      const currentTime = Date.now();
-      const currentX = e.pageX;
-      const deltaX = currentX - lastX;
-      const deltaTime = currentTime - lastTime;
+    const currentTime = Date.now();
+    const currentX = e.pageX;
+    const deltaX = currentX - lastXRef.current;
+    const deltaTime = currentTime - lastTimeRef.current;
 
-      if (deltaTime > 0) {
-        const currentVelocity = deltaX / deltaTime;
-        setVelocity(currentVelocity * 1000); // Scale for momentum
-      }
+    if (deltaTime > 0) {
+      setVelocity((deltaX / deltaTime) * 1000);
+    }
 
-      const x = e.pageX - el.offsetLeft;
-      const walk = x - startX;
-      el.scrollLeft = scrollLeft - walk;
+    const x = e.pageX - el.offsetLeft;
+    const walk = x - startXRef.current;
+    el.scrollLeft = scrollLeftRef.current - walk;
 
-      setLastX(currentX);
-      setLastTime(currentTime);
-    },
-    [isDragging, startX, scrollLeft, lastX, lastTime]
-  );
+    lastXRef.current = currentX;
+    lastTimeRef.current = currentTime;
+    setLastX(currentX);
+  }, []);
 
   const handleMouseUp = useCallback(() => {
-    if (!isDragging) return;
+    if (!isDraggingRef.current) return;
 
     const el = scrollerRef.current;
     if (!el) return;
@@ -109,11 +124,10 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     el.style.cursor = "grab";
     el.style.userSelect = "auto";
 
-    // Start momentum scrolling
-    if (Math.abs(velocity) > 1) {
+    if (Math.abs(velocityRef.current) > 1) {
       momentumScroll();
     }
-  }, [isDragging, velocity, momentumScroll]);
+  }, [momentumScroll]);
 
   // Touch drag handlers
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -121,51 +135,50 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     if (!el) return;
 
     setIsDragging(true);
+    startXRef.current = e.touches[0].pageX - el.offsetLeft;
+    scrollLeftRef.current = el.scrollLeft;
+    lastXRef.current = e.touches[0].pageX;
+    lastTimeRef.current = Date.now();
     setStartX(e.touches[0].pageX - el.offsetLeft);
     setScrollLeft(el.scrollLeft);
     setLastX(e.touches[0].pageX);
-    setLastTime(Date.now());
     setVelocity(0);
   }, []);
 
-  const handleTouchMove = useCallback(
-    (e: TouchEvent) => {
-      if (!isDragging) return;
-      e.preventDefault();
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (!isDraggingRef.current) return;
+    e.preventDefault();
 
-      const el = scrollerRef.current;
-      if (!el) return;
+    const el = scrollerRef.current;
+    if (!el) return;
 
-      const currentTime = Date.now();
-      const currentX = e.touches[0].pageX;
-      const deltaX = currentX - lastX;
-      const deltaTime = currentTime - lastTime;
+    const currentTime = Date.now();
+    const currentX = e.touches[0].pageX;
+    const deltaX = currentX - lastXRef.current;
+    const deltaTime = currentTime - lastTimeRef.current;
 
-      if (deltaTime > 0) {
-        const currentVelocity = deltaX / deltaTime;
-        setVelocity(currentVelocity * 1000); // Scale for momentum
-      }
+    if (deltaTime > 0) {
+      setVelocity((deltaX / deltaTime) * 1000);
+    }
 
-      const x = e.touches[0].pageX - el.offsetLeft;
-      const walk = x - startX;
-      el.scrollLeft = scrollLeft - walk;
+    const x = e.touches[0].pageX - el.offsetLeft;
+    const walk = x - startXRef.current;
+    el.scrollLeft = scrollLeftRef.current - walk;
 
-      setLastX(currentX);
-      setLastTime(currentTime);
-    },
-    [isDragging, startX, scrollLeft, lastX, lastTime]
-  );
+    lastXRef.current = currentX;
+    lastTimeRef.current = currentTime;
+    setLastX(currentX);
+  }, []);
 
   const handleTouchEnd = useCallback(() => {
-    if (!isDragging) return;
+    if (!isDraggingRef.current) return;
 
     setIsDragging(false);
 
-    // Start momentum scrolling
-    if (Math.abs(velocity) > 1) {
+    if (Math.abs(velocityRef.current) > 1) {
       momentumScroll();
     }
-  }, [isDragging, velocity, momentumScroll]);
+  }, [momentumScroll]);
 
   // Global event listeners for better performance
   useEffect(() => {

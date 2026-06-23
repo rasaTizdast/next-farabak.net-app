@@ -77,6 +77,12 @@ const Sidebar = () => {
           isCollapsed ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
         onClick={() => setIsCollapsed(true)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") setIsCollapsed(true);
+        }}
+        aria-label="بستن منو"
       ></div>
 
       {/* Sidebar */}
@@ -128,6 +134,7 @@ const Sidebar = () => {
 
         {/* Logout Button */}
         <button
+          type="button"
           onClick={logout}
           className={`flex items-center bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 ${
             isCollapsed ? "justify-center" : "gap-4"

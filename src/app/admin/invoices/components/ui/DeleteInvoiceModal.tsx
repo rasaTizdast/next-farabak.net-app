@@ -60,6 +60,7 @@ const DeleteInvoiceModal = ({ invoice, onClose, onDelete }: DeleteInvoiceModalPr
         {/* Modal Footer */}
         <div className="flex flex-col justify-end gap-3 border-t border-slate-700 p-5 sm:flex-row">
           <button
+            type="button"
             onClick={onClose}
             className="w-full rounded-lg bg-gray-700 px-6 py-3 text-gray-100 transition hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-auto"
             aria-label="Close modal"
@@ -67,6 +68,7 @@ const DeleteInvoiceModal = ({ invoice, onClose, onDelete }: DeleteInvoiceModalPr
             بستن
           </button>
           <button
+            type="button"
             onClick={handleDelete}
             disabled={!termsAccepted}
             className={`w-full rounded-lg px-6 py-3 transition-colors sm:w-auto ${

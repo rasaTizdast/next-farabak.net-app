@@ -3,6 +3,9 @@ import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { CgSpinnerTwo } from "react-icons/cg";
 
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
+
 import { Overview, OverviewDetail, Product, Specs } from "../types";
 import EditModalFAQ from "./EditModalFAQ";
 import EditModalOverview from "./EditModalOverview";
@@ -117,8 +120,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   refetchProducts,
   setIsEditModalOpen,
 }) => {
-  const [formState, setFormState] = useState<Product | null>(product);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [formState, setFormState] = useState<Product | null>(() => product);
   const [newImg1, setNewImg1] = useState<File | null>(null);
   const [newImg2, setNewImg2] = useState<File | null>(null);
   const [isLoading, setIsloading] = useState<boolean>(false);
@@ -130,15 +132,22 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const [faqs, setFaqs] = useState<FAQItem[]>([]);
   const [faqErrors, setFaqErrors] = useState<{ [key: string]: string }>({});
 
+  const { data: categoriesData, error: categoriesError } = useApiFetch("/api/categories/getAll");
+  const patchProduct = useApiMutation("patch");
+  const postMutation = useApiMutation("post");
+  const putMutation = useApiMutation("put");
+  const deleteMutation = useApiMutation("delete");
+
+  const categories = categoriesData || [];
+
+  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
-    axios
-      .get("/api/categories/getAll")
-      .then((response) => setCategories(response.data))
-      .catch(() => toast.error("در دریافت دسته بندی ها مشکلی به وجود آمده است، دوباره تلاش کنید"));
-    setFormState(product);
-  }, []);
+    if (categoriesError)
+      toast.error("در دریافت دسته بندی ها مشکلی به وجود آمده است، دوباره تلاش کنید");
+  }, [categoriesError]);
 
   // Validate FAQs whenever they change
+  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
     // Only validate if we have FAQs
     if (faqs.length > 0) {
@@ -149,80 +158,86 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     }
   }, [faqs]);
 
-  // Function to handle uploading images to S3
-  const ImageUploader = async (
+  async function doUploadImage(
     image: File | null,
     productName: string,
-    imageType: "banner" | "mini"
-  ) => {
-    // Ensure that required data is available
+    imageType: "banner" | "mini",
+    postMutation: { mutate: (url: string, body: any) => Promise<any> }
+  ) {
     if (!image || !productName) {
-      return;
+      return null;
     }
 
+    const response = await postMutation.mutate("/api/s3/upload", {
+      type: "productImage",
+      folderName: productName,
+      contentType: image.type,
+      imageType,
+    });
+
+    if (!response) return null;
+
+    const { uploadUrl, key } = response;
+
     try {
-      // Request a presigned URL for image upload
-      const response = await axios.post("/api/s3/upload", {
-        type: "productImage",
-        folderName: productName,
-        contentType: image.type,
-        imageType,
-      });
-
-      const { uploadUrl, key } = response.data;
-
-      // Upload the image to the presigned URL
       await axios.put(uploadUrl, image, {
         headers: {
           "Content-Type": image.type,
         },
       });
-
-      return key; // Return the image key for further use
     } catch (error) {
       console.error(error);
-      throw new Error("Error uploading the image");
+      return null;
     }
+
+    return key;
+  }
+
+  const imageUploader = async (
+    image: File | null,
+    productName: string,
+    imageType: "banner" | "mini"
+  ) => {
+    return doUploadImage(image, productName, imageType, postMutation);
   };
 
   const handleImageUpdate = async (productId: number, productName: string) => {
     const payload: { img1?: string; img2?: string } = {};
 
-    // Update newImg1 if it exists
     if (newImg1) {
-      try {
-        await axios.delete("/api/s3/delete", {
-          data: {
-            productId,
-            type: "productImages",
-            productImageType: "mini", // Mini for img1
-          },
-        });
-        const img1Key = await ImageUploader(newImg1, productName, "mini");
-        payload.img1 = img1Key;
-        toast.success("تصویر بدون پس‌زمینه با موفقیت آپدیت شد!");
-      } catch (error) {
-        console.error(error);
+      const delete1Res = await deleteMutation.mutate("/api/s3/delete", {
+        productId,
+        type: "productImages",
+        productImageType: "mini",
+      });
+      if (delete1Res !== null) {
+        const img1Key = await imageUploader(newImg1, productName, "mini");
+        if (!img1Key) {
+          console.error("Failed to upload img1");
+        } else {
+          payload.img1 = img1Key;
+          toast.success("تصویر بدون پس‌زمینه با موفقیت آپدیت شد!");
+        }
+      } else {
         toast.error("آپلود تصویر بدون پس‌زمینه با شکست مواجه شد، مجددا تلاش کنید");
       }
     }
 
-    // Update newImg2 if it exists
     if (newImg2) {
-      try {
-        await axios.delete("/api/s3/delete", {
-          data: {
-            productId,
-            type: "productImages",
-            productImageType: "banner", // Banner for img2
-          },
-        });
-        const img2Key = await ImageUploader(newImg2, productName, "banner");
-        payload.img2 = img2Key;
-
-        toast.success("تصویر بنر با موفقیت آپدیت شد!");
-      } catch (error) {
-        console.error(error);
+      const delete2Res = await deleteMutation.mutate("/api/s3/delete", {
+        productId,
+        type: "productImages",
+        productImageType: "banner",
+      });
+      if (delete2Res !== null) {
+        const img2Key = await imageUploader(newImg2, productName, "banner");
+        if (!img2Key) {
+          console.error("Failed to upload img2");
+        } else {
+          payload.img2 = img2Key;
+          toast.success("تصویر بنر با موفقیت آپدیت شد!");
+        }
+      } else {
         toast.error("آپدیت تصویر بنر با شکست مواجه شد، مجددا تلاش کنید");
       }
     }
@@ -241,7 +256,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     if (name === "Price" || name === "Discount") {
       // Check if the value is a valid number format
       if (value && !validationRules[name].regex?.test(value)) {
-        toast.error(validationRules[name].errorMsg.regex);
+        toast.error(validationRules[name].errorMsg.regex || "فرمت عددی نامعتبر است.");
         return;
       }
 
@@ -259,7 +274,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     if (name === "productSlug") {
       const sanitizedValue = value.replace(/\s+/g, "-");
       if (!validationRules.productSlug.regex?.test(sanitizedValue)) {
-        toast.error(validationRules.productSlug.errorMsg.regex);
+        toast.error(validationRules.productSlug.errorMsg.regex || "فرمت شناسه محصول نامعتبر است.");
       }
 
       setFormState((prevState) => (prevState ? { ...prevState, [name]: sanitizedValue } : null));
@@ -434,88 +449,100 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
       CategoryContentId: formattedCategoryContentId, // Update the singular field
     };
 
-    try {
-      setIsloading(true);
-      await axios.patch(`/api/admin/products/${+updatedFormState.ProductId}`, {
-        Name: updatedFormState.Name || "", // Fallback to empty string if null/undefined
+    setIsloading(true);
+
+    const mainRes = await patchProduct.mutate(
+      `/api/admin/products/${+updatedFormState.ProductId}`,
+      {
+        Name: updatedFormState.Name || "",
         Type: updatedFormState.Type || "",
-        Price: updatedFormState.Price?.toString() || "0", // Fallback to "0" if null/undefined
+        Price: updatedFormState.Price?.toString() || "0",
         Discount: updatedFormState.Discount?.toString() || "0",
         CategoryContentId: updatedFormState.CategoryContentId || "",
-        Available: updatedFormState.Available ?? false, // Use nullish coalescing for boolean
+        Available: updatedFormState.Available ?? false,
         Description: updatedFormState.Description || "",
-        CategoryId: updatedFormState.CategoryId || 0, // Fallback to 0 for number fields
+        CategoryId: updatedFormState.CategoryId || 0,
         img1: updatedFormState.img1,
         img2: updatedFormState.img2,
         Slug: updatedFormState.productSlug || "",
         SEO_Title: updatedFormState.SEO_Title || "",
         SEO_Description: updatedFormState.SEO_Description || "",
         productBlog: updatedFormState.productBlog || "",
-      });
-
-      const { img1, img2 } = await handleImageUpdate(formState.ProductId, formState.productSlug);
-
-      if (img1 || img2) {
-        await axios.patch(`/api/admin/products/${updatedFormState.ProductId}/updateImages`, {
-          img1,
-          img2,
-        });
       }
+    );
 
-      if (overviews?.isChanged) {
-        await axios.post("/api/productOverview", {
-          ProductId: formState.ProductId,
-          ProductName: formState.Name,
-          Features: [
-            overviews.Property1,
-            overviews.Property2,
-            overviews.Property3,
-            overviews.Property4,
-          ],
-        });
-      }
-
-      // Only update specs if they exist and have been changed
-      if (specs?.data) {
-        try {
-          await axios.post("/api/specs/update", {
-            productId: formState.ProductId,
-            specs: specs.data,
-          });
-        } catch (error) {
-          console.error(error);
-          toast.error("اپدیت بررسی ها به مشکل  برخورد، مجددا تلاش کنید");
-        }
-      }
-
-      try {
-        await axios.put("/api/productOverviewDetails/update", {
-          productId: updatedFormState.ProductId,
-          ProductName: updatedFormState.Type,
-          selectedDetails: overviewDetails,
-        });
-      } catch (error) {
-        console.error(error);
-        toast.error("آپدیت جزئیات بررسی به مشکل خورده است.");
-      }
-
-      // Save FAQs
-      try {
-        await axios.put(`/api/faqs/product/${formState.ProductId}`, faqs);
-      } catch (error) {
-        console.error(error);
-        toast.error("ذخیره سوالات متداول با مشکل روبرو شد.");
-      }
-
-      toast.success("محصول مورد نظر با موفقیت آپدیت شد!");
-      refetchProducts();
-    } catch (error) {
-      console.error(error);
+    if (!mainRes) {
       toast.error("آپدیت ثبت محصول مورد نظر با شکست مواجه شد، مجدد تلاش کنید");
-    } finally {
       setIsEditModalOpen(false);
       setIsloading(false);
+      return;
     }
+
+    const { img1, img2 } = await handleImageUpdate(formState.ProductId, formState.productSlug);
+
+    if (img1 || img2) {
+      const imgRes = await patchProduct.mutate(
+        `/api/admin/products/${updatedFormState.ProductId}/updateImages`,
+        {
+          img1,
+          img2,
+        }
+      );
+      if (!imgRes) {
+        toast.error("آپدیت ثبت محصول مورد نظر با شکست مواجه شد، مجدد تلاش کنید");
+        setIsEditModalOpen(false);
+        setIsloading(false);
+        return;
+      }
+    }
+
+    if (overviews?.isChanged) {
+      const overviewRes = await postMutation.mutate("/api/productOverview", {
+        ProductId: formState.ProductId,
+        ProductName: formState.Name,
+        Features: [
+          overviews.Property1,
+          overviews.Property2,
+          overviews.Property3,
+          overviews.Property4,
+        ],
+      });
+      if (!overviewRes) {
+        toast.error("آپدیت ثبت محصول مورد نظر با شکست مواجه شد، مجدد تلاش کنید");
+        setIsEditModalOpen(false);
+        setIsloading(false);
+        return;
+      }
+    }
+
+    if (specs?.data) {
+      const specsRes = await postMutation.mutate("/api/specs/update", {
+        productId: formState.ProductId,
+        specs: specs.data,
+      });
+      if (!specsRes) {
+        toast.error("اپدیت بررسی ها به مشکل  برخورد، مجددا تلاش کنید");
+      }
+    }
+
+    const detailsRes = await putMutation.mutate("/api/productOverviewDetails/update", {
+      productId: updatedFormState.ProductId,
+      ProductName: updatedFormState.Type,
+      selectedDetails: overviewDetails,
+    });
+    if (!detailsRes) {
+      toast.error("آپدیت جزئیات بررسی به مشکل خورده است.");
+    }
+
+    const faqsRes = await putMutation.mutate(`/api/faqs/product/${formState.ProductId}`, faqs);
+    if (!faqsRes) {
+      toast.error("ذخیره سوالات متداول با مشکل روبرو شد.");
+    }
+
+    toast.success("محصول مورد نظر با موفقیت آپدیت شد!");
+    refetchProducts();
+    setIsEditModalOpen(false);
+    setIsloading(false);
   };
 
   if (!formState) return null;

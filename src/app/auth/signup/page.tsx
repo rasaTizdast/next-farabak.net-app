@@ -1,9 +1,8 @@
 "use client";
 import { yupResolver } from "@hookform/resolvers/yup";
-import axios from "axios";
 import Image from "next/image";
-import Link from "next/link"; // You can use Link from Next.js as well
-import { useRouter } from "next/navigation"; // Next.js routing
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm, FormProvider, SubmitHandler } from "react-hook-form";
 
@@ -11,6 +10,7 @@ import CitySelector from "@/app/auth/_components/CitySelector";
 import TextInput from "@/app/auth/_components/TextInput";
 import { useUser } from "@/context/UserContext";
 import { signUpSchema } from "@/helpers/validationSchema"; // Import schema from helper
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 import styles from "../FormStyles.module.css"; // Adjust CSS import
 
@@ -30,8 +30,8 @@ interface SignUpFormValues {
 const SignUp = () => {
   const [step, setStep] = useState(1);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const router = useRouter(); // Next.js router
+  const router = useRouter();
+  const { mutate: signup, loading: isSubmitting } = useApiMutation("post");
 
   const { updateUserContext } = useUser();
 
@@ -69,27 +69,18 @@ const SignUp = () => {
       password: data.password,
     };
 
-    setIsSubmitting(true);
-    setErrorMessage(""); // Clear previous errors
+    setErrorMessage("");
 
-    try {
-      // Call the signup API using axios
-      const response = await axios.post("/api/auth/signup", signUpData);
-      if (response.data.message === "ثبت نام با موفقیت انجام شد") {
+    const response = (await signup("/api/auth/signup", signUpData)) as any;
+    if (response) {
+      if (response.message === "ثبت نام با موفقیت انجام شد") {
         updateUserContext();
-        // Redirect to the dashboard on success
         router.push("/dashboard");
       } else {
-        setErrorMessage(response.data.message || "خطا در فرایند ثبت‌نام.");
+        setErrorMessage(response.message || "خطا در فرایند ثبت‌نام.");
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setErrorMessage(error.response?.data.message || "خطا در فرایند ثبت‌نام.");
-      } else {
-        setErrorMessage("خطا در فرایند ثبت‌نام.");
-      }
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      setErrorMessage("خطا در فرایند ثبت‌نام.");
     }
   };
 
@@ -221,6 +212,7 @@ const SignUp = () => {
             type="submit"
             value={isSubmitting ? "در حال ورود..." : "ورود به حساب کاربری"}
             disabled={isSubmitting || step !== 3}
+            readOnly
             className={`${styles.signup_submit} ${step !== 3 ? styles.disable : ""}`}
           />
 

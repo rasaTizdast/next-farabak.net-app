@@ -279,6 +279,10 @@ export async function POST(request: Request) {
       Products: Product[];
     } = await request.json();
 
+    if (!Fullname || !Phonenumber || !TotalAmount || !Products || Products.length === 0) {
+      return NextResponse.json({ message: "اطلاعات درخواست نامعتبر است" }, { status: 400 });
+    }
+
     const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
@@ -287,11 +291,7 @@ export async function POST(request: Request) {
     }
 
     const decoded = await verifyToken(token);
-    const userId = decoded.userId as number; // Convert to BigInt
-
-    if (!Fullname || !Phonenumber || !TotalAmount || !Products || Products.length === 0) {
-      return NextResponse.json({ message: "اطلاعات درخواست نامعتبر است" }, { status: 400 });
-    }
+    const userId = decoded.userId as number;
 
     // Generate shorter, unique GUID
     const FactorGuid = await generateShortGuid();

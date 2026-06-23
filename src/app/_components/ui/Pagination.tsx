@@ -98,6 +98,7 @@ const Pagination: React.FC<PaginationProps> = ({
         {/* Previous Button */}
         <Link href={currentPage === 1 ? "#" : `${path}/${currentPage - 1}`}>
           <button
+            type="button"
             className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition duration-200 ${
               currentPage === 1
                 ? "cursor-not-allowed bg-gray-200 text-gray-400"
@@ -118,6 +119,7 @@ const Pagination: React.FC<PaginationProps> = ({
             typeof page === "number" ? (
               <Link key={index} href={`${path}/${page}`}>
                 <button
+                  type="button"
                   className={`min-w-[36px] rounded-lg px-3 py-2 text-sm font-medium transition duration-200 ${
                     page === currentPage
                       ? "bg-blue-600 text-white"
@@ -138,6 +140,7 @@ const Pagination: React.FC<PaginationProps> = ({
         {/* Next Button */}
         <Link href={currentPage === totalPages ? "#" : `${path}/${currentPage + 1}`}>
           <button
+            type="button"
             className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition duration-200 ${
               currentPage === totalPages
                 ? "cursor-not-allowed bg-gray-200 text-gray-400"
@@ -163,6 +166,7 @@ const Pagination: React.FC<PaginationProps> = ({
         {/* First Button */}
         <Link href={`${path}/1`}>
           <button
+            type="button"
             className={`rounded-lg px-3 py-2 text-base font-medium transition duration-200 ${
               currentPage === 1
                 ? "cursor-not-allowed bg-gray-300 text-gray-500"
@@ -177,6 +181,7 @@ const Pagination: React.FC<PaginationProps> = ({
         {/* Previous Button */}
         <Link href={`${path}/${currentPage - 1}`}>
           <button
+            type="button"
             className={`rounded-lg px-3 py-2 text-base font-medium transition duration-200 ${
               currentPage === 1
                 ? "cursor-not-allowed bg-gray-300 text-gray-500"
@@ -194,6 +199,7 @@ const Pagination: React.FC<PaginationProps> = ({
           typeof page === "number" ? (
             <Link key={index} href={`${path}/${page}`}>
               <button
+                type="button"
                 className={`min-w-[40px] rounded-lg px-3 py-2 text-base font-medium transition duration-200 ${
                   page === currentPage
                     ? "bg-blue-600 text-white"
@@ -213,6 +219,7 @@ const Pagination: React.FC<PaginationProps> = ({
         {/* Next Button */}
         <Link href={`${path}/${currentPage + 1}`}>
           <button
+            type="button"
             className={`rounded-lg px-3 py-2 text-base font-medium transition duration-200 ${
               currentPage === totalPages
                 ? "cursor-not-allowed bg-gray-300 text-gray-500"
@@ -228,6 +235,7 @@ const Pagination: React.FC<PaginationProps> = ({
         {/* Last Button */}
         <Link href={`${path}/${totalPages}`}>
           <button
+            type="button"
             className={`rounded-lg px-3 py-2 text-base font-medium transition duration-200 ${
               currentPage === totalPages
                 ? "cursor-not-allowed bg-gray-300 text-gray-500"

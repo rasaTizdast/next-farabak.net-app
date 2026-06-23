@@ -6,6 +6,26 @@ interface VideoUploadModalProps {
   onVideoUpload: (file: File) => Promise<void>;
 }
 
+async function uploadVideoFile(
+  file: File,
+  onVideoUpload: (file: File) => Promise<void>,
+  setUploading: React.Dispatch<React.SetStateAction<boolean>>,
+  setError: React.Dispatch<React.SetStateAction<string | null>>,
+  onClose: () => void
+) {
+  setUploading(true);
+  setError(null);
+
+  try {
+    await onVideoUpload(file);
+    onClose();
+  } catch {
+    setError("آپلود ویدیو با خطا مواجه شد");
+  } finally {
+    setUploading(false);
+  }
+}
+
 const VideoUploadModal: React.FC<VideoUploadModalProps> = ({ onClose, onVideoUpload }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -60,19 +80,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({ onClose, onVideoUpl
 
   const handleUpload = async () => {
     if (!selectedFile) return;
-
-    setUploading(true);
-    setError(null);
-
-    try {
-      await onVideoUpload(selectedFile);
-      onClose();
-    } catch (error) {
-      console.error("Upload failed:", error);
-      setError("آپلود ویدیو با خطا مواجه شد");
-    } finally {
-      setUploading(false);
-    }
+    await uploadVideoFile(selectedFile, onVideoUpload, setUploading, setError, onClose);
   };
 
   return (
@@ -85,6 +93,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({ onClose, onVideoUpl
             className="text-gray-300 hover:text-white"
             disabled={uploading}
             type="button"
+            aria-label="بستن"
           >
             <X size={24} />
           </button>
@@ -127,10 +136,11 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({ onClose, onVideoUpl
               </p>
             </div>
             <button
+              type="button"
               onClick={() => setSelectedFile(null)}
               className="text-gray-400 hover:text-white"
               disabled={uploading}
-              type="button"
+              aria-label="حذف فایل انتخاب شده"
             >
               <X size={18} />
             </button>

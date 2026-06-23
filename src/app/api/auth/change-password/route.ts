@@ -74,14 +74,14 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       return NextResponse.json({ message: "رمز عبور فعلی اشتباه است" }, { status: 401 });
     }
 
-    // Hash the new password
-    const hashedNewPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
-
-    // Deactivate old passwords
-    await prisma.password.updateMany({
-      where: { UserId: parseInt(userId, 10), Active: true },
-      data: { Active: false },
-    });
+    // Hash the new password and deactivate old passwords in parallel
+    const [hashedNewPassword] = await Promise.all([
+      bcrypt.hash(newPassword, SALT_ROUNDS),
+      prisma.password.updateMany({
+        where: { UserId: parseInt(userId, 10), Active: true },
+        data: { Active: false },
+      }),
+    ]);
 
     // Save the new password
     await prisma.password.create({

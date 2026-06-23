@@ -37,6 +37,8 @@ import {
 } from "lucide-react";
 import { useState, useCallback, useEffect, useRef } from "react";
 
+import { useApiMutation } from "@/hooks/useApiMutation";
+
 import { Divider } from "./Divider";
 import { CustomImage } from "./Image";
 import { ToolbarButton } from "./ToolbarButton";
@@ -62,6 +64,8 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(false);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const { mutate: uploadImage } = useApiMutation("post");
+  const { mutate: uploadVideo } = useApiMutation("post");
 
   const calculateDimensions = async (url: string) => {
     if (typeof window === "undefined") {
@@ -171,51 +175,48 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
         return;
       }
 
-      try {
-        setIsImageLoading(true);
+      setIsImageLoading(true);
 
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("slug", slug);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("slug", slug);
 
-        const response = await fetch("/api/products/productBlog/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        const { url } = await response.json();
-        const { width, height } = await calculateDimensions(url);
-
-        // Remove temporary placeholder
-        editor.commands.command(({ chain }) => {
-          return chain()
-            .focus()
-            .deleteRange({
-              from: editor.state.selection.from - 1,
-              to: editor.state.selection.from,
-            })
-            .insertContent({
-              type: "image",
-              attrs: {
-                src: url,
-                alt: file.name,
-                title: file.name,
-                width,
-                height,
-                slug, // Add the slug here
-                size: "full", // Default size to full width
-              },
-            })
-            .run();
-        });
-      } catch (error) {
-        console.error("Upload failed:", error);
+      const result = (await uploadImage("/api/products/productBlog/upload", formData)) as {
+        url: string;
+      } | null;
+      if (!result) {
         alert("Failed to upload image");
-      } finally {
         setIsImageLoading(false);
+        return;
       }
+
+      const { url } = result;
+      const { width, height } = await calculateDimensions(url);
+
+      editor.commands.command(({ chain }) => {
+        return chain()
+          .focus()
+          .deleteRange({
+            from: editor.state.selection.from - 1,
+            to: editor.state.selection.from,
+          })
+          .insertContent({
+            type: "image",
+            attrs: {
+              src: url,
+              alt: file.name,
+              title: file.name,
+              width,
+              height,
+              slug,
+              size: "full",
+            },
+          })
+          .run();
+      });
+      setIsImageLoading(false);
     },
-    [editor, slug] // Add slug to dependencies
+    [editor, slug, uploadImage]
   );
 
   const handleDrop = useCallback(
@@ -348,39 +349,36 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
         return;
       }
 
-      try {
-        setIsVideoLoading(true);
+      setIsVideoLoading(true);
 
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("slug", slug);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("slug", slug);
 
-        const response = await fetch("/api/products/productBlog/uploadVideo", {
-          method: "POST",
-          body: formData,
-        });
-
-        const { url } = await response.json();
-
-        // Insert the video into the editor
-        editor.commands.command(({ chain }) => {
-          return chain()
-            .focus()
-            .setVideo({
-              src: url,
-              title: file.name,
-              slug,
-            })
-            .run();
-        });
-      } catch (error) {
-        console.error("Video upload failed:", error);
+      const result = (await uploadVideo("/api/products/productBlog/uploadVideo", formData)) as {
+        url: string;
+      } | null;
+      if (!result) {
         alert("Failed to upload video");
-      } finally {
         setIsVideoLoading(false);
+        return;
       }
+
+      const { url } = result;
+
+      editor.commands.command(({ chain }) => {
+        return chain()
+          .focus()
+          .setVideo({
+            src: url,
+            title: file.name,
+            slug,
+          })
+          .run();
+      });
+      setIsVideoLoading(false);
     },
-    [editor, slug]
+    [editor, slug, uploadVideo]
   );
 
   const toggleVideoModal = () => {
@@ -590,6 +588,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
                 <label className="mb-2 block text-right text-sm text-gray-300">تعداد سطرها</label>
                 <div className="flex items-center">
                   <button
+                    type="button"
                     onClick={() => setTableRows(Math.max(1, tableRows - 1))}
                     className="rounded-r border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
@@ -604,6 +603,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
                     className="w-12 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center text-white"
                   />
                   <button
+                    type="button"
                     onClick={() => setTableRows(Math.min(20, tableRows + 1))}
                     className="rounded-l border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
@@ -616,6 +616,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
                 <label className="mb-2 block text-right text-sm text-gray-300">تعداد ستون‌ها</label>
                 <div className="flex items-center">
                   <button
+                    type="button"
                     onClick={() => setTableCols(Math.max(1, tableCols - 1))}
                     className="rounded-r border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
@@ -630,6 +631,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
                     className="w-12 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center text-white"
                   />
                   <button
+                    type="button"
                     onClick={() => setTableCols(Math.min(10, tableCols + 1))}
                     className="rounded-l border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
@@ -727,6 +729,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
             }}
           >
             <button
+              type="button"
               onClick={() => editor.chain().focus().addColumnBefore().run()}
               className="rounded bg-blue-600 px-3 py-0.5 text-sm text-white hover:bg-blue-700"
               title="افزودن ستون قبل"
@@ -734,6 +737,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
               ستون +
             </button>
             <button
+              type="button"
               onClick={() => editor.chain().focus().deleteColumn().run()}
               className="rounded bg-red-600 px-3 py-0.5 text-sm text-white hover:bg-red-700"
               title="حذف ستون"
@@ -741,6 +745,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
               ستون -
             </button>
             <button
+              type="button"
               onClick={() => editor.chain().focus().addRowBefore().run()}
               className="rounded bg-green-600 px-3 py-0.5 text-sm text-white hover:bg-green-700"
               title="افزودن سطر قبل"
@@ -748,6 +753,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
               سطر +
             </button>
             <button
+              type="button"
               onClick={() => editor.chain().focus().deleteRow().run()}
               className="rounded bg-red-600 px-3 py-0.5 text-sm text-white hover:bg-red-700"
               title="حذف سطر"
@@ -755,6 +761,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
               سطر -
             </button>
             <button
+              type="button"
               onClick={() => editor.chain().focus().deleteTable().run()}
               className="rounded bg-gray-600 px-3 py-0.5 text-sm text-white hover:bg-gray-700"
               title="حذف جدول"

@@ -4,6 +4,8 @@ import React from "react";
 
 import { User } from "./types";
 
+const EMPTY_USERS: User[] = [];
+
 interface BranchFormProps {
   form: FormInstance;
   onFinish: (values: Record<string, unknown>) => void;
@@ -17,7 +19,7 @@ const BranchForm: React.FC<BranchFormProps> = ({
   form,
   onFinish,
   onCancel,
-  users = [],
+  users = EMPTY_USERS,
   isEdit = false,
   submitButtonText,
 }) => {
@@ -75,7 +77,7 @@ const BranchForm: React.FC<BranchFormProps> = ({
       </Form.Item>
 
       <Form.Item className="mb-0 flex justify-end">
-        <Button onClick={onCancel} className="dark-button-secondary ml-2">
+        <Button htmlType="button" onClick={onCancel} className="dark-button-secondary ml-2">
           انصراف
         </Button>
         <Button

@@ -23,15 +23,6 @@ const ProductTable: React.FC<ProductTableProps> = ({
   const [debouncedValues, setDebouncedValues] = useState<{ [key: number]: number }>({});
   const timersRef = useRef<{ [key: number]: NodeJS.Timeout }>({});
 
-  // Populate initial values when products change
-  useEffect(() => {
-    const initialValues: { [key: number]: number } = {};
-    products.forEach((product) => {
-      initialValues[product.ProductId] = product.quantity;
-    });
-    setDebouncedValues(initialValues);
-  }, [products]);
-
   // Handle quantity change with debounce
   const handleQuantityChange = (productId: number, value: number) => {
     // Clear existing timer for this product

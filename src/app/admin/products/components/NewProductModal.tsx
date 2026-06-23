@@ -391,7 +391,7 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
     const newErrors = validateAllFields(state);
 
     // Use setTimeout to give inputs a chance to update their local errors
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       setErrors((currentErrors) => {
         // Preserve validation errors from child components
         const preservedErrors = Object.keys(currentErrors)
@@ -427,6 +427,7 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
         return { ...preservedErrors, ...filteredBaseErrors };
       });
     }, 100);
+    return () => clearTimeout(timer);
   }, [state, touchedFields, hasSubmitted]);
 
   // Manage the collapse state for each section

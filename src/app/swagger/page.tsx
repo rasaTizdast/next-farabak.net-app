@@ -1,54 +1,24 @@
-"use client";
+import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { useEffect, useState } from "react";
-import SwaggerUI from "swagger-ui-react";
-import "swagger-ui-react/swagger-ui.css";
-
+import SwaggerClient from "./SwaggerClient";
 import LoadingSpinner from "../_components/ui/LoadingSpinner";
-// import { notFound } from "next/navigation";
 
-interface SwaggerSpec {
-  openapi: string;
-  info: {
-    title: string;
-    version: string;
-    description?: string;
-  };
-  paths: Record<string, unknown>; // Change this to unknown for more flexibility
-}
+export const metadata: Metadata = {
+  title: "مستندات API | فراباک",
+  description: "مستندات کامل API فروشگاه فراباک",
+};
 
 export default function SwaggerPage() {
-  const [spec, setSpec] = useState<SwaggerSpec | null>(null);
-
-  useEffect(() => {
-    const fetchSwaggerSpec = async () => {
-      try {
-        const response = await fetch("/api/swagger");
-        if (!response.ok) {
-          throw new Error("Failed to fetch Swagger spec");
-        }
-        const data = await response.json();
-        setSpec(data);
-      } catch (error) {
-        throw new Error("Error fetching Swagger spec:", error!);
+  return (
+    <Suspense
+      fallback={
+        <div className="mt-12">
+          <LoadingSpinner />
+        </div>
       }
-    };
-
-    fetchSwaggerSpec();
-  }, []);
-
-  // // Prevent SwaggerUI from rendering in production
-  // if (process.env.NODE_ENV === "production") {
-  //   return notFound(); // or a placeholder component
-  // }
-
-  if (!spec) {
-    return (
-      <div className="mt-12">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  return <SwaggerUI spec={spec} />;
+    >
+      <SwaggerClient />
+    </Suspense>
+  );
 }

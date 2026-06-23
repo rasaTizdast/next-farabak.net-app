@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 
 import { ButtonBase, InputBase, ModalBase } from "./ui";
 
+const EMPTY_WAREHOUSES: Array<{ warehouseid: number; name: string }> = [];
+
 export default function WarehouseFormModal({
   open,
   onClose,
@@ -13,7 +15,7 @@ export default function WarehouseFormModal({
   setFormName,
   formLocation,
   setFormLocation,
-  existingWarehouses = [],
+  existingWarehouses = EMPTY_WAREHOUSES,
   editingWarehouseId,
 }: {
   open: boolean;

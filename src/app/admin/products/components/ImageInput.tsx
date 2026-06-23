@@ -8,7 +8,7 @@ interface ImageInputProps {
 }
 
 const ImageInput: React.FC<ImageInputProps> = ({ label, imageUrl, onChange }) => {
-  const [preview, setPreview] = useState(imageUrl);
+  const [preview, setPreview] = useState(() => imageUrl);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -28,7 +28,7 @@ const ImageInput: React.FC<ImageInputProps> = ({ label, imageUrl, onChange }) =>
           height={1080}
           quality={100}
           src={preview}
-          alt="Upload"
+          alt="آپلود تصویر"
           className="h-full w-full rounded-lg bg-gray-900 object-contain transition-all"
         />
 

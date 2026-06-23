@@ -107,17 +107,17 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
       return NextResponse.json({ error: "Invalid input format" }, { status: 400 });
     }
 
+    // If no new FAQs, just return success without deleting
+    if (faqs.length === 0) {
+      return NextResponse.json({ message: "FAQs updated successfully" });
+    }
+
     // Delete existing FAQs for this product
     await prisma.fAQs.deleteMany({
       where: {
         ProductId: productId,
       },
     });
-
-    // If no new FAQs, just return success
-    if (faqs.length === 0) {
-      return NextResponse.json({ message: "FAQs updated successfully" });
-    }
 
     // Create new FAQs
     await prisma.fAQs.createMany({

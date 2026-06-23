@@ -87,17 +87,21 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
           ))}
           {width && width <= 576 && (
             <button
+              type="button"
               className={styles.toggleButton}
               onClick={() => {
                 setTextVis((v) => !v);
                 setOverlay((v) => !v);
               }}
+              aria-label={textVis ? "بستن منو" : "باز کردن منو"}
             >
               {textVis ? <FaArrowRight /> : <FaArrowLeft />}
             </button>
           )}
           <li>
-            <span onClick={() => logout()}>{textVis ? "خروج از حساب" : <ImExit />}</span>
+            <button type="button" onClick={() => logout()} className={styles.asideLinks}>
+              {textVis ? "خروج از حساب" : <ImExit />}
+            </button>
           </li>
         </ul>
       </aside>

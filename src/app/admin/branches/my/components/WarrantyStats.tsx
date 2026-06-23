@@ -2,7 +2,8 @@
 
 import { LoadingOutlined, ReloadOutlined } from "@ant-design/icons";
 import { Card, Spin, Alert, Typography, Empty } from "antd";
-import { useState, useEffect, useCallback } from "react";
+
+import { useApiFetch } from "@/hooks/useApiFetch";
 
 const { Title, Text } = Typography;
 
@@ -14,65 +15,25 @@ interface BranchStats {
   requested_count: number;
 }
 
+interface BranchStatsResponse {
+  myBranches?: BranchStats[];
+}
+
 interface WarrantyStatsProps {
   isTabActive?: boolean;
 }
 
 export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps) {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [statistics, setStatistics] = useState<BranchStats[]>([]);
-  const [dataFetched, setDataFetched] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+  const url = isTabActive ? "/api/admin/warranty/statistics" : null;
+  const { data, loading, error, refetch } = useApiFetch<BranchStatsResponse>(url, true, {
+    headers: { "Cache-Control": "no-cache" },
+  });
 
-  const fetchWarrantyStats = useCallback(
-    async (retry: boolean = false) => {
-      if (!isTabActive && dataFetched) return;
-
-      try {
-        setLoading(true);
-        const response = await fetch("/api/admin/warranty/statistics", {
-          cache: "no-cache",
-          headers: {
-            "Cache-Control": "no-cache",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch warranty statistics: ${response.status}`);
-        }
-
-        const data = await response.json();
-        // Check if data.myBranches exists and is an array
-        const stats = Array.isArray(data.myBranches) ? data.myBranches : [];
-        setStatistics(stats);
-        setDataFetched(true);
-        setError("");
-      } catch (err: any) {
-        console.error("Error fetching warranty stats:", err);
-        setError(err.message || "خطا در دریافت آمار گارانتی‌ها");
-
-        // If this is the first error, retry once automatically
-        if (!retry && retryCount < 2) {
-          setRetryCount((prev) => prev + 1);
-          setTimeout(() => fetchWarrantyStats(true), 2000);
-        }
-      } finally {
-        setLoading(false);
-      }
-    },
-    [isTabActive, dataFetched, retryCount]
-  );
-
-  useEffect(() => {
-    if (isTabActive && !dataFetched) {
-      fetchWarrantyStats();
-    }
-  }, [isTabActive, dataFetched, fetchWarrantyStats]);
+  const statistics: BranchStats[] = Array.isArray(data?.myBranches) ? data!.myBranches : [];
+  const dataFetched = data !== null;
 
   const handleRetry = () => {
-    setDataFetched(false);
-    fetchWarrantyStats();
+    refetch();
   };
 
   if (!isTabActive && !dataFetched) {
@@ -95,6 +56,7 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
           <div className="flex flex-col space-y-3">
             <p>{error}</p>
             <button
+              type="button"
               onClick={handleRetry}
               className="flex w-fit items-center rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700"
             >
@@ -127,6 +89,7 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
                 جزئیات آماری شعبه {statistics[0].branch_name}
               </Title>
               <button
+                type="button"
                 onClick={handleRetry}
                 className="flex items-center text-blue-400 hover:text-blue-300"
               >

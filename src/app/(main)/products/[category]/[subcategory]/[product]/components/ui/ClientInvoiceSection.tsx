@@ -59,10 +59,17 @@ const ClientInvoiceSection = ({
 
   // Convert USD to Rial
   const priceInRial = exchangeRate ? priceUsd * exchangeRate : null;
-  const discountInRial = exchangeRate ? discountUsd * exchangeRate : null;
-  const discountedPrice = priceInRial && discountInRial ? priceInRial - discountInRial : null;
+  const discountInRial = exchangeRate && discountUsd > 0 ? discountUsd * exchangeRate : 0;
+
+  // Calculate final price - if no discount, use original price
+  const finalPrice = priceInRial && discountInRial > 0 ? priceInRial - discountInRial : priceInRial;
+
+  // Only calculate discount percentage if there's an actual discount
   const discountPercentage =
-    priceInRial && discountInRial ? ((discountInRial / priceInRial) * 100).toFixed(2) : 0;
+    priceInRial && discountInRial > 0 ? ((discountInRial / priceInRial) * 100).toFixed(2) : 0;
+
+  // Check if product has a meaningful discount
+  const hasDiscount = discountInRial > 0;
 
   // Determine if product has limits
   const hasMinimum = minimumAmount !== null && minimumAmount !== undefined && minimumAmount > 0;
@@ -95,7 +102,7 @@ const ClientInvoiceSection = ({
       initialAmount,
       ProductName,
       priceInRial!,
-      discountInRial!,
+      discountInRial,
       minimumAmount ?? null,
       maximumAmount ?? null
     );
@@ -129,30 +136,41 @@ const ClientInvoiceSection = ({
     );
   }
 
-  // Price display block
+  // Price display block - now with conditional rendering based on discount
   const priceBlock = (
     <div
       className={`flex ${styles.priceParent} my-6 max-w-full animate-fade-in flex-col gap-3 rounded-lg bg-blue-100 p-3`}
     >
-      <div className="flex content-center items-center gap-2">
-        قیمت قبلی:{" "}
-        <span className={`${styles.beforePrice} font-extralight text-gray-500 line-through`}>
-          {e2p(priceInRial?.toLocaleString() || "0")} تومان
-        </span>
-        {discountInRial && discountInRial > 0 && (
-          <span
-            className={`${styles.discount} rounded-lg bg-[#003262] px-2 py-1 text-xs font-semibold text-white lg:rounded-xl`}
-          >
-            {e2p(discountPercentage?.toLocaleString() || "0")}%
+      {hasDiscount ? (
+        // Show before/after prices with discount badge
+        <>
+          <div className="flex content-center items-center gap-2">
+            قیمت قبلی:{" "}
+            <span className={`${styles.beforePrice} font-extralight text-gray-500 line-through`}>
+              {e2p(priceInRial?.toLocaleString() || "0")} تومان
+            </span>
+            <span
+              className={`${styles.discount} rounded-lg bg-[#003262] px-2 py-1 text-xs font-semibold text-white lg:rounded-xl`}
+            >
+              {e2p(discountPercentage?.toLocaleString() || "0")}%
+            </span>
+          </div>
+          <div className="flex content-center items-center gap-2">
+            قیمت جدید:{" "}
+            <span className="text-2xl font-black text-[#003262]">
+              {e2p(finalPrice?.toLocaleString() || "0")} تومان
+            </span>
+          </div>
+        </>
+      ) : (
+        // Show only current price without discount styling
+        <div className="flex content-center items-center gap-2">
+          قیمت:{" "}
+          <span className="text-2xl font-black text-[#003262]">
+            {e2p(finalPrice?.toLocaleString() || "0")} تومان
           </span>
-        )}
-      </div>
-      <div className="flex content-center items-center gap-2">
-        قیمت جدید:{" "}
-        <span className="text-2xl font-black text-[#003262]">
-          {e2p(discountedPrice?.toLocaleString() || "0")} تومان
-        </span>
-      </div>
+        </div>
+      )}
     </div>
   );
 
@@ -297,13 +315,13 @@ const ClientInvoiceSection = ({
         <>
           {limitsInfo}
           {activeLimitsInfo}
-          {/* removed limitWarning – context silently enforces; you can add toast warnings later if you want */}
           {currentQuantity > 0 && <p className={styles.invoiceText}>تعداد این محصول در فاکتور</p>}
           <div className={styles.addToInvoice}>
             {currentQuantity > 0 ? (
               <div className={styles.actions}>
                 {/* + button */}
                 <button
+                  type="button"
                   className={`${styles.action} origin-right transition-all ${
                     !canIncrease
                       ? "cursor-not-allowed bg-gray-300 opacity-50"
@@ -325,6 +343,7 @@ const ClientInvoiceSection = ({
                 {/* - button OR trash */}
                 {currentQuantity <= (hasMinimum ? minimumAmount! : 1) ? (
                   <button
+                    type="button"
                     onClick={() => removeProductFromInvoice(ProductId)}
                     className={`${styles.action} origin-left transition-all hover:bg-red-600 hover:brightness-110`}
                     title="حذف کامل از فاکتور"
@@ -333,6 +352,7 @@ const ClientInvoiceSection = ({
                   </button>
                 ) : (
                   <button
+                    type="button"
                     className={`${styles.action} origin-left transition-all hover:bg-yellow-600 hover:brightness-110`}
                     onClick={() => handleQuantityChange(-1)}
                     title="کاهش تعداد"
@@ -343,6 +363,7 @@ const ClientInvoiceSection = ({
               </div>
             ) : (
               <button
+                type="button"
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#003262] p-3 text-sm text-white transition-all hover:bg-[#00244a] hover:shadow-lg sm:mt-0 md:text-base"
                 onClick={handleInitialAdd}
               >

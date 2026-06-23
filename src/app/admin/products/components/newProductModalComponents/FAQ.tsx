@@ -18,7 +18,7 @@ type Props = {
 };
 
 const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
-  const [localFAQs, setLocalFAQs] = useState<FAQItem[]>(state.faqs);
+  const [localFAQs, setLocalFAQs] = useState<FAQItem[]>(() => state.faqs);
   const [localErrors, setLocalErrors] = useState<{ [key: string]: string }>({});
   const [touchedFields, setTouchedFields] = useState<{
     [key: string]: boolean;

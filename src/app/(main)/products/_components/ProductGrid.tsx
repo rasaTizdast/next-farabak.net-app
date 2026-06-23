@@ -1,12 +1,9 @@
-// src/app/(main)/products/_components/ProductGrid.tsx
-
 import { Suspense } from "react";
-
-import SkeletonLoader from "@/app/_components/ui/SkeletonLoader";
 
 import BannerImage from "./BannerImage";
 import BlogContent from "./BlogContent";
-import { GridContentServer } from "./GridContentServer"; // Server component for products
+import { GridContentServer } from "./GridContentServer";
+import { ProductGridSkeleton } from "./ProductListSkeletons";
 import styles from "./ProductGrid.module.css";
 
 interface ProductGridProps {
@@ -16,6 +13,22 @@ interface ProductGridProps {
   categorySlug?: string;
   subcategorySlug?: string;
 }
+
+const BannerSkeleton = () => (
+  <div className="mb-8 w-full animate-pulse rounded-md bg-gray-200" style={{ aspectRatio: "1920 / 600" }} />
+);
+
+const BlogSkeleton = () => (
+  <div className="mx-auto mb-5 w-full animate-pulse rounded-xl border border-gray-800 bg-gray-800 p-3 sm:p-5 md:p-7">
+    <div className="space-y-3">
+      <div className="h-4 w-full rounded bg-gray-700" />
+      <div className="h-4 w-5/6 rounded bg-gray-700" />
+      <div className="h-4 w-3/4 rounded bg-gray-700" />
+      <div className="h-4 w-full rounded bg-gray-700" />
+      <div className="h-4 w-2/3 rounded bg-gray-700" />
+    </div>
+  </div>
+);
 
 const ProductGrid: React.FC<ProductGridProps> = ({
   title,
@@ -55,9 +68,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
 
   return (
     <div className={styles.gridContainer}>
-      {/* Top Blog replaces current H1 when present */}
       <Suspense fallback={<h1 className={styles.gridTitle}>{title}</h1>}>
-        {/** Render top blog or fallback to H1 */}
         {(async () => {
           const { topBlog } = await blogsPromise;
           if (topBlog) {
@@ -67,17 +78,16 @@ const ProductGrid: React.FC<ProductGridProps> = ({
         })()}
       </Suspense>
 
-      {/** Banner under title and first blog section (full-width) */}
-      <Suspense>
+      <Suspense fallback={<BannerSkeleton />}>
         {(async () => {
           const { banner } = await blogsPromise;
           if (!banner) return null;
           const src = `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/categoryBanners/${banner.replace(/^categoryBanners\//, "")}`;
-          return <BannerImage src={src} alt="banner" />;
+          return <BannerImage src={src} alt="بنر محصول" />;
         })()}
       </Suspense>
 
-      <Suspense fallback={<SkeletonLoader amount={15} />}>
+      <Suspense fallback={<ProductGridSkeleton />}>
         <GridContentServer
           apiUrl={apiUrl}
           currentPage={currentPage}
@@ -86,8 +96,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
         />
       </Suspense>
 
-      {/* Bottom Blog after grid */}
-      <Suspense>
+      <Suspense fallback={<BlogSkeleton />}>
         {(async () => {
           const { bottomBlog } = await blogsPromise;
           if (!bottomBlog) return null;

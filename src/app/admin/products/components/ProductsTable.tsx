@@ -29,6 +29,76 @@ type Props = {
 
 type SortKey = keyof Pick<Product, "Price" | "Available"> | null;
 
+type SortConfig = {
+  key: SortKey;
+  direction: "ascending" | "descending";
+};
+
+async function fetchProductQuantity(
+  productId: number,
+  loadingQuantities: Record<number, boolean>,
+  productQuantities: Record<number, { branches: number; warehouses: number; timestamp: number }>,
+  setLoadingQuantities: React.Dispatch<React.SetStateAction<Record<number, boolean>>>,
+  setProductQuantities: React.Dispatch<React.SetStateAction<Record<number, { branches: number; warehouses: number; timestamp: number }>>>
+) {
+  if (loadingQuantities[productId]) return;
+
+  const cached = productQuantities[productId];
+  const now = Date.now();
+  if (cached && now - cached.timestamp < 30000) {
+    return;
+  }
+
+  setLoadingQuantities((prev) => ({ ...prev, [productId]: true }));
+
+  try {
+    const [branchRes, warehouseRes] = await Promise.all([
+      axios.get(`/api/admin/branches/product-quantity/${productId}`),
+      axios.get(`/api/admin/warehouses/product-quantity/${productId}`),
+    ]);
+
+    setProductQuantities((prev) => ({
+      ...prev,
+      [productId]: {
+        branches: branchRes.status === 200 ? branchRes.data.totalQuantity || 0 : 0,
+        warehouses: warehouseRes.status === 200 ? warehouseRes.data.totalQuantity || 0 : 0,
+        timestamp: now,
+      },
+    }));
+  } catch (error) {
+    console.error("Error fetching product quantity:", error);
+  } finally {
+    setLoadingQuantities((prev) => ({ ...prev, [productId]: false }));
+  }
+}
+
+const SortableHeader = ({
+  children,
+  sortKey,
+  sortConfig,
+  onSort,
+}: {
+  children: React.ReactNode;
+  sortKey: SortKey;
+  sortConfig: SortConfig;
+  onSort: (key: SortKey) => void;
+}) => (
+  <th scope="col" className="cursor-pointer select-none px-6 py-3" onClick={() => onSort(sortKey)}>
+    <div className="flex items-center justify-center gap-2">
+      {children}
+      {sortConfig.key === sortKey ? (
+        sortConfig.direction === "ascending" ? (
+          <FaSortUp aria-label="Sort ascending" />
+        ) : (
+          <FaSortDown aria-label="Sort descending" />
+        )
+      ) : (
+        <FaSort className="text-gray-400" aria-label="Sort" />
+      )}
+    </div>
+  </th>
+);
+
 const ProductsTable = ({
   isLoading,
   products,
@@ -59,18 +129,19 @@ const ProductsTable = ({
   const [qrCodeProduct, setQrCodeProduct] = useState<Product | null>(null);
 
   const [usdRate, setUsdRate] = useState<number | null>(null);
+  async function loadUsdRate() {
+    try {
+      const rate = await fetchUsdToRialRate();
+      setUsdRate(rate);
+    } catch (error) {
+      console.error("Failed to fetch USD rate:", error);
+      setUsdRate(null);
+    }
+  }
+
   // Fetch the rate when the component mounts
   useEffect(() => {
-    const fetchExchangeRate = async () => {
-      try {
-        const rate = await fetchUsdToRialRate();
-        setUsdRate(rate);
-      } catch (error) {
-        console.error("Failed to fetch USD rate:", error);
-        setUsdRate(null); // Don't set a fallback value to properly handle invalid rates
-      }
-    };
-    fetchExchangeRate();
+    loadUsdRate();
   }, []);
 
   // Check if the USD rate is valid
@@ -86,7 +157,7 @@ const ProductsTable = ({
     }
 
     // Otherwise, apply the selected sort
-    return [...products].sort((a, b) => {
+    return products.toSorted((a, b) => {
       const key = sortConfig.key as keyof Product;
 
       // Handle potential null values in the comparison
@@ -173,34 +244,6 @@ const ProductsTable = ({
     });
   };
 
-  // Sorting header component
-  const SortableHeader = ({
-    children,
-    sortKey,
-  }: {
-    children: React.ReactNode;
-    sortKey: SortKey;
-  }) => (
-    <th
-      scope="col"
-      className="cursor-pointer select-none px-6 py-3"
-      onClick={() => handleSort(sortKey)}
-    >
-      <div className="flex items-center justify-center gap-2">
-        {children}
-        {sortConfig.key === sortKey ? (
-          sortConfig.direction === "ascending" ? (
-            <FaSortUp aria-label="Sort ascending" />
-          ) : (
-            <FaSortDown aria-label="Sort descending" />
-          )
-        ) : (
-          <FaSort className="text-gray-400" aria-label="Sort" />
-        )}
-      </div>
-    </th>
-  );
-
   const handleEditProduct = (product: Product) => {
     setIsEditModalOpen(true);
     setCurrentProduct(product);
@@ -211,39 +254,8 @@ const ProductsTable = ({
     setQrCodeProduct(product);
   };
 
-  // Fetch branch quantities for a product with 30-second cache
   const fetchProductBranchQuantity = async (productId: number) => {
-    if (loadingQuantities[productId]) return;
-
-    // Check if we have cached data less than 30 seconds old
-    const cached = productQuantities[productId];
-    const now = Date.now();
-    if (cached && now - cached.timestamp < 30000) {
-      // Use cached data if it's less than 30 seconds old
-      return;
-    }
-
-    setLoadingQuantities((prev) => ({ ...prev, [productId]: true }));
-
-    try {
-      const [branchRes, warehouseRes] = await Promise.all([
-        axios.get(`/api/admin/branches/product-quantity/${productId}`),
-        axios.get(`/api/admin/warehouses/product-quantity/${productId}`),
-      ]);
-
-      setProductQuantities((prev) => ({
-        ...prev,
-        [productId]: {
-          branches: branchRes.status === 200 ? branchRes.data.totalQuantity || 0 : 0,
-          warehouses: warehouseRes.status === 200 ? warehouseRes.data.totalQuantity || 0 : 0,
-          timestamp: now,
-        },
-      }));
-    } catch (error) {
-      console.error("Error fetching product quantity:", error);
-    } finally {
-      setLoadingQuantities((prev) => ({ ...prev, [productId]: false }));
-    }
+    fetchProductQuantity(productId, loadingQuantities, productQuantities, setLoadingQuantities, setProductQuantities);
   };
 
   if (notFound) {
@@ -261,6 +273,7 @@ const ProductsTable = ({
         {sortConfig.key !== null && (
           <div className="flex justify-end rounded-t-xl bg-blue-600 p-2">
             <button
+              type="button"
               onClick={resetSorting}
               className="flex items-center gap-1 rounded-lg bg-blue-800 px-3 py-1 text-xs text-white transition-all hover:bg-blue-900"
             >
@@ -275,6 +288,7 @@ const ProductsTable = ({
             <span className="text-white">{selectedProducts.length} محصول انتخاب شده</span>
             <div className="flex flex-wrap justify-end gap-2">
               <button
+                type="button"
                 onClick={() => handleBulkAction("delete")}
                 className="rounded-lg bg-red-600 px-3 py-1 text-xs text-white transition-all hover:bg-red-700"
               >
@@ -311,8 +325,12 @@ const ProductsTable = ({
               <th scope="col" className="px-6 py-3">
                 شناسه محصول
               </th>
-              <SortableHeader sortKey="Price">قیمت</SortableHeader>
-              <SortableHeader sortKey="Available">موجودی</SortableHeader>
+              <SortableHeader sortKey="Price" sortConfig={sortConfig} onSort={handleSort}>
+                قیمت
+              </SortableHeader>
+              <SortableHeader sortKey="Available" sortConfig={sortConfig} onSort={handleSort}>
+                موجودی
+              </SortableHeader>
               <th scope="col" className="px-6 py-3 text-center">
                 عملیات
               </th>
@@ -341,6 +359,7 @@ const ProductsTable = ({
                     <td className="px-6 py-4">
                       {product.CategoryContentIds?.length > 1 ? (
                         <button
+                          type="button"
                           onClick={() =>
                             setActiveSubCategories({
                               name: product.Type,
@@ -412,6 +431,7 @@ const ProductsTable = ({
                     <td className="px-6 py-4">
                       <div className="flex justify-center gap-2">
                         <button
+                          type="button"
                           onClick={() => qrCodeModalHandler(product)}
                           className={`${product.QrCode_Key ? "bg-violet-800" : "bg-sky-600"} ${
                             product.QrCode_Key ? "hover:bg-violet-900" : "hover:bg-sky-700"
@@ -427,6 +447,7 @@ const ProductsTable = ({
                         />
 
                         <button
+                          type="button"
                           onClick={() => handleEditProduct(product)}
                           className="rounded-lg bg-yellow-600 px-2 py-1 text-white transition-all hover:bg-yellow-700"
                         >
@@ -434,6 +455,7 @@ const ProductsTable = ({
                         </button>
 
                         <button
+                          type="button"
                           onClick={() => {
                             setIsModalOpen(true);
                             setCurrentAction({
@@ -476,6 +498,7 @@ const ProductsTable = ({
                 ))}
               </ul>
               <button
+                type="button"
                 onClick={() => setActiveSubCategories(null)}
                 className="mt-8 rounded-lg bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-800"
               >

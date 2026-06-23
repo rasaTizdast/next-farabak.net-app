@@ -6,6 +6,9 @@ import { toast } from "react-hot-toast";
 import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
 
+import { useApiFetch } from "@/hooks/useApiFetch";
+import { useApiMutation } from "@/hooks/useApiMutation";
+
 const { TextArea } = Input;
 
 interface FaqEditorProps {
@@ -32,24 +35,18 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
     Available: true, // Always true
   });
 
-  // Fetch FAQs
-  const fetchFaqs = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("/api/admin/faqs");
-      const data = await response.json();
-      setFaqs(data.faqs);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching FAQs:", error);
-      toast.error("خطا در دریافت سوالات متداول");
+  const { data: faqsData } = useApiFetch("/api/admin/faqs");
+  const { mutate: deleteFaqMutate } = useApiMutation("delete");
+  const { mutate: saveFaqMutate } = useApiMutation("post");
+  const { mutate: updateFaqMutate } = useApiMutation("put");
+
+  // eslint-disable-next-line react-compiler/set-state-in-effect
+  useEffect(() => {
+    if (faqsData) {
+      setFaqs(faqsData.faqs);
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchFaqs();
-  }, []);
+  }, [faqsData]);
 
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -85,21 +82,12 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
       return;
     }
 
-    try {
-      const response = await fetch(`/api/admin/faqs/${id}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        toast.success("سوال با موفقیت حذف شد");
-        fetchFaqs();
-      } else {
-        const errorData = await response.json();
-        toast.error(`خطا در حذف سوال: ${errorData.error}`);
-      }
-    } catch (error) {
-      console.error("Error deleting FAQ:", error);
-      toast.error("خطا در ارتباط با سرور");
+    const res = await deleteFaqMutate(`/api/admin/faqs/${id}`);
+    if (res) {
+      toast.success("سوال با موفقیت حذف شد");
+      setFaqs((prev) => prev.filter((f) => f.FaqDetailsid !== id));
+    } else {
+      toast.error("خطا در حذف سوال");
     }
   };
 
@@ -120,45 +108,22 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
       return;
     }
 
-    try {
-      let response;
-      if (editingFaq) {
-        // Update existing FAQ
-        response = await fetch(`/api/admin/faqs/${editingFaq.FaqDetailsid}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...formData,
-            Available: true, // Always true
-          }),
-        });
-      } else {
-        // Create new FAQ
-        response = await fetch("/api/admin/faqs", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...formData,
-            Available: true, // Always true
-          }),
-        });
-      }
+    const payload = { ...formData, Available: true };
+    let res;
+    if (editingFaq) {
+      res = await updateFaqMutate(`/api/admin/faqs/${editingFaq.FaqDetailsid}`, payload);
+    } else {
+      res = await saveFaqMutate("/api/admin/faqs", payload);
+    }
 
-      if (response.ok) {
-        toast.success(editingFaq ? "سوال با موفقیت بروزرسانی شد" : "سوال جدید با موفقیت ایجاد شد");
-        setModalVisible(false);
-        fetchFaqs();
-      } else {
-        const errorData = await response.json();
-        toast.error(`خطا: ${errorData.error}`);
-      }
-    } catch (error) {
-      console.error("Error saving FAQ:", error);
-      toast.error("خطا در ارتباط با سرور");
+    if (res) {
+      toast.success(editingFaq ? "سوال با موفقیت بروزرسانی شد" : "سوال جدید با موفقیت ایجاد شد");
+      setModalVisible(false);
+      const fetchRes = await fetch("/api/admin/faqs");
+      const data = await fetchRes.json();
+      setFaqs(data.faqs);
+    } else {
+      toast.error("خطا در ذخیره سوال");
     }
   };
 
@@ -336,12 +301,14 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
 
             <div className="mt-6 flex justify-end gap-2">
               <Button
+                htmlType="button"
                 onClick={() => setModalVisible(false)}
                 className="border-gray-600 bg-gray-800 text-gray-300 hover:border-gray-500 hover:text-white"
               >
                 انصراف
               </Button>
               <Button
+                htmlType="button"
                 type="primary"
                 onClick={handleSubmit}
                 className="border-none bg-blue-600 hover:bg-blue-700"
