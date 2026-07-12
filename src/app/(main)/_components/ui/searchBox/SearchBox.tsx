@@ -102,6 +102,7 @@ const SearchInput = ({
     <input
       type="text"
       placeholder="جستجو"
+      aria-label="جستجو"
       onChange={inputChangeHandler}
       value={searchValue}
       ref={inputRef}
@@ -227,7 +228,12 @@ const SearchBox = () => {
   // Fetch exchange rate only once when the component mounts
   useEffect(() => {
     // Define a function to fetch the exchange rate
-    fetchExchangeRate(exchangeRate, isExchangeRateLoading, setIsExchangeRateLoading, setExchangeRate);
+    fetchExchangeRate(
+      exchangeRate,
+      isExchangeRateLoading,
+      setIsExchangeRateLoading,
+      setExchangeRate
+    );
   }, [exchangeRate, isExchangeRateLoading]);
 
   const inputChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -281,15 +287,6 @@ const SearchBox = () => {
     setHasSearched(false);
   }, []);
 
-  const handleClickOutside = useCallback(
-    (event: MouseEvent) => {
-      if (searchBoxRef.current && !searchBoxRef.current.contains(event.target as Node)) {
-        closeSearchBox();
-      }
-    },
-    [closeSearchBox]
-  );
-
   useEffect(() => {
     if (searchVis && inputRef.current) {
       inputRef.current.focus();
@@ -297,19 +294,23 @@ const SearchBox = () => {
   }, [searchVis]);
 
   useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(event.target as Node)) {
+        closeSearchBox();
+      }
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [handleClickOutside]);
+  }, [searchVis, closeSearchBox]);
 
   return (
     <div className={styles.search} ref={searchBoxRef}>
-      <CgSearch
-        className={styles.search_icon}
-        strokeWidth={1}
-        onClick={(event) => toggleSearchBox(event)}
-      />
+      <button type="button" onClick={(event) => toggleSearchBox(event)} aria-label="جستجو">
+        <CgSearch className={styles.search_icon} strokeWidth={1} />
+      </button>
       {searchVis && (
         <div className={styles.search_box}>
           <SearchInput
