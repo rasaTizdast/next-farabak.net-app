@@ -23,7 +23,13 @@ export function ButtonBase(
       disabled={disabled || loading}
       className={`rounded px-3 py-1.5 text-sm text-white transition-colors disabled:opacity-60 ${base} ${className}`}
     >
-      {loading ? <span className="inline-block animate-pulse">...</span> : children}
+      {loading ? (
+        <span className="inline-block animate-pulse" role="status" aria-label="در حال بارگذاری">
+          ...
+        </span>
+      ) : (
+        children
+      )}
     </button>
   );
 }
@@ -53,10 +59,20 @@ export function ModalBase({
   footer?: React.ReactNode;
   width?: number;
 }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   if (!open) return null;
+  if (!mounted) return null;
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-[1000] m-0 flex items-center justify-center p-0">
-      <div className="absolute inset-0 m-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <button
+        type="button"
+        className="absolute inset-0 m-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+        aria-label="بستن"
+      />
       <div
         className="relative max-h-[90vh] w-full overflow-y-auto rounded-lg border border-slate-700 bg-slate-900 p-4 text-white shadow-xl"
         style={{ width }}
@@ -242,6 +258,7 @@ export function AutoCompleteBase({
     <div className="relative">
       <input
         ref={inputRef}
+        aria-label={placeholder || "جستجو"}
         className={`w-full rounded border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-400 outline-none transition-colors hover:bg-slate-700 focus:bg-slate-700`}
         value={value}
         onChange={(e) => {
@@ -305,7 +322,7 @@ export function AutoCompleteBase({
                 const end = start + query.length;
                 return (
                   <div
-                    key={`${o.value}-${idx}`}
+                    key={o.value}
                     className={`cursor-pointer px-3 py-2 text-slate-100 hover:bg-slate-800 ${idx === activeIndex ? "bg-slate-800" : ""}`}
                     onMouseDown={(e) => e.preventDefault()}
                     onMouseEnter={() => setActiveIndex(idx)}
