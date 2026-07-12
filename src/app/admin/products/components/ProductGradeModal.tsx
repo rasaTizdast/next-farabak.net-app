@@ -86,6 +86,7 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
           <button
             type="button"
             onClick={onClose}
+            aria-label="بستن"
             className="rounded-full bg-slate-700 p-2 transition-colors hover:bg-slate-600"
           >
             <FaTimes />

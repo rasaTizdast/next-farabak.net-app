@@ -133,14 +133,19 @@ const UserDropDown = () => {
                   }
                 }}
               >
-                <div className={styles.invoiceOptionHeader} onClick={toggleExpandedInvoice}>
+                <button
+                  type="button"
+                  className={styles.invoiceOptionHeader}
+                  onClick={toggleExpandedInvoice}
+                  aria-label="تغییر وضعیت فاکتور"
+                >
                   <div className={styles.invoiceTitle}>
                     فاکتور فعلی
                     {invoice.products.length > 0 && (
                       <span className={styles.invoiceAmount}>{formattedAmount} تومان</span>
                     )}
                   </div>
-                </div>
+                </button>
 
                 {expandedInvoice && (
                   <div className={styles.expandedInvoice} onClick={(e) => e.stopPropagation()}>

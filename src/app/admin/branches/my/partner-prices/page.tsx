@@ -19,6 +19,16 @@ type ProductRow = {
   link: string;
 };
 
+async function doFetchUsdRate(
+  fetchUsdToRialRate: () => Promise<number>,
+  setUsdRate: (rate: number) => void
+) {
+  try {
+    const rate = await fetchUsdToRialRate();
+    if (rate && rate > 0) setUsdRate(rate);
+  } catch {}
+}
+
 export default function BranchPartnerPricesPage() {
   const [keyword, setKeyword] = useState("");
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
@@ -43,16 +53,6 @@ export default function BranchPartnerPricesPage() {
     link: p.link,
   }));
 
-  async function doFetchUsdRate(
-    fetchUsdToRialRate: () => Promise<number>,
-    setUsdRate: (rate: number) => void
-  ) {
-    try {
-      const rate = await fetchUsdToRialRate();
-      if (rate && rate > 0) setUsdRate(rate);
-    } catch {}
-  }
-
   useEffect(() => {
     doFetchUsdRate(fetchUsdToRialRate, setUsdRate);
   }, []);
@@ -62,11 +62,11 @@ export default function BranchPartnerPricesPage() {
     return () => clearTimeout(t);
   }, [keyword]);
 
-  const filtered = useMemo(() => {
+  const filtered = (() => {
     const q = debouncedKeyword.trim().toLowerCase();
     if (!q) return data;
     return data.filter((r) => r.Type.toLowerCase().includes(q));
-  }, [data, debouncedKeyword]);
+  })();
 
   const calcOriginal = (p: ProductRow) => {
     const price = p.Price || 0;
@@ -79,7 +79,7 @@ export default function BranchPartnerPricesPage() {
     return (usd * usdRate).toLocaleString("fa-IR") + " تومان";
   };
 
-  const sorted = useMemo(() => {
+  const sorted = (() => {
     const copy = [...filtered];
     copy.sort((a, b) => {
       let va: number | string = "";
@@ -99,13 +99,13 @@ export default function BranchPartnerPricesPage() {
       return 0;
     });
     return copy;
-  }, [filtered, sortKey, sortDir]);
+  })();
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
-  const paged = useMemo(() => {
+  const paged = (() => {
     const start = (page - 1) * pageSize;
     return sorted.slice(start, start + pageSize);
-  }, [sorted, page]);
+  })();
 
   const setSort = (key: typeof sortKey) => {
     if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -121,6 +121,7 @@ export default function BranchPartnerPricesPage() {
         <h1 className="text-2xl font-bold">قیمت‌های همکار</h1>
         <input
           placeholder="جستجو نام محصول..."
+          aria-label="جستجوی محصول"
           className="w-full rounded-md bg-slate-700 px-3 py-2 text-sm outline-none placeholder:text-gray-300 md:w-80"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}

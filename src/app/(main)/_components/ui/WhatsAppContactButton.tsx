@@ -40,12 +40,13 @@ const WhatsAppContactButton = ({
   };
 
   return (
-    <div
-      className={`fixed bottom-4 left-4 z-50 flex translate-x-0 cursor-pointer items-center rounded-full shadow-md transition-all duration-500 ease-in-out ${isHovered && !isMobile ? "bg-green-600" : "bg-green-500"} `}
+    <button
+      type="button"
+      className={`fixed bottom-4 left-4 z-50 flex translate-x-0 items-center rounded-full shadow-md transition-all duration-500 ease-in-out ${isHovered && !isMobile ? "bg-green-600" : "bg-green-500"} `}
       onClick={openWhatsApp}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      aria-label="Contact support via WhatsApp"
+      aria-label="ارسال پیام به پشتیبانی در واتساپ"
     >
       <div
         className={`overflow-hidden whitespace-nowrap text-white transition-all duration-500 ease-in-out ${
@@ -57,7 +58,7 @@ const WhatsAppContactButton = ({
       <div className="p-3">
         <FaWhatsapp className="h-5 w-5 text-white" />
       </div>
-    </div>
+    </button>
   );
 };
 

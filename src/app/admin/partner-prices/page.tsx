@@ -5,7 +5,7 @@ import axios from "axios";
 import Link from "next/link";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+import { useApiFetch } from "@/hooks/useApiFetch";
 
 type ProductRow = {
   ProductId: number;
@@ -85,7 +85,6 @@ export default function AdminPartnerPricesPage() {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [keyword, setKeyword] = useState("");
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
-  const [usdRate, setUsdRate] = useState<number | null>(null);
   const [sortKey, setSortKey] = useState<"Type" | "Original" | "Partner">("Type");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
@@ -102,17 +101,8 @@ export default function AdminPartnerPricesPage() {
     fetchData();
   }, []);
 
-  async function loadUsdRate() {
-    try {
-      const rate = await fetchUsdToRialRate();
-      if (rate && rate > 0) setUsdRate(rate);
-    } catch {}
-  }
-
-  // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => {
-    loadUsdRate();
-  }, []);
+  const { data: usdRateData } = useApiFetch<{ rate: number | null }>("/api/exchangeRate");
+  const usdRate = usdRateData?.rate ?? null;
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedKeyword(keyword), 300);
@@ -182,6 +172,7 @@ export default function AdminPartnerPricesPage() {
         <h1 className="text-2xl font-bold">قیمت‌های همکار</h1>
         <input
           placeholder="جستجو نام محصول..."
+          aria-label="جستجوی محصول"
           className="w-full rounded-md bg-slate-700 px-3 py-2 text-sm outline-none placeholder:text-gray-300 md:w-80"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}

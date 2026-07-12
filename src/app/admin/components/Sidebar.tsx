@@ -72,18 +72,14 @@ const Sidebar = () => {
   return (
     <>
       {/* Blur Layer */}
-      <div
+      <button
+        type="button"
         className={`fixed inset-0 z-40 bg-black/30 backdrop-blur-md transition-opacity ${
           isCollapsed ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
         onClick={() => setIsCollapsed(true)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") setIsCollapsed(true);
-        }}
         aria-label="بستن منو"
-      ></div>
+      ></button>
 
       {/* Sidebar */}
       <div
@@ -106,9 +102,9 @@ const Sidebar = () => {
 
         {/* Navigation Links */}
         <nav className="mt-4 flex-1">
-          {sidebarItems.map((item, index) => (
+          {sidebarItems.map((item) => (
             <Link
-              key={index}
+              key={item.href}
               href={item.href}
               className={`flex items-center px-4 py-3 text-white transition-colors hover:bg-[#2797ff] ${
                 isCollapsed ? "justify-center" : "gap-4"

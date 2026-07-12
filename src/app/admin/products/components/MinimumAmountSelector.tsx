@@ -99,6 +99,7 @@ const MinimumAmountSelectorModal = ({ product, onClose, refetchProducts }: Modal
           <h3 className="text-2xl font-bold">محدودیت مقدار محصول</h3>
           <button
             onClick={onClose}
+            aria-label="بستن"
             className="rounded-full bg-slate-700 p-2 transition-colors hover:bg-slate-600"
             type="button"
           >

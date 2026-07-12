@@ -246,7 +246,7 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                         type="button"
                         onClick={() => handleEdit(grade)}
                         className="rounded-md bg-blue-500/20 p-2 text-blue-400 transition-all hover:bg-blue-500/30"
-                        title="ویرایش"
+                        aria-label="ویرایش گرید"
                       >
                         <FaEdit size={16} />
                       </button>
@@ -254,7 +254,7 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                         type="button"
                         onClick={() => handleDelete(grade.ProductGradeId)}
                         className="rounded-md bg-red-500/20 p-2 text-red-400 transition-all hover:bg-red-500/30"
-                        title="حذف"
+                        aria-label="حذف گرید"
                       >
                         <FaTrash size={16} />
                       </button>

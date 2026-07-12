@@ -1,6 +1,10 @@
 const GradeCardSkeleton = () => {
   return (
-    <div className="overflow-hidden rounded-lg bg-slate-700 shadow-sm">
+    <div
+      className="overflow-hidden rounded-lg bg-slate-700 shadow-sm"
+      role="status"
+      aria-label="در حال بارگذاری"
+    >
       <div className="flex items-center justify-between border-b border-slate-600 p-3">
         <div className="h-7 w-24 animate-pulse rounded-md bg-slate-600" />
         <div className="flex gap-2">

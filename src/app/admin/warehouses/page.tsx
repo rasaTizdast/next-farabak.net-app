@@ -3,7 +3,7 @@
 // Custom lightweight UI replacing antd components
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -91,7 +91,6 @@ function WarehousesPageContent() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [q, setQ] = useState("");
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -102,6 +101,8 @@ function WarehousesPageContent() {
 
   const { mutate: saveWarehouseMutate } = useApiMutation();
   const { mutate: deleteWarehouseMutate } = useApiMutation("delete");
+
+  const toastIdRef = useRef(0);
 
   const [productModal, setProductModal] = useState<{
     open: boolean;
@@ -114,7 +115,8 @@ function WarehousesPageContent() {
     { id: number; type: "success" | "error" | "warning"; text: string }[]
   >([]);
   const notify = (type: "success" | "error" | "warning", text: string) => {
-    const id = Date.now();
+    toastIdRef.current += 1;
+    const id = toastIdRef.current;
     setToasts((t) => [...t, { id, type, text }]);
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3000);
   };
@@ -151,34 +153,25 @@ function WarehousesPageContent() {
   };
 
   const { data: allProductsRaw } = useApiFetch<Product[]>("/api/admin/products/all");
+  const allProducts = allProductsRaw ? (Array.isArray(allProductsRaw) ? allProductsRaw : []) : [];
 
-  useEffect(() => {
-    if (allProductsRaw) {
-      const products = Array.isArray(allProductsRaw) ? allProductsRaw : [];
-      setAllProducts(products);
-      if (productId && !selectedProduct) {
-        const urlProduct = products.find((p: Product) => p.ProductId === parseInt(productId));
-        if (urlProduct) {
-          setSelectedProduct(urlProduct);
-          setSearchQuery(urlProduct.Type || "");
-        }
-      }
+  // Initialize selectedProduct and searchQuery from URL params
+  if (productId && !selectedProduct && allProducts.length > 0) {
+    const urlProduct = allProducts.find((p: Product) => p.ProductId === parseInt(productId));
+    if (urlProduct) {
+      setSelectedProduct(urlProduct);
+      setSearchQuery(urlProduct.Type || "");
     }
-  }, [allProductsRaw, productId]);
+  }
 
+  // Fetch warehouses when selectedProduct, page, or q changes
   useEffect(() => {
-    const fetchData = async () => {
-      if (selectedProduct) {
-        await fetchWarehouses(String(selectedProduct.ProductId));
-      } else if (q) {
-        await fetchWarehouses();
-      } else {
-        await fetchWarehouses();
-      }
-    };
-
-    fetchData();
-  }, [selectedProduct, page, q]);
+    if (selectedProduct) {
+      fetchWarehouses(String(selectedProduct.ProductId));
+    } else {
+      fetchWarehouses();
+    }
+  }, [selectedProduct, page, q, fetchWarehouses]);
 
   const openCreate = () => {
     setEditing(null);
@@ -246,6 +239,7 @@ function WarehousesPageContent() {
           <div className="flex items-center gap-2">
             <InputBase
               placeholder="جستجو نام انبار"
+              aria-label="جستجوی انبار"
               value={q}
               onChange={(e) => setQ((e.target as HTMLInputElement).value)}
               className="w-64"

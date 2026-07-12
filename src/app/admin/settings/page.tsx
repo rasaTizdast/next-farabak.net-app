@@ -152,6 +152,7 @@ const SettingsPage = () => {
                 placeholder="رمز عبور فعلی"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
+                aria-label="رمز عبور فعلی"
                 className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
@@ -159,6 +160,7 @@ const SettingsPage = () => {
                 placeholder="رمز عبور جدید"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                aria-label="رمز عبور جدید"
                 className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
@@ -166,6 +168,7 @@ const SettingsPage = () => {
                 placeholder="تکرار رمز عبور جدید"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                aria-label="تکرار رمز عبور جدید"
                 className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
@@ -190,6 +193,7 @@ const SettingsPage = () => {
                 placeholder="شماره تلفن کاربر را وارد کنید"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
+                aria-label="شماره تلفن"
                 className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
 

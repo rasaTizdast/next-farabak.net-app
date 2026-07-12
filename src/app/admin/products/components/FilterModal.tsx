@@ -66,7 +66,7 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
         </button>
 
         {isLoading ? (
-          <div className="animate-pulse space-y-6">
+          <div className="animate-pulse space-y-6" role="status" aria-label="در حال بارگذاری">
             <div className="mx-auto h-8 w-32 rounded-lg bg-gray-600"></div>
             <div className="space-y-4">
               <div className="h-10 w-full rounded-lg bg-gray-600"></div>
@@ -94,6 +94,7 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
                     subCategory: "", // Reset subCategory when category changes
                   });
                 }}
+                aria-label="دسته‌بندی"
                 className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">انتخاب کنید</option>
@@ -116,6 +117,7 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
                     subCategory: e.target.value,
                   })
                 }
+                aria-label="زیر دسته‌بندی"
                 className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={!tempFilters.category} // Disable if no category is selected
               >
@@ -140,6 +142,7 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
                       e.target.value === "" ? null : e.target.value === "true" ? true : false,
                   })
                 }
+                aria-label="وضعیت موجودی"
                 className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">همه</option>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import toast from "react-hot-toast";
+
+
 import { FaTrashAlt } from "react-icons/fa";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
@@ -25,6 +26,18 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
     [key: string]: boolean;
   }>({});
 
+  const validateField = (field: string, value: string) => {
+    let error = "";
+    if (field === "question") {
+      if (!value.trim()) error = "سوال نمی‌تواند خالی باشد.";
+      else if (value.length > 1000) error = "سوال نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
+    } else if (field === "answer") {
+      if (!value.trim()) error = "پاسخ نمی‌تواند خالی باشد.";
+      else if (value.length > 3000) error = "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
+    }
+    return error;
+  };
+
   useEffect(() => {
     if (faqsResponse && !hasFetched.current) {
       hasFetched.current = true;
@@ -42,18 +55,6 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
       setLocalErrors(initialErrors);
     }
   }, [faqsResponse, setFaqs]);
-
-  const validateField = (field: string, value: string) => {
-    let error = "";
-    if (field === "question") {
-      if (!value.trim()) error = "سوال نمی‌تواند خالی باشد.";
-      else if (value.length > 1000) error = "سوال نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
-    } else if (field === "answer") {
-      if (!value.trim()) error = "پاسخ نمی‌تواند خالی باشد.";
-      else if (value.length > 3000) error = "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
-    }
-    return error;
-  };
 
   // Helper to determine if we should show an error for a field
   const shouldShowError = (field: string, index: number): boolean => {
@@ -177,13 +178,14 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
           ) : (
             <div className="mb-4 space-y-4">
               {localFaqs.map((faq, index) => (
-                <div key={index} className="rounded-md bg-gray-800 p-4 shadow-md">
+                <div key={faq.question + faq.answer} className="rounded-md bg-gray-800 p-4 shadow-md">
                   <div className="mb-3 flex items-center gap-4">
                     <div className="flex flex-1 flex-col">
                       <input
                         type="text"
                         value={faq.question}
                         onChange={(e) => handleFAQChange(index, "question", e.target.value)}
+                        aria-label={`سوال ${index + 1}`}
                         className={`w-full rounded-md border bg-gray-700 p-2 ${
                           shouldShowError("question", index) ? "border-red-500" : "border-gray-600"
                         } text-white`}
@@ -198,6 +200,7 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
                     <button
                       type="button"
                       onClick={() => handleRemoveFAQ(index)}
+                      aria-label="حذف سوال"
                       className="text-red-500 transition-all hover:text-red-600"
                     >
                       <FaTrashAlt size={18} />
@@ -207,6 +210,7 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
                     <textarea
                       value={faq.answer}
                       onChange={(e) => handleFAQChange(index, "answer", e.target.value)}
+                      aria-label={`پاسخ ${index + 1}`}
                       className={`w-full rounded-md border bg-gray-700 p-2 ${
                         shouldShowError("answer", index) ? "border-red-500" : "border-gray-600"
                       } min-h-[100px] text-white`}
