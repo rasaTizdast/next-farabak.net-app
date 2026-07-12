@@ -47,10 +47,7 @@ export function SkeletonSpecs() {
       <div className="h-6 w-40 animate-pulse rounded bg-gray-200" />
       <div className="divide-y divide-gray-200 rounded-lg border border-gray-200">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div
-            key={i}
-            className={`flex gap-4 p-3 ${i % 2 === 0 ? "bg-gray-50" : "bg-white"}`}
-          >
+          <div key={i} className={`flex gap-4 p-3 ${i % 2 === 0 ? "bg-gray-50" : "bg-white"}`}>
             <div className="h-4 w-1/3 animate-pulse rounded bg-gray-200" />
             <div className="h-4 w-2/3 animate-pulse rounded bg-gray-200" />
           </div>

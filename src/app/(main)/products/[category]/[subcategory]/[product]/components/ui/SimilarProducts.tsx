@@ -1,5 +1,5 @@
-import { getPriceValidUntil } from "@/utils/priceValidUntil";
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+import { getPriceValidUntil } from "@/utils/priceValidUntil";
 
 import SimilarProductsSlider from "./SimilarProductsSlider";
 

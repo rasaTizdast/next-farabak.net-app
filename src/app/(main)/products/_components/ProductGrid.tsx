@@ -3,8 +3,8 @@ import { Suspense } from "react";
 import BannerImage from "./BannerImage";
 import BlogContent from "./BlogContent";
 import { GridContentServer } from "./GridContentServer";
-import { ProductGridSkeleton } from "./ProductListSkeletons";
 import styles from "./ProductGrid.module.css";
+import { ProductGridSkeleton } from "./ProductListSkeletons";
 
 interface ProductGridProps {
   title: string;
@@ -15,7 +15,10 @@ interface ProductGridProps {
 }
 
 const BannerSkeleton = () => (
-  <div className="mb-8 w-full animate-pulse rounded-md bg-gray-200" style={{ aspectRatio: "1920 / 600" }} />
+  <div
+    className="mb-8 w-full animate-pulse rounded-md bg-gray-200"
+    style={{ aspectRatio: "1920 / 600" }}
+  />
 );
 
 const BlogSkeleton = () => (

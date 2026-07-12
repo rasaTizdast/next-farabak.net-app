@@ -45,8 +45,6 @@ const DeleteOverviewDetailButton = ({
     productsCount: number;
   }>({ isInUse: false, productsCount: 0 });
 
-
-
   const checkIfInUse = async () => {
     await checkDetailInUse(detailId, setIsLoading, setInUseInfo, setShowConfirmModal);
   };
