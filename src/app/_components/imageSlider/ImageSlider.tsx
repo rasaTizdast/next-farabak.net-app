@@ -40,9 +40,9 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
     setCurrentIndex((prevIndex) => (prevIndex === slides.length - 1 ? 0 : prevIndex + 1));
   }, [slides.length]);
 
-  const prevSlide = useCallback(() => {
+  const prevSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex === 0 ? slides.length - 1 : prevIndex - 1));
-  }, [slides.length]);
+  };
 
   // Autoplay logic
   useEffect(() => {
