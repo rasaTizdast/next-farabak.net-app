@@ -154,6 +154,51 @@ export default function ProductsModal({
     setActionLoading((prev) => ({ ...prev, modify: { ...prev.modify, [wpId]: false } }));
   };
 
+async function doUpdateGrade(
+  productId: number,
+  gradeId: number | null,
+  currentQuantity: number,
+  currentWarehouseProductId: number,
+  warehouseId: number,
+  products: WarehouseProduct[],
+  setProducts: React.Dispatch<React.SetStateAction<WarehouseProduct[]>>,
+  refreshWarehouses: () => void,
+  updateMutate: any,
+  deleteMutate: any,
+  setActionLoading: React.Dispatch<React.SetStateAction<{
+    add: boolean;
+    modify: Record<number, boolean>;
+    remove: Record<number, boolean>;
+  }>>
+) {
+  setActionLoading((prev) => ({
+    ...prev,
+    modify: { ...prev.modify, [currentWarehouseProductId]: true },
+  }));
+  try {
+    await updateProductGrade(
+      productId,
+      gradeId,
+      currentQuantity,
+      currentWarehouseProductId,
+      warehouseId,
+      products,
+      setProducts,
+      refreshWarehouses,
+      updateMutate,
+      deleteMutate
+    );
+  } catch (e) {
+    console.error("Error updating grade:", e);
+    alert((e as any)?.response?.data?.error || "خطا در بروزرسانی گرید محصول");
+  } finally {
+    setActionLoading((prev) => ({
+      ...prev,
+      modify: { ...prev.modify, [currentWarehouseProductId]: false },
+    }));
+  }
+}
+
   const updateGrade = async (
     productId: number,
     gradeId: number | null,
@@ -161,24 +206,19 @@ export default function ProductsModal({
     currentWarehouseProductId: number
   ) => {
     if (!warehouseId) return;
-    setActionLoading((prev) => ({
-      ...prev,
-      modify: { ...prev.modify, [currentWarehouseProductId]: true },
-    }));
-    try {
-      await updateProductGrade(
-        productId, gradeId, currentQuantity, currentWarehouseProductId,
-        warehouseId, products, setProducts, refreshWarehouses, updateMutate, deleteMutate
-      );
-    } catch (e) {
-      console.error("Error updating grade:", e);
-      alert((e as any)?.response?.data?.error || "خطا در بروزرسانی گرید محصول");
-    } finally {
-      setActionLoading((prev) => ({
-        ...prev,
-        modify: { ...prev.modify, [currentWarehouseProductId]: false },
-      }));
-    }
+    await doUpdateGrade(
+      productId,
+      gradeId,
+      currentQuantity,
+      currentWarehouseProductId,
+      warehouseId,
+      products,
+      setProducts,
+      refreshWarehouses,
+      updateMutate,
+      deleteMutate,
+      setActionLoading
+    );
   };
 
   const removeProduct = async (product: WarehouseProduct) => {
