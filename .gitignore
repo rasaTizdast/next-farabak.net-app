@@ -39,3 +39,6 @@ skills-lock.json
 *.tsbuildinfo
 next-env.d.ts
 
+
+.mimocode/
+docs/
