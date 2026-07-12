@@ -1,5 +1,5 @@
 import { QRCodeCanvas } from "qrcode.react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
 import { IoIosClose } from "react-icons/io";
 
@@ -40,25 +40,7 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
     return now.toISOString();
   };
 
-  const fetchUniqueQrCodeDetails = async () => {
-    if (!product || !product.QrCode_Key || !product.QrCode_expiryDays) return;
-
-    const expiryDate = new Date(product.QrCode_expiryDays);
-    const currentDate = new Date();
-    const isExpired = currentDate > expiryDate;
-
-    if (isExpired) {
-      // Remove expired QR code details
-      await deleteUniqueQrCode();
-    } else {
-      setUniqueQrCodeDetails({
-        qrCodeUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${product.link}?key=${product.QrCode_Key}`,
-        expiryDate,
-      });
-    }
-  };
-
-  const deleteUniqueQrCode = async () => {
+  const deleteUniqueQrCode = useCallback(async () => {
     if (!product) return;
 
     const res = await deleteQrCode("/api/products/qrCode", {
@@ -72,7 +54,7 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
     } else {
       toast.error("خطایی در ارتباط با سرور رخ داده است.");
     }
-  };
+  }, [product, deleteQrCode, onClose, refetchProducts]);
 
   const generateUniqueQrCode = async () => {
     if (!product) return;
@@ -108,11 +90,27 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
     }
   };
 
+  // Fetch QR code details when product data is available (one-time)
   useEffect(() => {
-    if (product) {
-      fetchUniqueQrCodeDetails();
+    if (product && product.QrCode_Key && product.QrCode_expiryDays) {
+      (async () => {
+        const expiryDate = new Date(product.QrCode_expiryDays as string);
+        const currentDate = new Date();
+        const isExpired = currentDate > expiryDate;
+
+        if (isExpired) {
+          await deleteUniqueQrCode();
+        } else {
+          const remainingDays = Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 3600 * 24));
+          setUniqueQrCodeDetails({
+            qrCodeUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${product.link}?key=${product.QrCode_Key}`,
+            expiryDate,
+            remainingDays,
+          });
+        }
+      })();
     }
-  }, [product]);
+  }, [product, deleteUniqueQrCode]);
 
   if (!product) return null;
 
@@ -205,11 +203,9 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
             </p>
             <p className="mt-2 text-gray-500">
               <strong>مدت اعتبار باقی‌مانده:</strong>{" "}
-              {isNaN(uniqueQrCodeDetails.expiryDate)
+              {isNaN(uniqueQrCodeDetails.expiryDate) || uniqueQrCodeDetails.remainingDays == null
                 ? "بدون تاریخ انقضا"
-                : `${Math.ceil(
-                    (uniqueQrCodeDetails.expiryDate.getTime() - Date.now()) / (1000 * 3600 * 24)
-                  )} روز`}
+                : `${uniqueQrCodeDetails.remainingDays} روز`}
             </p>
             <div className="flex w-full gap-5">
               <button
