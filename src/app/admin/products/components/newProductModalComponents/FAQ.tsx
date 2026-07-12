@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 
 type FAQItem = {
@@ -24,50 +24,7 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
     [key: string]: boolean;
   }>({});
 
-  // Enhanced useEffect to properly send all errors to parent
-  useEffect(() => {
-    // Format errors with proper prefixes for parent component
-    const formattedErrors = {};
-    Object.entries(localErrors).forEach(([key, value]) => {
-      if (value) {
-        formattedErrors[`faq-${key}`] = value;
-      }
-    });
-
-    // Send errors to parent component
-    setErrors((prev) => {
-      const newErrors = { ...prev };
-
-      // First, remove all existing FAQ errors
-      Object.keys(newErrors).forEach((key) => {
-        if (key.startsWith("faq-")) {
-          delete newErrors[key];
-        }
-      });
-
-      // Then add the current FAQ errors
-      return { ...newErrors, ...formattedErrors };
-    });
-
-    // Log errors if needed
-    if (Object.keys(formattedErrors).length > 0) {
-      console.error("FAQ validation errors:", formattedErrors);
-    }
-  }, [localErrors, setErrors]);
-
-  // Initialize validation for existing FAQs
-  useEffect(() => {
-    const initialErrors: { [key: string]: string } = {};
-
-    localFAQs.forEach((faq, index) => {
-      initialErrors[`question-${index}`] = validateField("question", faq.question);
-      initialErrors[`answer-${index}`] = validateField("answer", faq.answer);
-    });
-
-    setLocalErrors(initialErrors);
-  }, [state.faqs]);
-
-  const validateField = (field: string, value: string) => {
+  const validateField = useCallback((field: string, value: string) => {
     let error = "";
     if (field === "question") {
       if (!value.trim()) error = "سوال نمی‌تواند خالی باشد.";
@@ -77,7 +34,39 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
       else if (value.length > 3000) error = "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
     }
     return error;
-  };
+  }, []);
+
+  // Compute formatted errors for parent
+  const formattedErrors = (() => {
+    const errors = {};
+    Object.entries(localErrors).forEach(([key, value]) => {
+      if (value) {
+        errors[`faq-${key}`] = value;
+      }
+    });
+    return errors;
+  })();
+
+  // Sync errors to parent during render
+  useEffect(() => {
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      Object.keys(newErrors).forEach((key) => {
+        if (key.startsWith("faq-")) delete newErrors[key];
+      });
+      return { ...newErrors, ...formattedErrors };
+    });
+  }, [formattedErrors, setErrors]);
+
+  // Init local errors when faqs prop changes
+  useEffect(() => {
+    const initialErrors: { [key: string]: string } = {};
+    state.faqs.forEach((faq, index) => {
+      initialErrors[`question-${index}`] = validateField("question", faq.question);
+      initialErrors[`answer-${index}`] = validateField("answer", faq.answer);
+    });
+    setLocalErrors(initialErrors);
+  }, [state.faqs, validateField]);
 
   const handleFAQChange = (index: number, field: string, value: string) => {
     // Mark field as touched
@@ -172,7 +161,10 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
   return (
     <div className="mb-6 p-4">
       {localFAQs.map((faq, index) => (
-        <div key={index} className="mb-10 flex flex-col gap-5 rounded-md bg-gray-800 p-4 shadow-lg">
+        <div
+          key={faq.question + faq.answer}
+          className="mb-10 flex flex-col gap-5 rounded-md bg-gray-800 p-4 shadow-lg"
+        >
           <div className="flex items-center gap-4">
             <input
               type="text"
@@ -191,6 +183,7 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
               type="button"
               data-testid={`remove-faq-${index}`}
               onClick={() => handleRemoveFAQ(index)}
+              aria-label="حذف سوال"
               className="text-red-500 transition-all hover:text-red-600"
             >
               <FaTrashAlt size={20} />
