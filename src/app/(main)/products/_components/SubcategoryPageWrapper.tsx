@@ -201,12 +201,14 @@ export default async function SubcategoryPageWrapper({
     ],
   };
 
+  const jsonLdString = JSON.stringify(jsonLd);
+
   return (
     <>
       <Script
         id="json-ld-subcategory"
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdString }}
       />
       <Suspense fallback={<ProductGridSkeleton />}>
         <ProductGridWrapper

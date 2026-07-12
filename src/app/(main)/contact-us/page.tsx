@@ -72,12 +72,11 @@ const ContactUsPage = async () => {
     },
   };
 
+  const jsonLd = JSON.stringify(structuredData);
+
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <main className={styles.main}>
         <div className={styles.section}>
           <h1>آدرس</h1>

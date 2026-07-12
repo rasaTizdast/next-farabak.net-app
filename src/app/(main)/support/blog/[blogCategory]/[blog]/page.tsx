@@ -200,6 +200,18 @@ export default async function BlogPage(props: {
     return processedContent;
   };
 
+  const blogJsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: blog.title,
+    author: { "@type": "Person", name: blog.author },
+    datePublished: blog.created_at,
+    publisher: { "@type": "Organization", name: "Farabak" },
+    description: blog.description,
+    image: blog.image_URL,
+    articleBody: processContentWithImageUrls(blog.content),
+  });
+
   return (
     <>
       <Breadcrumb breadcrumbs={["/", "/support", "/support/blog"]} />
@@ -250,17 +262,7 @@ export default async function BlogPage(props: {
         id="blogContent"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BlogPosting",
-            headline: blog.title,
-            author: { "@type": "Person", name: blog.author },
-            datePublished: blog.created_at,
-            publisher: { "@type": "Organization", name: "Farabak" },
-            description: blog.description,
-            image: blog.image_URL,
-            articleBody: processContentWithImageUrls(blog.content),
-          }),
+          __html: blogJsonLd,
         }}
       />
     </>

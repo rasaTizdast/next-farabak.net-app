@@ -39,19 +39,17 @@ export const generateMetadata = async (): Promise<Metadata> => {
   };
 };
 
-const HomePage = async () => {
-  let sliderLinks = [];
-
+async function fetchSliderLinks() {
   try {
     const response = await fetch(`${process.env.BASE_URL}/api/landingPage/sliders`, {
       next: { revalidate: 300 },
     });
 
-    if (!response.ok) throw new Error("Failed to fetch sliders");
+    if (!response.ok) return [];
 
     const sliders = await response.json();
 
-    sliderLinks = sliders.map((slider: slider) => ({
+    return sliders.map((slider: slider) => ({
       id: slider.id,
       img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/${slider.image_URL}`,
       link: slider.link,
@@ -59,7 +57,12 @@ const HomePage = async () => {
     }));
   } catch (error) {
     console.error("Slider fetch error:", error);
+    return [];
   }
+}
+
+const HomePage = async () => {
+  const sliderLinks = await fetchSliderLinks();
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -210,13 +213,15 @@ const HomePage = async () => {
     ],
   };
 
+  const jsonLdString = JSON.stringify(jsonLd);
+
   return (
     <>
       <Script
         id="json-ld"
         type="application/ld+json"
         strategy="afterInteractive"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdString }}
       />
       <div>
         <ImageSlider slides={sliderLinks} />

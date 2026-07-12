@@ -123,12 +123,11 @@ const ProjectPage = async (props: ParamsType) => {
       ],
     },
   };
+  const jsonLd = JSON.stringify(structuredData);
+
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <section className={styles.content}>
         <Breadcrumb breadcrumbs={breadcrumbs} />
         <h1>{title}</h1>

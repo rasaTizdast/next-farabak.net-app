@@ -193,12 +193,14 @@ export default async function ProductGridWrapper({
     ],
   };
 
+  const jsonLdString = JSON.stringify(jsonLd);
+
   return (
     <>
       <Script
         id="json-ld-product-grid"
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdString }}
       />
       <ProductGrid
         title={title}

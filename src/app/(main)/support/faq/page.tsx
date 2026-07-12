@@ -35,12 +35,11 @@ const FaqPage = async () => {
     })),
   };
 
+  const jsonLd = JSON.stringify(structuredData);
+
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       {/* Hero section */}
       <section className="relative w-full overflow-hidden rounded-lg bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400 py-6 shadow-lg md:rounded-xl md:py-10 lg:py-14">
         {/* Decorative elements - hidden on mobile for better performance */}

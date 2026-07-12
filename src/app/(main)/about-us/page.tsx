@@ -41,12 +41,11 @@ const AboutUs = () => {
     },
   };
 
+  const jsonLd = JSON.stringify(structuredData);
+
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <div className={styles.main}>
         <div className={styles.cards}>
           {aboutUsData.map((item) => (

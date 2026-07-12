@@ -3,9 +3,8 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { getPriceValidUntil } from "@/utils/priceValidUntil";
-
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import { getPriceValidUntil } from "@/utils/priceValidUntil";
 
 import styles from "../ProductPage.module.css";
 import ClientInvoiceSection from "./ui/ClientInvoiceSection";
@@ -61,7 +60,10 @@ async function getProduct(slug: string): Promise<ProductData | null> {
   }
 }
 
-export default async function ProductDataWrapper({ params, searchParams }: {
+export default async function ProductDataWrapper({
+  params,
+  searchParams,
+}: {
   params: { category: string; product: string };
   searchParams: { key: string };
 }) {
@@ -238,12 +240,11 @@ export default async function ProductDataWrapper({ params, searchParams }: {
     ],
   };
 
+  const jsonLd = JSON.stringify(structuredData);
+
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <Breadcrumb breadcrumbs={breadCrumbs} />
       <section className={styles.head}>
         <Image
