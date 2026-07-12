@@ -42,31 +42,37 @@ type Invoice = {
 //   subject: string;
 // }
 
+async function doFetchInvoices(
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setError: React.Dispatch<React.SetStateAction<string | null>>,
+  setInvoices: React.Dispatch<React.SetStateAction<Invoice[]>>
+) {
+  setLoading(true);
+  setError(null);
+  try {
+    const response = await getUserInvoices();
+    setInvoices(response);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      setError(error.message);
+    } else {
+      setError("An unexpected error occurred.");
+    }
+  } finally {
+    setLoading(false);
+  }
+}
+
 const AllInvoices = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchInvoices = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await getUserInvoices();
-      setInvoices(response);
-    } catch (error: unknown) {
-      // Check if the error is an instance of Error before accessing properties
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("An unexpected error occurred.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const fetchInvoices = async () => {
+    await doFetchInvoices(setLoading, setError, setInvoices);
+  };
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
     fetchInvoices();
   }, [fetchInvoices]);

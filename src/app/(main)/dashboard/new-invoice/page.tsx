@@ -13,6 +13,8 @@ import { addNewInvoice } from "@/helpers/invoiceHandlers";
 
 import styles from "./NewInvoice.module.css";
 
+const currencyFormatter = new Intl.NumberFormat("fa-IR");
+
 const NewInvoicePage = () => {
   const { invoice, removeProductFromInvoice, updateProductQuantity, clearInvoice } = useInvoice();
   const { user } = useUser();
@@ -123,7 +125,7 @@ const NewInvoicePage = () => {
                 return (
                   <tr key={product.ProductId} className={quantity === 0 ? "opacity-50" : ""}>
                     <td className="font-medium">{product.ProductName}</td>
-                    <td>{Intl.NumberFormat("fa-IR").format(price)}</td>
+                    <td>{currencyFormatter.format(price)}</td>
 
                     {/* Quantity with limits */}
                     <td>
@@ -134,6 +136,7 @@ const NewInvoicePage = () => {
                           max={max && max < Infinity ? max : undefined}
                           value={quantity}
                           onChange={(e) => handleQuantityChange(product.ProductId, e.target.value)}
+                          aria-label={`تعداد ${product.ProductName}`}
                           className={`${styles.quantityInput} w-20 text-center`}
                           style={{
                             borderColor: isAtMin ? "#16a34a" : isAtMax ? "#dc2626" : undefined,
@@ -159,10 +162,10 @@ const NewInvoicePage = () => {
                       </div>
                     </td>
 
-                    <td>{Intl.NumberFormat("fa-IR").format(price * quantity)}</td>
-                    <td>{Intl.NumberFormat("fa-IR").format(discount * quantity)}</td>
+                    <td>{currencyFormatter.format(price * quantity)}</td>
+                    <td>{currencyFormatter.format(discount * quantity)}</td>
                     <td className="text-lg font-bold">
-                      {Intl.NumberFormat("fa-IR").format((price - discount) * quantity)}
+                      {currencyFormatter.format((price - discount) * quantity)}
                     </td>
 
                     <td>
@@ -183,7 +186,7 @@ const NewInvoicePage = () => {
 
         <div className={styles.actions}>
           <p className={styles.total}>
-            تعداد کل محصولات: {Intl.NumberFormat("fa-IR").format(invoice.TotalAmount)}
+            تعداد کل محصولات: {currencyFormatter.format(invoice.TotalAmount)}
           </p>
           <button
             type="button"
