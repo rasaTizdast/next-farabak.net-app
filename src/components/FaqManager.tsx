@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { BiTrash, BiEdit, BiPlus, BiCheck, BiX, BiMenu } from "react-icons/bi";
 
@@ -296,7 +296,7 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
               .toSorted((a, b) => a.order - b.order)
               .map((faq, index) => (
                 <div
-                  key={faq.id || index}
+                  key={faq.id}
                   className={`cursor-move rounded-lg bg-gray-700 p-4 transition-all duration-200 ${
                     draggedItem === faq.id
                       ? "scale-95 opacity-50 shadow-lg"

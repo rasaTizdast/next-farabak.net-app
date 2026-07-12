@@ -715,7 +715,7 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
             <div className="mt-6 flex flex-col items-center">
               {hasSubmitted && hasErrors() && (
                 <div className="my-4 flex flex-wrap justify-center gap-2">
-                  {Object.entries(errors).map(([key, error], index) => {
+                  {Object.entries(errors).map(([key, error]) => {
                     if (!error) return null;
 
                     // Format the error message for better readability
@@ -776,7 +776,7 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
                     else if (key === "features") fieldName = "ویژگی‌ها";
 
                     return (
-                      <div key={index} className="rounded-lg bg-red-500 p-2 text-center">
+                      <div key={`error-${key}`} className="rounded-lg bg-red-500 p-2 text-center">
                         {fieldName && <span className="font-bold">{fieldName}: </span>}
                         {errorMessage}
                       </div>

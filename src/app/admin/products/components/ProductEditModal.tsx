@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { CgSpinnerTwo } from "react-icons/cg";
 
@@ -114,6 +114,41 @@ const validationRules: Record<string, ValidationRule> = {
   },
 };
 
+async function doUploadImage(
+  image: File | null,
+  productName: string,
+  imageType: "banner" | "mini",
+  postMutation: { mutate: (url: string, body: any) => Promise<any> }
+) {
+  if (!image || !productName) {
+    return null;
+  }
+
+  const response = await postMutation.mutate("/api/s3/upload", {
+    type: "productImage",
+    folderName: productName,
+    contentType: image.type,
+    imageType,
+  });
+
+  if (!response) return null;
+
+  const { uploadUrl, key } = response;
+
+  try {
+    await axios.put(uploadUrl, image, {
+      headers: {
+        "Content-Type": image.type,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+
+  return key;
+}
+
 const ProductEditModal: React.FC<ProductEditModalProps> = ({
   product,
   onClose,
@@ -130,7 +165,6 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const [overviewDetails, setOverviewDetails] = useState<OverviewDetail[] | null>(null);
   const [specs, setSpecs] = useState<Specs | null>(null);
   const [faqs, setFaqs] = useState<FAQItem[]>([]);
-  const [faqErrors, setFaqErrors] = useState<{ [key: string]: string }>({});
 
   const { data: categoriesData, error: categoriesError } = useApiFetch("/api/categories/getAll");
   const patchProduct = useApiMutation("patch");
@@ -139,59 +173,34 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   const deleteMutation = useApiMutation("delete");
 
   const categories = categoriesData || [];
-
-  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
-    if (categoriesError)
+    if (categoriesError) {
       toast.error("در دریافت دسته بندی ها مشکلی به وجود آمده است، دوباره تلاش کنید");
+    }
   }, [categoriesError]);
 
-  // Validate FAQs whenever they change
-  // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => {
-    // Only validate if we have FAQs
-    if (faqs.length > 0) {
-      validateFaqs();
-    } else {
-      // Clear error state if there are no FAQs
-      setFaqErrors({});
-    }
-  }, [faqs]);
-
-  async function doUploadImage(
-    image: File | null,
-    productName: string,
-    imageType: "banner" | "mini",
-    postMutation: { mutate: (url: string, body: any) => Promise<any> }
-  ) {
-    if (!image || !productName) {
-      return null;
-    }
-
-    const response = await postMutation.mutate("/api/s3/upload", {
-      type: "productImage",
-      folderName: productName,
-      contentType: image.type,
-      imageType,
+  // Derive FAQ errors whenever FAQs change
+  const faqErrors = (() => {
+    if (faqs.length === 0) return {};
+    const errors: { [key: string]: string } = {};
+    faqs.forEach((faq, index) => {
+      if (!faq.question.trim()) {
+        errors[`question-${index}`] = "سوال نمی‌تواند خالی باشد.";
+      } else if (faq.question.length > 1000) {
+        errors[`question-${index}`] = "سوال نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
+      }
+      if (!faq.answer.trim()) {
+        errors[`answer-${index}`] = "پاسخ نمی‌تواند خالی باشد.";
+      } else if (faq.answer.length > 3000) {
+        errors[`answer-${index}`] = "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
+      }
     });
+    return errors;
+  })();
 
-    if (!response) return null;
-
-    const { uploadUrl, key } = response;
-
-    try {
-      await axios.put(uploadUrl, image, {
-        headers: {
-          "Content-Type": image.type,
-        },
-      });
-    } catch (error) {
-      console.error(error);
-      return null;
-    }
-
-    return key;
-  }
+  const validateFaqs = () => {
+    return Object.keys(faqErrors).length === 0;
+  };
 
   const imageUploader = async (
     image: File | null,
@@ -398,28 +407,6 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
     }
 
     return null;
-  };
-
-  // Method to check if a FAQ has errors (content length validation)
-  const validateFaqs = () => {
-    const errors: { [key: string]: string } = {};
-
-    faqs.forEach((faq, index) => {
-      if (!faq.question.trim()) {
-        errors[`question-${index}`] = "سوال نمی‌تواند خالی باشد.";
-      } else if (faq.question.length > 1000) {
-        errors[`question-${index}`] = "سوال نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
-      }
-
-      if (!faq.answer.trim()) {
-        errors[`answer-${index}`] = "پاسخ نمی‌تواند خالی باشد.";
-      } else if (faq.answer.length > 3000) {
-        errors[`answer-${index}`] = "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
-      }
-    });
-
-    setFaqErrors(errors);
-    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -792,7 +779,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
                   formState.Description.split(" ").map((keyword: string, index: number) => (
                     <button
                       type="button"
-                      key={index}
+                      key={keyword}
                       className="flex animate-fade-in items-center gap-2 rounded-lg bg-green-700 px-4 py-1 transition-all hover:bg-red-700 hover:text-white"
                       onClick={() => {
                         const updatedKeywords = formState.Description.split(" ")
@@ -837,8 +824,8 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
               <div className="col-span-1 mb-4 mt-2 rounded-md bg-red-500 p-3 text-center sm:col-span-2">
                 <p className="font-bold">خطاهای سوالات متداول:</p>
                 <ul className="list-inside list-disc">
-                  {Object.entries(faqErrors).map(([key, error], index) => (
-                    <li key={index}>
+                  {Object.entries(faqErrors).map(([key, error]) => (
+                    <li key={`faq-err-${key}`}>
                       {key.includes("question") ? "سوال" : "پاسخ"} {parseInt(key.split("-")[1]) + 1}
                       : {error}
                     </li>

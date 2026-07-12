@@ -32,7 +32,7 @@ const Card = ({ data: { title, items } }: CardProps) => {
       <h1>{title}</h1>
       <ul>
         {items.map((item, index) => (
-          <li key={index}>{item}</li>
+          <li key={item}>{item}</li>
         ))}
       </ul>
     </section>
@@ -93,12 +93,11 @@ const ActivityPage = async () => {
     },
   };
 
+  const jsonLd = JSON.stringify(structuredData);
+
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <div className={styles.parent}>
         {activities.map((activity: MasterActivity) => (
           <Card

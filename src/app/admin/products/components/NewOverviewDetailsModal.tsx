@@ -120,8 +120,6 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
     });
   };
 
-
-
   // Function to handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,7 +145,7 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
           <div className="space-y-6">
             {items.map((item, index) => (
               <ItemForm
-                key={index}
+                key={item.title + item.description}
                 item={item}
                 index={index}
                 isSubmitting={isSubmitting}
@@ -228,13 +226,10 @@ const ItemForm = ({
 }: ItemFormProps) => {
   // We can safely use hooks here because this component is rendered directly in the list
   // Not conditionally or in a loop inside the component
-  const onDrop = useCallback(
-    (acceptedFiles: File[]) => {
-      if (acceptedFiles.length === 0) return;
-      handleImageSelect(index, acceptedFiles[0]);
-    },
-    [index, handleImageSelect]
-  );
+  const onDrop = (acceptedFiles: File[]) => {
+    if (acceptedFiles.length === 0) return;
+    handleImageSelect(index, acceptedFiles[0]);
+  };
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
     onDrop,

@@ -117,7 +117,7 @@ const Pagination: React.FC<PaginationProps> = ({
         <div className="flex items-center gap-2">
           {getMobilePageNumbers().map((page, index) =>
             typeof page === "number" ? (
-              <Link key={index} href={`${path}/${page}`}>
+              <Link key={`page-${page}`} href={`${path}/${page}`}>
                 <button
                   type="button"
                   className={`min-w-[36px] rounded-lg px-3 py-2 text-sm font-medium transition duration-200 ${
@@ -130,7 +130,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 </button>
               </Link>
             ) : (
-              <span key={index} className="px-1 text-gray-400">
+              <span key={`ellipsis-mobile-${index}`} className="px-1 text-gray-400">
                 ...
               </span>
             )
@@ -197,7 +197,7 @@ const Pagination: React.FC<PaginationProps> = ({
         {/* Page Numbers */}
         {getPageNumbers().map((page, index) =>
           typeof page === "number" ? (
-            <Link key={index} href={`${path}/${page}`}>
+            <Link key={`page-${page}`} href={`${path}/${page}`}>
               <button
                 type="button"
                 className={`min-w-[40px] rounded-lg px-3 py-2 text-base font-medium transition duration-200 ${
@@ -210,7 +210,7 @@ const Pagination: React.FC<PaginationProps> = ({
               </button>
             </Link>
           ) : (
-            <span key={index} className="px-3 py-2 text-base text-gray-500">
+            <span key={`ellipsis-desktop-${index}`} className="px-3 py-2 text-base text-gray-500">
               ...
             </span>
           )

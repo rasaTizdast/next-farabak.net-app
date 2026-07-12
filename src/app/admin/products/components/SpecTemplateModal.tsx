@@ -144,7 +144,7 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
 
             <div className="space-y-2">
               {items.map((item, index) => (
-                <div key={index} className="flex items-center gap-2">
+                <div key={item.Title} className="flex items-center gap-2">
                   <input
                     type="text"
                     value={item.Title}

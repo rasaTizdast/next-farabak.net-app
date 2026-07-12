@@ -1,10 +1,10 @@
 import axios from "axios";
 import Link from "next/link";
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { FaExternalLinkAlt, FaSort, FaSortUp, FaSortDown, FaTimes } from "react-icons/fa";
 import { IoQrCode } from "react-icons/io5";
 
-import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+import { useApiFetch } from "@/hooks/useApiFetch";
 
 import ProductEditModal from "./ProductEditModal";
 import ProductGradeButton from "./ProductGradeButton";
@@ -39,7 +39,11 @@ async function fetchProductQuantity(
   loadingQuantities: Record<number, boolean>,
   productQuantities: Record<number, { branches: number; warehouses: number; timestamp: number }>,
   setLoadingQuantities: React.Dispatch<React.SetStateAction<Record<number, boolean>>>,
-  setProductQuantities: React.Dispatch<React.SetStateAction<Record<number, { branches: number; warehouses: number; timestamp: number }>>>
+  setProductQuantities: React.Dispatch<
+    React.SetStateAction<
+      Record<number, { branches: number; warehouses: number; timestamp: number }>
+    >
+  >
 ) {
   if (loadingQuantities[productId]) return;
 
@@ -128,27 +132,14 @@ const ProductsTable = ({
   const [isQrCodeModalOpen, setIsQrCodeModalOpen] = useState(false);
   const [qrCodeProduct, setQrCodeProduct] = useState<Product | null>(null);
 
-  const [usdRate, setUsdRate] = useState<number | null>(null);
-  async function loadUsdRate() {
-    try {
-      const rate = await fetchUsdToRialRate();
-      setUsdRate(rate);
-    } catch (error) {
-      console.error("Failed to fetch USD rate:", error);
-      setUsdRate(null);
-    }
-  }
-
-  // Fetch the rate when the component mounts
-  useEffect(() => {
-    loadUsdRate();
-  }, []);
+  const { data: usdRateData } = useApiFetch<{ rate: number | null }>("/api/exchangeRate");
+  const usdRate = usdRateData?.rate ?? null;
 
   // Check if the USD rate is valid
   const isValidRate = usdRate && !isNaN(usdRate) && usdRate > 0;
 
   // Sorting function
-  const sortedProducts = useMemo(() => {
+  const sortedProducts = (() => {
     if (!products.length) return [];
 
     // If no sorting is selected, return products in their original order
@@ -177,7 +168,7 @@ const ProductsTable = ({
       }
       return 0;
     });
-  }, [products, sortConfig]);
+  })();
 
   // Handle sorting
   const handleSort = (key: SortKey) => {
@@ -255,7 +246,13 @@ const ProductsTable = ({
   };
 
   const fetchProductBranchQuantity = async (productId: number) => {
-    fetchProductQuantity(productId, loadingQuantities, productQuantities, setLoadingQuantities, setProductQuantities);
+    fetchProductQuantity(
+      productId,
+      loadingQuantities,
+      productQuantities,
+      setLoadingQuantities,
+      setProductQuantities
+    );
   };
 
   if (notFound) {
@@ -492,7 +489,7 @@ const ProductsTable = ({
               </h3>
               <ul className="space-y-2">
                 {activeSubCategories.subCategories.map((subCategory, idx) => (
-                  <li key={idx} className="rounded-lg bg-gray-800 p-2 text-white">
+                  <li key={subCategory} className="rounded-lg bg-gray-800 p-2 text-white">
                     {subCategory}
                   </li>
                 ))}

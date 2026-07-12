@@ -12,20 +12,27 @@ type Props = {
 const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
   const [existingOverviews, setExistingOverviews] = useState<string[]>([]);
 
+  // Fetch overview data on mount
   useEffect(() => {
     axios.get(`/api/productOverview/getProductOverview/${+ProductId}`).then((data) => {
       SetOverviews(data.data);
-      // Initialize existingOverviews with non-empty properties
-      const overviews = data.data;
+    });
+  }, [ProductId, SetOverviews]);
+
+  // Initialize existingOverviews from overviews prop (one-time)
+  useEffect(() => {
+    if (overviews) {
       const nonEmptyOverviews = [
         overviews.Property1,
         overviews.Property2,
         overviews.Property3,
         overviews.Property4,
       ].filter(Boolean);
-      setExistingOverviews(nonEmptyOverviews);
-    });
-  }, []);
+      if (nonEmptyOverviews.length > 0) {
+        setExistingOverviews(nonEmptyOverviews);
+      }
+    }
+  }, [overviews]);
 
   const inputHandler = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -89,7 +96,7 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
       <h3 className="mb-2 font-bold">ویژگی‌های محصول</h3>
 
       {existingOverviews.map((overview, index) => (
-        <div key={index} className="flex items-center gap-2">
+        <div key={overview} className="flex items-center gap-2">
           <label className="block flex-1">
             <input
               type="text"

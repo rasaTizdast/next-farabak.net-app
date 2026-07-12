@@ -63,7 +63,7 @@ const ProductDeletionModal = ({ currentAction, handleModalConfirm, setIsModalOpe
         <div className="max-h-56 overflow-y-auto rounded-lg border bg-gray-50 p-4">
           {productNames.map((productName, index) => (
             <p
-              key={index}
+              key={productName}
               className="truncate text-sm text-gray-800 hover:text-clip hover:whitespace-normal"
               title={typeof productName === "string" ? productName : ""}
             >

@@ -113,7 +113,13 @@ const WarrantyTrackingPage = () => {
   };
 
   const handleConfirmRequest = async () => {
-    await confirmWarrantyRequest(warrantyCode, setConfirmLoading, setError, setResult, setCurrentStep);
+    await confirmWarrantyRequest(
+      warrantyCode,
+      setConfirmLoading,
+      setError,
+      setResult,
+      setCurrentStep
+    );
   };
 
   const handleCancel = () => {
@@ -202,7 +208,7 @@ const WarrantyTrackingPage = () => {
               <Steps current={currentStep} className="warranty-steps font-inherit mb-8">
                 {stepsConfig.map((step, index) => (
                   <Step
-                    key={index}
+                    key={step.title}
                     title={step.title}
                     description={step.description}
                     className="font-inherit"

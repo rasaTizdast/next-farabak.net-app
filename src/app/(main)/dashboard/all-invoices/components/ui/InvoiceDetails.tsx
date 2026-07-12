@@ -7,6 +7,96 @@ import { useRef, useEffect, useState } from "react";
 import styles from "./InvoiceDetails.module.css";
 import logo from "../../../../../../../public/Farabak_Logo.webp";
 
+const currencyFormatter = new Intl.NumberFormat("fa-IR");
+
+async function fetchInvoiceData(
+  invoice: {
+    Fullname: string;
+    Phonenumber: string;
+    Checked: boolean;
+    FactorGuid: string;
+    Quantity: string;
+    TotalAmount: number;
+    Date: string;
+    Invoiceid: number;
+    Invoice_Details: {
+      Invoiceid: string;
+      price: number;
+      discount?: number;
+      ProductId: number;
+      quantity: number;
+      total_price: number;
+      Invoice_Details: number;
+    }[];
+  },
+  setProductNames: React.Dispatch<React.SetStateAction<{ [key: number]: string }>>,
+  setWarranties: React.Dispatch<React.SetStateAction<{ [key: number]: any }>>,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+) {
+  try {
+    const productNameRequests = invoice.Invoice_Details.map((product) =>
+      axios
+        .get(`/api/products/getProductType/${product.ProductId}`)
+        .then((res) => ({
+          id: product.ProductId,
+          name: res.data.productType,
+        }))
+        .catch(() => ({
+          id: product.ProductId,
+          name: `محصول ${product.ProductId}`,
+        }))
+    );
+
+    const warrantyRequests = invoice.Invoice_Details.map((product, index) => {
+      const detailId = product.Invoice_Details || null;
+      const lookupKey = detailId || product.ProductId || index;
+
+      if (!detailId) {
+        console.warn(
+          `Missing Invoice_Details ID for product ${product.ProductId} at index ${index}`
+        );
+        return Promise.resolve({
+          id: lookupKey,
+          warranty: null,
+        });
+      }
+
+      return axios
+        .get(`/api/warranties/getByInvoiceDetail/${detailId}`)
+        .then((res) => ({
+          id: lookupKey,
+          warranty: res.data.warranty,
+        }))
+        .catch((error) => {
+          console.error(`Error fetching warranty for detail ID ${detailId}:`, error);
+          return {
+            id: lookupKey,
+            warranty: null,
+          };
+        });
+    });
+
+    const [productResults, warrantyResults] = await Promise.all([
+      Promise.all(productNameRequests),
+      Promise.all(warrantyRequests),
+    ]);
+
+    const names = productResults.reduce((acc, curr) => ({ ...acc, [curr.id]: curr.name }), {});
+
+    const warrantyData = warrantyResults.reduce(
+      (acc, curr) => ({ ...acc, [curr.id]: curr.warranty }),
+      {}
+    );
+
+    setProductNames(names);
+    setWarranties(warrantyData);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  } finally {
+    setLoading(false);
+  }
+}
+
 type Product = {
   Invoiceid: string;
   price: number;
@@ -113,75 +203,8 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
 
   // Fetch product names and warranties
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const productNameRequests = invoice.Invoice_Details.map((product) =>
-          axios
-            .get(`/api/products/getProductType/${product.ProductId}`)
-            .then((res) => ({
-              id: product.ProductId,
-              name: res.data.productType,
-            }))
-            .catch(() => ({
-              id: product.ProductId,
-              name: `محصول ${product.ProductId}`,
-            }))
-        );
-
-        const warrantyRequests = invoice.Invoice_Details.map((product, index) => {
-          // Make sure we have a valid Invoice_Details ID
-          const detailId = product.Invoice_Details || null;
-          // Use a predictable key for storing the warranty data
-          const lookupKey = detailId || product.ProductId || index;
-
-          if (!detailId) {
-            console.warn(
-              `Missing Invoice_Details ID for product ${product.ProductId} at index ${index}`
-            );
-            return Promise.resolve({
-              id: lookupKey,
-              warranty: null,
-            });
-          }
-
-          return axios
-            .get(`/api/warranties/getByInvoiceDetail/${detailId}`)
-            .then((res) => ({
-              id: lookupKey,
-              warranty: res.data.warranty,
-            }))
-            .catch((error) => {
-              console.error(`Error fetching warranty for detail ID ${detailId}:`, error);
-              return {
-                id: lookupKey,
-                warranty: null,
-              };
-            });
-        });
-
-        const [productResults, warrantyResults] = await Promise.all([
-          Promise.all(productNameRequests),
-          Promise.all(warrantyRequests),
-        ]);
-
-        const names = productResults.reduce((acc, curr) => ({ ...acc, [curr.id]: curr.name }), {});
-
-        const warrantyData = warrantyResults.reduce(
-          (acc, curr) => ({ ...acc, [curr.id]: curr.warranty }),
-          {}
-        );
-
-        setProductNames(names);
-        setWarranties(warrantyData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [invoice.Invoice_Details]);
+    fetchInvoiceData(invoice, setProductNames, setWarranties, setLoading);
+  }, [invoice]);
 
   const handleDownload = () => {
     const input = componentRef.current;
@@ -233,7 +256,7 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
 
   // Format currency
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("fa-IR").format(amount) + " تومان";
+    return currencyFormatter.format(amount) + " تومان";
   };
 
   if (!invoice) return null;
@@ -302,7 +325,7 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
                   const warrantyStyling = warranty ? formatWarrantyStatus(warranty.status) : null;
 
                   return (
-                    <tr key={`${product.ProductId}-${index}`}>
+                    <tr key={product.ProductId}>
                       <td>{productNames[product.ProductId] || "در حال بارگذاری..."}</td>
                       <td>{formatCurrency(product.total_price)}</td>
                       <td>
