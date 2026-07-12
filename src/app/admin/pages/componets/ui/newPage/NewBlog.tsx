@@ -9,6 +9,7 @@ import { BiTrash } from "react-icons/bi";
 import FaqManager from "@/components/FaqManager";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { generateSlug } from "@/utils/generateSlug";
 
 import TipTapBlogEditor from "../blogEditor/TipTapEditor";
 
@@ -145,9 +146,10 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { mutate: uploadImageMutate } = useApiMutation("post");
   const { mutate: createBlogMutate } = useApiMutation("post");
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
-    if (categoriesData && categories.length === 0) setCategories(categoriesData);
+    if (categoriesData) {
+      setCategories((prev) => (prev.length === 0 ? categoriesData : prev));
+    }
   }, [categoriesData]);
 
   const filteredCategories = useMemo(() => {
@@ -321,29 +323,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }
   };
 
-  const generateSlug = (title: string) => {
-    // If the input is Persian or doesn't contain valid characters, return empty string
-    if (!/[a-zA-Z0-9]/.test(title)) {
-      return "";
-    }
-
-    return (
-      title
-        // Convert to lowercase
-        .toLowerCase()
-        // Remove non-alphanumeric characters except spaces, hyphens, and underscores
-        .replace(/[^a-z0-9\s\-_]/g, "")
-        // Replace multiple spaces with a single space
-        .replace(/\s+/g, " ")
-        // Replace spaces with hyphens
-        .replace(/\s/g, "-")
-        // Remove consecutive hyphens
-        .replace(/-+/g, "-")
-        // Trim leading and trailing spaces and hyphens
-        .trim()
-        .replace(/^-+|-+$/g, "")
-    );
-  };
+  // generateSlug imported from @/utils/generateSlug
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -357,7 +337,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               {formErrors.length > 0 && (
                 <div className="rounded-lg bg-red-800/30 p-4 text-red-400">
                   {formErrors.map((error, index) => (
-                    <p key={index}>• {error}</p>
+                    <p key={error}>• {error}</p>
                   ))}
                 </div>
               )}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa"; // Icons for expand/collapse
 import { IoIosCloseCircle } from "react-icons/io";
@@ -23,7 +23,7 @@ type Activity = {
 };
 
 const SkeletonLoader = () => (
-  <div className="space-y-4">
+  <div className="space-y-4" role="status" aria-label="در حال بارگذاری">
     {[...Array(4)].map((_, index) => (
       <div key={index} className="animate-pulse rounded-lg bg-gray-600 p-4">
         <div className="mb-4 h-6 w-1/2 rounded bg-gray-500"></div>
@@ -41,18 +41,17 @@ const SkeletonLoader = () => (
 const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set<number>());
 
   const { data: activitiesData } = useApiFetch("/api/activities");
   const { mutate: saveActivities, loading: isSaving } = useApiMutation("put");
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
+  const isFetching = useMemo(() => !activitiesData, [activitiesData]);
+
   useEffect(() => {
     if (activitiesData) {
       setActivities(activitiesData);
       setExpandedSections(new Set<number>(activitiesData.map((_: Activity, i: number) => i)));
-      setIsFetching(false);
     }
   }, [activitiesData]);
 

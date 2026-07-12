@@ -12,6 +12,7 @@ import { DatePicker } from "zaman";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { generateSlug } from "@/utils/generateSlug";
 
 const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
   const [formData, setFormData] = useState({
@@ -33,7 +34,6 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
   const isLoading = projectUrl ? projectLoading || !projectData : false;
   const { mutate: saveProjectMutate } = useApiMutation("put");
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
     if (projectData) {
       setFormData({
@@ -213,29 +213,11 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
       : URL.createObjectURL(file);
   };
 
-  const generateSlug = (title: string) => {
-    return (
-      title
-        // Convert to lowercase
-        .toLowerCase()
-        // Remove non-alphanumeric characters except spaces and hyphens
-        .replace(/[^a-z0-9\s-]/g, "")
-        // Replace multiple spaces with a single space
-        .replace(/\s+/g, " ")
-        // Replace spaces with hyphens
-        .replace(/\s/g, "-")
-        // Remove consecutive hyphens
-        .replace(/-+/g, "-")
-        // Trim leading and trailing spaces
-        .trim()
-    );
-  };
-
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
       <div className="max-h-[95vh] w-full max-w-4xl overflow-auto rounded-xl bg-gray-800 p-6 text-gray-100 shadow-2xl">
         {isLoading ? (
-          <div className="animate-pulse space-y-6">
+          <div className="animate-pulse space-y-6" role="status" aria-label="در حال بارگذاری">
             {/* Header Skeleton */}
             <div className="mb-6 flex items-center justify-between">
               <div className="h-8 w-48 rounded bg-gray-700" />
@@ -393,6 +375,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
                       <button
                         type="button"
                         onClick={() => setMainImage(null)}
+                        aria-label="حذف عکس اصلی"
                         className="absolute right-1 top-1 rounded-lg bg-red-500 p-2 opacity-0 transition-all hover:bg-red-600 group-hover:opacity-100"
                       >
                         <BiTrash size={20} />
@@ -424,7 +407,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
                 </div>
                 <div className="mt-4 grid grid-cols-4 gap-4">
                   {detailImages.map((file, index) => (
-                    <div key={index} className="group relative">
+                    <div key={file.name + file.size} className="group relative">
                       <img
                         src={getPreviewUrl(file)}
                         alt={`Detail ${index + 1}`}
@@ -433,6 +416,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
                       <button
                         type="button"
                         onClick={() => removeFile(setDetailImages, detailImages, index)}
+                        aria-label="حذف تصویر"
                         className="absolute right-1 top-1 rounded-lg bg-red-500 p-2 opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
                       >
                         <BiTrash size={20} />
@@ -459,13 +443,17 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-4">
                   {videos.map((file, index) => (
-                    <div key={index} className="group relative rounded-lg bg-gray-700 p-3">
+                    <div
+                      key={file.name + file.size}
+                      className="group relative rounded-lg bg-gray-700 p-3"
+                    >
                       <video className="h-32 w-full rounded-lg object-cover">
                         <source src={getPreviewUrl(file)} />
                       </video>
                       <button
                         type="button"
                         onClick={() => removeFile(setVideos, videos, index)}
+                        aria-label="حذف ویدیو"
                         className="absolute right-1 top-1 rounded-lg bg-red-500 p-2 opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
                       >
                         <BiTrash size={20} />

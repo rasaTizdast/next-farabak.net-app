@@ -1,7 +1,7 @@
 "use client";
 
 import { Input, Button, Modal, Table, Tooltip, Space, Badge } from "antd";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "react-hot-toast";
 import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
@@ -10,6 +10,11 @@ import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 const { TextArea } = Input;
+
+function truncateText(text: string | null, maxLength: number) {
+  if (!text) return "";
+  return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+}
 
 interface FaqEditorProps {
   onClose: () => void;
@@ -26,7 +31,6 @@ interface FAQ {
 
 const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [editingFaq, setEditingFaq] = useState<FAQ | null>(null);
   const [formData, setFormData] = useState({
@@ -40,11 +44,11 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
   const { mutate: saveFaqMutate } = useApiMutation("post");
   const { mutate: updateFaqMutate } = useApiMutation("put");
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
+  const loading = useMemo(() => !faqsData, [faqsData]);
+
   useEffect(() => {
     if (faqsData) {
       setFaqs(faqsData.faqs);
-      setLoading(false);
     }
   }, [faqsData]);
 
@@ -127,12 +131,6 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
     }
   };
 
-  // Function to truncate text
-  const truncateText = (text: string | null, maxLength: number) => {
-    if (!text) return "";
-    return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
-  };
-
   // Count FAQs
   const totalFaqsCount = faqs.length;
 
@@ -170,12 +168,14 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
             type="text"
             icon={<FaEdit size={16} />}
             onClick={() => handleEdit(record)}
+            aria-label="ویرایش سوال"
             className="text-blue-400 hover:text-blue-300"
           />
           <Button
             type="text"
             icon={<FaTrash size={16} />}
             onClick={() => handleDelete(record.FaqDetailsid)}
+            aria-label="حذف سوال"
             className="text-red-400 hover:text-red-300"
           />
         </Space>
@@ -195,6 +195,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
             type="text"
             icon={<IoMdClose size={24} />}
             onClick={onClose}
+            aria-label="بستن"
             className="text-gray-400 hover:text-gray-200"
           />
         </div>

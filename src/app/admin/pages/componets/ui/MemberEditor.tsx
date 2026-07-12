@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
@@ -120,6 +120,8 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
         <div
           className="max-h-[95dvh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg"
           dir="rtl"
+          role="status"
+          aria-label="در حال بارگذاری"
         >
           <h2 className="mb-4 text-2xl font-bold">
             <div className="h-8 w-1/3 animate-pulse rounded bg-gray-600"></div>

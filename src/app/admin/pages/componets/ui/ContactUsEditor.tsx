@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
@@ -9,7 +9,7 @@ type ContactUsEditModalProps = {
 };
 
 const SkeletonLoader = () => (
-  <div className="animate-pulse">
+  <div className="animate-pulse" role="status" aria-label="در حال بارگذاری">
     <div className="mb-6 rounded-lg bg-gray-600 p-3">
       <div className="mb-4 h-6 w-1/4 rounded bg-gray-500"></div>
       <div className="space-y-3">
@@ -51,19 +51,17 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
   });
   const [emails, setEmails] = useState<Array<{ id: number; title: string; address: string }>>([]);
   const [phoneNumbers, setPhoneNumbers] = useState<Array<{ id: number; number: string }>>([]);
-  const [loading, setLoading] = useState(true);
-
   const { data: contactData } = useApiFetch("/api/contact-us");
   const { mutate: saveContact, loading: saving } = useApiMutation("put");
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
+  const loading = useMemo(() => !contactData, [contactData]);
+
   useEffect(() => {
     if (contactData) {
       const { address: a, emails: e, phone_numbers: p } = contactData;
       setAddress(a);
       setEmails(e);
       setPhoneNumbers(p);
-      setLoading(false);
     }
   }, [contactData]);
 

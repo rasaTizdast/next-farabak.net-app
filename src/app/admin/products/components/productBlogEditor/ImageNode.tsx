@@ -46,47 +46,13 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
       ? attrs.height
       : DEFAULT_HEIGHT;
 
-  // Initialize dimension values
+  // Sync dimension form fields on mount
   useEffect(() => {
-    // Set default values on mount
-    setCustomWidth(safeWidth.toString());
-    setCustomHeight(safeHeight.toString());
-
-    // Update attributes if they're invalid
-    if (attrs.width !== safeWidth || attrs.height !== safeHeight) {
-      updateAttributes({
-        width: safeWidth,
-        height: safeHeight,
-        size: attrs.size || "full",
-      });
-    }
-  }, []);
-
-  // Update form values when attributes change
-  useEffect(() => {
-    // Only update when we have valid dimensions
     if (safeWidth > 0 && safeHeight > 0) {
       setCustomWidth(safeWidth.toString());
       setCustomHeight(safeHeight.toString());
     }
   }, [safeWidth, safeHeight]);
-
-  useEffect(() => {
-    // Add resize event handlers when resizing
-    if (isResizing) {
-      document.addEventListener("mousemove", handleResizeMove);
-      document.addEventListener("mouseup", handleResizeEnd);
-
-      // Prevent text selection during resize
-      document.body.style.userSelect = "none";
-
-      return () => {
-        document.removeEventListener("mousemove", handleResizeMove);
-        document.removeEventListener("mouseup", handleResizeEnd);
-        document.body.style.userSelect = "";
-      };
-    }
-  }, [isResizing]);
 
   const handleDelete = async () => {
     const confirmed = window.confirm("آیا میخواهید این عکس حذف شود؟");
@@ -268,6 +234,21 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
       size: "custom",
     });
   };
+
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener("mousemove", handleResizeMove);
+      document.addEventListener("mouseup", handleResizeEnd);
+
+      document.body.style.userSelect = "none";
+
+      return () => {
+        document.removeEventListener("mousemove", handleResizeMove);
+        document.removeEventListener("mouseup", handleResizeEnd);
+        document.body.style.userSelect = "";
+      };
+    }
+  }, [isResizing, handleResizeMove, handleResizeEnd]);
 
   return (
     <NodeViewWrapper>

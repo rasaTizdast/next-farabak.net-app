@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import {
   FiX,
@@ -97,7 +97,7 @@ const ConfirmationDialog = ({
 
 // Skeleton Loader Component
 const SkeletonLoader = () => (
-  <div className="animate-pulse space-y-6">
+  <div className="animate-pulse space-y-6" role="status" aria-label="در حال بارگذاری">
     {[...Array(2)].map((_, i) => (
       <div key={i} className="rounded-lg bg-gray-800 p-4">
         <div className="mb-4 flex items-center justify-between">
@@ -547,7 +547,6 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const [newShowcaseProduct, setNewShowcaseProduct] = useState<Partial<ShowcaseProduct>>({});
   const [sliderFile, setSliderFile] = useState<File | null>(null);
   const [productFile, setProductFile] = useState<File | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isUploadingSlider, setIsUploadingSlider] = useState<boolean>(false);
   const [isUploadingProduct, setIsUploadingProduct] = useState<boolean>(false);
   const [isDeletingSlider, setIsDeletingSlider] = useState<number | null>(null);
@@ -560,20 +559,14 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const { mutate: deleteProductMutate } = useApiMutation("delete");
   const { mutate: updateOrderMutate } = useApiMutation("patch");
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
+  const isLoading = useMemo(() => !slidersData || !productsData, [slidersData, productsData]);
+
   useEffect(() => {
-    if (slidersData) {
-      setSliders(slidersData);
-      setIsLoading(false);
-    }
+    if (slidersData) setSliders(slidersData);
   }, [slidersData]);
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
-    if (productsData) {
-      setShowcaseProducts(productsData);
-      setIsLoading(false);
-    }
+    if (productsData) setShowcaseProducts(productsData);
   }, [productsData]);
 
   const handleAddSlider = async () => {

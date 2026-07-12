@@ -279,9 +279,9 @@ const AdminPageManager: React.FC = () => {
 
           {/* Page Rows */}
           <div className="space-y-2 sm:space-y-3">
-            {rowNames.map((row, index) => (
+            {rowNames.map((row) => (
               <div
-                key={index}
+                key={row.link}
                 className="overflow-hidden rounded-lg border border-gray-700 bg-gray-800 transition-all duration-200 hover:border-gray-600 hover:shadow-lg sm:rounded-xl"
               >
                 {/* Main Row */}

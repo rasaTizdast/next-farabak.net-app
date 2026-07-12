@@ -6,6 +6,7 @@ import { BiTrash } from "react-icons/bi";
 import { DatePicker } from "zaman";
 
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { generateSlug } from "@/utils/generateSlug";
 
 type NewProjectProps = {
   onClose: () => void;
@@ -158,24 +159,6 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
     setter(newFiles);
   };
 
-  const generateSlug = (title: string) => {
-    return (
-      title
-        // Convert to lowercase
-        .toLowerCase()
-        // Remove non-alphanumeric characters except spaces and hyphens
-        .replace(/[^a-z0-9\s-]/g, "")
-        // Replace multiple spaces with a single space
-        .replace(/\s+/g, " ")
-        // Replace spaces with hyphens
-        .replace(/\s/g, "-")
-        // Remove consecutive hyphens
-        .replace(/-+/g, "-")
-        // Trim leading and trailing spaces
-        .trim()
-    );
-  };
-
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
       <div className="max-h-[95vh] w-full max-w-4xl overflow-auto rounded-xl bg-gray-800 p-6 text-gray-100 shadow-2xl">
@@ -298,7 +281,7 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
             </div>
             <div className="mt-4 grid grid-cols-4 gap-4">
               {detailImages.map((file, index) => (
-                <div key={index} className="group relative">
+                <div key={file.name + file.size} className="group relative">
                   <img
                     src={URL.createObjectURL(file)}
                     alt={`Detail ${index + 1}`}
@@ -333,7 +316,7 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
             </div>
             <div className="mt-4 grid grid-cols-3 gap-4">
               {videos.map((file, index) => (
-                <div key={index} className="group relative rounded-lg bg-gray-700 p-3">
+                <div                   key={file.name + file.size} className="group relative rounded-lg bg-gray-700 p-3">
                   <video className="h-32 w-full rounded-lg object-cover">
                     <source src={URL.createObjectURL(file)} />
                   </video>

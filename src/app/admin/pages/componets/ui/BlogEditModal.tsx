@@ -7,6 +7,7 @@ import { BiTrash } from "react-icons/bi";
 
 import FaqManager from "@/components/FaqManager";
 import { useApiFetch } from "@/hooks/useApiFetch";
+import { generateSlug } from "@/utils/generateSlug";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 import TipTapBlogEditor from "./blogEditor/TipTapEditor";
@@ -90,7 +91,6 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   const { mutate: uploadImageMutate } = useApiMutation("post");
   const { mutate: patchBlogMutate } = useApiMutation("patch");
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
     if (blogData) {
       setFormData({
@@ -108,7 +108,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
     }
   }, [blogData]);
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
+  // Toast on blog error
   useEffect(() => {
     if (blogError) {
       console.error("Error fetching blog:", blogError);
@@ -186,10 +186,11 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
 
   const { data: categoriesData } = useApiFetch("/api/blogs/categories");
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
-    if (categoriesData && categories.length === 0) setCategories(categoriesData);
-  }, [categoriesData]);
+    if (categoriesData && categories.length === 0) {
+      setCategories(categoriesData);
+    }
+  }, [categoriesData, categories.length]);
 
   const filteredCategories = useMemo(() => {
     if (categoryInput) {
@@ -366,34 +367,15 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
     }
   };
 
-  const generateSlug = (title: string) => {
-    // If the input is Persian or doesn't contain valid characters, return empty string
-    if (!/[a-zA-Z0-9]/.test(title)) {
-      return "";
-    }
-
-    return (
-      title
-        // Convert to lowercase
-        .toLowerCase()
-        // Remove non-alphanumeric characters except spaces, hyphens, and underscores
-        .replace(/[^a-z0-9\s\-_]/g, "")
-        // Replace multiple spaces with a single space
-        .replace(/\s+/g, " ")
-        // Replace spaces with hyphens
-        .replace(/\s/g, "-")
-        // Remove consecutive hyphens
-        .replace(/-+/g, "-")
-        // Trim leading and trailing spaces and hyphens
-        .trim()
-        .replace(/^-+|-+$/g, "")
-    );
-  };
   // Updated loading state
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div className="max-h-[95vh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-800 p-6 text-gray-200 shadow-xl">
+        <div
+          className="max-h-[95vh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-800 p-6 text-gray-200 shadow-xl"
+          role="status"
+          aria-label="در حال بارگذاری وبلاگ"
+        >
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xl font-bold">در حال بارگذاری وبلاگ...</h2>
             <div className="h-8 w-8 animate-pulse rounded-lg bg-gray-700" />
@@ -452,7 +434,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
               {formErrors.length > 0 && (
                 <div className="rounded-lg bg-red-800/30 p-4 text-red-400">
                   {formErrors.map((error, index) => (
-                    <p key={index}>• {error}</p>
+                    <p key={error}>• {error}</p>
                   ))}
                 </div>
               )}
