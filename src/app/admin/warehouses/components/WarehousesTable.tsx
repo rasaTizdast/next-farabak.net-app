@@ -35,13 +35,12 @@ export default function WarehousesTable({
   onProducts: (w: Warehouse) => void;
   isSearching?: boolean;
 }) {
-  const columns = useMemo(
-    () => [
-      { title: "نام", dataIndex: "name", key: "name" },
-      { title: "مکان", dataIndex: "location", key: "location" },
-      { title: "تعداد محصولات", dataIndex: "productCount", key: "productCount" },
-      { title: "تعداد کل", dataIndex: "totalQuantity", key: "totalQuantity" },
-      ...(isSearching
+  const columns = [
+    { title: "نام", dataIndex: "name", key: "name" },
+    { title: "مکان", dataIndex: "location", key: "location" },
+    { title: "تعداد محصولات", dataIndex: "productCount", key: "productCount" },
+    { title: "تعداد کل", dataIndex: "totalQuantity", key: "totalQuantity" },
+    ...(isSearching
         ? [
             {
               title: "تعداد این محصول",
@@ -91,9 +90,7 @@ export default function WarehousesTable({
           </div>
         ),
       },
-    ],
-    [onEdit, onDelete, onProducts, isSearching]
-  );
+  ];
 
   return (
     <TableBase

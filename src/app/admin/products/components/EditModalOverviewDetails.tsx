@@ -1,6 +1,6 @@
 import axios from "axios";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useCallback, useRef, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { IoIosClose } from "react-icons/io";
@@ -62,13 +62,12 @@ const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Prop
 
   useEffect(() => {
     fetchData();
-
     document.addEventListener("refreshOverviewDetails", fetchData);
 
     return () => {
       document.removeEventListener("refreshOverviewDetails", fetchData);
     };
-  }, [productId]);
+  }, [fetchData]);
 
   const toggleSelection = (detailId: number) => {
     const updatedDetails = allOverviewDetails.map((detail) =>

@@ -43,6 +43,346 @@ import WarrantyRequests from "../components/WarrantyRequests";
 import BranchInvoiceDetailsModal from "./invoices/components/BranchInvoiceDetailsModal";
 import BranchWarrantyViewModal from "./invoices/components/BranchWarrantyViewModal";
 
+async function fetchAllProductsHelper(
+  setProductsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setAllProducts: React.Dispatch<React.SetStateAction<Product[]>>
+) {
+  try {
+    setProductsLoading(true);
+
+    try {
+      const response = await fetch("/api/admin/products/all", {
+        credentials: "include",
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+
+        if (responseData.data && Array.isArray(responseData.data) && responseData.data.length > 0) {
+          setAllProducts(responseData.data);
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("Error with new endpoint:", error);
+    }
+
+    let allFetchedProducts: Product[] = [];
+    let currentPage = 1;
+    let hasMorePages = true;
+    const pageSize = 100;
+
+    while (hasMorePages) {
+      const response = await fetch(`/api/admin/products?page=${currentPage}&limit=${pageSize}`);
+
+      if (!response.ok) {
+        break;
+      }
+
+      const data = await response.json();
+      const products = data.data || [];
+
+      allFetchedProducts = [...allFetchedProducts, ...products];
+
+      if (products.length < pageSize) {
+        hasMorePages = false;
+      } else {
+        currentPage++;
+      }
+    }
+
+    setAllProducts(allFetchedProducts);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    message.error("خطا در بارگذاری محصولات");
+  } finally {
+    setProductsLoading(false);
+  }
+}
+
+async function fetchBranchProductsHelper(
+  branchId: number,
+  page: number,
+  pageSize: number,
+  setProductsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>,
+  setProductPagination: React.Dispatch<
+    React.SetStateAction<{ current: number; pageSize: number; total: number }>
+  >
+) {
+  try {
+    setProductsLoading(true);
+    const response = await fetch(
+      `/api/admin/branches/${branchId}/products?page=${page}&limit=${pageSize}`
+    );
+    if (!response.ok) {
+      message.error("خطا در بارگذاری محصولات شعبه");
+      return;
+    }
+    const responseData = await response.json();
+
+    if (Array.isArray(responseData)) {
+      setProducts(responseData);
+      setProductPagination((prev) => ({
+        ...prev,
+        total: responseData.length,
+      }));
+    } else if (responseData.data) {
+      setProducts(responseData.data);
+      setProductPagination({
+        current: responseData.pagination.currentPage,
+        pageSize: pageSize,
+        total: responseData.pagination.totalCount,
+      });
+    } else {
+      setProducts([]);
+      setProductPagination((prev) => ({
+        ...prev,
+        total: 0,
+      }));
+    }
+  } catch (error) {
+    console.error("Error fetching branch products:", error);
+    message.error("خطا در بارگذاری محصولات شعبه");
+  } finally {
+    setProductsLoading(false);
+  }
+}
+
+async function fetchInvoicesHelper(
+  branch: Branch | null,
+  page: number,
+  pageSize: number,
+  setInvoicesLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setInvoices: React.Dispatch<React.SetStateAction<AdminInvoice[]>>,
+  setStandaloneWarranties: React.Dispatch<React.SetStateAction<any[]>>,
+  setWarrantySummary: React.Dispatch<React.SetStateAction<{ active: number; expired: number }>>,
+  setInvoicePagination: React.Dispatch<
+    React.SetStateAction<{ current: number; pageSize: number; total: number }>
+  >
+) {
+  if (!branch) return;
+
+  try {
+    setInvoicesLoading(true);
+    const response = await fetch(`/api/admin/branches/my/invoices?page=${page}&limit=${pageSize}`, {
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      message.error("خطا در بارگذاری فاکتورها");
+      return;
+    }
+
+    const data = await response.json();
+    if (data.invoices) {
+      setInvoices(data.invoices);
+
+      if (data.standaloneWarranties) {
+        setStandaloneWarranties(data.standaloneWarranties);
+      } else {
+        setStandaloneWarranties([]);
+      }
+
+      if (data.warrantySummary) {
+        setWarrantySummary(data.warrantySummary);
+      }
+
+      if (data.pagination) {
+        setInvoicePagination({
+          current: data.pagination.currentPage,
+          pageSize: pageSize,
+          total: data.pagination.totalCount,
+        });
+      }
+    } else {
+      setInvoices([]);
+      setStandaloneWarranties([]);
+    }
+  } catch (error) {
+    console.error("Error fetching invoices:", error);
+    message.error("خطا در بارگذاری فاکتورها");
+  } finally {
+    setInvoicesLoading(false);
+  }
+}
+
+async function doLoadInitialBranchData(
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setError: React.Dispatch<React.SetStateAction<string | null>>,
+  setAuthError: React.Dispatch<React.SetStateAction<boolean>>,
+  setBranch: React.Dispatch<React.SetStateAction<Branch | null>>,
+  fetchBranchProducts: (branchId: number, page?: number, pageSize?: number) => Promise<void>,
+  fetchInvoices: () => Promise<void>,
+  fetchAllProducts: () => Promise<void>
+) {
+  setLoading(true);
+  try {
+    const response = await fetch("/api/admin/branches/my");
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        setError("شما هنوز به عنوان شعبه تعریف نشده‌اید. لطفاً با مدیر سایت تماس بگیرید.");
+        setLoading(false);
+        return;
+      }
+
+      if (response.status === 401) {
+        setAuthError(true);
+        setError("دسترسی غیرمجاز - لطفا وارد حساب کاربری خود شوید.");
+        setLoading(false);
+        return;
+      }
+
+      setError("خطا در دریافت اطلاعات شعبه");
+      setLoading(false);
+      return;
+    }
+
+    const branchData = await response.json();
+    setBranch(branchData);
+
+    await Promise.all([
+      fetchBranchProducts(branchData.branchid),
+      fetchInvoices(),
+      fetchAllProducts(),
+    ]);
+  } catch (error) {
+    console.error("Error fetching branch data:", error);
+    setError("خطا در بارگذاری اطلاعات شعبه");
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function doAutoRefreshHelper(
+  setRefreshing: React.Dispatch<React.SetStateAction<boolean>>,
+  setBranch: React.Dispatch<React.SetStateAction<Branch | null>>,
+  fetchBranchProductsFn: (branchId: number, page?: number, pageSize?: number) => Promise<void>
+) {
+  try {
+    setRefreshing(true);
+    const response = await fetch("/api/admin/branches/my");
+    if (response.ok) {
+      const branchData = await response.json();
+      setBranch(branchData);
+      if (branchData && branchData.branchid) {
+        await fetchBranchProductsFn(branchData.branchid);
+      }
+    } else {
+      console.error("Failed to refresh branch data:", response.status);
+    }
+  } catch (error) {
+    console.error("Error auto-refreshing branch data:", error);
+  } finally {
+    setRefreshing(false);
+  }
+}
+
+function formatDate(dateString: string | Date | number) {
+  if (!dateString) return "-";
+  try {
+    if (typeof dateString === "object") {
+      if (dateString instanceof Date) {
+        return moment(dateString).format("YYYY/MM/DD | HH:mm:ss");
+      }
+    }
+    if (typeof dateString === "number") {
+      return moment(new Date(dateString)).format("YYYY/MM/DD | HH:mm:ss");
+    }
+    const dateStr = String(dateString);
+    if (dateStr.includes("T") && dateStr.includes("Z")) {
+      return moment(dateStr).format("YYYY/MM/DD | HH:mm:ss");
+    }
+    if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return moment(dateStr, "YYYY-MM-DD").format("YYYY/MM/DD");
+    }
+    if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+      return moment(dateStr, "DD/MM/YYYY").format("YYYY/MM/DD");
+    }
+    if (dateStr.match(/^\d{4}\/\d{2}\/\d{2} \| \d{2}:\d{2}:\d{2}$/)) {
+      return dateStr;
+    }
+    const formattedDate = moment(dateStr).format("YYYY/MM/DD | HH:mm:ss");
+    if (formattedDate === "Invalid date") {
+      console.error("Failed to parse date:", dateStr);
+      return dateStr;
+    }
+    return formattedDate;
+  } catch (e) {
+    console.error("Error formatting date:", e, typeof dateString, dateString);
+    return String(dateString);
+  }
+}
+
+function formatPersianDate(date: string, formatDate: (d: string | Date | number) => string) {
+  try {
+    return moment(date).locale("fa").format("jYYYY/jMM/jDD");
+  } catch (e) {
+    console.error(e);
+    return formatDate(date);
+  }
+}
+
+async function loadInitialBranchData(
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setError: React.Dispatch<React.SetStateAction<string | null>>,
+  setAuthError: React.Dispatch<React.SetStateAction<boolean>>,
+  setBranch: React.Dispatch<React.SetStateAction<Branch | null>>,
+  fetchBranchProducts: (branchId: number, page?: number, pageSize?: number) => Promise<void>,
+  fetchInvoices: () => Promise<void>,
+  fetchAllProducts: () => Promise<void>
+) {
+  await doLoadInitialBranchData(
+    setLoading,
+    setError,
+    setAuthError,
+    setBranch,
+    fetchBranchProducts,
+    fetchInvoices,
+    fetchAllProducts
+  );
+}
+
+async function doAutoRefresh(
+  setRefreshing: React.Dispatch<React.SetStateAction<boolean>>,
+  setBranch: React.Dispatch<React.SetStateAction<Branch | null>>,
+  fetchBranchProductsRef: React.MutableRefObject<
+    (branchId: number, page?: number, pageSize?: number) => Promise<void>
+  >
+) {
+  await doAutoRefreshHelper(setRefreshing, setBranch, fetchBranchProductsRef.current);
+}
+
+function getWarrantyStatusSummary(invoice: AdminInvoice) {
+  if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
+    return null;
+  }
+
+  const hasWarranties = invoice.Invoice_Details.some((detail) => detail.warranty);
+  if (!hasWarranties) {
+    return null;
+  }
+
+  const activeWarranties = invoice.Invoice_Details.filter(
+    (detail) =>
+      detail.warranty &&
+      detail.warranty.status !== "Expired" &&
+      detail.warranty.displayStatus !== "Expired"
+  ).length;
+
+  const expiredWarranties = invoice.Invoice_Details.filter(
+    (detail) =>
+      detail.warranty &&
+      (detail.warranty.status === "Expired" || detail.warranty.displayStatus === "Expired")
+  ).length;
+
+  return { active: activeWarranties, expired: expiredWarranties };
+}
+
 function MyBranchContent() {
   const [branch, setBranch] = useState<Branch | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -117,127 +457,30 @@ function MyBranchContent() {
 
   // Define all fetch functions first
   const fetchAllProducts = async () => {
-    try {
-      setProductsLoading(true);
-
-      // Try the new all products endpoint first
-      try {
-        const response = await fetch("/api/admin/products/all", {
-          credentials: "include",
-          headers: {
-            "Cache-Control": "no-cache",
-          },
-        });
-
-        if (response.ok) {
-          const responseData = await response.json();
-
-          if (
-            responseData.data &&
-            Array.isArray(responseData.data) &&
-            responseData.data.length > 0
-          ) {
-            setAllProducts(responseData.data);
-            return; // Exit if successful
-          }
-        }
-      } catch (error) {
-        console.error("Error with new endpoint:", error);
-      }
-
-      // Fallback to standard endpoint if new one fails
-
-      // Get all products by fetching multiple pages
-      let allFetchedProducts: Product[] = [];
-      let currentPage = 1;
-      let hasMorePages = true;
-      const pageSize = 100; // Fetch more per page
-
-      while (hasMorePages) {
-        const response = await fetch(`/api/admin/products?page=${currentPage}&limit=${pageSize}`);
-
-        if (!response.ok) {
-          break;
-        }
-
-        const data = await response.json();
-        const products = data.data || [];
-
-        allFetchedProducts = [...allFetchedProducts, ...products];
-
-        // Check if we've received fewer products than the page size, indicating the last page
-        if (products.length < pageSize) {
-          hasMorePages = false;
-        } else {
-          currentPage++;
-        }
-      }
-
-      setAllProducts(allFetchedProducts);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      message.error("خطا در بارگذاری محصولات");
-    } finally {
-      setProductsLoading(false);
-    }
+    await fetchAllProductsHelper(setProductsLoading, setAllProducts);
   };
 
   // Update the fetchBranchProducts function to use pagination
-  const fetchBranchProducts = async (
-    branchId: number,
-    page: number = productPagination.current,
-    pageSize: number = productPagination.pageSize
-  ) => {
-    try {
-      setProductsLoading(true);
-      const response = await fetch(
-        `/api/admin/branches/${branchId}/products?page=${page}&limit=${pageSize}`
-      );
-      if (!response.ok) {
-        message.error("خطا در بارگذاری محصولات شعبه");
-        return;
-      }
-      const responseData = await response.json();
-
-      // Check if response is an array (new API format) or has pagination (old format)
-      if (Array.isArray(responseData)) {
-        // New API format - direct array of products
-        setProducts(responseData);
-        setProductPagination({
-          ...productPagination, // Maintain current pagination state
-          total: responseData.length, // Set total to array length
-        });
-      } else if (responseData.data) {
-        // Old API format with pagination object
-        setProducts(responseData.data);
-        setProductPagination({
-          current: responseData.pagination.currentPage,
-          pageSize: pageSize,
-          total: responseData.pagination.totalCount,
-        });
-      } else {
-        // Fallback case
-        setProducts([]);
-        setProductPagination({
-          ...productPagination,
-          total: 0,
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching branch products:", error);
-      message.error("خطا در بارگذاری محصولات شعبه");
-    } finally {
-      setProductsLoading(false);
-    }
+  const fetchBranchProducts = async (branchId: number, page?: number, pageSize?: number) => {
+    const p = page ?? productPagination.current;
+    const ps = pageSize ?? productPagination.pageSize;
+    await fetchBranchProductsHelper(
+      branchId,
+      p,
+      ps,
+      setProductsLoading,
+      setProducts,
+      setProductPagination
+    );
   };
 
   // Create a ref for fetchBranchProducts to use in intervals
   const fetchBranchProductsRef = useRef(fetchBranchProducts);
   useEffect(() => {
     fetchBranchProductsRef.current = fetchBranchProducts;
-  }, []);
+  }, [fetchBranchProducts]);
 
-  // Update the branch ID ref when branch changes
+  // Keep the branch ID ref current
   useEffect(() => {
     if (branch) {
       currentBranchIdRef.current = branch.branchid;
@@ -267,126 +510,23 @@ function MyBranchContent() {
   }, [productDrawerVisible, branch]);
 
   // Update the fetchInvoices function to use pagination
-  const fetchInvoices = async (
-    page: number = invoicePagination.current,
-    pageSize: number = invoicePagination.pageSize
-  ) => {
-    if (!branch) return;
-
-    try {
-      setInvoicesLoading(true);
-      const response = await fetch(
-        `/api/admin/branches/my/invoices?page=${page}&limit=${pageSize}`,
-        {
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
-        message.error("خطا در بارگذاری فاکتورها");
-        return;
-      }
-
-      const data = await response.json();
-      if (data.invoices) {
-        setInvoices(data.invoices);
-
-        if (data.standaloneWarranties) {
-          setStandaloneWarranties(data.standaloneWarranties);
-        } else {
-          setStandaloneWarranties([]);
-        }
-
-        if (data.warrantySummary) {
-          setWarrantySummary(data.warrantySummary);
-        }
-
-        if (data.pagination) {
-          setInvoicePagination({
-            current: data.pagination.currentPage,
-            pageSize: pageSize,
-            total: data.pagination.totalCount,
-          });
-        }
-      } else {
-        setInvoices([]);
-        setStandaloneWarranties([]);
-      }
-    } catch (error) {
-      console.error("Error fetching invoices:", error);
-      message.error("خطا در بارگذاری فاکتورها");
-    } finally {
-      setInvoicesLoading(false);
-    }
-  };
-
-  // Enhanced date formatting function with better error handling
-  const formatDate = (dateString: string | Date | number) => {
-    if (!dateString) return "-";
-
-    try {
-      // For non-string dates, convert to string format
-      if (typeof dateString === "object") {
-        if (dateString instanceof Date) {
-          return moment(dateString).format("YYYY/MM/DD | HH:mm:ss");
-        }
-      }
-
-      // Handle numeric timestamps
-      if (typeof dateString === "number") {
-        return moment(new Date(dateString)).format("YYYY/MM/DD | HH:mm:ss");
-      }
-
-      // Ensure we're working with a string
-      const dateStr = String(dateString);
-
-      // For ISO date strings like "2023-05-15T10:30:00.000Z"
-      if (dateStr.includes("T") && dateStr.includes("Z")) {
-        return moment(dateStr).format("YYYY/MM/DD | HH:mm:ss");
-      }
-
-      // For YYYY-MM-DD format
-      if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-        return moment(dateStr, "YYYY-MM-DD").format("YYYY/MM/DD");
-      }
-
-      // For DD/MM/YYYY format
-      if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
-        return moment(dateStr, "DD/MM/YYYY").format("YYYY/MM/DD");
-      }
-
-      // For already formatted dates like "YYYY/MM/DD | HH:mm:ss"
-      if (dateStr.match(/^\d{4}\/\d{2}\/\d{2} \| \d{2}:\d{2}:\d{2}$/)) {
-        return dateStr; // Already formatted correctly
-      }
-
-      // Default parsing as last resort
-      const formattedDate = moment(dateStr).format("YYYY/MM/DD | HH:mm:ss");
-
-      if (formattedDate === "Invalid date") {
-        console.error("Failed to parse date:", dateStr);
-        return dateStr; // Return original if we can't parse it
-      }
-
-      return formattedDate;
-    } catch (e) {
-      console.error("Error formatting date:", e, typeof dateString, dateString);
-      // Return a standardized format for invalid dates
-      return String(dateString);
-    }
-  };
-
-  const formatPersianDate = (date: string, formatDate: (d: string | Date | number) => string) => {
-    try {
-      return moment(date).locale("fa").format("jYYYY/jMM/jDD");
-    } catch (e) {
-      console.error(e);
-      return formatDate(date);
-    }
+  const fetchInvoices = async (page?: number, pageSize?: number) => {
+    const p = page ?? invoicePagination.current;
+    const ps = pageSize ?? invoicePagination.pageSize;
+    await fetchInvoicesHelper(
+      branch,
+      p,
+      ps,
+      setInvoicesLoading,
+      setInvoices,
+      setStandaloneWarranties,
+      setWarrantySummary,
+      setInvoicePagination
+    );
   };
 
   // Derive search options and filter results via useMemo
-  const searchOptions = useMemo(() => {
+  const searchOptions = (() => {
     if (!searchText.trim()) return [];
 
     const lowerCaseSearch = searchText.toLowerCase();
@@ -517,9 +657,9 @@ function MyBranchContent() {
     }
 
     return options;
-  }, [searchText, invoices, standaloneWarranties]);
+  })();
 
-  const filteredInvoices = useMemo(() => {
+  const filteredInvoices = (() => {
     if (!searchText.trim()) return invoices;
 
     const lowerCaseSearch = searchText.toLowerCase();
@@ -537,9 +677,9 @@ function MyBranchContent() {
               detail.warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)
           ))
     );
-  }, [searchText, invoices]);
+  })();
 
-  const filteredStandaloneWarranties = useMemo(() => {
+  const filteredStandaloneWarranties = (() => {
     if (!searchText.trim()) return standaloneWarranties;
 
     const lowerCaseSearch = searchText.toLowerCase();
@@ -549,108 +689,7 @@ function MyBranchContent() {
         (warranty.warrantycode && warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)) ||
         (warranty.Type && warranty.Type.toLowerCase().includes(lowerCaseSearch))
     );
-  }, [searchText, standaloneWarranties]);
-
-  // Function to get warranty status summary for an invoice
-  const getWarrantyStatusSummary = (invoice: AdminInvoice) => {
-    if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
-      return null;
-    }
-
-    const hasWarranties = invoice.Invoice_Details.some((detail) => detail.warranty);
-    if (!hasWarranties) {
-      return null;
-    }
-
-    const activeWarranties = invoice.Invoice_Details.filter(
-      (detail) =>
-        detail.warranty &&
-        detail.warranty.status !== "Expired" &&
-        detail.warranty.displayStatus !== "Expired"
-    ).length;
-
-    const expiredWarranties = invoice.Invoice_Details.filter(
-      (detail) =>
-        detail.warranty &&
-        (detail.warranty.status === "Expired" || detail.warranty.displayStatus === "Expired")
-    ).length;
-
-    return { active: activeWarranties, expired: expiredWarranties };
-  };
-
-  async function loadInitialBranchData(
-    setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-    setError: React.Dispatch<React.SetStateAction<string | null>>,
-    setAuthError: React.Dispatch<React.SetStateAction<boolean>>,
-    setBranch: React.Dispatch<React.SetStateAction<Branch | null>>,
-    fetchBranchProducts: (branchId: number, page?: number, pageSize?: number) => Promise<void>,
-    fetchInvoices: () => Promise<void>,
-    fetchAllProducts: () => Promise<void>
-  ) {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/admin/branches/my");
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          setError("شما هنوز به عنوان شعبه تعریف نشده‌اید. لطفاً با مدیر سایت تماس بگیرید.");
-          setLoading(false);
-          return;
-        }
-
-        if (response.status === 401) {
-          setAuthError(true);
-          setError("دسترسی غیرمجاز - لطفا وارد حساب کاربری خود شوید.");
-          setLoading(false);
-          return;
-        }
-
-        setError("خطا در دریافت اطلاعات شعبه");
-        setLoading(false);
-        return;
-      }
-
-      const branchData = await response.json();
-      setBranch(branchData);
-
-      await Promise.all([
-        fetchBranchProducts(branchData.branchid),
-        fetchInvoices(),
-        fetchAllProducts(),
-      ]);
-    } catch (error) {
-      console.error("Error fetching branch data:", error);
-      setError("خطا در بارگذاری اطلاعات شعبه");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function doAutoRefresh(
-    setRefreshing: React.Dispatch<React.SetStateAction<boolean>>,
-    setBranch: React.Dispatch<React.SetStateAction<Branch | null>>,
-    fetchBranchProductsRef: React.MutableRefObject<
-      (branchId: number, page?: number, pageSize?: number) => Promise<void>
-    >
-  ) {
-    try {
-      setRefreshing(true);
-      const response = await fetch("/api/admin/branches/my");
-      if (response.ok) {
-        const branchData = await response.json();
-        setBranch(branchData);
-        if (branchData && branchData.branchid) {
-          await fetchBranchProductsRef.current(branchData.branchid);
-        }
-      } else {
-        console.error("Failed to refresh branch data:", response.status);
-      }
-    } catch (error) {
-      console.error("Error auto-refreshing branch data:", error);
-    } finally {
-      setRefreshing(false);
-    }
-  }
+  })();
 
   // Update the fetchInitialData function to also get invoices
   useEffect(() => {
@@ -671,17 +710,13 @@ function MyBranchContent() {
 
     // Clean up interval on component unmount
     return () => clearInterval(intervalId);
-  }, []);
-
-  // Add effect to load invoices when switching to the invoices tab
-  useEffect(() => {
-    if (activeTab === "invoices") {
-      fetchInvoices();
-    }
-  }, [activeTab]);
+  }, [fetchBranchProducts, fetchInvoices, fetchAllProducts]);
 
   const handleTabChange = (newActiveTab: string) => {
     setActiveTab(newActiveTab);
+    if (newActiveTab === "invoices") {
+      fetchInvoices();
+    }
   };
 
   const handleAddProduct = async () => {
@@ -707,25 +742,6 @@ function MyBranchContent() {
     }
   };
 
-  // Create a debounced version of handleUpdateProductQuantity
-  const handleDebouncedQuantityChange = (productId: number, value: number) => {
-    // Clear existing timer for this product
-    if (quantityTimersRef.current[productId]) {
-      clearTimeout(quantityTimersRef.current[productId]);
-    }
-
-    // Update local state immediately for UI
-    setDebouncedQuantities((prev) => ({
-      ...prev,
-      [productId]: value,
-    }));
-
-    // Set a new timer for this product
-    quantityTimersRef.current[productId] = setTimeout(() => {
-      handleUpdateProductQuantity(productId, value);
-    }, 2000); // 2 second delay
-  };
-
   const handleUpdateProductQuantity = async (productId: number, quantity: number) => {
     if (!branch) return;
 
@@ -746,6 +762,21 @@ function MyBranchContent() {
     }
   };
 
+  const handleDebouncedQuantityChange = (productId: number, value: number) => {
+    if (quantityTimersRef.current[productId]) {
+      clearTimeout(quantityTimersRef.current[productId]);
+    }
+
+    setDebouncedQuantities((prev) => ({
+      ...prev,
+      [productId]: value,
+    }));
+
+    quantityTimersRef.current[productId] = setTimeout(() => {
+      handleUpdateProductQuantity(productId, value);
+    }, 2000);
+  };
+
   // Add function to handle invoice creation
   const handleCreateInvoice = () => {
     setInvoiceModalVisible(true);
@@ -764,27 +795,24 @@ function MyBranchContent() {
   };
 
   // Add function to update invoice status
-  const updateInvoiceStatus = useCallback(
-    async (invoice: AdminInvoice, checked: boolean) => {
-      const result = await updateInvoiceStatusMutate(
-        `/api/admin/invoices?id=${invoice.Invoiceid}`,
-        { checked }
-      );
-      if (result) {
-        const updatedInvoices = invoices.map((inv) => {
-          if (inv.Invoiceid === invoice.Invoiceid) {
-            return { ...inv, Checked: checked };
-          }
-          return inv;
-        });
-        setInvoices(updatedInvoices);
-        message.success("وضعیت فاکتور با موفقیت بروزرسانی شد");
-      } else {
-        message.error("خطا در بروزرسانی وضعیت فاکتور");
-      }
-    },
-    [invoices]
-  );
+  const updateInvoiceStatus = async (invoice: AdminInvoice, checked: boolean) => {
+    const result = await updateInvoiceStatusMutate(
+      `/api/admin/invoices?id=${invoice.Invoiceid}`,
+      { checked }
+    );
+    if (result) {
+      const updatedInvoices = invoices.map((inv) => {
+        if (inv.Invoiceid === invoice.Invoiceid) {
+          return { ...inv, Checked: checked };
+        }
+        return inv;
+      });
+      setInvoices(updatedInvoices);
+      message.success("وضعیت فاکتور با موفقیت بروزرسانی شد");
+    } else {
+      message.error("خطا در بروزرسانی وضعیت فاکتور");
+    }
+  };
 
   const productColumns = [
     {
@@ -827,9 +855,8 @@ function MyBranchContent() {
     },
   ];
 
-  // Define invoice columns with useMemo
-  const memoizedInvoiceColumns = useMemo(
-    () => [
+  // Define invoice columns
+  const memoizedInvoiceColumns = [
       {
         title: "شماره فاکتور",
         dataIndex: "FactorGuid",
@@ -952,9 +979,7 @@ function MyBranchContent() {
           </Button>
         ),
       },
-    ],
-    [updateInvoiceStatus]
-  );
+    ];
 
   if (loading) {
     return <SkeletonLoading />;

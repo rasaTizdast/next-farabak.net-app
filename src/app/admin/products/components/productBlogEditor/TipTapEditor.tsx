@@ -151,6 +151,21 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
     },
   });
 
+  const convertMDXToHTML = (mdxContent: string) => {
+    return mdxContent
+      .replace(
+        /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*(size="([^"]+)")?[^>]*\/?>/g,
+        (match, src, alt, width, height, sizeAttr, size) => {
+          const imgSize = size || "full";
+          return `<img src="${src}" alt="${alt}" width="${width}" height="${height}" size="${imgSize}" class="rounded-lg max-w-full my-4" />`;
+        }
+      )
+      .replace(/<Link\s+href="([^"]+)">\s*([\s\S]*?)\s*<\/Link>/g, '<a href="$1">$2</a>')
+      .replace(/<table className="[^"]*">/g, "<table>")
+      .replace(/<th className="[^"]*">/g, "<th>")
+      .replace(/<td className="[^"]*">/g, "<td>");
+  };
+
   // Update editor content when blogData changes
   useEffect(() => {
     if (editor && blogData) {
@@ -168,80 +183,71 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
     };
   }, []);
 
-  const addImage = useCallback(
-    async (file: File) => {
-      if (!editor || file.size > 2 * 1024 * 1024) {
-        alert("Image size should be less than 2MB");
-        return;
-      }
+  const addImage = async (file: File) => {
+    if (!editor || file.size > 2 * 1024 * 1024) {
+      alert("Image size should be less than 2MB");
+      return;
+    }
 
-      setIsImageLoading(true);
+    setIsImageLoading(true);
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("slug", slug);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("slug", slug);
 
-      const result = (await uploadImage("/api/products/productBlog/upload", formData)) as {
-        url: string;
-      } | null;
-      if (!result) {
-        alert("Failed to upload image");
-        setIsImageLoading(false);
-        return;
-      }
-
-      const { url } = result;
-      const { width, height } = await calculateDimensions(url);
-
-      editor.commands.command(({ chain }) => {
-        return chain()
-          .focus()
-          .deleteRange({
-            from: editor.state.selection.from - 1,
-            to: editor.state.selection.from,
-          })
-          .insertContent({
-            type: "image",
-            attrs: {
-              src: url,
-              alt: file.name,
-              title: file.name,
-              width,
-              height,
-              slug,
-              size: "full",
-            },
-          })
-          .run();
-      });
+    const result = (await uploadImage("/api/products/productBlog/upload", formData)) as {
+      url: string;
+    } | null;
+    if (!result) {
+      alert("Failed to upload image");
       setIsImageLoading(false);
-    },
-    [editor, slug, uploadImage]
-  );
+      return;
+    }
 
-  const handleDrop = useCallback(
-    (event: React.DragEvent) => {
-      event.preventDefault();
-      const file = event.dataTransfer.files[0];
-      if (file && file.type.startsWith("image/")) {
-        addImage(file);
-      }
-    },
-    [addImage]
-  );
+    const { url } = result;
+    const { width, height } = await calculateDimensions(url);
+
+    editor.commands.command(({ chain }) => {
+      return chain()
+        .focus()
+        .deleteRange({
+          from: editor.state.selection.from - 1,
+          to: editor.state.selection.from,
+        })
+        .insertContent({
+          type: "image",
+          attrs: {
+            src: url,
+            alt: file.name,
+            title: file.name,
+            width,
+            height,
+            slug,
+            size: "full",
+          },
+        })
+        .run();
+    });
+    setIsImageLoading(false);
+  };
+
+  const handleDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) {
+      addImage(file);
+    }
+  };
 
   // Change the handlePaste type definition
-  const handlePaste = useCallback(
-    (event: React.ClipboardEvent<HTMLDivElement>) => {
-      const file = event.clipboardData?.files[0];
-      if (file && file.type.startsWith("image/")) {
-        addImage(file);
-      }
-    },
-    [addImage]
-  );
+  const handlePaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
+    const file = event.clipboardData?.files[0];
+    if (file && file.type.startsWith("image/")) {
+      addImage(file);
+    }
+  };
 
-  const setLink = useCallback(() => {
+  const setLink = () => {
     if (!editor) return;
 
     if (linkUrl === "") {
@@ -252,7 +258,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
     editor.chain().focus().setLink({ href: linkUrl }).run();
     setLinkUrl("");
     setIsLinkMenuOpen(false);
-  }, [editor, linkUrl]);
+  };
 
   // Toggle the table creation modal
   const toggleTableModal = () => {
@@ -260,7 +266,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
   };
 
   // Insert table function
-  const insertTable = useCallback(() => {
+  const insertTable = () => {
     if (!editor) return;
 
     editor
@@ -270,10 +276,10 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
       .run();
 
     setIsTableModalOpen(false);
-  }, [editor, tableRows, tableCols]);
+  };
 
   // Import HTML function
-  const importHtml = useCallback(() => {
+  const importHtml = () => {
     if (!editor || !htmlContent) return;
 
     // Safely clean and insert HTML at cursor position instead of replacing all content
@@ -286,30 +292,8 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
       console.error("Failed to import HTML:", error);
       alert("Failed to import HTML. Please check your HTML content.");
     }
-  }, [editor, htmlContent]);
-
-  const convertMDXToHTML = (mdxContent: string) => {
-    return (
-      mdxContent
-        // Convert Next.js Image components to regular img tags with size attribute
-        .replace(
-          /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*(size="([^"]+)")?[^>]*\/?>/g,
-          (match, src, alt, width, height, sizeAttr, size) => {
-            // Use the size if provided, otherwise default to "full"
-            const imgSize = size || "full";
-            return `<img src="${src}" alt="${alt}" width="${width}" height="${height}" size="${imgSize}" class="rounded-lg max-w-full my-4" />`;
-          }
-        )
-        // Convert Next.js Link components to regular a tags
-        .replace(/<Link\s+href="([^"]+)">\s*([\s\S]*?)\s*<\/Link>/g, '<a href="$1">$2</a>')
-        // Convert table with className to plain HTML table
-        .replace(/<table className="[^"]*">/g, "<table>")
-        .replace(/<th className="[^"]*">/g, "<th>")
-        .replace(/<td className="[^"]*">/g, "<td>")
-    );
   };
 
-  // Improved editor container styling
   const editorContainerClasses = `
   flex-1 overflow-y-auto
   p-4 focus:outline-none 
@@ -338,48 +322,45 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
   [&_td]:border [&_td]:border-gray-600 [&_td]:p-2
   [&_.tableControls]:relative [&_.tableControls]:top-[-30px] [&_.tableControls]:justify-center [&_.tableControls]:z-20 [&_.tableControls]:flex`;
 
-  const addVideo = useCallback(
-    async (file: File) => {
-      if (!editor) {
-        return;
-      }
+  const addVideo = useCallback(async (file: File) => {
+    if (!editor) {
+      return;
+    }
 
-      if (file.size > 1.5 * 1024 * 1024 * 1024) {
-        alert("ویدیو باید کمتر از 1.5 گیگابایت باشد");
-        return;
-      }
+    if (file.size > 1.5 * 1024 * 1024 * 1024) {
+      alert("ویدیو باید کمتر از 1.5 گیگابایت باشد");
+      return;
+    }
 
-      setIsVideoLoading(true);
+    setIsVideoLoading(true);
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("slug", slug);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("slug", slug);
 
-      const result = (await uploadVideo("/api/products/productBlog/uploadVideo", formData)) as {
-        url: string;
-      } | null;
-      if (!result) {
-        alert("Failed to upload video");
-        setIsVideoLoading(false);
-        return;
-      }
-
-      const { url } = result;
-
-      editor.commands.command(({ chain }) => {
-        return chain()
-          .focus()
-          .setVideo({
-            src: url,
-            title: file.name,
-            slug,
-          })
-          .run();
-      });
+    const result = (await uploadVideo("/api/products/productBlog/uploadVideo", formData)) as {
+      url: string;
+    } | null;
+    if (!result) {
+      alert("Failed to upload video");
       setIsVideoLoading(false);
-    },
-    [editor, slug, uploadVideo]
-  );
+      return;
+    }
+
+    const { url } = result;
+
+    editor.commands.command(({ chain }) => {
+      return chain()
+        .focus()
+        .setVideo({
+          src: url,
+          title: file.name,
+          slug,
+        })
+        .run();
+    });
+    setIsVideoLoading(false);
+  }, [editor, slug, uploadVideo]);
 
   const toggleVideoModal = () => {
     setIsVideoModalOpen(!isVideoModalOpen);

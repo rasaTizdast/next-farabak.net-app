@@ -46,7 +46,9 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
   };
 
   // Smooth momentum scrolling
-  const momentumScroll = useCallback(() => {
+  const momentumScrollRef = useRef<() => void>(() => {});
+
+  const momentumScroll = () => {
     if (!isDraggingRef.current && Math.abs(velocityRef.current) > 0.5) {
       const el = scrollerRef.current;
       if (!el) return;
@@ -55,14 +57,18 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
       velocityRef.current *= 0.92;
       setVelocity(velocityRef.current);
 
-      animationFrameRef.current = requestAnimationFrame(momentumScroll);
+      animationFrameRef.current = requestAnimationFrame(momentumScrollRef.current);
     } else {
       velocityRef.current = 0;
       setVelocity(0);
     }
-  }, []);
+  };
 
-  // Sync state to refs
+  // Sync refs
+  useEffect(() => {
+    momentumScrollRef.current = momentumScroll;
+  }, [momentumScroll]);
+
   useEffect(() => {
     isDraggingRef.current = isDragging;
   }, [isDragging]);
@@ -71,7 +77,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
   }, [velocity]);
 
   // Mouse drag handlers
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+  const handleMouseDown = (e: React.MouseEvent) => {
     const el = scrollerRef.current;
     if (!el) return;
 
@@ -87,9 +93,9 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     setLastX(e.pageX);
     el.style.cursor = "grabbing";
     el.style.userSelect = "none";
-  }, []);
+  };
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
+  const handleMouseMove = (e: MouseEvent) => {
     if (!isDraggingRef.current) return;
     e.preventDefault();
 
@@ -112,9 +118,9 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     lastXRef.current = currentX;
     lastTimeRef.current = currentTime;
     setLastX(currentX);
-  }, []);
+  };
 
-  const handleMouseUp = useCallback(() => {
+  const handleMouseUp = () => {
     if (!isDraggingRef.current) return;
 
     const el = scrollerRef.current;
@@ -127,10 +133,10 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     if (Math.abs(velocityRef.current) > 1) {
       momentumScroll();
     }
-  }, [momentumScroll]);
+  };
 
   // Touch drag handlers
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+  const handleTouchStart = (e: React.TouchEvent) => {
     const el = scrollerRef.current;
     if (!el) return;
 
@@ -143,9 +149,9 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     setScrollLeft(el.scrollLeft);
     setLastX(e.touches[0].pageX);
     setVelocity(0);
-  }, []);
+  };
 
-  const handleTouchMove = useCallback((e: TouchEvent) => {
+  const handleTouchMove = (e: TouchEvent) => {
     if (!isDraggingRef.current) return;
     e.preventDefault();
 
@@ -168,7 +174,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     lastXRef.current = currentX;
     lastTimeRef.current = currentTime;
     setLastX(currentX);
-  }, []);
+  };
 
   const handleTouchEnd = useCallback(() => {
     if (!isDraggingRef.current) return;

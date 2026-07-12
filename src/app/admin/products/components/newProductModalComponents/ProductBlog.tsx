@@ -11,8 +11,8 @@ const ProductBlog = ({ dispatch, slug }: Props) => {
   const contentRef = useRef<string>("");
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleContentChange = useCallback(
-    (contentObj: { productBlog: string }) => {
+  const handleContentChange = (
+    contentObj: { productBlog: string }) => {
       const content = contentObj.productBlog;
 
       // Avoid unnecessary updates if content hasn't changed
@@ -33,9 +33,7 @@ const ProductBlog = ({ dispatch, slug }: Props) => {
           productBlog: content,
         });
       }, 1000); // 1 second debounce
-    },
-    [dispatch]
-  );
+    };
 
   return (
     <div>
