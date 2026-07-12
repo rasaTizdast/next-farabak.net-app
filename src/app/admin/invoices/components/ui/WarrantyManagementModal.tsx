@@ -1,6 +1,6 @@
 import { Spin, Select, Switch } from "antd";
 import { RotateCcw } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { DatePicker } from "zaman";
 
@@ -10,6 +10,10 @@ import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 import { ExpandedInvoiceItem } from "./types";
+
+const persianYearFormatter = new Intl.DateTimeFormat("fa-IR", { year: "numeric" });
+const persianMonthFormatter = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" });
+const persianDateFormatter = new Intl.DateTimeFormat("fa-IR");
 
 // Format a Date object to YYYY-MM-DD string
 const formatDateToISOString = (date: Date | null): string | null => {
@@ -84,21 +88,20 @@ async function generateWarrantyCodeForInvoice(
       return;
     }
 
-    const branchCode =
-      selectedBranch.location || selectedBranch.name.substring(0, 2).toUpperCase();
+    const branchCode = selectedBranch.location || selectedBranch.name.substring(0, 2).toUpperCase();
 
     const date = new Date();
-    const persianYear = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(date);
+    const persianYear = persianYearFormatter.format(date);
     const yearStr = persianToEnglishDigits(persianYear);
     const yearNum = yearStr.slice(-3);
-    const persianMonth = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" }).format(date);
+    const persianMonth = persianMonthFormatter.format(date);
     const monthNum = persianToEnglishDigits(persianMonth);
     const yearMonth = yearNum + monthNum.padStart(2, "0");
 
-    const data = await generateWarrantyMutate(
-      "/api/admin/warranty/generate",
-      { branchCode, yearMonth }
-    );
+    const data = await generateWarrantyMutate("/api/admin/warranty/generate", {
+      branchCode,
+      yearMonth,
+    });
 
     if (data && data.warrantyCode) {
       setWarrantyData((prev) => ({ ...prev, warrantycode: data.warrantyCode }));
@@ -114,8 +117,8 @@ async function generateWarrantyCodeForInvoice(
 
     const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     const date = new Date();
-    const persianYear = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(date);
-    const persianMonth = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" }).format(date);
+    const persianYear = persianYearFormatter.format(date);
+    const persianMonth = persianMonthFormatter.format(date);
     const yearStr = persianToEnglishDigits(persianYear);
     const monthStr = persianToEnglishDigits(persianMonth);
     const yearNum = yearStr.slice(-3);
@@ -134,7 +137,13 @@ const WarrantyManagementModal = ({
   onClose,
   onSuccess,
 }: WarrantyManagementModalProps) => {
-  const [branches, setBranches] = useState<Branch[]>([]);
+  const {
+    data: branchesData,
+    loading: loadingBranches,
+    error: branchesError,
+  } = useApiFetch<Branch[]>(`/api/admin/branches/product-stock?productId=${item.ProductId}`);
+
+  const branches = branchesData ?? [];
   const [warrantyData, setWarrantyData] = useState<{
     warrantycode: string;
     startdate: string;
@@ -142,18 +151,21 @@ const WarrantyManagementModal = ({
     status: string;
     branchId: number | null;
     hasWarranty: boolean;
-  }>({
-    warrantycode: item.individualWarranty?.warrantycode || "",
-    startdate: item.individualWarranty?.startdate || new Date().toISOString().split("T")[0],
-    expirydate:
-      item.individualWarranty?.expirydate ||
-      new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-    status: item.individualWarranty?.status || "Active",
-    branchId: item.individualWarranty?.branchid ? Number(item.individualWarranty.branchid) : null,
-    hasWarranty: !!item.individualWarranty,
+  }>(() => {
+    const today = new Date().toISOString().split("T")[0];
+    const expiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    return {
+      warrantycode: item.individualWarranty?.warrantycode || "",
+      startdate: item.individualWarranty?.startdate || today,
+      expirydate: item.individualWarranty?.expirydate || expiry,
+      status: item.individualWarranty?.status || "Active",
+      branchId: item.individualWarranty?.branchid ? Number(item.individualWarranty.branchid) : null,
+      hasWarranty: !!item.individualWarranty,
+    };
   });
 
-  const [durationText, setDurationText] = useState<string | null>(null);
+  const [nowTimestamp] = useState(() => Date.now());
+
   const [showPrintView, setShowPrintView] = useState(false);
 
   // Use the print hook
@@ -161,29 +173,21 @@ const WarrantyManagementModal = ({
 
   const isUpdate = !!item.individualWarranty;
 
-  const { mutate: generateWarrantyMutate, loading: generatingCode } = useApiMutation<{ warrantyCode: string }>("post");
+  const { mutate: generateWarrantyMutate, loading: generatingCode } = useApiMutation<{
+    warrantyCode: string;
+  }>("post");
   const { mutate: createUpdateWarrantyMutate, loading: submittingCreate } = useApiMutation("post");
   const { mutate: deleteWarrantyMutate, loading: submittingDelete } = useApiMutation("post");
 
-  const {
-    data: branchesData,
-    loading: loadingBranches,
-    error: branchesError,
-  } = useApiFetch<Branch[]>(`/api/admin/branches/product-stock?productId=${item.ProductId}`);
-
-  // Sync fetched branches to local state and auto-select first branch
+  // Auto-select first branch (one-time init)
   useEffect(() => {
-    if (branchesData) {
-      setBranches(branchesData);
-
-      if (!isUpdate && branchesData.length > 0 && !warrantyData.branchId) {
-        setWarrantyData((prev) => ({
-          ...prev,
-          branchId: branchesData[0].branchid,
-        }));
-      }
+    if (branchesData && !isUpdate && branchesData.length > 0 && !warrantyData.branchId) {
+      setWarrantyData((prev) => ({
+        ...prev,
+        branchId: branchesData[0].branchid,
+      }));
     }
-  }, [branchesData]);
+  }, [branchesData, isUpdate, warrantyData.branchId]);
 
   // Show error toast when fetch fails
   useEffect(() => {
@@ -192,110 +196,71 @@ const WarrantyManagementModal = ({
     }
   }, [branchesError]);
 
-  // Generate a unique warranty code when component mounts
-  useEffect(() => {
-    if (!isUpdate && warrantyData.branchId && warrantyData.hasWarranty) {
-      generateWarrantyCode();
-    }
-  }, [warrantyData.branchId, isUpdate, warrantyData.hasWarranty]);
-
-  // Calculate warranty duration and update status based on expiry date
-  useEffect(() => {
-    calculateDuration(new Date(warrantyData.startdate), new Date(warrantyData.expirydate));
-
-    // Auto-set status based on expiry date
-    const currentDate = new Date();
-    const expiryDate = new Date(warrantyData.expirydate);
-
-    // If expiry date is in the past, set status to Expired
-    if (expiryDate < currentDate) {
-      setWarrantyData((prev) => ({
-        ...prev,
-        status: "Expired",
-      }));
-    } else {
-      // Otherwise set to Active (only if current status is Expired)
-      if (warrantyData.status === "Expired") {
-        setWarrantyData((prev) => ({
-          ...prev,
-          status: "Active",
-        }));
-      }
-    }
-  }, [warrantyData.startdate, warrantyData.expirydate]);
-
-  const generateWarrantyCode = async () => {
-    await generateWarrantyCodeForInvoice(branches, item, warrantyData, setWarrantyData, generateWarrantyMutate);
-  };
-
-  const calculateDuration = (startDate: Date | string | null, endDate: Date | string | null) => {
-    if (!startDate || !endDate) {
-      setDurationText(null);
-      return;
-    }
-
+  // Compute duration from dates
+  const durationText = (() => {
+    if (!warrantyData.startdate || !warrantyData.expirydate) return null;
     try {
-      const start = startDate instanceof Date ? startDate : new Date(startDate);
-      const end = endDate instanceof Date ? endDate : new Date(endDate);
+      const start = new Date(warrantyData.startdate);
+      const end = new Date(warrantyData.expirydate);
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) return "خطا در محاسبه تاریخ";
+      if (start >= end) return "تاریخ پایان باید بعد از تاریخ شروع باشد";
 
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        setDurationText("خطا در محاسبه تاریخ");
-        return;
-      }
-
-      if (start >= end) {
-        setDurationText("تاریخ پایان باید بعد از تاریخ شروع باشد");
-        return;
-      }
-
-      // Use precise date math for duration calculation
       const startYear = start.getFullYear();
       const startMonth = start.getMonth();
       const startDay = start.getDate();
-
       const endYear = end.getFullYear();
       const endMonth = end.getMonth();
       const endDay = end.getDate();
 
-      // Calculate exact years, months, days
       let years = endYear - startYear;
       let months = endMonth - startMonth;
       let days = endDay - startDay;
 
-      // Adjust for negative months or days
       if (days < 0) {
-        // Get last month's total days to calculate how many days to borrow
         const lastDayOfLastMonth = new Date(endYear, endMonth, 0).getDate();
         days += lastDayOfLastMonth;
         months--;
       }
-
       if (months < 0) {
         months += 12;
         years--;
       }
 
-      // Format the duration string
       let durationStr = "";
-      if (years > 0) {
-        durationStr += `${years} سال `;
-      }
-      if (months > 0) {
-        durationStr += `${months} ماه `;
-      }
-      if (days > 0 || (years === 0 && months === 0)) {
-        durationStr += `${days} روز`;
-      }
-
-      setDurationText(durationStr.trim());
-    } catch (error) {
-      console.error("Error calculating duration:", error);
-      setDurationText("خطا در محاسبه مدت");
+      if (years > 0) durationStr += `${years} سال `;
+      if (months > 0) durationStr += `${months} ماه `;
+      if (days > 0 || (years === 0 && months === 0)) durationStr += `${days} روز`;
+      return durationStr.trim();
+    } catch {
+      return "خطا در محاسبه مدت";
     }
+  })();
+
+  // Update status based on expiry date
+  const statusRef = useRef(warrantyData.status);
+  useEffect(() => {
+    if (warrantyData.expirydate) {
+      const currentDate = new Date();
+      const expiryDate = new Date(warrantyData.expirydate);
+      const expectedStatus = expiryDate < currentDate ? "Expired" : "Active";
+      if (warrantyData.status !== expectedStatus && statusRef.current !== expectedStatus) {
+        statusRef.current = expectedStatus;
+        setWarrantyData((prev) => ({ ...prev, status: expectedStatus }));
+      }
+    }
+  }, [warrantyData.expirydate, warrantyData.status]);
+
+  const generateWarrantyCode = async () => {
+    await generateWarrantyCodeForInvoice(
+      branches,
+      item,
+      warrantyData,
+      setWarrantyData,
+      generateWarrantyMutate
+    );
   };
 
   const handleStartDateChange = (date: any) => {
-    // Convert the date object provided by zaman DatePicker
     const formattedDate = date && date.value ? formatDateToISOString(new Date(date.value)) : null;
     setWarrantyData({
       ...warrantyData,
@@ -318,9 +283,11 @@ const WarrantyManagementModal = ({
     setWarrantyData((prevData) => ({
       ...prevData,
       branchId: value,
-      warrantycode: "", // Clear warranty code when branch changes
+      warrantycode: "",
     }));
-    // generateWarrantyCode will be triggered by the useEffect when branchId changes
+    if (!isUpdate && value && warrantyData.hasWarranty) {
+      generateWarrantyCode();
+    }
   };
 
   const handleWarrantyToggle = (checked: boolean) => {
@@ -595,7 +562,7 @@ const WarrantyManagementModal = ({
                 <>
                   <div className="mt-4 text-center">
                     <span className="text-xs text-gray-300">وضعیت گارانتی: </span>
-                    {new Date(warrantyData.expirydate) < new Date() ? (
+                    {nowTimestamp && new Date(warrantyData.expirydate).getTime() < nowTimestamp ? (
                       <span className="text-xs text-red-400">منقضی شده</span>
                     ) : (
                       <span className="text-xs text-green-400">فعال</span>
@@ -695,14 +662,14 @@ const WarrantyManagementModal = ({
                 <div className="flex items-center justify-between border-b border-gray-200">
                   <span className="text-sm font-semibold">تاریخ شروع:</span>
                   <span className="text-sm" dir="ltr">
-                    {new Date(warrantyData.startdate).toLocaleDateString("fa-IR")}
+                    {persianDateFormatter.format(new Date(warrantyData.startdate))}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between border-b border-gray-200">
                   <span className="text-sm font-semibold">تاریخ انقضا:</span>
                   <span className="text-sm" dir="ltr">
-                    {new Date(warrantyData.expirydate).toLocaleDateString("fa-IR")}
+                    {persianDateFormatter.format(new Date(warrantyData.expirydate))}
                   </span>
                 </div>
 

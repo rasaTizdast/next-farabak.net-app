@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 
 import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
@@ -7,6 +7,9 @@ import { usePrint } from "@/app/utils/usePrint";
 import { ExpandedInvoiceItem } from "./types";
 import WarrantyManagementModal from "./WarrantyManagementModal";
 import { AdminInvoice } from "../../type";
+
+const currencyFormatter = new Intl.NumberFormat("fa-IR");
+const dateFormatter = new Intl.DateTimeFormat("fa-IR");
 
 type Props = {
   invoice: AdminInvoice | null;
@@ -18,37 +21,14 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
   const [productNames, setProductNames] = useState<{ [key: string]: string }>({});
   const [selectedItem, setSelectedItem] = useState<ExpandedInvoiceItem | null>(null);
   const [refreshCounter, setRefreshCounter] = useState(0);
+  const [nowTimestamp] = useState(() => Date.now());
 
-  // Use the print hook
   const { componentRef, handlePrint } = usePrint();
 
-  if (!invoice) return null;
-
-  // Helper function to format the date and time
-  const formatDateTime = (isoString: string) => {
-    const date = new Date(isoString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    const seconds = String(date.getSeconds()).padStart(2, "0");
-
-    return `${year}/${month}/${day} | ${hours}:${minutes}:${seconds}`;
-  };
-
-  // Refresh invoice data after warranty updates
-  const handleWarrantyUpdated = () => {
-    setRefreshCounter((prev) => prev + 1);
-    // Call parent's update function if provided
-    if (onWarrantyUpdate) {
-      onWarrantyUpdate();
-    }
-  };
-
-  // Fetch product names
+  // Fetch product names when invoice or refreshCounter changes
   useEffect(() => {
     const fetchProductNames = async () => {
+      setProductNames({});
       if (!invoice?.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
         return;
       }
@@ -78,10 +58,10 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
     };
 
     fetchProductNames();
-  }, [invoice, refreshCounter]);
+  }, [invoice?.Invoiceid, refreshCounter]);
 
-  const expandedItems = useMemo(() => {
-    if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) return [];
+  const expandedItems = (() => {
+    if (!invoice?.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) return [];
 
     const items: ExpandedInvoiceItem[] = [];
     invoice.Invoice_Details.forEach((product) => {
@@ -128,7 +108,28 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
       }
     });
     return items;
-  }, [invoice.Invoice_Details, productNames, refreshCounter]);
+  })();
+
+  if (!invoice) return null;
+
+  const formatDateTime = (isoString: string) => {
+    const date = new Date(isoString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
+
+    return `${year}/${month}/${day} | ${hours}:${minutes}:${seconds}`;
+  };
+
+  const handleWarrantyUpdated = () => {
+    setRefreshCounter((prev) => prev + 1);
+    if (onWarrantyUpdate) {
+      onWarrantyUpdate();
+    }
+  };
 
   // Function to handle opening the warranty modal
   const handleManageWarranty = (item: ExpandedInvoiceItem) => {
@@ -158,8 +159,6 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
       }
     }, 1000);
   };
-
-  if (!invoice) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 backdrop-blur-sm sm:p-4">
@@ -288,7 +287,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                                   </div>
                                 ) : null}
                               </td>
-                              <td className="p-2 sm:p-4">{item.price.toLocaleString("fa")}</td>
+                              <td className="p-2 sm:p-4">{currencyFormatter.format(item.price)}</td>
                               <td className="p-2 sm:p-4">
                                 {item.individualWarranty ? (
                                   <div className="flex flex-col gap-1">
@@ -310,21 +309,22 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                                         item.individualWarranty.expirydate && (
                                           <div className="text-gray-500">
                                             اعتبار:{" "}
-                                            {new Date(
-                                              item.individualWarranty.startdate
-                                            ).toLocaleDateString("fa-IR")}{" "}
+                                            {dateFormatter.format(
+                                              new Date(item.individualWarranty.startdate)
+                                            )}{" "}
                                             تا{" "}
                                             <span
                                               className={
-                                                new Date(item.individualWarranty.expirydate) <
-                                                new Date()
+                                                new Date(
+                                                  item.individualWarranty.expirydate
+                                                ).getTime() < nowTimestamp
                                                   ? "text-red-400"
                                                   : "text-gray-400"
                                               }
                                             >
-                                              {new Date(
-                                                item.individualWarranty.expirydate
-                                              ).toLocaleDateString("fa-IR")}
+                                              {dateFormatter.format(
+                                                new Date(item.individualWarranty.expirydate)
+                                              )}
                                             </span>
                                           </div>
                                         )}
@@ -364,11 +364,15 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                 <span className="flex items-center gap-1 text-green-400">
                   <span>
                     {invoice.Invoice_Details && Array.isArray(invoice.Invoice_Details)
-                      ? invoice.Invoice_Details.reduce(
-                          (sum, product) => sum + product.total_price,
-                          0
-                        ).toLocaleString("fa")
-                      : invoice.TotalAmount?.toLocaleString("fa") || "0"}
+                      ? currencyFormatter.format(
+                          invoice.Invoice_Details.reduce(
+                            (sum, product) => sum + product.total_price,
+                            0
+                          )
+                        )
+                      : invoice.TotalAmount
+                        ? currencyFormatter.format(invoice.TotalAmount)
+                        : "0"}
                   </span>
                   <span>تومان</span>
                 </span>

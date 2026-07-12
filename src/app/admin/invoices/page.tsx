@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import { SearchOutlined } from "@ant-design/icons";
 import { Input, Button, Select } from "antd";
 import jalaali from "jalali-moment";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
@@ -18,6 +18,184 @@ import DeleteInvoiceModal from "./components/ui/DeleteInvoiceModal";
 import { AdminInvoice } from "./type";
 
 const { Option } = Select;
+
+// --- Pure helpers (module scope) ---
+
+function calculateTimeRemaining(dateString: string) {
+  if (!dateString) return { hours: 0, minutes: 0, isExpired: true };
+
+  try {
+    let creationDate;
+
+    if (dateString.includes("T")) {
+      const [datePart, timePart] = dateString.split("T");
+      const [year, month, day] = datePart.split("-").map(Number);
+      const [hour, minute, second] = timePart.split(":").map(Number);
+
+      creationDate = jalaali()
+        .jYear(year)
+        .jMonth(month - 1)
+        .jDate(day)
+        .hour(hour)
+        .minute(minute)
+        .second(second || 0);
+    } else if (dateString.includes("-")) {
+      const parts = dateString.split(/[- :]/);
+      if (parts[0].length === 4) {
+        const year = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1;
+        const day = parseInt(parts[2]);
+
+        creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
+
+        if (parts.length >= 6) {
+          creationDate.hour(parseInt(parts[3] || "0"));
+          creationDate.minute(parseInt(parts[4] || "0"));
+          creationDate.second(parseInt(parts[5] || "0"));
+        }
+      } else {
+        const day = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1;
+        const year = parseInt(parts[2]);
+
+        creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
+
+        if (parts.length >= 6) {
+          creationDate.hour(parseInt(parts[3] || "0"));
+          creationDate.minute(parseInt(parts[4] || "0"));
+          creationDate.second(parseInt(parts[5] || "0"));
+        }
+      }
+    } else {
+      return { hours: 0, minutes: 0, isExpired: true };
+    }
+
+    const now = jalaali();
+    const expiryDate = creationDate.clone().add(48, "hours");
+
+    if (now.isAfter(expiryDate)) {
+      return { hours: 0, minutes: 0, isExpired: true };
+    }
+
+    const diffHours = expiryDate.diff(now, "hours");
+    const diffMinutes = expiryDate.diff(now, "minutes") % 60;
+
+    return { hours: diffHours, minutes: diffMinutes, isExpired: false };
+  } catch (error) {
+    console.error("Error parsing date:", dateString, error);
+    return { hours: 0, minutes: 0, isExpired: true };
+  }
+}
+
+function formatPersianDate(dateString: string) {
+  try {
+    let creationDate;
+
+    if (dateString.includes("T")) {
+      const [datePart, timePart] = dateString.split("T");
+      const [year, month, day] = datePart.split("-").map(Number);
+      const [hour, minute, second] = timePart.split(":").map(Number);
+
+      creationDate = jalaali()
+        .jYear(year)
+        .jMonth(month - 1)
+        .jDate(day)
+        .hour(hour)
+        .minute(minute)
+        .second(second || 0);
+    } else if (dateString.includes("-")) {
+      const parts = dateString.split(/[- :]/);
+      if (parts[0].length === 4) {
+        const year = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1;
+        const day = parseInt(parts[2]);
+
+        creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
+
+        if (parts.length >= 6) {
+          creationDate.hour(parseInt(parts[3] || "0"));
+          creationDate.minute(parseInt(parts[4] || "0"));
+          creationDate.second(parseInt(parts[5] || "0"));
+        }
+      } else {
+        const day = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1;
+        const year = parseInt(parts[2]);
+
+        creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
+
+        if (parts.length >= 6) {
+          creationDate.hour(parseInt(parts[3] || "0"));
+          creationDate.minute(parseInt(parts[4] || "0"));
+          creationDate.second(parseInt(parts[5] || "0"));
+        }
+      }
+    } else {
+      return dateString;
+    }
+
+    return creationDate.locale("fa").format("YYYY/MM/DD HH:mm:ss");
+  } catch (error) {
+    console.error("Error formatting date:", dateString, error);
+    return dateString;
+  }
+}
+
+function getTimeRemainingText(dateString: string, checked: boolean) {
+  if (!dateString) return "تاریخ نامشخص";
+
+  try {
+    const { hours, minutes, isExpired } = calculateTimeRemaining(dateString);
+
+    if (isExpired) {
+      return checked ? "تائید شده قبل از انقضا" : "منقضی شده";
+    } else if (hours >= 24) {
+      const days = Math.floor(hours / 24);
+      const remainingHours = hours % 24;
+      return `${days} روز و ${remainingHours} ساعت مانده`;
+    } else {
+      return `${hours} ساعت و ${minutes} دقیقه مانده`;
+    }
+  } catch (error) {
+    console.error("Error parsing date:", dateString, error);
+    return `خطا در تاریخ: ${dateString}`;
+  }
+}
+
+function getTimeRemainingClass(dateString: string, checked: boolean) {
+  if (checked) return "";
+
+  const { hours, isExpired } = calculateTimeRemaining(dateString);
+
+  if (isExpired) {
+    return "line-through text-gray-400";
+  } else if (hours < 6) {
+    return "text-red-500 font-bold";
+  } else if (hours < 12) {
+    return "text-yellow-500 font-bold";
+  } else {
+    return "text-green-500";
+  }
+}
+
+async function refreshInvoiceAfterWarrantyUpdate(
+  selectedInvoice: AdminInvoice,
+  setSelectedInvoice: React.Dispatch<React.SetStateAction<AdminInvoice | null>>,
+  setInvoices: React.Dispatch<React.SetStateAction<AdminInvoice[]>>
+) {
+  try {
+    const response = await fetch(`/api/admin/invoices/${selectedInvoice.Invoiceid}`);
+    if (response.ok) {
+      const updatedInvoice = await response.json();
+      setSelectedInvoice(updatedInvoice);
+      setInvoices((prev) =>
+        prev.map((inv) => (inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv))
+      );
+    }
+  } catch (error) {
+    console.error("Failed to refresh invoice data:", error);
+  }
+}
 
 const AdminInvoicesPage = () => {
   const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
@@ -41,19 +219,19 @@ const AdminInvoicesPage = () => {
     refetch,
   } = useApiFetch<AdminInvoice[]>("/api/admin/invoices");
 
-  // Sync API data on first load (render-body setState is safe and avoids effect cascade)
-  const initialSyncDone = useRef(false);
-  if (invoicesData && !initialSyncDone.current) {
-    initialSyncDone.current = true;
-    setInvoices(invoicesData);
-  }
+  // Sync API data when invoices are fetched
+  const prevInvoicesData = useRef(invoicesData);
+  useEffect(() => {
+    if (invoicesData && prevInvoicesData.current !== invoicesData) {
+      prevInvoicesData.current = invoicesData;
+      setInvoices(invoicesData);
+    }
+  }, [invoicesData]);
 
   // Check and update warranty status
   const checkWarrantyStatus = async () => {
     setIsCheckingWarranties(true);
-    const data = await checkWarrantyMutate(
-      "/api/admin/warranty/check-status"
-    );
+    const data = await checkWarrantyMutate("/api/admin/warranty/check-status");
     if (data) {
       const updatedCount = data.updatedCount || 0;
       if (updatedCount > 0) {
@@ -68,193 +246,8 @@ const AdminInvoicesPage = () => {
     setIsCheckingWarranties(false);
   };
 
-  // Calculate time remaining before invoice expires (48 hours after creation)
-  const calculateTimeRemaining = (dateString: string) => {
-    if (!dateString) return { hours: 0, minutes: 0, isExpired: true };
-
-    try {
-      let creationDate;
-
-      // Handle ISO format Jalali date (e.g., "1404-04-09T18:13:49")
-      if (dateString.includes("T")) {
-        const [datePart, timePart] = dateString.split("T");
-        const [year, month, day] = datePart.split("-").map(Number);
-        const [hour, minute, second] = timePart.split(":").map(Number);
-
-        creationDate = jalaali()
-          .jYear(year)
-          .jMonth(month - 1) // Convert to 0-based month
-          .jDate(day)
-          .hour(hour)
-          .minute(minute)
-          .second(second || 0);
-      }
-      // Handle other possible formats
-      else if (dateString.includes("-")) {
-        const parts = dateString.split(/[- :]/);
-        // Check if year is first (YYYY-MM-DD)
-        if (parts[0].length === 4) {
-          const year = parseInt(parts[0]);
-          const month = parseInt(parts[1]) - 1;
-          const day = parseInt(parts[2]);
-
-          creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
-
-          // Add time if available
-          if (parts.length >= 6) {
-            creationDate.hour(parseInt(parts[3] || "0"));
-            creationDate.minute(parseInt(parts[4] || "0"));
-            creationDate.second(parseInt(parts[5] || "0"));
-          }
-        }
-        // Day first format (DD-MM-YYYY)
-        else {
-          const day = parseInt(parts[0]);
-          const month = parseInt(parts[1]) - 1;
-          const year = parseInt(parts[2]);
-
-          creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
-
-          // Add time if available
-          if (parts.length >= 6) {
-            creationDate.hour(parseInt(parts[3] || "0"));
-            creationDate.minute(parseInt(parts[4] || "0"));
-            creationDate.second(parseInt(parts[5] || "0"));
-          }
-        }
-      } else {
-        return { hours: 0, minutes: 0, isExpired: true };
-      }
-
-      // Set the current time for comparison
-      const now = jalaali();
-
-      // Calculate expiry (48 hours after creation)
-      const expiryDate = creationDate.clone().add(48, "hours");
-
-      // Check if expired
-      if (now.isAfter(expiryDate)) {
-        return { hours: 0, minutes: 0, isExpired: true };
-      }
-
-      // Calculate time difference
-      const diffHours = expiryDate.diff(now, "hours");
-      const diffMinutes = expiryDate.diff(now, "minutes") % 60;
-
-      return {
-        hours: diffHours,
-        minutes: diffMinutes,
-        isExpired: false,
-      };
-    } catch (error) {
-      console.error("Error parsing date:", dateString, error);
-      return { hours: 0, minutes: 0, isExpired: true };
-    }
-  };
-
-  // Format date to Persian
-  const formatPersianDate = (dateString: string) => {
-    try {
-      let creationDate;
-
-      // Handle ISO format Jalali date (e.g., "1404-04-09T18:13:49")
-      if (dateString.includes("T")) {
-        const [datePart, timePart] = dateString.split("T");
-        const [year, month, day] = datePart.split("-").map(Number);
-        const [hour, minute, second] = timePart.split(":").map(Number);
-
-        creationDate = jalaali()
-          .jYear(year)
-          .jMonth(month - 1) // Convert to 0-based month
-          .jDate(day)
-          .hour(hour)
-          .minute(minute)
-          .second(second || 0);
-      }
-      // Handle other possible formats
-      else if (dateString.includes("-")) {
-        const parts = dateString.split(/[- :]/);
-        // Check if year is first (YYYY-MM-DD)
-        if (parts[0].length === 4) {
-          const year = parseInt(parts[0]);
-          const month = parseInt(parts[1]) - 1;
-          const day = parseInt(parts[2]);
-
-          creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
-
-          // Add time if available
-          if (parts.length >= 6) {
-            creationDate.hour(parseInt(parts[3] || "0"));
-            creationDate.minute(parseInt(parts[4] || "0"));
-            creationDate.second(parseInt(parts[5] || "0"));
-          }
-        }
-        // Day first format (DD-MM-YYYY)
-        else {
-          const day = parseInt(parts[0]);
-          const month = parseInt(parts[1]) - 1;
-          const year = parseInt(parts[2]);
-
-          creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
-
-          // Add time if available
-          if (parts.length >= 6) {
-            creationDate.hour(parseInt(parts[3] || "0"));
-            creationDate.minute(parseInt(parts[4] || "0"));
-            creationDate.second(parseInt(parts[5] || "0"));
-          }
-        }
-      } else {
-        return dateString; // Return original if format not recognized
-      }
-
-      // Return Persian formatted date
-      return creationDate.locale("fa").format("YYYY/MM/DD HH:mm:ss");
-    } catch (error) {
-      console.error("Error formatting date:", dateString, error);
-      return dateString;
-    }
-  };
-
-  const getTimeRemainingText = (dateString: string, checked: boolean) => {
-    if (!dateString) return "تاریخ نامشخص";
-
-    try {
-      const { hours, minutes, isExpired } = calculateTimeRemaining(dateString);
-
-      if (isExpired) {
-        return checked ? "تائید شده قبل از انقضا" : "منقضی شده";
-      } else if (hours >= 24) {
-        const days = Math.floor(hours / 24);
-        const remainingHours = hours % 24;
-        return `${days} روز و ${remainingHours} ساعت مانده`;
-      } else {
-        return `${hours} ساعت و ${minutes} دقیقه مانده`;
-      }
-    } catch (error) {
-      console.error("Error parsing date:", dateString, error);
-      return `خطا در تاریخ: ${dateString}`;
-    }
-  };
-
-  const getTimeRemainingClass = (dateString: string, checked: boolean) => {
-    if (checked) return ""; // If already checked, no special styling
-
-    const { hours, isExpired } = calculateTimeRemaining(dateString);
-
-    if (isExpired) {
-      return "line-through text-gray-400";
-    } else if (hours < 6) {
-      return "text-red-500 font-bold";
-    } else if (hours < 12) {
-      return "text-yellow-500 font-bold";
-    } else {
-      return "text-green-500";
-    }
-  };
-
   // Filter invoices based on search text
-  const filteredInvoices = useMemo(() => {
+  const filteredInvoices = (() => {
     if (!searchText.trim()) return invoices;
 
     const lowerCaseSearch = searchText.toLowerCase();
@@ -279,26 +272,7 @@ const AdminInvoicesPage = () => {
         invoice.Fullname.toLowerCase().includes(lowerCaseSearch) ||
         invoice.Phonenumber.includes(searchText)
     );
-  }, [searchText, searchMode, invoices]);
-
-  async function refreshInvoiceAfterWarrantyUpdate(
-    selectedInvoice: AdminInvoice,
-    setSelectedInvoice: React.Dispatch<React.SetStateAction<AdminInvoice | null>>,
-    setInvoices: React.Dispatch<React.SetStateAction<AdminInvoice[]>>
-  ) {
-    try {
-      const response = await fetch(`/api/admin/invoices/${selectedInvoice.Invoiceid}`);
-      if (response.ok) {
-        const updatedInvoice = await response.json();
-        setSelectedInvoice(updatedInvoice);
-        setInvoices((prev) =>
-          prev.map((inv) => (inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv))
-        );
-      }
-    } catch (error) {
-      console.error("Failed to refresh invoice data:", error);
-    }
-  }
+  })();
 
   // Handler to update invoice status
   const handleStatusChange = async (Invoiceid: string, status: boolean) => {
@@ -335,7 +309,11 @@ const AdminInvoicesPage = () => {
   };
 
   return (
-    <div className="space-y-6 rounded-lg bg-gray-950 p-4 text-white sm:p-6">
+    <div
+      className="space-y-6 rounded-lg bg-gray-950 p-4 text-white sm:p-6"
+      role="status"
+      aria-label="در حال بارگذاری"
+    >
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-xl font-bold sm:text-2xl">مدیریت فاکتورها</h1>
