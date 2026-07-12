@@ -46,7 +46,7 @@ const BlogFaqAccordion = ({
   }
 
   // Generate JSON-LD structured data for FAQ
-  const generateFaqJsonLd = () => {
+  const generateFaqJsonString = () => {
     const faqJsonLd = {
       "@context": "https://schema.org",
       "@type": "FAQPage",
@@ -60,7 +60,7 @@ const BlogFaqAccordion = ({
       })),
     };
 
-    return faqJsonLd;
+    return JSON.stringify(faqJsonLd);
   };
 
   return (
@@ -160,7 +160,7 @@ const BlogFaqAccordion = ({
         id={`faq-jsonld-${blogSlug}`}
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(generateFaqJsonLd()),
+          __html: generateFaqJsonString(),
         }}
       />
     </>

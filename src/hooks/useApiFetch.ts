@@ -47,7 +47,7 @@ export function useApiFetch<T = any>(
 
   const fetchData = useCallback(async () => {
     await executeApiFetch<T>(url, config, setData, setLoading, setError);
-  }, [url]);
+  }, [url, config]);
 
   // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
