@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import BreadcrumbWrapper from "../../../../_components/BreadcrumbWrapper";
-import { BreadcrumbSkeleton, ProductGridSkeleton } from "../../../../_components/ProductListSkeletons";
+import {
+  BreadcrumbSkeleton,
+  ProductGridSkeleton,
+} from "../../../../_components/ProductListSkeletons";
 import SubcategoryPageWrapper from "../../../../_components/SubcategoryPageWrapper";
 
 interface SubcategoryPageProps {

@@ -4,10 +4,7 @@ import { Suspense } from "react";
 
 import BreadcrumbWrapper from "../_components/BreadcrumbWrapper";
 import CategoryPageWrapper from "../_components/CategoryPageWrapper";
-import {
-  BreadcrumbSkeleton,
-  CategoryPageSkeleton,
-} from "../_components/ProductListSkeletons";
+import { BreadcrumbSkeleton, CategoryPageSkeleton } from "../_components/ProductListSkeletons";
 
 interface CategoryPageProps {
   params: Promise<{ category: string }>;

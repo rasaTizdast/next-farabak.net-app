@@ -1,7 +1,4 @@
-import {
-  BreadcrumbSkeleton,
-  ProductGridSkeleton,
-} from "../../_components/ProductListSkeletons";
+import { BreadcrumbSkeleton, ProductGridSkeleton } from "../../_components/ProductListSkeletons";
 
 export default function SubCategoryLoading() {
   return (

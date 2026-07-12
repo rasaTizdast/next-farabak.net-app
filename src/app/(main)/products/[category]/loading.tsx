@@ -1,7 +1,4 @@
-import {
-  BreadcrumbSkeleton,
-  CategoryPageSkeleton,
-} from "../_components/ProductListSkeletons";
+import { BreadcrumbSkeleton, CategoryPageSkeleton } from "../_components/ProductListSkeletons";
 
 export default function CategoryLoading() {
   return (
