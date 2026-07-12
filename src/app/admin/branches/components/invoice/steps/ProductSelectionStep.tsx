@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 import { useUser } from "@/context/UserContext";
 import { useApiFetch } from "@/hooks/useApiFetch";
+
+const faNumberFormatter = new Intl.NumberFormat("fa-IR");
 
 // Extended Product interface with additional properties
 interface ExtendedProduct extends Product {
@@ -42,8 +44,8 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     loading,
     error,
   } = useApiFetch<Product[]>(branchId ? `/api/admin/branches/${branchId}/products` : null);
-  const [products, setProducts] = useState<ExtendedProduct[]>([]);
   const [localSelectedProducts, setLocalSelectedProducts] = useState<any[]>([]);
+  const prevSelectedRef = useRef(selectedProducts);
   const [manualExchangeRate, setManualExchangeRate] = useState<number | null>(null);
   const [rawInput, setRawInput] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"products" | "selected">("products");
@@ -51,33 +53,30 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
   const { isBranch } = useUser();
 
   // Determine which exchange rate to use (automatic or manual)
-  const effectiveRate = useMemo(() => {
-    // If automatic rate is valid, use it
+  const effectiveRate = (() => {
     if (usdToRialRate && !isNaN(usdToRialRate) && usdToRialRate > 0) {
       return usdToRialRate;
     }
-    // Otherwise use manual rate if it's set
     return manualExchangeRate;
-  }, [usdToRialRate, manualExchangeRate]);
+  })();
 
-  // Initialize local state from props on first render and when selectedProducts changes externally
+  // Sync local state from parent prop
   useEffect(() => {
-    setLocalSelectedProducts(selectedProducts);
+    if (prevSelectedRef.current !== selectedProducts) {
+      prevSelectedRef.current = selectedProducts;
+      setLocalSelectedProducts(selectedProducts);
+    }
   }, [selectedProducts]);
 
-  // This effect processes the raw products with the current exchange rate
-  // without triggering API calls
-  useEffect(() => {
-    if (!rawProducts || rawProducts.length === 0) return;
+  // Derive products display data from raw products + exchange rate + selections
+  const products = (() => {
+    if (!rawProducts || rawProducts.length === 0) return [];
 
-    const processedProducts = rawProducts.map((product: Product) => {
+    return rawProducts.map((product: Product) => {
       const price = product.Price ? parseFloat(product.Price) : 0;
       const discount = product.Discount ? parseFloat(product.Discount) : 0;
       const finalPrice = Math.max(0, price - discount);
-
       const priceInRials = effectiveRate ? finalPrice * effectiveRate : 0;
-
-      // Check if product is already selected
       const existingProduct = localSelectedProducts.find((p) => p.ProductId === product.ProductId);
 
       return {
@@ -88,127 +87,73 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
         isSelected: !!existingProduct,
         total_price: existingProduct ? existingProduct.quantity * priceInRials : 0,
       };
-    });
-
-    setProducts(processedProducts as ExtendedProduct[]);
-
-    // Update selected products with new prices based on new rate
-    if (effectiveRate && localSelectedProducts.length > 0) {
-      const updatedSelectedProducts = localSelectedProducts.map((product) => {
-        const originalProduct = rawProducts.find((p) => p.ProductId === product.ProductId);
-        if (!originalProduct) return product;
-
-        const price = originalProduct.Price ? parseFloat(originalProduct.Price) : 0;
-        const discount = originalProduct.Discount ? parseFloat(originalProduct.Discount) : 0;
-        const finalPrice = Math.max(0, price - discount);
-        const priceInRials = finalPrice * effectiveRate;
-
-        return {
-          ...product,
-          price: priceInRials,
-          total_price: product.quantity * priceInRials,
-        };
-      });
-
-      // Only update if prices have changed
-      const pricesChanged = updatedSelectedProducts.some(
-        (p, i) => p.price !== localSelectedProducts[i]?.price
-      );
-
-      if (pricesChanged) {
-        setLocalSelectedProducts(updatedSelectedProducts);
-        onUpdate(
-          updatedSelectedProducts,
-          updatedSelectedProducts.reduce((sum, p) => sum + p.total_price, 0)
-        );
-      }
-    }
-  }, [rawProducts, effectiveRate]);
+    }) as ExtendedProduct[];
+  })();
 
   // Filter products based on search term
-  const filteredProducts = useMemo(() => {
-    if (!searchTerm.trim()) return products;
-
-    return products.filter((product) =>
-      product.Type.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [products, searchTerm]);
+  const filteredProducts = !searchTerm.trim()
+    ? products
+    : products.filter((product) =>
+        product.Type.toLowerCase().includes(searchTerm.toLowerCase())
+      );
 
   // Use memoized callback to avoid re-renders
-  const handleQuantityChange = useCallback(
-    (productId: number, quantity: number | null) => {
-      if (quantity === null || quantity < 0) return;
+  const handleQuantityChange = (productId: number, quantity: number | null) => {
+    if (quantity === null || quantity < 0) return;
 
-      // Find the product in our products list
-      const product = products.find((p) => p.ProductId === productId);
-      if (!product) return;
+    // Find the product in our products list
+    const product = products.find((p) => p.ProductId === productId);
+    if (!product) return;
 
-      setLocalSelectedProducts((prevSelected) => {
-        // Find if product is already in the selected list
-        const existingIndex = prevSelected.findIndex((p) => p.ProductId === productId);
+    setLocalSelectedProducts((prevSelected) => {
+      // Find if product is already in the selected list
+      const existingIndex = prevSelected.findIndex((p) => p.ProductId === productId);
 
-        const updatedProducts = [...prevSelected];
+      const updatedProducts = [...prevSelected];
 
-        if (quantity === 0) {
-          // Remove product if quantity is zero
-          if (existingIndex >= 0) {
-            updatedProducts.splice(existingIndex, 1);
-          }
-        } else {
-          // Calculate total price for this product
-          const totalPrice = product.priceInRials * quantity;
-
-          if (existingIndex >= 0) {
-            // Update existing product
-            updatedProducts[existingIndex] = {
-              ...updatedProducts[existingIndex],
-              quantity,
-              price: product.priceInRials,
-              total_price: totalPrice,
-            };
-          } else {
-            // Add new product
-            updatedProducts.push({
-              ProductId: product.ProductId,
-              // Use Type instead of Name as requested
-              Name: product.Type,
-              quantity,
-              price: product.priceInRials,
-              total_price: totalPrice,
-            });
-          }
+      if (quantity === 0) {
+        // Remove product if quantity is zero
+        if (existingIndex >= 0) {
+          updatedProducts.splice(existingIndex, 1);
         }
+      } else {
+        // Calculate total price for this product
+        const totalPrice = product.priceInRials * quantity;
 
-        // Calculate total amount
-        const totalAmount = updatedProducts.reduce((sum, p) => sum + p.total_price, 0);
+        if (existingIndex >= 0) {
+          // Update existing product
+          updatedProducts[existingIndex] = {
+            ...updatedProducts[existingIndex],
+            quantity,
+            price: product.priceInRials,
+            total_price: totalPrice,
+          };
+        } else {
+          // Add new product
+          updatedProducts.push({
+            ProductId: product.ProductId,
+            // Use Type instead of Name as requested
+            Name: product.Type,
+            quantity,
+            price: product.priceInRials,
+            total_price: totalPrice,
+          });
+        }
+      }
 
-        // Update parent component
-        setSelectedProducts(updatedProducts);
-        onUpdate(updatedProducts, totalAmount);
+      // Calculate total amount
+      const totalAmount = updatedProducts.reduce((sum, p) => sum + p.total_price, 0);
 
-        return updatedProducts;
-      });
+      // Update parent component
+      setSelectedProducts(updatedProducts);
+      onUpdate(updatedProducts, totalAmount);
 
-      // Also update the product in the products list for UI consistency without re-fetching
-      setProducts((prevProducts) => {
-        return prevProducts.map((p) => {
-          if (p.ProductId === productId) {
-            return {
-              ...p,
-              selectedQuantity: quantity,
-              isSelected: quantity > 0,
-              total_price: quantity > 0 ? p.priceInRials * quantity : 0,
-            };
-          }
-          return p;
-        });
-      });
-    },
-    [products, setSelectedProducts, onUpdate]
-  );
+      return updatedProducts;
+    });
+  };
 
   // Handle manual exchange rate change
-  const handleManualRateChange = useCallback((value: string) => {
+  const handleManualRateChange = (value: string) => {
     // Keep what the user types
     setRawInput(value);
 
@@ -221,11 +166,11 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     } else {
       setManualExchangeRate(null);
     }
-  }, []);
+  };
 
   // Format number with Persian digits (for later display, not during typing)
   const formatNumber = (num: number) => {
-    return new Intl.NumberFormat("fa-IR").format(num);
+    return faNumberFormatter.format(num);
   };
 
   if (loading) {
@@ -374,6 +319,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                     </div>
                     <input
                       type="search"
+                      aria-label="جستجوی محصول"
                       className="block w-full rounded-lg border border-gray-700 bg-gray-800 p-2.5 pl-10 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="جستجوی محصول..."
                       value={searchTerm}

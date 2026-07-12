@@ -2,7 +2,7 @@
 
 import { Modal, Steps, Button, message } from "antd";
 import moment from "jalali-moment";
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -85,35 +85,32 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
   const [productsWithWarranty, setProductsWithWarranty] = useState<any[]>([]);
 
-  // Reset all state when modal becomes visible or is closed
-  useEffect(() => {
-    const resetForm = () => {
-      setCurrentStep(0);
-      setInvoice({
-        Fullname: "",
-        Phonenumber: "",
-        UserId: branch?.UserID,
-        TotalAmount: 0,
-        Checked: true,
-        Date: moment().locale("fa").format("YYYY-MM-DDTHH:mm:ss"),
-      });
-      setSelectedProducts([]);
-      setProductsWithWarranty([]);
-    };
-
-    if (visible) {
-      // Only fetch exchange rate when modal opens
-      getExchangeRate();
-    } else {
-      // Reset form data when modal closes
-      resetForm();
-    }
-  }, [visible, branch?.UserID]);
-
   const getExchangeRate = async () => {
     const rate = await fetchUsdToRialRate();
     setUsdToRialRate(rate);
   };
+
+  const resetForm = useCallback(() => {
+    setCurrentStep(0);
+    setInvoice({
+      Fullname: "",
+      Phonenumber: "",
+      UserId: branch?.UserID,
+      TotalAmount: 0,
+      Checked: true,
+      Date: moment().locale("fa").format("YYYY-MM-DDTHH:mm:ss"),
+    });
+    setSelectedProducts([]);
+    setProductsWithWarranty([]);
+  }, [branch?.UserID]);
+
+  const handleAfterOpenChange = useCallback((open: boolean) => {
+    if (open) {
+      getExchangeRate();
+    } else {
+      resetForm();
+    }
+  }, [resetForm]);
 
   const handleClose = () => {
     onClose();
@@ -202,6 +199,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
       footer={null}
       maskClosable={true}
       destroyOnClose={true}
+      afterOpenChange={handleAfterOpenChange}
       style={{ direction: "rtl" }}
       className="invoice-modal"
       modalRender={(modal) => <div className="overflow-hidden rounded-lg bg-gray-900">{modal}</div>}

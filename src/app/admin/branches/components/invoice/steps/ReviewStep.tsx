@@ -5,6 +5,8 @@ import React from "react";
 
 import { Invoice } from "../../types";
 
+const faNumberFormatter = new Intl.NumberFormat("fa-IR");
+
 interface ReviewStepProps {
   invoice: Invoice;
   productsWithWarranty: any[];
@@ -50,7 +52,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ invoice, productsWithWarranty }
     {
       title: "قیمت واحد (تومان)",
       key: "price",
-      render: (text, record) => new Intl.NumberFormat("fa-IR").format(record.price),
+      render: (text, record) => faNumberFormatter.format(record.price),
     },
     {
       title: "گارانتی",
@@ -168,7 +170,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ invoice, productsWithWarranty }
           footer={() => (
             <div className="text-right">
               <span className="text-lg font-bold text-white">
-                مجموع کل: {new Intl.NumberFormat("fa-IR").format(invoice.TotalAmount)} تومان
+                مجموع کل: {faNumberFormatter.format(invoice.TotalAmount)} تومان
               </span>
             </div>
           )}

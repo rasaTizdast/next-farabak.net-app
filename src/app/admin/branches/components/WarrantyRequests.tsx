@@ -14,6 +14,8 @@ import { useState, useEffect, useCallback } from "react";
 const { Text } = Typography;
 const { confirm } = Modal;
 
+const faDateFormatter = new Intl.DateTimeFormat("fa-IR");
+
 interface WarrantyRequest {
   warrantyid: number;
   warrantycode: string;
@@ -39,7 +41,9 @@ async function fetchWarrantyRequests(
   lastFetchTime: number,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
   setRequests: React.Dispatch<React.SetStateAction<WarrantyRequest[]>>,
-  setPagination: React.Dispatch<React.SetStateAction<{ current: number; pageSize: number; total: number; totalPages: number }>>,
+  setPagination: React.Dispatch<
+    React.SetStateAction<{ current: number; pageSize: number; total: number; totalPages: number }>
+  >,
   setDataFetched: React.Dispatch<React.SetStateAction<boolean>>,
   setLastFetchTime: React.Dispatch<React.SetStateAction<number>>,
   setError: React.Dispatch<React.SetStateAction<string>>
@@ -90,7 +94,20 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
 
   const fetchRequests = useCallback(
     async (page: number = 1, pageSize: number = 10, force: boolean = false) => {
-      await fetchWarrantyRequests(page, pageSize, force, isTabActive, dataFetched, lastFetchTime, setLoading, setRequests, setPagination, setDataFetched, setLastFetchTime, setError);
+      await fetchWarrantyRequests(
+        page,
+        pageSize,
+        force,
+        isTabActive,
+        dataFetched,
+        lastFetchTime,
+        setLoading,
+        setRequests,
+        setPagination,
+        setDataFetched,
+        setLastFetchTime,
+        setError
+      );
     },
     [isTabActive, dataFetched, lastFetchTime]
   );
@@ -112,29 +129,25 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
       okType: "primary",
       cancelText: "لغو",
       onOk: async () => {
-        try {
-          setLoading(true);
-          const response = await fetch("/api/admin/warranty/requests", {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              warrantyId,
-              action: "resolve",
-            }),
-          });
+        setLoading(true);
+        const res = await fetch("/api/admin/warranty/requests", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            warrantyId,
+            action: "resolve",
+          }),
+        });
 
-          if (!response.ok) {
-            throw new Error("خطا در به‌روزرسانی وضعیت گارانتی");
-          }
-
-          // Refresh the list after successful update
-          fetchRequests(pagination.current, pagination.pageSize, true);
-        } catch (error) {
-          console.error("[Client] Error resolving warranty request:", error);
+        if (!res.ok) {
+          console.error("[Client] Error resolving warranty request:", res.statusText);
           setLoading(false);
+          return;
         }
+
+        await fetchRequests(pagination.current, pagination.pageSize, true);
       },
     });
   };
@@ -142,7 +155,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      return new Intl.DateTimeFormat("fa-IR").format(date);
+      return faDateFormatter.format(date);
     } catch (error) {
       console.error(error);
       return dateString;

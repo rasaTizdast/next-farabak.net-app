@@ -1,12 +1,14 @@
 import { Spin } from "antd";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
 import { useApiFetch } from "@/hooks/useApiFetch";
 
 import { ExpandedInvoiceItem } from "./types";
+
+const dateFormatter = new Intl.DateTimeFormat("fa-IR");
 
 type BranchWarrantyViewModalProps = {
   item: ExpandedInvoiceItem;
@@ -16,6 +18,7 @@ type BranchWarrantyViewModalProps = {
 const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item, onClose }) => {
   const { componentRef, handlePrint } = usePrint();
   const [showPrintView, setShowPrintView] = useState<boolean>(false);
+  const [nowTimestamp] = useState(() => Date.now());
 
   // Determine branch ID from warranty
   const branchId =
@@ -48,7 +51,7 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
   // Format date for display
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString("fa-IR");
+    return dateFormatter.format(new Date(dateString));
   };
 
   // Calculate warranty duration
@@ -144,7 +147,7 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
   const isExpired =
     warranty.status === "Expired" ||
     warranty.displayStatus === "Expired" ||
-    (warranty.expirydate && new Date(warranty.expirydate) < new Date());
+    (warranty.expirydate && nowTimestamp && new Date(warranty.expirydate).getTime() < nowTimestamp);
 
   // Use branch name from state or fallback
   const displayBranchName = branchName || "در حال بارگذاری...";

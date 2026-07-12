@@ -9,6 +9,9 @@ import { useApiMutation } from "@/hooks/useApiMutation";
 
 import { Branch } from "../../types";
 
+const persianYearFormatter = new Intl.DateTimeFormat("fa-IR", { year: "numeric" });
+const persianMonthFormatter = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" });
+
 // Format a Date object to YYYY-MM-DD string
 const formatDateToISOString = (date: Date | null): string | null => {
   if (!date) return null;
@@ -81,15 +84,11 @@ async function doUpdateWarranties(
     const branchCode = branch.location || "HQ";
     const date = new Date();
 
-    const persianYear = new Intl.DateTimeFormat("fa-IR", {
-      year: "numeric",
-    }).format(date);
+    const persianYear = persianYearFormatter.format(date);
     const yearStr = persianToEnglishDigits(persianYear);
     const yearNum = yearStr.slice(-3);
 
-    const persianMonth = new Intl.DateTimeFormat("fa-IR", {
-      month: "2-digit",
-    }).format(date);
+    const persianMonth = persianMonthFormatter.format(date);
     const monthNum = persianToEnglishDigits(persianMonth);
     const yearMonth = yearNum + monthNum.padStart(2, "0");
 
@@ -185,53 +184,56 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
   const [durationText, setDurationText] = useState<string | null>(null);
   const [isGeneratingCodes, setIsGeneratingCodes] = useState(false);
   const [isDatePickerLoading, setIsDatePickerLoading] = useState(false);
+  const [todayTimestamp] = useState(() => Date.now());
 
   const { mutate: generateBatchMutate } = useApiMutation<{ warrantyCodes: string[] }>("post");
 
   // Generate warranty codes in a batch to reduce API calls
-  const generateBatchWarrantyCodes = async (
-    branchCode: string,
-    yearMonth: string,
-    count: number
-  ): Promise<string[]> => {
-    const data = await generateBatchMutate(
-      "/api/admin/warranty/generate-batch",
-      { branchCode, yearMonth, count }
-    );
-
-    if (data && data.warrantyCodes) {
-      return data.warrantyCodes;
-    }
-
-    console.error("Error generating batch warranty codes");
-    // Fallback to local generation if API fails
-    return Array(count)
-      .fill(null)
-      .map(() => {
-        const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-        return `${branchCode}-${yearMonth}-${randomCode}`;
+  const generateBatchWarrantyCodes = useCallback(
+    async (branchCode: string, yearMonth: string, count: number): Promise<string[]> => {
+      const data = await generateBatchMutate("/api/admin/warranty/generate-batch", {
+        branchCode,
+        yearMonth,
+        count,
       });
-  };
+
+      if (data && data.warrantyCodes) {
+        return data.warrantyCodes;
+      }
+
+      console.error("Error generating batch warranty codes");
+      // Fallback to local generation if API fails
+      return Array(count)
+        .fill(null)
+        .map(() => {
+          const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+          return `${branchCode}-${yearMonth}-${randomCode}`;
+        });
+    },
+    [generateBatchMutate]
+  );
 
   // Only generate codes for products that do not already have warranty data from API
-  const updateWarranties = useCallback(async () => {
-    await doUpdateWarranties(
-      selectedProducts,
-      isGeneratingCodes,
-      branch,
-      productsWithWarranty,
-      setProductsWithWarranty,
-      setIsGeneratingCodes,
-      generateBatchWarrantyCodes
-    );
-  }, [selectedProducts, isGeneratingCodes, branch, productsWithWarranty, setProductsWithWarranty]);
-
-  // Use effect to trigger warranty update when products change
+  // Trigger warranty update when products change (one-time effect)
   useEffect(() => {
     if (selectedProducts.length > 0 && !isGeneratingCodes) {
-      updateWarranties();
+      doUpdateWarranties(
+        selectedProducts,
+        isGeneratingCodes,
+        branch,
+        productsWithWarranty,
+        setProductsWithWarranty,
+        setIsGeneratingCodes,
+        generateBatchWarrantyCodes
+      );
     }
-  }, [selectedProducts, isGeneratingCodes, updateWarranties]);
+  }, [
+    selectedProducts.length,
+    isGeneratingCodes,
+    branch,
+    productsWithWarranty,
+    generateBatchWarrantyCodes,
+  ]);
 
   const handleEdit = (item: any) => {
     setEditingProduct(item);
@@ -692,7 +694,10 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
                     >
                       <div className={isBranch ? "pointer-events-none" : ""}>
                         <DatePicker
-                          defaultValue={form.getFieldValue("startdate") || new Date()}
+                          defaultValue={
+                            form.getFieldValue("startdate") ||
+                            (todayTimestamp ? new Date(todayTimestamp) : undefined)
+                          }
                           weekends={[5, 6]}
                           round="x2"
                           accentColor="#226bff"
@@ -730,11 +735,13 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
                       <DatePicker
                         defaultValue={
                           form.getFieldValue("expirydate") ||
-                          (() => {
-                            const date = new Date();
-                            date.setFullYear(date.getFullYear() + 1);
-                            return date;
-                          })()
+                          (todayTimestamp
+                            ? (() => {
+                                const date = new Date(todayTimestamp);
+                                date.setFullYear(date.getFullYear() + 1);
+                                return date;
+                              })()
+                            : undefined)
                         }
                         weekends={[5, 6]}
                         round="x3"

@@ -10,6 +10,41 @@ import BranchWarrantyManagementModal from "./BranchWarrantyManagementModal";
 import BranchWarrantyViewModal from "./BranchWarrantyViewModal";
 import { ExpandedInvoiceItem, ExtendedWarranty } from "./types";
 
+const currencyFormatter = new Intl.NumberFormat("fa-IR");
+const dateFormatter = new Intl.DateTimeFormat("fa-IR");
+
+function formatDate(dateString: string, includeTime: boolean = true) {
+  if (!dateString) return "-";
+  try {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
+
+    if (includeTime) {
+      return `${year}/${month}/${day} | ${hours}:${minutes}:${seconds}`;
+    } else {
+      return dateFormatter.format(new Date(dateString));
+    }
+  } catch (e) {
+    console.error("Error formatting date:", e);
+    return dateString;
+  }
+}
+
+function formatCurrency(amount: number) {
+  if (!amount && amount !== 0) return "-";
+  try {
+    return currencyFormatter.format(amount);
+  } catch (e) {
+    console.error("Error formatting currency:", e);
+    return amount.toString();
+  }
+}
+
 interface BranchInvoiceDetailsModalProps {
   invoice: AdminInvoice;
   onClose: () => void;
@@ -23,6 +58,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
   const [selectedItem, setSelectedItem] = useState<ExpandedInvoiceItem | null>(null);
   const [addWarrantyItem, setAddWarrantyItem] = useState<ExpandedInvoiceItem | null>(null);
   const [refreshCounter, setRefreshCounter] = useState(0);
+  const [nowTimestamp] = useState(() => Date.now());
 
   // Use the print hook for printing
   const { componentRef, handlePrint } = usePrint();
@@ -31,45 +67,6 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
   if (!invoice.Invoice_Details) {
     console.warn("Missing Invoice_Details in invoice:", invoice);
   }
-
-  // Format date using jalali moment
-  const formatDate = (dateString: string, includeTime: boolean = true) => {
-    if (!dateString) return "-";
-    try {
-      // Create a date object
-      const date = new Date(dateString);
-
-      // Format date like AdminInvoiceDetailsModal
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      const hours = String(date.getHours()).padStart(2, "0");
-      const minutes = String(date.getMinutes()).padStart(2, "0");
-      const seconds = String(date.getSeconds()).padStart(2, "0");
-
-      if (includeTime) {
-        return `${year}/${month}/${day} | ${hours}:${minutes}:${seconds}`;
-      } else {
-        // Use toLocaleDateString for consistency with AdminInvoiceDetailsModal
-        return new Date(dateString).toLocaleDateString("fa-IR");
-      }
-    } catch (e) {
-      console.error("Error formatting date:", e);
-      return dateString;
-    }
-  };
-
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    if (!amount && amount !== 0) return "-";
-    try {
-      // Use toLocaleString like AdminInvoiceDetailsModal
-      return amount.toLocaleString("fa");
-    } catch (e) {
-      console.error("Error formatting currency:", e);
-      return amount.toString();
-    }
-  };
 
   // Fetch product names
   useEffect(() => {
@@ -179,7 +176,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
       }
     });
     return items;
-  }, [invoice?.Invoice_Details, productNames, refreshCounter]);
+  }, [invoice, productNames, refreshCounter]);
 
   // Handle refresh after warranty actions
   const handleWarrantyUpdated = async () => {
@@ -233,27 +230,6 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
       }
     }, 1000);
   };
-
-  // Add effect to refresh invoice data when refreshCounter changes
-  useEffect(() => {
-    if (refreshCounter > 0) {
-      const fetchUpdatedInvoiceData = async () => {
-        try {
-          const res = await fetch(`/api/admin/invoices/${invoice.Invoiceid}`);
-          if (res.ok) {
-            const response = await res.json();
-            if (response && response.invoice && response.invoice.Invoice_Details) {
-              Object.assign(invoice, response.invoice);
-            }
-          }
-        } catch (error) {
-          console.error("Error refreshing invoice data:", error);
-        }
-      };
-
-      fetchUpdatedInvoiceData();
-    }
-  }, [refreshCounter, invoice.Invoiceid]);
 
   if (!invoice) return null;
 
@@ -393,7 +369,8 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                                     {item.individualWarranty.status === "Expired" ||
                                     item.individualWarranty.displayStatus === "Expired" ||
                                     (item.individualWarranty.expirydate &&
-                                      new Date(item.individualWarranty.expirydate) < new Date()) ? (
+                                      new Date(item.individualWarranty.expirydate).getTime() <
+                                        nowTimestamp) ? (
                                       <span className="no-print inline-block w-fit rounded-full bg-red-900/40 px-2 py-1 text-xs text-red-300">
                                         منقضی شده
                                       </span>
@@ -411,24 +388,25 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                                         item.individualWarranty.expirydate && (
                                           <div className="text-gray-500">
                                             اعتبار:{" "}
-                                            {new Date(
-                                              item.individualWarranty.startdate
-                                            ).toLocaleDateString("fa-IR")}{" "}
+                                            {dateFormatter.format(
+                                              new Date(item.individualWarranty.startdate)
+                                            )}{" "}
                                             تا{" "}
                                             <span
                                               className={
                                                 item.individualWarranty.status === "Expired" ||
                                                 item.individualWarranty.displayStatus ===
                                                   "Expired" ||
-                                                new Date(item.individualWarranty.expirydate) <
-                                                  new Date()
+                                                new Date(
+                                                  item.individualWarranty.expirydate
+                                                ).getTime() < nowTimestamp
                                                   ? "text-red-400"
                                                   : "text-gray-400"
                                               }
                                             >
-                                              {new Date(
-                                                item.individualWarranty.expirydate
-                                              ).toLocaleDateString("fa-IR")}
+                                              {dateFormatter.format(
+                                                new Date(item.individualWarranty.expirydate)
+                                              )}
                                             </span>
                                           </div>
                                         )}
@@ -478,11 +456,13 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                 <span className="flex items-center gap-1 text-green-400">
                   <span>
                     {invoice.Invoice_Details && Array.isArray(invoice.Invoice_Details)
-                      ? invoice.Invoice_Details.reduce(
-                          (sum, product) => sum + product.total_price,
-                          0
-                        ).toLocaleString("fa")
-                      : (invoice.TotalAmount || 0).toLocaleString("fa")}
+                      ? currencyFormatter.format(
+                          invoice.Invoice_Details.reduce(
+                            (sum, product) => sum + product.total_price,
+                            0
+                          )
+                        )
+                      : currencyFormatter.format(invoice.TotalAmount || 0)}
                   </span>
                   <span>تومان</span>
                 </span>

@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import { Button, Form, message, Input, AutoComplete, Tabs, Card } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useRef, Suspense } from "react";
+import { useCallback, useMemo, useState, useEffect, useRef, Suspense } from "react";
 
 import { useUser } from "@/context/UserContext";
 import { useApiFetch } from "@/hooks/useApiFetch";
@@ -24,6 +24,139 @@ import WarrantyRequests from "./components/WarrantyRequests";
 import WarrantyStats from "./components/WarrantyStats";
 
 const { TabPane } = Tabs;
+
+async function fetchBranchesHelper(
+  page: number,
+  pageSize: number,
+  searchProductId: number | null,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setBranches: React.Dispatch<React.SetStateAction<Branch[]>>,
+  setTotalBranchCount: React.Dispatch<React.SetStateAction<number>>,
+  setPagination: React.Dispatch<
+    React.SetStateAction<{ current: number; pageSize: number; total: number }>
+  >
+) {
+  try {
+    setLoading(true);
+    let url = `/api/admin/branches?page=${page}&limit=${pageSize}`;
+
+    if (searchProductId) {
+      url += `&productId=${searchProductId}`;
+    }
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      message.error("خطا در بارگذاری شعبه‌ها");
+      return;
+    }
+    const responseData = await response.json();
+
+    setBranches(responseData.data);
+    setTotalBranchCount(responseData.pagination.totalBranchCount || 0);
+    setPagination({
+      current: responseData.pagination.currentPage,
+      pageSize: pageSize,
+      total: responseData.pagination.totalCount,
+    });
+  } catch (error) {
+    console.error("Error fetching branches:", error);
+    message.error("خطا در بارگذاری شعبه‌ها");
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function fetchAllProductsHelper(
+  setProductsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setAllProducts: React.Dispatch<React.SetStateAction<Product[]>>
+) {
+  try {
+    setProductsLoading(true);
+
+    try {
+      const response = await fetch("/api/admin/products/all", {
+        credentials: "include",
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+
+        if (responseData.data && Array.isArray(responseData.data) && responseData.data.length > 0) {
+          setAllProducts(responseData.data);
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("Error with new endpoint:", error);
+    }
+
+    let allFetchedProducts: Product[] = [];
+    let currentPage = 1;
+    let hasMorePages = true;
+    const pageSize = 100;
+
+    while (hasMorePages) {
+      const response = await fetch(`/api/admin/products?page=${currentPage}&limit=${pageSize}`);
+
+      if (!response.ok) {
+        break;
+      }
+
+      const data = await response.json();
+      const products = data.data || [];
+
+      allFetchedProducts = [...allFetchedProducts, ...products];
+
+      if (products.length < pageSize) {
+        hasMorePages = false;
+      } else {
+        currentPage++;
+      }
+    }
+
+    setAllProducts(allFetchedProducts);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    message.error("خطا در بارگذاری محصولات");
+  } finally {
+    setProductsLoading(false);
+  }
+}
+
+async function fetchBranchProductsHelper(
+  branchId: number,
+  setProductsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>
+) {
+  try {
+    setProductsLoading(true);
+    const response = await fetch(`/api/admin/branches/${branchId}/products`);
+    if (!response.ok) {
+      message.error("خطا در بارگذاری محصولات شعبه");
+      setProducts([]);
+      return;
+    }
+    const responseData = await response.json();
+
+    const productsArray =
+      responseData.data && Array.isArray(responseData.data)
+        ? responseData.data
+        : Array.isArray(responseData)
+          ? responseData
+          : [];
+
+    setProducts(productsArray);
+  } catch (error) {
+    console.error("Error fetching branch products:", error);
+    message.error("خطا در بارگذاری محصولات شعبه");
+    setProducts([]);
+  } finally {
+    setProductsLoading(false);
+  }
+}
 
 function BranchesPageContent() {
   const { user } = useUser();
@@ -70,6 +203,29 @@ function BranchesPageContent() {
 
   const { data: usersData } = useApiFetch<User[]>("/api/admin/users");
 
+  const fetchBranches = async (
+    page?: number,
+    pageSize?: number,
+    overrideProductId?: number | null
+  ) => {
+    const p = page ?? pagination.current;
+    const ps = pageSize ?? pagination.pageSize;
+    const productId = overrideProductId !== undefined ? overrideProductId : searchProductId;
+    await fetchBranchesHelper(
+      p,
+      ps,
+      productId,
+      setLoading,
+      setBranches,
+      setTotalBranchCount,
+      setPagination
+    );
+  };
+
+  const fetchAllProducts = async () => {
+    await fetchAllProductsHelper(setProductsLoading, setAllProducts);
+  };
+
   // Check URL for productId param
   useEffect(() => {
     const productId = searchParams.get("productId");
@@ -84,141 +240,30 @@ function BranchesPageContent() {
           setSearchValue(product.Type);
         }
       }
+      fetchBranches(1, pagination.pageSize, parsedId);
     }
-  }, [searchParams, allProducts, initialLoading]);
+  }, [searchParams, allProducts, initialLoading, fetchBranches, pagination.pageSize]);
 
-  // Load data when component mounts and set up auto-refresh
   useEffect(() => {
     Promise.all([fetchBranches(), fetchAllProducts()])
       .catch((error) => console.error("Error loading initial data:", error))
       .finally(() => setInitialLoading(false));
 
-    // Set up auto-refresh interval (30 seconds)
     const intervalId = setInterval(() => {
       setRefreshing(true);
       fetchBranchesRef.current?.().finally(() => {
-        setTimeout(() => setRefreshing(false), 500); // Show loading for at least 500ms for UX
+        setTimeout(() => setRefreshing(false), 500);
       });
     }, 30000);
 
-    // Clean up interval on component unmount
     return () => clearInterval(intervalId);
-  }, []);
+  }, [fetchBranches, fetchAllProducts]);
 
-  const fetchBranches = async (
-    page: number = pagination.current,
-    pageSize: number = pagination.pageSize
-  ) => {
-    try {
-      setLoading(true);
-      let url = `/api/admin/branches?page=${page}&limit=${pageSize}`;
-
-      // Add product filter if searchProductId is set
-      if (searchProductId) {
-        url += `&productId=${searchProductId}`;
-      }
-
-      const response = await fetch(url);
-      if (!response.ok) {
-        message.error("خطا در بارگذاری شعبه‌ها");
-        return;
-      }
-      const responseData = await response.json();
-
-      // Update branches and pagination data
-      setBranches(responseData.data);
-      setTotalBranchCount(responseData.pagination.totalBranchCount || 0);
-      setPagination({
-        current: responseData.pagination.currentPage,
-        pageSize: pageSize,
-        total: responseData.pagination.totalCount,
-      });
-    } catch (error) {
-      console.error("Error fetching branches:", error);
-      message.error("خطا در بارگذاری شعبه‌ها");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Refetch branches when searchProductId changes
-  useEffect(() => {
-    // Reset to page 1 when filters change
-    fetchBranches(1, pagination.pageSize);
-  }, [searchProductId]);
-
-  // Store the fetchBranches function in the ref to use in the interval
+  // Update ref whenever pagination params change
   useEffect(() => {
     fetchBranchesRef.current = () => fetchBranches(pagination.current, pagination.pageSize);
-  }, [searchProductId, pagination.current, pagination.pageSize]);
+  }, [searchProductId, pagination.current, pagination.pageSize, fetchBranches]);
 
-  const fetchAllProducts = async () => {
-    try {
-      setProductsLoading(true);
-
-      // Try the new all products endpoint first
-      try {
-        const response = await fetch("/api/admin/products/all", {
-          credentials: "include",
-          headers: {
-            "Cache-Control": "no-cache",
-          },
-        });
-
-        if (response.ok) {
-          const responseData = await response.json();
-
-          if (
-            responseData.data &&
-            Array.isArray(responseData.data) &&
-            responseData.data.length > 0
-          ) {
-            setAllProducts(responseData.data);
-            return; // Exit if successful
-          }
-        }
-      } catch (error) {
-        console.error("Error with new endpoint:", error);
-      }
-
-      // Fallback to standard endpoint if new one fails
-
-      // Get all products by fetching multiple pages
-      let allFetchedProducts: Product[] = [];
-      let currentPage = 1;
-      let hasMorePages = true;
-      const pageSize = 100; // Fetch more per page
-
-      while (hasMorePages) {
-        const response = await fetch(`/api/admin/products?page=${currentPage}&limit=${pageSize}`);
-
-        if (!response.ok) {
-          break;
-        }
-
-        const data = await response.json();
-        const products = data.data || [];
-
-        allFetchedProducts = [...allFetchedProducts, ...products];
-
-        // Check if we've received fewer products than the page size, indicating the last page
-        if (products.length < pageSize) {
-          hasMorePages = false;
-        } else {
-          currentPage++;
-        }
-      }
-
-      setAllProducts(allFetchedProducts);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      message.error("خطا در بارگذاری محصولات");
-    } finally {
-      setProductsLoading(false);
-    }
-  };
-
-  // Refresh branch products when drawer is open
   useEffect(() => {
     let productsIntervalId: NodeJS.Timeout | null = null;
 
@@ -241,33 +286,7 @@ function BranchesPageContent() {
   }, [productDrawerVisible, currentBranch]);
 
   const fetchBranchProducts = async (branchId: number) => {
-    try {
-      setProductsLoading(true);
-      const response = await fetch(`/api/admin/branches/${branchId}/products`);
-      if (!response.ok) {
-        message.error("خطا در بارگذاری محصولات شعبه");
-        setProducts([]);
-        return;
-      }
-      const responseData = await response.json();
-
-      // Extract products from the data property if it exists
-      const productsArray =
-        responseData.data && Array.isArray(responseData.data)
-          ? responseData.data
-          : Array.isArray(responseData)
-            ? responseData
-            : [];
-
-      setProducts(productsArray);
-    } catch (error) {
-      console.error("Error fetching branch products:", error);
-      message.error("خطا در بارگذاری محصولات شعبه");
-      // Set empty array in case of error
-      setProducts([]);
-    } finally {
-      setProductsLoading(false);
-    }
+    await fetchBranchProductsHelper(branchId, setProductsLoading, setProducts);
   };
 
   // Store the fetchBranchProducts function in the ref
@@ -387,6 +406,7 @@ function BranchesPageContent() {
   const clearSearch = () => {
     setSearchValue("");
     setSearchProductId(null);
+    fetchBranches(1, pagination.pageSize, null);
     router.push("/admin/branches");
   };
 
@@ -414,11 +434,13 @@ function BranchesPageContent() {
 
     if (foundProduct) {
       setSearchProductId(foundProduct.ProductId);
+      fetchBranches(1, pagination.pageSize, foundProduct.ProductId);
       // Update URL for direct linking to search results
       router.push(`/admin/branches?productId=${foundProduct.ProductId}`);
     } else {
       // If no match found, clear the product ID filter but keep the search text
       setSearchProductId(null);
+      fetchBranches(1, pagination.pageSize, null);
       router.push("/admin/branches");
     }
   };
@@ -604,10 +626,7 @@ function BranchesPageContent() {
             <p className="mb-4 text-gray-400">
               آمار گارانتی‌های فعال، منقضی شده و درخواست‌های بررسی
             </p>
-            <WarrantyStats
-              key={`stats-${new Date().getTime()}`}
-              isTabActive={activeTab === "warranty-stats"}
-            />
+            <WarrantyStats key="warranty-stats" isTabActive={activeTab === "warranty-stats"} />
           </Card>
         </TabPane>
 
@@ -620,7 +639,7 @@ function BranchesPageContent() {
           >
             <p className="mb-4 text-gray-400">لیست درخواست‌های بررسی گارانتی از تمام شعبه‌ها</p>
             <WarrantyRequests
-              key={`requests-${new Date().getTime()}`}
+              key="warranty-requests"
               isTabActive={activeTab === "warranty-requests"}
             />
           </Card>

@@ -36,9 +36,7 @@ async function branchProductSearch(
     setSearchLoading(true);
     setSearchPerformed(true);
 
-    const response = await fetch(
-      `/api/admin/branches/product-stock?productId=${selectedProduct}`
-    );
+    const response = await fetch(`/api/admin/branches/product-stock?productId=${selectedProduct}`);
     if (!response.ok) {
       throw new Error("Failed to search branches");
     }

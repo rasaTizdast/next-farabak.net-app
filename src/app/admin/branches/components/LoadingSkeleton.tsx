@@ -2,7 +2,12 @@ import React from "react";
 
 const LoadingSkeleton: React.FC = () => {
   return (
-    <div className="space-y-6 rounded-lg bg-gray-950 p-4 text-white sm:p-6" dir="rtl">
+    <div
+      className="space-y-6 rounded-lg bg-gray-950 p-4 text-white sm:p-6"
+      dir="rtl"
+      role="status"
+      aria-label="در حال بارگذاری"
+    >
       {/* Header section */}
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
