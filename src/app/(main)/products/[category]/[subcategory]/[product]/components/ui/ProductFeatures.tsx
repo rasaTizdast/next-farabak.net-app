@@ -39,7 +39,7 @@ export default async function ProductFeatures({ productId }: { productId: number
   return (
     <ul className={styles.productFeatures}>
       {properties.map((property, index) => (
-        <li key={index}>{property}</li>
+        <li key={property}>{property}</li>
       ))}
     </ul>
   );

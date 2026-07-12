@@ -224,6 +224,7 @@ const AdminProductsPage = () => {
                 placeholder="جستجو"
                 value={tempSearchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
+                aria-label="جستجوی محصول"
                 className="w-full rounded-lg border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 lg:min-w-[200px] lg:max-w-[350px]"
               />
             </div>

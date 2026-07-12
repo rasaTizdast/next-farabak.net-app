@@ -60,11 +60,17 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
     });
   }, [localErrors, localFeatures, setErrors]);
 
+  const validateField = (value: string) => {
+    let error = "";
+    if (!value.trim()) error = "ویژگی نمی‌تواند خالی باشد.";
+    else if (value.length > 300) error = "ویژگی نمی‌تواند بیشتر از ۳۰۰ کاراکتر باشد.";
+    return error;
+  };
+
   // Initialize validation on component mount and when features change from parent
   useEffect(() => {
     setLocalFeatures(state.features);
 
-    // Validate all features
     const initialErrors = {};
     state.features.forEach((feature, index) => {
       const error = validateField(feature);
@@ -75,13 +81,6 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
 
     setLocalErrors(initialErrors);
   }, [state.features]);
-
-  const validateField = (value: string) => {
-    let error = "";
-    if (!value.trim()) error = "ویژگی نمی‌تواند خالی باشد.";
-    else if (value.length > 300) error = "ویژگی نمی‌تواند بیشتر از ۳۰۰ کاراکتر باشد.";
-    return error;
-  };
 
   const handleFeatureChange = (index: number, value: string) => {
     const error = validateField(value);
@@ -133,7 +132,7 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
     <div className="mb-6 p-4">
       <div className={`${localFeatures.length ? "mb-10 flex flex-col gap-5" : ""}`}>
         {localFeatures.map((feature, index) => (
-          <div key={index} className="flex items-center gap-4">
+          <div key={feature} className="flex items-center gap-4">
             <input
               type="text"
               data-testid={`product-feature-${index}`}
@@ -151,6 +150,7 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
               type="button"
               data-testid={`remove-feature-${index}`}
               onClick={() => handleFeatureRemove(index)}
+              aria-label="حذف ویژگی"
               className="text-red-500 transition-all hover:text-red-600"
             >
               <FaTrashAlt size={20} />

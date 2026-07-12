@@ -492,7 +492,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
             state.keywords.split(" ").map((keyword: string, index: number) => (
               <button
                 type="button"
-                key={index}
+                key={keyword}
                 className="flex animate-fade-in items-center gap-2 rounded-lg bg-green-700 px-4 py-1 transition-all hover:bg-red-700 hover:text-white"
                 onClick={() => {
                   const updatedKeywords = state.keywords

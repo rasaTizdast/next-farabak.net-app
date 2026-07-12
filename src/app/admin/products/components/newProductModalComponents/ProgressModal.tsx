@@ -35,7 +35,7 @@ const ProgressModal = ({ progress, currentStep }: { progress: number; currentSte
           <ul className="space-y-2">
             {steps.map((step, index) => (
               <li
-                key={index}
+                key={step}
                 className={`flex items-center gap-2 text-sm transition-colors duration-300 ${
                   index + 1 <= currentStep ? "text-blue-600" : "text-gray-400"
                 }`}

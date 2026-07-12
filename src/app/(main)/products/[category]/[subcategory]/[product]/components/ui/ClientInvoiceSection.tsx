@@ -346,7 +346,7 @@ const ClientInvoiceSection = ({
                     type="button"
                     onClick={() => removeProductFromInvoice(ProductId)}
                     className={`${styles.action} origin-left transition-all hover:bg-red-600 hover:brightness-110`}
-                    title="حذف کامل از فاکتور"
+                    aria-label="حذف کامل از فاکتور"
                   >
                     <FaRegTrashAlt />
                   </button>

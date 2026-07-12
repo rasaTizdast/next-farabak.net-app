@@ -302,7 +302,7 @@ const Specs: React.FC<SpecsProps> = ({ state, dispatch, setErrors, hasSubmitted 
 
         <div className="space-y-4">
           {state.specs.map((spec, index) => (
-            <div key={index} className="flex gap-4" onClick={(e) => e.stopPropagation()}>
+            <div key={spec.title + spec.description} className="flex gap-4" onClick={(e) => e.stopPropagation()}>
               <div className="flex-1">
                 <label className="mb-1 block text-sm">عنوان</label>
                 <input
