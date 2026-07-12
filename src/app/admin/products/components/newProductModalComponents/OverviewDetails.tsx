@@ -43,7 +43,7 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
       setOverviewDetails(data);
       dispatch({ type: "SET_OVERVIEW_DETAILS", details: data });
     }
-  }, [detailsData]);
+  }, [detailsData, dispatch]);
 
   // Listen for the refresh event
   useEffect(() => {
@@ -58,7 +58,7 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
     return () => {
       document.removeEventListener("refreshOverviewDetails", handleRefresh);
     };
-  }, []);
+  }, [fetchOverviewDetails]);
 
   // Toggle selection
   const toggleSelection = (id: number) => {
