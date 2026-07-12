@@ -2,6 +2,7 @@
 // Supports: headings (#, ##, ###), paragraphs, unordered/ordered lists, and links [text](url)
 import Link from "next/link";
 import React from "react";
+import DOMPurify from "isomorphic-dompurify";
 
 import { parseBlogTextToElements } from "./parseBlogText";
 
@@ -113,7 +114,7 @@ const TableScrollWrapper = ({ htmlContent }: { htmlContent: string }) => {
   const hasTables = /<table/i.test(htmlContent);
 
   if (!hasTables) {
-    return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+    return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }} />;
   }
 
   // Wrap tables in scrollable divs with Tailwind classes
@@ -127,7 +128,7 @@ const TableScrollWrapper = ({ htmlContent }: { htmlContent: string }) => {
   return (
     <div
       className="[&_table]:m-0 [&_table_p]:m-0 [&_td]:whitespace-nowrap [&_td]:border [&_td]:border-neutral-800 [&_td]:bg-blue-900/30 [&_td]:!px-0 [&_td]:py-3 [&_td]:text-right [&_td]:text-neutral-300 [&_td_p]:px-2 [&_th]:whitespace-nowrap [&_th]:border [&_th]:border-neutral-800 [&_th]:bg-blue-900/60 [&_th]:px-2 [&_th]:py-3 [&_th]:text-right [&_th]:font-semibold [&_th]:text-neutral-100"
-      dangerouslySetInnerHTML={{ __html: wrappedContent }}
+      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(wrappedContent) }}
     />
   );
 };

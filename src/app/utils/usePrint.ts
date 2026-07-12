@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import DOMPurify from "isomorphic-dompurify";
 
 export interface PrintOptions {
   hideElements?: string[];
@@ -362,7 +363,7 @@ export const usePrint = () => {
             ${printScript}
           </head>
           <body style="margin:0;padding:0;overflow:hidden;width:3.5in;height:2in;font-family:var(--font-iran-yekan);">
-            ${componentRef.current.innerHTML}
+            ${DOMPurify.sanitize(componentRef.current.innerHTML)}
           </body>
         </html>
       `);
@@ -379,7 +380,7 @@ export const usePrint = () => {
             ${printScript}
           </head>
           <body style="font-family:var(--font-iran-yekan);">
-            ${content.outerHTML}
+            ${DOMPurify.sanitize(content.outerHTML)}
           </body>
         </html>
       `);
