@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
 
@@ -27,6 +27,27 @@ function parseSeoKeywords(value: string): string[] {
   return [];
 }
 
+async function withRetry401<T>(
+  requestFn: () => Promise<T>,
+  options: { retries?: number; baseDelayMs?: number } = {}
+): Promise<T> {
+  const { retries = 3, baseDelayMs = 300 } = options;
+  let lastError: unknown;
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      return await requestFn();
+    } catch (error) {
+      lastError = error;
+      if (axios.isAxiosError(error) && error.response?.status === 401 && attempt < retries - 1) {
+        await new Promise((r) => setTimeout(r, baseDelayMs * (attempt + 1)));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw lastError as Error;
+}
+
 const EditModal: React.FC<EditModalProps> = ({
   isOpen,
   item,
@@ -48,45 +69,25 @@ const EditModal: React.FC<EditModalProps> = ({
   const { mutate: editMutate } = useApiMutation("patch");
   const { mutate: deleteS3Mutate } = useApiMutation("delete");
 
-  // Retry helper for 401 errors
-  const withRetry401 = async <T,>(
-    requestFn: () => Promise<T>,
-    options: { retries?: number; baseDelayMs?: number } = {}
-  ): Promise<T> => {
-    const { retries = 3, baseDelayMs = 300 } = options;
-    let lastError: unknown;
-    for (let attempt = 0; attempt < retries; attempt++) {
-      try {
-        return await requestFn();
-      } catch (error) {
-        lastError = error;
-        if (axios.isAxiosError(error) && error.response?.status === 401 && attempt < retries - 1) {
-          await new Promise((r) => setTimeout(r, baseDelayMs * (attempt + 1)));
-          continue;
-        }
-        throw error;
-      }
-    }
-    throw lastError as Error;
-  };
+  const itemKey = item ? ((item as any).CategoryID ?? (item as any).CategoryContentId) : null;
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
-    if (!item) return;
-    if (item.SEO_Details) {
-      const sd = item.SEO_Details;
-      let k: string[] = [];
-      if (Array.isArray(sd.SEO_Keywords)) k = sd.SEO_Keywords;
-      else if (typeof sd.SEO_Keywords === "string") {
-        k = parseSeoKeywords(sd.SEO_Keywords);
+    if (item) {
+      if (item.SEO_Details) {
+        const sd = item.SEO_Details;
+        let k: string[] = [];
+        if (Array.isArray(sd.SEO_Keywords)) k = sd.SEO_Keywords;
+        else if (typeof sd.SEO_Keywords === "string") {
+          k = parseSeoKeywords(sd.SEO_Keywords);
+        }
+        setSeoKeywords(k);
       }
-      setSeoKeywords(k);
+      setTopBlog((item as any).TopBlog || "");
+      setBottomBlog((item as any).BottomBlog || "");
+      const b = (item as any).Banner as string | undefined;
+      setBannerPreview(b ? `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${b}` : "");
     }
-    setTopBlog((item as any).TopBlog || "");
-    setBottomBlog((item as any).BottomBlog || "");
-    const b = (item as any).Banner as string | undefined;
-    setBannerPreview(b ? `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${b}` : "");
-  }, [item]);
+  }, [item, itemKey]);
 
   // Banner drop handlers MUST be declared before any conditional return to avoid hook order changes
   const onDrop = useCallback((accepted: File[]) => {

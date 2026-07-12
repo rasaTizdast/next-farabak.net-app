@@ -1,7 +1,7 @@
+import axios from "axios";
 import { useState, useEffect, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-hot-toast";
-import axios from "axios";
 
 import { useApiMutation } from "@/hooks/useApiMutation";
 
@@ -88,12 +88,11 @@ async function doCreateItem(
           : {
               type: "categoryBanner",
               contentType: bannerFile.type,
-              categorySlug:
-                categories.find((c) => c.CategoryID === parentCategoryId)?.Slug || slug,
+              categorySlug: categories.find((c) => c.CategoryID === parentCategoryId)?.Slug || slug,
               subcategorySlug: slug,
             };
 
-      const presignRes = await withRetry401(() => axios.post("/api/s3/upload", payload)) as any;
+      const presignRes = (await withRetry401(() => axios.post("/api/s3/upload", payload))) as any;
       const presign = presignRes.data;
       await axios.put(presign.uploadUrl, bannerFile, {
         headers: { "Content-Type": bannerFile.type },
@@ -146,6 +145,27 @@ async function doCreateItem(
   }
 }
 
+async function withRetry401<T>(
+  requestFn: () => Promise<T>,
+  options: { retries?: number; baseDelayMs?: number } = {}
+): Promise<T> {
+  const { retries = 3, baseDelayMs = 300 } = options;
+  let lastError: unknown;
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      return await requestFn();
+    } catch (error: any) {
+      lastError = error;
+      if (error?.response?.status === 401 && attempt < retries - 1) {
+        await new Promise((r) => setTimeout(r, baseDelayMs * (attempt + 1)));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw lastError as Error;
+}
+
 const CreateNewItemModal = ({
   isOpen,
   onClose,
@@ -174,28 +194,6 @@ const CreateNewItemModal = ({
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string>("");
   const [bannerCleared, setBannerCleared] = useState<boolean>(false);
-
-  // Retry helper for 401 errors
-  const withRetry401 = async <T,>(
-    requestFn: () => Promise<T>,
-    options: { retries?: number; baseDelayMs?: number } = {}
-  ): Promise<T> => {
-    const { retries = 3, baseDelayMs = 300 } = options;
-    let lastError: unknown;
-    for (let attempt = 0; attempt < retries; attempt++) {
-      try {
-        return await requestFn();
-      } catch (error: any) {
-        lastError = error;
-        if (error?.response?.status === 401 && attempt < retries - 1) {
-          await new Promise((r) => setTimeout(r, baseDelayMs * (attempt + 1)));
-          continue;
-        }
-        throw error;
-      }
-    }
-    throw lastError as Error;
-  };
 
   // Reset the form fields when the modal is opened (when `isOpen` changes)
   useEffect(() => {

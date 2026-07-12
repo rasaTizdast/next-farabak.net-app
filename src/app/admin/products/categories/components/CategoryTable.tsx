@@ -55,7 +55,7 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
   const { mutate: deleteMutate } = useApiMutation("delete");
 
   // Sorting function
-  const sortedCategories = useMemo(() => {
+  const sortedCategories = (() => {
     if (!categories.length) return [];
     return categories.toSorted((a, b) => {
       const key = sortConfig.key;
@@ -67,7 +67,7 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
       }
       return 0;
     });
-  }, [categories, sortConfig]);
+  })();
 
   const handleSort = (key: SortKey) => {
     setSortConfig((prevConfig) => ({
@@ -159,7 +159,12 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
             <tbody>
               {isLoading
                 ? [...Array(20)].map((_, index) => (
-                    <tr key={index} className="animate-pulse">
+                    <tr
+                      key={index}
+                      className="animate-pulse"
+                      role="status"
+                      aria-label="در حال بارگذاری"
+                    >
                       <td className="bg-slate-700 px-6 py-4"></td>
                       <td className="bg-slate-700 px-6 py-4"></td>
                       <td className="bg-slate-700 px-6 py-4"></td>
