@@ -1,8 +1,8 @@
 // Server component to render blog TEXT with Tailwind prose styles and schema.org
 // Supports: headings (#, ##, ###), paragraphs, unordered/ordered lists, and links [text](url)
+import DOMPurify from "isomorphic-dompurify";
 import Link from "next/link";
 import React from "react";
-import DOMPurify from "isomorphic-dompurify";
 
 import { parseBlogTextToElements } from "./parseBlogText";
 
@@ -57,27 +57,29 @@ function _parseTextToElements(_text: string): React.ReactNode[] {
     return <>{parts}</>;
   };
 
-  lines.forEach((raw, i) => {
+  lines.forEach((raw) => {
     const line = raw.trimEnd();
     if (!line.trim()) {
       flushList(currentList);
       return;
     }
 
+    const k = line.slice(0, 40).replace(/[^\w\u0600-\u06FF]/g, "");
+
     // Headings
     if (line.startsWith("### ")) {
       flushList(currentList);
-      elements.push(<h3 key={`h3-${i}`}>{renderInline(line.slice(4), `h3-${i}`)}</h3>);
+      elements.push(<h3 key={`h3-${k}`}>{renderInline(line.slice(4), `h3-${k}`)}</h3>);
       return;
     }
     if (line.startsWith("## ")) {
       flushList(currentList);
-      elements.push(<h2 key={`h2-${i}`}>{renderInline(line.slice(3), `h2-${i}`)}</h2>);
+      elements.push(<h2 key={`h2-${k}`}>{renderInline(line.slice(3), `h2-${k}`)}</h2>);
       return;
     }
     if (line.startsWith("# ")) {
       flushList(currentList);
-      elements.push(<h1 key={`h1-${i}`}>{renderInline(line.slice(2), `h1-${i}`)}</h1>);
+      elements.push(<h1 key={`h1-${k}`}>{renderInline(line.slice(2), `h1-${k}`)}</h1>);
       return;
     }
 
@@ -86,7 +88,7 @@ function _parseTextToElements(_text: string): React.ReactNode[] {
       const content = line.replace(/^\d+\.\s+/, "");
       if (currentList.type && currentList.type !== "ol") flushList(currentList);
       currentList.type = "ol";
-      currentList.items.push(<li key={`oli-${i}`}>{renderInline(content, `oli-${i}`)}</li>);
+      currentList.items.push(<li key={`oli-${k}`}>{renderInline(content, `oli-${k}`)}</li>);
       return;
     }
 
@@ -95,13 +97,13 @@ function _parseTextToElements(_text: string): React.ReactNode[] {
       const content = line.replace(/^(\-|\*)\s+/, "");
       if (currentList.type && currentList.type !== "ul") flushList(currentList);
       currentList.type = "ul";
-      currentList.items.push(<li key={`uli-${i}`}>{renderInline(content, `uli-${i}`)}</li>);
+      currentList.items.push(<li key={`uli-${k}`}>{renderInline(content, `uli-${k}`)}</li>);
       return;
     }
 
     // Paragraph
     flushList(currentList);
-    elements.push(<p key={`p-${i}`}>{renderInline(line, `p-${i}`)}</p>);
+    elements.push(<p key={`p-${k}`}>{renderInline(line, `p-${k}`)}</p>);
   });
 
   flushList(currentList);
