@@ -29,9 +29,12 @@ async function fetchProductsAndPricing(apiUrl: string) {
     });
 
     const pricingResults = await Promise.all(pricingPromises);
-    const validPrices = pricingResults
-      .filter((pricing) => pricing.isValidRate && pricing.originalPrice !== null)
-      .map((pricing) => pricing.originalPrice!);
+    const validPrices: number[] = [];
+    for (const pricing of pricingResults) {
+      if (pricing.isValidRate && pricing.originalPrice !== null) {
+        validPrices.push(pricing.originalPrice);
+      }
+    }
 
     if (validPrices.length > 0) {
       minPrice = formatPriceForSchema(Math.min(...validPrices));
