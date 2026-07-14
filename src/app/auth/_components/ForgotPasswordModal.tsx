@@ -1,7 +1,7 @@
 "use client";
 
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 
 import {
@@ -30,8 +30,8 @@ interface ForgotPasswordModalProps {
 const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState<ForgotPasswordStep>(ForgotPasswordStep.EMAIL);
   const [email, setEmail] = useState<string>("");
-  const [verificationCode, setVerificationCode] = useState<string>("");
-  const [resetToken, setResetToken] = useState<string>("");
+  const verificationCodeRef = useRef<string>("");
+  const resetTokenRef = useRef<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const { mutate: forgotPassword, loading: submittingForgot } = useApiMutation("post");
   const { mutate: verifyCode, loading: submittingVerify } = useApiMutation("post");
@@ -73,7 +73,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     if (response) {
       if (response.emailSent && response.resetToken) {
         setEmail(data.email);
-        setResetToken(response.resetToken);
+        resetTokenRef.current = response.resetToken;
         setCurrentStep(ForgotPasswordStep.VERIFY_CODE);
       } else {
         setErrorMessage(response.message || "خطا در ارسال ایمیل");
@@ -90,11 +90,11 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
     const response = (await verifyCode("/api/auth/verify-reset-code", {
       email,
       code: data.code,
-      resetToken,
+      resetToken: resetTokenRef.current,
     })) as any;
     if (response) {
       if (response.valid) {
-        setVerificationCode(data.code);
+        verificationCodeRef.current = data.code;
         setCurrentStep(ForgotPasswordStep.RESET_PASSWORD);
       } else {
         setErrorMessage(response.error || "کد تایید نامعتبر است");
@@ -110,9 +110,9 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
 
     const response = (await resetPassword("/api/auth/reset-password", {
       email,
-      code: verificationCode,
+      code: verificationCodeRef.current,
       newPassword: data.password,
-      resetToken,
+      resetToken: resetTokenRef.current,
     })) as any;
     if (response) {
       if (response.success) {
@@ -129,8 +129,8 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
   const handleClose = () => {
     setCurrentStep(ForgotPasswordStep.EMAIL);
     setEmail("");
-    setVerificationCode("");
-    setResetToken("");
+    verificationCodeRef.current = "";
+    resetTokenRef.current = "";
     setErrorMessage("");
     emailMethods.reset();
     codeMethods.reset();

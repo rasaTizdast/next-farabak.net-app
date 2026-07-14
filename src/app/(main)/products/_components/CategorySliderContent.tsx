@@ -13,8 +13,8 @@ export default function CategorySliderContent({ items }: CategorySliderContentPr
   const [canScrollLeft, setCanScrollLeft] = useState(true);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState(0);
-  const [scrollStart, setScrollStart] = useState(0);
+  const dragStartRef = useRef(0);
+  const scrollStartRef = useRef(0);
 
   const checkScroll = () => {
     if (sliderRef.current) {
@@ -51,20 +51,20 @@ export default function CategorySliderContent({ items }: CategorySliderContentPr
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
-    setDragStart(e.clientX);
+    dragStartRef.current = e.clientX;
     if (sliderRef.current) {
-      setScrollStart(sliderRef.current.scrollLeft);
+      scrollStartRef.current = sliderRef.current.scrollLeft;
     }
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !sliderRef.current) return;
 
-    const diff = e.clientX - dragStart;
+    const diff = e.clientX - dragStartRef.current;
 
     // In RTL, dragging right (positive diff) should scroll left (more negative)
     // Dragging left (negative diff) should scroll right (towards 0)
-    sliderRef.current.scrollLeft = scrollStart - diff;
+    sliderRef.current.scrollLeft = scrollStartRef.current - diff;
   };
 
   const handleMouseUp = () => {

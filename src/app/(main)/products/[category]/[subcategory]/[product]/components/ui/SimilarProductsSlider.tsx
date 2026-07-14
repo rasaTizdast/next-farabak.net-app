@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 
 import styles from "@/app/(main)/products/_components/ProductGrid.module.css";
 
@@ -24,10 +24,6 @@ type Props = {
 export default function SimilarProductsSlider({ title, products, usdRate }: Props) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-  const [velocity, setVelocity] = useState(0);
-  const [lastX, setLastX] = useState(0);
   const lastTimeRef = useRef(0);
   const animationFrameRef = useRef<number | null>(null);
   const isDraggingRef = useRef(false);
@@ -55,26 +51,21 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
 
       el.scrollLeft -= velocityRef.current;
       velocityRef.current *= 0.92;
-      setVelocity(velocityRef.current);
 
       animationFrameRef.current = requestAnimationFrame(momentumScrollRef.current);
     } else {
       velocityRef.current = 0;
-      setVelocity(0);
     }
   };
 
   // Sync refs
   useEffect(() => {
     momentumScrollRef.current = momentumScroll;
-  }, [momentumScroll]);
+  }, []);
 
   useEffect(() => {
     isDraggingRef.current = isDragging;
   }, [isDragging]);
-  useEffect(() => {
-    velocityRef.current = velocity;
-  }, [velocity]);
 
   // Mouse drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -87,10 +78,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     scrollLeftRef.current = el.scrollLeft;
     lastXRef.current = e.pageX;
     lastTimeRef.current = Date.now();
-    setVelocity(0);
-    setStartX(e.pageX - el.offsetLeft);
-    setScrollLeft(el.scrollLeft);
-    setLastX(e.pageX);
+    velocityRef.current = 0;
     el.style.cursor = "grabbing";
     el.style.userSelect = "none";
   };
@@ -108,7 +96,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     const deltaTime = currentTime - lastTimeRef.current;
 
     if (deltaTime > 0) {
-      setVelocity((deltaX / deltaTime) * 1000);
+      velocityRef.current = (deltaX / deltaTime) * 1000;
     }
 
     const x = e.pageX - el.offsetLeft;
@@ -117,7 +105,6 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
 
     lastXRef.current = currentX;
     lastTimeRef.current = currentTime;
-    setLastX(currentX);
   };
 
   const handleMouseUp = () => {
@@ -145,10 +132,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     scrollLeftRef.current = el.scrollLeft;
     lastXRef.current = e.touches[0].pageX;
     lastTimeRef.current = Date.now();
-    setStartX(e.touches[0].pageX - el.offsetLeft);
-    setScrollLeft(el.scrollLeft);
-    setLastX(e.touches[0].pageX);
-    setVelocity(0);
+    velocityRef.current = 0;
   };
 
   const handleTouchMove = (e: TouchEvent) => {
@@ -164,7 +148,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     const deltaTime = currentTime - lastTimeRef.current;
 
     if (deltaTime > 0) {
-      setVelocity((deltaX / deltaTime) * 1000);
+      velocityRef.current = (deltaX / deltaTime) * 1000;
     }
 
     const x = e.touches[0].pageX - el.offsetLeft;
@@ -173,7 +157,6 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
 
     lastXRef.current = currentX;
     lastTimeRef.current = currentTime;
-    setLastX(currentX);
   };
 
   const handleTouchEnd = useCallback(() => {
@@ -184,24 +167,37 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     if (Math.abs(velocityRef.current) > 1) {
       momentumScroll();
     }
-  }, [momentumScroll]);
+  }, []);
+
+  // Store handlers in refs so the effect doesn't re-run when they change
+  const handleMouseMoveRef = useRef(handleMouseMove);
+  const handleMouseUpRef = useRef(handleMouseUp);
+  const handleTouchMoveRef = useRef(handleTouchMove);
+  useEffect(() => {
+    handleMouseMoveRef.current = handleMouseMove;
+    handleMouseUpRef.current = handleMouseUp;
+    handleTouchMoveRef.current = handleTouchMove;
+  });
 
   // Global event listeners for better performance
   useEffect(() => {
     if (isDragging) {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-      document.addEventListener("touchmove", handleTouchMove, { passive: false });
+      const onMove = (e: MouseEvent) => handleMouseMoveRef.current(e);
+      const onUp = () => handleMouseUpRef.current();
+      const onTouchMove = (e: TouchEvent) => handleTouchMoveRef.current(e);
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+      document.addEventListener("touchmove", onTouchMove, { passive: false });
       document.addEventListener("touchend", handleTouchEnd);
-    }
 
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.removeEventListener("touchmove", handleTouchMove);
-      document.removeEventListener("touchend", handleTouchEnd);
-    };
-  }, [isDragging, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
+      return () => {
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+        document.removeEventListener("touchmove", onTouchMove);
+        document.removeEventListener("touchend", handleTouchEnd);
+      };
+    }
+  }, [isDragging, handleTouchEnd]);
 
   // Cleanup animation frame on unmount
   useEffect(() => {

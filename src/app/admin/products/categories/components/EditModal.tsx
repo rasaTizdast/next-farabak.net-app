@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
 
@@ -60,19 +60,22 @@ const EditModal: React.FC<EditModalProps> = ({
 }) => {
   const [keywordInput, setKeywordInput] = useState("");
   const [seoKeywords, setSeoKeywords] = useState<string[]>([]);
-  const [errors, setErrors] = useState<Record<string, string>>({}); // Store errors for all fields
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const initializedRef = useRef(false);
   const [topBlog, setTopBlog] = useState<string>("");
   const [bottomBlog, setBottomBlog] = useState<string>("");
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const bannerFileRef = useRef<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string>("");
-  const [bannerDeleteRequested, setBannerDeleteRequested] = useState<boolean>(false);
+  const bannerDeleteRequestedRef = useRef<boolean>(false);
   const { mutate: editMutate } = useApiMutation("patch");
   const { mutate: deleteS3Mutate } = useApiMutation("delete");
 
   const itemKey = item ? ((item as any).CategoryID ?? (item as any).CategoryContentId) : null;
+  const itemInitGuard = useRef(false);
 
   useEffect(() => {
-    if (item) {
+    if (item && !itemInitGuard.current) {
+      itemInitGuard.current = true;
       if (item.SEO_Details) {
         const sd = item.SEO_Details;
         let k: string[] = [];
@@ -93,7 +96,7 @@ const EditModal: React.FC<EditModalProps> = ({
   const onDrop = useCallback((accepted: File[]) => {
     if (accepted.length > 0) {
       const f = accepted[0];
-      setBannerFile(f);
+      bannerFileRef.current = f;
       setBannerPreview(URL.createObjectURL(f));
     }
   }, []);
@@ -221,17 +224,17 @@ const EditModal: React.FC<EditModalProps> = ({
     // Upload banner if selected
     let bannerKey: string | undefined = undefined;
     const existingKey = (item as any).Banner as string | undefined;
-    if (bannerFile) {
+    if (bannerFileRef.current) {
       try {
         const payloadForUpload = isCategory
           ? {
               type: "categoryBanner",
-              contentType: bannerFile.type,
+              contentType: bannerFileRef.current.type,
               categorySlug: updatedItem.Slug,
             }
           : {
               type: "categoryBanner",
-              contentType: bannerFile.type,
+              contentType: bannerFileRef.current.type,
               categorySlug:
                 (updatedItem as any).ParentSlug ||
                 (updatedItem as any).CategorySlug ||
@@ -241,8 +244,8 @@ const EditModal: React.FC<EditModalProps> = ({
         const { data: presign } = await withRetry401(() =>
           axios.post(`/api/s3/upload`, payloadForUpload)
         );
-        await axios.put(presign.uploadUrl, bannerFile, {
-          headers: { "Content-Type": bannerFile.type },
+        await axios.put(presign.uploadUrl, bannerFileRef.current, {
+          headers: { "Content-Type": bannerFileRef.current.type },
         });
         bannerKey = presign.key;
       } catch (e) {
@@ -260,7 +263,10 @@ const EditModal: React.FC<EditModalProps> = ({
           Available: updatedItem.Available,
           TopBlog: topBlog || null,
           BottomBlog: bottomBlog || null,
-          Banner: bannerDeleteRequested && !bannerKey ? null : (bannerKey ?? existingKey ?? null),
+          Banner:
+            bannerDeleteRequestedRef.current && !bannerKey
+              ? null
+              : (bannerKey ?? existingKey ?? null),
           SEO_Details: {
             SEO_Title: updatedItem.SEO_Details.SEO_Title,
             SEO_Description: updatedItem.SEO_Details.SEO_Description,
@@ -276,7 +282,10 @@ const EditModal: React.FC<EditModalProps> = ({
           Available: updatedItem.Available,
           TopBlog: topBlog || null,
           BottomBlog: bottomBlog || null,
-          Banner: bannerDeleteRequested && !bannerKey ? null : (bannerKey ?? existingKey ?? null),
+          Banner:
+            bannerDeleteRequestedRef.current && !bannerKey
+              ? null
+              : (bannerKey ?? existingKey ?? null),
           SEO_Details: {
             SEO_Title: updatedItem.SEO_Details.SEO_Title,
             SEO_Description: updatedItem.SEO_Details.SEO_Description,
@@ -286,7 +295,7 @@ const EditModal: React.FC<EditModalProps> = ({
 
     const result = await editMutate(endpoint, payload);
     if (result) {
-      if (bannerDeleteRequested && existingKey && !bannerKey) {
+      if (bannerDeleteRequestedRef.current && existingKey && !bannerKey) {
         await deleteS3Mutate("/api/s3/delete", { type: "categoryBanner", key: existingKey });
       }
       toast.success("تغییرات با موفقیت اعمال شدند!");
@@ -326,9 +335,13 @@ const EditModal: React.FC<EditModalProps> = ({
         <h3 className="mb-4 text-center text-xl">ویرایش</h3>
         {/* Name Field */}
         <div className="mb-4">
-          <label className="mb-2 block text-sm">نام</label>
+          <label htmlFor="edit-category-name" className="mb-2 block text-sm">
+            نام
+          </label>
           <input
+            id="edit-category-name"
             type="text"
+            aria-label="نام"
             value={item.Name || ""}
             onChange={(e) => handleInputChange("Name", e.target.value)}
             className={`w-full border bg-gray-700 p-2 ${
@@ -341,7 +354,9 @@ const EditModal: React.FC<EditModalProps> = ({
 
         {/* Banner Field */}
         <div className="mb-4">
-          <label className="mb-2 block text-sm">بنر</label>
+          <label htmlFor="edit-category-banner" className="mb-2 block text-sm">
+            بنر
+          </label>
           <div
             {...getRootProps()}
             className={`cursor-pointer rounded-md border-2 border-dashed p-4 text-center transition-colors ${
@@ -387,8 +402,8 @@ const EditModal: React.FC<EditModalProps> = ({
                 type="button"
                 className="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
                 onClick={() => {
-                  setBannerDeleteRequested(true);
-                  setBannerFile(null);
+                  bannerDeleteRequestedRef.current = true;
+                  bannerFileRef.current = null;
                   setBannerPreview("");
                   onChange({ Banner: null } as any);
                 }}
@@ -401,9 +416,13 @@ const EditModal: React.FC<EditModalProps> = ({
 
         {/* Slug Field */}
         <div className="mb-4">
-          <label className="mb-2 block text-sm">شناسه</label>
+          <label htmlFor="edit-category-slug" className="mb-2 block text-sm">
+            شناسه
+          </label>
           <input
+            id="edit-category-slug"
             type="text"
+            aria-label="شناسه"
             value={item.Slug}
             onChange={(e) => handleInputChange("Slug", e.target.value)}
             className={`w-full border bg-gray-700 p-2 ${
@@ -415,8 +434,12 @@ const EditModal: React.FC<EditModalProps> = ({
 
         {/* Available Field */}
         <div className="mb-4">
-          <label className="mb-2 block text-sm">فعال</label>
+          <label htmlFor="edit-category-available" className="mb-2 block text-sm">
+            فعال
+          </label>
           <select
+            id="edit-category-available"
+            aria-label="فعال"
             value={item.Available ? "true" : "false"} // Convert boolean to string for select value
             onChange={(e) => handleInputChange("Available", e.target.value)}
             className={`w-full border bg-gray-700 p-2 ${
@@ -431,9 +454,13 @@ const EditModal: React.FC<EditModalProps> = ({
 
         {/* SEO Title Field */}
         <div className="mb-4">
-          <label className="mb-2 block text-sm">عنوان سئو</label>
+          <label htmlFor="edit-seo-title" className="mb-2 block text-sm">
+            عنوان سئو
+          </label>
           <input
+            id="edit-seo-title"
             type="text"
+            aria-label="عنوان سئو"
             value={seoDetails.SEO_Title || ""} // Ensure fallback to an empty string
             onChange={(e) => handleInputChange("SEO_Title", e.target.value)}
             className={`w-full border bg-gray-700 p-2 ${
@@ -446,8 +473,12 @@ const EditModal: React.FC<EditModalProps> = ({
 
         {/* SEO Description Field */}
         <div className="mb-4">
-          <label className="mb-2 block text-sm">توضیحات سئو</label>
+          <label htmlFor="edit-seo-description" className="mb-2 block text-sm">
+            توضیحات سئو
+          </label>
           <textarea
+            id="edit-seo-description"
+            aria-label="توضیحات سئو"
             value={seoDetails.SEO_Description || ""} // Ensure fallback to an empty string
             onChange={(e) => handleInputChange("SEO_Description", e.target.value)}
             className={`w-full border bg-gray-700 p-3 ${
@@ -463,9 +494,13 @@ const EditModal: React.FC<EditModalProps> = ({
 
         {/* SEO Keywords Field */}
         <div className="mb-4">
-          <label className="mb-2 block text-sm">کلمات کلیدی سئو</label>
+          <label htmlFor="edit-seo-keywords" className="mb-2 block text-sm">
+            کلمات کلیدی سئو
+          </label>
           <input
+            id="edit-seo-keywords"
             type="text"
+            aria-label="کلمات کلیدی سئو"
             value={keywordInput}
             onChange={(e) => setKeywordInput(e.target.value)}
             onKeyDown={addKeyword}
