@@ -8,6 +8,8 @@ import { useUser } from "@/context/UserContext";
 
 import styles from "./UserDropDown.module.css";
 
+const faNumberFormatter = new Intl.NumberFormat("fa-IR");
+
 const UserDropDown = () => {
   const router = useRouter();
   const [isVis, setIsVis] = useState(false);
@@ -38,7 +40,7 @@ const UserDropDown = () => {
 
   const totalAmount = calculateTotalAmount();
   const totalQuantity = calculateTotalQuantity();
-  const formattedAmount = new Intl.NumberFormat("fa-IR").format(totalAmount);
+  const formattedAmount = faNumberFormatter.format(totalAmount);
 
   // Function to handle clicks outside the component
   const handleClickOutside = (event: MouseEvent) => {
@@ -84,9 +86,7 @@ const UserDropDown = () => {
           onClick={() => setIsVis((v) => !v)} // Toggle the submenu when clicking the icon
         />
         {invoice.products.length > 0 && (
-          <div className={styles.invoiceBadge}>
-            {new Intl.NumberFormat("fa-IR").format(totalQuantity)}
-          </div>
+          <div className={styles.invoiceBadge}>{faNumberFormatter.format(totalQuantity)}</div>
         )}
       </div>
 
@@ -172,16 +172,15 @@ const UserDropDown = () => {
                                     {itemDiscount > 0 ? (
                                       <>
                                         <span className={styles.originalPrice}>
-                                          {new Intl.NumberFormat("fa-IR").format(itemPrice)} تومان
+                                          {faNumberFormatter.format(itemPrice)} تومان
                                         </span>
                                         <span className={styles.finalPrice}>
-                                          {new Intl.NumberFormat("fa-IR").format(finalUnitPrice)}{" "}
-                                          تومان
+                                          {faNumberFormatter.format(finalUnitPrice)} تومان
                                         </span>
                                       </>
                                     ) : (
                                       <span className={styles.finalPrice}>
-                                        {new Intl.NumberFormat("fa-IR").format(itemPrice)} تومان
+                                        {faNumberFormatter.format(itemPrice)} تومان
                                       </span>
                                     )}
                                   </div>
@@ -212,7 +211,7 @@ const UserDropDown = () => {
                                     </button>
 
                                     <span className={`${styles.quantity} px-2`}>
-                                      {new Intl.NumberFormat("fa-IR").format(current)}
+                                      {faNumberFormatter.format(current)}
                                       {min > 1 && current === min && " (حداقل)"}
                                       {max < Infinity && current === max && " (حداکثر)"}
                                     </span>

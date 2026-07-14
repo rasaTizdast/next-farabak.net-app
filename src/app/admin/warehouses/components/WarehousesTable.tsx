@@ -41,55 +41,55 @@ export default function WarehousesTable({
     { title: "تعداد محصولات", dataIndex: "productCount", key: "productCount" },
     { title: "تعداد کل", dataIndex: "totalQuantity", key: "totalQuantity" },
     ...(isSearching
-        ? [
-            {
-              title: "تعداد این محصول",
-              key: "specificProductQuantity",
-              render: (_: any, record: Warehouse) => (
-                <span
-                  className={
-                    (record.specificProductQuantity || 0) > 0
-                      ? "rounded bg-green-900/40 px-2 py-0.5 text-green-200"
-                      : "text-gray-300"
-                  }
-                >
-                  {(record.specificProductQuantity ?? 0) > 0
-                    ? `${record.specificProductQuantity} عدد`
-                    : "ناموجود"}
-                </span>
-              ),
-            },
-          ]
-        : []),
-      {
-        title: "عملیات",
-        key: "actions",
-        render: (_: any, record: Warehouse) => (
-          <div className="flex gap-2">
-            <ButtonBase
-              onClick={() => onEdit(record)}
-              className="flex items-center gap-2 !bg-amber-600 hover:!bg-amber-700"
-              variant="primary"
-            >
-              ویرایش
-            </ButtonBase>
-            <ButtonBase
-              onClick={() => onDelete(record)}
-              className="flex items-center gap-2"
-              variant="danger"
-            >
-              حذف
-            </ButtonBase>
-            <ButtonBase
-              onClick={() => onProducts(record)}
-              className="flex items-center gap-2"
-              variant="primary"
-            >
-              محصولات
-            </ButtonBase>
-          </div>
-        ),
-      },
+      ? [
+          {
+            title: "تعداد این محصول",
+            key: "specificProductQuantity",
+            render: (_: any, record: Warehouse) => (
+              <span
+                className={
+                  (record.specificProductQuantity || 0) > 0
+                    ? "rounded bg-green-900/40 px-2 py-0.5 text-green-200"
+                    : "text-gray-300"
+                }
+              >
+                {(record.specificProductQuantity ?? 0) > 0
+                  ? `${record.specificProductQuantity} عدد`
+                  : "ناموجود"}
+              </span>
+            ),
+          },
+        ]
+      : []),
+    {
+      title: "عملیات",
+      key: "actions",
+      render: (_: any, record: Warehouse) => (
+        <div className="flex gap-2">
+          <ButtonBase
+            onClick={() => onEdit(record)}
+            className="flex items-center gap-2 !bg-amber-600 hover:!bg-amber-700"
+            variant="primary"
+          >
+            ویرایش
+          </ButtonBase>
+          <ButtonBase
+            onClick={() => onDelete(record)}
+            className="flex items-center gap-2"
+            variant="danger"
+          >
+            حذف
+          </ButtonBase>
+          <ButtonBase
+            onClick={() => onProducts(record)}
+            className="flex items-center gap-2"
+            variant="primary"
+          >
+            محصولات
+          </ButtonBase>
+        </div>
+      ),
+    },
   ];
 
   return (

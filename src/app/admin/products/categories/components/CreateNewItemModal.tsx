@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-hot-toast";
 
@@ -57,9 +57,9 @@ async function doCreateItem(
   setKeywordInput: React.Dispatch<React.SetStateAction<string>>,
   setTopBlog: React.Dispatch<React.SetStateAction<string>>,
   setBottomBlog: React.Dispatch<React.SetStateAction<string>>,
-  setBannerFile: React.Dispatch<React.SetStateAction<File | null>>,
+  setBannerFile: (v: File | null) => void,
   setBannerPreview: React.Dispatch<React.SetStateAction<string>>,
-  setBannerCleared: React.Dispatch<React.SetStateAction<boolean>>,
+  setBannerCleared: (v: boolean) => void,
   onClose: () => void,
   refetchCategories: () => void
 ) {
@@ -178,40 +178,94 @@ const CreateNewItemModal = ({
   categories: Category[];
 }) => {
   const [activeTab, setActiveTab] = useState("Category");
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [available, setAvailable] = useState(true);
-  const [parentCategoryId, setParentCategoryId] = useState<number | undefined>(undefined);
-  const [seoTitle, setSeoTitle] = useState("");
-  const [seoDescription, setSeoDescription] = useState("");
-  const [seoKeywords, setSeoKeywords] = useState<string[]>([]);
-  const [keywordInput, setKeywordInput] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { mutate: createMutate } = useApiMutation("post");
-  const [topBlog, setTopBlog] = useState("");
-  const [bottomBlog, setBottomBlog] = useState("");
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [bannerPreview, setBannerPreview] = useState<string>("");
-  const [bannerCleared, setBannerCleared] = useState<boolean>(false);
+  const bannerFileRef = useRef<File | null>(null);
+  const bannerClearedRef = useRef<boolean>(false);
 
+  // Combined form state to avoid multiple setState calls in effects
+  type FormData = {
+    name: string;
+    slug: string;
+    available: boolean;
+    parentCategoryId: number | undefined;
+    seoTitle: string;
+    seoDescription: string;
+    seoKeywords: string[];
+    keywordInput: string;
+    error: string | null;
+    topBlog: string;
+    bottomBlog: string;
+    bannerPreview: string;
+  };
+  const initialFormState: FormData = {
+    name: "",
+    slug: "",
+    available: true,
+    parentCategoryId: undefined,
+    seoTitle: "",
+    seoDescription: "",
+    seoKeywords: [],
+    keywordInput: "",
+    error: null,
+    topBlog: "",
+    bottomBlog: "",
+    bannerPreview: "",
+  };
+  const [form, setForm] = useState<FormData>(initialFormState);
+  const {
+    name,
+    slug,
+    available,
+    parentCategoryId,
+    seoTitle,
+    seoDescription,
+    seoKeywords,
+    keywordInput,
+    error,
+    topBlog,
+    bottomBlog,
+    bannerPreview,
+  } = form;
+
+  // Create properly typed setter functions for form fields
+  function makeSetter<K extends keyof FormData>(
+    field: K
+  ): React.Dispatch<React.SetStateAction<FormData[K]>> {
+    return (v) =>
+      setForm((prev) => ({
+        ...prev,
+        [field]:
+          typeof v === "function" ? (v as (prev: FormData[K]) => FormData[K])(prev[field]) : v,
+      }));
+  }
+  const setName = makeSetter("name");
+  const setSlug = makeSetter("slug");
+  const setAvailable = makeSetter("available");
+  const setParentCategoryId = makeSetter("parentCategoryId");
+  const setSeoTitle = makeSetter("seoTitle");
+  const setSeoDescription = makeSetter("seoDescription");
+  const setSeoKeywords = makeSetter("seoKeywords");
+  const setKeywordInput = makeSetter("keywordInput");
+  const setError = makeSetter("error");
+  const setTopBlog = makeSetter("topBlog");
+  const setBottomBlog = makeSetter("bottomBlog");
+  const setBannerPreview = makeSetter("bannerPreview");
+  const resetForm = useCallback(() => setForm(initialFormState), []);
+
+  const resetGuard = useRef(false);
   // Reset the form fields when the modal is opened (when `isOpen` changes)
   useEffect(() => {
-    setName("");
-    setSlug("");
-    setAvailable(true);
-    setParentCategoryId(undefined);
-    setSeoTitle("");
-    setSeoDescription("");
-    setSeoKeywords([]);
-    setKeywordInput("");
-    setError(null); // Clear any previous error messages
-    setTopBlog("");
-    setBottomBlog("");
-    setBannerFile(null);
-    setBannerPreview("");
-    setBannerCleared(false);
-  }, [isOpen, activeTab]); // Trigger the effect when `isOpen` changes
+    if (!isOpen) {
+      resetGuard.current = false;
+      return;
+    }
+    if (resetGuard.current) return;
+    resetGuard.current = true;
+    resetForm();
+    bannerFileRef.current = null;
+    bannerClearedRef.current = false;
+  }, [isOpen, activeTab, resetForm]);
 
   const addKeyword = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && keywordInput.trim() && !seoKeywords.includes(keywordInput.trim())) {
@@ -252,8 +306,8 @@ const CreateNewItemModal = ({
       seoKeywords,
       topBlog,
       bottomBlog,
-      bannerFile,
-      bannerCleared,
+      bannerFileRef.current,
+      bannerClearedRef.current,
       activeTab,
       categories,
       withRetry401,
@@ -270,9 +324,13 @@ const CreateNewItemModal = ({
       setKeywordInput,
       setTopBlog,
       setBottomBlog,
-      setBannerFile,
+      (v: File | null) => {
+        bannerFileRef.current = v;
+      },
       setBannerPreview,
-      setBannerCleared,
+      (v: boolean) => {
+        bannerClearedRef.current = v;
+      },
       onClose,
       refetchCategories
     );
@@ -296,7 +354,7 @@ const CreateNewItemModal = ({
   const onDrop = useCallback((accepted: File[]) => {
     if (accepted.length > 0) {
       const file = accepted[0];
-      setBannerFile(file);
+      bannerFileRef.current = file;
       setBannerPreview(URL.createObjectURL(file));
     }
   }, []);
@@ -356,8 +414,12 @@ const CreateNewItemModal = ({
           ) : (
             <div>
               <div className="mb-4">
-                <label className="block text-sm font-medium">دسته‌بندی اصلی</label>
+                <label htmlFor="parent-category" className="block text-sm font-medium">
+                  دسته‌بندی اصلی
+                </label>
                 <select
+                  id="parent-category"
+                  aria-label="دسته‌بندی اصلی"
                   value={parentCategoryId ?? ""}
                   onChange={(e) => setParentCategoryId(Number(e.target.value))}
                   className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -400,7 +462,9 @@ const CreateNewItemModal = ({
 
           <div className="mt-6 rounded-md bg-gray-900 p-4">
             <div className="mb-6">
-              <label className="mb-2 block text-sm font-medium">تصویر بنر</label>
+              <label htmlFor="category-banner" className="mb-2 block text-sm font-medium">
+                تصویر بنر
+              </label>
               <div
                 {...getRootProps()}
                 className={`cursor-pointer rounded-md border-2 border-dashed p-4 text-center transition-colors ${
@@ -451,9 +515,9 @@ const CreateNewItemModal = ({
                     type="button"
                     className="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
                     onClick={() => {
-                      setBannerFile(null);
+                      bannerFileRef.current = null;
                       setBannerPreview("");
-                      setBannerCleared(true);
+                      bannerClearedRef.current = true;
                     }}
                   >
                     حذف بنر

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { BiTrash } from "react-icons/bi";
 import { DatePicker } from "zaman";
@@ -10,6 +10,11 @@ import { generateSlug } from "@/utils/generateSlug";
 
 type NewProjectProps = {
   onClose: () => void;
+};
+
+const removeFile = (setter: Function, files: File[], index: number) => {
+  const newFiles = files.filter((_, i) => i !== index);
+  setter(newFiles);
 };
 
 const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
@@ -93,14 +98,14 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
   };
 
   // Main image dropzone
-  const onMainImageDrop = useCallback((acceptedFiles: File[]) => {
+  const onMainImageDrop = (acceptedFiles: File[]) => {
     if (acceptedFiles[0]?.size > 2 * 1024 * 1024) {
       setErrors((prev) => ({ ...prev, mainImage: "Maximum file size is 2MB" }));
       return;
     }
     setErrors((prev) => ({ ...prev, mainImage: "" }));
     setMainImage(acceptedFiles[0]);
-  }, []);
+  };
 
   const { getRootProps: getMainRootProps, getInputProps: getMainInputProps } = useDropzone({
     onDrop: onMainImageDrop,
@@ -109,21 +114,18 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
   });
 
   // Detail images dropzone
-  const onDetailsDrop = useCallback(
-    (acceptedFiles: File[]) => {
-      const validFiles = acceptedFiles.filter((file) => file.size <= 2 * 1024 * 1024);
-      const newFiles = [...detailImages, ...validFiles].slice(0, 10);
+  const onDetailsDrop = (acceptedFiles: File[]) => {
+    const validFiles = acceptedFiles.filter((file) => file.size <= 2 * 1024 * 1024);
+    const newFiles = [...detailImages, ...validFiles].slice(0, 10);
 
-      if (validFiles.length !== acceptedFiles.length) {
-        setErrors((prev) => ({
-          ...prev,
-          details: "Some images exceeded 2MB limit",
-        }));
-      }
-      setDetailImages(newFiles);
-    },
-    [detailImages]
-  );
+    if (validFiles.length !== acceptedFiles.length) {
+      setErrors((prev) => ({
+        ...prev,
+        details: "Some images exceeded 2MB limit",
+      }));
+    }
+    setDetailImages(newFiles);
+  };
 
   const { getRootProps: getDetailsRootProps, getInputProps: getDetailsInputProps } = useDropzone({
     onDrop: onDetailsDrop,
@@ -132,32 +134,24 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
   });
 
   // Videos dropzone
-  const onVideosDrop = useCallback(
-    (acceptedFiles: File[]) => {
-      const validFiles = acceptedFiles.filter((file) => file.size <= 50 * 1024 * 1024);
-      const newFiles = [...videos, ...validFiles].slice(0, 3);
+  const onVideosDrop = (acceptedFiles: File[]) => {
+    const validFiles = acceptedFiles.filter((file) => file.size <= 50 * 1024 * 1024);
+    const newFiles = [...videos, ...validFiles].slice(0, 3);
 
-      if (validFiles.length !== acceptedFiles.length) {
-        setErrors((prev) => ({
-          ...prev,
-          videos: "Some videos exceeded 10MB limit",
-        }));
-      }
-      setVideos(newFiles);
-    },
-    [videos]
-  );
+    if (validFiles.length !== acceptedFiles.length) {
+      setErrors((prev) => ({
+        ...prev,
+        videos: "Some videos exceeded 10MB limit",
+      }));
+    }
+    setVideos(newFiles);
+  };
 
   const { getRootProps: getVideosRootProps, getInputProps: getVideosInputProps } = useDropzone({
     onDrop: onVideosDrop,
     accept: { "video/*": [] },
     maxFiles: 3,
   });
-
-  const removeFile = (setter: Function, files: File[], index: number) => {
-    const newFiles = files.filter((_, i) => i !== index);
-    setter(newFiles);
-  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
@@ -179,40 +173,54 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
           {/* Text Inputs */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-2 block font-medium">تیتر پروژه *</label>
+              <label htmlFor="new-project-title" className="mb-2 block font-medium">
+                تیتر پروژه *
+              </label>
               <input
+                id="new-project-title"
                 name="title"
                 value={formData.title}
                 onChange={handleInputChange}
+                aria-label="تیتر پروژه"
                 className="w-full rounded-lg bg-gray-700 p-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
               {errors.title && <p className="mt-1 text-sm text-red-400">{errors.title}</p>}
             </div>
 
             <div>
-              <label className="mb-2 block font-medium">شناسه *</label>
+              <label htmlFor="new-project-slug" className="mb-2 block font-medium">
+                شناسه *
+              </label>
               <input
+                id="new-project-slug"
                 name="slug"
                 value={formData.slug}
                 onChange={handleInputChange}
+                aria-label="شناسه پروژه"
                 className="w-full rounded-lg bg-gray-700 p-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
               {errors.slug && <p className="mt-1 text-sm text-red-400">{errors.slug}</p>}
             </div>
 
             <div>
-              <label className="mb-2 block font-medium">شهر *</label>
+              <label htmlFor="new-project-city" className="mb-2 block font-medium">
+                شهر *
+              </label>
               <input
+                id="new-project-city"
                 name="city"
                 value={formData.city}
                 onChange={handleInputChange}
+                aria-label="شهر پروژه"
                 className="w-full rounded-lg bg-gray-700 p-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
               {errors.city && <p className="mt-1 text-sm text-red-400">{errors.city}</p>}
             </div>
 
             <div>
-              <label className="mb-2 block font-medium">تاریخ *</label>
+              <label htmlFor="new-project-date" className="mb-2 block font-medium">
+                تاریخ *
+              </label>
               <DatePicker
                 onChange={(e) => handleDateChange(e.value)}
                 weekends={[5, 6]}
@@ -227,11 +235,15 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
 
           {/* Active Toggle */}
           <div className="flex items-center gap-2">
-            <label className="font-medium">پروژه فعال باشد</label>
+            <label htmlFor="new-project-isActive" className="font-medium">
+              پروژه فعال باشد
+            </label>
             <input
+              id="new-project-isActive"
               type="checkbox"
               checked={formData.isActive}
               onChange={handleCheckboxChange}
+              aria-label="پروژه فعال باشد"
               className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-600"
             />
           </div>
@@ -255,6 +267,7 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
                     type="button"
                     onClick={() => setMainImage(null)}
                     className="absolute right-1 top-1 rounded-lg bg-red-500 p-2 opacity-0 transition-all hover:bg-red-600 group-hover:opacity-100"
+                    aria-label="حذف عکس اصلی"
                   >
                     <BiTrash size={20} />
                   </button>
@@ -291,6 +304,7 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
                     type="button"
                     onClick={() => removeFile(setDetailImages, detailImages, index)}
                     className="absolute right-1 top-1 rounded-lg bg-red-500 p-2 opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
+                    aria-label="حذف تصویر"
                   >
                     <BiTrash size={20} />
                   </button>
@@ -316,7 +330,10 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
             </div>
             <div className="mt-4 grid grid-cols-3 gap-4">
               {videos.map((file, index) => (
-                <div                   key={file.name + file.size} className="group relative rounded-lg bg-gray-700 p-3">
+                <div
+                  key={file.name + file.size}
+                  className="group relative rounded-lg bg-gray-700 p-3"
+                >
                   <video className="h-32 w-full rounded-lg object-cover">
                     <source src={URL.createObjectURL(file)} />
                   </video>
@@ -324,6 +341,7 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
                     type="button"
                     onClick={() => removeFile(setVideos, videos, index)}
                     className="absolute right-1 top-1 rounded-lg bg-red-500 p-2 opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
+                    aria-label="حذف ویدیو"
                   >
                     <BiTrash size={20} />
                   </button>
@@ -334,12 +352,16 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
 
           {/* Description */}
           <div>
-            <label className="mb-2 block font-medium">توضیحات *</label>
+            <label htmlFor="new-project-description" className="mb-2 block font-medium">
+              توضیحات *
+            </label>
             <textarea
+              id="new-project-description"
               name="description"
               value={formData.description}
               onChange={handleInputChange}
               rows={4}
+              aria-label="توضیحات پروژه"
               className="w-full rounded-lg bg-gray-700 p-2 outline-none focus:ring-2 focus:ring-blue-500"
             />
             {errors.description && (

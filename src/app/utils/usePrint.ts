@@ -1,5 +1,5 @@
-import { useRef } from "react";
 import DOMPurify from "isomorphic-dompurify";
+import { useRef } from "react";
 
 export interface PrintOptions {
   hideElements?: string[];

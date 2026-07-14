@@ -23,7 +23,7 @@ const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Prop
   // Number of items to show when collapsed
   const COLLAPSED_ITEM_COUNT = 3;
 
-  const fetchData = () => {
+  const fetchData = useCallback(() => {
     const fetchAllDetailsPromise = axios
       .get("/api/productOverviewDetails/getAll")
       .catch((error) => {
@@ -58,7 +58,7 @@ const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Prop
         console.error(error);
         toast.error("در دریافت اطلاعات بررسی محصول مشکلی وجود دارد");
       });
-  };
+  }, [productId, setProductOverviewDetails]);
 
   useEffect(() => {
     fetchData();
@@ -189,6 +189,7 @@ const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Prop
           <div className="relative max-h-[700px] w-full max-w-lg overflow-y-scroll rounded-lg bg-gray-800 p-6 text-white shadow-lg">
             <button
               type="button"
+              aria-label="بستن"
               onClick={closeDetailModal}
               className="absolute right-3 top-3 text-red-400 hover:text-red-500"
             >
