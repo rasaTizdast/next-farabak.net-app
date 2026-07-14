@@ -3,7 +3,7 @@
 import { message } from "antd";
 import axios from "axios";
 import Link from "next/link";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
 
@@ -15,6 +15,12 @@ type ProductRow = {
   Partner_Price?: string | null;
   link: string;
 };
+
+function calcOriginal(p: ProductRow) {
+  const price = p.Price || 0;
+  const discount = p.Discount || 0;
+  return Math.max(price - discount, 0);
+}
 
 async function fetchPartnerPrices(
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
@@ -109,24 +115,18 @@ export default function AdminPartnerPricesPage() {
     return () => clearTimeout(t);
   }, [keyword]);
 
-  const filtered = useMemo(() => {
+  const filtered = (() => {
     const q = debouncedKeyword.trim().toLowerCase();
     if (!q) return data;
     return data.filter((r) => r.Type.toLowerCase().includes(q));
-  }, [data, debouncedKeyword]);
-
-  const calcOriginal = (p: ProductRow) => {
-    const price = p.Price || 0;
-    const discount = p.Discount || 0;
-    return Math.max(price - discount, 0);
-  };
+  })();
 
   const formatRial = (usd: number) => {
     if (!usdRate) return "-";
     return (usd * usdRate).toLocaleString("fa-IR") + " تومان";
   };
 
-  const sorted = useMemo(() => {
+  const sorted = (() => {
     const copy = [...filtered];
     copy.sort((a, b) => {
       let va: number | string = "";
@@ -146,13 +146,13 @@ export default function AdminPartnerPricesPage() {
       return 0;
     });
     return copy;
-  }, [filtered, sortKey, sortDir]);
+  })();
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
-  const paged = useMemo(() => {
+  const paged = (() => {
     const start = (page - 1) * pageSize;
     return sorted.slice(start, start + pageSize);
-  }, [sorted, page]);
+  })();
 
   const setSort = (key: typeof sortKey) => {
     if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
