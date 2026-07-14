@@ -154,29 +154,29 @@ export async function GET() {
     // For each invoice, get its details and warranties
     const invoicesWithDetails = await Promise.all(
       (invoices as any[]).map(async (invoice) => {
-        // Get invoice details
-        const details = await prisma.$queryRaw`
-          SELECT 
-            id."Invoice_Details", id."ProductId", id."quantity", 
-            id."price", id."total_price"
-          FROM 
-            "info"."Invoice_Details" id
-          WHERE 
-            id."Invoiceid" = ${invoice.Invoiceid}
-        `;
-
-        // Get warranties for this invoice's products
-        const warranties = await prisma.$queryRaw`
-          SELECT 
-            w."warrantyid", w."invoicedetailid", w."warrantycode", 
-            w."startdate", w."expirydate", w."status", w."ProductId", w."branchid"
-          FROM 
-            "info"."warranty" w
-          JOIN 
-            "info"."Invoice_Details" id ON w."invoicedetailid" = id."Invoice_Details"
-          WHERE 
-            id."Invoiceid" = ${invoice.Invoiceid}
-        `;
+        // Get invoice details and warranties in parallel
+        const [details, warranties] = await Promise.all([
+          prisma.$queryRaw`
+            SELECT
+              id."Invoice_Details", id."ProductId", id."quantity",
+              id."price", id."total_price"
+            FROM
+              "info"."Invoice_Details" id
+            WHERE
+              id."Invoiceid" = ${invoice.Invoiceid}
+          `,
+          prisma.$queryRaw`
+            SELECT
+              w."warrantyid", w."invoicedetailid", w."warrantycode",
+              w."startdate", w."expirydate", w."status", w."ProductId", w."branchid"
+            FROM
+              "info"."warranty" w
+            JOIN
+              "info"."Invoice_Details" id ON w."invoicedetailid" = id."Invoice_Details"
+            WHERE
+              id."Invoiceid" = ${invoice.Invoiceid}
+          `,
+        ]);
 
         // Process warranty status
         const processedWarranties = (warranties as any[]).map((warranty) => {
