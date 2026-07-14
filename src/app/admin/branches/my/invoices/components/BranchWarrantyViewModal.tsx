@@ -8,7 +8,12 @@ import { useApiFetch } from "@/hooks/useApiFetch";
 
 import { ExpandedInvoiceItem } from "./types";
 
-const dateFormatter = new Intl.DateTimeFormat("fa-IR");
+const dateFormatter = new Intl.DateTimeFormat("fa-IR", { timeZone: "Asia/Tehran" });
+
+function formatDate(dateString: string | undefined) {
+  if (!dateString) return "-";
+  return dateFormatter.format(new Date(dateString));
+}
 
 type BranchWarrantyViewModalProps = {
   item: ExpandedInvoiceItem;
@@ -47,12 +52,6 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
 
   const warranty = item.individualWarranty;
   const hasValidWarranty = Boolean(warranty?.warrantycode);
-
-  // Format date for display
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return "-";
-    return dateFormatter.format(new Date(dateString));
-  };
 
   // Calculate warranty duration
   const calculateDuration = () => {

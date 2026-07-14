@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FiPlus } from "react-icons/fi";
 import { IoIosClose } from "react-icons/io";
 
@@ -15,24 +15,23 @@ type SpecsProps = {
   hasSubmitted?: boolean; // Add a prop to know if form was submitted
 };
 
+function validateField(field: "title" | "description", value: string): string {
+  if (field === "title") {
+    if (!value.trim()) return "عنوان نمی‌تواند خالی باشد.";
+    if (value.length > 100) return "عنوان نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.";
+  } else if (field === "description") {
+    if (!value.trim()) return "توضیحات نمی‌تواند خالی باشد.";
+    if (value.length > 4000) return "توضیحات نمی‌تواند بیشتر از 4000 کاراکتر باشد.";
+  }
+  return "";
+}
+
 const Specs: React.FC<SpecsProps> = ({ state, dispatch, setErrors, hasSubmitted = false }) => {
   const [showTemplateManager, setShowTemplateManager] = useState(false);
   const [localErrors, setLocalErrors] = useState<{ [key: string]: string }>({});
   const [touchedFields, setTouchedFields] = useState<{
     [key: string]: boolean;
   }>({});
-
-  // IMPORTANT: Validate fields with length restrictions
-  const validateField = (field: "title" | "description", value: string): string => {
-    if (field === "title") {
-      if (!value.trim()) return "عنوان نمی‌تواند خالی باشد.";
-      if (value.length > 100) return "عنوان نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.";
-    } else if (field === "description") {
-      if (!value.trim()) return "توضیحات نمی‌تواند خالی باشد.";
-      if (value.length > 4000) return "توضیحات نمی‌تواند بیشتر از 4000 کاراکتر باشد.";
-    }
-    return "";
-  };
 
   // Immediately send updated errors to parent whenever localErrors changes
   useEffect(() => {
@@ -69,25 +68,28 @@ const Specs: React.FC<SpecsProps> = ({ state, dispatch, setErrors, hasSubmitted 
     }
   }, [localErrors, setErrors]);
 
+  const specsInitGuard = useRef(false);
   // Initialize validation on mount and when specs change
   useEffect(() => {
-    const initialErrors: { [key: string]: string } = {};
+    if (!specsInitGuard.current) {
+      specsInitGuard.current = true;
+      const initialErrors: { [key: string]: string } = {};
 
-    state.specs.forEach((spec, index) => {
-      const titleError = validateField("title", spec.title);
-      const descError = validateField("description", spec.description);
+      state.specs.forEach((spec, index) => {
+        const titleError = validateField("title", spec.title);
+        const descError = validateField("description", spec.description);
 
-      if (titleError) {
-        initialErrors[`title-${index}`] = titleError;
-      }
+        if (titleError) {
+          initialErrors[`title-${index}`] = titleError;
+        }
 
-      if (descError) {
-        initialErrors[`description-${index}`] = descError;
-      }
-    });
+        if (descError) {
+          initialErrors[`description-${index}`] = descError;
+        }
+      });
 
-    setLocalErrors(initialErrors);
-    // Don't log errors on initial render to avoid console clutter
+      setLocalErrors(initialErrors);
+    }
   }, [state.specs]);
 
   // Add a new spec item
@@ -302,12 +304,20 @@ const Specs: React.FC<SpecsProps> = ({ state, dispatch, setErrors, hasSubmitted 
 
         <div className="space-y-4">
           {state.specs.map((spec, index) => (
-            <div key={spec.title + spec.description} className="flex gap-4" onClick={(e) => e.stopPropagation()}>
+            <div
+              key={spec.title + spec.description}
+              className="flex gap-4"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex-1">
-                <label className="mb-1 block text-sm">عنوان</label>
+                <label htmlFor={`spec-title-${index}`} className="mb-1 block text-sm">
+                  عنوان
+                </label>
                 <input
+                  id={`spec-title-${index}`}
                   type="text"
                   data-testid={`spec-title-${index}`}
+                  aria-label="عنوان مشخصات"
                   value={spec.title}
                   onChange={(e) => {
                     e.stopPropagation();
@@ -324,10 +334,14 @@ const Specs: React.FC<SpecsProps> = ({ state, dispatch, setErrors, hasSubmitted 
                 )}
               </div>
               <div className="flex-1">
-                <label className="mb-1 block text-sm">توضیحات</label>
+                <label htmlFor={`spec-desc-${index}`} className="mb-1 block text-sm">
+                  توضیحات
+                </label>
                 <input
+                  id={`spec-desc-${index}`}
                   type="text"
                   data-testid={`spec-description-${index}`}
+                  aria-label="توضیحات مشخصات"
                   value={spec.description}
                   onChange={(e) => {
                     e.stopPropagation();
@@ -347,6 +361,7 @@ const Specs: React.FC<SpecsProps> = ({ state, dispatch, setErrors, hasSubmitted 
                 <button
                   type="button"
                   data-testid={`remove-spec-${index}`}
+                  aria-label="حذف مشخصات"
                   onClick={(e) => removeSpec(e, index)}
                   className="p-2 text-red-400 hover:text-red-300"
                 >

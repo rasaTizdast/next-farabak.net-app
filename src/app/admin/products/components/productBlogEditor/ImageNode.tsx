@@ -46,9 +46,11 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
       ? attrs.height
       : DEFAULT_HEIGHT;
 
+  const dimInitGuard = useRef(false);
   // Sync dimension form fields on mount
   useEffect(() => {
-    if (safeWidth > 0 && safeHeight > 0) {
+    if (safeWidth > 0 && safeHeight > 0 && !dimInitGuard.current) {
+      dimInitGuard.current = true;
       setCustomWidth(safeWidth.toString());
       setCustomHeight(safeHeight.toString());
     }
@@ -235,20 +237,29 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
     });
   };
 
+  // Store handlers in refs so the effect doesn't re-run when they change
+  const handleResizeMoveRef = useRef(handleResizeMove);
+  const handleResizeEndRef = useRef(handleResizeEnd);
+  useEffect(() => {
+    handleResizeMoveRef.current = handleResizeMove;
+    handleResizeEndRef.current = handleResizeEnd;
+  });
+
   useEffect(() => {
     if (isResizing) {
-      document.addEventListener("mousemove", handleResizeMove);
-      document.addEventListener("mouseup", handleResizeEnd);
-
+      const onMove = (e: MouseEvent) => handleResizeMoveRef.current(e);
+      const onEnd = () => handleResizeEndRef.current();
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onEnd);
       document.body.style.userSelect = "none";
 
       return () => {
-        document.removeEventListener("mousemove", handleResizeMove);
-        document.removeEventListener("mouseup", handleResizeEnd);
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onEnd);
         document.body.style.userSelect = "";
       };
     }
-  }, [isResizing, handleResizeMove, handleResizeEnd]);
+  }, [isResizing]);
 
   return (
     <NodeViewWrapper>
@@ -402,9 +413,16 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
               <div className="mb-1 text-right text-sm">اندازه سفارشی:</div>
               <div className="flex items-center gap-2">
                 <div>
-                  <label className="block text-right text-xs text-gray-400">عرض (پیکسل)</label>
+                  <label
+                    htmlFor="image-custom-width"
+                    className="block text-right text-xs text-gray-400"
+                  >
+                    عرض (پیکسل)
+                  </label>
                   <input
+                    id="image-custom-width"
                     type="number"
+                    aria-label="عرض تصویر"
                     value={customWidth}
                     onChange={(e) => setCustomWidth(e.target.value)}
                     className="w-20 rounded border border-gray-600 bg-gray-700 px-2 py-1 text-right"
@@ -412,9 +430,16 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
                   />
                 </div>
                 <div>
-                  <label className="block text-right text-xs text-gray-400">ارتفاع (پیکسل)</label>
+                  <label
+                    htmlFor="image-custom-height"
+                    className="block text-right text-xs text-gray-400"
+                  >
+                    ارتفاع (پیکسل)
+                  </label>
                   <input
+                    id="image-custom-height"
                     type="number"
+                    aria-label="ارتفاع تصویر"
                     value={customHeight}
                     onChange={(e) => setCustomHeight(e.target.value)}
                     className="w-20 rounded border border-gray-600 bg-gray-700 px-2 py-1 text-right"

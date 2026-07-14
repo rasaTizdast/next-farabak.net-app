@@ -15,8 +15,7 @@ import {
 import { Button, Input, Card, Alert, Spin, Typography, Steps, Row, Col, Result } from "antd";
 import React, { useState } from "react";
 
-const { Title, Paragraph, Text } = Typography;
-const { Step } = Steps;
+const faDateFormatter = new Intl.DateTimeFormat("fa-IR");
 
 type WarrantyResult = {
   status: "success" | "expired" | "already_requested";
@@ -29,6 +28,19 @@ type WarrantyResult = {
   };
   error?: string;
 };
+
+const { Title, Paragraph, Text } = Typography;
+const { Step } = Steps;
+
+function formatDate(dateString: string) {
+  try {
+    const date = new Date(dateString);
+    return faDateFormatter.format(date);
+  } catch (error) {
+    console.error(error);
+    return dateString;
+  }
+}
 
 async function searchWarranty(
   warrantyCode: string,
@@ -126,16 +138,6 @@ const WarrantyTrackingPage = () => {
     // Reset and go back to first step
     setCurrentStep(0);
     setResult(null);
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return new Intl.DateTimeFormat("fa-IR").format(date);
-    } catch (error) {
-      console.error(error);
-      return dateString;
-    }
   };
 
   // Determine which steps to show based on result status

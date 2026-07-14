@@ -15,6 +15,12 @@ import styles from "./NewInvoice.module.css";
 
 const currencyFormatter = new Intl.NumberFormat("fa-IR");
 
+// Persian digits helper
+const e2p = (n: number | null | undefined) => {
+  if (n === null || n === undefined) return "—";
+  return n.toString().replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d)]);
+};
+
 const NewInvoicePage = () => {
   const { invoice, removeProductFromInvoice, updateProductQuantity, clearInvoice } = useInvoice();
   const { user } = useUser();
@@ -29,12 +35,6 @@ const NewInvoicePage = () => {
       return () => clearTimeout(redirectTimer);
     }
   }, [invoiceSuccess, router]);
-
-  // Persian digits helper
-  const e2p = (n: number | null | undefined) => {
-    if (n === null || n === undefined) return "—";
-    return n.toString().replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d)]);
-  };
 
   const handleQuantityChange = (ProductId: number, newQuantity: string) => {
     const num = parseInt(newQuantity) || 0;

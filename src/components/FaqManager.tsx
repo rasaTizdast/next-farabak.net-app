@@ -58,6 +58,11 @@ async function doUpdateFaqOrder(
   }
 }
 
+const handleDragOver = (e: React.DragEvent) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+};
+
 const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
   const [editingFaq, setEditingFaq] = useState<number | null>(null);
@@ -158,11 +163,6 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
     e.dataTransfer.effectAllowed = "move";
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  };
-
   const handleDrop = async (e: React.DragEvent, targetFaqId: number) => {
     e.preventDefault();
 
@@ -229,8 +229,11 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
           <h3 className="mb-4 text-lg font-semibold">افزودن سوال جدید</h3>
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium">سوال</label>
+              <label htmlFor="new-faq-question" className="mb-1 block text-sm font-medium">
+                سوال
+              </label>
               <input
+                id="new-faq-question"
                 type="text"
                 value={newFaq.question}
                 onChange={(e) => setNewFaq({ ...newFaq, question: e.target.value })}
@@ -241,8 +244,11 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
               <span className="text-xs text-gray-400">{newFaq.question.length}/400 کاراکتر</span>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">پاسخ</label>
+              <label htmlFor="new-faq-answer" className="mb-1 block text-sm font-medium">
+                پاسخ
+              </label>
               <textarea
+                id="new-faq-answer"
                 value={newFaq.answer}
                 onChange={(e) => setNewFaq({ ...newFaq, answer: e.target.value })}
                 placeholder="پاسخ خود را وارد کنید..."
@@ -419,8 +425,11 @@ const EditFaqForm: React.FC<EditFaqFormProps> = ({ faq, onSave, onCancel }) => {
   return (
     <div className="space-y-4">
       <div>
-        <label className="mb-1 block text-sm font-medium">سوال</label>
+        <label htmlFor="edit-faq-question" className="mb-1 block text-sm font-medium">
+          سوال
+        </label>
         <input
+          id="edit-faq-question"
           type="text"
           value={editedFaq.question}
           onChange={(e) => setEditedFaq({ ...editedFaq, question: e.target.value })}
@@ -430,8 +439,11 @@ const EditFaqForm: React.FC<EditFaqFormProps> = ({ faq, onSave, onCancel }) => {
         <span className="text-xs text-gray-400">{editedFaq.question.length}/400 کاراکتر</span>
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium">پاسخ</label>
+        <label htmlFor="edit-faq-answer" className="mb-1 block text-sm font-medium">
+          پاسخ
+        </label>
         <textarea
+          id="edit-faq-answer"
           value={editedFaq.answer}
           onChange={(e) => setEditedFaq({ ...editedFaq, answer: e.target.value })}
           className="h-24 w-full rounded-lg border border-gray-600 bg-gray-600 px-4 py-2 focus:border-blue-500 focus:outline-none"

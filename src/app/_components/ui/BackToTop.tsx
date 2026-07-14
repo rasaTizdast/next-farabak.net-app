@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { FaArrowUp } from "react-icons/fa";
 
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
 const BackToTop = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -31,10 +35,6 @@ const BackToTop = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
 
   return (
     <button

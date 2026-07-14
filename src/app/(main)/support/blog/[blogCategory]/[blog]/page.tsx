@@ -5,6 +5,80 @@ import Script from "next/script";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import BlogFaqAccordion from "@/components/BlogFaqAccordion";
 
+function processContentWithImageUrls(content: string) {
+  const baseUrl = process.env.LIARA_BUCKET_URL || "";
+
+  // First, handle src attribute to make sure URLs are correct for images
+  let processedContent = content.replace(
+    /<Image([^>]*)src="([^"]*)"([^>]*)/g,
+    (match, before, src, after) => {
+      if (src.startsWith(baseUrl)) return match;
+      return `<Image${before}src="${baseUrl}/${src}"${after}`;
+    }
+  );
+
+  // Handle video sources inside regular video tags
+  processedContent = processedContent.replace(
+    /<video([^>]*)src="([^"]*)"([^>]*)/g,
+    (match, before, src, after) => {
+      if (src.startsWith(baseUrl) || src.startsWith("http")) return match;
+      return `<video${before}src="${baseUrl}/${src}"${after}`;
+    }
+  );
+
+  // Process TipTap video nodes - convert them to standard HTML5 video tags
+  processedContent = processedContent.replace(
+    /<div data-type="video"[^>]*>([\s\S]*?)<\/div>/g,
+    (match) => {
+      // Extract src attribute from the video tag inside the div
+      const srcMatch = match.match(/src="([^"]*)"/);
+      if (srcMatch && srcMatch[1]) {
+        const src = srcMatch[1];
+        const fullSrc =
+          src.startsWith(baseUrl) || src.startsWith("http") ? src : `${baseUrl}/${src}`;
+
+        // Replace the entire div with a simple video element
+        return `<video src="${fullSrc}" controls class="w-full max-w-4xl mx-auto rounded-md my-4"></video>`;
+      }
+      return match;
+    }
+  );
+
+  // Ensure videos have controls
+  processedContent = processedContent.replace(
+    /<video(?![^>]*controls)([^>]*)/g,
+    "<video$1 controls "
+  );
+
+  // Then handle the size classes. Make sure classes defined in the editor are preserved
+  processedContent = processedContent.replace(
+    /<Image([^>]*)className="([^"]*)"([^>]*)/g,
+    (match, before, className, after) => {
+      // Keep all existing classes and just make sure they're applied
+      return `<Image${before}className="${className}"${after}`;
+    }
+  );
+
+  // Finally, handle images that don't have className but do have width/height
+  // This ensures older content or images without explicit size classes still respect dimensions
+  processedContent = processedContent.replace(
+    /<Image([^>]*)width=\{(\d+)\}([^>]*)height=\{(\d+)\}([^>]*?)(?!className)>/g,
+    (match, before, width, middle, height, after) => {
+      return `<Image${before}width={${width}}${middle}height={${height}}${after} className="max-w-full" style="--img-width:${width}px">`;
+    }
+  );
+
+  // Handle images that have inline style with width attribute
+  processedContent = processedContent.replace(
+    /<Image([^>]*)style="width:(\d+)px"([^>]*)/g,
+    (match, before, width, after) => {
+      return `<Image${before}style="--img-width:${width}px"${after}`;
+    }
+  );
+
+  return processedContent;
+}
+
 interface BlogResponse {
   blog: {
     title: string;
@@ -125,80 +199,6 @@ export default async function BlogPage(props: {
   const { blog, faqs } = blogResponse;
 
   const readingTime = calculateReadingTime(blog.content);
-
-  const processContentWithImageUrls = (content: string) => {
-    const baseUrl = process.env.LIARA_BUCKET_URL || "";
-
-    // First, handle src attribute to make sure URLs are correct for images
-    let processedContent = content.replace(
-      /<Image([^>]*)src="([^"]*)"([^>]*)/g,
-      (match, before, src, after) => {
-        if (src.startsWith(baseUrl)) return match;
-        return `<Image${before}src="${baseUrl}/${src}"${after}`;
-      }
-    );
-
-    // Handle video sources inside regular video tags
-    processedContent = processedContent.replace(
-      /<video([^>]*)src="([^"]*)"([^>]*)/g,
-      (match, before, src, after) => {
-        if (src.startsWith(baseUrl) || src.startsWith("http")) return match;
-        return `<video${before}src="${baseUrl}/${src}"${after}`;
-      }
-    );
-
-    // Process TipTap video nodes - convert them to standard HTML5 video tags
-    processedContent = processedContent.replace(
-      /<div data-type="video"[^>]*>([\s\S]*?)<\/div>/g,
-      (match) => {
-        // Extract src attribute from the video tag inside the div
-        const srcMatch = match.match(/src="([^"]*)"/);
-        if (srcMatch && srcMatch[1]) {
-          const src = srcMatch[1];
-          const fullSrc =
-            src.startsWith(baseUrl) || src.startsWith("http") ? src : `${baseUrl}/${src}`;
-
-          // Replace the entire div with a simple video element
-          return `<video src="${fullSrc}" controls class="w-full max-w-4xl mx-auto rounded-md my-4"></video>`;
-        }
-        return match;
-      }
-    );
-
-    // Ensure videos have controls
-    processedContent = processedContent.replace(
-      /<video(?![^>]*controls)([^>]*)/g,
-      "<video$1 controls "
-    );
-
-    // Then handle the size classes. Make sure classes defined in the editor are preserved
-    processedContent = processedContent.replace(
-      /<Image([^>]*)className="([^"]*)"([^>]*)/g,
-      (match, before, className, after) => {
-        // Keep all existing classes and just make sure they're applied
-        return `<Image${before}className="${className}"${after}`;
-      }
-    );
-
-    // Finally, handle images that don't have className but do have width/height
-    // This ensures older content or images without explicit size classes still respect dimensions
-    processedContent = processedContent.replace(
-      /<Image([^>]*)width=\{(\d+)\}([^>]*)height=\{(\d+)\}([^>]*?)(?!className)>/g,
-      (match, before, width, middle, height, after) => {
-        return `<Image${before}width={${width}}${middle}height={${height}}${after} className="max-w-full" style="--img-width:${width}px">`;
-      }
-    );
-
-    // Handle images that have inline style with width attribute
-    processedContent = processedContent.replace(
-      /<Image([^>]*)style="width:(\d+)px"([^>]*)/g,
-      (match, before, width, after) => {
-        return `<Image${before}style="--img-width:${width}px"${after}`;
-      }
-    );
-
-    return processedContent;
-  };
 
   const blogJsonLd = JSON.stringify({
     "@context": "https://schema.org",

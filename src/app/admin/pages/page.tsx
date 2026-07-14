@@ -22,6 +22,60 @@ import NewProject from "./componets/ui/newPage/NewProject";
 import ProjectEditor from "./componets/ui/ProjectEditor";
 import BlogQrCodeModal from "./componets/ui/QrCodeModal";
 
+// Skeleton Loading Component
+function renderSkeleton() {
+  return (
+    <div className="mx-auto w-full px-3 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8">
+      <div className="mb-6 h-8 w-40 animate-pulse rounded-lg bg-gray-700 sm:mb-8 sm:h-10 sm:w-48" />
+
+      <div className="space-y-2 sm:space-y-3">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div key={index} className="rounded-lg border border-gray-700 bg-gray-800 sm:rounded-xl">
+            {/* Main Row */}
+            <div className="p-3 sm:p-4 lg:p-6">
+              <div className="flex items-center justify-between gap-2 sm:gap-4">
+                <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 lg:gap-4">
+                  <div className="h-10 w-10 flex-shrink-0 animate-pulse rounded-lg bg-gray-700 sm:h-12 sm:w-12 lg:h-14 lg:w-14" />
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1.5 h-4 w-32 animate-pulse rounded bg-gray-700 sm:mb-2 sm:h-5 sm:w-48" />
+                    <div className="h-3 w-24 animate-pulse rounded bg-gray-700 sm:w-32" />
+                  </div>
+                </div>
+                <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
+                  <div className="h-9 w-9 animate-pulse rounded-lg bg-gray-700 sm:h-10 sm:w-20 lg:w-24" />
+                  <div className="h-9 w-9 animate-pulse rounded-lg bg-gray-700 sm:h-10 sm:w-20 lg:w-24" />
+                  <div className="h-9 w-9 animate-pulse rounded-lg bg-gray-700 sm:h-10" />
+                </div>
+              </div>
+            </div>
+
+            {/* Expanded Content (show on some) */}
+            {index % 3 === 0 && (
+              <div className="border-t border-gray-700 bg-gray-800/50 p-2 sm:p-3 lg:p-4">
+                <div className="space-y-1.5 sm:space-y-2">
+                  {Array.from({ length: 2 }).map((_, subIndex) => (
+                    <div
+                      key={subIndex}
+                      className="flex items-center justify-between rounded-lg bg-gray-700/50 p-2.5 sm:p-3 lg:p-4"
+                    >
+                      <div className="h-3.5 w-28 animate-pulse rounded bg-gray-600 sm:h-4 sm:w-40" />
+                      <div className="flex gap-1.5 sm:gap-2">
+                        <div className="h-8 w-8 animate-pulse rounded bg-gray-600 sm:h-9 sm:w-9" />
+                        <div className="h-8 w-8 animate-pulse rounded bg-gray-600 sm:h-9 sm:w-9" />
+                        <div className="h-8 w-8 animate-pulse rounded bg-gray-600 sm:h-9 sm:w-9" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 type PageRow = {
   name: string;
   pages: number;
@@ -188,63 +242,6 @@ const AdminPageManager: React.FC = () => {
   }) => {
     setIsQrCodeModalOpen(true);
     setQrCodeBlog(blog);
-  };
-
-  // Skeleton Loading Component
-  const renderSkeleton = () => {
-    return (
-      <div className="mx-auto w-full px-3 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8">
-        <div className="mb-6 h-8 w-40 animate-pulse rounded-lg bg-gray-700 sm:mb-8 sm:h-10 sm:w-48" />
-
-        <div className="space-y-2 sm:space-y-3">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <div
-              key={index}
-              className="rounded-lg border border-gray-700 bg-gray-800 sm:rounded-xl"
-            >
-              {/* Main Row */}
-              <div className="p-3 sm:p-4 lg:p-6">
-                <div className="flex items-center justify-between gap-2 sm:gap-4">
-                  <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 lg:gap-4">
-                    <div className="h-10 w-10 flex-shrink-0 animate-pulse rounded-lg bg-gray-700 sm:h-12 sm:w-12 lg:h-14 lg:w-14" />
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-1.5 h-4 w-32 animate-pulse rounded bg-gray-700 sm:mb-2 sm:h-5 sm:w-48" />
-                      <div className="h-3 w-24 animate-pulse rounded bg-gray-700 sm:w-32" />
-                    </div>
-                  </div>
-                  <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
-                    <div className="h-9 w-9 animate-pulse rounded-lg bg-gray-700 sm:h-10 sm:w-20 lg:w-24" />
-                    <div className="h-9 w-9 animate-pulse rounded-lg bg-gray-700 sm:h-10 sm:w-20 lg:w-24" />
-                    <div className="h-9 w-9 animate-pulse rounded-lg bg-gray-700 sm:h-10" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Expanded Content (show on some) */}
-              {index % 3 === 0 && (
-                <div className="border-t border-gray-700 bg-gray-800/50 p-2 sm:p-3 lg:p-4">
-                  <div className="space-y-1.5 sm:space-y-2">
-                    {Array.from({ length: 2 }).map((_, subIndex) => (
-                      <div
-                        key={subIndex}
-                        className="flex items-center justify-between rounded-lg bg-gray-700/50 p-2.5 sm:p-3 lg:p-4"
-                      >
-                        <div className="h-3.5 w-28 animate-pulse rounded bg-gray-600 sm:h-4 sm:w-40" />
-                        <div className="flex gap-1.5 sm:gap-2">
-                          <div className="h-8 w-8 animate-pulse rounded bg-gray-600 sm:h-9 sm:w-9" />
-                          <div className="h-8 w-8 animate-pulse rounded bg-gray-600 sm:h-9 sm:w-9" />
-                          <div className="h-8 w-8 animate-pulse rounded bg-gray-600 sm:h-9 sm:w-9" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
   };
 
   return (

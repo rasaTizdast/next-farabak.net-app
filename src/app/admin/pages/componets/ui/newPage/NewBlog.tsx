@@ -2,7 +2,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { BiTrash } from "react-icons/bi";
 
@@ -39,7 +39,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [isInputFocused, setIsInputFocused] = useState(false);
 
   // Add these state variables at the top of the component
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const selectedImageRef = useRef<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -105,7 +105,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }
 
     setUploadError(null);
-    setSelectedImage(file);
+    selectedImageRef.current = file;
     setPreviewImage(URL.createObjectURL(file));
   };
 
@@ -139,6 +139,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     return errors.length === 0;
   };
 
+  const categoriesInitializedRef = useRef(false);
   const { data: categoriesData } = useApiFetch("/api/blogs/categories");
   const { mutate: deleteCategoryMutate } = useApiMutation("delete");
   const { mutate: createCategoryMutate } = useApiMutation("post");
@@ -147,8 +148,9 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { mutate: createBlogMutate } = useApiMutation("post");
 
   useEffect(() => {
-    if (categoriesData) {
-      setCategories((prev) => (prev.length === 0 ? categoriesData : prev));
+    if (categoriesData && !categoriesInitializedRef.current) {
+      categoriesInitializedRef.current = true;
+      setCategories(categoriesData);
     }
   }, [categoriesData]);
 
@@ -285,8 +287,8 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }
 
     let imageUrl = "";
-    if (selectedImage) {
-      const uploadedUrl = await handleImageUpload(selectedImage);
+    if (selectedImageRef.current) {
+      const uploadedUrl = await handleImageUpload(selectedImageRef.current);
       if (!uploadedUrl) {
         setIsSubmitting(false);
         return;
@@ -343,8 +345,11 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               )}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-sm font-medium">عنوان وبلاگ</label>
+                  <label htmlFor="new-blog-title" className="mb-1 block text-sm font-medium">
+                    عنوان وبلاگ
+                  </label>
                   <input
+                    id="new-blog-title"
                     type="text"
                     required
                     value={formData.title}
@@ -355,17 +360,22 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         slug: generateSlug(e.target.value),
                       });
                     }}
+                    aria-label="عنوان وبلاگ"
                     className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium">عنوان SEO</label>
+                  <label htmlFor="new-blog-seo-title" className="mb-1 block text-sm font-medium">
+                    عنوان SEO
+                  </label>
                   <input
+                    id="new-blog-seo-title"
                     type="text"
                     required
                     maxLength={60}
                     value={formData.SEO_Title}
                     onChange={(e) => setFormData({ ...formData, SEO_Title: e.target.value })}
+                    aria-label="عنوان SEO"
                     className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                   />
                   <span className="text-xs text-gray-400">
@@ -373,20 +383,25 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                   </span>
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium">نویسنده</label>
+                  <label htmlFor="new-blog-author" className="mb-1 block text-sm font-medium">
+                    نویسنده
+                  </label>
                   <input
+                    id="new-blog-author"
                     type="text"
                     required
                     value={formData.author}
                     onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                    aria-label="نویسنده"
                     className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium">
+                  <label htmlFor="new-blog-slug" className="mb-1 block text-sm font-medium">
                     شناسه (فقط حروف انگلیسی، اعداد، خط تیره و زیرخط)
                   </label>
                   <input
+                    id="new-blog-slug"
                     type="text"
                     required
                     value={formData.slug}
@@ -396,6 +411,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         slug: e.target.value.toLowerCase().replace(/[^a-z0-9\-_]/g, ""),
                       })
                     }
+                    aria-label="شناسه وبلاگ"
                     className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                     placeholder="مثال: my-blog-post"
                     dir="ltr"
@@ -406,8 +422,11 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                   </span>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="mb-1 block text-sm font-medium">توضیحات SEO</label>
+                  <label htmlFor="new-blog-seo-desc" className="mb-1 block text-sm font-medium">
+                    توضیحات SEO
+                  </label>
                   <textarea
+                    id="new-blog-seo-desc"
                     required
                     maxLength={165}
                     value={formData.SEO_description}
@@ -417,6 +436,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         SEO_description: e.target.value,
                       })
                     }
+                    aria-label="توضیحات SEO"
                     className="h-24 w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                   />
                   <span className="text-xs text-gray-400">
@@ -425,7 +445,9 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 </div>
                 {/* Updated image section */}
                 <div className="md:col-span-2">
-                  <label className="mb-1 block text-sm font-medium">تصویر بلاگ</label>
+                  <label htmlFor="new-blog-image" className="mb-1 block text-sm font-medium">
+                    تصویر بلاگ
+                  </label>
                   <div className="flex flex-col gap-4">
                     <div className="flex flex-wrap items-center gap-4">
                       <label className="relative cursor-pointer">
@@ -452,7 +474,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                           <button
                             type="button"
                             onClick={() => {
-                              setSelectedImage(null);
+                              selectedImageRef.current = null;
                               setPreviewImage(null);
                               setFormData((prev) => ({
                                 ...prev,
@@ -460,6 +482,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                               }));
                             }}
                             className="absolute -right-2 -top-2 rounded-full bg-red-600 p-1 text-xs text-white transition-colors hover:bg-red-700"
+                            aria-label="حذف تصویر"
                           >
                             <BiTrash size={16} />
                           </button>
@@ -471,6 +494,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
                     <div className="w-full">
                       <input
+                        id="new-blog-image-alt"
                         type="text"
                         required
                         placeholder="متن جایگزین تصویر (الزامی)"
@@ -482,6 +506,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                             image_alt: e.target.value,
                           })
                         }
+                        aria-label="متن جایگزین تصویر"
                         className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                       />
                     </div>
@@ -493,13 +518,17 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 </div>
               </div>
               <div className="mt-4">
-                <label className="mb-2 block text-sm font-medium">دسته بندی‌ها</label>
+                <label htmlFor="new-blog-categories" className="mb-2 block text-sm font-medium">
+                  دسته بندی‌ها
+                </label>
                 <div className="relative">
                   <input
+                    id="new-blog-categories"
                     type="text"
                     value={categoryInput}
                     onChange={(e) => setCategoryInput(e.target.value)}
                     placeholder="جستجو یا افزودن دسته بندی..."
+                    aria-label="جستجو یا افزودن دسته بندی"
                     className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                     onFocus={() => setIsInputFocused(true)}
                     onBlur={() => setTimeout(() => setIsInputFocused(false), 200)}
@@ -525,6 +554,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                               setShowDeleteConfirm(category.id);
                             }}
                             className="opacity-0 transition-opacity group-hover:opacity-100"
+                            aria-label="حذف دسته بندی"
                           >
                             <BiTrash
                               size={20}
@@ -656,8 +686,11 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                   <h3 className="mb-4 text-lg font-bold">ایجاد دسته بندی جدید</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium">نام</label>
+                      <label htmlFor="new-cat-name" className="mb-1 block text-sm font-medium">
+                        نام
+                      </label>
                       <input
+                        id="new-cat-name"
                         type="text"
                         value={newCategory.name}
                         onChange={(e) =>
@@ -666,15 +699,17 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                             name: e.target.value,
                           }))
                         }
+                        aria-label="نام دسته بندی"
                         className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2"
                         placeholder="نام دسته بندی"
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label htmlFor="new-cat-slug" className="mb-1 block text-sm font-medium">
                         شناسه (فقط حروف انگلیسی، اعداد، خط تیره و زیرخط)
                       </label>
                       <input
+                        id="new-cat-slug"
                         type="text"
                         value={newCategory.slug}
                         onChange={(e) =>
@@ -683,6 +718,7 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                             slug: e.target.value.toLowerCase().replace(/[^a-z0-9\-_]/g, ""),
                           }))
                         }
+                        aria-label="شناسه دسته بندی"
                         className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2"
                         placeholder="مثال: my-category-name"
                         dir="ltr"

@@ -147,6 +147,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
                     </button>
                     <button
                       type="button"
+                      aria-label="ویرایش قالب"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -158,6 +159,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
                     </button>
                     <button
                       type="button"
+                      aria-label="حذف قالب"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -193,6 +195,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
 
           <button
             type="button"
+            aria-label="بستن"
             className="absolute right-2 top-2 text-gray-400 hover:text-white"
             onClick={(e) => {
               e.stopPropagation();

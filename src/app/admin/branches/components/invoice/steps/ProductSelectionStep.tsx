@@ -7,6 +7,10 @@ import { useApiFetch } from "@/hooks/useApiFetch";
 
 const faNumberFormatter = new Intl.NumberFormat("fa-IR");
 
+function formatNumber(num: number) {
+  return faNumberFormatter.format(num);
+}
+
 // Extended Product interface with additional properties
 interface ExtendedProduct extends Product {
   priceInRials: number;
@@ -93,9 +97,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
   // Filter products based on search term
   const filteredProducts = !searchTerm.trim()
     ? products
-    : products.filter((product) =>
-        product.Type.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    : products.filter((product) => product.Type.toLowerCase().includes(searchTerm.toLowerCase()));
 
   // Use memoized callback to avoid re-renders
   const handleQuantityChange = (productId: number, quantity: number | null) => {
@@ -166,11 +168,6 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     } else {
       setManualExchangeRate(null);
     }
-  };
-
-  // Format number with Persian digits (for later display, not during typing)
-  const formatNumber = (num: number) => {
-    return faNumberFormatter.format(num);
   };
 
   if (loading) {
@@ -392,6 +389,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                                   <div className="flex h-8 items-stretch overflow-hidden rounded-md border border-gray-700 bg-gray-800">
                                     <button
                                       type="button"
+                                      aria-label="کاهش تعداد"
                                       onClick={() => {
                                         const currentQuantity = selectedProduct?.quantity || 0;
                                         if (currentQuantity > 0) {
@@ -424,6 +422,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                                       min={0}
                                       max={product.currentQuantity}
                                       value={selectedProduct?.quantity || 0}
+                                      aria-label="تعداد محصول"
                                       onChange={(e) => {
                                         const inputValue = e.target.value
                                           ? parseInt(e.target.value)
@@ -439,6 +438,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                                     />
                                     <button
                                       type="button"
+                                      aria-label="افزایش تعداد"
                                       onClick={() => {
                                         const currentQuantity = selectedProduct?.quantity || 0;
                                         if (currentQuantity < product.currentQuantity) {

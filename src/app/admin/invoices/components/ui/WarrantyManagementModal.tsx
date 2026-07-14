@@ -11,9 +11,15 @@ import { useApiMutation } from "@/hooks/useApiMutation";
 
 import { ExpandedInvoiceItem } from "./types";
 
-const persianYearFormatter = new Intl.DateTimeFormat("fa-IR", { year: "numeric" });
-const persianMonthFormatter = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" });
-const persianDateFormatter = new Intl.DateTimeFormat("fa-IR");
+const persianYearFormatter = new Intl.DateTimeFormat("fa-IR", {
+  year: "numeric",
+  timeZone: "Asia/Tehran",
+});
+const persianMonthFormatter = new Intl.DateTimeFormat("fa-IR", {
+  month: "2-digit",
+  timeZone: "Asia/Tehran",
+});
+const persianDateFormatter = new Intl.DateTimeFormat("fa-IR", { timeZone: "Asia/Tehran" });
 
 // Format a Date object to YYYY-MM-DD string
 const formatDateToISOString = (date: Date | null): string | null => {
@@ -180,8 +186,16 @@ const WarrantyManagementModal = ({
   const { mutate: deleteWarrantyMutate, loading: submittingDelete } = useApiMutation("post");
 
   // Auto-select first branch (one-time init)
+  const branchAutoSelectedRef = useRef(false);
   useEffect(() => {
-    if (branchesData && !isUpdate && branchesData.length > 0 && !warrantyData.branchId) {
+    if (
+      branchesData &&
+      !isUpdate &&
+      branchesData.length > 0 &&
+      !warrantyData.branchId &&
+      !branchAutoSelectedRef.current
+    ) {
+      branchAutoSelectedRef.current = true;
       setWarrantyData((prev) => ({
         ...prev,
         branchId: branchesData[0].branchid,
@@ -409,8 +423,14 @@ const WarrantyManagementModal = ({
             {/* Add warranty toggle */}
             <div className="space-y-2 text-right">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-300">فعال کردن گارانتی</label>
+                <label
+                  htmlFor="warranty-toggle"
+                  className="block text-sm font-medium text-gray-300"
+                >
+                  فعال کردن گارانتی
+                </label>
                 <Switch
+                  id="warranty-toggle"
                   checked={warrantyData.hasWarranty}
                   onChange={handleWarrantyToggle}
                   className="bg-slate-700"
@@ -426,7 +446,7 @@ const WarrantyManagementModal = ({
             {/* Warranty form elements - only show if hasWarranty is true */}
             <div className={warrantyData.hasWarranty ? "" : "hidden"}>
               <div className="space-y-2 text-right">
-                <label className="block text-sm font-medium text-gray-300">
+                <label htmlFor="branch-select" className="block text-sm font-medium text-gray-300">
                   شعبه مسئول گارانتی <span className="text-red-400">*</span>
                 </label>
                 {!isUpdate && (
@@ -436,7 +456,12 @@ const WarrantyManagementModal = ({
                 )}
                 {/* Branch Selection */}
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-300">شعبه</label>
+                  <label
+                    htmlFor="branch-select"
+                    className="mb-2 block text-sm font-medium text-gray-300"
+                  >
+                    شعبه
+                  </label>
 
                   {/* Informative text about branch listing */}
                   <div className="mb-2 text-xs text-gray-400">
@@ -453,6 +478,7 @@ const WarrantyManagementModal = ({
                     <input
                       type="text"
                       readOnly
+                      aria-label="شعبه انتخاب شده"
                       className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70"
                       value={selectedBranchName}
                       disabled
@@ -460,6 +486,7 @@ const WarrantyManagementModal = ({
                   ) : (
                     <div>
                       <Select
+                        id="branch-select"
                         className="warranty-select w-full text-right"
                         placeholder="انتخاب شعبه"
                         value={warrantyData.branchId || undefined}
@@ -514,6 +541,7 @@ const WarrantyManagementModal = ({
                       <button
                         type="button"
                         onClick={generateWarrantyCode}
+                        aria-label="تولید مجدد کد گارانتی"
                         className="rounded-lg bg-blue-700 px-2 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-600"
                         disabled={generatingCode}
                       >

@@ -6,6 +6,11 @@ import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 
 import { fetchProducts } from "../_utils/fetchProducts";
 
+function getDiscountPercentage(price: string, discount: string): number {
+  if (!discount || +discount === 0) return 0;
+  return Math.round((+discount / +price) * 100);
+}
+
 interface Product {
   ProductId: number;
   Type: string;
@@ -40,12 +45,6 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
 
   // Filter the products to only include those that are available
   const availableProducts = products.filter((product: Product) => product.Available);
-
-  // Helper function to calculate discount percentage
-  const getDiscountPercentage = (price: string, discount: string): number => {
-    if (!discount || +discount === 0) return 0;
-    return Math.round((+discount / +price) * 100);
-  };
 
   return (
     <>

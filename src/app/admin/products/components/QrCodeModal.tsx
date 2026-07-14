@@ -13,6 +13,28 @@ type Props = {
   refetchProducts: () => void;
 };
 
+function generateUniqueKey() {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
+function calculateExpiryTimestamp(days: number | null) {
+  if (!days) return null;
+  const now = new Date();
+  now.setDate(now.getDate() + days);
+  return now.toISOString();
+}
+
+const downloadQrCode = () => {
+  const canvas = document.querySelector("canvas");
+  if (canvas) {
+    const url = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "qrcode.png";
+    a.click();
+  }
+};
+
 const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const { mutate: deleteQrCode } = useApiMutation("delete");
@@ -25,19 +47,6 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
     setExpiryDays(2);
     setShowConfirmModal(false);
     setUniqueQrCodeDetails(null);
-  };
-
-  const generateUniqueKey = () => {
-    return (
-      Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-    );
-  };
-
-  const calculateExpiryTimestamp = (days: number | null) => {
-    if (!days) return null;
-    const now = new Date();
-    now.setDate(now.getDate() + days);
-    return now.toISOString();
   };
 
   const deleteUniqueQrCode = useCallback(async () => {
@@ -79,17 +88,6 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
     }
   };
 
-  const downloadQrCode = () => {
-    const canvas = document.querySelector("canvas");
-    if (canvas) {
-      const url = canvas.toDataURL("image/png");
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "qrcode.png";
-      a.click();
-    }
-  };
-
   // Fetch QR code details when product data is available (one-time)
   useEffect(() => {
     if (product && product.QrCode_Key && product.QrCode_expiryDays) {
@@ -122,6 +120,7 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
       <div className="relative max-h-[90dvh] w-full max-w-2xl animate-fade-in overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg">
         <button
           type="button"
+          aria-label="بستن"
           onClick={() => {
             onClose(false);
             resetState();
@@ -148,8 +147,12 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
 
         {/* Unique QR Code */}
         <div className="flex flex-col gap-4">
-          <label className="mb-2 block text-gray-400">مدت زمان اعتبار (روز):</label>
+          <label htmlFor="qr-expiry-days" className="mb-2 block text-gray-400">
+            مدت زمان اعتبار (روز):
+          </label>
           <select
+            id="qr-expiry-days"
+            aria-label="مدت زمان اعتبار"
             value={expiryDays || ""}
             onChange={(e) => setExpiryDays(e.target.value === "" ? null : parseInt(e.target.value))}
             className="rounded bg-gray-700 px-4 py-2"

@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, Table, Button, Space, Modal, Switch, message, Form, Spin, Input } from "antd";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { DatePicker } from "zaman";
 
 import { useUser } from "@/context/UserContext";
@@ -42,6 +42,43 @@ const persianToEnglishDigits = (str: string): string => {
   }
   return result;
 };
+
+function calculateDuration(startDate: Date | string | null, endDate: Date | string | null) {
+  if (!startDate || !endDate) return null;
+
+  try {
+    const start = startDate instanceof Date ? startDate : new Date(startDate);
+    const end = endDate instanceof Date ? endDate : new Date(endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return "تاریخ نامعتبر";
+    }
+
+    if (start >= end) return "تاریخ پایان باید پس از تاریخ شروع باشد";
+
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const totalMonths = Math.floor(diffDays / 30);
+
+    if (diffDays < 30) {
+      return `${diffDays} روز`;
+    } else if (totalMonths < 12) {
+      return `${totalMonths} ماه`;
+    } else {
+      const years = Math.floor(totalMonths / 12);
+      const remainingMonths = totalMonths % 12;
+
+      if (remainingMonths === 0) {
+        return `${years} سال`;
+      } else {
+        return `${years} سال و ${remainingMonths} ماه`;
+      }
+    }
+  } catch (error) {
+    console.error("Error calculating duration:", error);
+    return "خطا در محاسبه مدت گارانتی";
+  }
+}
 
 // Define props interface for DatePicker to resolve type issues
 interface WarrantyStepProps {
@@ -178,7 +215,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
   setProductsWithWarranty,
 }) => {
   const { isBranch } = useUser();
-  const [editingProduct, setEditingProduct] = useState<any | null>(null);
+  const editingProductRef = useRef<any | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [durationText, setDurationText] = useState<string | null>(null);
@@ -236,7 +273,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
   ]);
 
   const handleEdit = (item: any) => {
-    setEditingProduct(item);
+    editingProductRef.current = item;
     setIsDatePickerLoading(true);
 
     // Set default values based on the item's warranty
@@ -287,7 +324,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
     form
       .validateFields()
       .then((values) => {
-        if (!editingProduct) return;
+        if (!editingProductRef.current) return;
 
         // Extract form values
         const { hasWarranty } = values;
@@ -315,20 +352,20 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
         }
 
         // For branch users, preserve the original start date
-        if (isBranch && editingProduct.warranty?.startdate) {
-          startdate = editingProduct.warranty.startdate;
+        if (isBranch && editingProductRef.current.warranty?.startdate) {
+          startdate = editingProductRef.current.warranty.startdate;
         }
 
         // Find the item in the current list and update it
         const updatedItems = productsWithWarranty.map((item) => {
-          if (item.singleItemId === editingProduct.singleItemId) {
+          if (item.singleItemId === editingProductRef.current.singleItemId) {
             return {
               ...item,
               warranty: {
                 ...item.warranty,
                 startdate,
                 expirydate,
-                warrantycode: editingProduct.warranty?.warrantycode, // Always preserve the original code
+                warrantycode: editingProductRef.current.warranty?.warrantycode, // Always preserve the original code
                 hasWarranty,
               },
             };
@@ -344,52 +381,6 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
         console.error("Form validation error:", err);
         message.error("لطفا فرم را به درستی تکمیل کنید");
       });
-  };
-
-  const calculateDuration = (startDate: Date | string | null, endDate: Date | string | null) => {
-    if (!startDate || !endDate) return null;
-
-    try {
-      // Convert to Date objects if they are strings
-      const start = startDate instanceof Date ? startDate : new Date(startDate);
-      const end = endDate instanceof Date ? endDate : new Date(endDate);
-
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        console.error("Invalid date in calculateDuration:", {
-          start,
-          end,
-          startTime: start.getTime(),
-          endTime: end.getTime(),
-        });
-        return "تاریخ نامعتبر";
-      }
-
-      if (start >= end) return "تاریخ پایان باید پس از تاریخ شروع باشد";
-
-      const diffTime = Math.abs(end.getTime() - start.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      const totalMonths = Math.floor(diffDays / 30);
-
-      if (diffDays < 30) {
-        return `${diffDays} روز`;
-      } else if (totalMonths < 12) {
-        return `${totalMonths} ماه`;
-      } else {
-        // First calculate exact years and months for more accuracy
-        const years = Math.floor(totalMonths / 12);
-        const remainingMonths = totalMonths % 12;
-
-        // Special case: if months is exactly a multiple of 12, show just years
-        if (remainingMonths === 0) {
-          return `${years} سال`;
-        } else {
-          return `${years} سال و ${remainingMonths} ماه`;
-        }
-      }
-    } catch (error) {
-      console.error("Error calculating duration:", error);
-      return "خطا در محاسبه مدت گارانتی";
-    }
   };
 
   const handleDateChange = () => {
@@ -434,8 +425,8 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
 
       // For branch users, keep the original start date if editing an existing product
       const startDate =
-        isBranch && editingProduct?.warranty?.startdate
-          ? parseISODate(editingProduct.warranty.startdate)
+        isBranch && editingProductRef.current?.warranty?.startdate
+          ? parseISODate(editingProductRef.current.warranty.startdate)
           : today;
 
       // For Zaman DatePicker, use Date objects directly

@@ -13,6 +13,44 @@ type Props = {
   setErrors: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
 };
 
+function validateName(value: string) {
+  if (!value.trim()) return "نام محصول نمی‌تواند خالی باشد.";
+  if (value.length > 1000) return "نام محصول نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
+  return "";
+}
+
+function validateSlug(value: string) {
+  if (!value.trim()) return "شناسه محصول نمی‌تواند خالی باشد.";
+  if (value.length > 1200) return "شناسه محصول نمی‌تواند بیشتر از ۱۲۰۰ کاراکتر باشد.";
+  if (!/^[a-zA-Z0-9_-]+$/.test(value))
+    return "شناسه محصول فقط می‌تواند شامل حروف انگلیسی، اعداد، خط فاصله و زیرخط باشد.";
+  return "";
+}
+
+function validateSmallDesc(value: string) {
+  if (!value.trim()) return "توضیحات کوتاه نمی‌تواند خالی باشد.";
+  if (value.length > 1000) return "توضیحات کوتاه نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
+  return "";
+}
+
+function validateSeoTitle(value: string) {
+  if (!value.trim()) return "تیتر سئو نمی‌تواند خالی باشد.";
+  if (value.length > 60) return "تیتر سئو نمی‌تواند بیشتر از ۶۰ کاراکتر باشد.";
+  return "";
+}
+
+function validateSeoDesc(value: string) {
+  if (!value.trim()) return "توضیحات سئو نمی‌تواند خالی باشد.";
+  if (value.length > 4000) return "توضیحات سئو نمی‌تواند بیشتر از ۴۰۰۰ کاراکتر باشد.";
+  return "";
+}
+
+function validateKeywords(value: string) {
+  if (!value.trim()) return "کلمات کلیدی نمی‌تواند خالی باشد.";
+  if (value.length > 2000) return "کلمات کلیدی نمی‌تواند بیشتر از ۲۰۰۰ کاراکتر باشد.";
+  return "";
+}
+
 const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
   const [localErrors, setLocalErrors] = useState({
     name: "",
@@ -28,38 +66,6 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
   useEffect(() => {
     setErrors((prev) => ({ ...prev, ...localErrors }));
   }, [localErrors, setErrors]);
-
-  const validateName = (value: string) => {
-    if (!value.trim()) return "نام محصول نمی‌تواند خالی باشد.";
-    if (value.length > 1000) return "نام محصول نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
-    return "";
-  };
-
-  const validateSlug = (value: string) => {
-    if (!value.trim()) return "شناسه محصول نمی‌تواند خالی باشد.";
-    if (value.length > 1200) return "شناسه محصول نمی‌تواند بیشتر از ۱۲۰۰ کاراکتر باشد.";
-    if (!/^[a-zA-Z0-9_-]+$/.test(value))
-      return "شناسه محصول فقط می‌تواند شامل حروف انگلیسی، اعداد، خط فاصله و زیرخط باشد.";
-    return "";
-  };
-
-  const validateSmallDesc = (value: string) => {
-    if (!value.trim()) return "توضیحات کوتاه نمی‌تواند خالی باشد.";
-    if (value.length > 1000) return "توضیحات کوتاه نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
-    return "";
-  };
-
-  const validateSeoTitle = (value: string) => {
-    if (!value.trim()) return "تیتر سئو نمی‌تواند خالی باشد.";
-    if (value.length > 60) return "تیتر سئو نمی‌تواند بیشتر از ۶۰ کاراکتر باشد.";
-    return "";
-  };
-
-  const validateSeoDesc = (value: string) => {
-    if (!value.trim()) return "توضیحات سئو نمی‌تواند خالی باشد.";
-    if (value.length > 4000) return "توضیحات سئو نمی‌تواند بیشتر از ۴۰۰۰ کاراکتر باشد.";
-    return "";
-  };
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Allow decimal numbers with up to 2 decimal places
@@ -164,12 +170,6 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
     if (field === "keywords") error = validateKeywords(value); // Added for keywords
 
     setLocalErrors((prev) => ({ ...prev, [field]: error }));
-  };
-
-  const validateKeywords = (value: string) => {
-    if (!value.trim()) return "کلمات کلیدی نمی‌تواند خالی باشد.";
-    if (value.length > 2000) return "کلمات کلیدی نمی‌تواند بیشتر از ۲۰۰۰ کاراکتر باشد.";
-    return "";
   };
 
   return (

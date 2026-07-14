@@ -1,14 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { BiTrash } from "react-icons/bi";
 
 import FaqManager from "@/components/FaqManager";
 import { useApiFetch } from "@/hooks/useApiFetch";
-import { generateSlug } from "@/utils/generateSlug";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { generateSlug } from "@/utils/generateSlug";
 
 import TipTapBlogEditor from "./blogEditor/TipTapEditor";
 
@@ -36,14 +36,14 @@ interface Category {
 
 const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   const [step, setStep] = useState(1);
-  const [blogId, setBlogId] = useState<number | null>(null);
+  const blogIdRef = useRef<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryInput, setCategoryInput] = useState("");
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [blogContent, setBlogContent] = useState("");
 
   // Add these state variables at the top of the component
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const selectedImageRef = useRef<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -78,6 +78,8 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
     categories: [],
   });
 
+  const initializedRef = useRef(false);
+  const categoriesInitializedRef = useRef(false);
   const {
     data: blogData,
     loading: blogLoading,
@@ -92,7 +94,8 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   const { mutate: patchBlogMutate } = useApiMutation("patch");
 
   useEffect(() => {
-    if (blogData) {
+    if (blogData && !initializedRef.current) {
+      initializedRef.current = true;
       setFormData({
         title: blogData.blog.title,
         SEO_Title: blogData.blog.SEO_Title,
@@ -150,7 +153,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
     }
 
     setUploadError(null);
-    setSelectedImage(file);
+    selectedImageRef.current = file;
     setPreviewImage(URL.createObjectURL(file));
   };
 
@@ -187,10 +190,11 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   const { data: categoriesData } = useApiFetch("/api/blogs/categories");
 
   useEffect(() => {
-    if (categoriesData && categories.length === 0) {
+    if (categoriesData && !categoriesInitializedRef.current) {
+      categoriesInitializedRef.current = true;
       setCategories(categoriesData);
     }
-  }, [categoriesData, categories.length]);
+  }, [categoriesData]);
 
   const filteredCategories = useMemo(() => {
     if (categoryInput) {
@@ -329,8 +333,8 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
 
     let imageUrl = formData.image_URL;
 
-    if (selectedImage) {
-      const uploadedUrl = await handleImageUpload(selectedImage);
+    if (selectedImageRef.current) {
+      const uploadedUrl = await handleImageUpload(selectedImageRef.current);
       if (!uploadedUrl) {
         setIsSubmitting(false);
         return;
@@ -344,7 +348,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
     });
 
     if (data) {
-      setBlogId(id || data.id);
+      blogIdRef.current = id || data.id;
       setStep(2);
     } else {
       toast.error("خطا در ذخیره وبلاگ. لطفا دوباره تلاش کنید.");
@@ -354,7 +358,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   };
 
   const handleEditorSave = async (content: string, publish: boolean = false) => {
-    const res = await updateBlogMutate(`/api/blogs/update/${blogId}`, {
+    const res = await updateBlogMutate(`/api/blogs/update/${blogIdRef.current}`, {
       content,
       status: publish ? "Published" : "Draft",
     });
@@ -440,8 +444,11 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
               )}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-sm font-medium">عنوان وبلاگ</label>
+                  <label htmlFor="blog-title" className="mb-1 block text-sm font-medium">
+                    عنوان وبلاگ
+                  </label>
                   <input
+                    id="blog-title"
                     type="text"
                     required
                     value={formData.title}
@@ -451,17 +458,22 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                         title: e.target.value,
                       });
                     }}
+                    aria-label="عنوان وبلاگ"
                     className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium">عنوان SEO</label>
+                  <label htmlFor="blog-seo-title" className="mb-1 block text-sm font-medium">
+                    عنوان SEO
+                  </label>
                   <input
+                    id="blog-seo-title"
                     type="text"
                     required
                     maxLength={60}
                     value={formData.SEO_Title}
                     onChange={(e) => setFormData({ ...formData, SEO_Title: e.target.value })}
+                    aria-label="عنوان SEO"
                     className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                   />
                   <span className="text-xs text-gray-400">
@@ -469,20 +481,25 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                   </span>
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium">نویسنده</label>
+                  <label htmlFor="blog-author" className="mb-1 block text-sm font-medium">
+                    نویسنده
+                  </label>
                   <input
+                    id="blog-author"
                     type="text"
                     required
                     value={formData.author}
                     onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                    aria-label="نویسنده"
                     className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium">
+                  <label htmlFor="blog-slug" className="mb-1 block text-sm font-medium">
                     شناسه (فقط حروف انگلیسی، اعداد، خط تیره و زیرخط)
                   </label>
                   <input
+                    id="blog-slug"
                     type="text"
                     required
                     value={formData.slug}
@@ -492,6 +509,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                         slug: e.target.value.toLowerCase().replace(/[^a-z0-9\-_]/g, ""),
                       })
                     }
+                    aria-label="شناسه وبلاگ"
                     className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                     placeholder="مثال: my-blog-post"
                     dir="ltr"
@@ -502,8 +520,11 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                   </span>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="mb-1 block text-sm font-medium">توضیحات SEO</label>
+                  <label htmlFor="blog-seo-desc" className="mb-1 block text-sm font-medium">
+                    توضیحات SEO
+                  </label>
                   <textarea
+                    id="blog-seo-desc"
                     required
                     maxLength={165}
                     value={formData.SEO_description}
@@ -513,6 +534,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                         SEO_description: e.target.value,
                       })
                     }
+                    aria-label="توضیحات SEO"
                     className="h-24 w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                   />
                   <span className="text-xs text-gray-400">
@@ -521,7 +543,9 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                 </div>
                 {/* Updated image section */}
                 <div className="md:col-span-2">
-                  <label className="mb-1 block text-sm font-medium">تصویر بلاگ</label>
+                  <label htmlFor="blog-image-alt" className="mb-1 block text-sm font-medium">
+                    تصویر بلاگ
+                  </label>
                   <div className="flex flex-col gap-4">
                     <div className="flex flex-wrap items-center gap-4">
                       <label className="relative cursor-pointer">
@@ -555,7 +579,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                               if (previewImage?.startsWith("blob:")) {
                                 URL.revokeObjectURL(previewImage);
                               }
-                              setSelectedImage(null);
+                              selectedImageRef.current = null;
                               setPreviewImage(null);
                               setFormData((prev) => ({
                                 ...prev,
@@ -563,6 +587,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                               }));
                             }}
                             className="absolute -right-2 -top-2 rounded-full bg-red-600 p-1 text-xs text-white transition-colors hover:bg-red-700"
+                            aria-label="حذف تصویر"
                           >
                             <BiTrash size={16} />
                           </button>
@@ -574,6 +599,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
 
                     <div className="w-full">
                       <input
+                        id="blog-image-alt"
                         type="text"
                         required
                         placeholder="متن جایگزین تصویر (الزامی)"
@@ -585,6 +611,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                             image_alt: e.target.value,
                           })
                         }
+                        aria-label="متن جایگزین تصویر"
                         className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                       />
                     </div>
@@ -596,13 +623,17 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                 </div>
               </div>
               <div className="mt-4">
-                <label className="mb-2 block text-sm font-medium">دسته بندی‌ها</label>
+                <label htmlFor="blog-categories" className="mb-2 block text-sm font-medium">
+                  دسته بندی‌ها
+                </label>
                 <div className="relative">
                   <input
+                    id="blog-categories"
                     type="text"
                     value={categoryInput}
                     onChange={(e) => setCategoryInput(e.target.value)}
                     placeholder="جستجو یا افزودن دسته بندی..."
+                    aria-label="جستجو یا افزودن دسته بندی"
                     className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 focus:border-blue-500 focus:outline-none"
                     onFocus={() => setIsInputFocused(true)}
                     onBlur={() => setTimeout(() => setIsInputFocused(false), 200)}
@@ -623,6 +654,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                           </button>
                           <button
                             type="button"
+                            aria-label="حذف دسته‌بندی"
                             onClick={(e) => {
                               e.stopPropagation();
                               setShowDeleteConfirm(category.id);
@@ -757,8 +789,11 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                   <h3 className="mb-4 text-lg font-bold">ایجاد دسته بندی جدید</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium">نام</label>
+                      <label htmlFor="category-name" className="mb-1 block text-sm font-medium">
+                        نام
+                      </label>
                       <input
+                        id="category-name"
                         type="text"
                         value={newCategory.name}
                         onChange={(e) =>
@@ -767,15 +802,17 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                             name: e.target.value,
                           }))
                         }
+                        aria-label="نام دسته بندی"
                         className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2"
                         placeholder="نام دسته بندی"
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium">
+                      <label htmlFor="category-slug" className="mb-1 block text-sm font-medium">
                         شناسه (فقط حروف انگلیسی، اعداد، خط تیره و زیرخط)
                       </label>
                       <input
+                        id="category-slug"
                         type="text"
                         value={newCategory.slug}
                         onChange={(e) =>
@@ -784,6 +821,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                             slug: e.target.value.toLowerCase().replace(/[^a-z0-9\-_]/g, ""),
                           }))
                         }
+                        aria-label="شناسه دسته بندی"
                         className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2"
                         placeholder="مثال: my-category-name"
                         dir="ltr"

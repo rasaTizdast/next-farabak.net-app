@@ -19,6 +19,12 @@ type ProductRow = {
   link: string;
 };
 
+function calcOriginal(p: ProductRow) {
+  const price = p.Price || 0;
+  const discount = p.Discount || 0;
+  return Math.max(price - discount, 0);
+}
+
 async function doFetchUsdRate(
   fetchUsdToRialRate: () => Promise<number>,
   setUsdRate: (rate: number) => void
@@ -62,22 +68,16 @@ export default function BranchPartnerPricesPage() {
     return () => clearTimeout(t);
   }, [keyword]);
 
+  const formatRial = (usd: number) => {
+    if (!usdRate) return "-";
+    return (usd * usdRate).toLocaleString("fa-IR") + " تومان";
+  };
+
   const filtered = (() => {
     const q = debouncedKeyword.trim().toLowerCase();
     if (!q) return data;
     return data.filter((r) => r.Type.toLowerCase().includes(q));
   })();
-
-  const calcOriginal = (p: ProductRow) => {
-    const price = p.Price || 0;
-    const discount = p.Discount || 0;
-    return Math.max(price - discount, 0);
-  };
-
-  const formatRial = (usd: number) => {
-    if (!usdRate) return "-";
-    return (usd * usdRate).toLocaleString("fa-IR") + " تومان";
-  };
 
   const sorted = (() => {
     const copy = [...filtered];

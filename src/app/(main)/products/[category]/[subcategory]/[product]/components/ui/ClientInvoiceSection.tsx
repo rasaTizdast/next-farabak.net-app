@@ -10,6 +10,9 @@ import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 
 import styles from "../../ProductPage.module.css";
 
+// Convert English digits to Persian digits
+const e2p = (s: string): string => s.replace(/\d/g, (d: string) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d)]);
+
 interface Props {
   ProductId: number;
   ProductName: string;
@@ -49,9 +52,6 @@ const ClientInvoiceSection = ({
 
   // Get the current quantity of the product in the invoice
   const currentQuantity = getProductQuantity(ProductId);
-
-  // Convert English digits to Persian digits
-  const e2p = (s: string): string => s.replace(/\d/g, (d: string) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d)]);
 
   // Convert price and discount to numbers
   const priceUsd = productPrice ? parseFloat(productPrice.replace(/,/g, "")) : 0;

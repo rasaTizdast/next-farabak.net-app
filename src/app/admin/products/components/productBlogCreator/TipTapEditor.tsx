@@ -45,12 +45,80 @@ import { CustomVideo } from "../productBlogEditor/Video";
 import VideoUploadModal from "../productBlogEditor/VideoUploadModal";
 
 // Update the interface to include initialContent prop
+
+function convertMDXToHTML(mdxContent: string) {
+  return (
+    mdxContent
+      // Convert Next.js Image components to regular img tags
+      .replace(
+        /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*\/?>/g,
+        '<img src="$1" alt="$2" width="$3" height="$4" class="rounded-lg max-w-full my-4" />'
+      )
+      // Convert Next.js Link components to regular a tags
+      .replace(/<Link\s+href="([^"]+)">\s*([\s\S]*?)\s*<\/Link>/g, '<a href="$1">$2</a>')
+      // Convert table with className to plain HTML table
+      .replace(/<table className="[^"]*">/g, "<table>")
+      .replace(/<th className="[^"]*">/g, "<th>")
+      .replace(/<td className="[^"]*">/g, "<td>")
+  );
+}
+
+function convertToMDX(html: string) {
+  // Convert editor content to MDX
+  let mdxContent = html
+    // Convert img tags to Next.js Image components
+    .replace(
+      /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*>/g,
+      '<Image src="$1" alt="$2" width={1000} height={900} quality={100} layout="responsive" />'
+    )
+    // Convert a tags to Next.js Link components
+    .replace(/<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g, '<Link href="$1">$2</Link>');
+
+  // Preserve table structure but add styling classes for MDX
+  mdxContent = mdxContent
+    .replace(/<table[^>]*>/g, '<table className="w-full my-4 border-collapse" dir="rtl">')
+    .replace(/<th[^>]*>/g, '<th className="border border-gray-600 bg-gray-700 p-2 text-right">')
+    .replace(/<td[^>]*>/g, '<td className="border border-gray-600 p-2 text-right">');
+
+  return mdxContent;
+}
+
 interface TipTapBlogEditorProps {
   onSave?: React.Dispatch<{ type: string; productBlog: string }>;
   blogData?: string; // Add prop for initial content
   slug: string;
   initialContent?: string; // Add new prop for initial content
 }
+
+const calculateDimensions = async (url: string) => {
+  if (typeof window === "undefined") {
+    return { width: 0, height: 0 }; // Fallback for server-side
+  }
+
+  return new Promise<{ width: number; height: number }>((resolve) => {
+    const img = new window.Image(); // Use window.Image for browser compatibility
+    img.src = url;
+
+    img.onload = () => {
+      const MAX_WIDTH = 1000;
+      const MAX_HEIGHT = 800;
+      let { width, height } = img;
+
+      if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+        const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+        width = Math.floor(width * ratio);
+        height = Math.floor(height * ratio);
+      }
+
+      resolve({ width, height });
+    };
+
+    img.onerror = () => {
+      console.error("Failed to load image");
+      resolve({ width: 0, height: 0 }); // Fallback dimensions
+    };
+  });
+};
 
 const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => {
   const [isLinkMenuOpen, setIsLinkMenuOpen] = useState(false);
@@ -72,53 +140,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
   const prevContentRef = useRef<string>("");
   const isUpdatingContentRef = useRef(false);
 
-  const calculateDimensions = async (url: string) => {
-    if (typeof window === "undefined") {
-      return { width: 0, height: 0 }; // Fallback for server-side
-    }
-
-    return new Promise<{ width: number; height: number }>((resolve) => {
-      const img = new window.Image(); // Use window.Image for browser compatibility
-      img.src = url;
-
-      img.onload = () => {
-        const MAX_WIDTH = 1000;
-        const MAX_HEIGHT = 800;
-        let { width, height } = img;
-
-        if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-          const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
-          width = Math.floor(width * ratio);
-          height = Math.floor(height * ratio);
-        }
-
-        resolve({ width, height });
-      };
-
-      img.onerror = () => {
-        console.error("Failed to load image");
-        resolve({ width: 0, height: 0 }); // Fallback dimensions
-      };
-    });
-  };
-
   // Define convertMDXToHTML before using it in useEffects
-  const convertMDXToHTML = (mdxContent: string) => {
-    return (
-      mdxContent
-        // Convert Next.js Image components to regular img tags
-        .replace(
-          /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*\/?>/g,
-          '<img src="$1" alt="$2" width="$3" height="$4" class="rounded-lg max-w-full my-4" />'
-        )
-        // Convert Next.js Link components to regular a tags
-        .replace(/<Link\s+href="([^"]+)">\s*([\s\S]*?)\s*<\/Link>/g, '<a href="$1">$2</a>')
-        // Convert table with className to plain HTML table
-        .replace(/<table className="[^"]*">/g, "<table>")
-        .replace(/<th className="[^"]*">/g, "<th>")
-        .replace(/<td className="[^"]*">/g, "<td>")
-    );
-  };
 
   const editor = useEditor({
     extensions: [
@@ -253,26 +275,6 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
     }
   };
 
-  const convertToMDX = (html: string) => {
-    // Convert editor content to MDX
-    let mdxContent = html
-      // Convert img tags to Next.js Image components
-      .replace(
-        /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*>/g,
-        '<Image src="$1" alt="$2" width={1000} height={900} quality={100} layout="responsive" />'
-      )
-      // Convert a tags to Next.js Link components
-      .replace(/<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g, '<Link href="$1">$2</Link>');
-
-    // Preserve table structure but add styling classes for MDX
-    mdxContent = mdxContent
-      .replace(/<table[^>]*>/g, '<table className="w-full my-4 border-collapse" dir="rtl">')
-      .replace(/<th[^>]*>/g, '<th className="border border-gray-600 bg-gray-700 p-2 text-right">')
-      .replace(/<td[^>]*>/g, '<td className="border border-gray-600 p-2 text-right">');
-
-    return mdxContent;
-  };
-
   const addImage = async (file: File) => {
     if (!editor || file.size > 2 * 1024 * 1024) {
       alert("Image size should be less than 2MB");
@@ -351,44 +353,44 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
   };
 
   const addVideo = async (file: File) => {
-      if (!editor) {
-        return;
-      }
+    if (!editor) {
+      return;
+    }
 
-      if (file.size > 1.5 * 1024 * 1024 * 1024) {
-        alert("ویدیو باید کمتر از 1.5 گیگابایت باشد");
-        return;
-      }
+    if (file.size > 1.5 * 1024 * 1024 * 1024) {
+      alert("ویدیو باید کمتر از 1.5 گیگابایت باشد");
+      return;
+    }
 
-      setIsVideoLoading(true);
+    setIsVideoLoading(true);
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("slug", slug);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("slug", slug);
 
-      const result = (await uploadVideo("/api/products/productBlog/uploadVideo", formData)) as {
-        url: string;
-      } | null;
-      if (!result) {
-        alert("Failed to upload video");
-        setIsVideoLoading(false);
-        return;
-      }
-
-      const { url } = result;
-
-      editor.commands.command(({ chain }) => {
-        return chain()
-          .focus()
-          .setVideo({
-            src: url,
-            title: file.name,
-            slug,
-          })
-          .run();
-      });
+    const result = (await uploadVideo("/api/products/productBlog/uploadVideo", formData)) as {
+      url: string;
+    } | null;
+    if (!result) {
+      alert("Failed to upload video");
       setIsVideoLoading(false);
-    };
+      return;
+    }
+
+    const { url } = result;
+
+    editor.commands.command(({ chain }) => {
+      return chain()
+        .focus()
+        .setVideo({
+          src: url,
+          title: file.name,
+          slug,
+        })
+        .run();
+    });
+    setIsVideoLoading(false);
+  };
 
   const toggleVideoModal = () => {
     setIsVideoModalOpen(!isVideoModalOpen);
@@ -574,6 +576,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
                 type="file"
                 className="hidden"
                 accept="image/*"
+                aria-label="بارگذاری تصویر"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) addImage(file);
@@ -622,25 +625,34 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
 
             <div className="mb-6 flex justify-between gap-4">
               <div className="flex-1">
-                <label className="mb-2 block text-right text-sm text-gray-300">تعداد سطرها</label>
+                <label
+                  htmlFor="creator-table-rows"
+                  className="mb-2 block text-right text-sm text-gray-300"
+                >
+                  تعداد سطرها
+                </label>
                 <div className="flex items-center">
                   <button
                     type="button"
+                    aria-label="کاهش تعداد سطرها"
                     onClick={() => setTableRows(Math.max(1, tableRows - 1))}
                     className="rounded-r border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
                     -
                   </button>
                   <input
+                    id="creator-table-rows"
                     type="number"
                     min="1"
                     max="20"
                     value={tableRows}
+                    aria-label="تعداد سطرها"
                     onChange={(e) => setTableRows(parseInt(e.target.value) || 3)}
                     className="w-12 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center text-white"
                   />
                   <button
                     type="button"
+                    aria-label="افزایش تعداد سطرها"
                     onClick={() => setTableRows(Math.min(20, tableRows + 1))}
                     className="rounded-l border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
@@ -650,20 +662,28 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
               </div>
 
               <div className="flex-1">
-                <label className="mb-2 block text-right text-sm text-gray-300">تعداد ستون‌ها</label>
+                <label
+                  htmlFor="creator-table-cols"
+                  className="mb-2 block text-right text-sm text-gray-300"
+                >
+                  تعداد ستون‌ها
+                </label>
                 <div className="flex items-center">
                   <button
                     type="button"
+                    aria-label="کاهش تعداد ستون‌ها"
                     onClick={() => setTableCols(Math.max(1, tableCols - 1))}
                     className="rounded-r border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
                     -
                   </button>
                   <input
+                    id="creator-table-cols"
                     type="number"
                     min="1"
                     max="10"
                     value={tableCols}
+                    aria-label="تعداد ستون‌ها"
                     onChange={(e) => setTableCols(parseInt(e.target.value) || 3)}
                     className="w-12 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center text-white"
                   />

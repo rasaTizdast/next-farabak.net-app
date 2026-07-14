@@ -35,7 +35,7 @@ import {
   Video,
   FileUp,
 } from "lucide-react";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import { useApiMutation } from "@/hooks/useApiMutation";
 
@@ -45,11 +45,56 @@ import { ToolbarButton } from "./ToolbarButton";
 import { CustomVideo } from "./Video";
 import VideoUploadModal from "./VideoUploadModal";
 
+function convertMDXToHTML(mdxContent: string) {
+  return mdxContent
+    .replace(
+      /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*(size="([^"]+)")?[^>]*\/?>/g,
+      (match, src, alt, width, height, sizeAttr, size) => {
+        const imgSize = size || "full";
+        return `<img src="${src}" alt="${alt}" width="${width}" height="${height}" size="${imgSize}" class="rounded-lg max-w-full my-4" />`;
+      }
+    )
+    .replace(/<Link\s+href="([^"]+)">\s*([\s\S]*?)\s*<\/Link>/g, '<a href="$1">$2</a>')
+    .replace(/<table className="[^"]*">/g, "<table>")
+    .replace(/<th className="[^"]*">/g, "<th>")
+    .replace(/<td className="[^"]*">/g, "<td>");
+}
+
 interface TipTapBlogEditorProps {
   onSave?: (blog: string, status: boolean) => void;
   blogData?: string; // Add prop for initial content
   slug: string;
 }
+
+const calculateDimensions = async (url: string) => {
+  if (typeof window === "undefined") {
+    return { width: 0, height: 0 }; // Fallback for server-side
+  }
+
+  return new Promise<{ width: number; height: number }>((resolve) => {
+    const img = new window.Image(); // Use window.Image for browser compatibility
+    img.src = url;
+
+    img.onload = () => {
+      const MAX_WIDTH = 1000;
+      const MAX_HEIGHT = 800;
+      let { width, height } = img;
+
+      if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+        const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+        width = Math.floor(width * ratio);
+        height = Math.floor(height * ratio);
+      }
+
+      resolve({ width, height });
+    };
+
+    img.onerror = () => {
+      console.error("Failed to load image");
+      resolve({ width: 0, height: 0 }); // Fallback dimensions
+    };
+  });
+};
 
 const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => {
   const [isLinkMenuOpen, setIsLinkMenuOpen] = useState(false);
@@ -66,36 +111,6 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { mutate: uploadImage } = useApiMutation("post");
   const { mutate: uploadVideo } = useApiMutation("post");
-
-  const calculateDimensions = async (url: string) => {
-    if (typeof window === "undefined") {
-      return { width: 0, height: 0 }; // Fallback for server-side
-    }
-
-    return new Promise<{ width: number; height: number }>((resolve) => {
-      const img = new window.Image(); // Use window.Image for browser compatibility
-      img.src = url;
-
-      img.onload = () => {
-        const MAX_WIDTH = 1000;
-        const MAX_HEIGHT = 800;
-        let { width, height } = img;
-
-        if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-          const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
-          width = Math.floor(width * ratio);
-          height = Math.floor(height * ratio);
-        }
-
-        resolve({ width, height });
-      };
-
-      img.onerror = () => {
-        console.error("Failed to load image");
-        resolve({ width: 0, height: 0 }); // Fallback dimensions
-      };
-    });
-  };
 
   const editor = useEditor({
     extensions: [
@@ -150,21 +165,6 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
       }, 1000);
     },
   });
-
-  const convertMDXToHTML = (mdxContent: string) => {
-    return mdxContent
-      .replace(
-        /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*(size="([^"]+)")?[^>]*\/?>/g,
-        (match, src, alt, width, height, sizeAttr, size) => {
-          const imgSize = size || "full";
-          return `<img src="${src}" alt="${alt}" width="${width}" height="${height}" size="${imgSize}" class="rounded-lg max-w-full my-4" />`;
-        }
-      )
-      .replace(/<Link\s+href="([^"]+)">\s*([\s\S]*?)\s*<\/Link>/g, '<a href="$1">$2</a>')
-      .replace(/<table className="[^"]*">/g, "<table>")
-      .replace(/<th className="[^"]*">/g, "<th>")
-      .replace(/<td className="[^"]*">/g, "<td>");
-  };
 
   // Update editor content when blogData changes
   useEffect(() => {
@@ -322,7 +322,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
   [&_td]:border [&_td]:border-gray-600 [&_td]:p-2
   [&_.tableControls]:relative [&_.tableControls]:top-[-30px] [&_.tableControls]:justify-center [&_.tableControls]:z-20 [&_.tableControls]:flex`;
 
-  const addVideo = useCallback(async (file: File) => {
+  const addVideo = async (file: File) => {
     if (!editor) {
       return;
     }
@@ -360,7 +360,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
         .run();
     });
     setIsVideoLoading(false);
-  }, [editor, slug, uploadVideo]);
+  };
 
   const toggleVideoModal = () => {
     setIsVideoModalOpen(!isVideoModalOpen);
@@ -517,6 +517,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
                 type="file"
                 className="hidden"
                 accept="image/*"
+                aria-label="بارگذاری تصویر"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) addImage(file);
@@ -566,25 +567,34 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
 
             <div className="mb-6 flex justify-between gap-4">
               <div className="flex-1">
-                <label className="mb-2 block text-right text-sm text-gray-300">تعداد سطرها</label>
+                <label
+                  htmlFor="editor-table-rows"
+                  className="mb-2 block text-right text-sm text-gray-300"
+                >
+                  تعداد سطرها
+                </label>
                 <div className="flex items-center">
                   <button
                     type="button"
+                    aria-label="کاهش تعداد سطرها"
                     onClick={() => setTableRows(Math.max(1, tableRows - 1))}
                     className="rounded-r border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
                     -
                   </button>
                   <input
+                    id="editor-table-rows"
                     type="number"
                     min="1"
                     max="20"
                     value={tableRows}
+                    aria-label="تعداد سطرها"
                     onChange={(e) => setTableRows(parseInt(e.target.value) || 3)}
                     className="w-12 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center text-white"
                   />
                   <button
                     type="button"
+                    aria-label="افزایش تعداد سطرها"
                     onClick={() => setTableRows(Math.min(20, tableRows + 1))}
                     className="rounded-l border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
@@ -594,20 +604,28 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
               </div>
 
               <div className="flex-1">
-                <label className="mb-2 block text-right text-sm text-gray-300">تعداد ستون‌ها</label>
+                <label
+                  htmlFor="editor-table-cols"
+                  className="mb-2 block text-right text-sm text-gray-300"
+                >
+                  تعداد ستون‌ها
+                </label>
                 <div className="flex items-center">
                   <button
                     type="button"
+                    aria-label="کاهش تعداد ستون‌ها"
                     onClick={() => setTableCols(Math.max(1, tableCols - 1))}
                     className="rounded-r border border-gray-600 bg-gray-700 px-2 py-1 text-white"
                   >
                     -
                   </button>
                   <input
+                    id="editor-table-cols"
                     type="number"
                     min="1"
                     max="10"
                     value={tableCols}
+                    aria-label="تعداد ستون‌ها"
                     onChange={(e) => setTableCols(parseInt(e.target.value) || 3)}
                     className="w-12 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center text-white"
                   />

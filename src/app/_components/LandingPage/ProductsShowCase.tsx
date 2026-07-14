@@ -5,6 +5,14 @@ import { prisma } from "@/lib/prisma";
 
 import styles from "./ProductsShowCase.module.css";
 
+function getRowClass(index: number) {
+  if (index === 0) return styles.oneThird;
+  if (index === 1) return styles.twoThirds;
+  if (index === 2) return styles.twoThirds;
+  if (index === 3) return styles.oneThird;
+  return styles.half;
+}
+
 async function getProducts() {
   try {
     const products = await prisma.showcase_products.findMany({
@@ -21,13 +29,6 @@ async function getProducts() {
 
 const ProductsShowCase = async () => {
   const products = await getProducts();
-  const getRowClass = (index: number) => {
-    if (index === 0) return styles.oneThird;
-    if (index === 1) return styles.twoThirds;
-    if (index === 2) return styles.twoThirds;
-    if (index === 3) return styles.oneThird;
-    return styles.half;
-  };
 
   return (
     <div className={styles.container}>

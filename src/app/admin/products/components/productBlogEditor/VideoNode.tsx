@@ -10,6 +10,17 @@ interface VideoAttributes {
   slug: string;
 }
 
+function isExternalUrl(url: string): boolean {
+  return url.startsWith("http://") || url.startsWith("https://");
+}
+
+function getVideoUrl(src: string): string {
+  if (isExternalUrl(src)) return src;
+
+  const bucketUrl = process.env.NEXT_PUBLIC_LIARA_BUCKET_URL;
+  return `${bucketUrl}/${src}`;
+}
+
 const VideoNode = ({ node, editor, getPos }: NodeViewProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const attrs = node.attrs as VideoAttributes;
@@ -31,17 +42,6 @@ const VideoNode = ({ node, editor, getPos }: NodeViewProps) => {
       alert("Failed to delete video");
     }
     setIsDeleting(false);
-  };
-
-  const isExternalUrl = (url: string): boolean => {
-    return url.startsWith("http://") || url.startsWith("https://");
-  };
-
-  const getVideoUrl = (src: string): string => {
-    if (isExternalUrl(src)) return src;
-
-    const bucketUrl = process.env.NEXT_PUBLIC_LIARA_BUCKET_URL;
-    return `${bucketUrl}/${src}`;
   };
 
   return (

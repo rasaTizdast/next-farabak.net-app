@@ -10,6 +10,15 @@ const s3 = new S3({
   endpoint: process.env.LIARA_ENDPOINT,
 });
 
+const deleteFile = async (key: string) => {
+  await s3
+    .deleteObject({
+      Bucket: process.env.LIARA_BUCKET_NAME!,
+      Key: key,
+    })
+    .promise();
+};
+
 export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   try {
@@ -56,15 +65,6 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
         .promise();
 
       return key;
-    };
-
-    const deleteFile = async (key: string) => {
-      await s3
-        .deleteObject({
-          Bucket: process.env.LIARA_BUCKET_NAME!,
-          Key: key,
-        })
-        .promise();
     };
 
     // Handle main image

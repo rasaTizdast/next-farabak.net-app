@@ -14,6 +14,28 @@ type Props = {
   refetchBlogs: () => void;
 };
 
+function generateUniqueKey() {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
+function calculateExpiryTimestamp(days: number | null) {
+  if (!days) return null;
+  const now = new Date();
+  now.setDate(now.getDate() + days);
+  return now.toISOString();
+}
+
+const downloadQrCode = () => {
+  const canvas = document.querySelector("canvas");
+  if (canvas) {
+    const url = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "qrcode.png";
+    a.click();
+  }
+};
+
 const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [expiryDays, setExpiryDays] = useState<number | null>(2);
@@ -24,19 +46,6 @@ const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
     setExpiryDays(2);
     setShowConfirmModal(false);
     setUniqueQrCodeDetails(null);
-  };
-
-  const generateUniqueKey = () => {
-    return (
-      Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-    );
-  };
-
-  const calculateExpiryTimestamp = (days: number | null) => {
-    if (!days) return null;
-    const now = new Date();
-    now.setDate(now.getDate() + days);
-    return now.toISOString();
   };
 
   const deleteUniqueQrCode = useCallback(async () => {
@@ -120,17 +129,6 @@ const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
     }
   };
 
-  const downloadQrCode = () => {
-    const canvas = document.querySelector("canvas");
-    if (canvas) {
-      const url = canvas.toDataURL("image/png");
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "qrcode.png";
-      a.click();
-    }
-  };
-
   if (!blog) return null;
 
   return (
@@ -168,10 +166,14 @@ const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
 
         {/* Unique QR Code */}
         <div className="flex flex-col gap-4">
-          <label className="mb-2 block text-gray-400">مدت زمان اعتبار (روز):</label>
+          <label htmlFor="qr-expiry" className="mb-2 block text-gray-400">
+            مدت زمان اعتبار (روز):
+          </label>
           <select
+            id="qr-expiry"
             value={expiryDays || ""}
             onChange={(e) => setExpiryDays(e.target.value === "" ? null : parseInt(e.target.value))}
+            aria-label="مدت زمان اعتبار کد QR"
             className="rounded bg-gray-700 px-4 py-2"
           >
             <option value="1">۱ روز</option>

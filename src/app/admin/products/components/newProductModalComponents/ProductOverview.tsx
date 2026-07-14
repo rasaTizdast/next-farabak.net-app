@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 
 type State = {
@@ -10,6 +10,13 @@ type Props = {
   dispatch: React.Dispatch<any>;
   setErrors: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
 };
+
+function validateField(value: string) {
+  let error = "";
+  if (!value.trim()) error = "ویژگی نمی‌تواند خالی باشد.";
+  else if (value.length > 300) error = "ویژگی نمی‌تواند بیشتر از ۳۰۰ کاراکتر باشد.";
+  return error;
+}
 
 const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
   const [localFeatures, setLocalFeatures] = useState<string[]>(() => state.features);
@@ -60,26 +67,23 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
     });
   }, [localErrors, localFeatures, setErrors]);
 
-  const validateField = (value: string) => {
-    let error = "";
-    if (!value.trim()) error = "ویژگی نمی‌تواند خالی باشد.";
-    else if (value.length > 300) error = "ویژگی نمی‌تواند بیشتر از ۳۰۰ کاراکتر باشد.";
-    return error;
-  };
-
+  const overviewInitGuard = useRef(false);
   // Initialize validation on component mount and when features change from parent
   useEffect(() => {
-    setLocalFeatures(state.features);
+    if (!overviewInitGuard.current) {
+      overviewInitGuard.current = true;
+      setLocalFeatures(state.features);
 
-    const initialErrors = {};
-    state.features.forEach((feature, index) => {
-      const error = validateField(feature);
-      if (error) {
-        initialErrors[`feature-${index}`] = error;
-      }
-    });
+      const initialErrors = {};
+      state.features.forEach((feature, index) => {
+        const error = validateField(feature);
+        if (error) {
+          initialErrors[`feature-${index}`] = error;
+        }
+      });
 
-    setLocalErrors(initialErrors);
+      setLocalErrors(initialErrors);
+    }
   }, [state.features]);
 
   const handleFeatureChange = (index: number, value: string) => {

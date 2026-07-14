@@ -16,6 +16,16 @@ const { confirm } = Modal;
 
 const faDateFormatter = new Intl.DateTimeFormat("fa-IR");
 
+function formatDate(dateString: string) {
+  try {
+    const date = new Date(dateString);
+    return faDateFormatter.format(date);
+  } catch (error) {
+    console.error(error);
+    return dateString;
+  }
+}
+
 interface WarrantyRequest {
   warrantyid: number;
   warrantycode: string;
@@ -150,16 +160,6 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
         await fetchRequests(pagination.current, pagination.pageSize, true);
       },
     });
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return faDateFormatter.format(date);
-    } catch (error) {
-      console.error(error);
-      return dateString;
-    }
   };
 
   const handlePaginationChange = (page: number, pageSize?: number) => {

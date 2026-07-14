@@ -92,6 +92,12 @@ const s3 = new S3({
   endpoint: process.env.LIARA_ENDPOINT,
 });
 
+const sanitize = (value: string) =>
+  value
+    .trim()
+    .replace(/[^a-zA-Z0-9-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
 export async function POST(request: Request) {
   try {
     const cookieStore = await cookies();
@@ -115,13 +121,6 @@ export async function POST(request: Request) {
     if (!type || !contentType) {
       return NextResponse.json({ error: "Type and contentType are required" }, { status: 400 });
     }
-
-    // Sanitize helpers (preserve hyphens)
-    const sanitize = (value: string) =>
-      value
-        .trim()
-        .replace(/[^a-zA-Z0-9-]+/g, "-")
-        .replace(/^-+|-+$/g, "");
 
     // Define the parent folder based on the type
     let parentFolder = "";

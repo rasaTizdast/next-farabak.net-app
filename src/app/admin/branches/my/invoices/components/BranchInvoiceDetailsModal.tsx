@@ -1,6 +1,6 @@
 import { message } from "antd";
 import Image from "next/image";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 
 import { AdminInvoice } from "@/app/admin/invoices/type";
 import PrintButton from "@/app/components/ui/PrintButton";
@@ -11,7 +11,7 @@ import BranchWarrantyViewModal from "./BranchWarrantyViewModal";
 import { ExpandedInvoiceItem, ExtendedWarranty } from "./types";
 
 const currencyFormatter = new Intl.NumberFormat("fa-IR");
-const dateFormatter = new Intl.DateTimeFormat("fa-IR");
+const dateFormatter = new Intl.DateTimeFormat("fa-IR", { timeZone: "Asia/Tehran" });
 
 function formatDate(dateString: string, includeTime: boolean = true) {
   if (!dateString) return "-";
@@ -102,7 +102,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
     fetchProductNames();
   }, [invoice, refreshCounter]);
 
-  const expandedItems = useMemo(() => {
+  const expandedItems = (() => {
     if (
       !invoice ||
       !invoice.Invoice_Details ||
@@ -176,7 +176,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
       }
     });
     return items;
-  }, [invoice, productNames, refreshCounter]);
+  })();
 
   // Handle refresh after warranty actions
   const handleWarrantyUpdated = async () => {

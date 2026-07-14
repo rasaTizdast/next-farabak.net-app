@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-
-
 import { FaTrashAlt } from "react-icons/fa";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
@@ -15,6 +13,18 @@ type Props = {
   setFaqs: (faqs: FAQItem[]) => void;
 };
 
+function validateField(field: string, value: string) {
+  let error = "";
+  if (field === "question") {
+    if (!value.trim()) error = "سوال نمی‌تواند خالی باشد.";
+    else if (value.length > 1000) error = "سوال نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
+  } else if (field === "answer") {
+    if (!value.trim()) error = "پاسخ نمی‌تواند خالی باشد.";
+    else if (value.length > 3000) error = "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
+  }
+  return error;
+}
+
 const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
   const [localFaqs, setLocalFaqs] = useState<FAQItem[]>([]);
   const hasFetched = useRef(false);
@@ -25,18 +35,6 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
   const [touchedFields, setTouchedFields] = useState<{
     [key: string]: boolean;
   }>({});
-
-  const validateField = (field: string, value: string) => {
-    let error = "";
-    if (field === "question") {
-      if (!value.trim()) error = "سوال نمی‌تواند خالی باشد.";
-      else if (value.length > 1000) error = "سوال نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
-    } else if (field === "answer") {
-      if (!value.trim()) error = "پاسخ نمی‌تواند خالی باشد.";
-      else if (value.length > 3000) error = "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
-    }
-    return error;
-  };
 
   useEffect(() => {
     if (faqsResponse && !hasFetched.current) {
@@ -178,7 +176,10 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
           ) : (
             <div className="mb-4 space-y-4">
               {localFaqs.map((faq, index) => (
-                <div key={faq.question + faq.answer} className="rounded-md bg-gray-800 p-4 shadow-md">
+                <div
+                  key={faq.question + faq.answer}
+                  className="rounded-md bg-gray-800 p-4 shadow-md"
+                >
                   <div className="mb-3 flex items-center gap-4">
                     <div className="flex flex-1 flex-col">
                       <input

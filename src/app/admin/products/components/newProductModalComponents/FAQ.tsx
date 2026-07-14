@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 
 type FAQItem = {
@@ -58,14 +58,18 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
     });
   }, [formattedErrors, setErrors]);
 
+  const faqInitGuard = useRef(false);
   // Init local errors when faqs prop changes
   useEffect(() => {
-    const initialErrors: { [key: string]: string } = {};
-    state.faqs.forEach((faq, index) => {
-      initialErrors[`question-${index}`] = validateField("question", faq.question);
-      initialErrors[`answer-${index}`] = validateField("answer", faq.answer);
-    });
-    setLocalErrors(initialErrors);
+    if (!faqInitGuard.current) {
+      faqInitGuard.current = true;
+      const initialErrors: { [key: string]: string } = {};
+      state.faqs.forEach((faq, index) => {
+        initialErrors[`question-${index}`] = validateField("question", faq.question);
+        initialErrors[`answer-${index}`] = validateField("answer", faq.answer);
+      });
+      setLocalErrors(initialErrors);
+    }
   }, [state.faqs, validateField]);
 
   const handleFAQChange = (index: number, field: string, value: string) => {

@@ -63,15 +63,198 @@ async function doFetchInvoices(
   }
 }
 
+// Format date to Persian
+function formatPersianDate(dateString: string) {
+  try {
+    let creationDate;
+
+    // Handle ISO format Jalali date (e.g., "1404-04-09T18:13:49")
+    if (dateString.includes("T")) {
+      const [datePart, timePart] = dateString.split("T");
+      const [year, month, day] = datePart.split("-").map(Number);
+      const [hour, minute, second] = timePart.split(":").map(Number);
+
+      creationDate = jalaali()
+        .jYear(year)
+        .jMonth(month - 1) // Convert to 0-based month
+        .jDate(day)
+        .hour(hour)
+        .minute(minute)
+        .second(second || 0);
+    }
+    // Handle other possible formats
+    else if (dateString.includes("-")) {
+      const parts = dateString.split(/[- :]/);
+      // Check if year is first (YYYY-MM-DD)
+      if (parts[0].length === 4) {
+        const year = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1;
+        const day = parseInt(parts[2]);
+
+        creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
+
+        // Add time if available
+        if (parts.length >= 6) {
+          creationDate.hour(parseInt(parts[3] || "0"));
+          creationDate.minute(parseInt(parts[4] || "0"));
+          creationDate.second(parseInt(parts[5] || "0"));
+        }
+      }
+      // Day first format (DD-MM-YYYY)
+      else {
+        const day = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1;
+        const year = parseInt(parts[2]);
+
+        creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
+
+        // Add time if available
+        if (parts.length >= 6) {
+          creationDate.hour(parseInt(parts[3] || "0"));
+          creationDate.minute(parseInt(parts[4] || "0"));
+          creationDate.second(parseInt(parts[5] || "0"));
+        }
+      }
+    } else {
+      return dateString; // Return original if format not recognized
+    }
+
+    // Return Persian formatted date
+    return creationDate.locale("fa").format("YYYY/MM/DD HH:mm:ss");
+  } catch (error) {
+    console.error("Error formatting date:", dateString, error);
+    return dateString;
+  }
+}
+
+// Calculate time remaining before invoice expires (48 hours after creation)
+function calculateTimeRemaining(dateString: string) {
+  if (!dateString) return { hours: 0, minutes: 0, isExpired: true };
+
+  try {
+    let creationDate;
+
+    // Handle ISO format Jalali date (e.g., "1404-04-09T18:13:49")
+    if (dateString.includes("T")) {
+      const [datePart, timePart] = dateString.split("T");
+      const [year, month, day] = datePart.split("-").map(Number);
+      const [hour, minute, second] = timePart.split(":").map(Number);
+
+      creationDate = jalaali()
+        .jYear(year)
+        .jMonth(month - 1) // Convert to 0-based month
+        .jDate(day)
+        .hour(hour)
+        .minute(minute)
+        .second(second || 0);
+    }
+    // Handle other possible formats
+    else if (dateString.includes("-")) {
+      const parts = dateString.split(/[- :]/);
+      // Check if year is first (YYYY-MM-DD)
+      if (parts[0].length === 4) {
+        const year = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1;
+        const day = parseInt(parts[2]);
+
+        creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
+
+        // Add time if available
+        if (parts.length >= 6) {
+          creationDate.hour(parseInt(parts[3] || "0"));
+          creationDate.minute(parseInt(parts[4] || "0"));
+          creationDate.second(parseInt(parts[5] || "0"));
+        }
+      }
+      // Day first format (DD-MM-YYYY)
+      else {
+        const day = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1;
+        const year = parseInt(parts[2]);
+
+        creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
+
+        // Add time if available
+        if (parts.length >= 6) {
+          creationDate.hour(parseInt(parts[3] || "0"));
+          creationDate.minute(parseInt(parts[4] || "0"));
+          creationDate.second(parseInt(parts[5] || "0"));
+        }
+      }
+    } else {
+      throw new Error("Unsupported date format");
+    }
+
+    // Set the current time for comparison
+    const now = jalaali();
+
+    // Calculate expiry (48 hours after creation)
+    const expiryDate = creationDate.clone().add(48, "hours");
+
+    // Check if expired
+    if (now.isAfter(expiryDate)) {
+      return { hours: 0, minutes: 0, isExpired: true };
+    }
+
+    // Calculate time difference
+    const diffHours = expiryDate.diff(now, "hours");
+    const diffMinutes = expiryDate.diff(now, "minutes") % 60;
+
+    return {
+      hours: diffHours,
+      minutes: diffMinutes,
+      isExpired: false,
+    };
+  } catch (error) {
+    console.error("Error parsing date:", dateString, error);
+    return { hours: 0, minutes: 0, isExpired: true };
+  }
+}
+
+function getTimeRemainingText(dateString: string, checked: boolean) {
+  if (!dateString) return "تاریخ نامشخص";
+
+  try {
+    const { hours, minutes, isExpired } = calculateTimeRemaining(dateString);
+
+    if (isExpired) {
+      return checked ? "تائید شده قبل از انقضا" : "منقضی شده";
+    } else if (hours >= 24) {
+      const days = Math.floor(hours / 24);
+      const remainingHours = hours % 24;
+      return `${days} روز و ${remainingHours} ساعت مانده`;
+    } else {
+      return `${hours} ساعت و ${minutes} دقیقه مانده`;
+    }
+  } catch (error) {
+    console.error("Error parsing date:", dateString, error);
+    return `خطا در تاریخ: ${dateString}`;
+  }
+}
+
+function getTimeRemainingClass(dateString: string, checked?: boolean) {
+  const { hours, isExpired } = calculateTimeRemaining(dateString);
+
+  if (isExpired) {
+    return checked ? styles.checked : styles.expired;
+  } else if (hours < 6) {
+    return styles.urgent;
+  } else if (hours < 12) {
+    return styles.warning;
+  } else {
+    return styles.normal;
+  }
+}
+
 const AllInvoices = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchInvoices = async () => {
+  const fetchInvoices = useCallback(async () => {
     await doFetchInvoices(setLoading, setError, setInvoices);
-  };
+  }, []);
 
   useEffect(() => {
     fetchInvoices();
@@ -83,189 +266,6 @@ const AllInvoices = () => {
 
   const handleCloseModal = () => {
     setSelectedInvoice(null);
-  };
-
-  // Format date to Persian
-  const formatPersianDate = (dateString: string) => {
-    try {
-      let creationDate;
-
-      // Handle ISO format Jalali date (e.g., "1404-04-09T18:13:49")
-      if (dateString.includes("T")) {
-        const [datePart, timePart] = dateString.split("T");
-        const [year, month, day] = datePart.split("-").map(Number);
-        const [hour, minute, second] = timePart.split(":").map(Number);
-
-        creationDate = jalaali()
-          .jYear(year)
-          .jMonth(month - 1) // Convert to 0-based month
-          .jDate(day)
-          .hour(hour)
-          .minute(minute)
-          .second(second || 0);
-      }
-      // Handle other possible formats
-      else if (dateString.includes("-")) {
-        const parts = dateString.split(/[- :]/);
-        // Check if year is first (YYYY-MM-DD)
-        if (parts[0].length === 4) {
-          const year = parseInt(parts[0]);
-          const month = parseInt(parts[1]) - 1;
-          const day = parseInt(parts[2]);
-
-          creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
-
-          // Add time if available
-          if (parts.length >= 6) {
-            creationDate.hour(parseInt(parts[3] || "0"));
-            creationDate.minute(parseInt(parts[4] || "0"));
-            creationDate.second(parseInt(parts[5] || "0"));
-          }
-        }
-        // Day first format (DD-MM-YYYY)
-        else {
-          const day = parseInt(parts[0]);
-          const month = parseInt(parts[1]) - 1;
-          const year = parseInt(parts[2]);
-
-          creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
-
-          // Add time if available
-          if (parts.length >= 6) {
-            creationDate.hour(parseInt(parts[3] || "0"));
-            creationDate.minute(parseInt(parts[4] || "0"));
-            creationDate.second(parseInt(parts[5] || "0"));
-          }
-        }
-      } else {
-        return dateString; // Return original if format not recognized
-      }
-
-      // Return Persian formatted date
-      return creationDate.locale("fa").format("YYYY/MM/DD HH:mm:ss");
-    } catch (error) {
-      console.error("Error formatting date:", dateString, error);
-      return dateString;
-    }
-  };
-
-  // Calculate time remaining before invoice expires (48 hours after creation)
-  const calculateTimeRemaining = (dateString: string) => {
-    if (!dateString) return { hours: 0, minutes: 0, isExpired: true };
-
-    try {
-      let creationDate;
-
-      // Handle ISO format Jalali date (e.g., "1404-04-09T18:13:49")
-      if (dateString.includes("T")) {
-        const [datePart, timePart] = dateString.split("T");
-        const [year, month, day] = datePart.split("-").map(Number);
-        const [hour, minute, second] = timePart.split(":").map(Number);
-
-        creationDate = jalaali()
-          .jYear(year)
-          .jMonth(month - 1) // Convert to 0-based month
-          .jDate(day)
-          .hour(hour)
-          .minute(minute)
-          .second(second || 0);
-      }
-      // Handle other possible formats
-      else if (dateString.includes("-")) {
-        const parts = dateString.split(/[- :]/);
-        // Check if year is first (YYYY-MM-DD)
-        if (parts[0].length === 4) {
-          const year = parseInt(parts[0]);
-          const month = parseInt(parts[1]) - 1;
-          const day = parseInt(parts[2]);
-
-          creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
-
-          // Add time if available
-          if (parts.length >= 6) {
-            creationDate.hour(parseInt(parts[3] || "0"));
-            creationDate.minute(parseInt(parts[4] || "0"));
-            creationDate.second(parseInt(parts[5] || "0"));
-          }
-        }
-        // Day first format (DD-MM-YYYY)
-        else {
-          const day = parseInt(parts[0]);
-          const month = parseInt(parts[1]) - 1;
-          const year = parseInt(parts[2]);
-
-          creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
-
-          // Add time if available
-          if (parts.length >= 6) {
-            creationDate.hour(parseInt(parts[3] || "0"));
-            creationDate.minute(parseInt(parts[4] || "0"));
-            creationDate.second(parseInt(parts[5] || "0"));
-          }
-        }
-      } else {
-        throw new Error("Unsupported date format");
-      }
-
-      // Set the current time for comparison
-      const now = jalaali();
-
-      // Calculate expiry (48 hours after creation)
-      const expiryDate = creationDate.clone().add(48, "hours");
-
-      // Check if expired
-      if (now.isAfter(expiryDate)) {
-        return { hours: 0, minutes: 0, isExpired: true };
-      }
-
-      // Calculate time difference
-      const diffHours = expiryDate.diff(now, "hours");
-      const diffMinutes = expiryDate.diff(now, "minutes") % 60;
-
-      return {
-        hours: diffHours,
-        minutes: diffMinutes,
-        isExpired: false,
-      };
-    } catch (error) {
-      console.error("Error parsing date:", dateString, error);
-      return { hours: 0, minutes: 0, isExpired: true };
-    }
-  };
-
-  const getTimeRemainingText = (dateString: string, checked: boolean) => {
-    if (!dateString) return "تاریخ نامشخص";
-
-    try {
-      const { hours, minutes, isExpired } = calculateTimeRemaining(dateString);
-
-      if (isExpired) {
-        return checked ? "تائید شده قبل از انقضا" : "منقضی شده";
-      } else if (hours >= 24) {
-        const days = Math.floor(hours / 24);
-        const remainingHours = hours % 24;
-        return `${days} روز و ${remainingHours} ساعت مانده`;
-      } else {
-        return `${hours} ساعت و ${minutes} دقیقه مانده`;
-      }
-    } catch (error) {
-      console.error("Error parsing date:", dateString, error);
-      return `خطا در تاریخ: ${dateString}`;
-    }
-  };
-
-  const getTimeRemainingClass = (dateString: string, checked?: boolean) => {
-    const { hours, isExpired } = calculateTimeRemaining(dateString);
-
-    if (isExpired) {
-      return checked ? styles.checked : styles.expired;
-    } else if (hours < 6) {
-      return styles.urgent;
-    } else if (hours < 12) {
-      return styles.warning;
-    } else {
-      return styles.normal;
-    }
   };
 
   if (loading) {

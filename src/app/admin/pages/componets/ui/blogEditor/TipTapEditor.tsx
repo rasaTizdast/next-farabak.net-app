@@ -48,11 +48,67 @@ import VideoUploadModal from "./VideoUploadModal";
 const DEFAULT_WIDTH = 500;
 const DEFAULT_HEIGHT = 400;
 
+function isExternalUrl(url: string): boolean {
+  return url.startsWith("http://") || url.startsWith("https://");
+}
+
+function convertMDXToHTML(mdxContent: string) {
+  return mdxContent
+    .replace(
+      /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*className="([^"]+)"[^>]*\/?>/g,
+      (match, src, alt, width, height, className) => {
+        let size = "full";
+        if (className.includes("w-1/2")) size = "half";
+        else if (className.includes("w-1/3")) size = "third";
+        else if (!className.includes("w-full")) size = "custom";
+        return `<img src="${src}" alt="${alt}" width="${width}" height="${height}" class="rounded-lg max-w-full my-4" data-size="${size}" />`;
+      }
+    )
+    .replace(
+      /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*\/?>/g,
+      '<img src="$1" alt="$2" width="$3" height="$4" class="rounded-lg max-w-full my-4" data-size="full" />'
+    )
+    .replace(/<Link\s+href="([^"]+)">\s*([\s\S]*?)\s*<\/Link>/g, '<a href="$1">$2</a>')
+    .replace(/<table className="[^"]*">/g, "<table>")
+    .replace(/<th className="[^"]*">/g, "<th>")
+    .replace(/<td className="[^"]*">/g, "<td>");
+}
+
 interface TipTapBlogEditorProps {
   onSave?: (content: string, status: boolean) => void;
   blogData?: string; // Add prop for initial content
   slug: string;
 }
+
+const calculateDimensions = async (url: string) => {
+  if (typeof window === "undefined") {
+    return { width: 0, height: 0 }; // Fallback for server-side
+  }
+
+  return new Promise<{ width: number; height: number }>((resolve) => {
+    const img = new window.Image(); // Use window.Image for browser compatibility
+    img.src = url;
+
+    img.onload = () => {
+      const MAX_WIDTH = 1000;
+      const MAX_HEIGHT = 800;
+      let { width, height } = img;
+
+      if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+        const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+        width = Math.floor(width * ratio);
+        height = Math.floor(height * ratio);
+      }
+
+      resolve({ width, height });
+    };
+
+    img.onerror = () => {
+      console.error("Failed to load image");
+      resolve({ width: 0, height: 0 }); // Fallback dimensions
+    };
+  });
+};
 
 const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => {
   const [isLinkMenuOpen, setIsLinkMenuOpen] = useState(false);
@@ -67,36 +123,6 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
   const editorContainerRef = useRef<HTMLDivElement>(null);
   const { mutate: uploadImage } = useApiMutation("post");
   const { mutate: uploadVideo } = useApiMutation("post");
-
-  const calculateDimensions = async (url: string) => {
-    if (typeof window === "undefined") {
-      return { width: 0, height: 0 }; // Fallback for server-side
-    }
-
-    return new Promise<{ width: number; height: number }>((resolve) => {
-      const img = new window.Image(); // Use window.Image for browser compatibility
-      img.src = url;
-
-      img.onload = () => {
-        const MAX_WIDTH = 1000;
-        const MAX_HEIGHT = 800;
-        let { width, height } = img;
-
-        if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-          const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
-          width = Math.floor(width * ratio);
-          height = Math.floor(height * ratio);
-        }
-
-        resolve({ width, height });
-      };
-
-      img.onerror = () => {
-        console.error("Failed to load image");
-        resolve({ width: 0, height: 0 }); // Fallback dimensions
-      };
-    });
-  };
 
   const editor = useEditor({
     extensions: [
@@ -140,28 +166,6 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
     ],
     content: blogData || "", // Initialize with blogData if provided
   });
-
-  const convertMDXToHTML = (mdxContent: string) => {
-    return mdxContent
-      .replace(
-        /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*className="([^"]+)"[^>]*\/?>/g,
-        (match, src, alt, width, height, className) => {
-          let size = "full";
-          if (className.includes("w-1/2")) size = "half";
-          else if (className.includes("w-1/3")) size = "third";
-          else if (!className.includes("w-full")) size = "custom";
-          return `<img src="${src}" alt="${alt}" width="${width}" height="${height}" class="rounded-lg max-w-full my-4" data-size="${size}" />`;
-        }
-      )
-      .replace(
-        /<Image\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width=\{(\d+)\}[^>]*height=\{(\d+)\}[^>]*\/?>/g,
-        '<img src="$1" alt="$2" width="$3" height="$4" class="rounded-lg max-w-full my-4" data-size="full" />'
-      )
-      .replace(/<Link\s+href="([^"]+)">\s*([\s\S]*?)\s*<\/Link>/g, '<a href="$1">$2</a>')
-      .replace(/<table className="[^"]*">/g, "<table>")
-      .replace(/<th className="[^"]*">/g, "<th>")
-      .replace(/<td className="[^"]*">/g, "<td>");
-  };
 
   // Update editor content when blogData changes
   useEffect(() => {
@@ -235,11 +239,6 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
     }
   };
 
-  // Function to check if a URL is external
-  const isExternalUrl = (url: string): boolean => {
-    return url.startsWith("http://") || url.startsWith("https://");
-  };
-
   const setLink = () => {
     if (!editor) return;
 
@@ -259,80 +258,80 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
     // Convert editor content to MDX
     let mdxContent = editor
       .getHTML()
-        // Convert img tags to Next.js Image components with proper sizing
-        .replace(
-          /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*data-size="([^"]+)"[^>]*>/g,
-          (match, src, alt, width, height, size) => {
-            // Define different tailwind classes based on size
-            let tailwindClass = "";
+      // Convert img tags to Next.js Image components with proper sizing
+      .replace(
+        /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*data-size="([^"]+)"[^>]*>/g,
+        (match, src, alt, width, height, size) => {
+          // Define different tailwind classes based on size
+          let tailwindClass = "";
 
-            switch (size) {
-              case "full":
-                tailwindClass = "w-full";
-                break;
-              case "half":
-                tailwindClass = "w-1/2 mx-auto";
-                break;
-              case "third":
-                tailwindClass = "w-1/3 mx-auto";
-                break;
-              case "custom":
-                // For custom sizes, we'll create an inline style
-                tailwindClass = `max-w-full`;
-                break;
-              default:
-                tailwindClass = "w-full";
-            }
-
-            // For custom sizes, add a style attribute as well
-            const styleAttr = size === "custom" ? `style="--img-width:${width}px"` : "";
-
-            // Handle external URLs differently
-            const imgSrc = isExternalUrl(src) ? src : `${src}`;
-
-            if (isExternalUrl(src)) {
-              // For external URLs, use unoptimized Image with domain property
-              return `<img src="${imgSrc}" alt="${alt}" width="${width}" height="${height}" className="${tailwindClass}" />`;
-            } else {
-              return `<Image src="${imgSrc}" alt="${alt}" width={${width}} height={${height}} className="${tailwindClass}" quality={100} layout="responsive" ${styleAttr} />`;
-            }
+          switch (size) {
+            case "full":
+              tailwindClass = "w-full";
+              break;
+            case "half":
+              tailwindClass = "w-1/2 mx-auto";
+              break;
+            case "third":
+              tailwindClass = "w-1/3 mx-auto";
+              break;
+            case "custom":
+              // For custom sizes, we'll create an inline style
+              tailwindClass = `max-w-full`;
+              break;
+            default:
+              tailwindClass = "w-full";
           }
-        )
 
-        // Also handle images that don't have data-size attribute
-        .replace(
-          /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*>/g,
-          (match, src, alt, width, height) => {
-            // If this regex matches, it means our first replace didn't catch it (no data-size)
-            // Handle external URLs differently
-            const imgSrc = isExternalUrl(src) ? src : `${src}`;
+          // For custom sizes, add a style attribute as well
+          const styleAttr = size === "custom" ? `style="--img-width:${width}px"` : "";
 
-            if (isExternalUrl(src)) {
-              // For external URLs, use unoptimized Image with domain property
-              return `<img src="${imgSrc}" alt="${alt}" width="${width}" height="${height}" className="w-full" />`;
-            } else {
-              return `<Image src="${imgSrc}" alt="${alt}" width={${width}} height={${height}} className="w-full" quality={100} layout="responsive" />`;
-            }
+          // Handle external URLs differently
+          const imgSrc = isExternalUrl(src) ? src : `${src}`;
+
+          if (isExternalUrl(src)) {
+            // For external URLs, use unoptimized Image with domain property
+            return `<img src="${imgSrc}" alt="${alt}" width="${width}" height="${height}" className="${tailwindClass}" />`;
+          } else {
+            return `<Image src="${imgSrc}" alt="${alt}" width={${width}} height={${height}} className="${tailwindClass}" quality={100} layout="responsive" ${styleAttr} />`;
           }
-        )
+        }
+      )
 
-        // Make sure videos have the right src path (keep the relative path)
-        .replace(/<div data-type="video"[^>]*>([\s\S]*?)<\/div>/g, (match) => {
-          // Preserve the video element as is - it will be processed on the frontend
-          return match;
-        })
+      // Also handle images that don't have data-size attribute
+      .replace(
+        /<img\s+src="([^"]+)"\s+alt="([^"]+)"[^>]*width="([^"]+)"[^>]*height="([^"]+)"[^>]*>/g,
+        (match, src, alt, width, height) => {
+          // If this regex matches, it means our first replace didn't catch it (no data-size)
+          // Handle external URLs differently
+          const imgSrc = isExternalUrl(src) ? src : `${src}`;
 
-        // Convert a tags to Next.js Link components
-        .replace(/<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g, '<Link href="$1">$2</Link>');
+          if (isExternalUrl(src)) {
+            // For external URLs, use unoptimized Image with domain property
+            return `<img src="${imgSrc}" alt="${alt}" width="${width}" height="${height}" className="w-full" />`;
+          } else {
+            return `<Image src="${imgSrc}" alt="${alt}" width={${width}} height={${height}} className="w-full" quality={100} layout="responsive" />`;
+          }
+        }
+      )
 
-      // Preserve table structure but add styling classes for MDX
-      mdxContent = mdxContent
-        .replace(/<table[^>]*>/g, '<table className="w-full my-4 border-collapse" dir="rtl">')
-        .replace(/<th[^>]*>/g, '<th className="border border-gray-600 bg-gray-700 p-2 text-right">')
-        .replace(/<td[^>]*>/g, '<td className="border border-gray-600 p-2 text-right">');
+      // Make sure videos have the right src path (keep the relative path)
+      .replace(/<div data-type="video"[^>]*>([\s\S]*?)<\/div>/g, (match) => {
+        // Preserve the video element as is - it will be processed on the frontend
+        return match;
+      })
 
-      onSave?.(mdxContent, status);
-    };
+      // Convert a tags to Next.js Link components
+      .replace(/<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g, '<Link href="$1">$2</Link>');
+
+    // Preserve table structure but add styling classes for MDX
+    mdxContent = mdxContent
+      .replace(/<table[^>]*>/g, '<table className="w-full my-4 border-collapse" dir="rtl">')
+      .replace(/<th[^>]*>/g, '<th className="border border-gray-600 bg-gray-700 p-2 text-right">')
+      .replace(/<td[^>]*>/g, '<td className="border border-gray-600 p-2 text-right">');
+
+    onSave?.(mdxContent, status);
+  };
 
   const toggleTableModal = () => {
     setIsTableModalOpen(!isTableModalOpen);
@@ -606,11 +605,15 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
               icon={Link2}
               title="Link"
             />
-            <label className="cursor-pointer rounded-md p-2 text-gray-300 hover:bg-gray-600">
+            <label
+              className="cursor-pointer rounded-md p-2 text-gray-300 hover:bg-gray-600"
+              aria-label="بارگذاری تصویر"
+            >
               <input
                 type="file"
                 className="hidden"
                 accept="image/*"
+                aria-label="انتخاب تصویر"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) addImage(file);
@@ -636,6 +639,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
                 placeholder="Paste URL..."
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
+                aria-label="آدرس لینک"
                 className="rounded-md border border-gray-600 bg-gray-700 px-3 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 onKeyDown={(e) => e.key === "Enter" && setLink()}
               />
@@ -659,7 +663,9 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
 
             <div className="mb-6 flex justify-between gap-4">
               <div className="flex-1">
-                <label className="mb-2 block text-right text-sm text-gray-300">تعداد سطرها</label>
+                <label htmlFor="table-rows" className="mb-2 block text-right text-sm text-gray-300">
+                  تعداد سطرها
+                </label>
                 <div className="flex items-center">
                   <button
                     type="button"
@@ -669,11 +675,13 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
                     -
                   </button>
                   <input
+                    id="table-rows"
                     type="number"
                     min="1"
                     max="20"
                     value={tableRows}
                     onChange={(e) => setTableRows(parseInt(e.target.value) || 3)}
+                    aria-label="تعداد سطرها"
                     className="w-12 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center text-white"
                   />
                   <button
@@ -687,7 +695,9 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
               </div>
 
               <div className="flex-1">
-                <label className="mb-2 block text-right text-sm text-gray-300">تعداد ستون‌ها</label>
+                <label htmlFor="table-cols" className="mb-2 block text-right text-sm text-gray-300">
+                  تعداد ستون‌ها
+                </label>
                 <div className="flex items-center">
                   <button
                     type="button"
@@ -697,11 +707,13 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
                     -
                   </button>
                   <input
+                    id="table-cols"
                     type="number"
                     min="1"
                     max="10"
                     value={tableCols}
                     onChange={(e) => setTableCols(parseInt(e.target.value) || 3)}
+                    aria-label="تعداد ستون‌ها"
                     className="w-12 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center text-white"
                   />
                   <button
@@ -744,6 +756,7 @@ const TipTapBlogEditor = ({ onSave, blogData, slug }: TipTapBlogEditorProps) => 
               value={htmlContent}
               onChange={(e) => setHtmlContent(e.target.value)}
               placeholder="کد HTML را اینجا وارد کنید..."
+              aria-label="محتوای HTML"
               className="h-64 w-full rounded-md border border-gray-600 bg-gray-700 p-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               dir="ltr"
             />

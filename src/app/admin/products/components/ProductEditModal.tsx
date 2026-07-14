@@ -114,6 +114,34 @@ const validationRules: Record<string, ValidationRule> = {
   },
 };
 
+function validateField(fieldName: string, value: any): string | null {
+  const rule = validationRules[fieldName];
+  if (!rule) return null;
+
+  // Skip validation for non-string/number values or arrays/objects
+  if (typeof value === "object" || Array.isArray(value) || typeof value === "boolean") {
+    return null;
+  }
+
+  if (rule.required && (!value || value.toString().trim() === "")) {
+    return rule.errorMsg.required;
+  }
+
+  if (value) {
+    const stringValue = value.toString();
+
+    if (rule.maxLength && stringValue.length > rule.maxLength) {
+      return rule.errorMsg.maxLength || null;
+    }
+
+    if (rule.regex && !rule.regex.test(stringValue)) {
+      return rule.errorMsg.regex || null;
+    }
+  }
+
+  return null;
+}
+
 async function doUploadImage(
   image: File | null,
   productName: string,
@@ -350,34 +378,6 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
   // Helper to check if there are any FAQ validation errors
   const hasFaqErrors = () => {
     return Object.keys(faqErrors).length > 0;
-  };
-
-  const validateField = (fieldName: string, value: any): string | null => {
-    const rule = validationRules[fieldName];
-    if (!rule) return null;
-
-    // Skip validation for non-string/number values or arrays/objects
-    if (typeof value === "object" || Array.isArray(value) || typeof value === "boolean") {
-      return null;
-    }
-
-    if (rule.required && (!value || value.toString().trim() === "")) {
-      return rule.errorMsg.required;
-    }
-
-    if (value) {
-      const stringValue = value.toString();
-
-      if (rule.maxLength && stringValue.length > rule.maxLength) {
-        return rule.errorMsg.maxLength || null;
-      }
-
-      if (rule.regex && !rule.regex.test(stringValue)) {
-        return rule.errorMsg.regex || null;
-      }
-    }
-
-    return null;
   };
 
   const validateForm = (): string | null => {
@@ -670,6 +670,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({
                   <select
                     id="subCategory"
                     disabled
+                    aria-label="زیر دسته‌بندی"
                     className="w-full rounded bg-gray-700 p-2 text-white"
                   >
                     <option value="">انتخاب زیر دسته‌بندی</option>

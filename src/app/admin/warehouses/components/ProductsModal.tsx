@@ -99,6 +99,53 @@ async function updateProductGrade(
   refreshWarehouses();
 }
 
+async function doUpdateGrade(
+  productId: number,
+  gradeId: number | null,
+  currentQuantity: number,
+  currentWarehouseProductId: number,
+  warehouseId: number,
+  products: WarehouseProduct[],
+  setProducts: React.Dispatch<React.SetStateAction<WarehouseProduct[]>>,
+  refreshWarehouses: () => void,
+  updateMutate: any,
+  deleteMutate: any,
+  setActionLoading: React.Dispatch<
+    React.SetStateAction<{
+      add: boolean;
+      modify: Record<number, boolean>;
+      remove: Record<number, boolean>;
+    }>
+  >
+) {
+  setActionLoading((prev) => ({
+    ...prev,
+    modify: { ...prev.modify, [currentWarehouseProductId]: true },
+  }));
+  try {
+    await updateProductGrade(
+      productId,
+      gradeId,
+      currentQuantity,
+      currentWarehouseProductId,
+      warehouseId,
+      products,
+      setProducts,
+      refreshWarehouses,
+      updateMutate,
+      deleteMutate
+    );
+  } catch (e) {
+    console.error("Error updating grade:", e);
+    alert((e as any)?.response?.data?.error || "خطا در بروزرسانی گرید محصول");
+  } finally {
+    setActionLoading((prev) => ({
+      ...prev,
+      modify: { ...prev.modify, [currentWarehouseProductId]: false },
+    }));
+  }
+}
+
 export default function ProductsModal({
   open,
   onClose,
@@ -153,51 +200,6 @@ export default function ProductsModal({
     }
     setActionLoading((prev) => ({ ...prev, modify: { ...prev.modify, [wpId]: false } }));
   };
-
-async function doUpdateGrade(
-  productId: number,
-  gradeId: number | null,
-  currentQuantity: number,
-  currentWarehouseProductId: number,
-  warehouseId: number,
-  products: WarehouseProduct[],
-  setProducts: React.Dispatch<React.SetStateAction<WarehouseProduct[]>>,
-  refreshWarehouses: () => void,
-  updateMutate: any,
-  deleteMutate: any,
-  setActionLoading: React.Dispatch<React.SetStateAction<{
-    add: boolean;
-    modify: Record<number, boolean>;
-    remove: Record<number, boolean>;
-  }>>
-) {
-  setActionLoading((prev) => ({
-    ...prev,
-    modify: { ...prev.modify, [currentWarehouseProductId]: true },
-  }));
-  try {
-    await updateProductGrade(
-      productId,
-      gradeId,
-      currentQuantity,
-      currentWarehouseProductId,
-      warehouseId,
-      products,
-      setProducts,
-      refreshWarehouses,
-      updateMutate,
-      deleteMutate
-    );
-  } catch (e) {
-    console.error("Error updating grade:", e);
-    alert((e as any)?.response?.data?.error || "خطا در بروزرسانی گرید محصول");
-  } finally {
-    setActionLoading((prev) => ({
-      ...prev,
-      modify: { ...prev.modify, [currentWarehouseProductId]: false },
-    }));
-  }
-}
 
   const updateGrade = async (
     productId: number,
@@ -262,8 +264,11 @@ async function doUpdateGrade(
         <h4 className="mb-4 text-sm font-medium text-gray-300">افزودن محصول جدید</h4>
         <div className="flex flex-wrap items-end gap-4">
           <div className="flex min-w-[250px] flex-1 flex-col gap-2">
-            <label className="text-xs text-gray-400">نام محصول</label>
+            <label htmlFor="warehouse-product-name" className="text-xs text-gray-400">
+              نام محصول
+            </label>
             <AutoCompleteBase
+              aria-label="نام محصول"
               options={allProducts.map((p) => ({
                 value: p.Type || "",
                 productId: String(p.ProductId),
@@ -294,9 +299,13 @@ async function doUpdateGrade(
             )}
           </div>
           <div className="flex min-w-[150px] flex-col gap-2">
-            <label className="text-xs text-gray-400">گرید محصول</label>
+            <label htmlFor="warehouse-product-grade" className="text-xs text-gray-400">
+              گرید محصول
+            </label>
             <div className="relative">
               <select
+                id="warehouse-product-grade"
+                aria-label="گرید محصول"
                 className={`w-full rounded border border-gray-600 bg-gray-700 px-3 py-2 text-white transition-all duration-200 ${
                   !selectedProduct || !addProductId ? "cursor-not-allowed opacity-30" : ""
                 } ${!selectedProduct || selectedProduct?.ProductGrade?.length === 0 ? "text-transparent" : ""}`}
@@ -321,10 +330,14 @@ async function doUpdateGrade(
             </div>
           </div>
           <div className="flex w-32 flex-col gap-2">
-            <label className="text-xs text-gray-400">تعداد</label>
+            <label htmlFor="warehouse-product-quantity" className="text-xs text-gray-400">
+              تعداد
+            </label>
             <InputBase
+              id="warehouse-product-quantity"
               type="number"
               min={1}
+              aria-label="تعداد"
               value={addQuantity}
               onChange={(e) => setAddQuantity((e.target as HTMLInputElement).value)}
             />
@@ -382,6 +395,7 @@ async function doUpdateGrade(
                 <div className="flex min-h-[36px] items-center gap-2">
                   <div className="relative min-w-[150px]">
                     <select
+                      aria-label="گرید محصول"
                       className={`w-full rounded border border-gray-600 bg-gray-700 px-3 py-2 text-white transition-opacity duration-200 ${
                         isLoading ? "opacity-50" : ""
                       } ${!grades.length ? "cursor-not-allowed opacity-50" : ""}`}
@@ -436,6 +450,7 @@ async function doUpdateGrade(
                   type="number"
                   min={0}
                   className="w-24"
+                  aria-label="تعداد محصول"
                   value={record.quantity}
                   disabled={actionLoading.modify[record.warehouseproductid]}
                   onChange={(e) =>
