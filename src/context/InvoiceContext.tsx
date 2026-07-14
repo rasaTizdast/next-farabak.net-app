@@ -1,13 +1,5 @@
 "use client";
-import React, {
-  createContext,
-  useState,
-  ReactNode,
-  use,
-  useEffect,
-  useRef,
-  useCallback,
-} from "react";
+import React, { createContext, useState, ReactNode, use, useEffect, useRef } from "react";
 
 import { useInvoiceCookie } from "@/hooks/useInvoiceCookie";
 
@@ -113,45 +105,42 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
   }, []);
 
   // Function to save invoice data with debouncing
-  const debounceSaveInvoice = useCallback(
-    (currentInvoice: InvoiceState) => {
-      // Clear any existing timer
-      if (debounceSaveTimerRef.current) {
-        clearTimeout(debounceSaveTimerRef.current);
-      }
+  const debounceSaveInvoice = (currentInvoice: InvoiceState) => {
+    // Clear any existing timer
+    if (debounceSaveTimerRef.current) {
+      clearTimeout(debounceSaveTimerRef.current);
+    }
 
-      // Set a new timer
-      debounceSaveTimerRef.current = setTimeout(async () => {
-        try {
-          if (currentInvoice.products.length > 0) {
-            await saveInvoiceToCookie(currentInvoice);
+    // Set a new timer
+    debounceSaveTimerRef.current = setTimeout(async () => {
+      try {
+        if (currentInvoice.products.length > 0) {
+          await saveInvoiceToCookie(currentInvoice);
 
-            // Remove cleared flag if it exists
-            if (typeof window !== "undefined") {
-              localStorage.removeItem(INVOICE_CLEARED_KEY);
-            }
-
-            // Trigger cross-tab sync by updating localStorage
-            if (typeof window !== "undefined") {
-              localStorage.setItem(INVOICE_SYNC_KEY, Date.now().toString());
-            }
-          } else {
-            await clearInvoiceCookie();
-
-            // Set cleared flag for other tabs
-            if (typeof window !== "undefined") {
-              localStorage.setItem(INVOICE_CLEARED_KEY, "true");
-              // Also trigger sync event
-              localStorage.setItem(INVOICE_SYNC_KEY, "cleared:" + Date.now().toString());
-            }
+          // Remove cleared flag if it exists
+          if (typeof window !== "undefined") {
+            localStorage.removeItem(INVOICE_CLEARED_KEY);
           }
-        } catch (error) {
-          console.error("Error saving invoice to cookie:", error);
+
+          // Trigger cross-tab sync by updating localStorage
+          if (typeof window !== "undefined") {
+            localStorage.setItem(INVOICE_SYNC_KEY, Date.now().toString());
+          }
+        } else {
+          await clearInvoiceCookie();
+
+          // Set cleared flag for other tabs
+          if (typeof window !== "undefined") {
+            localStorage.setItem(INVOICE_CLEARED_KEY, "true");
+            // Also trigger sync event
+            localStorage.setItem(INVOICE_SYNC_KEY, "cleared:" + Date.now().toString());
+          }
         }
-      }, DEBOUNCE_DELAY);
-    },
-    [saveInvoiceToCookie, clearInvoiceCookie]
-  );
+      } catch (error) {
+        console.error("Error saving invoice to cookie:", error);
+      }
+    }, DEBOUNCE_DELAY);
+  };
 
   // Save invoice data to cookie whenever it changes (with debouncing)
   useEffect(() => {
@@ -293,14 +282,12 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
   };
 
   const removeProductFromInvoice = (ProductId: number) => {
-    let updatedProducts: Product[] = [];
-    setInvoice((prev) => {
-      updatedProducts = prev.products.filter((p) => p.ProductId !== ProductId);
-      return {
-        ...prev,
-        products: updatedProducts,
-        TotalAmount: updatedProducts.reduce((sum, product) => sum + product.Quantity, 0),
-      };
+    const prevProducts = invoice.products;
+    const updatedProducts = prevProducts.filter((p) => p.ProductId !== ProductId);
+    setInvoice({
+      ...invoice,
+      products: updatedProducts,
+      TotalAmount: updatedProducts.reduce((sum, product) => sum + product.Quantity, 0),
     });
     // If removing this product results in an empty invoice, clear the cookie immediately
     if (updatedProducts.length === 0) {

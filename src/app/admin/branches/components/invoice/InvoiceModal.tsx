@@ -2,7 +2,7 @@
 
 import { Modal, Steps, Button, message } from "antd";
 import moment from "jalali-moment";
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -90,7 +90,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
     setUsdToRialRate(rate);
   };
 
-  const resetForm = useCallback(() => {
+  const resetForm = () => {
     setCurrentStep(0);
     setInvoice({
       Fullname: "",
@@ -102,15 +102,15 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
     });
     setSelectedProducts([]);
     setProductsWithWarranty([]);
-  }, [branch?.UserID]);
+  };
 
-  const handleAfterOpenChange = useCallback((open: boolean) => {
+  const handleAfterOpenChange = (open: boolean) => {
     if (open) {
       getExchangeRate();
     } else {
       resetForm();
     }
-  }, [resetForm]);
+  };
 
   const handleClose = () => {
     onClose();

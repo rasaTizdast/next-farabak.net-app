@@ -4,7 +4,7 @@ import debounce from "lodash/debounce";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { CgSearch } from "react-icons/cg";
 import { escape } from "validator";
 
@@ -279,13 +279,13 @@ const SearchBox = () => {
     }
   };
 
-  const closeSearchBox = useCallback(() => {
+  const closeSearchBox = () => {
     setSearchVis(false);
     setSearchValue("");
     setSearchResults([]);
     setIsLoading(false);
     setHasSearched(false);
-  }, []);
+  };
 
   useEffect(() => {
     if (searchVis && inputRef.current) {
@@ -296,7 +296,11 @@ const SearchBox = () => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchBoxRef.current && !searchBoxRef.current.contains(event.target as Node)) {
-        closeSearchBox();
+        setSearchVis(false);
+        setSearchValue("");
+        setSearchResults([]);
+        setIsLoading(false);
+        setHasSearched(false);
       }
     };
 
@@ -304,7 +308,7 @@ const SearchBox = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [searchVis, closeSearchBox]);
+  }, []);
 
   return (
     <div className={styles.search} ref={searchBoxRef}>

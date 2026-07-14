@@ -1,6 +1,6 @@
 "use client";
 import axios from "axios";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 
 type MutationMethod = "post" | "put" | "patch" | "delete";
 
@@ -46,16 +46,13 @@ export function useApiMutation<TResponse = any, TData = any>(
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const reset = useCallback(() => {
+  const reset = () => {
     setError(null);
-  }, []);
+  };
 
-  const mutate = useCallback(
-    async (url: string, data?: TData): Promise<TResponse | null> => {
-      return executeMutation<TResponse, TData>(method, url, data, setLoading, setError);
-    },
-    [method]
-  );
+  const mutate = async (url: string, data?: TData): Promise<TResponse | null> => {
+    return executeMutation<TResponse, TData>(method, url, data, setLoading, setError);
+  };
 
   return { mutate: mutate as any, loading, error, reset };
 }
