@@ -397,7 +397,7 @@ function MyBranchContent() {
   const [productDrawerVisible, setProductDrawerVisible] = useState(false);
   const [invoiceModalVisible, setInvoiceModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
-  const [productQuantity, setProductQuantity] = useState<number>(1);
+  const productQuantityRef = useRef<number>(1);
   const [productForm] = Form.useForm();
 
   // Added for invoices section
@@ -455,24 +455,40 @@ function MyBranchContent() {
   const { mutate: updateProductQtyMutate } = useApiMutation("put");
   const { mutate: updateInvoiceStatusMutate } = useApiMutation("patch");
 
-  // Define all fetch functions first
-  const fetchAllProducts = async () => {
-    await fetchAllProductsHelper(setProductsLoading, setAllProducts);
-  };
+  // Refs for values that change but need to be read from stable callbacks
+  const productPaginationRef = useRef(productPagination);
+  const invoicePaginationRef = useRef(invoicePagination);
+  const branchRef = useRef(branch);
+  useEffect(() => {
+    productPaginationRef.current = productPagination;
+  }, [productPagination]);
+  useEffect(() => {
+    invoicePaginationRef.current = invoicePagination;
+  }, [invoicePagination]);
+  useEffect(() => {
+    branchRef.current = branch;
+  }, [branch]);
 
-  // Update the fetchBranchProducts function to use pagination
-  const fetchBranchProducts = async (branchId: number, page?: number, pageSize?: number) => {
-    const p = page ?? productPagination.current;
-    const ps = pageSize ?? productPagination.pageSize;
-    await fetchBranchProductsHelper(
-      branchId,
-      p,
-      ps,
-      setProductsLoading,
-      setProducts,
-      setProductPagination
-    );
-  };
+  // Define all fetch functions first (useCallback with refs for stable identity)
+  const fetchAllProducts = useCallback(async () => {
+    await fetchAllProductsHelper(setProductsLoading, setAllProducts);
+  }, []);
+
+  const fetchBranchProducts = useCallback(
+    async (branchId: number, page?: number, pageSize?: number) => {
+      const p = page ?? productPaginationRef.current.current;
+      const ps = pageSize ?? productPaginationRef.current.pageSize;
+      await fetchBranchProductsHelper(
+        branchId,
+        p,
+        ps,
+        setProductsLoading,
+        setProducts,
+        setProductPagination
+      );
+    },
+    []
+  );
 
   // Create a ref for fetchBranchProducts to use in intervals
   const fetchBranchProductsRef = useRef(fetchBranchProducts);
@@ -511,10 +527,10 @@ function MyBranchContent() {
 
   // Update the fetchInvoices function to use pagination
   const fetchInvoices = async (page?: number, pageSize?: number) => {
-    const p = page ?? invoicePagination.current;
-    const ps = pageSize ?? invoicePagination.pageSize;
+    const p = page ?? invoicePaginationRef.current.current;
+    const ps = pageSize ?? invoicePaginationRef.current.pageSize;
     await fetchInvoicesHelper(
-      branch,
+      branchRef.current,
       p,
       ps,
       setInvoicesLoading,
@@ -710,7 +726,7 @@ function MyBranchContent() {
 
     // Clean up interval on component unmount
     return () => clearInterval(intervalId);
-  }, [fetchBranchProducts, fetchInvoices, fetchAllProducts]);
+  }, []);
 
   const handleTabChange = (newActiveTab: string) => {
     setActiveTab(newActiveTab);
@@ -724,13 +740,13 @@ function MyBranchContent() {
 
     const result = await addProductMutate(`/api/admin/branches/${branch.branchid}/products`, {
       productId: selectedProduct,
-      quantity: productQuantity,
+      quantity: productQuantityRef.current,
     });
     if (result) {
       message.success("محصول با موفقیت به شعبه اضافه شد");
       productForm.resetFields();
       setSelectedProduct(null);
-      setProductQuantity(1);
+      productQuantityRef.current = 1;
       await fetchBranchProducts(branch.branchid);
       const branchResponse = await fetch("/api/admin/branches/my");
       if (branchResponse.ok) {
@@ -796,10 +812,9 @@ function MyBranchContent() {
 
   // Add function to update invoice status
   const updateInvoiceStatus = async (invoice: AdminInvoice, checked: boolean) => {
-    const result = await updateInvoiceStatusMutate(
-      `/api/admin/invoices?id=${invoice.Invoiceid}`,
-      { checked }
-    );
+    const result = await updateInvoiceStatusMutate(`/api/admin/invoices?id=${invoice.Invoiceid}`, {
+      checked,
+    });
     if (result) {
       const updatedInvoices = invoices.map((inv) => {
         if (inv.Invoiceid === invoice.Invoiceid) {
@@ -857,129 +872,129 @@ function MyBranchContent() {
 
   // Define invoice columns
   const memoizedInvoiceColumns = [
-      {
-        title: "شماره فاکتور",
-        dataIndex: "FactorGuid",
-        key: "FactorGuid",
-        className: "text-right font-medium",
-        render: (text: string) => <span className="font-medium text-blue-400">{text}</span>,
-      },
-      {
-        title: "نام مشتری",
-        dataIndex: "Fullname",
-        key: "Fullname",
-        className: "text-right font-medium",
-        render: (text: string) => <span className="text-gray-100">{text}</span>,
-      },
-      {
-        title: "شماره تماس",
-        dataIndex: "Phonenumber",
-        key: "Phonenumber",
-        className: "text-right font-medium",
-        render: (phone: string) => (
-          <a href={`tel:${phone}`} className="text-blue-400 transition-colors hover:text-blue-300">
-            {phone}
-          </a>
-        ),
-      },
-      {
-        title: "تاریخ",
-        dataIndex: "Date",
-        key: "Date",
-        className: "text-right font-medium",
-        render: (date: string) => <span className="text-gray-200">{formatDate(date)}</span>,
-      },
-      {
-        title: "وضعیت",
-        dataIndex: "Checked",
-        key: "Checked",
-        className: "text-right font-medium",
-        render: (checked: boolean, invoice: AdminInvoice) => (
-          <div className="flex items-center justify-center">
-            {checked ? (
+    {
+      title: "شماره فاکتور",
+      dataIndex: "FactorGuid",
+      key: "FactorGuid",
+      className: "text-right font-medium",
+      render: (text: string) => <span className="font-medium text-blue-400">{text}</span>,
+    },
+    {
+      title: "نام مشتری",
+      dataIndex: "Fullname",
+      key: "Fullname",
+      className: "text-right font-medium",
+      render: (text: string) => <span className="text-gray-100">{text}</span>,
+    },
+    {
+      title: "شماره تماس",
+      dataIndex: "Phonenumber",
+      key: "Phonenumber",
+      className: "text-right font-medium",
+      render: (phone: string) => (
+        <a href={`tel:${phone}`} className="text-blue-400 transition-colors hover:text-blue-300">
+          {phone}
+        </a>
+      ),
+    },
+    {
+      title: "تاریخ",
+      dataIndex: "Date",
+      key: "Date",
+      className: "text-right font-medium",
+      render: (date: string) => <span className="text-gray-200">{formatDate(date)}</span>,
+    },
+    {
+      title: "وضعیت",
+      dataIndex: "Checked",
+      key: "Checked",
+      className: "text-right font-medium",
+      render: (checked: boolean, invoice: AdminInvoice) => (
+        <div className="flex items-center justify-center">
+          {checked ? (
+            <Tag
+              color="success"
+              className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
+              style={{ fontFamily: "inherit", fontWeight: 500 }}
+            >
+              <span>بررسی شده</span>
+            </Tag>
+          ) : (
+            <Tag
+              color="warning"
+              className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
+              onClick={() => updateInvoiceStatus(invoice, true)}
+              style={{
+                fontFamily: "inherit",
+                fontWeight: 500,
+                color: "#000",
+              }}
+            >
+              <span>در انتظار بررسی</span>
+            </Tag>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: "وضعیت گارانتی",
+      key: "warranty",
+      className: "text-center font-medium",
+      render: (_: any, invoice: AdminInvoice) => {
+        const status = getWarrantyStatusSummary(invoice);
+        if (!status) {
+          return (
+            <Tag
+              color="default"
+              className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
+              style={{ fontFamily: "inherit", fontWeight: 500 }}
+            >
+              <span>بدون گارانتی</span>
+            </Tag>
+          );
+        }
+
+        return (
+          <div className="flex flex-wrap justify-center gap-2">
+            {status.active > 0 && (
               <Tag
                 color="success"
                 className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
                 style={{ fontFamily: "inherit", fontWeight: 500 }}
               >
-                <span>بررسی شده</span>
-              </Tag>
-            ) : (
-              <Tag
-                color="warning"
-                className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
-                onClick={() => updateInvoiceStatus(invoice, true)}
-                style={{
-                  fontFamily: "inherit",
-                  fontWeight: 500,
-                  color: "#000",
-                }}
-              >
-                <span>در انتظار بررسی</span>
+                <span>{status.active} گارانتی فعال</span>
               </Tag>
             )}
-          </div>
-        ),
-      },
-      {
-        title: "وضعیت گارانتی",
-        key: "warranty",
-        className: "text-center font-medium",
-        render: (_: any, invoice: AdminInvoice) => {
-          const status = getWarrantyStatusSummary(invoice);
-          if (!status) {
-            return (
+            {status.expired > 0 && (
               <Tag
-                color="default"
+                color="error"
                 className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
                 style={{ fontFamily: "inherit", fontWeight: 500 }}
               >
-                <span>بدون گارانتی</span>
+                <span>{status.expired} گارانتی منقضی</span>
               </Tag>
-            );
-          }
-
-          return (
-            <div className="flex flex-wrap justify-center gap-2">
-              {status.active > 0 && (
-                <Tag
-                  color="success"
-                  className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
-                  style={{ fontFamily: "inherit", fontWeight: 500 }}
-                >
-                  <span>{status.active} گارانتی فعال</span>
-                </Tag>
-              )}
-              {status.expired > 0 && (
-                <Tag
-                  color="error"
-                  className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
-                  style={{ fontFamily: "inherit", fontWeight: 500 }}
-                >
-                  <span>{status.expired} گارانتی منقضی</span>
-                </Tag>
-              )}
-            </div>
-          );
-        },
+            )}
+          </div>
+        );
       },
-      {
-        title: "عملیات",
-        key: "actions",
-        className: "text-center font-medium",
-        render: (_: any, invoice: AdminInvoice) => (
-          <Button
-            htmlType="button"
-            type="primary"
-            className="flex items-center border-blue-700 bg-blue-600 hover:bg-blue-700"
-            onClick={() => setSelectedInvoice(invoice)}
-          >
-            <span>مشاهده جزئیات</span>
-            <EyeOutlined className="mr-2" />
-          </Button>
-        ),
-      },
-    ];
+    },
+    {
+      title: "عملیات",
+      key: "actions",
+      className: "text-center font-medium",
+      render: (_: any, invoice: AdminInvoice) => (
+        <Button
+          htmlType="button"
+          type="primary"
+          className="flex items-center border-blue-700 bg-blue-600 hover:bg-blue-700"
+          onClick={() => setSelectedInvoice(invoice)}
+        >
+          <span>مشاهده جزئیات</span>
+          <EyeOutlined className="mr-2" />
+        </Button>
+      ),
+    },
+  ];
 
   if (loading) {
     return <SkeletonLoading />;
@@ -1610,7 +1625,7 @@ function MyBranchContent() {
         productForm={productForm}
         selectedProduct={selectedProduct}
         onSelectProduct={setSelectedProduct}
-        onQuantityChange={(value) => value !== null && setProductQuantity(value)}
+        onQuantityChange={(value) => value !== null && (productQuantityRef.current = value)}
         onAddProduct={handleAddProduct}
         onUpdateQuantity={handleUpdateProductQuantity}
       />

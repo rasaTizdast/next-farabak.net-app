@@ -3,7 +3,7 @@
 // Custom lightweight UI replacing antd components
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -114,16 +114,37 @@ function WarehousesPageContent() {
   const [toasts, setToasts] = useState<
     { id: number; type: "success" | "error" | "warning"; text: string }[]
   >([]);
-  const notify = (type: "success" | "error" | "warning", text: string) => {
+  const notify = useCallback((type: "success" | "error" | "warning", text: string) => {
     toastIdRef.current += 1;
     const id = toastIdRef.current;
     setToasts((t) => [...t, { id, type, text }]);
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3000);
-  };
+  }, []);
 
-  const fetchWarehouses = async (searchProductId?: string) => {
-    await doFetchWarehouses(searchProductId, page, q, setLoading, setItems, setTotal, notify);
-  };
+  // Refs for values read inside the stable callback
+  const pageRef = useRef(page);
+  const qRef = useRef(q);
+  useEffect(() => {
+    pageRef.current = page;
+  }, [page]);
+  useEffect(() => {
+    qRef.current = q;
+  }, [q]);
+
+  const fetchWarehouses = useCallback(
+    async (searchProductId?: string) => {
+      await doFetchWarehouses(
+        searchProductId,
+        pageRef.current,
+        qRef.current,
+        setLoading,
+        setItems,
+        setTotal,
+        notify
+      );
+    },
+    [notify]
+  );
 
   const searchProductInWarehouses = async (searchProductId: number) => {
     await fetchWarehouses(String(searchProductId));

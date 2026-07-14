@@ -173,7 +173,7 @@ function BranchesPageContent() {
   const [invoiceModalVisible, setInvoiceModalVisible] = useState(false);
   const [currentBranch, setCurrentBranch] = useState<Branch | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
-  const [productQuantity, setProductQuantity] = useState<number>(1);
+  const productQuantityRef = useRef<number>(1);
   const [productForm] = Form.useForm();
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
@@ -203,33 +203,45 @@ function BranchesPageContent() {
 
   const { data: usersData } = useApiFetch<User[]>("/api/admin/users");
 
-  const fetchBranches = async (
-    page?: number,
-    pageSize?: number,
-    overrideProductId?: number | null
-  ) => {
-    const p = page ?? pagination.current;
-    const ps = pageSize ?? pagination.pageSize;
-    const productId = overrideProductId !== undefined ? overrideProductId : searchProductId;
-    await fetchBranchesHelper(
-      p,
-      ps,
-      productId,
-      setLoading,
-      setBranches,
-      setTotalBranchCount,
-      setPagination
-    );
-  };
+  // Refs for values that change but need to be read from stable callbacks
+  const paginationRef = useRef(pagination);
+  const searchProductIdRef = useRef(searchProductId);
+  useEffect(() => {
+    paginationRef.current = pagination;
+  }, [pagination]);
+  useEffect(() => {
+    searchProductIdRef.current = searchProductId;
+  }, [searchProductId]);
 
-  const fetchAllProducts = async () => {
+  const fetchBranches = useCallback(
+    async (page?: number, pageSize?: number, overrideProductId?: number | null) => {
+      const p = page ?? paginationRef.current.current;
+      const ps = pageSize ?? paginationRef.current.pageSize;
+      const productId =
+        overrideProductId !== undefined ? overrideProductId : searchProductIdRef.current;
+      await fetchBranchesHelper(
+        p,
+        ps,
+        productId,
+        setLoading,
+        setBranches,
+        setTotalBranchCount,
+        setPagination
+      );
+    },
+    []
+  );
+
+  const fetchAllProducts = useCallback(async () => {
     await fetchAllProductsHelper(setProductsLoading, setAllProducts);
-  };
+  }, []);
 
   // Check URL for productId param
+  const searchProductIdSyncedRef = useRef(false);
   useEffect(() => {
     const productId = searchParams.get("productId");
-    if (productId && !initialLoading) {
+    if (productId && !initialLoading && !searchProductIdSyncedRef.current) {
+      searchProductIdSyncedRef.current = true;
       const parsedId = parseInt(productId);
       setSearchProductId(parsedId);
 
@@ -356,14 +368,14 @@ function BranchesPageContent() {
       `/api/admin/branches/${currentBranch.branchid}/products`,
       {
         productId: selectedProduct,
-        quantity: productQuantity,
+        quantity: productQuantityRef.current,
       }
     );
     if (result) {
       message.success("محصول با موفقیت به شعبه اضافه شد");
       productForm.resetFields();
       setSelectedProduct(null);
-      setProductQuantity(1);
+      productQuantityRef.current = 1;
       await fetchBranchProducts(currentBranch.branchid);
       await fetchBranches();
     } else {
@@ -680,7 +692,7 @@ function BranchesPageContent() {
           loading={productsLoading}
           selectedProduct={selectedProduct}
           onSelectProduct={(productId) => setSelectedProduct(productId)}
-          onQuantityChange={(quantity) => setProductQuantity(quantity || 1)}
+          onQuantityChange={(quantity) => (productQuantityRef.current = quantity || 1)}
         />
       )}
       {/* Invoice Modal */}
