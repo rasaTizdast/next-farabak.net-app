@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa"; // Icons for expand/collapse
 import { IoIosCloseCircle } from "react-icons/io";
@@ -43,13 +43,15 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set<number>());
 
+  const initializedRef = useRef(false);
   const { data: activitiesData } = useApiFetch("/api/activities");
   const { mutate: saveActivities, loading: isSaving } = useApiMutation("put");
 
-  const isFetching = useMemo(() => !activitiesData, [activitiesData]);
+  const isFetching = !activitiesData;
 
   useEffect(() => {
-    if (activitiesData) {
+    if (activitiesData && !initializedRef.current) {
+      initializedRef.current = true;
       setActivities(activitiesData);
       setExpandedSections(new Set<number>(activitiesData.map((_: Activity, i: number) => i)));
     }
@@ -142,6 +144,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
           type="button"
           onClick={onClose}
           className="absolute left-4 top-4 rounded-full p-2 text-red-500 hover:text-red-600"
+          aria-label="بستن"
         >
           <IoIosCloseCircle size={40} />
         </button>
@@ -172,6 +175,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                     type="button"
                     onClick={() => toggleSection(activityIndex)}
                     className="mb-3 p-2 pl-0 text-gray-100 hover:text-blue-500"
+                    aria-label={expandedSections.has(activityIndex) ? "بستن بخش" : "باز کردن بخش"}
                   >
                     {expandedSections.has(activityIndex) ? (
                       <FaChevronUp size={20} />

@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { Overview } from "../types";
 
@@ -19,9 +19,11 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
     });
   }, [ProductId, SetOverviews]);
 
+  const overviewsInitGuard = useRef(false);
   // Initialize existingOverviews from overviews prop (one-time)
   useEffect(() => {
-    if (overviews) {
+    if (overviews && !overviewsInitGuard.current) {
+      overviewsInitGuard.current = true;
       const nonEmptyOverviews = [
         overviews.Property1,
         overviews.Property2,
@@ -97,10 +99,12 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
 
       {existingOverviews.map((overview, index) => (
         <div key={overview} className="flex items-center gap-2">
-          <label className="block flex-1">
+          <label htmlFor={`property-${index + 1}`} className="block flex-1">
             <input
+              id={`property-${index + 1}`}
               type="text"
               name={`Property${index + 1}`}
+              aria-label={`ویژگی ${index + 1}`}
               value={overviews?.[`Property${index + 1}`] || ""}
               onChange={inputHandler}
               className="mt-2 w-full rounded border border-gray-800 bg-gray-700 p-2"

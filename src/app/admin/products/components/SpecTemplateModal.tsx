@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
 import { CgSpinnerTwo } from "react-icons/cg";
 import { IoIosClose } from "react-icons/io";
@@ -34,9 +34,11 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
   const { mutate: updateTemplate, loading: isUpdating } = useApiMutation("put");
   const isLoading = isCreating || isUpdating;
 
+  const templateInitGuard = useRef(false);
   // Initialize state when editing an existing template
   useEffect(() => {
-    if (templateToEdit) {
+    if (templateToEdit && !templateInitGuard.current) {
+      templateInitGuard.current = true;
       setTemplateName(templateToEdit.Name);
       setItems(
         templateToEdit.Items && templateToEdit.Items.length > 0
@@ -118,9 +120,13 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
 
         <div onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="mb-2 block">نام قالب</label>
+            <label htmlFor="template-name" className="mb-2 block">
+              نام قالب
+            </label>
             <input
+              id="template-name"
               type="text"
+              aria-label="نام قالب"
               value={templateName}
               onChange={(e) => setTemplateName(e.target.value)}
               className="w-full rounded-md border border-gray-600 bg-gray-700 p-2 text-white"
@@ -131,7 +137,7 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
 
           <div className="mb-6">
             <div className="mb-2 flex justify-between">
-              <label>موارد مشخصات</label>
+              <span className="text-sm font-medium">موارد مشخصات</span>
               <button
                 type="button"
                 onClick={handleAddItem}
@@ -147,6 +153,7 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
                 <div key={item.Title} className="flex items-center gap-2">
                   <input
                     type="text"
+                    aria-label="عنوان مشخصات"
                     value={item.Title}
                     onChange={(e) => handleItemChange(index, e.target.value)}
                     className="flex-grow rounded-md border border-gray-600 bg-gray-700 p-2 text-white"
@@ -155,6 +162,7 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
                   />
                   <button
                     type="button"
+                    aria-label="حذف مورد"
                     onClick={() => handleRemoveItem(index)}
                     className="text-red-400 hover:text-red-300"
                     disabled={isLoading || items.length <= 1}
@@ -200,6 +208,7 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
 
         <button
           type="button"
+          aria-label="بستن"
           className="absolute right-2 top-2 text-gray-400 hover:text-white"
           onClick={(e) => {
             e.stopPropagation();

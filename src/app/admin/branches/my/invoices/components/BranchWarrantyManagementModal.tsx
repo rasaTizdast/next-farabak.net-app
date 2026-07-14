@@ -189,10 +189,12 @@ const BranchWarrantyManagementModal = ({
 
   // Use the print hook with ref for the warranty card area
   const componentRef = useRef<HTMLDivElement>(null);
+  const branchSyncedRef = useRef(false);
 
   // Sync branchId from currentBranchData (one-time)
   useEffect(() => {
-    if (currentBranchData) {
+    if (currentBranchData && !branchSyncedRef.current) {
+      branchSyncedRef.current = true;
       setWarrantyData((prev) => ({ ...prev, branchId: currentBranchData.branchid }));
     }
   }, [currentBranchData]);
@@ -390,10 +392,17 @@ const BranchWarrantyManagementModal = ({
             </div>
 
             <div className="no-print space-y-2 text-right">
-              <label className="block text-sm font-medium text-gray-300">شعبه مسئول گارانتی</label>
+              <label
+                htmlFor="warranty-branch-name"
+                className="block text-sm font-medium text-gray-300"
+              >
+                شعبه مسئول گارانتی
+              </label>
               <input
+                id="warranty-branch-name"
                 type="text"
                 readOnly
+                aria-label="شعبه مسئول گارانتی"
                 className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70"
                 value={currentBranch?.name || ""}
                 disabled

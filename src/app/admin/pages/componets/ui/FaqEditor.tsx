@@ -1,7 +1,7 @@
 "use client";
 
 import { Input, Button, Modal, Table, Tooltip, Space, Badge } from "antd";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
@@ -43,11 +43,13 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
   const { mutate: deleteFaqMutate } = useApiMutation("delete");
   const { mutate: saveFaqMutate } = useApiMutation("post");
   const { mutate: updateFaqMutate } = useApiMutation("put");
+  const initializedRef = useRef(false);
 
-  const loading = useMemo(() => !faqsData, [faqsData]);
+  const loading = !faqsData;
 
   useEffect(() => {
-    if (faqsData) {
+    if (faqsData && !initializedRef.current) {
+      initializedRef.current = true;
       setFaqs(faqsData.faqs);
     }
   }, [faqsData]);
@@ -264,14 +266,18 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
 
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-gray-300">سوال</label>
+              <label htmlFor="faq-question" className="mb-1 block text-gray-300">
+                سوال
+              </label>
               <Input
+                id="faq-question"
                 name="Q"
                 value={formData.Q}
                 onChange={handleInputChange}
                 placeholder="سوال را وارد کنید"
                 maxLength={500}
                 showCount
+                aria-label="سوال"
                 className="border-gray-600 bg-gray-700 text-gray-200 placeholder-gray-400"
                 style={{
                   backgroundColor: "#1F2937",
@@ -282,8 +288,11 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
             </div>
 
             <div>
-              <label className="mb-1 block text-gray-300">پاسخ</label>
+              <label htmlFor="faq-answer" className="mb-1 block text-gray-300">
+                پاسخ
+              </label>
               <TextArea
+                id="faq-answer"
                 name="A"
                 value={formData.A}
                 onChange={handleInputChange}
@@ -291,6 +300,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
                 maxLength={1000}
                 showCount
                 rows={6}
+                aria-label="پاسخ"
                 className="resize-none border-gray-600 bg-gray-700 text-gray-200 placeholder-gray-400"
                 style={{
                   backgroundColor: "#1F2937",

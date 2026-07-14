@@ -60,8 +60,12 @@ export function ModalBase({
   width?: number;
 }) {
   const [mounted, setMounted] = useState(false);
+  const mountGuard = useRef(false);
   useEffect(() => {
-    setMounted(true);
+    if (!mountGuard.current) {
+      mountGuard.current = true;
+      setMounted(true);
+    }
   }, []);
   if (!open) return null;
   if (!mounted) return null;

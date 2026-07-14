@@ -205,8 +205,12 @@ const AdminProductsPage = () => {
     setCategories(res.data);
   };
 
+  const catFetchGuard = useRef(false);
   useEffect(() => {
-    fetchCategories();
+    if (!catFetchGuard.current) {
+      catFetchGuard.current = true;
+      fetchCategories();
+    }
   }, []);
 
   return (

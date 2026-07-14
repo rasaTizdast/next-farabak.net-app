@@ -19,6 +19,19 @@ interface ImageAttributes {
 const DEFAULT_WIDTH = 500;
 const DEFAULT_HEIGHT = 400;
 
+function isExternalUrl(url: string): boolean {
+  return url.startsWith("http://") || url.startsWith("https://");
+}
+
+function getImageUrl(src: string): string {
+  if (isExternalUrl(src)) {
+    return src; // Return external URLs as is
+  } else {
+    // Add bucket URL prefix for internal uploads
+    return `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${src}`;
+  }
+}
+
 const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const { mutate: deleteImage } = useApiMutation("delete");
@@ -32,6 +45,7 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
     height: DEFAULT_HEIGHT,
   });
   const imageRef = useRef<HTMLDivElement>(null);
+  const dimensionSyncedRef = useRef(false);
 
   const attrs = node.attrs as ImageAttributes;
 
@@ -48,7 +62,8 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
 
   // Sync dimension form fields on mount
   useEffect(() => {
-    if (safeWidth > 0 && safeHeight > 0) {
+    if (safeWidth > 0 && safeHeight > 0 && !dimensionSyncedRef.current) {
+      dimensionSyncedRef.current = true;
       setCustomWidth(safeWidth.toString());
       setCustomHeight(safeHeight.toString());
     }
@@ -235,34 +250,29 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
     });
   };
 
+  // Store handlers in refs so the effect doesn't re-run when they change
+  const handleResizeMoveRef = useRef(handleResizeMove);
+  const handleResizeEndRef = useRef(handleResizeEnd);
+  useEffect(() => {
+    handleResizeMoveRef.current = handleResizeMove;
+    handleResizeEndRef.current = handleResizeEnd;
+  });
+
   useEffect(() => {
     if (isResizing) {
-      document.addEventListener("mousemove", handleResizeMove);
-      document.addEventListener("mouseup", handleResizeEnd);
-
+      const onMove = (e: MouseEvent) => handleResizeMoveRef.current(e);
+      const onEnd = () => handleResizeEndRef.current();
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onEnd);
       document.body.style.userSelect = "none";
 
       return () => {
-        document.removeEventListener("mousemove", handleResizeMove);
-        document.removeEventListener("mouseup", handleResizeEnd);
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onEnd);
         document.body.style.userSelect = "";
       };
     }
-  }, [isResizing, handleResizeMove, handleResizeEnd]);
-
-  const isExternalUrl = (url: string): boolean => {
-    return url.startsWith("http://") || url.startsWith("https://");
-  };
-
-  // Function to get proper image URL based on source
-  const getImageUrl = (src: string): string => {
-    if (isExternalUrl(src)) {
-      return src; // Return external URLs as is
-    } else {
-      // Add bucket URL prefix for internal uploads
-      return `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${src}`;
-    }
-  };
+  }, [isResizing]);
 
   return (
     <NodeViewWrapper>
@@ -429,21 +439,35 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
               <div className="mb-1 text-right text-sm">اندازه سفارشی:</div>
               <div className="flex items-center gap-3">
                 <div className="flex flex-col gap-2">
-                  <label className="block text-right text-xs text-gray-400">عرض (پیکسل)</label>
+                  <label
+                    htmlFor="image-custom-width"
+                    className="block text-right text-xs text-gray-400"
+                  >
+                    عرض (پیکسل)
+                  </label>
                   <input
+                    id="image-custom-width"
                     type="number"
                     value={customWidth}
                     onChange={(e) => setCustomWidth(e.target.value)}
+                    aria-label="عرض تصویر به پیکسل"
                     className="w-20 rounded border border-gray-600 bg-gray-700 px-2 py-1 text-right"
                     min="100"
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="block text-right text-xs text-gray-400">ارتفاع (پیکسل)</label>
+                  <label
+                    htmlFor="image-custom-height"
+                    className="block text-right text-xs text-gray-400"
+                  >
+                    ارتفاع (پیکسل)
+                  </label>
                   <input
+                    id="image-custom-height"
                     type="number"
                     value={customHeight}
                     onChange={(e) => setCustomHeight(e.target.value)}
+                    aria-label="ارتفاع تصویر به پیکسل"
                     className="w-20 rounded border border-gray-600 bg-gray-700 px-2 py-1 text-right"
                     min="100"
                   />

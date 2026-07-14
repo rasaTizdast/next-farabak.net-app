@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
@@ -37,9 +37,11 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
 
   const { data: memberData } = useApiFetch<Member>(id ? `/api/members/${id}` : null);
   const { mutate: updateMemberMutate } = useApiMutation("put");
+  const initializedRef = useRef(false);
 
   useEffect(() => {
-    if (memberData) {
+    if (memberData && !initializedRef.current) {
+      initializedRef.current = true;
       setMember(memberData);
       setFormData({
         name: memberData.Name,
@@ -187,12 +189,16 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-2 block">نام:</label>
+              <label htmlFor="member-name" className="mb-2 block">
+                نام:
+              </label>
               <input
+                id="member-name"
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
+                aria-label="نام عضو"
                 className={`w-full rounded-lg bg-gray-600 p-2 ${
                   errors.name ? "border border-red-500" : ""
                 }`}
@@ -200,12 +206,16 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
               {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
             </div>
             <div>
-              <label className="mb-2 block">نقش:</label>
+              <label htmlFor="member-role" className="mb-2 block">
+                نقش:
+              </label>
               <input
+                id="member-role"
                 type="text"
                 name="role"
                 value={formData.role}
                 onChange={handleInputChange}
+                aria-label="نقش عضو"
                 className={`w-full rounded-lg bg-gray-600 p-2 ${
                   errors.role ? "border border-red-500" : ""
                 }`}
@@ -213,11 +223,15 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
               {errors.role && <p className="mt-1 text-sm text-red-500">{errors.role}</p>}
             </div>
             <div className="col-span-2">
-              <label className="mb-2 block">توضیحات:</label>
+              <label htmlFor="member-desc" className="mb-2 block">
+                توضیحات:
+              </label>
               <textarea
+                id="member-desc"
                 name="desc"
                 value={formData.desc}
                 onChange={handleInputChange}
+                aria-label="توضیحات عضو"
                 className={`w-full rounded-lg bg-gray-600 p-2 ${
                   errors.desc ? "border border-red-500" : ""
                 }`}
@@ -226,12 +240,16 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
               {errors.desc && <p className="mt-1 text-sm text-red-500">{errors.desc}</p>}
             </div>
             <div>
-              <label className="mb-2 block">شماره تماس:</label>
+              <label htmlFor="member-phone" className="mb-2 block">
+                شماره تماس:
+              </label>
               <input
+                id="member-phone"
                 type="text"
                 name="phone"
                 value={formData.phone}
                 onChange={handleInputChange}
+                aria-label="شماره تماس عضو"
                 className={`w-full rounded-lg bg-gray-600 p-2 ${
                   errors.phone ? "border border-red-500" : ""
                 }`}
@@ -239,12 +257,16 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
               {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
             </div>
             <div>
-              <label className="mb-2 block">اسلاگ:</label>
+              <label htmlFor="member-slug" className="mb-2 block">
+                اسلاگ:
+              </label>
               <input
+                id="member-slug"
                 type="text"
                 name="slug"
                 value={formData.slug}
                 onChange={handleInputChange}
+                aria-label="اسلاگ عضو"
                 className={`w-full rounded-lg bg-gray-600 p-2 ${
                   errors.slug ? "border border-red-500" : ""
                 }`}
@@ -252,7 +274,9 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
               {errors.slug && <p className="mt-1 text-sm text-red-500">{errors.slug}</p>}
             </div>
             <div className="col-span-2">
-              <label className="mb-2 block">تصویر پروفایل:</label>
+              <label htmlFor="member-image" className="mb-2 block">
+                تصویر پروفایل:
+              </label>
               {member.main_pic && (
                 <div className="mb-4">
                   <Image
@@ -266,9 +290,11 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
                 </div>
               )}
               <input
+                id="member-image"
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
+                aria-label="تصویر پروفایل عضو"
                 className="w-full rounded-lg bg-gray-600 p-2"
               />
               {imageFile && (
