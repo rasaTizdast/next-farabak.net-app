@@ -243,6 +243,7 @@ const ItemForm = ({
       {showRemoveButton && (
         <button
           type="button"
+          aria-label="حذف آیتم"
           onClick={() => removeItem(index)}
           className="absolute left-2 top-2 rounded-lg bg-red-500 hover:bg-red-600"
         >
@@ -251,9 +252,13 @@ const ItemForm = ({
       )}
 
       <div className="mb-4">
-        <label className="mb-2 block">عنوان</label>
+        <label htmlFor={`overview-title-${index}`} className="mb-2 block">
+          عنوان
+        </label>
         <input
+          id={`overview-title-${index}`}
           type="text"
+          aria-label="عنوان"
           value={item.title}
           onChange={(e) => handleChange(index, "title", e.target.value)}
           className="w-full rounded-md border border-gray-600 bg-gray-700 p-2 text-white"
@@ -263,8 +268,12 @@ const ItemForm = ({
       </div>
 
       <div className="mb-4">
-        <label className="mb-2 block">توضیحات</label>
+        <label htmlFor={`overview-desc-${index}`} className="mb-2 block">
+          توضیحات
+        </label>
         <textarea
+          id={`overview-desc-${index}`}
+          aria-label="توضیحات"
           value={item.description}
           onChange={(e) => handleChange(index, "description", e.target.value)}
           className="min-h-[100px] w-full rounded-md border border-gray-600 bg-gray-700 p-2 text-white"
@@ -274,7 +283,9 @@ const ItemForm = ({
       </div>
 
       <div className="mb-4">
-        <label className="mb-2 block">تصویر</label>
+        <label htmlFor={`overview-image-${index}`} className="mb-2 block">
+          تصویر
+        </label>
         <div
           {...getRootProps()}
           className={`cursor-pointer rounded-md border-2 border-dashed p-4 text-center transition-colors ${

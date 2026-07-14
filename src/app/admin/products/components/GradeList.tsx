@@ -141,12 +141,17 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                 <div className="p-3">
                   <div className="space-y-4">
                     <div>
-                      <label className="mb-2 block text-sm text-gray-300">
+                      <label
+                        htmlFor={`grade-${grade.ProductGradeId}`}
+                        className="mb-2 block text-sm text-gray-300"
+                      >
                         گرید (فقط حروف انگلیسی مجاز است)
                       </label>
                       <input
+                        id={`grade-${grade.ProductGradeId}`}
                         type="text"
                         name="grade"
+                        aria-label="گرید"
                         value={editingGrade.grade}
                         onChange={handleInputChange}
                         maxLength={1}
@@ -155,10 +160,17 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                     </div>
 
                     <div>
-                      <label className="mb-2 block text-sm text-gray-300">قیمت (دلار)</label>
+                      <label
+                        htmlFor={`price-${grade.ProductGradeId}`}
+                        className="mb-2 block text-sm text-gray-300"
+                      >
+                        قیمت (دلار)
+                      </label>
                       <input
+                        id={`price-${grade.ProductGradeId}`}
                         type="number"
                         name="price"
+                        aria-label="قیمت"
                         value={editingGrade.price}
                         onChange={handleInputChange}
                         min="0"
@@ -176,10 +188,17 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                     </div>
 
                     <div>
-                      <label className="mb-2 block text-sm text-gray-300">تخفیف (دلار)</label>
+                      <label
+                        htmlFor={`discount-${grade.ProductGradeId}`}
+                        className="mb-2 block text-sm text-gray-300"
+                      >
+                        تخفیف (دلار)
+                      </label>
                       <input
+                        id={`discount-${grade.ProductGradeId}`}
                         type="number"
                         name="discount"
+                        aria-label="تخفیف"
                         value={editingGrade.discount}
                         onChange={handleInputChange}
                         min="0"

@@ -87,12 +87,16 @@ const NewMemberModal: React.FC<NewMemberModalProps> = ({ onClose }) => {
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-2 block">نام:</label>
+              <label htmlFor="new-member-name" className="mb-2 block">
+                نام:
+              </label>
               <input
+                id="new-member-name"
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
+                aria-label="نام عضو"
                 className={`w-full rounded-lg bg-gray-600 p-2 ${
                   errors.name ? "border border-red-500" : ""
                 }`}
@@ -100,12 +104,16 @@ const NewMemberModal: React.FC<NewMemberModalProps> = ({ onClose }) => {
               {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
             </div>
             <div>
-              <label className="mb-2 block">نقش:</label>
+              <label htmlFor="new-member-role" className="mb-2 block">
+                نقش:
+              </label>
               <input
+                id="new-member-role"
                 type="text"
                 name="role"
                 value={formData.role}
                 onChange={handleInputChange}
+                aria-label="نقش عضو"
                 className={`w-full rounded-lg bg-gray-600 p-2 ${
                   errors.role ? "border border-red-500" : ""
                 }`}
@@ -113,11 +121,15 @@ const NewMemberModal: React.FC<NewMemberModalProps> = ({ onClose }) => {
               {errors.role && <p className="mt-1 text-sm text-red-500">{errors.role}</p>}
             </div>
             <div className="col-span-2">
-              <label className="mb-2 block">توضیحات:</label>
+              <label htmlFor="new-member-desc" className="mb-2 block">
+                توضیحات:
+              </label>
               <textarea
+                id="new-member-desc"
                 name="desc"
                 value={formData.desc}
                 onChange={handleInputChange}
+                aria-label="توضیحات عضو"
                 className={`w-full rounded-lg bg-gray-600 p-2 ${
                   errors.desc ? "border border-red-500" : ""
                 }`}
@@ -126,12 +138,16 @@ const NewMemberModal: React.FC<NewMemberModalProps> = ({ onClose }) => {
               {errors.desc && <p className="mt-1 text-sm text-red-500">{errors.desc}</p>}
             </div>
             <div>
-              <label className="mb-2 block">شماره تماس:</label>
+              <label htmlFor="new-member-phone" className="mb-2 block">
+                شماره تماس:
+              </label>
               <input
+                id="new-member-phone"
                 type="text"
                 name="phone"
                 value={formData.phone}
                 onChange={handleInputChange}
+                aria-label="شماره تماس عضو"
                 className={`w-full rounded-lg bg-gray-600 p-2 ${
                   errors.phone ? "border border-red-500" : ""
                 }`}
@@ -139,12 +155,16 @@ const NewMemberModal: React.FC<NewMemberModalProps> = ({ onClose }) => {
               {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
             </div>
             <div>
-              <label className="mb-2 block">شناسه:</label>
+              <label htmlFor="new-member-slug" className="mb-2 block">
+                شناسه:
+              </label>
               <input
+                id="new-member-slug"
                 type="text"
                 name="slug"
                 value={formData.slug}
                 onChange={handleInputChange}
+                aria-label="شناسه عضو"
                 className={`w-full rounded-lg bg-gray-600 p-2 ${
                   errors.slug ? "border border-red-500" : ""
                 }`}
@@ -152,11 +172,15 @@ const NewMemberModal: React.FC<NewMemberModalProps> = ({ onClose }) => {
               {errors.slug && <p className="mt-1 text-sm text-red-500">{errors.slug}</p>}
             </div>
             <div className="col-span-2">
-              <label className="mb-2 block">تصویر پروفایل:</label>
+              <label htmlFor="new-member-image" className="mb-2 block">
+                تصویر پروفایل:
+              </label>
               <input
+                id="new-member-image"
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
+                aria-label="تصویر پروفایل عضو"
                 className="w-full rounded-lg bg-gray-600 p-2"
               />
               {imageFile && (

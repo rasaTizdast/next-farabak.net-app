@@ -197,9 +197,13 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex-1">
-                  <label className="mb-1 block text-sm">عنوان</label>
+                  <label htmlFor={`spec-title-${index}`} className="mb-1 block text-sm">
+                    عنوان
+                  </label>
                   <input
+                    id={`spec-title-${index}`}
                     type="text"
+                    aria-label="عنوان مشخصات"
                     value={spec.Title}
                     onChange={(e) => {
                       e.stopPropagation();
@@ -211,9 +215,13 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="mb-1 block text-sm">توضیحات</label>
+                  <label htmlFor={`spec-desc-${index}`} className="mb-1 block text-sm">
+                    توضیحات
+                  </label>
                   <input
+                    id={`spec-desc-${index}`}
                     type="text"
+                    aria-label="توضیحات مشخصات"
                     value={spec.Description}
                     onChange={(e) => {
                       e.stopPropagation();
@@ -227,6 +235,7 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
                 <div className="mb-1 flex items-end">
                   <button
                     type="button"
+                    aria-label="حذف مشخصات"
                     onClick={(e) => handleRemoveSpec(e, index)}
                     className="p-2 text-red-400 hover:text-red-300"
                   >

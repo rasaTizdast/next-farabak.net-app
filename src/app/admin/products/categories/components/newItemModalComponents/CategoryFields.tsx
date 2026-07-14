@@ -60,9 +60,13 @@ const CategoryFields = ({
     <div>
       {/* Category Name */}
       <div className="mb-4">
-        <label className="block text-sm font-medium">نام دسته‌بندی</label>
+        <label htmlFor="category-name" className="block text-sm font-medium">
+          نام دسته‌بندی
+        </label>
         <input
+          id="category-name"
           type="text"
+          aria-label="نام دسته‌بندی"
           value={name}
           onChange={(e) => handleInputChange("Name", e.target.value)}
           disabled={!editable}
@@ -74,9 +78,13 @@ const CategoryFields = ({
 
       {/* Slug */}
       <div className="mb-4">
-        <label className="block text-sm font-medium">شناسه (Slug)</label>
+        <label htmlFor="category-slug" className="block text-sm font-medium">
+          شناسه (Slug)
+        </label>
         <input
+          id="category-slug"
           type="text"
+          aria-label="شناسه"
           value={slug}
           onChange={handleSlugChange} // Use the space-to-dash handler
           disabled={!editable}
@@ -88,8 +96,12 @@ const CategoryFields = ({
 
       {/* Availability */}
       <div className="mb-4">
-        <label className="block text-sm font-medium">فعال (قابل نمایش)</label>
+        <label htmlFor="category-available" className="block text-sm font-medium">
+          فعال (قابل نمایش)
+        </label>
         <select
+          id="category-available"
+          aria-label="فعال"
           value={available ? "true" : "false"}
           onChange={(e) => setAvailable(e.target.value === "true")}
           disabled={!editable}

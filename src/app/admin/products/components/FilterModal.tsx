@@ -84,8 +84,11 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
 
             {/* Categories Dropdown */}
             <div className="mb-4">
-              <label className="mb-2 block font-medium text-gray-300">دسته‌بندی</label>
+              <label htmlFor="filter-category" className="mb-2 block font-medium text-gray-300">
+                دسته‌بندی
+              </label>
               <select
+                id="filter-category"
                 value={tempFilters.category}
                 onChange={(e) => {
                   setTempFilters({
@@ -108,8 +111,11 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
 
             {/* Subcategories Dropdown */}
             <div className="mb-4">
-              <label className="mb-2 block font-medium text-gray-300">زیر دسته‌بندی</label>
+              <label htmlFor="filter-subcategory" className="mb-2 block font-medium text-gray-300">
+                زیر دسته‌بندی
+              </label>
               <select
+                id="filter-subcategory"
                 value={tempFilters.subCategory}
                 onChange={(e) =>
                   setTempFilters({
@@ -132,8 +138,11 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
 
             {/* Availability Dropdown */}
             <div className="mb-4">
-              <label className="mb-2 block font-medium text-gray-300">وضعیت موجودی</label>
+              <label htmlFor="filter-available" className="mb-2 block font-medium text-gray-300">
+                وضعیت موجودی
+              </label>
               <select
+                id="filter-available"
                 value={tempFilters.available === null ? "" : tempFilters.available.toString()}
                 onChange={(e) =>
                   setTempFilters({

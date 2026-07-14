@@ -11,29 +11,28 @@ const ProductBlog = ({ dispatch, slug }: Props) => {
   const contentRef = useRef<string>("");
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleContentChange = (
-    contentObj: { productBlog: string }) => {
-      const content = contentObj.productBlog;
+  const handleContentChange = (contentObj: { productBlog: string }) => {
+    const content = contentObj.productBlog;
 
-      // Avoid unnecessary updates if content hasn't changed
-      if (content === contentRef.current) return;
+    // Avoid unnecessary updates if content hasn't changed
+    if (content === contentRef.current) return;
 
-      // Update our reference immediately
-      contentRef.current = content;
+    // Update our reference immediately
+    contentRef.current = content;
 
-      // Clear any pending debounce timer
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
+    // Clear any pending debounce timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
 
-      // Set up a new debounce timer for dispatch
-      debounceTimerRef.current = setTimeout(() => {
-        dispatch({
-          type: "SET_PRODUCT_BLOG",
-          productBlog: content,
-        });
-      }, 1000); // 1 second debounce
-    };
+    // Set up a new debounce timer for dispatch
+    debounceTimerRef.current = setTimeout(() => {
+      dispatch({
+        type: "SET_PRODUCT_BLOG",
+        productBlog: content,
+      });
+    }, 1000); // 1 second debounce
+  };
 
   return (
     <div>

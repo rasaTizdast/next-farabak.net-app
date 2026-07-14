@@ -147,12 +147,14 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
         <form onSubmit={handleSubmit} className="mb-6 space-y-4">
           <div className="space-y-3">
             <div>
-              <label className="mb-2 block text-sm text-gray-300">
+              <label htmlFor="grade-letter" className="mb-2 block text-sm text-gray-300">
                 گرید (فقط حروف انگلیسی مجاز است)
               </label>
               <input
+                id="grade-letter"
                 type="text"
                 name="grade"
+                aria-label="گرید"
                 value={formData.grade}
                 onChange={handleInputChange}
                 maxLength={1}
@@ -162,10 +164,14 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm text-gray-300">قیمت (دلار)</label>
+              <label htmlFor="grade-price" className="mb-2 block text-sm text-gray-300">
+                قیمت (دلار)
+              </label>
               <input
+                id="grade-price"
                 type="number"
                 name="price"
+                aria-label="قیمت"
                 value={formData.price}
                 onChange={handleInputChange}
                 min="0"
@@ -180,10 +186,14 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm text-gray-300">تخفیف (دلار)</label>
+              <label htmlFor="grade-discount" className="mb-2 block text-sm text-gray-300">
+                تخفیف (دلار)
+              </label>
               <input
+                id="grade-discount"
                 type="number"
                 name="discount"
+                aria-label="تخفیف"
                 value={formData.discount}
                 onChange={handleInputChange}
                 min="0"

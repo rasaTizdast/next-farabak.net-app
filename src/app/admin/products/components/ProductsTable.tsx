@@ -303,6 +303,7 @@ const ProductsTable = ({
               <th scope="col" className="w-12 px-6 py-3">
                 <input
                   type="checkbox"
+                  aria-label="انتخاب همه محصولات"
                   className="h-4 w-4 text-indigo-600 transition-all duration-150 ease-in-out"
                   checked={selectedProducts.length === sortedProducts.length}
                   onChange={handleSelectAll}
@@ -346,6 +347,7 @@ const ProductsTable = ({
                     <td className="px-6 py-4">
                       <input
                         type="checkbox"
+                        aria-label={`انتخاب ${product.Type}`}
                         className="h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
                         checked={selectedProducts.includes(product.ProductId)}
                         onChange={() => handleSelectProduct(product.ProductId)}
@@ -429,6 +431,7 @@ const ProductsTable = ({
                       <div className="flex justify-center gap-2">
                         <button
                           type="button"
+                          aria-label="کد QR"
                           onClick={() => qrCodeModalHandler(product)}
                           className={`${product.QrCode_Key ? "bg-violet-800" : "bg-sky-600"} ${
                             product.QrCode_Key ? "hover:bg-violet-900" : "hover:bg-sky-700"

@@ -61,9 +61,13 @@ const SeoFields = ({
     <div>
       {/* SEO Title */}
       <div className="mb-4">
-        <label className="block text-sm font-medium">عنوان سئو</label>
+        <label htmlFor="seo-title" className="block text-sm font-medium">
+          عنوان سئو
+        </label>
         <input
+          id="seo-title"
           type="text"
+          aria-label="عنوان سئو"
           value={seoTitle}
           onChange={(e) => handleInputChange("SEO_Title", e.target.value)}
           disabled={!editable}
@@ -75,8 +79,12 @@ const SeoFields = ({
 
       {/* SEO Description */}
       <div className="mb-4">
-        <label className="block text-sm font-medium">توضیحات سئو</label>
+        <label htmlFor="seo-description" className="block text-sm font-medium">
+          توضیحات سئو
+        </label>
         <textarea
+          id="seo-description"
+          aria-label="توضیحات سئو"
           value={seoDescription}
           onChange={(e) => handleInputChange("SEO_Description", e.target.value)}
           disabled={!editable}
@@ -88,10 +96,14 @@ const SeoFields = ({
 
       {/* SEO Keywords */}
       <div className="mb-4">
-        <label className="block text-sm font-medium">کلمات کلیدی</label>
+        <label htmlFor="seo-keywords" className="block text-sm font-medium">
+          کلمات کلیدی
+        </label>
         <div className="flex items-center gap-2">
           <input
+            id="seo-keywords"
             type="text"
+            aria-label="کلمات کلیدی"
             value={keywordInput}
             onChange={(e) => {
               const newKeyword = e.target.value;

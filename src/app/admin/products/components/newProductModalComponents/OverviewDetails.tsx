@@ -174,6 +174,7 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
           <div className="relative max-h-[700px] w-full max-w-lg overflow-y-scroll rounded-lg bg-gray-800 p-6 text-white shadow-lg">
             <button
               type="button"
+              aria-label="بستن"
               onClick={closeDetailModal}
               className="absolute right-3 top-3 text-red-400 hover:text-red-500"
             >

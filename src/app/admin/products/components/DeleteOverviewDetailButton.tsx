@@ -80,6 +80,7 @@ const DeleteOverviewDetailButton = ({
           <div className="relative w-full max-w-md rounded-lg bg-gray-800 p-6 text-white shadow-lg">
             <button
               type="button"
+              aria-label="بستن"
               onClick={() => setShowConfirmModal(false)}
               className="absolute right-3 top-3 text-red-400 hover:text-red-500"
               disabled={isLoading}

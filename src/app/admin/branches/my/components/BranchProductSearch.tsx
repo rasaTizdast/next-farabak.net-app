@@ -149,8 +149,11 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
 
         <div className="mb-4 flex flex-col gap-3">
           <div>
-            <label className="mb-2 block text-gray-300">انتخاب محصول</label>
+            <label htmlFor="branch-product-search" className="mb-2 block text-gray-300">
+              انتخاب محصول
+            </label>
             <Select
+              id="branch-product-search"
               showSearch
               placeholder="محصول مورد نظر را انتخاب کنید"
               optionFilterProp="children"

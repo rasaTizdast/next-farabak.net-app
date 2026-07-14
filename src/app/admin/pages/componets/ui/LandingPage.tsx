@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
   FiX,
@@ -48,6 +48,7 @@ const ImagePreview = ({ imageUrl, onClose }: { imageUrl: string; onClose: () => 
         type="button"
         onClick={onClose}
         className="absolute left-4 top-4 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/80"
+        aria-label="بستن پیش‌نمایش"
       >
         <FiX className="h-6 w-6" />
       </button>
@@ -161,6 +162,7 @@ const SliderItem = ({
       onClick={() => onDelete(slider.id)}
       className="rounded-lg p-2 transition-colors hover:bg-gray-700"
       disabled={isDeleting}
+      aria-label="حذف اسلایدر"
     >
       {isDeleting ? (
         <span className="loading-dots">حذف</span>
@@ -193,6 +195,7 @@ const NewSliderForm = ({
         <input
           type="file"
           onChange={(e) => onFileChange(e.target.files?.[0] || null)}
+          aria-label="انتخاب تصویر اسلایدر"
           className="w-full rounded-lg border border-gray-600 bg-gray-700 p-2 file:mr-2 file:border-0 file:bg-gray-600 file:px-3 file:py-1 file:text-gray-300"
         />
       </label>
@@ -203,6 +206,7 @@ const NewSliderForm = ({
           placeholder="https://example.com"
           value={newSlider.link || ""}
           onChange={(e) => onFieldChange("link", e.target.value)}
+          aria-label="لینک اسلایدر"
           className="w-full rounded-lg border border-gray-600 bg-gray-700 p-2"
         />
       </label>
@@ -213,6 +217,7 @@ const NewSliderForm = ({
           placeholder="توضیح تصویر"
           value={newSlider.image_alt || ""}
           onChange={(e) => onFieldChange("image_alt", e.target.value)}
+          aria-label="متن جایگزین اسلایدر"
           className="w-full rounded-lg border border-gray-600 bg-gray-700 p-2"
         />
       </label>
@@ -343,6 +348,7 @@ const ShowcaseProductItem = ({
           type="button"
           onClick={() => onMoveUp(product.id, product.order)}
           disabled={isFirst}
+          aria-label="انتقال به بالا"
           className={`mb-1 rounded-md p-1 ${
             isFirst ? "text-gray-500" : "text-gray-400 hover:bg-gray-700 hover:text-white"
           }`}
@@ -353,6 +359,7 @@ const ShowcaseProductItem = ({
           type="button"
           onClick={() => onMoveDown(product.id, product.order)}
           disabled={isLast}
+          aria-label="انتقال به پایین"
           className={`rounded-md p-1 ${
             isLast ? "text-gray-500" : "text-gray-400 hover:bg-gray-700 hover:text-white"
           }`}
@@ -366,6 +373,7 @@ const ShowcaseProductItem = ({
         onClick={() => onDelete(product.id)}
         className="rounded-lg p-2 transition-colors hover:bg-gray-700"
         disabled={isDeleting}
+        aria-label="حذف محصول نمایشی"
       >
         {isDeleting ? (
           <span className="loading-dots">حذف</span>
@@ -401,6 +409,7 @@ const NewShowcaseProductForm = ({
         <input
           type="file"
           onChange={(e) => onFileChange(e.target.files?.[0] || null)}
+          aria-label="انتخاب تصویر محصول نمایشی"
           className="w-full rounded-lg border border-gray-600 bg-gray-700 p-2 file:mr-2 file:border-0 file:bg-gray-600 file:px-3 file:py-1 file:text-gray-300"
         />
       </label>
@@ -411,6 +420,7 @@ const NewShowcaseProductForm = ({
           placeholder="عنوان محصول"
           value={newProduct.title || ""}
           onChange={(e) => onFieldChange("title", e.target.value)}
+          aria-label="عنوان محصول نمایشی"
           className="w-full rounded-lg border border-gray-600 bg-gray-700 p-2"
         />
       </label>
@@ -422,6 +432,7 @@ const NewShowcaseProductForm = ({
             value={`${nextOrder} (تنظیم خودکار)`}
             readOnly
             disabled
+            aria-label="ترتیب نمایش محصول"
             className="w-full rounded-lg border border-gray-600 bg-gray-700 p-2 text-gray-400"
           />
         </div>
@@ -433,6 +444,7 @@ const NewShowcaseProductForm = ({
           placeholder="https://farabak.net"
           value={newProduct.link || ""}
           onChange={(e) => onFieldChange("link", e.target.value)}
+          aria-label="لینک محصول نمایشی"
           className="w-full rounded-lg border border-gray-600 bg-gray-700 p-2"
         />
       </label>
@@ -442,6 +454,7 @@ const NewShowcaseProductForm = ({
           placeholder="توضیحات محصول"
           value={newProduct.description || ""}
           onChange={(e) => onFieldChange("description", e.target.value)}
+          aria-label="توضیحات محصول نمایشی"
           className="h-24 w-full resize-none rounded-lg border border-gray-600 bg-gray-700 p-2"
         />
       </label>
@@ -552,6 +565,9 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const [isDeletingSlider, setIsDeletingSlider] = useState<number | null>(null);
   const [isDeletingProduct, setIsDeletingProduct] = useState<number | null>(null);
 
+  const slidersInitializedRef = useRef(false);
+  const productsInitializedRef = useRef(false);
+
   // Fetch sliders and showcase products on component mount
   const { data: slidersData } = useApiFetch("/api/landingPage/sliders");
   const { data: productsData } = useApiFetch("/api/landingPage/showcase_products");
@@ -562,11 +578,17 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const isLoading = useMemo(() => !slidersData || !productsData, [slidersData, productsData]);
 
   useEffect(() => {
-    if (slidersData) setSliders(slidersData);
+    if (slidersData && !slidersInitializedRef.current) {
+      slidersInitializedRef.current = true;
+      setSliders(slidersData);
+    }
   }, [slidersData]);
 
   useEffect(() => {
-    if (productsData) setShowcaseProducts(productsData);
+    if (productsData && !productsInitializedRef.current) {
+      productsInitializedRef.current = true;
+      setShowcaseProducts(productsData);
+    }
   }, [productsData]);
 
   const handleAddSlider = async () => {

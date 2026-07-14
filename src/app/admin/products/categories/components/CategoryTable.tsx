@@ -139,7 +139,10 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
     <>
       <div className="mt-10 flex flex-col items-center p-4">
         <div className="w-full max-w-[1800px] overflow-auto rounded-lg">
-          <table className="w-full table-auto border-collapse border-spacing-0 overflow-hidden whitespace-nowrap rounded-xl text-center text-xs text-gray-100 lg:text-sm">
+          <table
+            className="w-full table-auto border-collapse border-spacing-0 overflow-hidden whitespace-nowrap rounded-xl text-center text-xs text-gray-100 lg:text-sm"
+            aria-busy={isLoading}
+          >
             <thead className="bg-slate-900 uppercase text-gray-100">
               <tr>
                 <SortableHeader sortKey="Name" sortConfig={sortConfig} onSort={handleSort}>
@@ -159,12 +162,7 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
             <tbody>
               {isLoading
                 ? [...Array(20)].map((_, index) => (
-                    <tr
-                      key={index}
-                      className="animate-pulse"
-                      role="status"
-                      aria-label="در حال بارگذاری"
-                    >
+                    <tr key={index} className="animate-pulse">
                       <td className="bg-slate-700 px-6 py-4"></td>
                       <td className="bg-slate-700 px-6 py-4"></td>
                       <td className="bg-slate-700 px-6 py-4"></td>
