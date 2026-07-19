@@ -87,7 +87,12 @@ const SortableHeader = ({
   sortConfig: SortConfig;
   onSort: (key: SortKey) => void;
 }) => (
-  <th scope="col" className="cursor-pointer select-none px-6 py-3" onClick={() => onSort(sortKey)}>
+  <th scope="col" className="cursor-pointer select-none px-6 py-3" onClick={() => onSort(sortKey)}
+    onKeyDown={(e) => {
+      if (e.key === "Enter" || e.key === " ") onSort(sortKey);
+    }}
+    tabIndex={0}
+  >
     <div className="flex items-center justify-center gap-2">
       {children}
       {sortConfig.key === sortKey ? (
@@ -112,6 +117,7 @@ const ProductsTable = ({
   refetchProducts,
 }: Props) => {
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
+  const selectedProductsSet = useMemo(() => new Set(selectedProducts), [selectedProducts]);
   const [productQuantities, setProductQuantities] = useState<
     Record<number, { branches: number; warehouses: number; timestamp: number }>
   >({});
@@ -349,7 +355,7 @@ const ProductsTable = ({
                         type="checkbox"
                         aria-label={`انتخاب ${product.Type}`}
                         className="h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
-                        checked={selectedProducts.includes(product.ProductId)}
+                        checked={selectedProductsSet.has(product.ProductId)}
                         onChange={() => handleSelectProduct(product.ProductId)}
                       />
                     </td>

@@ -70,7 +70,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
     };
 
     fetchProductNames();
-  }, [invoice?.Invoiceid, refreshCounter]);
+  }, [invoice, refreshCounter, setProductNames]);
 
   const expandedItems = (() => {
     if (!invoice?.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) return [];
@@ -266,7 +266,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
 
                           return (
                             <tr
-                              key={`${item.ProductId}-${item.itemNumber || index}`}
+                              key={`${item.ProductId}-${item.itemNumber}`}
                               className={rowClass}
                             >
                               <td className="p-2 sm:p-4">

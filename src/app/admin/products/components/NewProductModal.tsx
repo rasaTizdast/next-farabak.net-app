@@ -550,9 +550,10 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
   // Extracted the form submission logic to a separate function
   const submitForm = async () => {
     // Check if no overviewDetails are selected
-    const selectedDetailsIds = state.overviewDetails
-      .filter((detail) => detail.selected)
-      .map((detail) => detail.ProductOverviewDetailsId);
+    const selectedDetailsIds = state.overviewDetails.reduce<number[]>((acc, detail) => {
+      if (detail.selected) acc.push(detail.ProductOverviewDetailsId);
+      return acc;
+    }, []);
 
     // Prepare the form data
     const normalizedPrice = Number(state.price ?? 0);
@@ -599,15 +600,16 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
           <form onSubmit={handleSubmit}>
             {/* Base Details */}
             <div className="mb-4 overflow-hidden rounded-md bg-gray-900">
-              <div
+              <button
+                type="button"
                 onClick={() => toggleSection("baseDetails")}
-                className="flex cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
+                className="flex w-full cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
               >
                 <span className="text-lg font-semibold" data-testid="basic-details">
                   جزئیات پایه
                 </span>
                 {openSections.baseDetails ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
-              </div>
+              </button>
               <div className={openSections.baseDetails ? "block" : "hidden"}>
                 <BaseDetails
                   state={state}
@@ -620,9 +622,10 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
 
             {/* Product Overview */}
             <div className="mb-4 overflow-hidden rounded-md bg-gray-900">
-              <div
+              <button
+                type="button"
                 onClick={() => toggleSection("productOverview")}
-                className="flex cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
+                className="flex w-full cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
               >
                 <span className="text-lg font-semibold">بررسی محصول</span>
                 {openSections.productOverview ? (
@@ -630,7 +633,7 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
                 ) : (
                   <FiChevronDown size={20} />
                 )}
-              </div>
+              </button>
               <div className={openSections.productOverview ? "block" : "hidden"}>
                 <ProductOverview state={state} dispatch={validatedDispatch} setErrors={setErrors} />
               </div>
@@ -638,9 +641,10 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
 
             {/* Overview Details */}
             <div className="mb-4 overflow-hidden rounded-md bg-gray-900">
-              <div
+              <button
+                type="button"
                 onClick={() => toggleSection("overviewDetails")}
-                className="flex cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
+                className="flex w-full cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
               >
                 <span className="text-lg font-semibold">توضیحات محصول</span>
                 {openSections.overviewDetails ? (
@@ -648,26 +652,28 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
                 ) : (
                   <FiChevronDown size={20} />
                 )}
-              </div>
+              </button>
               <div className={openSections.overviewDetails ? "block" : "hidden"}>
-                <div
+                <button
+                  type="button"
                   onClick={() => setShowNewOverviewDetailsModal(true)}
-                  className="mx-4 mt-4 flex cursor-pointer items-center justify-center gap-4 rounded-lg border border-blue-700 bg-blue-600 p-4 transition-all hover:bg-blue-700"
+                  className="mx-4 mt-4 flex w-[calc(100%-2rem)] cursor-pointer items-center justify-center gap-4 rounded-lg border border-blue-700 bg-blue-600 p-4 transition-all hover:bg-blue-700"
                 >
                   ساخت توضیحات محصول جدید
-                </div>
+                </button>
                 <OverviewDetails dispatch={validatedDispatch} setErrors={setErrors} />
               </div>
             </div>
 
             <div className="mb-4 overflow-hidden rounded-md bg-gray-900">
-              <div
+              <button
+                type="button"
                 onClick={() => toggleSection("productBlog")}
-                className="flex cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
+                className="flex w-full cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
               >
                 <span className="text-lg font-semibold">توضیحات تکمیلی (مقاله محصول)</span>
                 {openSections.productBlog ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
-              </div>
+              </button>
               <div className={openSections.productBlog ? "block" : "hidden"}>
                 <ProductBlog dispatch={validatedDispatch} slug={state.slug} />
               </div>
@@ -675,13 +681,14 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
 
             {/* Specs Section */}
             <div className="mb-4 overflow-hidden rounded-md bg-gray-900">
-              <div
+              <button
+                type="button"
                 onClick={() => toggleSection("specs")}
-                className="flex cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
+                className="flex w-full cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
               >
                 <span className="text-lg font-semibold">مشخصات محصول</span>
                 {openSections.specs ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
-              </div>
+              </button>
               <div className={openSections.specs ? "block" : "hidden"}>
                 <Specs
                   state={state}
@@ -694,13 +701,14 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
 
             {/* FAQ Section */}
             <div className="mb-4 overflow-hidden rounded-md bg-gray-900">
-              <div
+              <button
+                type="button"
                 onClick={() => toggleSection("faq")}
-                className="flex cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
+                className="flex w-full cursor-pointer items-center justify-between p-4 transition-all hover:bg-gray-950"
               >
                 <span className="text-lg font-semibold">سوالات متداول</span>
                 {openSections.faq ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
-              </div>
+              </button>
               <div className={openSections.faq ? "block" : "hidden"}>
                 <FAQ
                   state={state}
@@ -824,12 +832,14 @@ const NewProductModal = ({ setShowNewProductModal, categories, refetchProducts }
             </div>
           </form>
 
-          <div
+          <button
+            type="button"
             className="absolute right-4 top-4 cursor-pointer text-red-400 transition-all hover:text-red-500"
             onClick={() => setShowNewProductModal(false)}
+            aria-label="بستن"
           >
             <IoIosClose size={50} />
-          </div>
+          </button>
         </div>
       </div>
     </>

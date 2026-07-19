@@ -166,27 +166,20 @@ const BlogContent = ({ blogs, categorySlug }: { blogs: Blogs; categorySlug: stri
 
 const BlogLandingPage = async (props: { params: Promise<{ blogCategory: string }> }) => {
   const params = await props.params;
+  const { blogCategory } = params;
+
   let blogData: Blogs | null = null;
-
-  // Fetch blogs
   try {
-    const { blogCategory } = params;
     blogData = await fetchBlogs(blogCategory);
+  } catch {
+    notFound();
+  }
 
-    // If no blogs are found for the given category, trigger the notFound page
-    if (!blogData || blogData.blogs.length === 0) {
-      notFound();
-    }
-  } catch (error) {
-    console.error("Error fetching blog data:", error);
-    notFound(); // Trigger the notFound page on error
+  if (!blogData || blogData.blogs.length === 0) {
+    notFound();
   }
 
   const breadCrumbs = ["/", "/support", "/support/blog"];
-
-  if (+!blogData?.blogs?.length < 0) {
-    notFound();
-  }
 
   return (
     <div className="max-w-[1580px]">

@@ -350,13 +350,15 @@ export const usePrint = () => {
       </script>
     `;
 
+    const safeTitle = DOMPurify.sanitize(printTitle || document.title);
+
     if (stickerMode) {
       // For sticker, create a minimal, tightly controlled document
       printWindow.document.write(`
         <!DOCTYPE html>
         <html dir="rtl">
           <head>
-            <title>${printTitle || document.title}</title>
+            <title>${safeTitle}</title>
             ${styleLinks}
             ${customFontStyle}
             ${printStyles}
@@ -373,7 +375,7 @@ export const usePrint = () => {
         <!DOCTYPE html>
         <html dir="rtl">
           <head>
-            <title>${printTitle || document.title}</title>
+            <title>${safeTitle}</title>
             ${styleLinks}
             ${customFontStyle}
             ${printStyles}

@@ -188,12 +188,14 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
           </div>
         </form>
 
-        <div
+        <button
+          type="button"
           className="absolute right-4 top-4 cursor-pointer text-red-400 transition-all hover:text-red-500"
           onClick={onClose}
+          aria-label="بستن"
         >
           <IoIosClose size={50} />
-        </div>
+        </button>
       </div>
     </div>
   );

@@ -64,27 +64,33 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
         ))}
       </div>
       {/* Left Arrow */}
-      <div
+      <button
+        type="button"
         onClick={prevSlide}
         className="absolute left-5 top-[45.5%] hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
+        aria-label="اسلاید قبلی"
       >
         <BsChevronCompactLeft size={30} />
-      </div>
+      </button>
       {/* Right Arrow */}
-      <div
+      <button
+        type="button"
         onClick={nextSlide}
         className="absolute right-5 top-[45.5%] hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
+        aria-label="اسلاید بعدی"
       >
         <BsChevronCompactRight size={30} />
-      </div>
+      </button>
 
       {/* Slider Pagination */}
       <div className="absolute left-[50%] flex -translate-x-[50%] -translate-y-10 justify-center gap-1 rounded-tl-2xl rounded-tr-2xl bg-[#f0f0f0] px-2 py-1">
         {slides.map((slide, slideIndex) => (
-          <div
+          <button
+            type="button"
             className="cursor-pointer text-2xl"
             key={slideIndex}
             onClick={() => setCurrentIndex(slideIndex)}
+            aria-label={`اسلاید ${slideIndex + 1}`}
           >
             <RxDotFilled
               size={33}
@@ -92,7 +98,7 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
                 slideIndex === currentIndex ? "text-[#000000]" : "text-[#0e8bff]"
               }`}
             />
-          </div>
+          </button>
         ))}
       </div>
     </div>

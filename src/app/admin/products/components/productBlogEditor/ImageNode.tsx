@@ -26,8 +26,8 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
   const [customWidth, setCustomWidth] = useState(() => DEFAULT_WIDTH.toString());
   const [customHeight, setCustomHeight] = useState(() => DEFAULT_HEIGHT.toString());
   const [isResizing, setIsResizing] = useState(false);
-  const [startResizePos, setStartResizePos] = useState({ x: 0, y: 0 });
-  const [startDimensions, setStartDimensions] = useState({
+  const startResizePosRef = useRef({ x: 0, y: 0 });
+  const startDimensionsRef = useRef({
     width: DEFAULT_WIDTH,
     height: DEFAULT_HEIGHT,
   });
@@ -176,8 +176,8 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
     const startHeight = safeHeight;
 
     setIsResizing(true);
-    setStartResizePos({ x: e.clientX, y: e.clientY });
-    setStartDimensions({ width: startWidth, height: startHeight });
+    startResizePosRef.current = { x: e.clientX, y: e.clientY };
+    startDimensionsRef.current = { width: startWidth, height: startHeight };
 
     // Ensure the custom values are set correctly from the start
     setCustomWidth(startWidth.toString());
@@ -189,16 +189,16 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
     if (!isResizing) return;
 
     try {
-      const deltaX = e.clientX - startResizePos.x;
+      const deltaX = e.clientX - startResizePosRef.current.x;
 
       // Ensure we have a valid aspect ratio to work with
       const aspectRatio =
-        startDimensions.height > 0
-          ? startDimensions.width / startDimensions.height
+        startDimensionsRef.current.height > 0
+          ? startDimensionsRef.current.width / startDimensionsRef.current.height
           : DEFAULT_WIDTH / DEFAULT_HEIGHT;
 
       // Calculate new width with a minimum size
-      const newWidth = Math.max(100, startDimensions.width + deltaX);
+      const newWidth = Math.max(100, startDimensionsRef.current.width + deltaX);
 
       // Calculate height based on aspect ratio
       const newHeight = Math.round(newWidth / aspectRatio);
@@ -300,6 +300,12 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
             <>
               {/* Bottom-right resize handle */}
               <div
+                role="separator"
+                aria-label="تغییر اندازه"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") handleResizeStart(e as any);
+                }}
                 className="absolute bottom-0 right-0 z-10 flex h-6 w-6 cursor-se-resize items-center justify-center rounded-tl bg-blue-600 opacity-0 group-hover:opacity-70"
                 onMouseDown={(e) => handleResizeStart(e)}
               >
@@ -315,6 +321,12 @@ const ImageNode = ({ node, editor, getPos, updateAttributes }: NodeViewProps) =>
 
               {/* Bottom-left resize handle */}
               <div
+                role="separator"
+                aria-label="تغییر اندازه"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") handleResizeStart(e as any);
+                }}
                 className="absolute bottom-0 left-0 z-10 flex h-6 w-6 cursor-sw-resize items-center justify-center rounded-tr bg-blue-600 opacity-0 group-hover:opacity-70"
                 onMouseDown={(e) => handleResizeStart(e)}
               >

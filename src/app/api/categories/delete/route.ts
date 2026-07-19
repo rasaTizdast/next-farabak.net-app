@@ -168,9 +168,9 @@ async function deleteCategory(categoryId: number) {
     });
 
     // Loop through each subcategory and delete it and its related data
-    for (const subCategory of subCategories) {
-      await deleteSubCategory(subCategory.CategoryContentId);
-    }
+    await Promise.all(
+      subCategories.map((subCategory) => deleteSubCategory(subCategory.CategoryContentId))
+    );
 
     // Delete the category itself
     await prisma.category.delete({

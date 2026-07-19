@@ -111,66 +111,66 @@ export async function POST(req: Request) {
     }
 
     // Process each overview detail and create records individually
-    const savedDetails: any[] = [];
+    const savedDetails = await Promise.all(
+      overviewDetails.map(async (detail) => {
+        // Validate required fields
+        if (!detail.title || !detail.description || !detail.image) {
+          throw new Error("Missing required fields in overview detail");
+        }
 
-    for (const detail of overviewDetails) {
-      // Validate required fields
-      if (!detail.title || !detail.description || !detail.image) {
-        throw new Error("Missing required fields in overview detail");
-      }
+        // Get filename from the request or generate a unique name if not provided
+        const fileName =
+          detail.image.fileName ||
+          `image-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
 
-      // Get filename from the request or generate a unique name if not provided
-      const fileName =
-        detail.image.fileName ||
-        `image-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+        // Sanitize filename
+        const sanitizedFileName = fileName
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9.]+/g, "-")
+          .replace(/^-+|-+$/g, "");
 
-      // Sanitize filename
-      const sanitizedFileName = fileName
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9.]+/g, "-")
-        .replace(/^-+|-+$/g, "");
+        // Generate key for S3 upload
+        const fileExtension = detail.image.contentType.split("/")[1];
+        const key = `overview-details-images/${sanitizedFileName}.${fileExtension}`;
 
-      // Generate key for S3 upload
-      const fileExtension = detail.image.contentType.split("/")[1];
-      const key = `overview-details-images/${sanitizedFileName}.${fileExtension}`;
+        // Convert base64 to buffer
+        const imageBuffer = Buffer.from(detail.image.base64, "base64");
 
-      // Convert base64 to buffer
-      const imageBuffer = Buffer.from(detail.image.base64, "base64");
+        // Upload to S3
+        const uploadParams = {
+          Bucket: BUCKET_NAME,
+          Key: key,
+          Body: imageBuffer,
+          ContentType: detail.image.contentType,
+        };
 
-      // Upload to S3
-      const uploadParams = {
-        Bucket: BUCKET_NAME,
-        Key: key,
-        Body: imageBuffer,
-        ContentType: detail.image.contentType,
-      };
-
-      // Upload to S3 and wait for the result
-      await new Promise<AWS.S3.ManagedUpload.SendData>((resolve, reject) => {
-        s3.upload(uploadParams, (err, data) => {
-          if (err) reject(err);
-          else resolve(data);
+        // Upload to S3 and wait for the result
+        await new Promise<AWS.S3.ManagedUpload.SendData>((resolve, reject) => {
+          s3.upload(uploadParams, (err, data) => {
+            if (err) reject(err);
+            else resolve(data);
+          });
         });
-      });
 
-      // Create the record in the database and let the database handle the auto-incrementing id
-      const savedDetail = await prisma.master_ProductOverviewDetails.create({
-        data: {
-          Title: detail.title,
-          Description: detail.description,
-          Img: `/${key.substring(key.indexOf("/") + 1)}`, // Remove parent folder from path
-        },
-      });
+        // Create the record in the database and let the database handle the auto-incrementing id
+        const savedDetail = await prisma.master_ProductOverviewDetails.create({
+          data: {
+            Title: detail.title,
+            Description: detail.description,
+            Img: `/${key.substring(key.indexOf("/") + 1)}`,
+          },
+        });
 
-      // Update the record to set ProductOverviewDetailsId to match the auto-generated id
-      const updatedDetail = await prisma.master_ProductOverviewDetails.update({
-        where: { id: savedDetail.id },
-        data: { ProductOverviewDetailsId: savedDetail.id },
-      });
+        // Update the record to set ProductOverviewDetailsId to match the auto-generated id
+        const updatedDetail = await prisma.master_ProductOverviewDetails.update({
+          where: { id: savedDetail.id },
+          data: { ProductOverviewDetailsId: savedDetail.id },
+        });
 
-      savedDetails.push(updatedDetail);
-    }
+        return updatedDetail;
+      })
+    );
 
     return NextResponse.json(
       {

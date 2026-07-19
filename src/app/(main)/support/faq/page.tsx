@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic"; // To ensure this page isn't statically 
 
 import { HelpCircle, MessageCircle } from "lucide-react";
 import { Metadata } from "next";
+import Link from "next/link";
 
 import FaqAccordion from "@/components/FaqAccordion";
 import { fetchFaqs } from "@/lib/fetchFaqs";
@@ -89,12 +90,12 @@ const FaqPage = async () => {
               <p className="relative mx-auto mb-3 max-w-sm text-xs text-gray-700 md:mb-4 md:text-sm">
                 تیم پشتیبانی ما آماده پاسخگویی به سوالات شما است.
               </p>
-              <a
+              <Link
                 href="/contact-us"
                 className="inline-flex transform items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-lg md:px-5 md:py-2.5"
               >
                 تماس با ما
-              </a>
+              </Link>
             </div>
           </div>
         )}

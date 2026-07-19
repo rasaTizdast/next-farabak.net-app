@@ -145,7 +145,7 @@ async function doUpdateWarranties(
 
     for (const product of selectedProducts) {
       const items = productsWithWarranty.filter((p) => p.ProductId === product.ProductId);
-      const existingCodes = items.map((item) => item.warranty?.warrantycode).filter(Boolean);
+      const existingCodes = items.flatMap((item) => (item.warranty?.warrantycode ? [item.warranty.warrantycode] : []));
       const codesNeeded = Math.max(0, product.quantity - existingCodes.length);
       totalCodesNeeded += codesNeeded;
       productCodeNeeds.push({
@@ -265,11 +265,12 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
       );
     }
   }, [
-    selectedProducts.length,
+    selectedProducts,
     isGeneratingCodes,
     branch,
     productsWithWarranty,
     generateBatchWarrantyCodes,
+    setProductsWithWarranty,
   ]);
 
   const handleEdit = (item: any) => {

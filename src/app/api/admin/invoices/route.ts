@@ -317,52 +317,54 @@ export async function POST(request: Request) {
     const invoiceId = createdInvoice.Invoiceid;
 
     // Create invoice details and warranties
-    for (const product of invoiceData.products) {
-      // Create invoice detail
-      const invoiceDetail = await prisma.$queryRaw`
-        INSERT INTO "info"."Invoice_Details" (
-          "Invoiceid", "UserId", "ProductId", "quantity", "price", "total_price"
-        )
-        VALUES (
-          ${invoiceId}, 
-          ${invoiceData.UserId}, 
-          ${product.ProductId}, 
-          ${product.quantity}, 
-          ${product.price}, 
-          ${product.total_price}
-        )
-        RETURNING *
-      `;
-
-      const createdDetail = (invoiceDetail as any[])[0];
-
-      // If product has warranty, create it
-      if (product.warranty && product.warranty.hasWarranty) {
-        await prisma.$queryRaw`
-          INSERT INTO "info"."warranty" (
-            "userid", "invoicedetailid", "branchid", "warrantycode", 
-            "ProductId", "startdate", "expirydate", "status"
+    await Promise.all(
+      invoiceData.products.map(async (product) => {
+        // Create invoice detail
+        const invoiceDetail = await prisma.$queryRaw`
+          INSERT INTO "info"."Invoice_Details" (
+            "Invoiceid", "UserId", "ProductId", "quantity", "price", "total_price"
           )
           VALUES (
+            ${invoiceId}, 
             ${invoiceData.UserId}, 
-            ${createdDetail.Invoice_Details}, 
-            ${branchId}, 
-            ${product.warranty.warrantycode}, 
             ${product.ProductId}, 
-            ${product.warranty.startdate}, 
-            ${product.warranty.expirydate}, 
-            'Active'
+            ${product.quantity}, 
+            ${product.price}, 
+            ${product.total_price}
           )
+          RETURNING *
         `;
-      }
 
-      // Update branch product quantity
-      await prisma.$queryRaw`
-        UPDATE "support"."branchproduct"
-        SET "quantity" = "quantity" - ${product.quantity}
-        WHERE "branchid" = ${branchId} AND "ProductId" = ${product.ProductId}
-      `;
-    }
+        const createdDetail = (invoiceDetail as any[])[0];
+
+        // If product has warranty, create it
+        if (product.warranty && product.warranty.hasWarranty) {
+          await prisma.$queryRaw`
+            INSERT INTO "info"."warranty" (
+              "userid", "invoicedetailid", "branchid", "warrantycode", 
+              "ProductId", "startdate", "expirydate", "status"
+            )
+            VALUES (
+              ${invoiceData.UserId}, 
+              ${createdDetail.Invoice_Details}, 
+              ${branchId}, 
+              ${product.warranty.warrantycode}, 
+              ${product.ProductId}, 
+              ${product.warranty.startdate}, 
+              ${product.warranty.expirydate}, 
+              'Active'
+            )
+          `;
+        }
+
+        // Update branch product quantity
+        await prisma.$queryRaw`
+          UPDATE "support"."branchproduct"
+          SET "quantity" = "quantity" - ${product.quantity}
+          WHERE "branchid" = ${branchId} AND "ProductId" = ${product.ProductId}
+        `;
+      })
+    );
 
     return NextResponse.json(
       {

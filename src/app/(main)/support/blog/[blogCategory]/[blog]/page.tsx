@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import Script from "next/script";
+import DOMPurify from "isomorphic-dompurify";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import BlogFaqAccordion from "@/components/BlogFaqAccordion";
@@ -105,54 +106,42 @@ const getBlog = async (
   searchParams: { key?: string },
   isAdmin: boolean = false
 ): Promise<BlogResponse | null> => {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${slug}`, {
-      next: { revalidate: 60 }, // Optional: revalidate every 60 seconds for ISR
-    });
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${slug}`, {
+    next: { revalidate: 60 },
+  });
 
-    if (!res.ok) {
-      console.error(`Failed to fetch blog: ${res.statusText}`);
-      return null;
-    }
+  if (!res.ok) {
+    return null;
+  }
 
-    const blogResponse = (await res.json()) as BlogResponse;
+  const blogResponse = (await res.json()) as BlogResponse;
 
-    // Admin users can bypass all checks
-    if (isAdmin) {
-      return blogResponse;
-    }
+  if (isAdmin) {
+    return blogResponse;
+  }
 
-    const { blog } = blogResponse;
+  const { blog } = blogResponse;
 
-    // Check if the product data exists
-    if (!blog) {
+  if (!blog) {
+    notFound();
+  }
+
+  if (blog.QrCode_key) {
+    const { key: urlKey } = searchParams;
+
+    if (!urlKey || urlKey !== blog.QrCode_key) {
       notFound();
     }
 
-    // Check QR code conditions
-    if (blog.QrCode_key) {
-      const { key: urlKey } = searchParams;
-
-      // If there's no key in the URL or the key in the URL doesn't match the product's QR code key
-      if (!urlKey || urlKey !== blog.QrCode_key) {
+    if (blog.QrCode_expiryDays) {
+      const expiryDate = new Date(blog.QrCode_expiryDays);
+      if (new Date() > expiryDate) {
         notFound();
       }
-
-      if (blog.QrCode_expiryDays) {
-        // Check if the QR code has expired
-        const expiryDate = new Date(blog.QrCode_expiryDays);
-        if (new Date() > expiryDate) {
-          notFound();
-        }
-      }
     }
-
-    // If the key matches and the QR code is not expired, allow access
-    return blogResponse;
-  } catch (error) {
-    console.error("Error fetching blog:", error);
-    return null;
   }
+
+  return blogResponse;
 };
 
 export async function generateMetadata(props: {
@@ -241,7 +230,10 @@ export default async function BlogPage(props: {
         <div
           className="prose-view max-w-none [&_.w-1\/2]:mx-auto [&_.w-1\/2]:w-1/2 [&_.w-1\/3]:mx-auto [&_.w-1\/3]:w-1/3 [&_.w-full]:w-full [&_img]:h-auto [&_img]:max-w-full"
           dangerouslySetInnerHTML={{
-            __html: processContentWithImageUrls(blog.content),
+            __html: DOMPurify.sanitize(processContentWithImageUrls(blog.content), {
+              ADD_TAGS: ["Image", "video", "source"],
+              ADD_ATTR: ["controls", "class"],
+            }),
           }}
         />
       </article>

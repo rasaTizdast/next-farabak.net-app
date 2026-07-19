@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
   FiX,
@@ -575,7 +575,7 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const { mutate: deleteProductMutate } = useApiMutation("delete");
   const { mutate: updateOrderMutate } = useApiMutation("patch");
 
-  const isLoading = useMemo(() => !slidersData || !productsData, [slidersData, productsData]);
+  const isLoading = !slidersData || !productsData;
 
   useEffect(() => {
     if (slidersData && !slidersInitializedRef.current) {

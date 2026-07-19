@@ -282,9 +282,12 @@ function WarehousesPageContent() {
           value={searchQuery}
           onChange={handleProductSearch}
           placeholder="جستجوی محصول در انبارها"
-          options={allProducts
-            .filter((p) => p.Type?.toLowerCase().includes(searchQuery.toLowerCase()))
-            .map((p) => ({ value: p.Type || "", label: p.Type, productId: String(p.ProductId) }))}
+          options={allProducts.reduce<{ value: string; label: string | undefined; productId: string }[]>((acc, p) => {
+            if (p.Type?.toLowerCase().includes(searchQuery.toLowerCase())) {
+              acc.push({ value: p.Type || "", label: p.Type, productId: String(p.ProductId) });
+            }
+            return acc;
+          }, [])}
           onSelect={(value) => {
             setSearchQuery(value);
             const found = allProducts.find((x) => (x.Type || "") === value);

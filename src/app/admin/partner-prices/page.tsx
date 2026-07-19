@@ -190,12 +190,17 @@ export default function AdminPartnerPricesPage() {
         <table className="w-full table-auto text-sm">
           <thead className="sticky top-0 z-10 bg-slate-800 text-gray-100">
             <tr>
-              <th className="cursor-pointer px-4 py-3" onClick={() => setSort("Type")}>
+              <th className="cursor-pointer px-4 py-3" onClick={() => setSort("Type")}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSort("Type"); }}
+                tabIndex={0}
+              >
                 نام محصول {sortKey === "Type" ? (sortDir === "asc" ? "▲" : "▼") : ""}
               </th>
               <th
                 className="cursor-pointer px-4 py-3 text-center"
                 onClick={() => setSort("Original")}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSort("Original"); }}
+                tabIndex={0}
               >
                 قیمت اصلی با تخفیف
                 {sortKey === "Original" ? (sortDir === "asc" ? " ▲" : " ▼") : ""}
@@ -203,6 +208,8 @@ export default function AdminPartnerPricesPage() {
               <th
                 className="cursor-pointer px-4 py-3 text-center"
                 onClick={() => setSort("Partner")}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSort("Partner"); }}
+                tabIndex={0}
               >
                 قیمت همکار {sortKey === "Partner" ? (sortDir === "asc" ? "▲" : "▼") : ""}
               </th>

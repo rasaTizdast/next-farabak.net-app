@@ -274,7 +274,7 @@ function BranchesPageContent() {
   // Update ref whenever pagination params change
   useEffect(() => {
     fetchBranchesRef.current = () => fetchBranches(pagination.current, pagination.pageSize);
-  }, [searchProductId, pagination.current, pagination.pageSize, fetchBranches]);
+  }, [pagination, fetchBranches]);
 
   useEffect(() => {
     let productsIntervalId: NodeJS.Timeout | null = null;
@@ -479,19 +479,22 @@ function BranchesPageContent() {
     const lowerCaseSearch = searchValue.toLowerCase();
 
     // Don't filter too strictly, show any product that contains the search text
-    return allProducts
-      .filter((product) => product.Type && product.Type.toLowerCase().includes(lowerCaseSearch))
-      .map((product) => ({
-        value: product.Type,
-        label: (
-          <div className="flex items-center justify-between">
-            <span className="font-medium text-white">{product.Type}</span>
-            <span className="rounded-md bg-blue-900/30 px-2 py-0.5 text-xs text-blue-300">
-              کد: {product.ProductId}
-            </span>
-          </div>
-        ),
-      }));
+    return allProducts.reduce<{ value: string; label: React.JSX.Element }[]>((acc, product) => {
+      if (product.Type && product.Type.toLowerCase().includes(lowerCaseSearch)) {
+        acc.push({
+          value: product.Type,
+          label: (
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-white">{product.Type}</span>
+              <span className="rounded-md bg-blue-900/30 px-2 py-0.5 text-xs text-blue-300">
+                کد: {product.ProductId}
+              </span>
+            </div>
+          ),
+        });
+      }
+      return acc;
+    }, []);
   };
 
   if (initialLoading) {

@@ -328,6 +328,8 @@ export function AutoCompleteBase({
                   <div
                     key={o.value}
                     className={`cursor-pointer px-3 py-2 text-slate-100 hover:bg-slate-800 ${idx === activeIndex ? "bg-slate-800" : ""}`}
+                    role="option"
+                    aria-selected={idx === activeIndex}
                     onMouseDown={(e) => e.preventDefault()}
                     onMouseEnter={() => setActiveIndex(idx)}
                     onClick={() => {
@@ -335,6 +337,14 @@ export function AutoCompleteBase({
                       onSelect?.(o.value, o);
                       setOpen(false);
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        onChange(o.value);
+                        onSelect?.(o.value, o);
+                        setOpen(false);
+                      }
+                    }}
+                    tabIndex={-1}
                   >
                     {start >= 0 ? (
                       <span>

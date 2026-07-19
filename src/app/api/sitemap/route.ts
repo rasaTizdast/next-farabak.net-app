@@ -131,9 +131,12 @@ export async function GET() {
     );
 
     // Generate subcategory URLs
-    const subcategoryUrls = categoryContents
-      .filter((content) => content.Category?.Slug) // Only include subcategories with valid parent categories
-      .map((content) => `https://farabak.net/products/${content.Category?.Slug}/${content.Slug}`);
+    const subcategoryUrls = categoryContents.reduce<string[]>((acc, content) => {
+      if (content.Category?.Slug) {
+        acc.push(`https://farabak.net/products/${content.Category.Slug}/${content.Slug}`);
+      }
+      return acc;
+    }, []);
 
     // Generate blog URLs
     const blogUrls = blogs.flatMap((blog) => {

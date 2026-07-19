@@ -339,7 +339,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
 
                           return (
                             <tr
-                              key={`${item.ProductId}-${item.itemNumber || index}`}
+                              key={`${item.ProductId}-${item.itemNumber}`}
                               className={rowClass}
                             >
                               <td className="p-2 sm:p-4">

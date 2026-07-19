@@ -24,6 +24,11 @@ const SortableHeader = ({
   <th
     className="px-6 py-3 text-gray-300 transition-colors hover:text-gray-100"
     onClick={() => onSort(sortKey)}
+    onKeyDown={(e) => {
+      if (e.key === "Enter" || e.key === " ") onSort(sortKey);
+    }}
+    role="columnheader"
+    tabIndex={0}
   >
     <div className="flex items-center justify-center gap-2">
       {children}

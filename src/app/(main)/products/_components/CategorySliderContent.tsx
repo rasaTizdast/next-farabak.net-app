@@ -100,6 +100,13 @@ export default function CategorySliderContent({ items }: CategorySliderContentPr
       {/* Slider Container */}
       <div
         ref={sliderRef}
+        role="application"
+        aria-label="لیست دسته‌بندی‌ها"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowLeft") sliderRef.current?.scrollBy({ left: -200, behavior: "smooth" });
+          if (e.key === "ArrowRight") sliderRef.current?.scrollBy({ left: 200, behavior: "smooth" });
+        }}
         onScroll={checkScroll}
         onLoad={checkScroll}
         onMouseDown={handleMouseDown}

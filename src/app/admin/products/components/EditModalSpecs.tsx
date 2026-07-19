@@ -192,7 +192,7 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
           {internalSpecs && internalSpecs.data.length > 0 ? (
             internalSpecs.data.map((spec, index) => (
               <div
-                key={`spec-${spec.ProductSpecsId || index}`}
+                key={`spec-${spec.ProductSpecsId}-${spec.Title}`}
                 className="flex gap-4"
                 onClick={(e) => e.stopPropagation()}
               >

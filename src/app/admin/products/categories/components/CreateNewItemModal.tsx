@@ -166,6 +166,36 @@ async function withRetry401<T>(
   throw lastError as Error;
 }
 
+type FormData = {
+  name: string;
+  slug: string;
+  available: boolean;
+  parentCategoryId: number | undefined;
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string[];
+  keywordInput: string;
+  error: string | null;
+  topBlog: string;
+  bottomBlog: string;
+  bannerPreview: string;
+};
+
+const initialFormState: FormData = {
+  name: "",
+  slug: "",
+  available: true,
+  parentCategoryId: undefined,
+  seoTitle: "",
+  seoDescription: "",
+  seoKeywords: [],
+  keywordInput: "",
+  error: null,
+  topBlog: "",
+  bottomBlog: "",
+  bannerPreview: "",
+};
+
 const CreateNewItemModal = ({
   isOpen,
   onClose,
@@ -183,35 +213,6 @@ const CreateNewItemModal = ({
   const bannerFileRef = useRef<File | null>(null);
   const bannerClearedRef = useRef<boolean>(false);
 
-  // Combined form state to avoid multiple setState calls in effects
-  type FormData = {
-    name: string;
-    slug: string;
-    available: boolean;
-    parentCategoryId: number | undefined;
-    seoTitle: string;
-    seoDescription: string;
-    seoKeywords: string[];
-    keywordInput: string;
-    error: string | null;
-    topBlog: string;
-    bottomBlog: string;
-    bannerPreview: string;
-  };
-  const initialFormState: FormData = {
-    name: "",
-    slug: "",
-    available: true,
-    parentCategoryId: undefined,
-    seoTitle: "",
-    seoDescription: "",
-    seoKeywords: [],
-    keywordInput: "",
-    error: null,
-    topBlog: "",
-    bottomBlog: "",
-    bannerPreview: "",
-  };
   const [form, setForm] = useState<FormData>(initialFormState);
   const {
     name,
@@ -251,7 +252,7 @@ const CreateNewItemModal = ({
   const setTopBlog = makeSetter("topBlog");
   const setBottomBlog = makeSetter("bottomBlog");
   const setBannerPreview = makeSetter("bannerPreview");
-  const resetForm = useCallback(() => setForm(initialFormState), []);
+  const resetForm = useCallback(() => setForm(initialFormState), [setForm]);
 
   const resetGuard = useRef(false);
   // Reset the form fields when the modal is opened (when `isOpen` changes)
@@ -357,7 +358,7 @@ const CreateNewItemModal = ({
       bannerFileRef.current = file;
       setBannerPreview(URL.createObjectURL(file));
     }
-  }, []);
+  }, [setBannerPreview]);
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
     onDrop,

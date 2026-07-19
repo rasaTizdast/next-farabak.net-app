@@ -168,7 +168,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
                   danger
                   className="text-red-400 hover:!border-red-700 hover:!bg-red-600 hover:!text-white"
                   style={{
-                    transition: "all 0.2s ease",
+                    transition: "background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease",
                   }}
                 >
                   حذف

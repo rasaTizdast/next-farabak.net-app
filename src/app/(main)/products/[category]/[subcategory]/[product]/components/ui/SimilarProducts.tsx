@@ -63,9 +63,12 @@ export default async function SimilarProducts({
 
   if (products.length < desiredCount) {
     const catData = await fetchJson<{ data: ApiProduct[] }>(catUrl);
-    const catProducts = (catData?.data || [])
-      .filter((p) => Boolean(p.Available))
-      .filter((p) => p.ProductId !== currentProductId && p.productSlug !== currentProductSlug);
+    const catProducts = (catData?.data || []).filter(
+      (p) =>
+        Boolean(p.Available) &&
+        p.ProductId !== currentProductId &&
+        p.productSlug !== currentProductSlug
+    );
 
     const seen = new Set(products.map((p) => p.ProductId));
     for (const p of catProducts) {

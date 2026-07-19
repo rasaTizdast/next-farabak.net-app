@@ -78,6 +78,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
 
     // Handle detail images
     const existingDetails = formData.getAll("existingDetailImages") as string[];
+    const existingDetailsSet = new Set(existingDetails);
     const newDetails = formData.getAll("detailImages") as File[];
     const finalDetails = [...existingDetails];
 
@@ -89,7 +90,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
 
     // Find removed detail images
     const removedDetails = existingProject.ProjectMedia.reduce((acc: string[], m) => {
-      if (m.MediaType === "image" && !existingDetails.includes(m.MediaURL)) {
+      if (m.MediaType === "image" && !existingDetailsSet.has(m.MediaURL)) {
         acc.push(m.MediaURL);
       }
       return acc;
@@ -97,6 +98,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
 
     // Handle videos
     const existingVideos = formData.getAll("existingVideos") as string[];
+    const existingVideosSet = new Set(existingVideos);
     const newVideos = formData.getAll("videos") as File[];
     const finalVideos = [...existingVideos];
 
@@ -108,7 +110,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
 
     // Find removed videos
     const removedVideos = existingProject.ProjectMedia.reduce((acc: string[], m) => {
-      if (m.MediaType === "video" && !existingVideos.includes(m.MediaURL)) {
+      if (m.MediaType === "video" && !existingVideosSet.has(m.MediaURL)) {
         acc.push(m.MediaURL);
       }
       return acc;

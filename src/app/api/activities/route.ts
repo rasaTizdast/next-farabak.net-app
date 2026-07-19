@@ -71,19 +71,17 @@ export async function PUT(req: NextRequest) {
         )
     );
 
-    // Delete associated Details_activity records first
-    for (const deletedActivity of deletedActivities) {
-      await prisma.details_activity.deleteMany({
-        where: { activityID: deletedActivity.id },
-      });
-    }
-
-    // Delete the Master_activity records
-    for (const deletedActivity of deletedActivities) {
-      await prisma.master_activity.delete({
-        where: { id: deletedActivity.id },
-      });
-    }
+    // Delete associated Details_activity records first, then the Master_activity records
+    await Promise.all(
+      deletedActivities.map(async (deletedActivity) => {
+        await prisma.details_activity.deleteMany({
+          where: { activityID: deletedActivity.id },
+        });
+        await prisma.master_activity.delete({
+          where: { id: deletedActivity.id },
+        });
+      })
+    );
 
     // Handle updates and creations
     for (const activity of updatedActivities) {
@@ -104,23 +102,23 @@ export async function PUT(req: NextRequest) {
       }
 
       // Handle the Details_activity for the master activity
-      for (const detail of activity.Details_activity) {
-        if (detail.id) {
-          // Update existing Details_activity
-          await prisma.details_activity.update({
-            where: { id: detail.id },
-            data: { description: detail.description },
-          });
-        } else {
-          // Create new Details_activity
-          await prisma.details_activity.create({
-            data: {
-              activityID: masterActivity.id, // Link it to the master activity
-              description: detail.description,
-            },
-          });
-        }
-      }
+      await Promise.all(
+        activity.Details_activity.map(async (detail) => {
+          if (detail.id) {
+            await prisma.details_activity.update({
+              where: { id: detail.id },
+              data: { description: detail.description },
+            });
+          } else {
+            await prisma.details_activity.create({
+              data: {
+                activityID: masterActivity.id,
+                description: detail.description,
+              },
+            });
+          }
+        })
+      );
     }
 
     return NextResponse.json({ message: "Updated successfully" }, { status: 200 });

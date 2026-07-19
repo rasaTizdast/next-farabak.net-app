@@ -586,7 +586,8 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                   {formData.categories.map((categoryId) => {
                     const category = categories.find((c) => c.id === categoryId);
                     return (
-                      <span
+                      <button
+                        type="button"
                         key={categoryId}
                         onClick={() =>
                           setFormData((prev) => ({
@@ -595,9 +596,10 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                           }))
                         }
                         className="flex items-center gap-1 rounded-lg bg-green-700 px-3 py-1 text-base transition-all hover:cursor-pointer hover:bg-red-600"
+                        aria-label={`حذف دسته‌بندی ${category?.name || ""}`}
                       >
                         {category?.name}
-                      </span>
+                      </button>
                     );
                   })}
                 </div>

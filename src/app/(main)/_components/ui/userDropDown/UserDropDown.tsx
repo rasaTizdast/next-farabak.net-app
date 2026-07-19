@@ -94,6 +94,7 @@ const UserDropDown = () => {
         <ul
           className={styles.subMenu}
           ref={dropdownRef}
+          role="none"
           onClick={(e) => {
             // Don't close if clicking in the expanded invoice area
             if (
@@ -127,6 +128,7 @@ const UserDropDown = () => {
               <li
                 className={`${styles.invoiceOption} ${expandedInvoice ? styles.expanded : ""}`}
                 ref={invoiceMenuItemRef}
+                role="none"
                 onClick={(e) => {
                   if (expandedInvoice) {
                     e.stopPropagation();
@@ -269,8 +271,14 @@ const UserDropDown = () => {
               <Link href="/dashboard/edit-user">ویرایش اطلاعات</Link>
             </li>
           )}
-          <li className={styles.logoutOption} onClick={() => logout()}>
-            خروج از حساب
+          <li className={styles.logoutOption}>
+            <button
+              type="button"
+              className="w-full text-right"
+              onClick={() => logout()}
+            >
+              خروج از حساب
+            </button>
           </li>
         </ul>
       )}

@@ -108,10 +108,15 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({ onClose, onVideoUpl
           className={`mb-4 cursor-pointer rounded-lg border-2 border-dashed p-8 text-center ${
             isDragging ? "border-blue-500 bg-blue-100 bg-opacity-10" : "border-gray-600"
           }`}
+          role="button"
+          tabIndex={0}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click();
+          }}
         >
           <input
             type="file"

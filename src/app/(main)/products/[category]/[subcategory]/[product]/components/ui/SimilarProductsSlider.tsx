@@ -242,6 +242,13 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
 
       <div
         ref={scrollerRef}
+        role="application"
+        aria-label="لیست محصولات مشابه"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowLeft") scrollerRef.current?.scrollBy({ left: -200, behavior: "smooth" });
+          if (e.key === "ArrowRight") scrollerRef.current?.scrollBy({ left: 200, behavior: "smooth" });
+        }}
         className={`relative mt-2 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 ${styles.hideScrollbar}`}
         style={{
           scrollBehavior: isDragging ? "auto" : "smooth",

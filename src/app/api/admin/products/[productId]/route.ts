@@ -285,7 +285,7 @@ export async function PATCH(request: Request, props: { params: Promise<{ product
     const body = await request.json();
 
     // Allowable fields for update
-    const validFields = [
+    const validFields = new Set([
       "Name",
       "Type",
       "Price",
@@ -301,12 +301,12 @@ export async function PATCH(request: Request, props: { params: Promise<{ product
       "SEO_Description",
       "productBlog",
       "Partner_Price",
-    ];
+    ]);
 
     // Filter out only valid fields to update
     const updateData = Object.keys(body).reduce(
       (acc, key) => {
-        if (validFields.includes(key)) {
+        if (validFields.has(key)) {
           acc[key] = body[key];
         }
         return acc;

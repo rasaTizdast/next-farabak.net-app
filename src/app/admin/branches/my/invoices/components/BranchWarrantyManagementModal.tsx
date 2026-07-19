@@ -165,8 +165,8 @@ const BranchWarrantyManagementModal = ({
   const [nowTimestamp] = useState(() => Date.now());
   const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
-  const currentBranch = useMemo(() => currentBranchData ?? null, [currentBranchData]);
-  const branchHasProduct = useMemo(() => productCheckData?.hasProduct ?? false, [productCheckData]);
+  const currentBranch = currentBranchData ?? null;
+  const branchHasProduct = productCheckData?.hasProduct ?? false;
   const [warrantyData, setWarrantyData] = useState<{
     warrantycode: string;
     startdate: string;

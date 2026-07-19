@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { BsChevronCompactLeft, BsChevronCompactRight } from "react-icons/bs";
 import { RxDotFilled } from "react-icons/rx";
 
@@ -40,20 +40,25 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
     setCurrentIndex((prevIndex) => (prevIndex === slides.length - 1 ? 0 : prevIndex + 1));
   }, [slides.length]);
 
+  const nextSlideRef = useRef(nextSlide);
+  useEffect(() => {
+    nextSlideRef.current = nextSlide;
+  }, [nextSlide]);
+
   const prevSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex === 0 ? slides.length - 1 : prevIndex - 1));
   };
 
   // Autoplay logic
   useEffect(() => {
-    if (isPaused) return; // Stop autoplay when paused
+    if (isPaused) return;
 
     const autoplay = setInterval(() => {
-      nextSlide();
+      nextSlideRef.current();
     }, interval || 5000);
 
-    return () => clearInterval(autoplay); // Clear interval on cleanup
-  }, [isPaused, interval, nextSlide]);
+    return () => clearInterval(autoplay);
+  }, [isPaused, interval]);
 
   return (
     <div
@@ -99,34 +104,40 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
         ))}
       </div>
       {/* Left Arrow */}
-      <div
+      <button
+        type="button"
         onClick={nextSlide}
         className="absolute left-5 top-[45.5%] hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
+        aria-label="اسلاید بعدی"
       >
         <BsChevronCompactLeft size={30} />
-      </div>
+      </button>
       {/* Right Arrow */}
-      <div
+      <button
+        type="button"
         onClick={prevSlide}
         className="absolute right-5 top-[45.5%] hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
+        aria-label="اسلاید قبلی"
       >
         <BsChevronCompactRight size={30} />
-      </div>
+      </button>
 
       {/* Slider Pagination */}
       <div className="xl absolute bottom-0 left-[50%] hidden -translate-x-[50%] justify-center gap-1 rounded-tl-2xl rounded-tr-2xl bg-[#f0f0f0] px-2 py-1 sm:flex">
         {slides.map((_, slideIndex) => (
-          <div
+          <button
+            type="button"
             className="cursor-pointer text-xl md:text-2xl lg:text-3xl"
             key={slideIndex}
             onClick={() => setCurrentIndex(slideIndex)}
+            aria-label={`اسلاید ${slideIndex + 1}`}
           >
             <RxDotFilled
               className={`transition-all ${
                 slideIndex === currentIndex ? "text-[#000000]" : "text-[#0e8bff]"
               }`}
             />
-          </div>
+          </button>
         ))}
       </div>
     </div>

@@ -386,19 +386,7 @@ const AdminInvoicesPage = () => {
                 onClick={() => {
                   // Search is handled by the useMemo filter
                 }}
-                className="search-button"
-                style={{
-                  width: "32px",
-                  height: "32px",
-                  borderTopLeftRadius: "0.375rem",
-                  borderBottomLeftRadius: "0.375rem",
-                  borderTopRightRadius: "0",
-                  borderBottomRightRadius: "0",
-                  padding: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+                className="search-button h-8 w-8 rounded-l-md rounded-r-none p-0 flex items-center justify-center"
               />
             </div>
 

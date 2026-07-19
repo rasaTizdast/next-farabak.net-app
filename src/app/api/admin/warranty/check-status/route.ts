@@ -74,14 +74,16 @@ export async function POST() {
       const warrantyIds = (expiredWarranties as any[]).map((w) => w.warrantyid);
 
       // Perform update
-      for (const id of warrantyIds) {
-        await prisma.$queryRaw`
-          UPDATE "info"."warranty"
-          SET "status" = 'Expired'
-          WHERE "warrantyid" = ${id}
-        `;
-        updatedCount++;
-      }
+      await Promise.all(
+        warrantyIds.map(async (id) => {
+          await prisma.$queryRaw`
+            UPDATE "info"."warranty"
+            SET "status" = 'Expired'
+            WHERE "warrantyid" = ${id}
+          `;
+        })
+      );
+      updatedCount = warrantyIds.length;
     }
 
     return NextResponse.json(

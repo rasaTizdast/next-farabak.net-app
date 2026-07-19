@@ -41,7 +41,7 @@ export default async function ProductSpecs({ productId }: { productId: number })
         {specsData.map((item: Spec, index: number) => (
           <div
             className={`${index % 2 ? styles.oddSpec : styles.evenSpec} ${styles.spec}`}
-            key={`spec-${item.productSpecsId || index}`}
+            key={`spec-${item.productSpecsId}-${item.Title}-${item.Description}`}
           >
             <div className={styles.key}>{item.Title}</div>
             <div className={styles.value}>{item.Description}</div>

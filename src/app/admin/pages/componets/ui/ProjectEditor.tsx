@@ -61,10 +61,16 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
       });
       setMainImage(projectData.project.Main_img_URL);
       setDetailImages(
-        projectData.media.filter((m: any) => m.MediaType === "image").map((m: any) => m.MediaURL)
+        projectData.media.reduce((acc: string[], m: any) => {
+          if (m.MediaType === "image") acc.push(m.MediaURL);
+          return acc;
+        }, [])
       );
       setVideos(
-        projectData.media.filter((m: any) => m.MediaType === "video").map((m: any) => m.MediaURL)
+        projectData.media.reduce((acc: string[], m: any) => {
+          if (m.MediaType === "video") acc.push(m.MediaURL);
+          return acc;
+        }, [])
       );
     }
   }, [projectData]);

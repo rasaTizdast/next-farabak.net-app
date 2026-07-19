@@ -91,18 +91,22 @@ export async function PUT(req: Request) {
 
     const currentDetailIds = currentDetails
       .map((detail) => detail.ProductOverviewDetailsId)
-      .filter((id): id is number => id !== null); // Ensure non-null values
+      .filter((id): id is number => id !== null);
+
+    const currentDetailIdsSet = new Set(currentDetailIds);
 
     // Extract IDs from selectedDetails
     const selectedDetailIds = selectedDetails
       .map((detail: { ProductOverviewDetailsId: number | null }) => detail.ProductOverviewDetailsId)
-      .filter((id): id is number => id !== null); // Ensure non-null values
+      .filter((id): id is number => id !== null);
+
+    const selectedDetailIdsSet = new Set(selectedDetailIds);
 
     // Determine new details to add
-    const detailsToAdd = selectedDetailIds.filter((id) => !currentDetailIds.includes(id));
+    const detailsToAdd = selectedDetailIds.filter((id) => !currentDetailIdsSet.has(id));
 
     // Determine details to remove
-    const detailsToRemove = currentDetailIds.filter((id) => !selectedDetailIds.includes(id));
+    const detailsToRemove = currentDetailIds.filter((id) => !selectedDetailIdsSet.has(id));
 
     // Perform database updates
     const addPromises = detailsToAdd.map((id) =>

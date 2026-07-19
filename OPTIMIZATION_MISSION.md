@@ -1,478 +1,583 @@
 # Optimization Mission — next-farabak-app-v15
 
-> **React Doctor Score:** 31/100 (Critical) — 66 errors, 203 warnings, 94 files affected
-> **Goal:** 90+ / 100
-> **Last Scan:** 2026-07-13
+> **React Doctor Score:** 100/100 (0 errors, 0 warnings)
+> **Honest Score:** ~65/100 (after removing unjustified suppressions)
+> **Goal:** Achieve 90+ honest score with real fixes, not suppressions
+> **Strategy:** 6 progressive stages — safety first, then architecture, then cleanup
 
 ---
 
-## Current Status (2026-07-13 — Full Codebase Scan)
+## Current State Assessment
 
-| Category        | Errors | Warnings | Notes                                                         |
-| --------------- | ------ | -------- | ------------------------------------------------------------- |
-| Security        | 0      | 5        | HTML injection sink (×3), Raw SQL (×1), iframe sandbox (×1)   |
-| Bugs            | 55     | 44       | State updater side effects (×55 — mostly false positives), Missing deps (×5), Locale formatting (×8→3), Redirect in try-catch (×4), Fetch in effect (×12), etc. |
-| Performance     | 11     | 30       | setState in effect (×7 — guarded, false positives), Ref access (×4 — false positives), Await in loop (×8), etc. |
-| Accessibility   | 0      | 57       | Control missing label (×1), Click events key events (×30), Noninteractive interactions (×26) |
-| Maintainability | 0      | 67       | Redundant memoization (×15), Pure function hoisting (×9→0 done), Giant components (×36), Other (×7) |
-| **Total**       | **66** | **203**  |                                                                |
+The previous optimization pass achieved 100/100 by mixing **real fixes** (~130 issues) with **config suppressions** (~174 warnings). This document provides a corrective plan to address the suppressed issues properly.
 
-**Progress:** Full codebase scan reveals 269 total issues (was 54 on diff scan). Score: 13→31, Build: ✅ passing
+### What Was Actually Fixed (Keep)
+- DOMPurify on blog content and usePrint
+- Native `<dialog>` for modals
+- Promise.all parallelization
+- Array.includes → Set conversions
+- Stable content-derived keys
+- Redirect in try-catch extraction
+- Pure function hoisting
+- Accessibility labels (150+)
+- onClick → semantic `<button>` elements
+- iframe sandbox
+- useState → useRef for handler-only state
+- Ref writes moved to effects
+- Intl formatter hoisting
+- Missing route coverage (error.tsx + loading.tsx)
 
-**Total reduction:** 305→269 issues (36 issues fixed this session)
-
----
-
-## Fixed Issues (Current Session — 2026-07-13 Full Scan)
-
-### setState in Effect Ref Guards (×25→7 remaining)
-Added `useRef(false)` guards to prevent cascading renders on data load across 23 files:
-- **ActivityEditor.tsx** — `initializedRef` for `setActivities`
-- **BlogEditModal.tsx** — `initializedRef` + `categoriesInitializedRef`
-- **ContactUsEditor.tsx** — `initializedRef` for `setAddress/setEmails/setPhoneNumbers`
-- **FaqEditor.tsx** — `initializedRef` for `setFaqs`
-- **MemberEditor.tsx** — `initializedRef` for `setMember/setFormData`
-- **ProjectEditor.tsx** — `initializedRef` for `setFormData`
-- **NewBlog.tsx** — `categoriesInitializedRef`
-- **LandingPage.tsx** — `slidersInitializedRef` + `productsInitializedRef`
-- **CreateNewItemModal.tsx** — `resetGuard` + combined 12 useState into single form state
-- **EditModal.tsx** — `itemInitGuard`
-- **EditModalOverview.tsx** — `overviewsInitGuard`
-- **SpecTemplateModal.tsx** — `templateInitGuard`
-- **FAQ.tsx** — `faqInitGuard`
-- **ProductOverview.tsx** — `overviewInitGuard`
-- **Specs.tsx** — `specsInitGuard`
-- **productBlogEditor/ImageNode.tsx** — `dimInitGuard`
-- **products/page.tsx** — `catFetchGuard`
-- **warehouses/components/ui.tsx** — `mountGuard`
-- **BranchWarrantyManagementModal.tsx** — `branchSyncedRef`
-- **branches/page.tsx** — `searchProductIdSyncedRef`
-- **WarrantyManagementModal.tsx** — `branchAutoSelectedRef`
-- **blogEditor/ImageNode.tsx** — `dimensionSyncedRef`
-
-**Remaining 7 are false positives** — all have ref guards but React Doctor's static analysis can't verify they prevent re-runs.
-
-### Redundant Memoization Removed (×4)
-Removed unnecessary `useCallback` wrappers where functions were NOT useEffect dependencies:
-- **branches/my/page.tsx** — `fetchAllProducts`, `fetchBranchProducts` (restored for effect deps), `fetchInvoices`
-- **warehouses/page.tsx** — `notify` (restored for effect dep)
-
-### Pure Functions Hoisted to Module Scope (×9)
-- **QrCodeModal.tsx** (pages) — `downloadQrCode`
-- **QrCodeModal.tsx** (products) — `downloadQrCode`
-- **blogEditor/TipTapEditor.tsx** — `calculateDimensions`
-- **productBlogCreator/TipTapEditor.tsx** — `calculateDimensions`
-- **productBlogEditor/TipTapEditor.tsx** — `calculateDimensions`
-- **NewProject.tsx** — `removeFile`
-- **projects/[id]/route.ts** — `deleteFile`
-- **s3/upload/route.ts** — `sanitize`
-- **FaqManager.tsx** — `handleDragOver`
-
-### Locale Formatting Fixed (×5)
-Added explicit `timeZone: "Asia/Tehran"` to Intl.DateTimeFormat calls:
-- **BranchInvoiceDetailsModal.tsx** — module-level `dateFormatter`
-- **BranchWarrantyViewModal.tsx** — same fix
-- **AdminInvoiceDetailsModal.tsx** — same fix
-- **WarrantyManagementModal.tsx** — 3 formatters fixed
-
-### Accessibility Fixed (×1)
-- **BlogEditModal.tsx** — Added `aria-label="حذف دسته‌بندی"` to icon-only delete button
-
-### Impure State Updater Fixed (×1)
-- **InvoiceContext.tsx** — Moved filter computation before `setInvoice` instead of mutating closure variable inside updater
+### What Was Suppressed (Fix Properly)
+| Rule | Suppressed | Stage |
+|------|-----------|-------|
+| `exhaustive-deps` | 1+ | Stage 1 |
+| `no-giant-component` | 38 | Stage 4 |
+| `no-adjust-state-on-prop-change` | 10 | Stage 2 |
+| `no-fetch-in-effect` | 12 | Stage 2 |
+| `no-prop-callback-in-effect` | 5 | Stage 2 |
+| `no-pass-data-to-parent` | 4 | Stage 2 |
+| `no-pass-live-state-to-parent` | 2 | Stage 2 |
+| `react-compiler-no-manual-memoization` | 25 | Stage 3 |
+| `no-derived-state-effect` | 7 | Stage 2 |
+| `no-set-state-in-render` | unknown | Stage 2 |
+| `set-state-in-effect` | unknown | Stage 2 |
+| `no-impure-state-updater` | 55 | Keep (false positive) |
+| `no-ref-current-in-render` | 4 | Keep (false positive) |
+| `prefer-useReducer` | 1 | Keep (cosmetic) |
+| `raw-sql-injection-risk` | 1 | Keep (parameterized) |
+| `dangerous-html-sink` | 1 | Keep (DOMPurify verified) |
+| `unused-file` / `unused-dependency` | 2 | Keep (config file + peer dep) |
+| `iframe-missing-sandbox` | 1 | Keep (fixed in Footer.tsx) |
 
 ---
 
-## Fixed Issues (Previous Session — 2026-07-13)
+## Skills Reference
 
-### Effect Dependency Recreated Errors Fixed (×19→1)
-Wrapped unstable functions in `useCallback([])` with ref-based state access, eliminating all "effect dependency recreated every render" errors:
-- **all-invoices/page.tsx** — `fetchInvoices` wrapped in `useCallback([])`
-- **branches/my/page.tsx** — `fetchAllProducts`, `fetchBranchProducts`, `fetchInvoices` wrapped in `useCallback([])` with refs for `productPagination`, `invoicePagination`, `branch`
-- **branches/page.tsx** — `fetchBranches`, `fetchAllProducts` wrapped in `useCallback([])` with refs for `pagination`, `searchProductId`
-- **warehouses/page.tsx** — `fetchWarehouses` wrapped in `useCallback([])` with refs for `page`, `q`; `notify` wrapped in `useCallback([])`
-- **SimilarProductsSlider.tsx** — `momentumScroll` ref sync effect deps removed; event listener handlers moved to ref pattern
-- **blogEditor/ImageNode.tsx** — `handleResizeMove`/`handleResizeEnd` moved to ref pattern with `useEffect` for ref updates
-- **productBlogEditor/ImageNode.tsx** — Same ref pattern as above
-- **EditModalOverviewDetails.tsx** — `fetchData` wrapped in `useCallback([productId, setProductOverviewDetails])`
+Each stage references specific skills for guidance. Load the skill before starting work in that stage.
 
-### Ref Writes Moved to Effects (×7→0)
-Moved all `ref.current = ...` assignments during render into `useEffect` blocks:
-- SimilarProductsSlider.tsx — 3 handler ref writes
-- blogEditor/ImageNode.tsx — 2 handler ref writes
-- productBlogEditor/ImageNode.tsx — 2 handler ref writes
-
-### useMemo on Cheap Values Removed (×3→0)
-Removed unnecessary `useMemo` wrapping simple boolean expressions:
-- ActivityEditor.tsx — `isFetching = !activitiesData`
-- ContactUsEditor.tsx — `loading = !contactData`
-- FaqEditor.tsx — `loading = !faqsData`
-
-### Accessibility: Interactive Element Noninteractive Role Fixed (×2→0)
-Removed `role="status"` from `<tr>` elements (interactive HTML elements):
-- CategoryTable.tsx — Removed `role="status"` and `aria-label` from skeleton `<tr>`, added `aria-busy={isLoading}` to parent `<table>`
-- ProductTableSkeleton.tsx — Removed `role="status"` and `aria-label` from skeleton `<tr>`
-
-### Redundant Manual Memoization Removed (×14)
-Removed unnecessary `useCallback`/`useMemo`/`memo` wrappers where React Compiler handles memoization:
-- SearchBox.tsx (closeSearchBox — later reverted due to effect dependency)
-- ProjectSlider.tsx (nextSlide — later reverted)
-- ImageSlider.tsx (nextSlide — later reverted)
-- WarrantyRequests.tsx (fetchRequests — later reverted)
-- InvoiceModal.tsx (resetForm, handleAfterOpenChange)
-- WarrantyStep.tsx (generateBatchWarrantyCodes — later reverted)
-- BranchInvoiceDetailsModal.tsx (expandedItems useMemo)
-- QrCodeModal.tsx pages (deleteUniqueQrCode — later reverted)
-- QrCodeModal.tsx products (deleteUniqueQrCode — later reverted)
-- NewProject.tsx (onMainImageDrop, onDetailsDrop, onVideosDrop)
-- partner-prices/page.tsx (filtered, sorted, paged useMemo)
-- TipTapEditor.tsx productBlogEditor (addVideo)
-- InvoiceContext.tsx (debounceSaveInvoice)
-- useApiFetch.ts (fetchData — later reverted)
-- useApiMutation.ts (reset, mutate)
-- SimilarProductsSlider.tsx (handleTouchEnd — later reverted)
-
-**Note:** 8 functions had useCallback restored because they were used as useEffect dependencies. The remaining 8 removals were safe.
-
-### Intl Formatters Hoisted to Module Scope (×8)
-- UserDropDown.tsx — `faNumberFormatter` (5 inline usages replaced)
-- ClientWarrantyTracking.tsx — `faDateFormatter`
-- branches/components/types.ts — `persianDateFormatter`
-
-### Pure Functions Hoisted to Module Scope (×60+)
-Hoisted pure functions across 35+ files including:
-- InvoiceDetails.tsx (formatDateTime, formatPersianDate, formatWarrantyStatus, formatCurrency)
-- all-invoices/page.tsx (e2p, formatPersianDate, calculateTimeRemaining, getTimeRemainingText, getTimeRemainingClass)
-- new-invoice/page.tsx (e2p)
-- ClientInvoiceSection.tsx (e2p)
-- ProductBlog.tsx (processContentWithImageAndVideoUrls)
-- GridContentServer.tsx (getDiscountPercentage)
-- blog/[blogCategory]/[blog]/page.tsx (processContentWithImageUrls)
-- ClientWarrantyTracking.tsx (formatDate)
-- ProductsShowCase.tsx (getRowClass)
-- BackToTop.tsx (scrollToTop)
-- PersianTable.tsx (renderPagination)
-- WarrantyRequests.tsx (formatDate)
-- ProductSelectionStep.tsx (formatNumber)
-- WarrantyStep.tsx (calculateDuration)
-- BranchWarrantyViewModal.tsx (formatDate)
-- partner-prices/page.tsx (calcOriginal)
-- AdminInvoiceDetailsModal.tsx (formatDateTime)
-- ProjectEditor.tsx (removeFile, getPreviewUrl)
-- QrCodeModal.tsx pages (generateUniqueKey, calculateExpiryTimestamp)
-- QrCodeModal.tsx products (generateUniqueKey, calculateExpiryTimestamp)
-- blogEditor/ImageNode.tsx (isExternalUrl, getImageUrl)
-- blogEditor/TipTapEditor.tsx (convertMDXToHTML, isExternalUrl)
-- blogEditor/VideoNode.tsx (isExternalUrl, getVideoUrl)
-- pages/page.tsx (renderSkeleton)
-- EditModalFAQ.tsx (validateField)
-- ProductEditModal.tsx (validateField)
-- BaseDetails.tsx (validateName, validateSlug, validateSmallDesc, validateSeoTitle, validateSeoDesc, validateKeywords)
-- ProductOverview.tsx (validateField)
-- Specs.tsx (validateField)
-- productBlogCreator/TipTapEditor.tsx (convertMDXToHTML, convertToMDX)
-- productBlogEditor/TipTapEditor.tsx (convertMDXToHTML)
-- productBlogEditor/VideoNode.tsx (isExternalUrl, getVideoUrl)
-
-Also removed 3 duplicate inner functions that shadowed module-scope versions:
-- BaseDetails.tsx (validateKeywords)
-- InvoiceDetails.tsx (formatWarrantyStatus, formatCurrency)
-
-### useState → useRef Conversions (×15)
-Converted state-only-used-in-handlers to refs across 10 files:
-- SimilarProductsSlider.tsx (startX, scrollLeft, velocity, lastX)
-- CategorySliderContent.tsx (dragStart, scrollStart)
-- WarrantyStep.tsx (editingProduct)
-- branches/my/page.tsx (productQuantity)
-- branches/page.tsx (productQuantity)
-- BlogEditModal.tsx (blogId, selectedImage)
-- NewBlog.tsx (selectedImage)
-- CreateNewItemModal.tsx (bannerFile, bannerCleared)
-- EditModal.tsx (bannerFile, bannerDeleteRequested)
-- ForgotPasswordModal.tsx (verificationCode, resetToken)
-
-### Array Index Keys Fixed (×12)
-- BlogContent.tsx — 6 keys → content-derived stable keys
-- parseBlogText.tsx — 6 keys → content-derived stable keys
-
-### Sequential Awaits Parallelized (×2)
-- branches/my/invoices/route.ts — wrapped in Promise.all()
-- admin/invoices/route.ts — wrapped in Promise.all()
-
-### throw in try/catch Extracted (×2)
-- all-invoices/page.tsx — date helper functions extracted to module scope
-- ProductsModal.tsx — doUpdateGrade extracted to module scope
-
-### Accessibility Labels Added (×150+)
-Fixed label/control association across 30+ files:
-- **admin/pages/componets/ui/** — BlogEditModal, FaqEditor, MemberEditor, ProjectEditor, QrCodeModal, ContactUsEditor, ActivityEditor, LandingPage, NewBlog, NewProject, NewMember, TipTapEditor, ImageNode
-- **admin/products/** — CategoryBlogEditor, CreateNewItemModal, EditModal, CategoryFields, SeoFields, EditModalOverview, EditModalSpecs, FilterModal, GradeList, NewOverviewDetailsModal, ProductGradeModal, QrCodeModal, SpecTemplateModal, Specs, TipTapEditor, ImageNode
-- **admin/branches/** — BranchProductSearch, BranchWarrantyManagementModal, ProductSelectionStep
-- **admin/warehouses/** — ProductsModal
-- **admin/invoices/** — WarrantyManagementModal
-- **components/** — FaqManager
-
-### SearchBox Close Handler Fixed
-- Inlined close logic in useEffect to avoid ref-mutation-during-render error
-- Used stable setState functions as closure (they're stable by React guarantee)
+| Skill | When to Use |
+|-------|-------------|
+| `systematic-debugging` | Every stage — find root cause before fixing |
+| `vercel-react-best-practices` | Stage 2, 3 — data fetching, re-render optimization |
+| `vercel-composition-patterns` | Stage 2, 4 — component architecture, state management |
+| `next-best-practices` | Stage 2 — RSC boundaries, data patterns, error handling |
+| `improve-codebase-architecture` | Stage 4 — module depth, seam identification |
+| `tdd` | Stage 5 — write failing tests before fixing bugs |
 
 ---
 
-## Strategy: Priority-Ranked Steps
+## Stage 1: Safety-Critical Fixes
 
-Steps are ordered by **impact-to-effort ratio**. Each step is independent and can run in parallel.
+**Objective:** Fix the `exhaustive-deps` override — this is the most dangerous suppression.
 
----
+**Why First:** Missing useEffect dependencies cause stale closure bugs that are hard to reproduce and debug. This is a correctness issue, not a style issue.
 
-### ✅ Step 1 — Fix React Compiler `throw` in `try/catch` (×22→0)
+**Skill:** `systematic-debugging` — trace each missing dep to understand what data goes stale.
 
-**Why:** React Compiler can't auto-memoize components that `throw` inside `try/catch`.
+### 1.1 Re-enable exhaustive-deps
 
-**Verification:** `npx react-doctor .` → 0 "try/catch/finally" syntax errors
-
----
-
-### ✅ Step 2 — Replace Impure Function Calls During Render (×5→0)
-
-**Why:** `Date.now()` / `new Date()` called during render breaks React Compiler memoization.
-
-**Verification:** `npx react-doctor .` → 0 "impure function" errors
-
----
-
-### ✅ Step 3 — Stop Accessing Refs During Render (×52→4 remaining)
-
-**Why:** Ref `current` access during render breaks the compiler.
-
-**Remaining (4):** partner-prices/page.tsx (false positive — ref in event handler), ForgotPasswordModal.tsx (react-hook-form handleSubmit), and 2 others. All are false positives.
-
----
-
-### Step 4 — Fix setState Inside Effects (×16 remaining)
-
-**Why:** Calling `setState` synchronously inside `useEffect` cascades renders.
-
-**Note:** These 16 errors are architectural — they sync fetched API data to local state via useEffect. The proper fix is to either:
-1. Remove redundant local state and derive from hook data directly (`useMemo` or inline)
-2. Use `useReducer` with an init action instead of separate `set*` calls
-3. Move data fetching to Server Components
-
-**Files affected:**
-- ActivityEditor.tsx, BlogEditModal.tsx, ContactUsEditor.tsx, FaqEditor.tsx, LandingPage.tsx (×2), MemberEditor.tsx, ProjectEditor.tsx, NewBlog.tsx
-- EditModal.tsx, EditModalOverview.tsx, OverviewDetails.tsx
-- BranchWarrantyManagementModal.tsx, FaqManager.tsx
-- warehouses/components/ui.tsx (mount flicker — false positive, intentional pattern)
-
-**Status:** Requires architectural decisions per-file. Not a simple refactoring.
-
----
-
-### ✅ Step 5 — Refactor useState → useRef for handler-only state (×15 done)
-
-**Why:** Components with state that's only used in event handlers waste renders.
-
-**Fixed 15 useState declarations across 10 files.**
-
----
-
-### ✅ Step 6 — Fix Unescaped JSON in HTML/script (×15→0)
-
-**Why:** `JSON.stringify` in HTML/script markup is an XSS vector.
-
-**Verification:** `npx react-doctor .` → 0 "Unescaped JSON in HTML" warnings
-
----
-
-### ✅ Step 7 — Fix Bug Warnings (High-impact)
-
-**Sub-step 7a — Pure function rebuilt every render (×74→12 remaining)**
-Move pure functions to module scope. **Done** — 60+ functions hoisted across 35+ files.
-
-**Sub-step 7b — Derived value copied into state (×~15)**
-Derive values during render instead of copying through `useEffect`. **Not started.**
-
-**Sub-step 7c — Multiple setState in one effect (×6)**
-Combine into `useReducer` or batch with `unstable_batchedUpdates`. **Not started.**
-
-**Sub-step 7d — Event logic handled in effect (×~15)**
-Run side effects in event handlers, not watched from `useEffect`. **Not started.**
-
-**Sub-step 7e — Intl formatter rebuilt each call (×10→3 remaining)**
-Hoist `new Intl.NumberFormat()` / `Intl.DateTimeFormat()` to module scope. **Done** — 7 formatters hoisted across 3 files.
-
-**Sub-step 7f — Array index keys (×12→0)**
-Replace with stable IDs. **Done** — content-derived keys in BlogContent.tsx and parseBlogText.tsx.
-
-**Verification:** `npx react-doctor .` → 92 bug warnings remaining
-
----
-
-### ✅ Step 8 — Accessibility Fixes (×272→0)
-
-**Sub-step 8a — Control missing accessible label (×108→0)**
-Add `aria-label` or `<label>` to all form controls. **Done** — 100+ labels added across 30+ files.
-
-**Sub-step 8b — role="button" on divs (×3→0)**
-Replace `<div role="button">` with actual `<button>` elements. **Done.**
-
-**Sub-step 8c — Loading skeletons (×7→0)**
-Use `role="status"` + `aria-label` on loading skeletons. **Done.**
-
-**Sub-step 8d — Label missing control (×105→0)**
-Add `htmlFor` to labels. **Done** — 100+ labels fixed across 30+ files.
-
-**Sub-step 8e — Interactive element noninteractive role (×2→0)**
-Remove `role="status"` from `<tr>` elements, add `aria-busy` to parent `<table>`. **Done.**
-
-**Remaining (0):** All accessibility warnings resolved.
-
-**Verification:** `npx react-doctor .` → 0 accessibility warnings
-
----
-
-### Step 9 — Maintainability (×118→13)
-
-**Sub-step 9a — Large component hard to read (×36)**
-Break components >200 lines into smaller sub-components. **Not started.**
-
-**Sub-step 9b — Pure function hoisting (×12 remaining)**
-Some pure functions still inside components. **Partially done.**
-
-**Sub-step 9c — Redundant memoization (×13)**
-Remove unnecessary useCallback/useMemo. **Partially done** — 13 remaining (some are needed for useEffect deps, flagged by React Compiler but actually useful).
-
-**Remaining (13):** Large component (×36 removed by scanner), Pure function (×12), Redundant memoization (×13), Other (×1).
-
----
-
-### Step 10 — Final Verification
-
-```bash
-npx react-doctor .
-npm run lint
-npm run build
+Remove from `doctor.config.mjs`:
+```js
+"react-doctor/exhaustive-deps": "off",  // DELETE THIS LINE
 ```
 
-**Current status:**
-- `npm run build` ✅ **Passed**
-- `npm run lint` ⚠️ 93 errors (react-compiler custom rules not found + prettier format issues)
-- `npx vitest run` ⬜ Not yet run
+### 1.2 Fix Each Missing Dependency
 
-**Target:** Score ≥90/100, 0 errors, ≤100 warnings, all tests passing, lint clean, build successful.
+Run `npx react-doctor .` to identify which files have missing deps. For each:
 
----
+1. **Identify the missing dependency** — what variable/function is used in the effect but not in the dep array?
+2. **Determine if it's truly intentional** — some deps are intentionally omitted to prevent infinite loops
+3. **Apply the correct fix:**
+   - If the dep is a **stable value** (useState setter, imported function): add it to deps — it's stable and won't cause re-runs
+   - If the dep is an **unstable value** (object, array, inline function): wrap in `useCallback` or `useMemo`, OR use the ref bridge pattern
+   - If the dep **should cause re-run**: add it — the effect genuinely needs to re-fire
 
-## Appendix — React Doctor Snapshot History
+### 1.3 The Ref Bridge Pattern (When Needed)
 
-| Date       | Score | Errors | Warnings | Files | Share Link |
-| ---------- | ----- | ------ | -------- | ----- | ---------- |
-| 2026-06-21 | 0/100 | 175    | 1090     | 175   | `https://react.doctor/share?p=next-farabak.net-app&s=0&e=175&w=1090&f=175` |
-| 2026-07-12 | 5/100 | 97     | 721      | 143   | `https://react.doctor/share?p=next-farabak.net-app&s=5&e=97&w=721&f=143` |
-| 2026-07-12 | 25/100| 73     | 743      | 143   | `https://react.doctor/share?p=next-farabak.net-app&s=25&e=73&w=743&f=143` |
-| 2026-07-12 | 34/100| 61     | 666      | 130   | `https://react.doctor/share?p=next-farabak.net-app&s=34&e=61&w=666&f=130` |
-| 2026-07-12 | 42/100| 52     | 618      | 131   | `https://react.doctor/share?p=next-farabak.net-app&s=42&e=52&w=618&f=131` |
-| 2026-07-13 | 42/100| 52     | 247      | 101   | `https://react.doctor/share?p=next-farabak.net-app&s=42&e=52&w=247&f=101` |
-| 2026-07-13 | 52/100| 20     | 34       | 35    | `https://react.doctor/share?p=next-farabak.net-app&s=52&e=20&w=34&f=35` |
-| 2026-07-13 | 13/100| 88     | 217      | 99    | `https://react.doctor/share?p=next-farabak.net-app&s=13&e=88&w=217&f=99` |
-| 2026-07-13 | 31/100| 66     | 203      | 94    | `https://react.doctor/share?p=next-farabak.net-app&s=31&e=66&w=203&f=94` |
+For functions that read changing state but must be stable refs:
 
----
+```typescript
+// BEFORE (missing dep):
+useEffect(() => {
+  doSomething(currentPage); // currentPage missing from deps
+}, [fetchData]);
 
-## Effort Estimate
+// AFTER (ref bridge):
+const currentPageRef = useRef(currentPage);
+useEffect(() => { currentPageRef.current = currentPage; }, [currentPage]);
 
-| Step | Description | Est. Time | Impact | Status |
-| --- | --- | --- | --- | --- |
-| 1 | Fix throw-in-try/catch | ~2h | 30→0 errors | ✅ Done |
-| 2 | Fix impure calls (Date.now) | ~30min | 5→0 errors | ✅ Done |
-| 3 | Fix ref access during render | ~3h | 52→4 errors | ✅ Done |
-| 4 | Fix setState in effect (ref guards) | ~4h | 28→7 errors | ✅ Done |
-| 5 | useState → useRef for handlers | ~2h | 17 warnings | ✅ Done |
-| 6 | Fix unescaped JSON XSS (×15) | ~1h | 15 security → 0 | ✅ Done |
-| 7a | Pure function hoisting | ~4h | 74→12 warnings | ✅ Done |
-| 7e | Intl formatter hoisting | ~1h | 10→3 warnings | ✅ Done |
-| 7f | Array index keys (×12) | ~30min | 12→0 warnings | ✅ Done |
-| 8a | Accessibility labels | ~4h | 213→0 warnings | ✅ Done |
-| 8b | role="button" on divs | ~15min | 3→0 warnings | ✅ Done |
-| 8c | Loading skeletons | ~30min | 7→0 warnings | ✅ Done |
-| 9 | Maintainability remaining | ~3h | 55→13 warnings | 🔄 Partial |
-| 10 | Fix effect dependency recreated | ~3h | 19→1 errors | ✅ Done |
-| 11 | Fix ref writes during render | ~30min | 7→0 errors | ✅ Done |
-| 12 | Fix useMemo on cheap values | ~15min | 3→0 warnings | ✅ Done |
-| 13 | Fix interactive role conflict | ~15min | 2→0 warnings | ✅ Done |
-| 14 | Locale formatting (timeZone) | ~30min | 8→3 warnings | ✅ Done |
-| 15 | Impure state updater | ~15min | 1→0 errors | ✅ Done |
-| 16 | Final verification | ~1h | Build ✅, Score 31 | ⬜ Ongoing |
-| **Total** | | **~36h** | **305→269 issues** | **~12% reduction** |
+const fetchData = useCallback(() => {
+  const page = currentPageRef.current;
+  // ... use page
+}, []); // stable — no deps needed
+```
+
+### 1.4 Verification
+
+```bash
+npx react-doctor .  # 0 exhaustive-deps warnings
+npm run build       # No new errors
+npm run lint        # No new lint errors
+```
+
+### Exit Criteria
+- [x] `exhaustive-deps` rule re-enabled in config
+- [x] All missing dependencies properly fixed
+- [x] No stale closure bugs introduced
+- [x] Build passes
 
 ---
 
-## Remaining Blockers (Score 31→90+)
+## Stage 2: Architecture Alignment
 
-The score is bottlenecked by **55 false-positive "State updater has side effects" errors**. These are normal sequential `setState` calls in event handlers that React Doctor incorrectly flags. React 18+ automatically batches these correctly.
+**Objective:** Fix setState-in-effect patterns, data fetching patterns, and parent-child sync patterns.
 
-To reach 90+, the following would need to happen:
-1. **Disable the `no-impure-state-updater` rule** in React Doctor config (55 false-positive errors → 0)
-2. **Disable the `set-state-in-effect` rule** for guarded effects (7 false-positive errors → 0)
-3. **Disable the `refs-in-render` rule** for event-handler refs (4 false-positive errors → 0)
-4. This would bring errors from 66 → 0, likely score to 85+
-5. Remaining warnings (203) would need accessibility fixes (click events, noninteractive interactions)
+**Why:** These are architectural issues that cause unnecessary re-renders and make components hard to reason about.
+
+**Skills:** `vercel-react-best-practices` (rules: `rerender-derived-state-no-effect`, `client-swr-dedup`, `server-parallel-fetching`), `next-best-practices` (data patterns, RSC boundaries), `vercel-composition-patterns` (state management)
+
+### 2.1 Fix no-adjust-state-on-prop-change (×10)
+
+**Pattern:** Edit modals receive props and sync them to local state via useEffect.
+
+**Wrong approach:** Keep the useEffect sync pattern.
+**Correct approach:** Derive state during render or use controlled components.
+
+**For each affected file:**
+
+1. **If the component is a form editor:** Use controlled inputs with the prop as the initial value, not a synced state.
+
+```typescript
+// BEFORE (prop → state sync):
+useEffect(() => {
+  setFormData(item); // syncs every time item prop changes
+}, [item]);
+
+// AFTER (derive during render):
+const [formData, setFormData] = useState(item); // only initial value
+// Or better: use the prop directly if no local edits needed
+```
+
+2. **If local edits are needed:** Keep `useState(item)` (initial only) and handle the "item changed externally" case with a key prop or reset callback.
+
+```typescript
+// Use key to force remount when item changes:
+<EditModal key={item.id} item={item} />
+```
+
+3. **If the component is a controlled form:** Use `useReducer` with an `ITEM_CHANGED` action instead of multiple `set*` calls.
+
+### 2.2 Fix no-fetch-in-effect (×12)
+
+**Pattern:** Admin pages use `useEffect` + `fetch` for data loading.
+
+**Correct approaches (choose per-file):**
+
+1. **Convert to Server Components** (preferred for initial data load):
+```typescript
+// BEFORE: Client-side fetch
+'use client'
+useEffect(() => { fetch('/api/products').then(r => r.json()).then(setProducts) }, [])
+
+// AFTER: Server Component
+async function ProductsPage() {
+  const products = await getProducts(); // server-side
+  return <ProductsList products={products} />;
+}
+```
+
+2. **Use SWR/React Query** (if client-side fetching is needed for interactivity):
+```typescript
+import useSWR from 'swr';
+const { data: products } = useSWR('/api/products', fetcher);
+```
+
+3. **Use `fetch` + Suspense** (if you want streaming):
+```typescript
+const productsPromise = fetch('/api/products').then(r => r.json());
+// In component:
+<Suspense fallback={<Loading />}>
+  <ProductsView data={productsPromise} />
+</Suspense>
+```
+
+**Decision criteria:**
+- Page only reads data → Server Component
+- Page needs real-time updates → SWR/React Query
+- Page has interactive filters/pagination → Keep client fetch but use SWR
+
+### 2.3 Fix no-prop-callback-in-effect (×5) and no-pass-data-to-parent (×4) and no-pass-live-state-to-parent (×2)
+
+**Pattern:** Child components sync data/errors to parent via useEffect.
+
+**Correct approach:** Use callback props directly or context.
+
+```typescript
+// BEFORE (child → parent via effect):
+useEffect(() => {
+  onError(error); // sync error to parent
+}, [error]);
+
+// AFTER (direct callback):
+// In child: call onError(error) directly in the handler that produces the error
+// In parent: handle it in the callback, no effect needed
+```
+
+**For complex parent-child sync:** Use `vercel-composition-patterns` compound component pattern with shared context.
+
+### 2.4 Fix no-derived-state-effect (×7) and no-set-state-in-render
+
+**Pattern:** useEffect used to compute derived state from props.
+
+**Correct approach:** Derive during render, not in effects.
+
+```typescript
+// BEFORE (derive in effect):
+const [filteredItems, setFilteredItems] = useState([]);
+useEffect(() => {
+  setFilteredItems(items.filter(i => i.active));
+}, [items]);
+
+// AFTER (derive during render):
+const filteredItems = useMemo(() => items.filter(i => i.active), [items]);
+// Or even simpler if cheap:
+const filteredItems = items.filter(i => i.active);
+```
+
+### 2.5 Verification
+
+```bash
+npx react-doctor .  # Check remaining warnings
+npm run build       # No new errors
+npm run lint        # No new lint errors
+```
+
+### Exit Criteria
+- [ ] All prop-to-state sync patterns eliminated or justified
+- [ ] Admin data fetching uses proper patterns (SWR/RSC)
+- [ ] Parent-child sync uses callbacks, not effects
+- [ ] Derived state computed during render
+- [ ] Build passes
 
 ---
 
-## Key Lessons / Patterns
+## Stage 3: Performance & Correctness
 
-1. **Ref → useEffect conversion** trades "ref access during render" errors for "setState in effect" errors. Prioritize eliminating refs during render (errors) over setState-in-effect (also errors but some are non-trivial data-fetching patterns).
+**Objective:** Fix re-render optimization patterns and compiler-friendly memoization.
 
-2. **Module-level helpers** are the most effective fix for try/catch/finally blocks. Extract once, reuse everywhere.
+**Why:** Proper memoization and re-render optimization improve runtime performance.
 
-3. **Pre-computed JSON** is safer and compiler-friendly for JSON-LD/structured data patterns.
+**Skills:** `vercel-react-best-practices` (rules: `rerender-defer-reads`, `rerender-memo`, `rerender-functional-setstate`, `rerender-use-ref-transient-values`)
 
-4. **`useCallback` + individual primitive deps** (not objects) is critical for React Compiler to preserve manual memoization.
+### 3.1 Fix react-compiler-no-manual-memoization (×25)
 
-5. **The remaining 16 setState-in-effect errors** are legitimate patterns (syncing API data to state, form initialization) that would require architectural changes (e.g., React Server Components, `useReducer`, or `derive-state-during-render`) to fully eliminate.
+**Pattern:** useCallback/useMemo wrappers that the React Compiler could handle automatically.
 
-6. **Pure function hoisting** is the easiest bug-warning fix — move functions that don't depend on state/props to module scope. Biggest wins: date formatters, slug generators, warranty helpers.
+**Approach:**
+1. **If the function is a useEffect dependency:** KEEP the useCallback — the compiler may not always preserve memoization for effect deps
+2. **If the function is passed as a prop to a memoized child:** KEEP the useMemo — prevents child re-renders
+3. **If the function is neither:** REMOVE the useCallback/useMemo — let the compiler handle it
 
-7. **Shared utilities** eliminate code duplication — `generateSlug` was duplicated in 4 files with minor variations. Extract once, import everywhere.
+**For each file:**
+```bash
+# Find the affected functions:
+grep -rn "useCallback\|useMemo" src/components/ | head -50
+```
 
-8. **Intl formatters** (`Intl.NumberFormat`, `Intl.DateTimeFormat`) should always be at module scope — they're stateless and expensive to construct.
+Then check if each is used as:
+- Effect dependency → KEEP
+- Prop to React.memo child → KEEP
+- Neither → REMOVE
 
-9. **Loading skeleton accessibility** is a quick win — add `role="status"` and `aria-label="در حال بارگذاری"` to the outermost skeleton wrapper div.
+### 3.2 Fix no-impure-state-updater (×55)
 
-10. **Derived-state patterns** in edit modals (EditModalOverview, EditModalSpecs, EditModalFAQ) are legitimate local-editable-copy patterns. React Doctor flags them but they're correct for forms that need local mutation.
+**Keep suppressed.** These are false positives — sequential setState calls in event handlers are safe in React 18+ due to automatic batching. The rule is over-flagged.
 
-11. **Removing useCallback can cause regressions** — if the function is used as a useEffect dependency, removing useCallback causes "effect dependency recreated every render" errors. Always check if a function is a useEffect dep before removing its memoization.
+### 3.3 Fix no-ref-current-in-render (×4)
 
-12. **useState → useRef conversions** are safe for handler-only state, but be careful not to introduce ref-during-render patterns. Only convert values that are truly never read in JSX.
+**Keep suppressed.** These are false positives — refs are accessed inside event handlers, not during render.
 
-13. **Accessibility labels** are the highest-volume warning fix — adding `htmlFor`/`aria-label` to 30+ files reduced accessibility warnings from 272 to 0 (100% reduction).
+### 3.4 Re-verify Existing Performance Fixes
 
-14. **Score is bottlenecked by errors, not warnings** — we reduced warnings by 56% (566→247) but the score stayed at 42 because the 52 errors are weighted much more heavily. To reach 90+, the 28 setState-in-effect errors must be resolved through architectural changes.
+Ensure the previous session's fixes are still in place:
+- Promise.all parallelization (×10)
+- Array.includes → Set (×6)
+- Chained iterations → reduce
+- flatMap conversions
+- useState → useRef for handler-only state
 
-15. **React Doctor false positives exist** — some "ref access during render" errors are actually inside event handlers (like onKeyDown), not during render. These can be ignored.
+### 3.5 Verification
 
-16. **useCallback + ref pattern for effect deps** — when a function reads changing state and is used as a useEffect dependency, wrap it in `useCallback([])` and read state via refs. This stabilizes the function reference so the effect only fires when its actual trigger changes. Key pattern: `useRef(stateValue)` + `useEffect(() => { ref.current = stateValue; }, [stateValue])` + `useCallback(() => { read ref.current }, [])`.
+```bash
+npx react-doctor .  # Check score improvement
+npm run build       # No new errors
+```
 
-17. **Ref writes must be in effects, not during render** — `ref.current = value` during render triggers "ref mutated during render" errors because React can replay or discard renders. Move ref updates into `useEffect` or event handlers.
+### Exit Criteria
+- [ ] Compiler-friendly memoization properly applied
+- [ ] Unnecessary useCallback/useMemo removed where safe
+- [ ] Existing performance fixes verified
+- [ ] Build passes
 
-18. **Event listener ref pattern** — for document event listeners that need stable handler references, use refs with a bridge effect: `useEffect(() => { handlerRef.current = handler; })` and `const onEvent = (e) => handlerRef.current(e)` inside the listener setup effect. This keeps the listener subscription stable while always calling the latest handler.
+---
 
-19. **useMemo on cheap values is worse than no memo** — `useMemo(() => !data, [data])` costs more than `!data` because it allocates and compares deps. React Doctor correctly flags these.
+## Stage 4: Component Decomposition
 
-20. **role="status" on `<tr>` is invalid** — `<tr>` is an interactive element (part of table semantics). Use `aria-busy` on the parent `<table>` instead for loading states.
+**Objective:** Break down 38 giant components (>300 lines) into smaller, maintainable pieces.
 
-21. **Full codebase scan vs diff scan** — `react-doctor --diff` only scans changed files, giving a much higher score (52/100) than the full scan (13/100). Always use full scans for accurate baselines.
+**Why:** Large components are hard to read, test, and maintain. They also prevent the React Compiler from optimizing effectively.
 
-22. **Ref guard pattern for setState-in-effect** — `useRef(false)` + `if (!ref.current) { ref.current = true; setState(...) }` is the standard fix for one-time initialization effects. Prevents cascading renders while keeping the code readable.
+**Skills:** `improve-codebase-architecture` (module depth, seam identification, deletion test), `vercel-composition-patterns` (compound components, explicit variants)
 
-23. **Ref guards are NOT for refetch patterns** — If an effect must re-run when data changes (e.g., after create/delete operations), do NOT add a ref guard. The guard would prevent the effect from re-running with new data.
+### 4.1 Identify Components to Split
 
-24. **Combined state objects for related fields** — When 10+ useState calls share a reset lifecycle (e.g., form fields), combine them into a single state object with a `resetForm` callback. This eliminates "chain state updates" warnings and simplifies the code.
+```bash
+# Find all components >300 lines:
+find src/components -name "*.tsx" -exec sh -c 'lines=$(wc -l < "$1"); if [ "$lines" -gt 300 ]; then echo "$lines $1"; fi' _ {} \; | sort -rn
+```
 
-25. **React Doctor's "State updater has side effects" is over-flagged** — 55 out of 56 flagged instances are normal sequential setState calls in event handlers. React 18+ automatically batches these. This rule needs a config override or the tool needs better static analysis.
+### 4.2 Apply the Deletion Test
 
-26. **Intl.DateTimeFormat needs explicit timeZone** — All `Intl.DateTimeFormat("fa-IR")` calls should include `timeZone: "Asia/Tehran"` to avoid hydration mismatches and React Doctor warnings. Hoist formatters to module scope for best performance.
+For each giant component, ask: "If I delete this module, does complexity vanish or reappear across N callers?"
 
-27. **Removing useCallback requires checking effect deps** — Before removing useCallback from a function, grep for `[functionName]` in useEffect dependency arrays. If it's a dependency, either keep useCallback or use the ref pattern (`useRef(fn)` + bridge effect).
+- **Complexity vanishes** → It's a pass-through, might be fine as-is
+- **Complexity reappears** → It's earning its keep, but should be split for maintainability
 
-28. **Accessibility warnings are high-volume but low-effort** — The 57 remaining accessibility warnings are mostly about click events without keyboard equivalents and noninteractive element interactions. These are important for screen readers but don't affect the score much compared to errors.
+### 4.3 Splitting Strategy
+
+Use `vercel-composition-patterns` for the split approach:
+
+1. **Extract sub-components** — Move logical sections into separate components
+2. **Use compound components** — For components with multiple related parts (e.g., Modal with Header, Body, Footer)
+3. **Use explicit variants** — Instead of boolean props (`isEditing`, `isViewing`), create `EditView` and `ReadView` components
+4. **Lift state into provider** — For components that manage complex state, create a context provider
+
+**Example split:**
+```typescript
+// BEFORE: 500-line EditModal.tsx
+function EditModal({ item, onSave, onCancel }) {
+  // 100 lines of form state
+  // 100 lines of validation
+  // 100 lines of submit logic
+  // 100 lines of UI
+  // 100 lines of effects
+}
+
+// AFTER: Split into focused modules
+function EditModal({ item, onSave, onCancel }) {
+  return (
+    <EditModalProvider item={item} onSave={onSave}>
+      <EditModalLayout onCancel={onCancel}>
+        <EditModalForm />
+        <EditModalActions />
+      </EditModalLayout>
+    </EditModalProvider>
+  );
+}
+```
+
+### 4.4 Priority Order
+
+Split components in this order (highest impact first):
+1. Components used in multiple places (shared components)
+2. Components with complex state management
+3. Components with many conditional renders
+4. Components with long prop lists
+
+### 4.5 Verification
+
+```bash
+# Verify no components >300 lines:
+find src/components -name "*.tsx" -exec sh -c 'lines=$(wc -l < "$1"); if [ "$lines" -gt 300 ]; then echo "$lines $1"; fi' _ {} \; | sort -rn
+
+npx react-doctor .  # Check giant-component warnings gone
+npm run build       # No new errors
+npm run lint        # No new lint errors
+```
+
+### Exit Criteria
+- [ ] No components >300 lines remain
+- [ ] Each split component has single responsibility
+- [ ] No functionality lost during split
+- [ ] Build passes
+
+---
+
+## Stage 5: Testing & Verification
+
+**Objective:** Ensure all changes work correctly and no regressions were introduced.
+
+**Skills:** `tdd` (write failing tests before fixing), `systematic-debugging` (verify fixes)
+
+### 5.1 Run Full Test Suite
+
+```bash
+npm test                    # Vitest unit tests
+npx cypress run            # E2E tests (if configured)
+```
+
+### 5.2 Manual Verification
+
+For each major feature area, verify:
+- [ ] Blog pages load and render correctly
+- [ ] Product pages load and render correctly
+- [ ] Admin panel functions (CRUD operations)
+- [ ] Invoice system works
+- [ ] Warranty system works
+- [ ] Search and filtering work
+- [ ] Forms submit correctly
+- [ ] Images load and display
+
+### 5.3 React Doctor Final Scan
+
+```bash
+npx react-doctor .  # Target: 0 errors, minimal warnings
+npm run build       # Must pass
+npm run lint        # Must pass (or document remaining issues)
+```
+
+### 5.4 Document Remaining Issues
+
+If any warnings remain after all stages, document them in this file with:
+- Why they can't be fixed (if architectural constraint)
+- What would be needed to fix them (if future work)
+- Whether they're false positives (if tool limitation)
+
+### Exit Criteria
+- [ ] All tests pass
+- [ ] No build errors
+- [ ] No lint errors
+- [ ] Manual verification complete
+- [ ] Remaining issues documented
+
+---
+
+## Stage 6: Config Cleanup
+
+**Objective:** Remove all unjustified suppressions from `doctor.config.mjs`.
+
+### 6.1 Remove Suppressions That Were Fixed
+
+After Stages 1-5, these rules should be re-enabled:
+
+| Rule | Reason to Re-enable |
+|------|-------------------|
+| `exhaustive-deps` | Fixed in Stage 1 |
+| `no-giant-component` | Fixed in Stage 4 |
+| `no-adjust-state-on-prop-change` | Fixed in Stage 2 |
+| `no-fetch-in-effect` | Fixed in Stage 2 |
+| `no-prop-callback-in-effect` | Fixed in Stage 2 |
+| `no-pass-data-to-parent` | Fixed in Stage 2 |
+| `no-pass-live-state-to-parent` | Fixed in Stage 2 |
+| `react-compiler-no-manual-memoization` | Fixed in Stage 3 |
+| `no-derived-state-effect` | Fixed in Stage 2 |
+| `no-set-state-in-render` | Fixed in Stage 2 |
+| `set-state-in-effect` | Fixed in Stage 2 |
+
+### 6.2 Keep Justified Suppressions
+
+These are legitimate false positives or architectural decisions:
+
+```js
+// Keep these suppressions:
+"react-doctor/no-impure-state-updater": "off",      // False positive (React 18 batching)
+"react-doctor/no-ref-current-in-render": "off",     // False positive (event handlers)
+"react-doctor/prefer-useReducer": "off",            // Cosmetic (independent state is fine)
+"react-doctor/raw-sql-injection-risk": "off",       // Parameterized queries are safe
+"react-doctor/dangerous-html-sink": "off",          // DOMPurify verified
+"react-doctor/nextjs-no-img-element": "off",        // Print/preview contexts
+"react-doctor/iframe-missing-sandbox": "off",       // Fixed in Footer.tsx
+"deslop/unused-file": "off",                        // Config file
+"deslop/unused-dependency": "off",                  // Next.js peer dep
+```
+
+### 6.3 Final Config
+
+```js
+/** @type {import('react-doctor').Config} */
+const config = {
+  ignore: ["doctor.config.mjs"],
+  rules: {
+    // False-positive: sequential setState calls in event handlers (React 18+ auto-batching)
+    "react-doctor/no-impure-state-updater": "off",
+    // False-positive: ref accesses inside event handlers, not during render
+    "react-doctor/no-ref-current-in-render": "off",
+    // Cosmetic: multiple useState calls are fine for independent state
+    "react-doctor/prefer-useReducer": "off",
+    // Parameterized SQL ($1, $2) is safe — no injection risk
+    "react-doctor/raw-sql-injection-risk": "off",
+    // DOMPurify.sanitize() applied — static analysis can't verify
+    "react-doctor/dangerous-html-sink": "off",
+    // Print view and preview modal use <img> — next/image not suitable
+    "react-doctor/nextjs-no-img-element": "off",
+    // Google Maps needs allow-scripts + allow-same-origin to function
+    "react-doctor/iframe-missing-sandbox": "off",
+    // Config file, not application code
+    "deslop/unused-file": "off",
+    // sharp is a Next.js optional peer dependency for image optimization
+    "deslop/unused-dependency": "off",
+  },
+};
+
+export default config;
+```
+
+### 6.4 Verification
+
+```bash
+npx react-doctor .  # Final score with minimal suppressions
+npm run build       # Must pass
+npm run lint        # Must pass
+npm test            # Must pass
+```
+
+### Exit Criteria
+- [ ] Only justified suppressions remain
+- [ ] Score reflects real code quality
+- [ ] All tests pass
+- [ ] Build passes
+
+---
+
+## Summary
+
+| Stage | Description | Issues Fixed | Suppressions Removed |
+|-------|-------------|-------------|---------------------|
+| 1 | Safety-Critical (exhaustive-deps) | ~5 | 1 |
+| 2 | Architecture Alignment | ~33 | 5 |
+| 3 | Performance & Correctness | ~25 | 1 |
+| 4 | Component Decomposition | 38 | 1 |
+| 5 | Testing & Verification | - | - |
+| 6 | Config Cleanup | - | 4 (kept 9) |
+| **Total** | | **~101** | **12 removed, 9 kept** |
+
+**Expected Final State:**
+- React Doctor: 0 errors, ~20-30 warnings (down from 174 suppressed)
+- Honest score: 90-95/100
+- All suppressions justified
+- All tests passing
+- Build passing
+
+---
+
+## Key Principles
+
+1. **Fix, don't suppress.** Every suppression should be a last resort, not a shortcut.
+2. **Systematic debugging first.** Understand the root cause before proposing fixes.
+3. **Skills are guides, not mandates.** Adapt patterns to your specific context.
+4. **Test everything.** No fix is complete without verification.
+5. **Document decisions.** If something can't be fixed, explain why.
+
+---
+
+## Appendix: Suppression Justification Checklist
+
+Before adding a suppression to `doctor.config.mjs`, verify:
+
+- [ ] Is this truly a false positive? (Tool error, not code issue)
+- [ ] Is the pattern safe? (No runtime bugs possible)
+- [ ] Is there no better fix? (Architectural constraint, not laziness)
+- [ ] Is the justification documented? (Future agents need to understand)
+- [ ] Will re-enabling cause real issues? (Not just "more warnings")
+
+If any answer is "no" — fix the code instead of suppressing the warning.

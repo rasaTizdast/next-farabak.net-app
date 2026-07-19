@@ -78,42 +78,32 @@ export async function POST(request: Request) {
 
   const results: Record<string, string> = {};
 
-  for (const path of paths) {
-    if (staticRoutes.hasOwnProperty(path)) {
-      results[path] = staticRoutes[path];
-      continue;
-    }
+  const dynamicPaths = paths.filter((path) => !staticRoutes.hasOwnProperty(path));
 
-    const parts = path.split("/").filter(Boolean);
-    if (parts.length === 2 && parts[0] === "products") {
-      // It's a category
-      const slug = parts[1];
-      const category = await prisma.category.findFirst({
-        where: { Slug: slug, Available: true },
-        select: { Name: true },
-      });
-
-      if (category?.Name) {
-        results[path] = category.Name;
-      } else {
-        results[path] = "نامشخص";
+  const dynamicResults = await Promise.all(
+    dynamicPaths.map(async (path) => {
+      const parts = path.split("/").filter(Boolean);
+      if (parts.length === 2 && parts[0] === "products") {
+        const slug = parts[1];
+        const category = await prisma.category.findFirst({
+          where: { Slug: slug, Available: true },
+          select: { Name: true },
+        });
+        return { path, name: category?.Name || "نامشخص" };
+      } else if (parts.length === 3 && parts[0] === "products") {
+        const slug = parts[2];
+        const subCategory = await prisma.categoryContent.findFirst({
+          where: { Slug: slug, Available: true },
+          select: { Name: true },
+        });
+        return { path, name: subCategory?.Name || "نامشخص" };
       }
-    } else if (parts.length === 3 && parts[0] === "products") {
-      // It's a subcategory
-      const slug = parts[2];
-      const subCategory = await prisma.categoryContent.findFirst({
-        where: { Slug: slug, Available: true },
-        select: { Name: true },
-      });
+      return { path, name: "نامشخص" };
+    })
+  );
 
-      if (subCategory?.Name) {
-        results[path] = subCategory.Name;
-      } else {
-        results[path] = "نامشخص";
-      }
-    } else {
-      results[path] = "نامشخص";
-    }
+  for (const { path, name } of dynamicResults) {
+    results[path] = name;
   }
 
   return NextResponse.json(results);

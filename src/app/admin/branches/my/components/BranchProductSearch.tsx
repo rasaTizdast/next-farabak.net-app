@@ -45,16 +45,19 @@ async function branchProductSearch(
     let processedData: BranchProduct[] = [];
 
     if (Array.isArray(data)) {
-      processedData = data
-        .filter((branch) => branch && branch.branchid && branch.name)
-        .map((branch) => ({
-          branchid: branch.branchid,
-          branchName: branch.name,
-          location: branch.location,
-          ProductId: selectedProduct,
-          ProductType: products.find((p) => p.ProductId === selectedProduct)?.Type || "",
-          quantity: branch.quantity || 0,
-        }));
+      processedData = data.reduce<BranchProduct[]>((acc, branch) => {
+        if (branch && branch.branchid && branch.name) {
+          acc.push({
+            branchid: branch.branchid,
+            branchName: branch.name,
+            location: branch.location,
+            ProductId: selectedProduct,
+            ProductType: products.find((p) => p.ProductId === selectedProduct)?.Type || "",
+            quantity: branch.quantity || 0,
+          });
+        }
+        return acc;
+      }, []);
     } else if (data && Array.isArray(data.branches)) {
       processedData = data.branches.filter((branch) => branch && branch.branchid);
     }

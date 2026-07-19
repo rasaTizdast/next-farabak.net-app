@@ -26,11 +26,12 @@ export async function GET(request: Request, props: { params: Promise<{ slug: str
       id: project.ProjectID,
       title: project.Title,
       date: project.date,
-      images: project.ProjectMedia.filter((media) => media.MediaType === "image").map((media) => ({
-        id: media.MediaID,
-        img: media.MediaURL,
-        alt: `Project image ${media.MediaID}`,
-      })),
+      images: project.ProjectMedia.reduce<{ id: number; img: string; alt: string }[]>((acc, media) => {
+        if (media.MediaType === "image") {
+          acc.push({ id: media.MediaID, img: media.MediaURL, alt: `Project image ${media.MediaID}` });
+        }
+        return acc;
+      }, []),
       largeDesc: project.Description,
       location: project.city,
       video: project.ProjectMedia.find((media) => media.MediaType === "video")?.MediaURL,

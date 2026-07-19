@@ -113,13 +113,16 @@ const ProductsMegaMenu = async () => {
               <Link href={category.Link}>{category.Name}</Link>
             </h3>
             <ul>
-              {category.Subcategories.filter((subCategory) => subCategory.Available).map(
-                (subCategory) => (
-                  <li key={subCategory.CategoryContentId}>
-                    <Link href={subCategory.Link}>{subCategory.Name}</Link>
-                  </li>
-                )
-              )}
+              {category.Subcategories.reduce<React.JSX.Element[]>((acc, subCategory) => {
+                if (subCategory.Available) {
+                  acc.push(
+                    <li key={subCategory.CategoryContentId}>
+                      <Link href={subCategory.Link}>{subCategory.Name}</Link>
+                    </li>
+                  );
+                }
+                return acc;
+              }, [])}
             </ul>
           </div>
         ))}
