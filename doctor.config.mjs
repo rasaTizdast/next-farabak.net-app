@@ -4,29 +4,42 @@ const config = {
   rules: {
     // False-positive: 55 sequential setState calls in event handlers (safe in React 18+ automatic batching)
     "react-doctor/no-impure-state-updater": "off",
-    // False-positive: 7 setState-in-effect with useRef guards that static analysis can't verify
+    // Justified: derived state effects use useRef guards to prevent re-initialization.
+    // The ref guard pattern is correct but opaque to static analysis — the effect only
+    // runs once on mount, then the guard prevents re-runs. 1 of 7 was fixed (WarehouseFormModal).
     "react-doctor/no-derived-state-effect": "off",
     // False-positive: 4 ref accesses actually inside event handlers, not during render
     "react-doctor/no-ref-current-in-render": "off",
     // Most useCallback/useMemo wrappers are intentional for useEffect deps — removing causes regressions
     "react-doctor/react-compiler-no-manual-memoization": "off",
-    // setState in effects is used for data syncing patterns — architectural, not a bug
+    // Justified: setState in effects used for derived state computation (e.g., validation errors)
+    // that are opaque to static analysis due to ref guards and complex initialization patterns.
     "react-doctor/no-set-state-in-render": "off",
-    // Compiler diagnostic: setState in effect for URL param syncing — legitimate pattern
+    // Justified: setState in effect for URL param syncing and form state initialization —
+    // legitimate patterns for admin pages that need to react to URL changes.
     "react-hooks-js/set-state-in-effect": "off",
     // Compiler diagnostic: refs accessed in event handlers, not during render — false positive
     "react-hooks-js/refs": "off",
-    // Architectural: admin pages use client-side fetching with useEffect — would need full RSC migration
+    // Justified: admin pages use useEffect+fetch for interactive data loading with filters/pagination.
+    // Converting to RSC would lose client-side interactivity; SWR migration is future work.
     "react-doctor/no-fetch-in-effect": "off",
-    // Architectural: edit modals sync props to local state via useEffect — legitimate form pattern
+    // Justified: edit modals use useEffect to initialize local state from async-fetched data or
+    // to reset form when modal opens. 1 of 6 was fixed (WarehouseFormModal); remaining 5 are
+    // async init patterns with ref guards that are correct but opaque to static analysis.
     "react-doctor/no-adjust-state-on-prop-change": "off",
     // Architectural: 38 components >300 lines — would require massive refactoring to split
     "react-doctor/no-giant-component": "off",
-    // Architectural: child components sync errors/data to parent via useEffect — legitimate pattern
+    // Justified: child components sync validation errors to parent via useEffect.
+    // The parent needs aggregated error state for form submission; direct callback
+    // would require restructuring the entire product creation form architecture.
     "react-doctor/no-prop-callback-in-effect": "off",
-    // Architectural: child components pass data to parent via useEffect — legitimate pattern
+    // Justified: child components pass computed data (e.g., formatted errors) to parent via useEffect.
+    // Same architectural constraint as no-prop-callback-in-effect — parent-child data flow
+    // is deeply coupled through the product creation form's state management.
     "react-doctor/no-pass-data-to-parent": "off",
-    // Architectural: child components push state to parent via useEffect — legitimate pattern
+    // Justified: child components push live state updates to parent via useEffect.
+    // Used in product creation modal where sub-components manage their own state
+    // but need to sync with parent for form validation and submission.
     "react-doctor/no-pass-live-state-to-parent": "off",
     // Admin page uses client fetch for server data — architectural choice for dynamic admin UI
     "react-doctor/nextjs-no-client-fetch-for-server-data": "off",
