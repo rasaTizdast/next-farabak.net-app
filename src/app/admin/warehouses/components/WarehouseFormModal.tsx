@@ -1,10 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
 import { ButtonBase, InputBase, ModalBase } from "./ui";
 
 const EMPTY_WAREHOUSES: Array<{ warehouseid: number; name: string }> = [];
+
+function getNameError(
+  formName: string,
+  existingWarehouses: Array<{ warehouseid: number; name: string }>,
+  editing: boolean,
+  editingWarehouseId?: number
+): string {
+  if (!formName.trim()) return "";
+  const trimmedName = formName.trim();
+  const existingWarehouse = existingWarehouses.find(
+    (wh) => wh.name.toLowerCase() === trimmedName.toLowerCase()
+  );
+  if (!existingWarehouse) return "";
+  if (editing && editingWarehouseId && existingWarehouse.warehouseid === editingWarehouseId) return "";
+  return "نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید.";
+}
 
 export default function WarehouseFormModal({
   open,
@@ -30,30 +44,7 @@ export default function WarehouseFormModal({
   existingWarehouses?: Array<{ warehouseid: number; name: string }>;
   editingWarehouseId?: number;
 }) {
-  const [nameError, setNameError] = useState<string>("");
-
-  // Check for duplicate names
-  useEffect(() => {
-    if (formName.trim()) {
-      const trimmedName = formName.trim();
-      const existingWarehouse = existingWarehouses.find(
-        (wh) => wh.name.toLowerCase() === trimmedName.toLowerCase()
-      );
-
-      if (existingWarehouse) {
-        // If editing, only show error if it's a different warehouse
-        if (editing && editingWarehouseId && existingWarehouse.warehouseid === editingWarehouseId) {
-          setNameError("");
-        } else {
-          setNameError("نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید.");
-        }
-      } else {
-        setNameError("");
-      }
-    } else {
-      setNameError("");
-    }
-  }, [formName, existingWarehouses, editing, editingWarehouseId]);
+  const nameError = getNameError(formName, existingWarehouses, editing, editingWarehouseId);
 
   const isFormValid = formName.trim() && formLocation?.trim() && !nameError;
 
