@@ -78,6 +78,13 @@ export async function POST(request: Request) {
 
   const results: Record<string, string> = {};
 
+  // Add static routes to results
+  for (const path of paths) {
+    if (path in staticRoutes) {
+      results[path] = staticRoutes[path];
+    }
+  }
+
   const dynamicPaths = paths.filter((path) => !staticRoutes.hasOwnProperty(path));
 
   const dynamicResults = await Promise.all(
