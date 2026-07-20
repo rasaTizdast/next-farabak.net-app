@@ -1,16 +1,8 @@
 describe("User Invoice Flow", () => {
   const baseUrl = "http://localhost:3000";
-  const loginUrl = `${baseUrl}/auth/login`;
 
   it("allows user to login, add product to invoice, save and view it", () => {
-    // Login as a regular user to use dashboard flow
-    cy.visit(loginUrl);
-    cy.get('[data-testid="username-input"]').type("rasarasa");
-    cy.get('[data-testid="password-input"]').type("rasa1234");
-    cy.get('[data-testid="submit-button"]').click();
-
-    // Wait for redirect to dashboard
-    cy.url({ timeout: 60000 }).should("include", "/dashboard");
+    cy.login("user");
 
     // Go to products listing and open first product
     cy.visit(`${baseUrl}/products`);

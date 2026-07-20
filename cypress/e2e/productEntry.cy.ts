@@ -1,25 +1,7 @@
 describe("Product Entry Test", () => {
   beforeEach(() => {
-    // Login process
-    cy.visit("http://localhost:3000/auth/login");
-    cy.get('[data-testid="username-input"]').type("FarabakAdmin");
-    cy.get('[data-testid="password-input"]').type("F@rabak@dmin1007066");
-    cy.get('[data-testid="submit-button"]').click();
-
-    // Wait for login to complete and check for any error messages
-    cy.wait(15000);
-
-    // Check if we're redirected to admin page
-    cy.url().should("include", "/admin");
-
-    // Check for any error messages on the page
-    cy.get("body").should("not.contain", "Error fetching user data");
-
-    // Wait a bit more and then navigate to products page
-    cy.wait(2000);
+    cy.login("admin");
     cy.visit("http://localhost:3000/admin/products");
-
-    // Verify we can access the products page
     cy.url().should("include", "/admin/products");
   });
 

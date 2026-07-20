@@ -1,37 +1,28 @@
 /// <reference types="cypress" />
-// ***********************************************
-// This example commands.ts shows you how to
-// create various custom commands and overwrite
-// existing commands.
-//
-// For more comprehensive examples of custom
-// commands please read more here:
-// https://on.cypress.io/custom-commands
-// ***********************************************
-//
-//
-// -- This is a parent command --
-// Cypress.Commands.add('login', (email, password) => { ... })
-//
-//
-// -- This is a child command --
-// Cypress.Commands.add('drag', { prevSubject: 'element'}, (subject, options) => { ... })
-//
-//
-// -- This is a dual command --
-// Cypress.Commands.add('dismiss', { prevSubject: 'optional'}, (subject, options) => { ... })
-//
-//
-// -- This will overwrite an existing command --
-// Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
-//
-// declare global {
-//   namespace Cypress {
-//     interface Chainable {
-//       login(email: string, password: string): Chainable<void>
-//       drag(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       dismiss(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       visit(originalFn: CommandOriginalFn, url: string, options: Partial<VisitOptions>): Chainable<Element>
-//     }
-//   }
-// }
+
+Cypress.Commands.add("login", (role: "admin" | "user" = "admin") => {
+  const baseUrl = "http://localhost:3000";
+  const username =
+    role === "admin"
+      ? Cypress.env("adminUsername") || "FarabakAdmin"
+      : Cypress.env("userUsername") || "rasarasa";
+  const password =
+    role === "admin"
+      ? Cypress.env("adminPassword") || "F@rabak@dmin1007066"
+      : Cypress.env("userPassword") || "rasa1234";
+  const expectedRedirect = role === "admin" ? "/admin" : "/dashboard";
+
+  cy.visit(`${baseUrl}/auth/login`);
+  cy.get('[data-testid="username-input"]').type(username);
+  cy.get('[data-testid="password-input"]').type(password);
+  cy.get('[data-testid="submit-button"]').click();
+  cy.url({ timeout: 60000 }).should("include", expectedRedirect);
+});
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      login(role?: "admin" | "user"): Chainable<void>;
+    }
+  }
+}

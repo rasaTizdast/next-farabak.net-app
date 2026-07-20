@@ -1,21 +1,13 @@
 describe("Admin Categories: create subcategory and cleanup", () => {
   const baseUrl = "http://localhost:3000";
   const adminCategoriesUrl = `${baseUrl}/admin/products/categories`;
-  const loginUrl = `${baseUrl}/auth/login`;
-
   const categoryName = "دسته تستی سایپرس";
   const categorySlug = "cypress-test-category";
   const subcategoryName = "زیردسته تستی سایپرس";
   const subcategorySlug = "cypress-test-subcategory";
 
   before(() => {
-    cy.visit(loginUrl);
-    cy.get('[data-testid="username-input"]').type("FarabakAdmin");
-    cy.get('[data-testid="password-input"]').type("F@rabak@dmin1007066");
-    cy.get('[data-testid="submit-button"]').click();
-
-    cy.wait(12000);
-    cy.url().should("include", "/admin");
+    cy.login("admin");
   });
 
   it("creates category (fa) and subcategory, then deletes them", () => {
