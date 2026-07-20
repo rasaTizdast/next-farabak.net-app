@@ -1,3 +1,5 @@
+"use client";
+
 // src/components/TipTapBlogEditor.tsx
 
 import Image from "@tiptap/extension-image";

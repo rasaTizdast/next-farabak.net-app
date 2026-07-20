@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useReducer, useState } from "react";
 import { toast } from "react-hot-toast";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi"; // Import icons

@@ -1,3 +1,5 @@
+"use client";
+
 import { Spin, Select, Switch } from "antd";
 import { RotateCcw } from "lucide-react";
 import { useMemo, useState, useEffect, useRef } from "react";

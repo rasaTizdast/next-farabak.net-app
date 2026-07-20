@@ -1,3 +1,5 @@
+"use client";
+
 import { DeleteOutlined } from "@ant-design/icons";
 import { Table, Button, Popconfirm, InputNumber, Empty, Spin } from "antd";
 import React, { useState, useRef, useEffect } from "react";

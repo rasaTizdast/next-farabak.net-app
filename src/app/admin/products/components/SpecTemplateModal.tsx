@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
 import { CgSpinnerTwo } from "react-icons/cg";

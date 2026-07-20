@@ -1,3 +1,5 @@
+"use client";
+
 import { FormInstance, Modal } from "antd";
 import React, { useEffect } from "react";
 

@@ -1,3 +1,5 @@
+"use client";
+
 import { QRCodeCanvas } from "qrcode.react";
 import { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";

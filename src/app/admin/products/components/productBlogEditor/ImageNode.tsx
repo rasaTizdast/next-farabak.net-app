@@ -1,3 +1,5 @@
+"use client";
+
 // src/components/ImageNode.tsx
 
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
