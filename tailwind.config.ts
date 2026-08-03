@@ -31,6 +31,18 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        primary: "#00bfff",
+        secondary: "#318ce7",
+        third: "#1e90ff",
+        fourth: "#0e6aff",
+        "dark-blue": "#003262",
+        brand: {
+          primary: "#00bfff",
+          secondary: "#318ce7",
+          accent: "#1e90ff",
+          deep: "#0e6aff",
+          dark: "#003262",
+        },
       },
     },
   },
