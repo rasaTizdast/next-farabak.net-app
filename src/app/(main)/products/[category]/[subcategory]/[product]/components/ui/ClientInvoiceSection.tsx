@@ -150,14 +150,14 @@ const ClientInvoiceSection = ({
               {e2p(priceInRial?.toLocaleString() || "0")} تومان
             </span>
             <span
-              className={`${styles.discount} rounded-lg bg-[#003262] px-2 py-1 text-xs font-semibold text-white lg:rounded-xl`}
+              className={`${styles.discount} rounded-lg bg-dark-blue px-2 py-1 text-xs font-semibold text-white lg:rounded-xl`}
             >
               {e2p(discountPercentage?.toLocaleString() || "0")}%
             </span>
           </div>
           <div className="flex content-center items-center gap-2">
             قیمت جدید:{" "}
-            <span className="text-2xl font-black text-[#003262]">
+            <span className="text-2xl font-black text-dark-blue">
               {e2p(finalPrice?.toLocaleString() || "0")} تومان
             </span>
           </div>
@@ -166,7 +166,7 @@ const ClientInvoiceSection = ({
         // Show only current price without discount styling
         <div className="flex content-center items-center gap-2">
           قیمت:{" "}
-          <span className="text-2xl font-black text-[#003262]">
+          <span className="text-2xl font-black text-dark-blue">
             {e2p(finalPrice?.toLocaleString() || "0")} تومان
           </span>
         </div>
@@ -307,7 +307,7 @@ const ClientInvoiceSection = ({
       {!user ? (
         <Link
           href="/auth/login"
-          className="flex w-full justify-center rounded-lg bg-[#003262] p-2 text-sm text-white sm:mt-0 md:text-base"
+          className="flex w-full justify-center rounded-lg bg-dark-blue p-2 text-sm text-white sm:mt-0 md:text-base"
         >
           برای ثبت فاکتور وارد شوید
         </Link>
@@ -364,7 +364,7 @@ const ClientInvoiceSection = ({
             ) : (
               <button
                 type="button"
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#003262] p-3 text-sm text-white transition-all hover:bg-[#00244a] hover:shadow-lg sm:mt-0 md:text-base"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-dark-blue p-3 text-sm text-white transition-all hover:bg-[#00244a] hover:shadow-lg sm:mt-0 md:text-base"
                 onClick={handleInitialAdd}
               >
                 <span>افزودن به فاکتور</span>

@@ -44,7 +44,7 @@ const ActivityPage = async () => {
     next: { revalidate: 3600 },
   });
 
-  const activities = await response.json();
+  const activities: MasterActivity[] = await response.json();
 
   // Prepare structured data for Schema.org
   const structuredData = {

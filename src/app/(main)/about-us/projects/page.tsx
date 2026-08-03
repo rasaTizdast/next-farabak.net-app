@@ -17,7 +17,17 @@ export const metadata: Metadata = {
   },
 };
 
-async function getProjects() {
+type ProjectData = {
+  id: number;
+  title: string;
+  smallDesc: string;
+  mainImg: string;
+  date: string;
+  location: string;
+  slug: string;
+};
+
+async function getProjects(): Promise<ProjectData[]> {
   try {
     const response = await fetch(`${process.env.BASE_URL}/api/projects`, {
       next: { revalidate: 3600 },
@@ -113,15 +123,7 @@ const ProjectsPage = async () => {
 };
 
 type CardProps = {
-  data: {
-    id: number;
-    title: string;
-    smallDesc: string;
-    mainImg: string;
-    date: string;
-    location: string;
-    slug: string;
-  };
+  data: ProjectData;
 };
 
 const Card = ({ data }: CardProps) => {

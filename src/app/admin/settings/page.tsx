@@ -35,10 +35,10 @@ const SettingsPage = () => {
     useApiFetch<Client[]>("/api/admin/users/admins");
   const admins = adminsData || [];
 
-  const { mutate: searchUsersMutate } = useApiMutation("post");
-  const { mutate: makeAdminMutate } = useApiMutation("post");
-  const { mutate: demoteAdminMutate } = useApiMutation("post");
-  const { mutate: changePasswordMutate } = useApiMutation("patch");
+  const { mutate: searchUsersMutate } = useApiMutation<{ phoneNumber: string }, Client[]>("post");
+  const { mutate: makeAdminMutate } = useApiMutation<Record<string, unknown>, { UserID: number }>("post");
+  const { mutate: demoteAdminMutate } = useApiMutation<Record<string, unknown>, { UserID: number }>("post");
+  const { mutate: changePasswordMutate } = useApiMutation<Record<string, unknown>>("patch");
 
   const handlePasswordChange = async () => {
     // Validation

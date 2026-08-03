@@ -4,7 +4,7 @@ import Link from "next/link"; // Use Next.js Link for routing
 import styles from "./ProjectsSection.module.css";
 
 // Function to fetch projects from the API
-async function getProjects() {
+async function getProjects(): Promise<{ id: number; title: string; smallDesc: string; mainImg: string; date: string; location: string; slug: string }[]> {
   try {
     const response = await fetch(`${process.env.BASE_URL}/api/projects`, {
       next: { revalidate: 300 },

@@ -8,7 +8,10 @@ const Footer = async () => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/contact-us`, {
     next: { revalidate: 3600 },
   });
-  const { phone_numbers, address } = await response.json();
+  const { phone_numbers, address } = (await response.json()) as {
+    phone_numbers: { id: string; number: string }[];
+    address: { address: string; postal_code: string } | null;
+  };
 
   return (
     <footer className={styles.footer}>

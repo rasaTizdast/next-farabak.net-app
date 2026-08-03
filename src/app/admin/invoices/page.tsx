@@ -208,7 +208,7 @@ const AdminInvoicesPage = () => {
   const [searchMode, setSearchMode] = useState<"basic" | "warranty">("basic");
   const [isCheckingWarranties, setIsCheckingWarranties] = useState(false);
 
-  const { mutate: checkWarrantyMutate } = useApiMutation<{ updatedCount: number }>("post");
+  const { mutate: checkWarrantyMutate } = useApiMutation<undefined, { updatedCount: number }>("post");
   const { mutate: updateStatusMutate } = useApiMutation("patch");
   const { mutate: deleteInvoiceMutate } = useApiMutation("delete");
 

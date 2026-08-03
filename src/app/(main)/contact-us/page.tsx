@@ -62,9 +62,9 @@ const ContactUsPage = async () => {
         postalCode: address?.postal_code,
         addressCountry: "IR",
       },
-      email: emails.map((email) => email.address),
-      telephone: phone_numbers.map((phone) => phone.number),
-      contactPoint: emails.map((email) => ({
+      email: emails.map((email: { id: number; title: string; address: string }) => email.address),
+      telephone: phone_numbers.map((phone: { id: number; number: string }) => phone.number),
+      contactPoint: emails.map((email: { id: number; title: string; address: string }) => ({
         "@type": "ContactPoint",
         email: email.address,
         contactType: email.title,
