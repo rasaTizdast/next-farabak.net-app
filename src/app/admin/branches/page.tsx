@@ -2,635 +2,131 @@
 
 export const dynamic = "force-dynamic";
 
-import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
-import { Button, Form, message, Input, AutoComplete, Tabs, Card } from "antd";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useState, useEffect, useRef, Suspense } from "react";
+import { Card, Tabs } from "antd";
+import { Suspense, useEffect, useRef } from "react";
 
 import { useUser } from "@/context/UserContext";
-import { useApiFetch } from "@/hooks/useApiFetch";
-import { useApiMutation } from "@/hooks/useApiMutation";
 
-import BranchTable from "./components/BranchTable";
-import CreateBranchModal from "./components/CreateBranchModal";
-import EditBranchModal from "./components/EditBranchModal";
-import InvoiceModal from "./components/invoice/InvoiceModal";
+import { useBranchCRUD } from "./hooks/useBranchCRUD";
+import { useProductAssignment } from "./hooks/useProductAssignment";
+import { useWarrantyStats } from "./hooks/useWarrantyStats";
+
+import BranchList from "./components/BranchList";
+import BranchModals from "./components/BranchModals";
 import LoadingSkeleton from "./components/LoadingSkeleton";
-import ProductDrawer from "./components/ProductDrawer";
-import ProductSearchSummary from "./components/ProductSearchSummary";
+import ProductAssignment from "./components/ProductAssignment";
 import Styles from "./components/Styles";
-import { Branch, User, Product } from "./components/types";
 import WarrantyRequests from "./components/WarrantyRequests";
 import WarrantyStats from "./components/WarrantyStats";
 
 const { TabPane } = Tabs;
 
-async function fetchBranchesHelper(
-  page: number,
-  pageSize: number,
-  searchProductId: number | null,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setBranches: React.Dispatch<React.SetStateAction<Branch[]>>,
-  setTotalBranchCount: React.Dispatch<React.SetStateAction<number>>,
-  setPagination: React.Dispatch<
-    React.SetStateAction<{ current: number; pageSize: number; total: number }>
-  >
-) {
-  try {
-    setLoading(true);
-    let url = `/api/admin/branches?page=${page}&limit=${pageSize}`;
-
-    if (searchProductId) {
-      url += `&productId=${searchProductId}`;
-    }
-
-    const response = await fetch(url);
-    if (!response.ok) {
-      message.error("خطا در بارگذاری شعبه‌ها");
-      return;
-    }
-    const responseData = await response.json();
-
-    setBranches(responseData.data);
-    setTotalBranchCount(responseData.pagination.totalBranchCount || 0);
-    setPagination({
-      current: responseData.pagination.currentPage,
-      pageSize: pageSize,
-      total: responseData.pagination.totalCount,
-    });
-  } catch (error) {
-    console.error("Error fetching branches:", error);
-    message.error("خطا در بارگذاری شعبه‌ها");
-  } finally {
-    setLoading(false);
-  }
-}
-
-async function fetchAllProductsHelper(
-  setProductsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setAllProducts: React.Dispatch<React.SetStateAction<Product[]>>
-) {
-  try {
-    setProductsLoading(true);
-
-    try {
-      const response = await fetch("/api/admin/products/all", {
-        credentials: "include",
-        headers: {
-          "Cache-Control": "no-cache",
-        },
-      });
-
-      if (response.ok) {
-        const responseData = await response.json();
-
-        if (responseData.data && Array.isArray(responseData.data) && responseData.data.length > 0) {
-          setAllProducts(responseData.data);
-          return;
-        }
-      }
-    } catch (error) {
-      console.error("Error with new endpoint:", error);
-    }
-
-    let allFetchedProducts: Product[] = [];
-    let currentPage = 1;
-    let hasMorePages = true;
-    const pageSize = 100;
-
-    while (hasMorePages) {
-      const response = await fetch(`/api/admin/products?page=${currentPage}&limit=${pageSize}`);
-
-      if (!response.ok) {
-        break;
-      }
-
-      const data = await response.json();
-      const products = data.data || [];
-
-      allFetchedProducts = [...allFetchedProducts, ...products];
-
-      if (products.length < pageSize) {
-        hasMorePages = false;
-      } else {
-        currentPage++;
-      }
-    }
-
-    setAllProducts(allFetchedProducts);
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    message.error("خطا در بارگذاری محصولات");
-  } finally {
-    setProductsLoading(false);
-  }
-}
-
-async function fetchBranchProductsHelper(
-  branchId: number,
-  setProductsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setProducts: React.Dispatch<React.SetStateAction<Product[]>>
-) {
-  try {
-    setProductsLoading(true);
-    const response = await fetch(`/api/admin/branches/${branchId}/products`);
-    if (!response.ok) {
-      message.error("خطا در بارگذاری محصولات شعبه");
-      setProducts([]);
-      return;
-    }
-    const responseData = await response.json();
-
-    const productsArray =
-      responseData.data && Array.isArray(responseData.data)
-        ? responseData.data
-        : Array.isArray(responseData)
-          ? responseData
-          : [];
-
-    setProducts(productsArray);
-  } catch (error) {
-    console.error("Error fetching branch products:", error);
-    message.error("خطا در بارگذاری محصولات شعبه");
-    setProducts([]);
-  } finally {
-    setProductsLoading(false);
-  }
-}
-
 function BranchesPageContent() {
   const { user } = useUser();
   const currentUserId = user?.userId ? parseInt(user.userId) : undefined;
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [initialLoading, setInitialLoading] = useState(true); // For initial page load
-  const [refreshing, setRefreshing] = useState(false); // New state for refresh indicator
-  const [modalVisible, setModalVisible] = useState(false);
-  const [productDrawerVisible, setProductDrawerVisible] = useState(false);
-  const [editBranchModalVisible, setEditBranchModalVisible] = useState(false);
-  const [invoiceModalVisible, setInvoiceModalVisible] = useState(false);
-  const [currentBranch, setCurrentBranch] = useState<Branch | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
-  const productQuantityRef = useRef<number>(1);
-  const [productForm] = Form.useForm();
-  const [form] = Form.useForm();
-  const [editForm] = Form.useForm();
-  const [productsLoading, setProductsLoading] = useState(false);
-  const [searchValue, setSearchValue] = useState<string>("");
-  const [searchProductId, setSearchProductId] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<string>("branches"); // Track the active tab
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0,
+
+  const crud = useBranchCRUD();
+  const assignment = useProductAssignment({
+    currentBranch: crud.currentBranch,
+    onBranchChange: (branch) => crud.setCurrentBranch(branch as any),
+    onRefreshBranches: () => crud.fetchBranches(),
   });
-  const [totalBranchCount, setTotalBranchCount] = useState<number>(0);
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const warranty = useWarrantyStats();
 
-  // Create refs for the fetch functions to use in intervals
-  const fetchBranchesRef = useRef<() => Promise<void>>(undefined);
-  const fetchBranchProductsRef = useRef<(branchId: number) => Promise<void>>(undefined);
-
-  const { mutate: createBranchMutate } = useApiMutation("post");
-  const { mutate: updateBranchMutate } = useApiMutation("put");
-  const { mutate: deleteBranchMutate } = useApiMutation("delete");
-  const { mutate: addProductMutate } = useApiMutation("post");
-  const { mutate: updateProductQtyMutate } = useApiMutation("put");
-  const { mutate: removeProductMutate } = useApiMutation("delete");
-
-  const { data: usersData } = useApiFetch<User[]>("/api/admin/users");
-
-  // Refs for values that change but need to be read from stable callbacks
-  const paginationRef = useRef(pagination);
-  const searchProductIdRef = useRef(searchProductId);
-  useEffect(() => {
-    paginationRef.current = pagination;
-  }, [pagination]);
-  useEffect(() => {
-    searchProductIdRef.current = searchProductId;
-  }, [searchProductId]);
-
-  const fetchBranches = useCallback(
-    async (page?: number, pageSize?: number, overrideProductId?: number | null) => {
-      const p = page ?? paginationRef.current.current;
-      const ps = pageSize ?? paginationRef.current.pageSize;
-      const productId =
-        overrideProductId !== undefined ? overrideProductId : searchProductIdRef.current;
-      await fetchBranchesHelper(
-        p,
-        ps,
-        productId,
-        setLoading,
-        setBranches,
-        setTotalBranchCount,
-        setPagination
-      );
-    },
-    []
-  );
-
-  const fetchAllProducts = useCallback(async () => {
-    await fetchAllProductsHelper(setProductsLoading, setAllProducts);
-  }, []);
-
-  // Check URL for productId param
   const searchProductIdSyncedRef = useRef(false);
   useEffect(() => {
-    const productId = searchParams.get("productId");
-    if (productId && !initialLoading && !searchProductIdSyncedRef.current) {
+    const productId = crud.searchParams.get("productId");
+    if (productId && !crud.initialLoading && !searchProductIdSyncedRef.current) {
       searchProductIdSyncedRef.current = true;
       const parsedId = parseInt(productId);
-      setSearchProductId(parsedId);
+      crud.setSearchProductId(parsedId);
 
-      // Find product name to set in search value
-      if (allProducts.length > 0) {
-        const product = allProducts.find((p) => p.ProductId === parsedId);
+      if (assignment.allProducts.length > 0) {
+        const product = assignment.allProducts.find((p) => p.ProductId === parsedId);
         if (product && product.Type) {
-          setSearchValue(product.Type);
+          crud.setSearchValue(product.Type);
         }
       }
-      fetchBranches(1, pagination.pageSize, parsedId);
+      crud.fetchBranches(1, crud.pagination.pageSize, parsedId);
     }
-  }, [searchParams, allProducts, initialLoading, fetchBranches, pagination.pageSize]);
+  }, [
+    crud.searchParams,
+    assignment.allProducts,
+    crud.initialLoading,
+    crud.fetchBranches,
+    crud.pagination.pageSize,
+  ]);
 
   useEffect(() => {
-    Promise.all([fetchBranches(), fetchAllProducts()])
+    Promise.all([crud.fetchBranches(), assignment.fetchAllProducts()])
       .catch((error) => console.error("Error loading initial data:", error))
-      .finally(() => setInitialLoading(false));
+      .finally(() => crud.setInitialLoading(false));
 
     const intervalId = setInterval(() => {
-      setRefreshing(true);
-      fetchBranchesRef.current?.().finally(() => {
-        setTimeout(() => setRefreshing(false), 500);
+      crud.setRefreshing(true);
+      crud.fetchBranchesRef.current?.().finally(() => {
+        setTimeout(() => crud.setRefreshing(false), 500);
       });
     }, 30000);
 
     return () => clearInterval(intervalId);
-  }, [fetchBranches, fetchAllProducts]);
-
-  // Update ref whenever pagination params change
-  useEffect(() => {
-    fetchBranchesRef.current = () => fetchBranches(pagination.current, pagination.pageSize);
-  }, [pagination, fetchBranches]);
+  }, [crud.fetchBranches, assignment.fetchAllProducts]);
 
   useEffect(() => {
-    let productsIntervalId: NodeJS.Timeout | null = null;
+    crud.fetchBranchesRef.current = () =>
+      crud.fetchBranches(crud.pagination.current, crud.pagination.pageSize);
+  }, [crud.pagination, crud.fetchBranches]);
 
-    if (productDrawerVisible && currentBranch) {
-      // Set up auto-refresh interval for products (30 seconds)
-      productsIntervalId = setInterval(() => {
-        setProductsLoading(true);
-        fetchBranchProductsRef.current?.(currentBranch.branchid).finally(() => {
-          setTimeout(() => setProductsLoading(false), 500); // Show loading for at least 500ms for UX
-        });
-      }, 30000);
-    }
-
-    // Clean up interval when drawer closes or component unmounts
-    return () => {
-      if (productsIntervalId) {
-        clearInterval(productsIntervalId);
-      }
-    };
-  }, [productDrawerVisible, currentBranch]);
-
-  const fetchBranchProducts = async (branchId: number) => {
-    await fetchBranchProductsHelper(branchId, setProductsLoading, setProducts);
-  };
-
-  // Store the fetchBranchProducts function in the ref
-  useEffect(() => {
-    fetchBranchProductsRef.current = fetchBranchProducts;
-  }, []);
-
-  const handleCreateBranch = async (values: any) => {
-    const result = await createBranchMutate("/api/admin/branches", values);
-    if (result) {
-      message.success("شعبه با موفقیت ایجاد شد");
-      setModalVisible(false);
-      form.resetFields();
-      fetchBranches();
-    } else {
-      message.error("خطا در ایجاد شعبه");
-    }
-  };
-
-  const handleUpdateBranch = async (values: any) => {
-    if (!currentBranch) return;
-
-    const result = await updateBranchMutate(
-      `/api/admin/branches/${currentBranch.branchid}`,
-      values
-    );
-    if (result) {
-      message.success("شعبه با موفقیت بروزرسانی شد");
-      setEditBranchModalVisible(false);
-      editForm.resetFields();
-      fetchBranches();
-    } else {
-      message.error("خطا در بروزرسانی شعبه");
-    }
-  };
-
-  const handleDeleteBranch = async (branchId: number) => {
-    const result = await deleteBranchMutate(`/api/admin/branches/${branchId}`);
-    if (result) {
-      message.success("شعبه با موفقیت حذف شد");
-      fetchBranches();
-    } else {
-      message.error("خطا در حذف شعبه");
-    }
-  };
-
-  const showEditBranchModal = (branch: Branch) => {
-    setCurrentBranch(branch);
-    setEditBranchModalVisible(true);
-  };
-
-  const handleViewProducts = (branch: Branch) => {
-    setCurrentBranch(branch);
-    fetchBranchProducts(branch.branchid);
-    setProductDrawerVisible(true);
-  };
-
-  const handleCreateInvoice = (branch: Branch) => {
-    setCurrentBranch(branch);
-    setInvoiceModalVisible(true);
-  };
-
-  const handleAddProduct = async () => {
-    if (!currentBranch || !selectedProduct) return;
-
-    const result = await addProductMutate(
-      `/api/admin/branches/${currentBranch.branchid}/products`,
-      {
-        productId: selectedProduct,
-        quantity: productQuantityRef.current,
-      }
-    );
-    if (result) {
-      message.success("محصول با موفقیت به شعبه اضافه شد");
-      productForm.resetFields();
-      setSelectedProduct(null);
-      productQuantityRef.current = 1;
-      await fetchBranchProducts(currentBranch.branchid);
-      await fetchBranches();
-    } else {
-      message.error("خطا در افزودن محصول به شعبه");
-    }
-  };
-
-  const handleUpdateProductQuantity = async (productId: number, quantity: number) => {
-    if (!currentBranch) return;
-
-    const result = await updateProductQtyMutate(
-      `/api/admin/branches/${currentBranch.branchid}/products/${productId}`,
-      { quantity }
-    );
-    if (result) {
-      message.success("تعداد محصول با موفقیت بروزرسانی شد");
-      await fetchBranchProducts(currentBranch.branchid);
-      await fetchBranches();
-    } else {
-      message.error("خطا در بروزرسانی تعداد محصول");
-    }
-  };
-
-  const handleRemoveProduct = async (productId: number) => {
-    if (!currentBranch) return;
-
-    const result = await removeProductMutate(
-      `/api/admin/branches/${currentBranch.branchid}/products/${productId}`
-    );
-    if (result) {
-      message.success("محصول با موفقیت از شعبه حذف شد");
-      await fetchBranchProducts(currentBranch.branchid);
-      await fetchBranches();
-    } else {
-      message.error("خطا در حذف محصول از شعبه");
-    }
-  };
-
-  // Add function to clear search
-  const clearSearch = () => {
-    setSearchValue("");
-    setSearchProductId(null);
-    fetchBranches(1, pagination.pageSize, null);
-    router.push("/admin/branches");
-  };
-
-  // Updated handleSearch function and search UI
-  const handleSearch = (value: string) => {
-    setSearchValue(value);
-
-    if (!value.trim()) {
-      // Clear search
-      clearSearch();
-      return;
-    }
-
-    // Try to find an exact match first
-    let foundProduct = allProducts.find(
-      (product) => product.Type && product.Type.toLowerCase() === value.toLowerCase()
-    );
-
-    // If no exact match, try a partial match
-    if (!foundProduct) {
-      foundProduct = allProducts.find(
-        (product) => product.Type && product.Type.toLowerCase().includes(value.toLowerCase())
-      );
-    }
-
-    if (foundProduct) {
-      setSearchProductId(foundProduct.ProductId);
-      fetchBranches(1, pagination.pageSize, foundProduct.ProductId);
-      // Update URL for direct linking to search results
-      router.push(`/admin/branches?productId=${foundProduct.ProductId}`);
-    } else {
-      // If no match found, clear the product ID filter but keep the search text
-      setSearchProductId(null);
-      fetchBranches(1, pagination.pageSize, null);
-      router.push("/admin/branches");
-    }
-  };
-
-  // Update the getSearchOptions function to return more results
-  const getSearchOptions = () => {
-    if (!allProducts || allProducts.length === 0) return [];
-
-    // If no search value, show all products
-    if (!searchValue || searchValue.trim() === "") {
-      return allProducts.map((product) => ({
-        value: product.Type || "",
-        label: (
-          <div className="flex items-center justify-between">
-            <span className="font-medium text-white">{product.Type}</span>
-            <span className="rounded-md bg-blue-900/30 px-2 py-0.5 text-xs text-blue-300">
-              کد: {product.ProductId}
-            </span>
-          </div>
-        ),
-      }));
-    }
-
-    const lowerCaseSearch = searchValue.toLowerCase();
-
-    // Don't filter too strictly, show any product that contains the search text
-    return allProducts.reduce<{ value: string; label: React.JSX.Element }[]>((acc, product) => {
-      if (product.Type && product.Type.toLowerCase().includes(lowerCaseSearch)) {
-        acc.push({
-          value: product.Type,
-          label: (
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-white">{product.Type}</span>
-              <span className="rounded-md bg-blue-900/30 px-2 py-0.5 text-xs text-blue-300">
-                کد: {product.ProductId}
-              </span>
-            </div>
-          ),
-        });
-      }
-      return acc;
-    }, []);
-  };
-
-  if (initialLoading) {
+  if (crud.initialLoading) {
     return <LoadingSkeleton />;
   }
+
+  const handleSearch = (value: string) => {
+    crud.handleSearch(value, assignment.allProducts, crud.pagination);
+  };
 
   return (
     <div
       className="space-y-6 rounded-lg bg-gray-950 p-4 text-white sm:p-6"
       style={{ direction: "rtl" }}
     >
-      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-xl font-bold sm:text-2xl">مدیریت شعبه‌ها</h1>
-          <p className="text-sm text-gray-400">
-            از اینجا می‌توانید شعبه‌ها و محصولات آنها را مدیریت کنید
-          </p>
-        </div>
-
-        {/* Search and Add Branch Controls */}
-        <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
-          <div className="relative w-full sm:w-72">
-            <AutoComplete
-              placeholder="جستجوی محصول در شعبه‌ها..."
-              value={searchValue}
-              onChange={(value) => {
-                setSearchValue(value);
-                // Auto-clear search when input is empty
-                if (!value.trim()) {
-                  clearSearch();
-                }
-              }}
-              onSelect={handleSearch}
-              options={getSearchOptions()}
-              style={{
-                width: "100%",
-                direction: "rtl",
-              }}
-              className="custom-autocomplete w-full"
-              popupMatchSelectWidth={false}
-              popupClassName="enhanced-dropdown"
-              listHeight={400}
-              listItemHeight={38}
-              showSearch
-              filterOption={false}
-            >
-              <Input
-                className="search-input border-[#384152] bg-[#1e293b] pl-12 text-white hover:border-[#4b5563]"
-                style={{
-                  height: "32px",
-                  direction: "rtl",
-                  textAlign: "right",
-                }}
-                onPressEnter={() => handleSearch(searchValue)}
-              />
-            </AutoComplete>
-            <Button
-              type="primary"
-              icon={<SearchOutlined style={{ fontSize: "14px" }} />}
-              onClick={() => {
-                if (searchValue.trim()) {
-                  handleSearch(searchValue);
-                } else {
-                  // If empty, just ensure we're showing all results
-                  clearSearch();
-                }
-              }}
-              className="absolute left-0 top-0 flex h-full items-center justify-center rounded-l-md rounded-r-none border-0 bg-blue-600 hover:bg-blue-700"
-              style={{ width: "40px" }}
-            />
-          </div>
-
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setModalVisible(true)}
-            className="w-full border-blue-700 bg-blue-600 hover:bg-blue-700 sm:w-auto"
-          >
-            ایجاد شعبه
-          </Button>
-        </div>
-      </div>
-      {/* Product Search Summary if search is active */}
-      {searchProductId && allProducts.length > 0 && !initialLoading && !loading && (
-        <ProductSearchSummary
-          productName={
-            allProducts.find((p) => p.ProductId === searchProductId)?.Type || "محصول نامشخص"
-          }
-          productId={searchProductId}
-          branches={branches}
-          clearSearch={clearSearch}
-          totalBranchCount={totalBranchCount}
-        />
-      )}
-      <Tabs
-        activeKey={activeTab}
-        className="branches-tabs mt-4"
-        onChange={(key) => {
-          setActiveTab(key);
-
-          // Show loading message for better UX
-          if (key === "warranty-stats") {
-            message.info("در حال بارگیری آمار گارانتی‌ها...", 0.5);
-          } else if (key === "warranty-requests") {
-            message.info("در حال بارگیری درخواست‌های بررسی...", 0.5);
-          }
+      <BranchList
+        branches={crud.branches}
+        branchesLoading={crud.loading}
+        refreshing={crud.refreshing}
+        pagination={{
+          current: crud.pagination.current,
+          pageSize: crud.pagination.pageSize,
+          total: crud.pagination.total,
+          onChange: (page: number, pageSize?: number) => {
+            crud.fetchBranches(page, pageSize || crud.pagination.pageSize);
+          },
+          showSizeChanger: true,
+          showQuickJumper: true,
+          pageSizeOptions: ["10", "20", "50"],
+          position: ["bottomCenter"],
+          className: "pagination-dark",
         }}
-      >
-        <TabPane tab={<span className="tab-label">شعبه‌ها</span>} key="branches">
-          {/* Branches Table */}
-          <div className="overflow-hidden rounded-lg bg-gray-800 shadow">
-            <BranchTable
-              branches={branches}
-              loading={loading || refreshing}
-              onEdit={showEditBranchModal}
-              onDelete={handleDeleteBranch}
-              onViewProducts={handleViewProducts}
-              onCreateInvoice={handleCreateInvoice}
-              isSearching={!!searchProductId}
-              pagination={{
-                current: pagination.current,
-                pageSize: pagination.pageSize,
-                total: pagination.total,
-                onChange: (page, pageSize) => {
-                  fetchBranches(page, pageSize || pagination.pageSize);
-                },
-                showSizeChanger: true,
-                showQuickJumper: true,
-                pageSizeOptions: ["10", "20", "50"],
-                position: ["bottomCenter"],
-                className: "pagination-dark",
-              }}
-            />
-          </div>
-        </TabPane>
+        searchValue={crud.searchValue}
+        searchProductId={crud.searchProductId}
+        totalBranchCount={crud.totalBranchCount}
+        allProducts={assignment.allProducts}
+        onSearchValueChange={crud.setSearchValue}
+        onSearch={handleSearch}
+        onClearSearch={crud.clearSearch}
+        onCreateBranch={() => crud.setModalVisible(true)}
+        onEdit={crud.showEditBranchModal}
+        onDelete={crud.handleDeleteBranch}
+        onViewProducts={assignment.handleViewProducts}
+        onCreateInvoice={assignment.handleCreateInvoice}
+      />
 
+      <Tabs
+        activeKey={warranty.activeTab}
+        className="branches-tabs mt-4"
+        onChange={warranty.handleTabChange}
+      >
+        <TabPane tab={<span className="tab-label">شعبه‌ها</span>} key="branches" />
         <TabPane tab={<span className="tab-label">آمار گارانتی</span>} key="warranty-stats">
           <Card
             title="آمار گارانتی‌ها"
@@ -641,10 +137,12 @@ function BranchesPageContent() {
             <p className="mb-4 text-gray-400">
               آمار گارانتی‌های فعال، منقضی شده و درخواست‌های بررسی
             </p>
-            <WarrantyStats key="warranty-stats" isTabActive={activeTab === "warranty-stats"} />
+            <WarrantyStats
+              key="warranty-stats"
+              isTabActive={warranty.activeTab === "warranty-stats"}
+            />
           </Card>
         </TabPane>
-
         <TabPane tab={<span className="tab-label">درخواست‌های بررسی</span>} key="warranty-requests">
           <Card
             title="درخواست‌های بررسی گارانتی"
@@ -652,68 +150,55 @@ function BranchesPageContent() {
             className="bg-gray-800 text-white"
             headStyle={{ color: "white", borderBottom: "1px solid #4b5563" }}
           >
-            <p className="mb-4 text-gray-400">لیست درخواست‌های بررسی گارانتی از تمام شعبه‌ها</p>
+            <p className="mb-4 text-gray-400">
+              لیست درخواست‌های بررسی گارانتی از تمام شعبه‌ها
+            </p>
             <WarrantyRequests
               key="warranty-requests"
-              isTabActive={activeTab === "warranty-requests"}
+              isTabActive={warranty.activeTab === "warranty-requests"}
             />
           </Card>
         </TabPane>
       </Tabs>
-      {/* Create Branch Modal */}
-      <CreateBranchModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onFinish={handleCreateBranch}
-        form={form}
-        users={usersData ?? []}
+
+      <BranchModals
+        createVisible={crud.modalVisible}
+        editVisible={crud.editBranchModalVisible}
+        currentBranch={crud.currentBranch}
+        form={crud.form}
+        editForm={crud.editForm}
+        users={crud.usersData ?? []}
         currentUserId={currentUserId}
+        onCreate={crud.handleCreateBranch}
+        onUpdate={crud.handleUpdateBranch}
+        onCloseCreate={() => crud.setModalVisible(false)}
+        onCloseEdit={() => crud.setEditBranchModalVisible(false)}
       />
-      {/* Edit Branch Modal */}
-      {currentBranch && (
-        <EditBranchModal
-          visible={editBranchModalVisible}
-          onClose={() => setEditBranchModalVisible(false)}
-          onFinish={handleUpdateBranch}
-          form={editForm}
-          branch={currentBranch}
-          users={usersData ?? []}
-        />
-      )}
-      {/* Products Drawer */}
-      {currentBranch && (
-        <ProductDrawer
-          visible={productDrawerVisible}
-          onClose={() => setProductDrawerVisible(false)}
-          branch={currentBranch}
-          products={products}
-          allProducts={allProducts}
-          onAddProduct={handleAddProduct}
-          onUpdateQuantity={handleUpdateProductQuantity}
-          onRemoveProduct={handleRemoveProduct}
-          productForm={productForm}
-          loading={productsLoading}
-          selectedProduct={selectedProduct}
-          onSelectProduct={(productId) => setSelectedProduct(productId)}
-          onQuantityChange={(quantity) => (productQuantityRef.current = quantity || 1)}
-        />
-      )}
-      {/* Invoice Modal */}
-      {currentBranch && (
-        <InvoiceModal
-          visible={invoiceModalVisible}
-          onClose={() => setInvoiceModalVisible(false)}
-          branch={currentBranch}
-        />
-      )}
-      {/* Global Styles */}
+
+      <ProductAssignment
+        currentBranch={crud.currentBranch}
+        drawerVisible={assignment.productDrawerVisible}
+        invoiceVisible={assignment.invoiceModalVisible}
+        products={assignment.products}
+        allProducts={assignment.allProducts}
+        productsLoading={assignment.productsLoading}
+        productForm={assignment.productForm}
+        selectedProduct={assignment.selectedProduct}
+        productQuantityRef={assignment.productQuantityRef}
+        onCloseDrawer={assignment.closeDrawer}
+        onCloseInvoice={assignment.closeInvoice}
+        onAddProduct={assignment.handleAddProduct}
+        onUpdateQuantity={assignment.handleUpdateProductQuantity}
+        onRemoveProduct={assignment.handleRemoveProduct}
+        onSelectProduct={assignment.setSelectedProduct}
+        onQuantityChange={(value) => (assignment.productQuantityRef.current = value || 1)}
+      />
+
       <Styles />
       <style jsx global>{`
-        /* Better tabs styling */
         .branches-tabs .ant-tabs-nav-list {
           gap: 8px;
         }
-
         .branches-tabs .ant-tabs-tab {
           padding: 8px 16px !important;
           margin: 0 !important;
@@ -722,7 +207,6 @@ function BranchesPageContent() {
           z-index: 1;
           margin-bottom: -1px !important;
         }
-
         .tab-label {
           color: #e5e7eb !important;
           font-weight: 500 !important;
@@ -733,65 +217,51 @@ function BranchesPageContent() {
           align-items: center !important;
           gap: 8px !important;
         }
-
         .branches-tabs .ant-tabs-tab:not(.ant-tabs-tab-active) {
           background-color: #374151 !important;
           border-color: #4b5563 !important;
         }
-
         .branches-tabs .ant-tabs-tab:not(.ant-tabs-tab-active):hover {
           background-color: #4b5563 !important;
         }
-
         .branches-tabs .ant-tabs-tab.ant-tabs-tab-active {
           background-color: #1f73f1 !important;
           border-color: #1f73f1 !important;
         }
-
         .branches-tabs .ant-tabs-tab.ant-tabs-tab-active .tab-label {
           color: white !important;
           font-weight: 600 !important;
         }
-
         .branches-tabs .ant-tabs-content {
           background-color: transparent !important;
           padding: 0 !important;
         }
-
         .branches-tabs .ant-tabs-nav:before {
           border-bottom-color: #4b5563 !important;
         }
-
-        /* Add better contrast for tabs - remove old styles */
         .ant-tabs-tab {
           padding: 8px 16px !important;
         }
-
         .ant-tabs-tab-btn {
           color: #e5e7eb !important;
           font-weight: 500 !important;
           text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
         }
-
         .ant-tabs-tab:not(.ant-tabs-tab-active) {
           background-color: #374151 !important;
           border-color: #4b5563 !important;
         }
-
         .ant-tabs-tab.ant-tabs-tab-active {
           background-color: #1f73f1 !important;
           border-color: #1f73f1 !important;
         }
-
         .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
           color: white !important;
           font-weight: 600 !important;
         }
-
         .ant-tabs-nav:before {
           border-bottom-color: #4b5563 !important;
         }
-
         .custom-dropdown {
           background-color: #1f2937;
           border-color: #4b5563;
@@ -800,7 +270,6 @@ function BranchesPageContent() {
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
           border-radius: 6px;
         }
-
         .custom-dropdown .ant-select-item {
           color: white;
           background-color: #1f2937;
@@ -809,47 +278,37 @@ function BranchesPageContent() {
           margin: 2px 4px;
           transition: all 0.2s ease;
         }
-
         .custom-dropdown .ant-select-item-option-active {
           background-color: #334155;
         }
-
         .custom-dropdown .ant-select-item-option-selected {
           background-color: #3b82f6;
         }
-
         .custom-autocomplete input {
           color: white !important;
           border-radius: 6px;
           font-size: 15px;
           transition: border-color 0.2s ease;
         }
-
         .custom-autocomplete input:hover,
         .custom-autocomplete input:focus {
           border-color: #3b82f6 !important;
         }
-
-        /* Make scrollbar more visible */
         .custom-dropdown::-webkit-scrollbar {
           width: 8px;
         }
-
         .custom-dropdown::-webkit-scrollbar-track {
           background: #1f2937;
           border-radius: 4px;
         }
-
         .custom-dropdown::-webkit-scrollbar-thumb {
           background-color: #4b5563;
           border-radius: 4px;
           transition: background-color 0.2s ease;
         }
-
         .custom-dropdown::-webkit-scrollbar-thumb:hover {
           background-color: #6b7280;
         }
-
         .enhanced-dropdown {
           background-color: #1f2937 !important;
           border: 1px solid #4b5563 !important;
@@ -858,84 +317,64 @@ function BranchesPageContent() {
           overflow: hidden !important;
           padding: 6px 0 !important;
         }
-
         .enhanced-dropdown .ant-select-item {
           margin: 2px 6px !important;
           border-radius: 4px !important;
         }
-
         .enhanced-dropdown .ant-empty-description {
           color: #e5e7eb !important;
         }
-
-        /* RTL search box fixes */
         .custom-autocomplete .ant-select-selector {
           background-color: transparent !important;
           border: none !important;
           padding: 0 !important;
           height: 32px !important;
         }
-
         .custom-autocomplete input::placeholder {
           color: #cbd5e1 !important;
           opacity: 1 !important;
         }
-
         .custom-autocomplete .ant-select-selection-search {
           left: auto !important;
           right: 0 !important;
           width: 100% !important;
         }
-
         .search-input.ant-input {
           color: #f8fafc !important;
         }
-
-        /* Fix hover state - prevent white background */
         .search-input.ant-input:hover {
           background-color: #1e293b !important;
           border-color: #4b5563 !important;
         }
-
         .ant-btn-icon {
           display: flex;
           align-items: center;
           justify-content: center;
         }
-
         .search-input.ant-input:focus,
         .search-input.ant-input-focused {
           background-color: #1e293b !important;
           border-color: #3b82f6 !important;
           box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
         }
-
-        /* Fix placeholder visibility */
         .ant-select-selection-placeholder {
           color: #cbd5e1 !important;
           opacity: 1 !important;
         }
-
-        /* Search result highlighting styles */
         .searched-product-found-row {
           background-color: rgba(16, 185, 129, 0.05) !important;
           transition: background-color 0.3s ease;
         }
-
         .searched-product-found-row:hover > td {
           background-color: rgba(16, 185, 129, 0.1) !important;
         }
-
         .searched-product-not-found-row {
           opacity: 0.75;
           transition: opacity 0.3s ease;
         }
-
         .searched-product-not-found-row:hover {
           opacity: 1;
         }
-
-        /* Product search tags styling */
         .ant-tag {
           border-radius: 4px !important;
           display: inline-flex !important;
@@ -943,155 +382,86 @@ function BranchesPageContent() {
           justify-content: center !important;
           font-family: inherit !important;
         }
-
-        /* RTL-specific styles */
         .ant-table-thead > tr > th {
           text-align: right;
         }
-
         .ant-table-tbody > tr > td {
           text-align: right;
         }
-
         .rtl-table .ant-table-container table {
           direction: rtl;
         }
-
         .rtl-table .ant-table-pagination {
           direction: rtl !important;
           margin: 16px 0;
         }
-
         .rtl-table .ant-pagination-prev {
           transform: rotate(180deg);
         }
-
         .rtl-table .ant-pagination-next {
           transform: rotate(180deg);
         }
-
-        /* Add better contrast for pagination */
         .ant-pagination-item {
           background-color: #1f2937 !important;
           border-color: #4b5563 !important;
         }
-
         .ant-pagination-item a {
           color: #e5e7eb !important;
         }
-
         .ant-pagination-item:hover {
           border-color: #3b82f6 !important;
         }
-
         .ant-pagination-item:hover a {
           color: #3b82f6 !important;
         }
-
         .ant-pagination-item-active {
           background-color: #3b82f6 !important;
           border-color: #3b82f6 !important;
         }
-
         .ant-pagination-item-active a {
           color: white !important;
         }
-
         .ant-pagination-prev button,
         .ant-pagination-next button {
           color: #e5e7eb !important;
           background-color: #1f2937 !important;
           border-color: #4b5563 !important;
         }
-
         .ant-pagination-prev:hover button,
         .ant-pagination-next:hover button {
           color: #3b82f6 !important;
           border-color: #3b82f6 !important;
         }
-
         .ant-pagination-disabled button {
           color: #6b7280 !important;
           background-color: #1f2937 !important;
           border-color: #4b5563 !important;
         }
-
-        /* Persian text for pagination */
         .ant-pagination-options-quick-jumper {
-          display: none !important; /* Hide the quick jumper completely */
+          display: none !important;
         }
-
-        /* Position the quick jumper container for RTL */
         .ant-pagination-options {
           direction: rtl !important;
         }
-
-        /* Pagination items styling */
-        .ant-pagination-item {
-          background-color: #1f2937 !important;
-          border-color: #4b5563 !important;
-        }
-
-        .ant-pagination-item a {
-          color: #e5e7eb !important;
-        }
-
-        .ant-pagination-item:hover {
-          border-color: #3b82f6 !important;
-        }
-
-        .ant-pagination-item:hover a {
-          color: #3b82f6 !important;
-        }
-
-        .ant-pagination-item-active {
-          background-color: #3b82f6 !important;
-          border-color: #3b82f6 !important;
-        }
-
-        .ant-pagination-item-active a {
-          color: white !important;
-        }
-
-        /* Styling for next/prev buttons */
-        .ant-pagination-prev button,
-        .ant-pagination-next button {
-          color: #e5e7eb !important;
-          background-color: #1f2937 !important;
-          border-color: #4b5563 !important;
-        }
-
-        .ant-pagination-prev:hover button,
-        .ant-pagination-next:hover button {
-          color: #3b82f6 !important;
-          border-color: #3b82f6 !important;
-        }
-
-        /* Page size selector styling */
         .ant-pagination-options-size-changer .ant-select-selector {
           background-color: #1f2937 !important;
           border-color: #4b5563 !important;
           color: #e5e7eb !important;
         }
-
         .ant-pagination-options-size-changer:hover .ant-select-selector {
           border-color: #3b82f6 !important;
         }
-
         .ant-select-dropdown {
           background-color: #1f2937 !important;
           border-color: #4b5563 !important;
           box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5) !important;
         }
-
         .ant-select-dropdown .ant-select-item {
           color: #e5e7eb !important;
         }
-
         .ant-select-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
           background-color: #374151 !important;
         }
-
         .ant-select-dropdown
           .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
           background-color: #3b82f6 !important;

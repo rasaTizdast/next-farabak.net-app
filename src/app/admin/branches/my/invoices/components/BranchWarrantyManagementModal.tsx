@@ -7,35 +7,13 @@ import { DatePicker } from "zaman";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { formatDateToISOString, persianToEnglishDigits } from "@/lib/validators";
 
 import { ExpandedInvoiceItem } from "./types";
 
 const persianYearFormatter = new Intl.DateTimeFormat("fa-IR", { year: "numeric" });
 const persianMonthFormatter = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" });
 const persianDateFormatter = new Intl.DateTimeFormat("fa-IR");
-
-// Format a Date object to YYYY-MM-DD string
-const formatDateToISOString = (date: Date | null): string | null => {
-  if (!date) return null;
-  // Use a fixed timezone (Tehran) for consistency
-  const tehranDate = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Tehran" }));
-  return tehranDate.toISOString().split("T")[0];
-};
-
-// Parse Persian digits to English digits
-const persianToEnglishDigits = (str: string): string => {
-  let result = "";
-  for (let i = 0; i < str.length; i++) {
-    const charCode = str.charCodeAt(i);
-    if (charCode >= 1776 && charCode <= 1785) {
-      // Persian digits range
-      result += String.fromCharCode(charCode - 1728); // Convert to English digits
-    } else {
-      result += str.charAt(i);
-    }
-  }
-  return result;
-};
 
 // Branch type definition
 interface Branch {

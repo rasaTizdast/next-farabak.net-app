@@ -52,12 +52,12 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ invoice, productsWithWarranty }
     {
       title: "قیمت واحد (تومان)",
       key: "price",
-      render: (text, record) => faNumberFormatter.format(record.price),
+      render: (text: unknown, record: any) => faNumberFormatter.format(record.price),
     },
     {
       title: "گارانتی",
       key: "warranty",
-      render: (text, record) => {
+      render: (text: unknown, record: any) => {
         if (!record.warranty || record.warranty.hasWarranty === false) {
           return "بدون گارانتی";
         }

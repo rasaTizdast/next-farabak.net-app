@@ -59,7 +59,7 @@ async function branchProductSearch(
         return acc;
       }, []);
     } else if (data && Array.isArray(data.branches)) {
-      processedData = data.branches.filter((branch) => branch && branch.branchid);
+      processedData = data.branches.filter((branch: Record<string, unknown>) => branch && branch.branchid);
     }
 
     setBranchProducts(processedData);

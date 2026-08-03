@@ -81,9 +81,10 @@ async function fetchWarrantyRequests(
     });
     setDataFetched(true);
     setLastFetchTime(now);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[Client] Error fetching warranty requests:", err);
-    setError(err.message || "خطا در دریافت درخواست‌های گارانتی");
+    const error = err as { message?: string };
+    setError(error.message || "خطا در دریافت درخواست‌های گارانتی");
   } finally {
     setLoading(false);
   }
@@ -194,7 +195,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
       title: "مشتری",
       key: "customer",
       className: "font-medium",
-      render: (_, record: WarrantyRequest) => (
+      render: (_: unknown, record: WarrantyRequest) => (
         <div>
           <div className="mb-1 flex items-center">
             <UserOutlined className="ml-1 text-blue-500" />
@@ -243,7 +244,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
       title: "عملیات",
       key: "actions",
       className: "text-center",
-      render: (_, record: WarrantyRequest) => (
+      render: (_: unknown, record: WarrantyRequest) => (
         <Button
           htmlType="button"
           type="primary"

@@ -4,710 +4,97 @@ export const dynamic = "force-dynamic";
 
 import {
   ExclamationCircleOutlined,
-  PlusOutlined,
-  SearchOutlined,
-  EyeOutlined,
-  ReloadOutlined,
 } from "@ant-design/icons";
 import {
   Card,
   Empty,
   Spin,
   Button,
-  Table,
-  InputNumber,
-  message,
   Alert,
-  Form,
-  Tabs,
-  Badge,
-  Tag,
-  Input,
-  AutoComplete,
 } from "antd";
-import moment from "jalali-moment";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from "react";
+import { useEffect, Suspense } from "react";
 
-import { AdminInvoice } from "@/app/admin/invoices/type";
-import { useApiMutation } from "@/hooks/useApiMutation";
+import { useBranchData } from "./hooks/useBranchData";
+import { useInvoiceManagement } from "./hooks/useInvoiceManagement";
+import { useWarrantyManagement } from "./hooks/useWarrantyManagement";
 
+import BranchInfo from "./components/BranchInfo";
+import BranchTabs from "./components/BranchTabs";
 import InvoiceModal from "../components/invoice/InvoiceModal";
 import ProductDrawer from "../components/ProductDrawer";
 import Styles from "../components/Styles";
-import { Branch, Product, toPersianDate } from "../components/types";
-import BranchProductSearch from "./components/BranchProductSearch";
 import SkeletonLoading from "./components/SkeletonLoading";
-import WarrantyStats from "./components/WarrantyStats";
-import WarrantyRequests from "../components/WarrantyRequests";
 import BranchInvoiceDetailsModal from "./invoices/components/BranchInvoiceDetailsModal";
 import BranchWarrantyViewModal from "./invoices/components/BranchWarrantyViewModal";
 
-async function fetchAllProductsHelper(
-  setProductsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setAllProducts: React.Dispatch<React.SetStateAction<Product[]>>
-) {
-  try {
-    setProductsLoading(true);
-
-    try {
-      const response = await fetch("/api/admin/products/all", {
-        credentials: "include",
-        headers: {
-          "Cache-Control": "no-cache",
-        },
-      });
-
-      if (response.ok) {
-        const responseData = await response.json();
-
-        if (responseData.data && Array.isArray(responseData.data) && responseData.data.length > 0) {
-          setAllProducts(responseData.data);
-          return;
-        }
-      }
-    } catch (error) {
-      console.error("Error with new endpoint:", error);
-    }
-
-    let allFetchedProducts: Product[] = [];
-    let currentPage = 1;
-    let hasMorePages = true;
-    const pageSize = 100;
-
-    while (hasMorePages) {
-      const response = await fetch(`/api/admin/products?page=${currentPage}&limit=${pageSize}`);
-
-      if (!response.ok) {
-        break;
-      }
-
-      const data = await response.json();
-      const products = data.data || [];
-
-      allFetchedProducts = [...allFetchedProducts, ...products];
-
-      if (products.length < pageSize) {
-        hasMorePages = false;
-      } else {
-        currentPage++;
-      }
-    }
-
-    setAllProducts(allFetchedProducts);
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    message.error("خطا در بارگذاری محصولات");
-  } finally {
-    setProductsLoading(false);
-  }
-}
-
-async function fetchBranchProductsHelper(
-  branchId: number,
-  page: number,
-  pageSize: number,
-  setProductsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setProducts: React.Dispatch<React.SetStateAction<Product[]>>,
-  setProductPagination: React.Dispatch<
-    React.SetStateAction<{ current: number; pageSize: number; total: number }>
-  >
-) {
-  try {
-    setProductsLoading(true);
-    const response = await fetch(
-      `/api/admin/branches/${branchId}/products?page=${page}&limit=${pageSize}`
-    );
-    if (!response.ok) {
-      message.error("خطا در بارگذاری محصولات شعبه");
-      return;
-    }
-    const responseData = await response.json();
-
-    if (Array.isArray(responseData)) {
-      setProducts(responseData);
-      setProductPagination((prev) => ({
-        ...prev,
-        total: responseData.length,
-      }));
-    } else if (responseData.data) {
-      setProducts(responseData.data);
-      setProductPagination({
-        current: responseData.pagination.currentPage,
-        pageSize: pageSize,
-        total: responseData.pagination.totalCount,
-      });
-    } else {
-      setProducts([]);
-      setProductPagination((prev) => ({
-        ...prev,
-        total: 0,
-      }));
-    }
-  } catch (error) {
-    console.error("Error fetching branch products:", error);
-    message.error("خطا در بارگذاری محصولات شعبه");
-  } finally {
-    setProductsLoading(false);
-  }
-}
-
-async function fetchInvoicesHelper(
-  branch: Branch | null,
-  page: number,
-  pageSize: number,
-  setInvoicesLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setInvoices: React.Dispatch<React.SetStateAction<AdminInvoice[]>>,
-  setStandaloneWarranties: React.Dispatch<React.SetStateAction<any[]>>,
-  setWarrantySummary: React.Dispatch<React.SetStateAction<{ active: number; expired: number }>>,
-  setInvoicePagination: React.Dispatch<
-    React.SetStateAction<{ current: number; pageSize: number; total: number }>
-  >
-) {
-  if (!branch) return;
-
-  try {
-    setInvoicesLoading(true);
-    const response = await fetch(`/api/admin/branches/my/invoices?page=${page}&limit=${pageSize}`, {
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      message.error("خطا در بارگذاری فاکتورها");
-      return;
-    }
-
-    const data = await response.json();
-    if (data.invoices) {
-      setInvoices(data.invoices);
-
-      if (data.standaloneWarranties) {
-        setStandaloneWarranties(data.standaloneWarranties);
-      } else {
-        setStandaloneWarranties([]);
-      }
-
-      if (data.warrantySummary) {
-        setWarrantySummary(data.warrantySummary);
-      }
-
-      if (data.pagination) {
-        setInvoicePagination({
-          current: data.pagination.currentPage,
-          pageSize: pageSize,
-          total: data.pagination.totalCount,
-        });
-      }
-    } else {
-      setInvoices([]);
-      setStandaloneWarranties([]);
-    }
-  } catch (error) {
-    console.error("Error fetching invoices:", error);
-    message.error("خطا در بارگذاری فاکتورها");
-  } finally {
-    setInvoicesLoading(false);
-  }
-}
-
-async function doLoadInitialBranchData(
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setError: React.Dispatch<React.SetStateAction<string | null>>,
-  setAuthError: React.Dispatch<React.SetStateAction<boolean>>,
-  setBranch: React.Dispatch<React.SetStateAction<Branch | null>>,
-  fetchBranchProducts: (branchId: number, page?: number, pageSize?: number) => Promise<void>,
-  fetchInvoices: () => Promise<void>,
-  fetchAllProducts: () => Promise<void>
-) {
-  setLoading(true);
-  try {
-    const response = await fetch("/api/admin/branches/my");
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        setError("شما هنوز به عنوان شعبه تعریف نشده‌اید. لطفاً با مدیر سایت تماس بگیرید.");
-        setLoading(false);
-        return;
-      }
-
-      if (response.status === 401) {
-        setAuthError(true);
-        setError("دسترسی غیرمجاز - لطفا وارد حساب کاربری خود شوید.");
-        setLoading(false);
-        return;
-      }
-
-      setError("خطا در دریافت اطلاعات شعبه");
-      setLoading(false);
-      return;
-    }
-
-    const branchData = await response.json();
-    setBranch(branchData);
-
-    await Promise.all([
-      fetchBranchProducts(branchData.branchid),
-      fetchInvoices(),
-      fetchAllProducts(),
-    ]);
-  } catch (error) {
-    console.error("Error fetching branch data:", error);
-    setError("خطا در بارگذاری اطلاعات شعبه");
-  } finally {
-    setLoading(false);
-  }
-}
-
-async function doAutoRefreshHelper(
-  setRefreshing: React.Dispatch<React.SetStateAction<boolean>>,
-  setBranch: React.Dispatch<React.SetStateAction<Branch | null>>,
-  fetchBranchProductsFn: (branchId: number, page?: number, pageSize?: number) => Promise<void>
-) {
-  try {
-    setRefreshing(true);
-    const response = await fetch("/api/admin/branches/my");
-    if (response.ok) {
-      const branchData = await response.json();
-      setBranch(branchData);
-      if (branchData && branchData.branchid) {
-        await fetchBranchProductsFn(branchData.branchid);
-      }
-    } else {
-      console.error("Failed to refresh branch data:", response.status);
-    }
-  } catch (error) {
-    console.error("Error auto-refreshing branch data:", error);
-  } finally {
-    setRefreshing(false);
-  }
-}
-
-function formatDate(dateString: string | Date | number) {
-  if (!dateString) return "-";
-  try {
-    if (typeof dateString === "object") {
-      if (dateString instanceof Date) {
-        return moment(dateString).format("YYYY/MM/DD | HH:mm:ss");
-      }
-    }
-    if (typeof dateString === "number") {
-      return moment(new Date(dateString)).format("YYYY/MM/DD | HH:mm:ss");
-    }
-    const dateStr = String(dateString);
-    if (dateStr.includes("T") && dateStr.includes("Z")) {
-      return moment(dateStr).format("YYYY/MM/DD | HH:mm:ss");
-    }
-    if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      return moment(dateStr, "YYYY-MM-DD").format("YYYY/MM/DD");
-    }
-    if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
-      return moment(dateStr, "DD/MM/YYYY").format("YYYY/MM/DD");
-    }
-    if (dateStr.match(/^\d{4}\/\d{2}\/\d{2} \| \d{2}:\d{2}:\d{2}$/)) {
-      return dateStr;
-    }
-    const formattedDate = moment(dateStr).format("YYYY/MM/DD | HH:mm:ss");
-    if (formattedDate === "Invalid date") {
-      console.error("Failed to parse date:", dateStr);
-      return dateStr;
-    }
-    return formattedDate;
-  } catch (e) {
-    console.error("Error formatting date:", e, typeof dateString, dateString);
-    return String(dateString);
-  }
-}
-
-function formatPersianDate(date: string, formatDate: (d: string | Date | number) => string) {
-  try {
-    return moment(date).locale("fa").format("jYYYY/jMM/jDD");
-  } catch (e) {
-    console.error(e);
-    return formatDate(date);
-  }
-}
-
-async function loadInitialBranchData(
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setError: React.Dispatch<React.SetStateAction<string | null>>,
-  setAuthError: React.Dispatch<React.SetStateAction<boolean>>,
-  setBranch: React.Dispatch<React.SetStateAction<Branch | null>>,
-  fetchBranchProducts: (branchId: number, page?: number, pageSize?: number) => Promise<void>,
-  fetchInvoices: () => Promise<void>,
-  fetchAllProducts: () => Promise<void>
-) {
-  await doLoadInitialBranchData(
-    setLoading,
-    setError,
-    setAuthError,
-    setBranch,
-    fetchBranchProducts,
-    fetchInvoices,
-    fetchAllProducts
-  );
-}
-
-async function doAutoRefresh(
-  setRefreshing: React.Dispatch<React.SetStateAction<boolean>>,
-  setBranch: React.Dispatch<React.SetStateAction<Branch | null>>,
-  fetchBranchProductsRef: React.MutableRefObject<
-    (branchId: number, page?: number, pageSize?: number) => Promise<void>
-  >
-) {
-  await doAutoRefreshHelper(setRefreshing, setBranch, fetchBranchProductsRef.current);
-}
-
-function getWarrantyStatusSummary(invoice: AdminInvoice) {
-  if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
-    return null;
-  }
-
-  const hasWarranties = invoice.Invoice_Details.some((detail) => detail.warranty);
-  if (!hasWarranties) {
-    return null;
-  }
-
-  const activeWarranties = invoice.Invoice_Details.filter(
-    (detail) =>
-      detail.warranty &&
-      detail.warranty.status !== "Expired" &&
-      detail.warranty.displayStatus !== "Expired"
-  ).length;
-
-  const expiredWarranties = invoice.Invoice_Details.filter(
-    (detail) =>
-      detail.warranty &&
-      (detail.warranty.status === "Expired" || detail.warranty.displayStatus === "Expired")
-  ).length;
-
-  return { active: activeWarranties, expired: expiredWarranties };
-}
+import { loadInitialBranchData, doAutoRefresh } from "./hooks/useBranchData";
 
 function MyBranchContent() {
-  const [branch, setBranch] = useState<Branch | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [productsLoading, setProductsLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [authError, setAuthError] = useState<boolean>(false);
+  const {
+    branch,
+    setBranch,
+    branchRef,
+    products,
+    allProducts,
+    loading,
+    setLoading,
+    productsLoading,
+    refreshing,
+    setRefreshing,
+    error,
+    setError,
+    authError,
+    setAuthError,
+    productDrawerVisible,
+    setProductDrawerVisible,
+    selectedProduct,
+    setSelectedProduct,
+    productQuantityRef,
+    productForm,
+    debouncedQuantities,
+    quantityTimersRef,
+    productPagination,
+    fetchAllProducts,
+    fetchBranchProducts,
+    fetchBranchProductsRef,
+    handleAddProduct,
+    handleUpdateProductQuantity,
+    handleDebouncedQuantityChange,
+    productColumns,
+  } = useBranchData();
+
+  const {
+    invoices,
+    invoicesLoading,
+    setInvoicesLoading,
+    searchText,
+    setSearchText,
+    selectedInvoice,
+    setSelectedInvoice,
+    selectedStandaloneWarranty,
+    setSelectedStandaloneWarranty,
+    warrantySummary,
+    invoicePagination,
+    invoiceModalVisible,
+    setInvoiceModalVisible,
+    fetchInvoices,
+    handleCreateInvoice,
+    handleInvoiceCreationSuccess,
+    searchOptions,
+    filteredInvoices,
+    filteredStandaloneWarranties,
+    memoizedInvoiceColumns,
+  } = useInvoiceManagement(branchRef);
+
+  const { activeTab, handleTabChange } = useWarrantyManagement();
+
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [productDrawerVisible, setProductDrawerVisible] = useState(false);
-  const [invoiceModalVisible, setInvoiceModalVisible] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
-  const productQuantityRef = useRef<number>(1);
-  const [productForm] = Form.useForm();
-
-  // Added for invoices section
-  const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
-  // filteredInvoices is derived via useMemo
-  const [standaloneWarranties, setStandaloneWarranties] = useState<any[]>([]);
-  // filteredStandaloneWarranties is derived via useMemo
-  const [invoicesLoading, setInvoicesLoading] = useState(false);
-  const [searchText, setSearchText] = useState("");
-  // searchOptions is derived via useMemo
-  const [selectedInvoice, setSelectedInvoice] = useState<AdminInvoice | null>(null);
-  const [selectedStandaloneWarranty, setSelectedStandaloneWarranty] = useState<any | null>(null);
-  const [warrantySummary, setWarrantySummary] = useState<{
-    active: number;
-    expired: number;
-  }>({ active: 0, expired: 0 });
-  const [activeTab, setActiveTab] = useState("products");
-
-  // Add debounce state and refs for product quantity updates
-  const [debouncedQuantities, setDebouncedQuantities] = useState<{
-    [key: number]: number;
-  }>({});
-  const quantityTimersRef = useRef<{ [key: number]: NodeJS.Timeout }>({});
-
-  // Products are used as fallback via `?? record.quantity` in the quantity cell
-
-  // Clean up timers on unmount
-  useEffect(() => {
-    return () => {
-      Object.values(quantityTimersRef.current).forEach((timer) => clearTimeout(timer));
-    };
-  }, []);
 
   const isUnauthorized = searchParams.get("unauthorized") === "true";
   const attemptedPath = searchParams.get("attempted");
 
-  // Store the current branch ID in a ref to use in intervals
-  const currentBranchIdRef = useRef<number | null>(null);
-
-  // Add product pagination state
-  const [productPagination, setProductPagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0,
-  });
-
-  // Add invoices pagination state
-  const [invoicePagination, setInvoicePagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0,
-  });
-
-  const { mutate: addProductMutate } = useApiMutation("post");
-  const { mutate: updateProductQtyMutate } = useApiMutation("put");
-  const { mutate: updateInvoiceStatusMutate } = useApiMutation("patch");
-
-  // Refs for values that change but need to be read from stable callbacks
-  const productPaginationRef = useRef(productPagination);
-  const invoicePaginationRef = useRef(invoicePagination);
-  const branchRef = useRef(branch);
-  useEffect(() => {
-    productPaginationRef.current = productPagination;
-  }, [productPagination]);
-  useEffect(() => {
-    invoicePaginationRef.current = invoicePagination;
-  }, [invoicePagination]);
-  useEffect(() => {
-    branchRef.current = branch;
-  }, [branch]);
-
-  // Define all fetch functions first (useCallback with refs for stable identity)
-  const fetchAllProducts = useCallback(async () => {
-    await fetchAllProductsHelper(setProductsLoading, setAllProducts);
-  }, []);
-
-  const fetchBranchProducts = useCallback(
-    async (branchId: number, page?: number, pageSize?: number) => {
-      const p = page ?? productPaginationRef.current.current;
-      const ps = pageSize ?? productPaginationRef.current.pageSize;
-      await fetchBranchProductsHelper(
-        branchId,
-        p,
-        ps,
-        setProductsLoading,
-        setProducts,
-        setProductPagination
-      );
-    },
-    []
-  );
-
-  // Create a ref for fetchBranchProducts to use in intervals
-  const fetchBranchProductsRef = useRef(fetchBranchProducts);
-  useEffect(() => {
-    fetchBranchProductsRef.current = fetchBranchProducts;
-  }, [fetchBranchProducts]);
-
-  // Keep the branch ID ref current
-  useEffect(() => {
-    if (branch) {
-      currentBranchIdRef.current = branch.branchid;
-    }
-  }, [branch]);
-
-  // Refresh branch products when product drawer is open
-  useEffect(() => {
-    let productsIntervalId: NodeJS.Timeout | null = null;
-
-    if (productDrawerVisible && branch) {
-      // Set up auto-refresh interval for products (30 seconds)
-      productsIntervalId = setInterval(() => {
-        setProductsLoading(true);
-        fetchBranchProductsRef.current(branch.branchid).finally(() => {
-          setTimeout(() => setProductsLoading(false), 500); // Show loading for at least 500ms for UX
-        });
-      }, 30000);
-    }
-
-    // Clean up interval when drawer closes or component unmounts
-    return () => {
-      if (productsIntervalId) {
-        clearInterval(productsIntervalId);
-      }
-    };
-  }, [productDrawerVisible, branch]);
-
-  // Update the fetchInvoices function to use pagination
-  const fetchInvoices = async (page?: number, pageSize?: number) => {
-    const p = page ?? invoicePaginationRef.current.current;
-    const ps = pageSize ?? invoicePaginationRef.current.pageSize;
-    await fetchInvoicesHelper(
-      branchRef.current,
-      p,
-      ps,
-      setInvoicesLoading,
-      setInvoices,
-      setStandaloneWarranties,
-      setWarrantySummary,
-      setInvoicePagination
-    );
-  };
-
-  // Derive search options and filter results via useMemo
-  const searchOptions = (() => {
-    if (!searchText.trim()) return [];
-
-    const lowerCaseSearch = searchText.toLowerCase();
-    const options: { value: string; label: React.ReactNode }[] = [];
-
-    if (invoices && Array.isArray(invoices) && invoices.length) {
-      invoices.forEach((invoice) => {
-        if (invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch)) {
-          options.push({
-            value: invoice.FactorGuid,
-            label: (
-              <div>
-                <span className="font-bold text-blue-500">شماره فاکتور: </span>
-                {invoice.FactorGuid}
-              </div>
-            ),
-          });
-        }
-      });
-
-      invoices.forEach((invoice) => {
-        if (invoice.Fullname.toLowerCase().includes(lowerCaseSearch)) {
-          options.push({
-            value: invoice.Fullname,
-            label: (
-              <div>
-                <span className="font-bold text-green-500">نام مشتری: </span>
-                {invoice.Fullname}
-              </div>
-            ),
-          });
-        }
-      });
-
-      invoices.forEach((invoice) => {
-        if (invoice.Phonenumber && invoice.Phonenumber.includes(lowerCaseSearch)) {
-          options.push({
-            value: invoice.Phonenumber,
-            label: (
-              <div>
-                <span className="font-bold text-purple-500">شماره تماس: </span>
-                {invoice.Phonenumber}
-              </div>
-            ),
-          });
-        }
-      });
-
-      invoices.forEach((invoice) => {
-        if (invoice.Invoice_Details && Array.isArray(invoice.Invoice_Details)) {
-          invoice.Invoice_Details.forEach((detail) => {
-            if (
-              detail.warranty &&
-              detail.warranty.warrantycode &&
-              detail.warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)
-            ) {
-              options.push({
-                value: detail.warranty.warrantycode,
-                label: (
-                  <div>
-                    <span className="font-bold text-yellow-500">کد گارانتی: </span>
-                    {detail.warranty.warrantycode}
-                    <span className="mr-2">
-                      {detail.warranty.status === "Expired" ||
-                      detail.warranty.displayStatus === "Expired" ? (
-                        <Tag color="red" className="mr-2">
-                          منقضی شده
-                        </Tag>
-                      ) : (
-                        <Tag color="green" className="mr-2">
-                          فعال
-                        </Tag>
-                      )}
-                    </span>
-                  </div>
-                ),
-              });
-            }
-          });
-        }
-      });
-    }
-
-    if (
-      standaloneWarranties &&
-      Array.isArray(standaloneWarranties) &&
-      standaloneWarranties.length
-    ) {
-      standaloneWarranties.forEach((warranty) => {
-        if (
-          warranty.warrantycode &&
-          warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)
-        ) {
-          options.push({
-            value: warranty.warrantycode,
-            label: (
-              <div>
-                <span className="font-bold text-orange-500">کد گارانتی مستقل: </span>
-                {warranty.warrantycode}
-                <span className="mr-2">
-                  {warranty.status === "Expired" || warranty.displayStatus === "Expired" ? (
-                    <Tag color="red" className="mr-2">
-                      منقضی شده
-                    </Tag>
-                  ) : (
-                    <Tag color="green" className="mr-2">
-                      فعال
-                    </Tag>
-                  )}
-                </span>
-              </div>
-            ),
-          });
-        }
-
-        if (warranty.Type && warranty.Type.toLowerCase().includes(lowerCaseSearch)) {
-          options.push({
-            value: warranty.Type,
-            label: (
-              <div>
-                <span className="font-bold text-cyan-500">محصول با گارانتی مستقل: </span>
-                {warranty.Type}
-              </div>
-            ),
-          });
-        }
-      });
-    }
-
-    return options;
-  })();
-
-  const filteredInvoices = (() => {
-    if (!searchText.trim()) return invoices;
-
-    const lowerCaseSearch = searchText.toLowerCase();
-
-    return invoices.filter(
-      (invoice) =>
-        invoice.FactorGuid.toLowerCase().includes(lowerCaseSearch) ||
-        invoice.Fullname.toLowerCase().includes(lowerCaseSearch) ||
-        (invoice.Phonenumber && invoice.Phonenumber.includes(lowerCaseSearch)) ||
-        (invoice.Invoice_Details &&
-          invoice.Invoice_Details.some(
-            (detail) =>
-              detail.warranty &&
-              detail.warranty.warrantycode &&
-              detail.warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)
-          ))
-    );
-  })();
-
-  const filteredStandaloneWarranties = (() => {
-    if (!searchText.trim()) return standaloneWarranties;
-
-    const lowerCaseSearch = searchText.toLowerCase();
-
-    return standaloneWarranties.filter(
-      (warranty) =>
-        (warranty.warrantycode && warranty.warrantycode.toLowerCase().includes(lowerCaseSearch)) ||
-        (warranty.Type && warranty.Type.toLowerCase().includes(lowerCaseSearch))
-    );
-  })();
-
-  // Update the fetchInitialData function to also get invoices
   useEffect(() => {
     loadInitialBranchData(
       setLoading,
@@ -719,282 +106,12 @@ function MyBranchContent() {
       fetchAllProducts
     );
 
-    // Set up auto-refresh interval (30 seconds)
     const intervalId = setInterval(() => {
       doAutoRefresh(setRefreshing, setBranch, fetchBranchProductsRef);
     }, 30000);
 
-    // Clean up interval on component unmount
     return () => clearInterval(intervalId);
   }, []);
-
-  const handleTabChange = (newActiveTab: string) => {
-    setActiveTab(newActiveTab);
-    if (newActiveTab === "invoices") {
-      fetchInvoices();
-    }
-  };
-
-  const handleAddProduct = async () => {
-    if (!branch || !selectedProduct) return;
-
-    const result = await addProductMutate(`/api/admin/branches/${branch.branchid}/products`, {
-      productId: selectedProduct,
-      quantity: productQuantityRef.current,
-    });
-    if (result) {
-      message.success("محصول با موفقیت به شعبه اضافه شد");
-      productForm.resetFields();
-      setSelectedProduct(null);
-      productQuantityRef.current = 1;
-      await fetchBranchProducts(branch.branchid);
-      const branchResponse = await fetch("/api/admin/branches/my");
-      if (branchResponse.ok) {
-        const branchData = await branchResponse.json();
-        setBranch(branchData);
-      }
-    } else {
-      message.error("خطا در افزودن محصول به شعبه");
-    }
-  };
-
-  const handleUpdateProductQuantity = async (productId: number, quantity: number) => {
-    if (!branch) return;
-
-    const result = await updateProductQtyMutate(
-      `/api/admin/branches/${branch.branchid}/products/${productId}`,
-      { quantity }
-    );
-    if (result) {
-      message.success("تعداد محصول با موفقیت بروزرسانی شد");
-      await fetchBranchProducts(branch.branchid);
-      const branchResponse = await fetch("/api/admin/branches/my");
-      if (branchResponse.ok) {
-        const branchData = await branchResponse.json();
-        setBranch(branchData);
-      }
-    } else {
-      message.error("خطا در بروزرسانی تعداد محصول");
-    }
-  };
-
-  const handleDebouncedQuantityChange = (productId: number, value: number) => {
-    if (quantityTimersRef.current[productId]) {
-      clearTimeout(quantityTimersRef.current[productId]);
-    }
-
-    setDebouncedQuantities((prev) => ({
-      ...prev,
-      [productId]: value,
-    }));
-
-    quantityTimersRef.current[productId] = setTimeout(() => {
-      handleUpdateProductQuantity(productId, value);
-    }, 2000);
-  };
-
-  // Add function to handle invoice creation
-  const handleCreateInvoice = () => {
-    setInvoiceModalVisible(true);
-  };
-
-  // Add function for invoice creation success
-  const handleInvoiceCreationSuccess = () => {
-    // Close the modal
-    setInvoiceModalVisible(false);
-
-    // Refresh invoices list
-    fetchInvoices();
-
-    // Show success message
-    message.success("فاکتور با موفقیت ایجاد شد");
-  };
-
-  // Add function to update invoice status
-  const updateInvoiceStatus = async (invoice: AdminInvoice, checked: boolean) => {
-    const result = await updateInvoiceStatusMutate(`/api/admin/invoices?id=${invoice.Invoiceid}`, {
-      checked,
-    });
-    if (result) {
-      const updatedInvoices = invoices.map((inv) => {
-        if (inv.Invoiceid === invoice.Invoiceid) {
-          return { ...inv, Checked: checked };
-        }
-        return inv;
-      });
-      setInvoices(updatedInvoices);
-      message.success("وضعیت فاکتور با موفقیت بروزرسانی شد");
-    } else {
-      message.error("خطا در بروزرسانی وضعیت فاکتور");
-    }
-  };
-
-  const productColumns = [
-    {
-      title: "نام محصول",
-      dataIndex: "Type",
-      key: "Type",
-      width: "60%",
-      className: "text-right",
-    },
-    {
-      title: "تعداد",
-      dataIndex: "quantity",
-      key: "quantity",
-      width: "40%",
-      // className: "text-center",
-      render: (quantity: number, record: Product) => (
-        <InputNumber
-          min={record.quantity}
-          value={debouncedQuantities[record.ProductId] ?? record.quantity}
-          onChange={(value) => {
-            if (value !== null && value >= record.quantity) {
-              handleDebouncedQuantityChange(record.ProductId, value);
-            }
-          }}
-          onBlur={() => {
-            // Update immediately on blur
-            if (quantityTimersRef.current[record.ProductId]) {
-              clearTimeout(quantityTimersRef.current[record.ProductId]);
-              handleUpdateProductQuantity(record.ProductId, debouncedQuantities[record.ProductId]);
-            }
-          }}
-          className="dark-input-number w-20"
-          style={{
-            backgroundColor: "#374151",
-            borderColor: "#4b5563",
-            color: "#e5e7eb",
-          }}
-        />
-      ),
-    },
-  ];
-
-  // Define invoice columns
-  const memoizedInvoiceColumns = [
-    {
-      title: "شماره فاکتور",
-      dataIndex: "FactorGuid",
-      key: "FactorGuid",
-      className: "text-right font-medium",
-      render: (text: string) => <span className="font-medium text-blue-400">{text}</span>,
-    },
-    {
-      title: "نام مشتری",
-      dataIndex: "Fullname",
-      key: "Fullname",
-      className: "text-right font-medium",
-      render: (text: string) => <span className="text-gray-100">{text}</span>,
-    },
-    {
-      title: "شماره تماس",
-      dataIndex: "Phonenumber",
-      key: "Phonenumber",
-      className: "text-right font-medium",
-      render: (phone: string) => (
-        <a href={`tel:${phone}`} className="text-blue-400 transition-colors hover:text-blue-300">
-          {phone}
-        </a>
-      ),
-    },
-    {
-      title: "تاریخ",
-      dataIndex: "Date",
-      key: "Date",
-      className: "text-right font-medium",
-      render: (date: string) => <span className="text-gray-200">{formatDate(date)}</span>,
-    },
-    {
-      title: "وضعیت",
-      dataIndex: "Checked",
-      key: "Checked",
-      className: "text-right font-medium",
-      render: (checked: boolean, invoice: AdminInvoice) => (
-        <div className="flex items-center justify-center">
-          {checked ? (
-            <Tag
-              color="success"
-              className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
-              style={{ fontFamily: "inherit", fontWeight: 500 }}
-            >
-              <span>بررسی شده</span>
-            </Tag>
-          ) : (
-            <Tag
-              color="warning"
-              className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
-              onClick={() => updateInvoiceStatus(invoice, true)}
-              style={{
-                fontFamily: "inherit",
-                fontWeight: 500,
-                color: "#000",
-              }}
-            >
-              <span>در انتظار بررسی</span>
-            </Tag>
-          )}
-        </div>
-      ),
-    },
-    {
-      title: "وضعیت گارانتی",
-      key: "warranty",
-      className: "text-center font-medium",
-      render: (_: any, invoice: AdminInvoice) => {
-        const status = getWarrantyStatusSummary(invoice);
-        if (!status) {
-          return (
-            <Tag
-              color="default"
-              className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
-              style={{ fontFamily: "inherit", fontWeight: 500 }}
-            >
-              <span>بدون گارانتی</span>
-            </Tag>
-          );
-        }
-
-        return (
-          <div className="flex flex-wrap justify-center gap-2">
-            {status.active > 0 && (
-              <Tag
-                color="success"
-                className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
-                style={{ fontFamily: "inherit", fontWeight: 500 }}
-              >
-                <span>{status.active} گارانتی فعال</span>
-              </Tag>
-            )}
-            {status.expired > 0 && (
-              <Tag
-                color="error"
-                className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
-                style={{ fontFamily: "inherit", fontWeight: 500 }}
-              >
-                <span>{status.expired} گارانتی منقضی</span>
-              </Tag>
-            )}
-          </div>
-        );
-      },
-    },
-    {
-      title: "عملیات",
-      key: "actions",
-      className: "text-center font-medium",
-      render: (_: any, invoice: AdminInvoice) => (
-        <Button
-          htmlType="button"
-          type="primary"
-          className="flex items-center border-blue-700 bg-blue-600 hover:bg-blue-700"
-          onClick={() => setSelectedInvoice(invoice)}
-        >
-          <span>مشاهده جزئیات</span>
-          <EyeOutlined className="mr-2" />
-        </Button>
-      ),
-    },
-  ];
 
   if (loading) {
     return <SkeletonLoading />;
@@ -1048,9 +165,29 @@ function MyBranchContent() {
     );
   }
 
+  const handleViewWarranty = (warranty: any) => {
+    const warrantyItem = {
+      Invoice_Details: String(warranty.invoicedetailid || ""),
+      ProductId: String(warranty.ProductId || ""),
+      quantity: warranty.quantity || 1,
+      price: warranty.price || 0,
+      total_price: (warranty.price || 0) * (warranty.quantity || 1),
+      Name: warranty.Type,
+      Type: warranty.Type,
+      individualWarranty: {
+        ...warranty,
+        warrantyid: String(warranty.warrantyid || ""),
+        invoicedetailid: String(warranty.invoicedetailid || ""),
+        ProductId: String(warranty.ProductId || ""),
+        branchid: String(warranty.branchid || ""),
+        branchname: branch?.name,
+      },
+    };
+    setSelectedStandaloneWarranty(warrantyItem);
+  };
+
   return (
     <div className="p-6">
-      {/* Unauthorized Message Alert */}
       {isUnauthorized && (
         <Alert
           message="دسترسی محدود"
@@ -1074,538 +211,38 @@ function MyBranchContent() {
         </div>
       </div>
 
-      {/* Branch details card */}
-      <Card
-        title={<span className="text-lg">اطلاعات شعبه</span>}
-        className="mb-6 overflow-hidden rounded-lg bg-gray-800 text-white shadow-md"
-        headStyle={{
-          backgroundColor: "#1f2937",
-          borderBottom: "1px solid #374151",
-          color: "#f3f4f6",
-          padding: "12px 16px",
+      <BranchInfo branch={branch} />
+
+      <BranchTabs
+        activeTab={activeTab}
+        onTabChange={(key) => handleTabChange(key, fetchInvoices)}
+        products={products}
+        productsLoading={productsLoading}
+        productPagination={productPagination}
+        productColumns={productColumns}
+        branch={branch}
+        onAddProduct={() => setProductDrawerVisible(true)}
+        onProductPageChange={(page, pageSize) => {
+          fetchBranchProducts(branch.branchid, page, pageSize);
         }}
-        bodyStyle={{ backgroundColor: "#1f2937", padding: "16px" }}
-      >
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="rounded bg-gray-900/30 p-2">
-            <p className="mb-1 text-sm text-gray-400">نام شعبه:</p>
-            <p className="text-lg font-medium">{branch.name}</p>
-          </div>
-          <div className="rounded bg-gray-900/30 p-2">
-            <p className="mb-1 text-sm text-gray-400">کد شعبه:</p>
-            <p className="text-lg font-medium">{branch.location}</p>
-          </div>
-          <div className="rounded bg-gray-900/30 p-2">
-            <p className="mb-1 text-sm text-gray-400">تاریخ ایجاد:</p>
-            <p className="text-lg font-medium">{toPersianDate(branch.createdat)}</p>
-          </div>
-          <div className="rounded bg-gray-900/30 p-2">
-            <p className="mb-1 text-sm text-gray-400">تعداد محصولات:</p>
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-medium">{branch.productCount} نوع محصول</span>
-              <span className="rounded-md bg-blue-800/70 px-2 py-0.5 text-sm text-blue-100">
-                {branch.totalQuantity} عدد
-              </span>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Tabs for Products and Invoices */}
-      <Tabs
-        activeKey={activeTab}
-        onChange={handleTabChange}
-        className="invoice-warranty-tabs mb-6 rounded-lg bg-gray-800 pt-4 text-white"
-        type="card"
-        items={[
-          {
-            key: "products",
-            label: <span className="px-3 py-1 text-base font-medium text-white">محصولات</span>,
-            children: (
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {/* Branch Products Section */}
-                <Card
-                  title={
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-medium">محصولات شعبه</span>
-                      <Button
-                        htmlType="button"
-                        type="primary"
-                        onClick={() => setProductDrawerVisible(true)}
-                        className="flex items-center justify-center border-blue-700 bg-blue-600 hover:bg-blue-700"
-                      >
-                        <span>افزودن محصول</span>
-                        <PlusOutlined className="mr-2" />
-                      </Button>
-                    </div>
-                  }
-                  className="overflow-hidden rounded-lg border-0 bg-gray-800 text-white"
-                  headStyle={{
-                    backgroundColor: "#19202b",
-                    borderBottom: "1px solid #374151",
-                    color: "#f3f4f6",
-                    padding: "16px 20px",
-                    fontFamily: "inherit",
-                  }}
-                  bodyStyle={{
-                    backgroundColor: "#19202b",
-                    padding: "16px 20px",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  {productsLoading ? (
-                    <div className="my-8 flex justify-center">
-                      <Spin />
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <Table
-                        columns={productColumns}
-                        dataSource={products}
-                        rowKey="ProductId"
-                        pagination={{
-                          current: productPagination.current,
-                          pageSize: productPagination.pageSize,
-                          total: productPagination.total,
-                          onChange: (page, pageSize) => {
-                            if (branch) {
-                              fetchBranchProducts(
-                                branch.branchid,
-                                page,
-                                pageSize || productPagination.pageSize
-                              );
-                            }
-                          },
-                          showSizeChanger: true,
-                          showQuickJumper: true,
-                          pageSizeOptions: ["10", "20", "50"],
-                          position: ["bottomCenter"],
-                          className: "pagination-dark",
-                        }}
-                        className="dark-table enhanced-table rtl-table"
-                        locale={{
-                          emptyText: (
-                            <Empty
-                              description="هیچ محصولی برای این شعبه یافت نشد"
-                              image={Empty.PRESENTED_IMAGE_SIMPLE}
-                              className="text-gray-400"
-                            />
-                          ),
-                        }}
-                      />
-                    </div>
-                  )}
-                </Card>
-
-                {/* Product Search in Other Branches Section */}
-                <BranchProductSearch isTabActive={activeTab === "products"} />
-              </div>
-            ),
-          },
-          {
-            key: "invoices",
-            label: (
-              <span className="flex items-center px-3 py-1 text-base font-medium text-white">
-                فاکتورها و گارانتی‌ها
-                {warrantySummary.active > 0 && (
-                  <Badge
-                    count={warrantySummary.active}
-                    style={{
-                      backgroundColor: "#52c41a",
-                      marginRight: "8px",
-                      fontFamily: "inherit",
-                    }}
-                  />
-                )}
-              </span>
-            ),
-            children: (
-              <>
-                {/* Improved Search UI */}
-                <Card
-                  className="mb-4 border-0 bg-gray-800 shadow-md"
-                  headStyle={{
-                    backgroundColor: "#1f2937",
-                    borderBottom: "1px solid #374151",
-                    padding: "16px 20px",
-                    fontFamily: "inherit",
-                  }}
-                  bodyStyle={{
-                    backgroundColor: "#1f2937",
-                    padding: "16px 20px",
-                    fontFamily: "inherit",
-                  }}
-                  title={
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h2 className="m-0 text-lg font-medium text-white">
-                        فاکتورها و گارانتی‌های شعبه
-                      </h2>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          htmlType="button"
-                          onClick={() => fetchInvoices()}
-                          className="flex items-center border-blue-600 bg-blue-600 text-white hover:bg-blue-700"
-                          loading={invoicesLoading}
-                          icon={<ReloadOutlined />}
-                        >
-                          به‌روزرسانی
-                        </Button>
-                        <Button
-                          htmlType="button"
-                          type="primary"
-                          onClick={handleCreateInvoice}
-                          className="flex items-center bg-green-600 hover:bg-green-700"
-                        >
-                          <span>ثبت فاکتور جدید</span>
-                          <PlusOutlined className="mr-2" />
-                        </Button>
-                      </div>
-                    </div>
-                  }
-                >
-                  <div className="relative">
-                    <AutoComplete
-                      placeholder="جستجوی شماره فاکتور، نام مشتری، شماره تماس یا کد گارانتی..."
-                      popupMatchSelectWidth={500}
-                      style={{ width: "100%" }}
-                      options={searchOptions}
-                      value={searchText}
-                      onChange={setSearchText}
-                      onSelect={(value) => setSearchText(value)}
-                      listHeight={400}
-                      listItemHeight={38}
-                      showSearch
-                      filterOption={false}
-                      popupClassName="enhanced-dropdown"
-                    >
-                      <Input
-                        suffix={<SearchOutlined className="text-blue-400" />}
-                        style={{
-                          backgroundColor: "#54647c",
-                          color: "white",
-                          borderColor: "#4b5563",
-                          padding: "10px 12px",
-                          height: "42px",
-                          fontSize: "15px",
-                          textAlign: "right",
-                        }}
-                      />
-                    </AutoComplete>
-                  </div>
-                </Card>
-
-                {/* Warranty Summary */}
-                <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <Card
-                    className="border-0 bg-gray-800 shadow-md transition-shadow hover:shadow-lg"
-                    bodyStyle={{
-                      padding: "16px 20px",
-                      fontFamily: "inherit",
-                      backgroundColor: "#1f2937",
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-200">گارانتی‌های فعال:</span>
-                      <Tag
-                        color="success"
-                        className="flex min-w-[50px] items-center justify-center px-4 py-1.5 text-base"
-                        style={{ fontFamily: "inherit" }}
-                      >
-                        {warrantySummary.active}
-                      </Tag>
-                    </div>
-                  </Card>
-                  <Card
-                    className="border-0 bg-gray-800 shadow-md transition-shadow hover:shadow-lg"
-                    bodyStyle={{
-                      padding: "16px 20px",
-                      fontFamily: "inherit",
-                      backgroundColor: "#1f2937",
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-200">گارانتی‌های منقضی شده:</span>
-                      <Tag
-                        color="error"
-                        className="flex min-w-[50px] items-center justify-center px-4 py-1.5 text-base"
-                        style={{ fontFamily: "inherit" }}
-                      >
-                        {warrantySummary.expired}
-                      </Tag>
-                    </div>
-                  </Card>
-                </div>
-
-                <Card
-                  className="mb-6 overflow-hidden rounded-lg border-0 bg-gray-800 shadow-md"
-                  bodyStyle={{
-                    padding: "0",
-                    fontFamily: "inherit",
-                    backgroundColor: "#1f2937",
-                  }}
-                  title={
-                    <div className="flex items-center px-4 py-2">
-                      <h3 className="m-0 text-lg font-medium text-white">فاکتورها</h3>
-                    </div>
-                  }
-                  headStyle={{
-                    backgroundColor: "#1f2937",
-                    borderBottom: "1px solid #374151",
-                    color: "#f3f4f6",
-                    padding: "12px 0",
-                  }}
-                >
-                  {invoicesLoading ? (
-                    <div className="flex items-center justify-center p-10">
-                      <Spin size="large" tip="در حال بارگذاری..." />
-                    </div>
-                  ) : filteredInvoices.length === 0 ? (
-                    <Empty
-                      description="هیچ فاکتوری یافت نشد"
-                      image={Empty.PRESENTED_IMAGE_SIMPLE}
-                      className="p-8 text-gray-300"
-                    />
-                  ) : (
-                    <Table
-                      columns={memoizedInvoiceColumns}
-                      dataSource={filteredInvoices}
-                      rowKey="Invoiceid"
-                      pagination={{
-                        current: invoicePagination.current,
-                        pageSize: invoicePagination.pageSize,
-                        total: invoicePagination.total,
-                        onChange: (page, pageSize) => {
-                          fetchInvoices(page, pageSize || invoicePagination.pageSize);
-                        },
-                        showSizeChanger: true,
-                        showQuickJumper: true,
-                        pageSizeOptions: ["10", "20", "50"],
-                        position: ["bottomCenter"],
-                        className: "pagination-dark",
-                      }}
-                      scroll={{ x: "max-content" }}
-                      className="branch-invoices-table enhanced-table rtl-table"
-                      rowClassName={(record) => (!record.Checked ? "unread-invoice-row" : "")}
-                    />
-                  )}
-                </Card>
-
-                {filteredStandaloneWarranties.length > 0 && (
-                  <>
-                    <hr className="mt-4" />
-                    <Card
-                      className="overflow-hidden rounded-lg border-0 bg-gray-800 shadow-md"
-                      bodyStyle={{
-                        padding: "0",
-                        fontFamily: "inherit",
-                        backgroundColor: "#1f2937",
-                      }}
-                      title={
-                        <div className="flex items-center px-4 py-2">
-                          <h3 className="m-0 text-lg font-medium text-white">گارانتی‌های مستقل</h3>
-                          <Tag color="blue" className="mr-2">
-                            {filteredStandaloneWarranties.length} گارانتی
-                          </Tag>
-                        </div>
-                      }
-                      headStyle={{
-                        backgroundColor: "#1f2937",
-                        borderBottom: "1px solid #374151",
-                        color: "#f3f4f6",
-                        padding: "12px 0",
-                      }}
-                    >
-                      {invoicesLoading ? (
-                        <div className="flex items-center justify-center p-10">
-                          <Spin size="large" tip="در حال بارگذاری..." />
-                        </div>
-                      ) : (
-                        <Table
-                          columns={[
-                            {
-                              title: "کد گارانتی",
-                              dataIndex: "warrantycode",
-                              key: "warrantycode",
-                              className: "text-right font-medium",
-                              render: (text: string) => (
-                                <span className="font-medium text-orange-400">{text}</span>
-                              ),
-                            },
-                            {
-                              title: "نام مشتری",
-                              dataIndex: "clientFullName",
-                              key: "clientFullName",
-                              className: "text-right font-medium",
-                              render: (text: string) => (
-                                <span className="font-medium text-green-400">
-                                  {text || "نامشخص"}
-                                </span>
-                              ),
-                            },
-                            {
-                              title: "شماره تماس",
-                              dataIndex: "ClientPhoneNumber",
-                              key: "ClientPhoneNumber",
-                              className: "text-right font-medium",
-                              render: (phone: string) =>
-                                phone ? (
-                                  <a
-                                    href={`tel:${phone}`}
-                                    className="text-blue-400 transition-colors hover:text-blue-300"
-                                  >
-                                    {phone}
-                                  </a>
-                                ) : (
-                                  <span className="text-gray-400">-</span>
-                                ),
-                            },
-                            {
-                              title: "نوع محصول",
-                              dataIndex: "Type",
-                              key: "Type",
-                              className: "text-right font-medium",
-                              render: (text: string) => (
-                                <span className="text-gray-100">{text}</span>
-                              ),
-                            },
-                            {
-                              title: "تاریخ شروع",
-                              dataIndex: "startdate",
-                              key: "startdate",
-                              className: "text-right font-medium",
-                              render: (date: string) => (
-                                <span className="text-gray-200">
-                                  {formatPersianDate(date, formatDate)}
-                                </span>
-                              ),
-                            },
-                            {
-                              title: "تاریخ انقضا",
-                              dataIndex: "expirydate",
-                              key: "expirydate",
-                              className: "text-right font-medium",
-                              render: (date: string) => (
-                                <span className="text-gray-200">
-                                  {formatPersianDate(date, formatDate)}
-                                </span>
-                              ),
-                            },
-                            {
-                              title: "وضعیت",
-                              dataIndex: "displayStatus",
-                              key: "displayStatus",
-                              className: "text-center font-medium",
-                              render: (status: string) => (
-                                <Tag
-                                  color={status === "Expired" ? "error" : "success"}
-                                  className="flex min-w-[120px] items-center justify-center px-4 py-1.5"
-                                  style={{
-                                    fontFamily: "inherit",
-                                    fontWeight: 500,
-                                  }}
-                                >
-                                  {status === "Expired" ? "منقضی شده" : "فعال"}
-                                </Tag>
-                              ),
-                            },
-                            {
-                              title: "عملیات",
-                              key: "actions",
-                              className: "text-center font-medium",
-                              render: (_, warranty) => (
-                                <Button
-                                  htmlType="button"
-                                  type="primary"
-                                  className="flex items-center border-blue-700 bg-blue-600 hover:bg-blue-700"
-                                  onClick={() => {
-                                    // Create an item object expected by BranchWarrantyViewModal
-                                    const warrantyItem = {
-                                      Invoice_Details: String(warranty.invoicedetailid || ""),
-                                      ProductId: String(warranty.ProductId || ""),
-                                      quantity: warranty.quantity || 1,
-                                      price: warranty.price || 0,
-                                      total_price: (warranty.price || 0) * (warranty.quantity || 1),
-                                      Name: warranty.Type,
-                                      Type: warranty.Type,
-                                      individualWarranty: {
-                                        ...warranty,
-                                        warrantyid: String(warranty.warrantyid || ""),
-                                        invoicedetailid: String(warranty.invoicedetailid || ""),
-                                        ProductId: String(warranty.ProductId || ""),
-                                        branchid: String(warranty.branchid || ""),
-                                        branchname: branch?.name,
-                                      },
-                                    };
-
-                                    // Set the selected standalone warranty to show the modal
-                                    setSelectedStandaloneWarranty(warrantyItem);
-                                  }}
-                                >
-                                  <span>مشاهده جزئیات</span>
-                                  <EyeOutlined className="mr-2" />
-                                </Button>
-                              ),
-                            },
-                          ]}
-                          dataSource={filteredStandaloneWarranties}
-                          rowKey="warrantyid"
-                          pagination={{
-                            pageSize: 5,
-                            hideOnSinglePage: true,
-                            position: ["bottomCenter"],
-                            className: "pagination-dark",
-                          }}
-                          scroll={{ x: "max-content" }}
-                          className="standalone-warranties-table enhanced-table rtl-table"
-                        />
-                      )}
-                    </Card>
-                  </>
-                )}
-              </>
-            ),
-          },
-          {
-            key: "warranty-requests",
-            label: (
-              <span className="px-3 py-1 text-base font-medium text-white">
-                درخواست‌های گارانتی
-              </span>
-            ),
-            children: (
-              <Card
-                className="overflow-hidden rounded-lg border-0 bg-gray-800 text-white"
-                bodyStyle={{
-                  backgroundColor: "#19202b",
-                  padding: "16px 20px",
-                  fontFamily: "inherit",
-                }}
-              >
-                <WarrantyRequests isTabActive={activeTab === "warranty-requests"} />
-              </Card>
-            ),
-          },
-          {
-            key: "warranty-stats",
-            label: (
-              <span className="px-3 py-1 text-base font-medium text-white">آمار گارانتی‌ها</span>
-            ),
-            children: (
-              <Card
-                className="overflow-hidden rounded-lg border-0 bg-gray-800 text-white"
-                bodyStyle={{
-                  padding: "16px 20px",
-                  fontFamily: "inherit",
-                }}
-              >
-                <WarrantyStats isTabActive={activeTab === "warranty-stats"} />
-              </Card>
-            ),
-          },
-        ]}
+        invoices={invoices}
+        invoicesLoading={invoicesLoading}
+        invoicePagination={invoicePagination}
+        searchText={searchText}
+        searchOptions={searchOptions}
+        filteredInvoices={filteredInvoices}
+        filteredStandaloneWarranties={filteredStandaloneWarranties}
+        warrantySummary={warrantySummary}
+        memoizedInvoiceColumns={memoizedInvoiceColumns}
+        branchName={branch.name}
+        onSearchChange={setSearchText}
+        onRefreshInvoices={() => fetchInvoices()}
+        onCreateInvoice={handleCreateInvoice}
+        onInvoicePageChange={(page, pageSize) => fetchInvoices(page, pageSize)}
+        onViewInvoice={setSelectedInvoice}
+        onViewWarranty={handleViewWarranty}
       />
 
-      {/* Add InvoiceModal */}
       {branch && (
         <InvoiceModal
           visible={invoiceModalVisible}
@@ -1630,31 +267,26 @@ function MyBranchContent() {
         onUpdateQuantity={handleUpdateProductQuantity}
       />
 
-      {/* Invoice Details Modal */}
       {selectedInvoice && (
         <BranchInvoiceDetailsModal
           invoice={selectedInvoice}
           onClose={() => {
             setSelectedInvoice(null);
-            // Refresh the invoices data when closing the modal
             fetchInvoices();
           }}
         />
       )}
 
-      {/* Standalone Warranty Modal */}
       {selectedStandaloneWarranty && (
         <BranchWarrantyViewModal
           item={selectedStandaloneWarranty}
           onClose={() => {
             setSelectedStandaloneWarranty(null);
-            // Refresh the data when closing the modal
             fetchInvoices();
           }}
         />
       )}
 
-      {/* Global Styles */}
       <Styles />
 
       <style jsx global>{`
@@ -1779,7 +411,6 @@ function MyBranchContent() {
           border-color: #3b82f6 !important;
         }
 
-        /* Make scrollbar more visible */
         .ant-select-dropdown::-webkit-scrollbar {
           width: 8px;
         }
@@ -1817,7 +448,6 @@ function MyBranchContent() {
           color: #e5e7eb !important;
         }
 
-        /* RTL specific styles */
         .ant-btn > .anticon + span,
         .ant-btn > span + .anticon {
           margin-right: 8px;
@@ -1828,14 +458,12 @@ function MyBranchContent() {
           font-size: 14px;
         }
 
-        /* Properly align button icons in RTL */
         button.ant-btn {
           display: inline-flex;
           align-items: center;
           justify-content: center;
         }
 
-        /* Fix input group addon positioning in RTL */
         .ant-input-group-addon:first-child {
           border-start-end-radius: 0;
           border-end-end-radius: 0;
@@ -1850,12 +478,10 @@ function MyBranchContent() {
           border-end-end-radius: 6px;
         }
 
-        /* Fix drawer alignment in RTL mode */
         .ant-drawer .ant-drawer-content {
           direction: rtl;
         }
 
-        /* Improved mobile responsiveness */
         @media (max-width: 768px) {
           .ant-table {
             font-size: 12px;
@@ -1875,7 +501,6 @@ function MyBranchContent() {
           }
         }
 
-        /* Improved Invoice and Warranty UI */
         .invoice-warranty-tabs .ant-tabs-nav {
           margin-bottom: 0;
         }
@@ -1913,7 +538,6 @@ function MyBranchContent() {
           color: #e5e7eb !important;
         }
 
-        /* Enhanced tables */
         .enhanced-table .ant-table-thead > tr > th {
           background-color: #263244 !important;
           color: white !important;
@@ -1940,7 +564,6 @@ function MyBranchContent() {
           background-color: #2d3748 !important;
         }
 
-        /* Highlight unread invoices */
         .unread-invoice-row {
           background-color: rgba(245, 158, 11, 0.15) !important;
         }
@@ -1949,14 +572,12 @@ function MyBranchContent() {
           background-color: rgba(245, 158, 11, 0.25) !important;
         }
 
-        /* Better tags */
         .ant-tag {
           border-radius: 4px !important;
           font-family: inherit !important;
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
         }
 
-        /* Fix font family for antd components */
         .ant-btn,
         .ant-input,
         .ant-select,
@@ -1973,7 +594,6 @@ function MyBranchContent() {
           font-family: inherit !important;
         }
 
-        /* Improved search box */
         .ant-select-selection-search-input,
         .ant-input-affix-wrapper {
           border-radius: 8px !important;
@@ -1986,7 +606,6 @@ function MyBranchContent() {
           box-shadow: 0 0 0 2px rgba(8, 0, 160, 0.2) !important;
         }
 
-        /* Improved buttons */
         .ant-btn {
           border-radius: 6px !important;
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
@@ -1997,25 +616,16 @@ function MyBranchContent() {
           text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1) !important;
         }
 
-        .ant-input::placeholder {
-          /* color: #9ca3af !important; */
-          text-align: center !important;
-          opacity: 1 !important;
-        }
-
         .ant-input-affix-wrapper .ant-input::placeholder {
-          /* color: #9ca3af !important; */
           text-align: center !important;
           opacity: 1 !important;
         }
 
         .ant-select-selection-search-input::placeholder {
-          /* color: #9ca3af !important; */
           text-align: center !important;
           opacity: 1 !important;
         }
 
-        /* Improve tag text readability */
         .ant-tag-warning {
           background-color: #faad14 !important;
           color: #000 !important;
@@ -2028,19 +638,16 @@ function MyBranchContent() {
           font-weight: 500 !important;
         }
 
-        /* Add better styling for the search input to match what's shown in the image */
         .ant-input-affix-wrapper {
           border-radius: 8px !important;
           height: 42px !important;
         }
 
-        /* Ensure search icon color matches design */
         .ant-input-suffix .anticon-search {
           color: #ffffff !important;
           opacity: 0.7;
         }
 
-        /* Add better contrast for tabs */
         .ant-tabs-tab {
           padding: 8px 16px !important;
         }
@@ -2070,7 +677,6 @@ function MyBranchContent() {
           border-bottom-color: #4b5563 !important;
         }
 
-        /* Add RTL table styles from branches page */
         .rtl-table .ant-table-container table {
           direction: rtl;
         }
@@ -2088,7 +694,6 @@ function MyBranchContent() {
           transform: rotate(180deg);
         }
 
-        /* Add better contrast for pagination */
         .pagination-dark .ant-pagination-item {
           background-color: #1f2937 !important;
           border-color: #4b5563 !important;
@@ -2134,28 +739,23 @@ function MyBranchContent() {
           border-color: #4b5563 !important;
         }
 
-        /* Persian text for pagination */
         .pagination-dark .ant-pagination-options-quick-jumper {
-          display: none !important; /* Hide the quick jumper completely */
+          display: none !important;
         }
 
-        /* Position the quick jumper container for RTL */
         .pagination-dark .ant-pagination-options {
           direction: rtl !important;
         }
 
-        /* Fix per page text in the dropdown */
         .pagination-dark .ant-pagination-options .ant-select-selection-item::after {
           content: " / صفحه" !important;
           display: inline !important;
         }
 
-        /* Fix dropdown items */
         .pagination-dark .ant-select-dropdown .ant-select-item-option-content::after {
           content: " / صفحه" !important;
         }
 
-        /* Page size selector styling */
         .pagination-dark .ant-pagination-options-size-changer .ant-select-selector {
           background-color: #1f2937 !important;
           border-color: #4b5563 !important;
@@ -2166,7 +766,6 @@ function MyBranchContent() {
           border-color: #3b82f6 !important;
         }
 
-        /* Branch product search styles */
         .branch-product-search .ant-select-selector {
           background-color: #374151 !important;
           border-color: #4b5563 !important;
@@ -2232,7 +831,6 @@ function MyBranchContent() {
           background-color: #2d3748 !important;
         }
 
-        /* RTL Modal */
         .rtl-modal .ant-modal-content {
           direction: rtl;
           text-align: right;

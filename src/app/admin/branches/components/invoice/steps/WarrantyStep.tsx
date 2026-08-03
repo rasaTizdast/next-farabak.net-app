@@ -6,19 +6,12 @@ import { DatePicker } from "zaman";
 
 import { useUser } from "@/context/UserContext";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { formatDateToISOString, persianToEnglishDigits } from "@/lib/validators";
 
 import { Branch } from "../../types";
 
 const persianYearFormatter = new Intl.DateTimeFormat("fa-IR", { year: "numeric" });
 const persianMonthFormatter = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" });
-
-// Format a Date object to YYYY-MM-DD string
-const formatDateToISOString = (date: Date | null): string | null => {
-  if (!date) return null;
-  // Use a fixed timezone (Tehran) for consistency
-  const tehranDate = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Tehran" }));
-  return tehranDate.toISOString().split("T")[0];
-};
 
 // Create a Date object from ISO string
 const parseISODate = (dateString: string | null): Date | null => {
@@ -26,21 +19,6 @@ const parseISODate = (dateString: string | null): Date | null => {
   // Create date with Tehran timezone
   const date = new Date(dateString);
   return date;
-};
-
-// Parse Persian digits to English digits
-const persianToEnglishDigits = (str: string): string => {
-  let result = "";
-  for (let i = 0; i < str.length; i++) {
-    const charCode = str.charCodeAt(i);
-    if (charCode >= 1776 && charCode <= 1785) {
-      // Persian digits range
-      result += String.fromCharCode(charCode - 1728); // Convert to English digits
-    } else {
-      result += str.charAt(i);
-    }
-  }
-  return result;
 };
 
 function calculateDuration(startDate: Date | string | null, endDate: Date | string | null) {
@@ -223,7 +201,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
   const [isDatePickerLoading, setIsDatePickerLoading] = useState(false);
   const [todayTimestamp] = useState(() => Date.now());
 
-  const { mutate: generateBatchMutate } = useApiMutation<{ warrantyCodes: string[] }>("post");
+  const { mutate: generateBatchMutate } = useApiMutation<{ branchCode: string; yearMonth: string; count: number }, { warrantyCodes: string[] }>("post");
 
   // Generate warranty codes in a batch to reduce API calls
   const generateBatchWarrantyCodes = useCallback(
@@ -483,7 +461,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
     {
       title: "کد گارانتی",
       key: "warrantyCode",
-      render: (_, record) => {
+      render: (_: unknown, record: any) => {
         // Find all items with same product ID
         const sameProductItems = productsWithWarranty.filter(
           (item) => item.ProductId === record.ProductId
@@ -515,7 +493,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
     {
       title: "مدت گارانتی",
       key: "warrantyDuration",
-      render: (_, record) => {
+      render: (_: unknown, record: any) => {
         if (record.warranty?.hasWarranty === false) return "بدون گارانتی";
         if (!record.warranty?.startdate || !record.warranty?.expirydate) return "-";
 
@@ -528,7 +506,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
     {
       title: "عملیات",
       key: "action",
-      render: (_, record) => (
+      render: (_: unknown, record: any) => (
         <Space size="middle">
           <Button htmlType="button" type="primary" size="small" onClick={() => handleEdit(record)}>
             تنظیم گارانتی
