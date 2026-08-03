@@ -1,17 +1,18 @@
 "use client";
 
-import { Spin, Select, Switch } from "antd";
-import { RotateCcw } from "lucide-react";
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
-import { DatePicker } from "zaman";
 
-import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { formatDateToISOString, persianToEnglishDigits } from "@/lib/validators";
 
 import { ExpandedInvoiceItem } from "./types";
+
+import WarrantyCreateMode from "./WarrantyCreateMode";
+import WarrantyUpdateMode from "./WarrantyUpdateMode";
+import WarrantyPrintMode from "./WarrantyPrintMode";
 
 const persianYearFormatter = new Intl.DateTimeFormat("fa-IR", {
   year: "numeric",
@@ -22,29 +23,6 @@ const persianMonthFormatter = new Intl.DateTimeFormat("fa-IR", {
   timeZone: "Asia/Tehran",
 });
 const persianDateFormatter = new Intl.DateTimeFormat("fa-IR", { timeZone: "Asia/Tehran" });
-
-// Format a Date object to YYYY-MM-DD string
-const formatDateToISOString = (date: Date | null): string | null => {
-  if (!date) return null;
-  // Use a fixed timezone (Tehran) for consistency
-  const tehranDate = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Tehran" }));
-  return tehranDate.toISOString().split("T")[0];
-};
-
-// Parse Persian digits to English digits
-const persianToEnglishDigits = (str: string): string => {
-  let result = "";
-  for (let i = 0; i < str.length; i++) {
-    const charCode = str.charCodeAt(i);
-    if (charCode >= 1776 && charCode <= 1785) {
-      // Persian digits range
-      result += String.fromCharCode(charCode - 1728); // Convert to English digits
-    } else {
-      result += str.charAt(i);
-    }
-  }
-  return result;
-};
 
 // Branch type definition
 interface Branch {
@@ -60,8 +38,6 @@ type WarrantyManagementModalProps = {
   onClose: () => void;
   onSuccess: () => void;
 };
-
-const { Option } = Select;
 
 async function generateWarrantyCodeForInvoice(
   branches: Branch[],
@@ -407,314 +383,52 @@ const WarrantyManagementModal = ({
 
         {/* Main form view */}
         <div className={showPrintView ? "hidden" : ""}>
-          <form onSubmit={handleSubmit} className="warranty-form-elements space-y-4 p-6" dir="rtl">
-            <div className="space-y-2 text-right">
-              <label htmlFor="productName" className="block text-sm font-medium text-gray-300">
-                محصول
-              </label>
-              <input
-                type="text"
-                id="productName"
-                readOnly
-                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70"
-                value={item.Name || `محصول #${item.ProductId}`}
-                disabled
-              />
-            </div>
-
-            {/* Add warranty toggle */}
-            <div className="space-y-2 text-right">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="warranty-toggle"
-                  className="block text-sm font-medium text-gray-300"
-                >
-                  فعال کردن گارانتی
-                </label>
-                <Switch
-                  id="warranty-toggle"
-                  checked={warrantyData.hasWarranty}
-                  onChange={handleWarrantyToggle}
-                  className="bg-slate-700"
-                />
-              </div>
-              {!warrantyData.hasWarranty && isUpdate && (
-                <p className="text-sm text-amber-400">
-                  با غیرفعال کردن گارانتی، اطلاعات گارانتی فعلی حذف خواهد شد.
-                </p>
-              )}
-            </div>
-
-            {/* Warranty form elements - only show if hasWarranty is true */}
-            <div className={warrantyData.hasWarranty ? "" : "hidden"}>
-              <div className="space-y-2 text-right">
-                <label htmlFor="branch-select" className="block text-sm font-medium text-gray-300">
-                  شعبه مسئول گارانتی <span className="text-red-400">*</span>
-                </label>
-                {!isUpdate && (
-                  <p className="mb-1 text-xs text-gray-400">
-                    ابتدا شعبه را انتخاب کنید، سپس کد گارانتی تولید خواهد شد
-                  </p>
-                )}
-                {/* Branch Selection */}
-                <div>
-                  <label
-                    htmlFor="branch-select"
-                    className="mb-2 block text-sm font-medium text-gray-300"
-                  >
-                    شعبه
-                  </label>
-
-                  {/* Informative text about branch listing */}
-                  <div className="mb-2 text-xs text-gray-400">
-                    {isUpdate
-                      ? "شعبه انتخاب شده برای گارانتی غیرقابل تغییر است."
-                      : "توجه: فقط شعبه‌هایی که این محصول را در انبار خود دارند نمایش داده می‌شوند. با ثبت گارانتی، یک عدد از موجودی محصول در شعبه کم می‌شود."}
-                  </div>
-
-                  {loadingBranches ? (
-                    <div className="flex justify-center p-2">
-                      <Spin size="small" />
-                    </div>
-                  ) : isUpdate ? (
-                    <input
-                      type="text"
-                      readOnly
-                      aria-label="شعبه انتخاب شده"
-                      className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70"
-                      value={selectedBranchName}
-                      disabled
-                    />
-                  ) : (
-                    <div>
-                      <Select
-                        id="branch-select"
-                        className="warranty-select w-full text-right"
-                        placeholder="انتخاب شعبه"
-                        value={warrantyData.branchId || undefined}
-                        onChange={handleBranchChange}
-                        loading={loadingBranches}
-                        disabled={loadingBranches || isUpdate}
-                        popupClassName="warranty-select-dropdown"
-                        notFoundContent={
-                          <div className="py-3 text-center text-red-400">
-                            هیچ شعبه‌ای با موجودی این محصول یافت نشد
-                          </div>
-                        }
-                        dropdownStyle={{ textAlign: "right" }}
-                      >
-                        {branches.map((branch) => (
-                          <Option key={branch.branchid} value={branch.branchid}>
-                            {branch.name}
-                            {branch.quantity ? ` (موجودی: ${branch.quantity})` : ""}
-                          </Option>
-                        ))}
-                      </Select>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-4 space-y-2 text-right">
-                <label htmlFor="warrantycode" className="block text-sm font-medium text-gray-300">
-                  کد گارانتی
-                </label>
-                {!warrantyData.branchId && !isUpdate ? (
-                  <p className="mb-1 text-sm text-amber-400">
-                    برای تولید کد گارانتی ابتدا شعبه را انتخاب کنید
-                  </p>
-                ) : generatingCode ? (
-                  <div className="flex justify-center p-2">
-                    <Spin size="small" />
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      id="warrantycode"
-                      name="warrantycode"
-                      className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:bg-slate-700"
-                      value={warrantyData.warrantycode}
-                      disabled
-                      readOnly
-                      required
-                    />
-                    {!isUpdate && warrantyData.branchId && (
-                      <button
-                        type="button"
-                        onClick={generateWarrantyCode}
-                        aria-label="تولید مجدد کد گارانتی"
-                        className="rounded-lg bg-blue-700 px-2 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-600"
-                        disabled={generatingCode}
-                      >
-                        {generatingCode ? <Spin size="small" /> : <RotateCcw size={20} />}
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-4">
-                <div className="space-y-2 text-right">
-                  <label htmlFor="startdate" className="block text-sm font-medium text-gray-300">
-                    تاریخ شروع
-                  </label>
-                  <DatePicker
-                    defaultValue={new Date(warrantyData.startdate)}
-                    weekends={[5, 6]}
-                    round="x2"
-                    accentColor="#226bff"
-                    inputClass="w-full p-2 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-white text-right"
-                    className="z-[1000]"
-                    direction="rtl"
-                    onChange={handleStartDateChange}
-                  />
-                </div>
-
-                <div className="space-y-2 text-right">
-                  <label htmlFor="expirydate" className="block text-sm font-medium text-gray-300">
-                    تاریخ انقضا
-                  </label>
-                  <DatePicker
-                    defaultValue={new Date(warrantyData.expirydate)}
-                    weekends={[5, 6]}
-                    round="x2"
-                    accentColor="#226bff"
-                    inputClass="w-full p-2 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-white text-right"
-                    className="z-[1000]"
-                    direction="rtl"
-                    onChange={handleEndDateChange}
-                  />
-                </div>
-              </div>
-
-              {durationText && (
-                <>
-                  <div className="mt-4 text-center">
-                    <span className="text-xs text-gray-300">وضعیت گارانتی: </span>
-                    {nowTimestamp && new Date(warrantyData.expirydate).getTime() < nowTimestamp ? (
-                      <span className="text-xs text-red-400">منقضی شده</span>
-                    ) : (
-                      <span className="text-xs text-green-400">فعال</span>
-                    )}
-                    <span className="text-xs text-gray-500">
-                      {" "}
-                      (تعیین اتوماتیک براساس تاریخ انقضا)
-                    </span>
-                  </div>
-                  <div
-                    className={`mt-2 rounded p-2 text-center ${
-                      durationText.includes("باید") || durationText.includes("خطا")
-                        ? "bg-red-900/40 text-red-300"
-                        : "bg-blue-900/40 text-blue-300"
-                    }`}
-                  >
-                    <span>مدت گارانتی: {durationText}</span>
-                  </div>
-                </>
-              )}
-            </div>
-          </form>
-
-          <div className="no-print flex justify-between gap-4 p-6">
-            <div className="flex items-center">
-              {isUpdate && warrantyData.hasWarranty && (
-                <PrintButton
-                  onPrint={handleWarrantyPrint}
-                  className="flex items-center gap-2 rounded-lg bg-green-700 px-3 py-2 text-sm text-white hover:bg-green-600"
-                />
-              )}
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-lg bg-gray-700 px-4 py-2 text-white hover:bg-gray-600"
-              >
-                انصراف
-              </button>
-              <button
-                type="submit"
-                onClick={handleSubmit}
-                disabled={
-                  submittingCreate ||
-                  submittingDelete ||
-                  (warrantyData.hasWarranty &&
-                    (!warrantyData.warrantycode ||
-                      (!isUpdate && (branches.length === 0 || !warrantyData.branchId)) ||
-                      durationText?.includes("باید") ||
-                      durationText?.includes("خطا")))
-                }
-                className="rounded-lg bg-blue-700 px-4 py-2 text-white hover:bg-blue-600 disabled:bg-blue-900 disabled:text-gray-300"
-              >
-                {submittingCreate || submittingDelete
-                  ? "در حال پردازش..."
-                  : !warrantyData.hasWarranty && isUpdate
-                    ? "حذف گارانتی"
-                    : isUpdate
-                      ? "بروزرسانی گارانتی"
-                      : "ثبت گارانتی"}
-              </button>
-            </div>
-          </div>
+          {isUpdate ? (
+            <WarrantyUpdateMode
+              item={item}
+              selectedBranchName={selectedBranchName}
+              warrantyData={warrantyData}
+              handleStartDateChange={handleStartDateChange}
+              handleEndDateChange={handleEndDateChange}
+              handleWarrantyToggle={handleWarrantyToggle}
+              handleSubmit={handleSubmit}
+              durationText={durationText}
+              nowTimestamp={nowTimestamp}
+              onClose={onClose}
+              submittingCreate={submittingCreate}
+              submittingDelete={submittingDelete}
+              handleWarrantyPrint={handleWarrantyPrint}
+            />
+          ) : (
+            <WarrantyCreateMode
+              item={item}
+              branches={branches}
+              loadingBranches={loadingBranches}
+              warrantyData={warrantyData}
+              generatingCode={generatingCode}
+              handleBranchChange={handleBranchChange}
+              handleStartDateChange={handleStartDateChange}
+              handleEndDateChange={handleEndDateChange}
+              handleWarrantyToggle={handleWarrantyToggle}
+              generateWarrantyCode={generateWarrantyCode}
+              handleSubmit={handleSubmit}
+              durationText={durationText}
+              nowTimestamp={nowTimestamp}
+              onClose={onClose}
+              submittingCreate={submittingCreate}
+            />
+          )}
         </div>
 
-        {/* Print view - only show if hasWarranty is true */}
-        {warrantyData.hasWarranty && (
-          <div
-            ref={componentRef}
-            className={`warranty-print-view ${!showPrintView ? "hidden" : ""}`}
-          >
-            <div className="warranty-certificate">
-              <div className="mb-1 text-center">
-                <img
-                  src="/Farabak_Logo.webp"
-                  alt="Farabak Logo"
-                  width={100}
-                  height={100}
-                  className="mx-auto"
-                />
-                <h1 className="text-lg font-bold">کارت گارانتی</h1>
-              </div>
-
-              <div className="mt-1">
-                <div className="flex items-center justify-between border-b border-gray-200">
-                  <span className="text-sm font-semibold">کد گارانتی:</span>
-                  <span className="text-sm">{warrantyData.warrantycode}</span>
-                </div>
-
-                <div className="flex items-center justify-between border-b border-gray-200">
-                  <span className="text-sm font-semibold">محصول:</span>
-                  <span className="text-sm">{item.Name || `محصول #${item.ProductId}`}</span>
-                </div>
-
-                <div className="flex items-center justify-between border-b border-gray-200">
-                  <span className="text-sm font-semibold">تاریخ شروع:</span>
-                  <span className="text-sm" dir="ltr">
-                    {persianDateFormatter.format(new Date(warrantyData.startdate))}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between border-b border-gray-200">
-                  <span className="text-sm font-semibold">تاریخ انقضا:</span>
-                  <span className="text-sm" dir="ltr">
-                    {persianDateFormatter.format(new Date(warrantyData.expirydate))}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold">مدت گارانتی:</span>
-                  <span className="text-sm">{durationText}</span>
-                </div>
-              </div>
-
-              <div className="mt-2 border-t border-gray-200 pt-1 text-center text-xs">
-                <p>www.farabak.net</p>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Print view */}
+        <WarrantyPrintMode
+          warrantyData={warrantyData}
+          item={item}
+          durationText={durationText}
+          showPrintView={showPrintView}
+          printRef={componentRef}
+          persianDateFormatter={persianDateFormatter}
+        />
       </div>
 
       <style jsx global>{`
