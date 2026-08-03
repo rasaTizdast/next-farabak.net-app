@@ -1,7 +1,6 @@
-import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -51,8 +50,6 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
   } catch (error) {
     console.error("Error fetching product FAQs:", error);
     return NextResponse.json({ error: "Failed to fetch product FAQs" }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -134,7 +131,5 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
   } catch (error) {
     console.error("Error updating product FAQs:", error);
     return NextResponse.json({ error: "Failed to update product FAQs" }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

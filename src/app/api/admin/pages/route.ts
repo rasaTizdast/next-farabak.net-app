@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -62,6 +63,8 @@ type SubPage = {
  *           type: string
  */
 export async function GET() {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     // Fetch members, blogs, and projects in parallel
     const [members, blogs, projects] = await Promise.all([

@@ -1,16 +1,7 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
 
 /**
  * @swagger
@@ -61,17 +52,10 @@ async function verifyToken(token: string) {
  */
 
 export async function POST(req: Request) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value;
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
 
-  if (!token) {
-    return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
-  }
-
-  const decoded = await verifyToken(token);
-  const userRole = decoded.role;
-
-  if (!userRole || userRole !== "Admin") {
+  if (auth.role !== "Admin") {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 

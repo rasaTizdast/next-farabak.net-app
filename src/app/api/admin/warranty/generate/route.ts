@@ -1,16 +1,7 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { requireAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
 
 export const dynamic = "force-dynamic";
 
@@ -20,18 +11,13 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     // Auth check
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json({ error: "Authorization token required" }, { status: 401 });
-    }
-
-    const decoded = await verifyToken(token);
-    const userRole = decoded.role;
+    const userRole = auth.role;
 
     // Only admin or branch users can generate warranty codes
-    if (!userRole || (userRole !== "Admin" && userRole !== "Branch")) {
+    if (userRole !== "Admin" && userRole !== "Branch") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -54,13 +40,13 @@ export async function POST(request: Request) {
       warrantyCode = `${branchCode}-${yearMonth}-${randomCode}`;
 
       // Check if code exists in database
-      const existingCode = await prisma.$queryRaw`
+      const existingCode = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT "warrantycode" FROM "info"."warranty"
         WHERE "warrantycode" = ${warrantyCode}
         LIMIT 1
       `;
 
-      isUnique = (existingCode as any[]).length === 0;
+      isUnique = existingCode.length === 0;
     }
 
     // If we couldn't generate a unique code after max attempts, use timestamp as fallback

@@ -1,8 +1,7 @@
-import { PrismaClient } from "@prisma/client";
 import { S3 } from "aws-sdk";
 import { NextResponse } from "next/server";
 
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 // Initialize S3 client
 const s3 = new S3({
@@ -67,7 +66,5 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
   } catch (error) {
     console.error("Error deleting overview detail:", error);
     return NextResponse.json({ error: "Failed to delete overview detail" }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

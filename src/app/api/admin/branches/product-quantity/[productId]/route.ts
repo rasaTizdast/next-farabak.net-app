@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -22,17 +23,19 @@ import { prisma } from "@/lib/prisma";
  */
 export async function GET(request: Request, props: { params: Promise<{ productId: string }> }) {
   const params = await props.params;
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const productId = parseInt(params.productId);
 
     // Get the total quantity of the product across all branches
-    const result = await prisma.$queryRaw`
+    const result = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT COALESCE(SUM("quantity"), 0) as "totalQuantity"
       FROM "support"."branchproduct"
       WHERE "ProductId" = ${productId}
     `;
 
-    const totalQuantity = (result as any[])[0]?.totalQuantity || 0;
+    const totalQuantity = (result[0]?.totalQuantity as number) || 0;
 
     return NextResponse.json({
       productId,

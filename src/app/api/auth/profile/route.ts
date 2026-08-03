@@ -1,16 +1,8 @@
-import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
 
 /**
  * @swagger
@@ -92,7 +84,7 @@ export async function GET(): Promise<NextResponse> {
     const decoded = await verifyToken(token);
 
     const user = await prisma.client.findUnique({
-      where: { UserID: decoded.userId as number },
+      where: { UserID: parseInt(decoded.userId, 10) },
       select: {
         UserID: true,
         Username: true,
@@ -152,7 +144,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     }
 
     await prisma.client.update({
-      where: { UserID: decoded.userId as number },
+      where: { UserID: parseInt(decoded.userId, 10) },
       data: {
         FirstName: updates.firstName,
         LastName: updates.lastName,

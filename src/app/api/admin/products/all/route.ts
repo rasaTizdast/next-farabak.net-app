@@ -1,16 +1,8 @@
-import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
 
 export const dynamic = "force-dynamic";
 

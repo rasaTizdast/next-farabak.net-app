@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     }
 
     // Check if warranty exists and get its details
-    const warranty = await prisma.$queryRaw`
+    const warranty = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT w.*, i."Fullname" as customer_name, i."Phonenumber" as customer_phone 
       FROM "info"."warranty" w
       LEFT JOIN "info"."Invoice_Details" id ON w."invoicedetailid" = id."Invoice_Details"
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
     if (confirm) {
       // If warranty is active, update status to "Requested"
       if (warrantyData.status === "Active" && !isExpired) {
-        await prisma.$queryRaw`
+        await prisma.$queryRaw<Record<string, unknown>[]>`
           UPDATE "info"."warranty"
           SET "status" = 'Requested'
           WHERE "warrantyid" = ${warrantyData.warrantyid}
@@ -145,7 +145,7 @@ export async function POST(request: Request) {
 
     // Legacy path for backward compatibility
     if (warrantyData.status === "Active" && !isExpired) {
-      await prisma.$queryRaw`
+      await prisma.$queryRaw<Record<string, unknown>[]>`
         UPDATE "info"."warranty"
         SET "status" = 'Requested'
         WHERE "warrantyid" = ${warrantyData.warrantyid}

@@ -1,32 +1,18 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { requireAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
-
 export async function POST(request: Request) {
   try {
     // Auth check
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json({ error: "Authorization token required" }, { status: 401 });
-    }
-
-    const decoded = await verifyToken(token);
-    const userRole = decoded.role;
+    const userRole = auth.role;
 
     // Only admin or branch users can manage warranties
-    if (!userRole || (userRole !== "Admin" && userRole !== "Branch")) {
+    if (userRole !== "Admin" && userRole !== "Branch") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -39,17 +25,17 @@ export async function POST(request: Request) {
 
     // For branch users, verify they can only update warranties for their own branch
     if (userRole === "Branch") {
-      const userId = decoded.userId || decoded.id || decoded.sub;
-      const branch = await prisma.$queryRaw`
+      const userId = auth.userId;
+      const branch = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT "branchid" FROM "support"."branch"
         WHERE "UserID" = ${Number(userId)}
       `;
 
-      if (!branch || (branch as any[]).length === 0) {
+      if (!branch || branch.length === 0) {
         return NextResponse.json({ error: "No branch found for this user" }, { status: 403 });
       }
 
-      const branchId = (branch as any[])[0].branchid;
+      const branchId = branch[0].branchid as number;
 
       // Verify that this warranty belongs to the branch
       if (warrantyData.warrantyid) {
@@ -124,7 +110,7 @@ export async function POST(request: Request) {
         }),
 
         // Find and update old branch product - can't use upsert with composite key
-        prisma.$queryRaw`
+        prisma.$queryRaw<Record<string, unknown>[]>`
           UPDATE "support"."branchproduct" 
           SET "quantity" = "quantity" + 1
           WHERE "branchid" = ${currentWarranty.branchid}

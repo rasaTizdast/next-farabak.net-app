@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -32,6 +33,8 @@ import { prisma } from "@/lib/prisma";
  *         description: Server error
  */
 export async function GET(request: Request) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const url = new URL(request.url);
     const productId = url.searchParams.get("productId");
@@ -44,14 +47,14 @@ export async function GET(request: Request) {
     let totalBranchCount = 0;
 
     // Always get total count of branches for reference
-    const allBranchesCount = await prisma.$queryRaw`
+    const allBranchesCount = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT COUNT(*) as total FROM "support"."branch"
     `;
-    totalBranchCount = Number((allBranchesCount as any[])[0].total);
+    totalBranchCount = Number(allBranchesCount[0].total);
 
     if (productId) {
       // First get total count of branches that have this product
-      const countResult = await prisma.$queryRaw`
+      const countResult = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT COUNT(*) as total
         FROM "support"."branch" b
         WHERE EXISTS (
@@ -60,10 +63,10 @@ export async function GET(request: Request) {
         )
       `;
 
-      totalCount = Number((countResult as any[])[0].total);
+      totalCount = Number(countResult[0].total);
 
       // If productId is provided, filter branches that have this product with pagination
-      branchesWithCounts = await prisma.$queryRaw`
+      branchesWithCounts = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT 
           b."branchid",
           b."UserID",
@@ -93,15 +96,15 @@ export async function GET(request: Request) {
       `;
     } else {
       // Get total count of branches
-      const countResult = await prisma.$queryRaw`
+      const countResult = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT COUNT(*) as total FROM "support"."branch"
       `;
 
-      totalCount = Number((countResult as any[])[0].total);
+      totalCount = Number(countResult[0].total);
       totalBranchCount = totalCount;
 
       // Get all branches with product counts and total quantities with pagination
-      branchesWithCounts = await prisma.$queryRaw`
+      branchesWithCounts = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT 
           b."branchid",
           b."UserID",
@@ -122,7 +125,7 @@ export async function GET(request: Request) {
     }
 
     // Convert any BigInt values to regular Numbers
-    const sanitizedData = (branchesWithCounts as any[]).map((branch) => {
+    const sanitizedData = branchesWithCounts.map((branch) => {
       const sanitizedBranch: Record<string, any> = {};
 
       for (const [key, value] of Object.entries(branch)) {
@@ -193,6 +196,8 @@ export async function GET(request: Request) {
  *         description: Server error
  */
 export async function POST(request: Request) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const body = await request.json();
     const { userId, name, location } = body;
@@ -202,40 +207,40 @@ export async function POST(request: Request) {
     }
 
     // Check if user exists in info schema
-    const user = await prisma.$queryRaw`
+    const user = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM "info"."Client" 
       WHERE "UserID" = ${parseInt(userId)}
     `;
 
-    if (!user || (user as any[]).length === 0) {
+    if (!user || user.length === 0) {
       return NextResponse.json({ error: "کاربر مورد نظر پیدا نشد" }, { status: 404 });
     }
 
     // Check if branch name is already taken in support schema
-    const existingBranch = await prisma.$queryRaw`
+    const existingBranch = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM "support"."branch" 
       WHERE "name" = ${name}
     `;
 
-    if ((existingBranch as any[]).length > 0) {
+    if (existingBranch.length > 0) {
       return NextResponse.json({ error: "این نام شعبه قبلاً استفاده شده است" }, { status: 400 });
     }
 
     // Create new branch in support schema
-    const newBranch = await prisma.$queryRaw`
+    const newBranch = await prisma.$queryRaw<Record<string, unknown>[]>`
       INSERT INTO "support"."branch" ("UserID", "name", "location")
       VALUES (${parseInt(userId)}, ${name}, ${location})
       RETURNING *
     `;
 
     // Update user role to Branch in the Client model
-    await prisma.$queryRaw`
+    await prisma.$queryRaw<Record<string, unknown>[]>`
       UPDATE "info"."Client"
       SET "Role" = 'Branch'
       WHERE "UserID" = ${parseInt(userId)}
     `;
 
-    return NextResponse.json((newBranch as any[])[0], { status: 201 });
+    return NextResponse.json(newBranch[0], { status: 201 });
   } catch (error) {
     console.error("Error creating branch:", error);
     return NextResponse.json({ error: "خطا در ایجاد شعبه" }, { status: 500 });

@@ -4,8 +4,15 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma"; // Ensure you have a prisma client instance
 
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "your_refresh_token_secret";
+const JWT_SECRET = process.env.JWT_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error("Missing JWT_SECRET environment variable");
+}
+if (!REFRESH_TOKEN_SECRET) {
+  throw new Error("Missing REFRESH_TOKEN_SECRET environment variable");
+}
 
 export async function POST(request: Request) {
   try {

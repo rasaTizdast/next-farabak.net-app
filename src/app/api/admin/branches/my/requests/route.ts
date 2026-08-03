@@ -1,78 +1,18 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
+import { formatBigIntResults } from "@/lib/formatBigInt";
 import { prisma } from "@/lib/prisma";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
 export const dynamic = "force-dynamic";
-
-// Helper function to verify the JWT token
-async function verifyCurrentUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const secret = new TextEncoder().encode(JWT_SECRET);
-    const { payload } = await jwtVerify(token, secret);
-    return {
-      id: payload.userId as string,
-      role: payload.role as string,
-      branchId: payload.branchId as number,
-    };
-  } catch (error) {
-    console.error("Token verification failed:", error);
-    return null;
-  }
-}
-
-// Helper function to format BigInt results to Number
-const formatBigIntResults = (results: any[]) => {
-  if (!Array.isArray(results)) return [];
-
-  return results.map((row) => {
-    if (!row) return row;
-
-    // Convert any BigInt values to Number for JSON serialization
-    const formattedRow: any = {};
-    Object.entries(row).forEach(([key, value]) => {
-      if (typeof value === "bigint") {
-        formattedRow[key] = Number(value);
-      } else {
-        formattedRow[key] = value;
-      }
-    });
-    return formattedRow;
-  });
-};
 
 export async function GET(req: NextRequest) {
   try {
     // Verify branch owner
-    const currentUser = await verifyCurrentUser();
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!currentUser) {
-      return NextResponse.json(
-        {
-          error: "احراز هویت الزامی است - لطفا وارد شوید",
-          requests: [],
-          pagination: {
-            currentPage: 1,
-            pageSize: 10,
-            totalCount: 0,
-            totalPages: 0,
-          },
-        },
-        { status: 401 }
-      );
-    }
-
-    if (currentUser.role !== "Branch") {
+    if (auth.role !== "Branch") {
       return NextResponse.json(
         {
           error: "دسترسی غیرمجاز - فقط مدیران شعبه",
@@ -99,7 +39,7 @@ export async function GET(req: NextRequest) {
 
     try {
       // Get branch-specific requests with pagination
-      requests = await prisma.$queryRaw`
+      requests = await prisma.$queryRaw<any[]>`
         SELECT 
           w."warrantyid", 
           w."warrantycode", 
@@ -116,7 +56,7 @@ export async function GET(req: NextRequest) {
         LEFT JOIN "info"."Invoice_Details" id ON w."invoicedetailid" = id."Invoice_Details"
         LEFT JOIN "info"."Invoice" i ON id."Invoiceid" = i."Invoiceid"
         WHERE w."status" = 'Requested'
-        AND b."UserID" = ${currentUser.id}
+        AND b."UserID" = ${auth.userId}
         ORDER BY w."warrantyid" DESC
         LIMIT ${limit} OFFSET ${offset}
       `;
@@ -127,12 +67,12 @@ export async function GET(req: NextRequest) {
 
     try {
       // Count total for pagination
-      const countResult = await prisma.$queryRaw`
+      const countResult = await prisma.$queryRaw<{ count: number }[]>`
         SELECT COUNT(*)::integer as count
         FROM "info"."warranty" w
         JOIN "support"."branch" b ON w."branchid" = b."branchid"
         WHERE w."status" = 'Requested'
-        AND b."UserID" = ${currentUser.id}
+        AND b."UserID" = ${auth.userId}
       `;
 
       totalCount =

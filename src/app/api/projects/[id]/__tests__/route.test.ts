@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockPrisma, mockS3Instance } = vi.hoisted(() => ({
@@ -41,7 +42,7 @@ describe("GET /api/projects/[id]", () => {
     };
     mockPrisma.projects.findUnique.mockResolvedValue(mockProject);
 
-    const res = await GET(new Request("http://localhost"), {
+    const res = await GET(new NextRequest("http://localhost"), {
       params: Promise.resolve({ id: "1" }),
     });
     const body = await res.json();
@@ -54,7 +55,7 @@ describe("GET /api/projects/[id]", () => {
   it("should return 404 when project not found", async () => {
     mockPrisma.projects.findUnique.mockResolvedValue(null);
 
-    const res = await GET(new Request("http://localhost"), {
+    const res = await GET(new NextRequest("http://localhost"), {
       params: Promise.resolve({ id: "999" }),
     });
     const body = await res.json();
@@ -66,7 +67,7 @@ describe("GET /api/projects/[id]", () => {
   it("should return 500 on error", async () => {
     mockPrisma.projects.findUnique.mockRejectedValue(new Error("DB error"));
 
-    const res = await GET(new Request("http://localhost"), {
+    const res = await GET(new NextRequest("http://localhost"), {
       params: Promise.resolve({ id: "1" }),
     });
     const body = await res.json();
@@ -87,7 +88,7 @@ describe("PUT /api/projects/[id]", () => {
     const fd = new FormData();
     fd.append("title", "P1");
     fd.append("slug", "p1");
-    const req = new Request("http://localhost", { method: "PUT", body: fd });
+    const req = new NextRequest("http://localhost", { method: "PUT", body: fd });
 
     const res = await PUT(req, { params: Promise.resolve({ id: "999" }) });
     const body = await res.json();
@@ -104,7 +105,7 @@ describe("PUT /api/projects/[id]", () => {
     const fd = new FormData();
     fd.append("title", "P1");
     fd.append("slug", "new-slug");
-    const req = new Request("http://localhost", { method: "PUT", body: fd });
+    const req = new NextRequest("http://localhost", { method: "PUT", body: fd });
 
     const res = await PUT(req, { params: Promise.resolve({ id: "1" }) });
     const body = await res.json();
@@ -119,7 +120,7 @@ describe("PUT /api/projects/[id]", () => {
     const fd = new FormData();
     fd.append("title", "P1");
     fd.append("slug", "p1");
-    const req = new Request("http://localhost", { method: "PUT", body: fd });
+    const req = new NextRequest("http://localhost", { method: "PUT", body: fd });
 
     const res = await PUT(req, { params: Promise.resolve({ id: "1" }) });
     const body = await res.json();
@@ -147,7 +148,7 @@ describe("DELETE /api/projects/[id]", () => {
     };
     mockS3Instance.listObjectsV2.mockResolvedValue(mockListResult);
 
-    const res = await DELETE(new Request("http://localhost", { method: "DELETE" }), {
+    const res = await DELETE(new NextRequest("http://localhost", { method: "DELETE" }), {
       params: Promise.resolve({ id: "1" }),
     });
     const body = await res.json();
@@ -161,7 +162,7 @@ describe("DELETE /api/projects/[id]", () => {
   it("should return 404 when project not found", async () => {
     mockPrisma.projects.findUnique.mockResolvedValue(null);
 
-    const res = await DELETE(new Request("http://localhost", { method: "DELETE" }), {
+    const res = await DELETE(new NextRequest("http://localhost", { method: "DELETE" }), {
       params: Promise.resolve({ id: "999" }),
     });
     const body = await res.json();
@@ -173,7 +174,7 @@ describe("DELETE /api/projects/[id]", () => {
   it("should return 500 on error", async () => {
     mockPrisma.projects.findUnique.mockRejectedValue(new Error("DB error"));
 
-    const res = await DELETE(new Request("http://localhost", { method: "DELETE" }), {
+    const res = await DELETE(new NextRequest("http://localhost", { method: "DELETE" }), {
       params: Promise.resolve({ id: "1" }),
     });
     const body = await res.json();

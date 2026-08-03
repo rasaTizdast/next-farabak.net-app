@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockPrisma } = vi.hoisted(() => ({
@@ -66,7 +67,7 @@ describe("POST /api/warehouses", () => {
     const mockWarehouse = { id: 1, name: "Warehouse A", location: "Tehran" };
     mockPrisma.warehouse.create.mockResolvedValue(mockWarehouse);
 
-    const req = new Request("http://localhost/api/warehouses", {
+    const req = new NextRequest("http://localhost/api/warehouses", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: "Warehouse A", location: "Tehran" }),
@@ -82,7 +83,7 @@ describe("POST /api/warehouses", () => {
   it("should return 500 on error", async () => {
     mockPrisma.warehouse.create.mockRejectedValue(new Error("DB error"));
 
-    const req = new Request("http://localhost/api/warehouses", {
+    const req = new NextRequest("http://localhost/api/warehouses", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: "Warehouse A", location: "Tehran" }),

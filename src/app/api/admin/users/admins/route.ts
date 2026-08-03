@@ -1,10 +1,13 @@
 // app/api/admins/route.ts
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma"; // Assuming you have a prisma client setup
 
 // Fetch all admins
 export async function GET() {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   const admins = await prisma.client.findMany({
     where: {
       Role: "Admin",
@@ -23,6 +26,8 @@ export async function GET() {
 
 // Demote an admin to "Public"
 export async function POST(request: Request) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   const { userId } = await request.json();
 
   if (!userId) {

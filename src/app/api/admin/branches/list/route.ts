@@ -1,31 +1,9 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
 export const dynamic = "force-dynamic";
-
-// Helper function to verify the JWT token
-async function verifyToken() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const secret = new TextEncoder().encode(JWT_SECRET);
-    const { payload } = await jwtVerify(token, secret);
-    return payload;
-  } catch (error) {
-    console.error("Token verification failed:", error);
-    return null;
-  }
-}
 
 /**
  * GET handler for fetching all branches for dropdowns
@@ -33,15 +11,10 @@ async function verifyToken() {
  */
 export async function GET() {
   try {
-    // Verify authentication
-    const tokenPayload = await verifyToken();
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!tokenPayload) {
-      return NextResponse.json({ error: "احراز هویت الزامی است" }, { status: 401 });
-    }
-
-    // Get user role from token
-    const userRole = tokenPayload.role;
+    const userRole = auth.role;
 
     // Only Admin or Branch users can see branches
     if (userRole !== "Admin" && userRole !== "Branch") {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -45,6 +46,8 @@ export async function PUT(
   props: { params: Promise<{ branchId: string; productId: string }> }
 ) {
   const params = await props.params;
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const branchId = parseInt(params.branchId);
     const productId = parseInt(params.productId);
@@ -55,24 +58,24 @@ export async function PUT(
     }
 
     // Check if branch product exists
-    const branchProductResult = await prisma.$queryRaw`
+    const branchProductResult = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM "support"."branchproduct"
       WHERE "branchid" = ${branchId} AND "ProductId" = ${productId}
     `;
 
-    if ((branchProductResult as any[]).length === 0) {
+    if (branchProductResult.length === 0) {
       return NextResponse.json({ error: "محصول در این شعبه یافت نشد" }, { status: 404 });
     }
 
     // Update product quantity
-    const updatedProduct = await prisma.$queryRaw`
+    const updatedProduct = await prisma.$queryRaw<Record<string, unknown>[]>`
       UPDATE "support"."branchproduct"
       SET "quantity" = ${quantity}
       WHERE "branchid" = ${branchId} AND "ProductId" = ${productId}
       RETURNING *
     `;
 
-    return NextResponse.json((updatedProduct as any[])[0]);
+    return NextResponse.json(updatedProduct[0]);
   } catch (error) {
     console.error("Error updating branch product:", error);
     return NextResponse.json({ error: "خطا در بروزرسانی محصول شعبه" }, { status: 500 });
@@ -110,22 +113,24 @@ export async function DELETE(
   props: { params: Promise<{ branchId: string; productId: string }> }
 ) {
   const params = await props.params;
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const branchId = parseInt(params.branchId);
     const productId = parseInt(params.productId);
 
     // Check if branch product exists
-    const branchProductResult = await prisma.$queryRaw`
+    const branchProductResult = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM "support"."branchproduct"
       WHERE "branchid" = ${branchId} AND "ProductId" = ${productId}
     `;
 
-    if ((branchProductResult as any[]).length === 0) {
+    if (branchProductResult.length === 0) {
       return NextResponse.json({ error: "محصول در این شعبه یافت نشد" }, { status: 404 });
     }
 
     // Delete branch product
-    await prisma.$queryRaw`
+    await prisma.$queryRaw<Record<string, unknown>[]>`
       DELETE FROM "support"."branchproduct"
       WHERE "branchid" = ${branchId} AND "ProductId" = ${productId}
     `;

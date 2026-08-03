@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -24,23 +25,25 @@ import { prisma } from "@/lib/prisma";
  */
 export async function GET(request: Request, props: { params: Promise<{ branchId: string }> }) {
   const params = await props.params;
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const branchId = parseInt(params.branchId);
 
     // Check if branch exists
-    const branchResult = await prisma.$queryRaw`
+    const branchResult = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM "support"."branch"
       WHERE "branchid" = ${branchId}
     `;
 
-    const branch = (branchResult as any[])[0];
+    const branch = branchResult[0];
 
     if (!branch) {
       return NextResponse.json({ error: "شعبه یافت نشد" }, { status: 404 });
     }
 
     // Get all branch products with product details without pagination
-    const branchProducts = await prisma.$queryRaw`
+    const branchProducts = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT 
         bp."branchproductid",
         bp."branchid",
@@ -98,6 +101,8 @@ export async function GET(request: Request, props: { params: Promise<{ branchId:
  */
 export async function POST(request: Request, props: { params: Promise<{ branchId: string }> }) {
   const params = await props.params;
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const branchId = parseInt(params.branchId);
     const { productId, quantity } = await request.json();
@@ -107,51 +112,51 @@ export async function POST(request: Request, props: { params: Promise<{ branchId
     }
 
     // Check if branch exists
-    const branchResult = await prisma.$queryRaw`
+    const branchResult = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM "support"."branch"
       WHERE "branchid" = ${branchId}
     `;
 
-    if ((branchResult as any[]).length === 0) {
+    if (branchResult.length === 0) {
       return NextResponse.json({ error: "شعبه یافت نشد" }, { status: 404 });
     }
 
     // Check if product exists
-    const productResult = await prisma.$queryRaw`
+    const productResult = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM "support"."Product"
       WHERE "ProductId" = ${productId}
     `;
 
-    if ((productResult as any[]).length === 0) {
+    if (productResult.length === 0) {
       return NextResponse.json({ error: "محصول یافت نشد" }, { status: 404 });
     }
 
     // Check if product already exists in branch
-    const existingProduct = await prisma.$queryRaw`
+    const existingProduct = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM "support"."branchproduct"
       WHERE "branchid" = ${branchId} AND "ProductId" = ${productId}
     `;
 
-    if ((existingProduct as any[]).length > 0) {
+    if (existingProduct.length > 0) {
       // If product exists, update quantity
-      const updatedProduct = await prisma.$queryRaw`
+      const updatedProduct = await prisma.$queryRaw<Record<string, unknown>[]>`
         UPDATE "support"."branchproduct"
         SET "quantity" = "quantity" + ${quantity}
         WHERE "branchid" = ${branchId} AND "ProductId" = ${productId}
         RETURNING *
       `;
 
-      return NextResponse.json((updatedProduct as any[])[0], { status: 200 });
+      return NextResponse.json(updatedProduct[0], { status: 200 });
     }
 
     // Add product to branch
-    const newBranchProduct = await prisma.$queryRaw`
+    const newBranchProduct = await prisma.$queryRaw<Record<string, unknown>[]>`
       INSERT INTO "support"."branchproduct" ("branchid", "ProductId", "quantity")
       VALUES (${branchId}, ${productId}, ${quantity})
       RETURNING *
     `;
 
-    return NextResponse.json((newBranchProduct as any[])[0], { status: 201 });
+    return NextResponse.json(newBranchProduct[0], { status: 201 });
   } catch (error) {
     console.error("Error adding product to branch:", error);
     return NextResponse.json({ error: "خطا در افزودن محصول به شعبه" }, { status: 500 });

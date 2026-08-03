@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function PUT(
@@ -7,6 +8,8 @@ export async function PUT(
   props: { params: Promise<{ warehouseId: string; productId: string }> }
 ) {
   const params = await props.params;
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const warehouseId = parseInt(params.warehouseId);
     const productId = parseInt(params.productId);
@@ -86,6 +89,8 @@ export async function DELETE(
   props: { params: Promise<{ warehouseId: string; productId: string }> }
 ) {
   const params = await props.params;
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const warehouseId = parseInt(params.warehouseId);
     const productId = parseInt(params.productId);

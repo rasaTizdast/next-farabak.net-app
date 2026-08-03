@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request, props: { params: Promise<{ invoiceId: string }> }) {
   const params = await props.params;
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const invoiceId = parseInt(params.invoiceId);
 
@@ -14,7 +17,7 @@ export async function GET(request: Request, props: { params: Promise<{ invoiceId
     }
 
     // Fetch the specific invoice
-    const invoiceData = await prisma.$queryRaw`
+    const invoiceData = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT 
         i."Invoiceid", i."FactorGuid", i."Fullname", i."Phonenumber",
         i."UserId", i."TotalAmount", i."Checked", i."Date"
@@ -25,14 +28,14 @@ export async function GET(request: Request, props: { params: Promise<{ invoiceId
     `;
 
     // Check if invoice exists
-    if (!invoiceData || (invoiceData as any[]).length === 0) {
+    if (!invoiceData || invoiceData.length === 0) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
     }
 
-    const invoice = (invoiceData as any[])[0];
+    const invoice = invoiceData[0];
 
     // Get invoice details
-    const details = await prisma.$queryRaw`
+    const details = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT 
         id."Invoice_Details", id."ProductId", id."quantity", 
         id."price", id."total_price"
@@ -43,7 +46,7 @@ export async function GET(request: Request, props: { params: Promise<{ invoiceId
     `;
 
     // Get warranties for this invoice's products
-    const warranties = await prisma.$queryRaw`
+    const warranties = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT 
         w."warrantyid", w."invoicedetailid", w."warrantycode", w."branchid",
         w."startdate", w."expirydate", w."status", w."ProductId"
@@ -55,8 +58,29 @@ export async function GET(request: Request, props: { params: Promise<{ invoiceId
         id."Invoiceid" = ${invoiceId}
     `;
 
+    interface WarrantyRaw {
+  warrantyid: number;
+  invoicedetailid: number;
+  warrantycode: string;
+  branchid: number | string;
+  startdate: Date | string;
+  expirydate: Date | string;
+  status: string;
+  ProductId: number;
+  [key: string]: unknown;
+}
+
+interface InvoiceDetailRaw {
+  Invoice_Details: number;
+  ProductId: number;
+  quantity: number;
+  price: number;
+  total_price: number;
+  [key: string]: unknown;
+}
+
     // Process warranty status
-    const processedWarranties = (warranties as any[]).map((warranty) => {
+    const processedWarranties = (warranties as WarrantyRaw[]).map((warranty) => {
       const today = new Date();
       const expiryDate = new Date(warranty.expirydate);
 
@@ -75,7 +99,18 @@ export async function GET(request: Request, props: { params: Promise<{ invoiceId
     });
 
     // Group warranties by invoice detail and product
-    const warrantiesByDetail = processedWarranties.reduce((acc, warranty) => {
+    const warrantiesByDetail = processedWarranties.reduce<Record<number, {
+      warrantyid: number;
+      invoicedetailid: number;
+      warrantycode: string;
+      branchid: number | string;
+      startdate: Date | string;
+      expirydate: Date | string;
+      status: string;
+      ProductId: number;
+      displayStatus: string;
+      warrantycodes: { code: string; startdate: Date | string; expirydate: Date | string; status: string }[];
+    }>>((acc, warranty) => {
       const key = warranty.invoicedetailid;
       if (!acc[key]) {
         acc[key] = {
@@ -102,7 +137,7 @@ export async function GET(request: Request, props: { params: Promise<{ invoiceId
     }, {});
 
     // Map warranty data to invoice details
-    const detailsWithWarranty = (details as any[]).map((detail) => {
+    const detailsWithWarranty = (details as InvoiceDetailRaw[]).map((detail) => {
       const warranty = warrantiesByDetail[detail.Invoice_Details];
 
       return {

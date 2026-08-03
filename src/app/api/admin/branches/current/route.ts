@@ -1,12 +1,10 @@
-import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
 /**
  * @swagger
@@ -38,11 +36,11 @@ export async function GET() {
 
     try {
       // Verify and decode JWT
-      const { payload } = await jwtVerify(accessToken, new TextEncoder().encode(JWT_SECRET));
+      const payload = await verifyToken(accessToken);
 
       // The userId can be stored under different keys in the payload
       // Check common keys: userId, id, sub
-      const userId = payload.userId || payload.id || payload.sub;
+      const userId = (payload as any).userId || (payload as any).id || (payload as any).sub;
 
       if (!userId) {
         console.error("JWT payload missing userId:", payload);
@@ -53,12 +51,12 @@ export async function GET() {
       }
 
       // Get branch for this user
-      const branch = await prisma.$queryRaw`
+      const branch = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT "branchid", "name", "location" FROM "support"."branch"
         WHERE "UserID" = ${Number(userId)}
       `;
 
-      if (!branch || (branch as any[]).length === 0) {
+      if (!branch || branch.length === 0) {
         return NextResponse.json({ error: "هیچ شعبه‌ای برای این کاربر یافت نشد" }, { status: 404 });
       }
 

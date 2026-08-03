@@ -1,19 +1,37 @@
 import moment from "jalali-moment";
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET;
 
 export const dynamic = "force-dynamic";
 
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
+interface InvoiceRaw {
+  Invoiceid: number;
+  Checked: boolean;
+  Date: string | null;
+  [key: string]: unknown;
+}
+
+interface WarrantyRaw {
+  warrantyid: number;
+  invoicedetailid: number;
+  warrantycode: string;
+  branchid: number | string;
+  startdate: Date | string;
+  expirydate: Date | string;
+  status: string;
+  [key: string]: unknown;
+}
+
+interface InvoiceDetailRaw {
+  Invoice_Details: number;
+  ProductId: number;
+  quantity: number;
+  price: number;
+  total_price: number;
+  [key: string]: unknown;
 }
 
 /**
@@ -59,7 +77,7 @@ async function generateShortGuid(): Promise<string> {
 export async function GET() {
   try {
     // First, fetch all invoices with basic information
-    let invoices = await prisma.$queryRaw`
+    let invoices = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT 
         i."Invoiceid", i."FactorGuid", i."Fullname", i."Phonenumber",
         i."UserId", i."TotalAmount", i."Checked", i."Date"
@@ -71,10 +89,10 @@ export async function GET() {
 
     // Check for expired invoices (older than 48 hours) and delete them if not checked
     const now = moment();
-    const validInvoices: any[] = [];
+    const validInvoices: InvoiceRaw[] = [];
     const deletedInvoiceIds: number[] = [];
 
-    for (const invoice of invoices as any[]) {
+    for (const invoice of invoices as InvoiceRaw[]) {
       // Skip already checked invoices
       if (invoice.Checked) {
         validInvoices.push(invoice);
@@ -153,10 +171,10 @@ export async function GET() {
 
     // For each invoice, get its details and warranties
     const invoicesWithDetails = await Promise.all(
-      (invoices as any[]).map(async (invoice) => {
+      invoices.map(async (invoice) => {
         // Get invoice details and warranties in parallel
         const [details, warranties] = await Promise.all([
-          prisma.$queryRaw`
+          prisma.$queryRaw<Record<string, unknown>[]>`
             SELECT
               id."Invoice_Details", id."ProductId", id."quantity",
               id."price", id."total_price"
@@ -165,7 +183,7 @@ export async function GET() {
             WHERE
               id."Invoiceid" = ${invoice.Invoiceid}
           `,
-          prisma.$queryRaw`
+          prisma.$queryRaw<Record<string, unknown>[]>`
             SELECT
               w."warrantyid", w."invoicedetailid", w."warrantycode",
               w."startdate", w."expirydate", w."status", w."ProductId", w."branchid"
@@ -179,7 +197,7 @@ export async function GET() {
         ]);
 
         // Process warranty status
-        const processedWarranties = (warranties as any[]).map((warranty) => {
+        const processedWarranties = (warranties as WarrantyRaw[]).map((warranty) => {
           const today = new Date();
           const expiryDate = new Date(warranty.expirydate);
 
@@ -198,7 +216,17 @@ export async function GET() {
         });
 
         // Group warranties by invoice detail and product
-        const warrantiesByDetail = processedWarranties.reduce((acc, warranty) => {
+        const warrantiesByDetail = processedWarranties.reduce<Record<number, {
+          warrantyid: number;
+          invoicedetailid: number;
+          warrantycode: string;
+          branchid: number | string;
+          startdate: Date | string;
+          expirydate: Date | string;
+          status: string;
+          displayStatus: string;
+          warrantycodes: { code: string; startdate: Date | string; expirydate: Date | string; status: string; branchid: number | string }[];
+        }>>((acc, warranty) => {
           const key = warranty.invoicedetailid;
           if (!acc[key]) {
             acc[key] = {
@@ -227,7 +255,7 @@ export async function GET() {
         }, {});
 
         // Map warranty data to invoice details
-        const detailsWithWarranty = (details as any[]).map((detail) => {
+        const detailsWithWarranty = (details as InvoiceDetailRaw[]).map((detail) => {
           const warranty = warrantiesByDetail[detail.Invoice_Details];
 
           return {
@@ -237,7 +265,7 @@ export async function GET() {
         });
 
         // Sort details by ProductId to group same products together
-        const sortedDetails = detailsWithWarranty.toSorted((a, b) => {
+        const sortedDetails = detailsWithWarranty.toSorted((a: InvoiceDetailRaw & { warranty: any }, b: InvoiceDetailRaw & { warranty: any }) => {
           // First sort by ProductId to group same products together
           if (a.ProductId !== b.ProductId) {
             return (a.ProductId || 0) - (b.ProductId || 0);
@@ -289,9 +317,31 @@ export async function GET() {
  *       500:
  *         description: Server error
  */
+interface InvoiceProductInput {
+  ProductId: number;
+  quantity: number;
+  price: number;
+  total_price: number;
+  warranty?: {
+    hasWarranty: boolean;
+    warrantycode: string;
+    startdate: string;
+    expirydate: string;
+  };
+}
+
+interface InvoiceDataInput {
+  Fullname: string;
+  Phonenumber: string;
+  TotalAmount: number;
+  Date: string;
+  UserId: number;
+  products: InvoiceProductInput[];
+}
+
 export async function POST(request: Request) {
   try {
-    const { branchId, invoiceData } = await request.json();
+    const { branchId, invoiceData } = await request.json() as { branchId: string; invoiceData: InvoiceDataInput };
 
     // Validation
     if (!branchId || !invoiceData || !invoiceData.Fullname || !invoiceData.Phonenumber) {
@@ -320,7 +370,7 @@ export async function POST(request: Request) {
     await Promise.all(
       invoiceData.products.map(async (product) => {
         // Create invoice detail
-        const invoiceDetail = await prisma.$queryRaw`
+        const invoiceDetail = await prisma.$queryRaw<Record<string, unknown>[]>`
           INSERT INTO "info"."Invoice_Details" (
             "Invoiceid", "UserId", "ProductId", "quantity", "price", "total_price"
           )
@@ -335,11 +385,11 @@ export async function POST(request: Request) {
           RETURNING *
         `;
 
-        const createdDetail = (invoiceDetail as any[])[0];
+        const createdDetail = invoiceDetail[0];
 
         // If product has warranty, create it
         if (product.warranty && product.warranty.hasWarranty) {
-          await prisma.$queryRaw`
+          await prisma.$queryRaw<Record<string, unknown>[]>`
             INSERT INTO "info"."warranty" (
               "userid", "invoicedetailid", "branchid", "warrantycode", 
               "ProductId", "startdate", "expirydate", "status"
@@ -358,7 +408,7 @@ export async function POST(request: Request) {
         }
 
         // Update branch product quantity
-        await prisma.$queryRaw`
+        await prisma.$queryRaw<Record<string, unknown>[]>`
           UPDATE "support"."branchproduct"
           SET "quantity" = "quantity" - ${product.quantity}
           WHERE "branchid" = ${branchId} AND "ProductId" = ${product.ProductId}
@@ -414,15 +464,10 @@ export async function POST(request: Request) {
  */
 export async function PATCH(req: Request): Promise<NextResponse> {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
-    }
-
-    const decoded = await verifyToken(token);
-    const userRole = decoded.role;
+    const userRole = auth.role;
 
     // Allow both Admin and Branch users to update invoice status
     if (!userRole || (userRole !== "Admin" && userRole !== "Branch")) {
@@ -461,27 +506,27 @@ export async function PATCH(req: Request): Promise<NextResponse> {
     // For branch users, check if they're allowed to update this invoice
     if (userRole === "Branch") {
       // Get branch ID for the user
-      const userId = decoded.userId || decoded.id || decoded.sub;
-      const branch = await prisma.$queryRaw`
+      const userId = auth.userId;
+      const branch = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT "branchid" FROM "support"."branch"
         WHERE "UserID" = ${Number(userId)}
       `;
 
-      if (!branch || (branch as any[]).length === 0) {
+      if (!branch || branch.length === 0) {
         return NextResponse.json({ message: "No branch found for this user" }, { status: 403 });
       }
 
       // Check if the invoice is associated with this branch through warranties
-      const branchInvoices = await prisma.$queryRaw`
+      const branchInvoices = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT DISTINCT i."Invoiceid"
         FROM "info"."Invoice" i
         JOIN "info"."Invoice_Details" id ON i."Invoiceid" = id."Invoiceid"
         JOIN "info"."warranty" w ON id."Invoice_Details" = w."invoicedetailid"
         WHERE i."Invoiceid" = ${parseInt(invoiceId)}
-        AND w."branchid" = ${(branch as any[])[0].branchid}
+        AND w."branchid" = ${branch[0].branchid}
       `;
 
-      if (!branchInvoices || (branchInvoices as any[]).length === 0) {
+      if (!branchInvoices || branchInvoices.length === 0) {
         return NextResponse.json(
           { message: "You are not authorized to update this invoice" },
           { status: 403 }
@@ -527,17 +572,10 @@ export async function PATCH(req: Request): Promise<NextResponse> {
  */
 export async function DELETE(req: Request): Promise<NextResponse> {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
-    }
-
-    const decoded = await verifyToken(token);
-    const userRole = decoded.role;
-
-    if (!userRole || userRole !== "Admin") {
+    if (auth.role !== "Admin") {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 

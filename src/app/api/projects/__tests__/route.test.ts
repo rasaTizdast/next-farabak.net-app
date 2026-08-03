@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockPrisma, mockS3 } = vi.hoisted(() => ({
@@ -81,7 +82,7 @@ describe("POST /api/projects", () => {
     vi.clearAllMocks();
   });
 
-  function createFormData(fields: Record<string, string | File | null>): Request {
+  function createFormData(fields: Record<string, string | File | null>): NextRequest {
     const fd = new FormData();
     for (const [key, value] of Object.entries(fields)) {
       if (value instanceof File) {
@@ -90,7 +91,7 @@ describe("POST /api/projects", () => {
         fd.append(key, value);
       }
     }
-    return new Request("http://localhost/api/projects", {
+    return new NextRequest("http://localhost/api/projects", {
       method: "POST",
       body: fd,
     });

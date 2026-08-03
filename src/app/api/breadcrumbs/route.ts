@@ -58,7 +58,7 @@ import { prisma } from "@/lib/prisma";
  */
 
 export async function POST(request: Request) {
-  const { paths } = await request.json();
+  const { paths }: { paths: string[] } = await request.json();
 
   // Static routes (you can reuse your existing constants)
   const staticRoutes: Record<string, string> = {

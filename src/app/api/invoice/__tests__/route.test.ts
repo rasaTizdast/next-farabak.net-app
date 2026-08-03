@@ -64,7 +64,8 @@ describe("GET /api/invoice", () => {
 
   it("returns 500 on error", async () => {
     mockCookieStore.set("accessToken", "token");
-    mockJwtVerify.mockRejectedValue(new Error("bad token"));
+    mockJwtVerify.mockResolvedValue({ payload: { userId: 1 } });
+    mockPrisma.invoice.findMany.mockRejectedValue(new Error("DB error"));
 
     const res = await GET();
     expect(res.status).toBe(500);

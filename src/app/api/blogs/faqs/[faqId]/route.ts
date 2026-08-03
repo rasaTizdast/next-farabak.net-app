@@ -1,9 +1,7 @@
-import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 
+import { prisma } from "@/lib/prisma";
 import { getCurrentJalaliDate } from "@/utils/jalaliDate";
-
-const prisma = new PrismaClient();
 
 /**
  * @swagger

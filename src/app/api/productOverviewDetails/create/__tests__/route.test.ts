@@ -74,7 +74,7 @@ describe("POST /api/productOverviewDetails/create", () => {
     const body = await res.json();
 
     expect(res.status).toBe(401);
-    expect(body.message).toContain("Authorization token required");
+    expect(body.message).toContain("Unauthorized");
   });
 
   it("should return 401 when user role is not Admin", async () => {
@@ -113,7 +113,9 @@ describe("POST /api/productOverviewDetails/create", () => {
 
   it("should return 500 on error", async () => {
     mockCookies.mockResolvedValue({ get: () => ({ value: "token" }) });
-    mockJwtVerify.mockRejectedValue(new Error("Invalid token"));
+    mockJwtVerify.mockResolvedValue({ payload: { role: "Admin" } });
+    mockS3.upload.mockImplementation((_params: any, cb: any) => cb(null, { Location: "url" }));
+    mockPrisma.master_ProductOverviewDetails.create.mockRejectedValue(new Error("DB error"));
 
     const req = new Request("http://localhost/api/productOverviewDetails/create", {
       method: "POST",

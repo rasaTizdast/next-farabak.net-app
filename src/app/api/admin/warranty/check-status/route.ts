@@ -1,16 +1,7 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { requireAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
 
 /**
  * @swagger
@@ -41,15 +32,10 @@ async function verifyToken(token: string) {
  */
 export async function POST() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
-    }
-
-    const decoded = await verifyToken(token);
-    const userRole = decoded.role;
+    const userRole = auth.role;
 
     if (!userRole || (userRole !== "Admin" && userRole !== "Branch")) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -59,7 +45,7 @@ export async function POST() {
     const currentDate = new Date();
 
     // Find all active warranties that have expired
-    const expiredWarranties = await prisma.$queryRaw`
+    const expiredWarranties = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT "warrantyid"
       FROM "info"."warranty"
       WHERE "status" = 'Active'
@@ -71,12 +57,12 @@ export async function POST() {
 
     if (expiredWarranties && Array.isArray(expiredWarranties) && expiredWarranties.length > 0) {
       // Build array of warranty IDs to update
-      const warrantyIds = (expiredWarranties as any[]).map((w) => w.warrantyid);
+      const warrantyIds = expiredWarranties.map((w) => w.warrantyid);
 
       // Perform update
       await Promise.all(
         warrantyIds.map(async (id) => {
-          await prisma.$queryRaw`
+          await prisma.$queryRaw<Record<string, unknown>[]>`
             UPDATE "info"."warranty"
             SET "status" = 'Expired'
             WHERE "warrantyid" = ${id}

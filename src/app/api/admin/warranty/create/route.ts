@@ -1,32 +1,18 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { requireAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
-
 export async function POST(request: Request) {
   try {
     // Auth check
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json({ error: "Authorization token required" }, { status: 401 });
-    }
-
-    const decoded = await verifyToken(token);
-    const userRole = decoded.role;
+    const userRole = auth.role;
 
     // Only admin or branch users can manage warranties
-    if (!userRole || (userRole !== "Admin" && userRole !== "Branch")) {
+    if (userRole !== "Admin" && userRole !== "Branch") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -34,18 +20,18 @@ export async function POST(request: Request) {
     let branchId = null;
     let branchName = null;
     if (userRole === "Branch") {
-      const userId = decoded.userId || decoded.id || decoded.sub;
-      const branch = await prisma.$queryRaw`
+      const userId = auth.userId;
+      const branch = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT "branchid", "name" FROM "support"."branch"
         WHERE "UserID" = ${Number(userId)}
       `;
 
-      if (!branch || (branch as any[]).length === 0) {
+      if (!branch || branch.length === 0) {
         return NextResponse.json({ error: "No branch found for this user" }, { status: 403 });
       }
 
-      branchId = (branch as any[])[0].branchid;
-      branchName = (branch as any[])[0].name;
+      branchId = branch[0].branchid as number;
+      branchName = branch[0].name as string;
     }
 
     // Get request data
@@ -71,7 +57,7 @@ export async function POST(request: Request) {
     // For branch users, verify they can only create warranties for their own branch
     if (userRole === "Branch" && branchId) {
       // Check if branch user is authorized for this invoice detail
-      const isAuthorized = await prisma.$queryRaw`
+      const isAuthorized = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT COUNT(*) as count
         FROM "info"."warranty" w
         WHERE w."branchid" = ${branchId}
@@ -79,8 +65,8 @@ export async function POST(request: Request) {
       `;
 
       // If no existing warranty for this branch, check if they're authorized for any warranty on this invoice
-      if (((isAuthorized as any[])[0].count as number) === 0) {
-        const invoiceAuth = await prisma.$queryRaw`
+      if ((isAuthorized[0].count as number) === 0) {
+        const invoiceAuth = await prisma.$queryRaw<Record<string, unknown>[]>`
           SELECT COUNT(*) as count
           FROM "info"."warranty" w
           JOIN "info"."Invoice_Details" id ON w."invoicedetailid" = id."Invoice_Details"
@@ -89,15 +75,15 @@ export async function POST(request: Request) {
         `;
 
         // If the branch is trying to create a warranty, check if the invoice belongs to them
-        if (((invoiceAuth as any[])[0].count as number) === 0) {
-          const invoiceBranchCheck = await prisma.$queryRaw`
+        if ((invoiceAuth[0].count as number) === 0) {
+          const invoiceBranchCheck = await prisma.$queryRaw<Record<string, unknown>[]>`
             SELECT COUNT(*) as count
             FROM "info"."Invoice" i
             WHERE i."Invoiceid" = ${parseInt(invoiceId)}
             AND i."BranchId" = ${branchId}
           `;
 
-          if (((invoiceBranchCheck as any[])[0].count as number) === 0) {
+          if ((invoiceBranchCheck[0].count as number) === 0) {
             return NextResponse.json(
               {
                 error: "You are not authorized to create a warranty for this invoice",
@@ -131,14 +117,14 @@ export async function POST(request: Request) {
     // For dontReduceStock case, we need to check if the invoice has this product
     if (warrantyData.dontReduceStock) {
       // Check if the invoice actually has this product
-      const invoiceProductCheck = await prisma.$queryRaw`
+      const invoiceProductCheck = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT COUNT(*) as count
         FROM "info"."Invoice_Details" id
         WHERE id."Invoiceid" = ${parseInt(invoiceId)}
         AND id."ProductId" = ${parseInt(productId)}
       `;
 
-      const hasProduct = ((invoiceProductCheck as any[])[0].count as number) > 0;
+      const hasProduct = (invoiceProductCheck[0].count as number) > 0;
 
       if (!hasProduct) {
         return NextResponse.json(

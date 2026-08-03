@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
@@ -7,6 +8,8 @@ export async function PATCH(
   props: { params: Promise<{ productId: string }> }
 ) {
   const params = await props.params;
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const { productId } = params;
     // Validate product ID

@@ -1,12 +1,10 @@
-import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
 /**
  * @swagger
@@ -38,14 +36,14 @@ export async function GET() {
 
     try {
       // Verify and decode JWT
-      const { payload } = await jwtVerify(accessToken, new TextEncoder().encode(JWT_SECRET));
+      const decoded = await verifyToken(accessToken);
 
       // The userId can be stored under different keys in the payload
       // Check common keys: userId, id, sub
-      const userId = payload.userId || payload.id || payload.sub;
+      const userId = (decoded as any).userId || (decoded as any).id || (decoded as any).sub;
 
       if (!userId) {
-        console.error("JWT payload missing userId:", payload);
+        console.error("JWT payload missing userId:", decoded);
         return NextResponse.json(
           { error: "دسترسی غیرمجاز - اطلاعات کاربر معتبر نیست" },
           { status: 401 }
@@ -53,20 +51,20 @@ export async function GET() {
       }
 
       // Get branch for this user
-      const branch = await prisma.$queryRaw`
+      const branch = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT * FROM "support"."branch"
         WHERE "UserID" = ${Number(userId)}
       `;
 
-      if (!branch || (branch as any[]).length === 0) {
+      if (!branch || branch.length === 0) {
         return NextResponse.json({ error: "هیچ شعبه‌ای برای این کاربر یافت نشد" }, { status: 404 });
       }
 
       // For each branch, count their products and calculate total quantity
       const branchesWithProductCount = await Promise.all(
-        (branch as any[]).map(async (b) => {
+        branch.map(async (b) => {
           // Get both count and total quantity in one query
-          const productStatsResult = await prisma.$queryRaw`
+          const productStatsResult = await prisma.$queryRaw<Record<string, unknown>[]>`
             SELECT 
               COUNT(DISTINCT "ProductId") as "productCount",
               COALESCE(SUM("quantity"), 0)::integer as "totalQuantity"
@@ -74,7 +72,7 @@ export async function GET() {
             WHERE "branchid" = ${b.branchid}
           `;
 
-          const stats = (productStatsResult as any[])[0];
+          const stats = productStatsResult[0];
 
           return {
             ...b,

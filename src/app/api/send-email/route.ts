@@ -102,16 +102,18 @@ let transporter: nodemailer.Transporter | null = null;
 
 // Email templates
 const templates = {
-  "reset-password": (data: { code: string }) => ({
-    subject: "بازیابی رمز عبور | فرابک",
-    text: `کد بازیابی رمز عبور شما: ${data.code}\nاین کد تا ۱۵ دقیقه معتبر است.`,
-    html: `
+  "reset-password": (data: Record<string, unknown>) => {
+    const code = String(data.code ?? "");
+    return {
+      subject: "بازیابی رمز عبور | فرابک",
+      text: `کد بازیابی رمز عبور شما: ${code}\nاین کد تا ۱۵ دقیقه معتبر است.`,
+      html: `
       <div dir="rtl" style="font-family: Tahoma, Arial; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 5px;">
         <h2 style="color: #333; text-align: center;">بازیابی رمز عبور</h2>
         <p style="font-size: 16px; line-height: 1.5;">کاربر گرامی، درخواست بازیابی رمز عبور برای حساب کاربری شما دریافت شد.</p>
         <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; text-align: center; margin: 20px 0;">
           <p style="font-size: 14px; margin: 0;">کد بازیابی رمز عبور شما:</p>
-          <h3 style="margin: 10px 0; font-size: 24px; letter-spacing: 2px;">${data.code}</h3>
+          <h3 style="margin: 10px 0; font-size: 24px; letter-spacing: 2px;">${code}</h3>
           <p style="font-size: 13px; margin: 5px 0 0; color: #777;">این کد تا ۱۵ دقیقه معتبر است.</p>
         </div>
         <p style="font-size: 14px; color: #666; text-align: right;">اگر شما درخواست بازیابی رمز عبور نداده‌اید، لطفاً این ایمیل را نادیده بگیرید.</p>
@@ -120,7 +122,8 @@ const templates = {
         </div>
       </div>
     `,
-  }),
+    };
+  },
   test: () => ({
     subject: "تست ارسال ایمیل | فرابک",
     text: "این یک ایمیل تست است.",
@@ -182,7 +185,14 @@ async function sendEmail(mailOptions: nodemailer.SendMailOptions) {
 }
 
 export async function POST(req: Request) {
-  const { to, subject, text, html, template, templateData } = await req.json();
+  const { to, subject, text, html, template, templateData }: {
+    to?: string;
+    subject?: string;
+    text?: string;
+    html?: string;
+    template?: keyof typeof templates;
+    templateData?: Record<string, unknown>;
+  } = await req.json();
 
   // Handle template-based emails
   if (template && templates[template]) {

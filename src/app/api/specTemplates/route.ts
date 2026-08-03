@@ -51,7 +51,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { Name, Items } = body;
+    const { Name, Items }: { Name?: string; Items?: { Title: string }[] } = body;
 
     if (!Name) {
       return NextResponse.json({ message: "Template name is required" }, { status: 400 });
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       await Promise.all(
         Items.map(
           (item) =>
-            prisma.$queryRaw`
+            prisma.$queryRaw<Record<string, unknown>[]>`
             INSERT INTO "support"."SpecTemplateItem" ("SpecTemplateId", "Title", "InsertDate", "ModifyDate")
             VALUES (${templateId}, ${item.Title}, NOW(), NOW())
           `

@@ -1,78 +1,18 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { requireAuth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
+import { formatBigIntResults } from "@/lib/formatBigInt";
 import { prisma } from "@/lib/prisma";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
 export const dynamic = "force-dynamic";
-
-// Helper function to verify the JWT token
-async function verifyCurrentUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const secret = new TextEncoder().encode(JWT_SECRET);
-    const { payload } = await jwtVerify(token, secret);
-    return {
-      id: payload.userId as string,
-      role: payload.role as string,
-      branchId: payload.branchId as number,
-    };
-  } catch (error) {
-    console.error("[REQUESTS API] Token verification failed:", error);
-    return null;
-  }
-}
-
-// Helper function to format BigInt results to Number
-const formatBigIntResults = (results: any[]) => {
-  if (!Array.isArray(results)) return [];
-
-  return results.map((row) => {
-    if (!row) return row;
-
-    // Convert any BigInt values to Number for JSON serialization
-    const formattedRow: any = {};
-    Object.entries(row).forEach(([key, value]) => {
-      if (typeof value === "bigint") {
-        formattedRow[key] = Number(value);
-      } else {
-        formattedRow[key] = value;
-      }
-    });
-    return formattedRow;
-  });
-};
 
 export async function GET(req: NextRequest) {
   try {
     // Verify admin user
-    const currentUser = await verifyCurrentUser();
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!currentUser) {
-      return NextResponse.json(
-        {
-          error: "Authentication required - Please log in",
-          requests: [],
-          pagination: {
-            currentPage: 1,
-            pageSize: 10,
-            totalCount: 0,
-            totalPages: 0,
-          },
-        },
-        { status: 401 }
-      );
-    }
-
-    if (currentUser.role !== "Admin" && currentUser.role !== "Branch") {
+    if (auth.role !== "Admin" && auth.role !== "Branch") {
       return NextResponse.json(
         {
           error: "Unauthorized access",
@@ -95,9 +35,9 @@ export async function GET(req: NextRequest) {
     const offset = (page - 1) * limit;
 
     // Validate userID is a valid number
-    const numericUserId = parseInt(currentUser.id, 10);
+    const numericUserId = parseInt(auth.userId, 10);
     if (isNaN(numericUserId)) {
-      console.error(`[REQUESTS API] UserID is not a valid number: ${currentUser.id}`);
+      console.error(`[REQUESTS API] UserID is not a valid number: ${auth.userId}`);
       return NextResponse.json(
         {
           error: "Invalid user ID",
@@ -116,9 +56,9 @@ export async function GET(req: NextRequest) {
     let requests = [];
     let totalCount = 0;
 
-    if (currentUser.role === "Admin") {
+    if (auth.role === "Admin") {
       // Get all requests for admin with pagination
-      requests = await prisma.$queryRaw`
+      requests = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT 
           w."warrantyid", 
           w."warrantycode", 
@@ -140,7 +80,7 @@ export async function GET(req: NextRequest) {
       `;
 
       // Count total for pagination
-      const countResult = await prisma.$queryRaw`
+      const countResult = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT COUNT(*)::integer as count
         FROM "info"."warranty" w
         WHERE w."status" = 'Requested'
@@ -171,7 +111,7 @@ export async function GET(req: NextRequest) {
       }
 
       // Get branch-specific requests with pagination
-      requests = await prisma.$queryRaw`
+      requests = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT 
           w."warrantyid", 
           w."warrantycode", 
@@ -194,7 +134,7 @@ export async function GET(req: NextRequest) {
       `;
 
       // Count total for pagination
-      const countResult = await prisma.$queryRaw`
+      const countResult = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT COUNT(*)::integer as count
         FROM "info"."warranty" w
         JOIN "support"."branch" b ON w."branchid" = b."branchid"
@@ -208,7 +148,7 @@ export async function GET(req: NextRequest) {
           : 0;
     }
 
-    const formattedRequests = formatBigIntResults(requests as any[]);
+    const formattedRequests = formatBigIntResults(requests);
 
     return NextResponse.json({
       requests: formattedRequests,
@@ -240,16 +180,10 @@ export async function GET(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     // Verify admin user
-    const currentUser = await verifyCurrentUser();
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!currentUser) {
-      return NextResponse.json(
-        { error: "Authentication required - Please log in" },
-        { status: 401 }
-      );
-    }
-
-    if (currentUser.role !== "Admin" && currentUser.role !== "Branch") {
+    if (auth.role !== "Admin" && auth.role !== "Branch") {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
@@ -264,7 +198,7 @@ export async function PUT(req: NextRequest) {
       // Get the warranty to check its expiry date
       let warrantyRecord;
       try {
-        warrantyRecord = await prisma.$queryRaw`
+        warrantyRecord = await prisma.$queryRaw<Record<string, unknown>[]>`
           SELECT 
             w.*,
             b."UserID" as branch_user_id
@@ -283,7 +217,7 @@ export async function PUT(req: NextRequest) {
       }
 
       // Branch users can only resolve warranties for their own branches
-      if (currentUser.role === "Branch" && warrantyRecord[0].branch_user_id !== currentUser.id) {
+      if (auth.role === "Branch" && warrantyRecord[0].branch_user_id !== auth.userId) {
         return NextResponse.json(
           { error: "You can only resolve warranty requests for your branch" },
           { status: 403 }
@@ -292,12 +226,12 @@ export async function PUT(req: NextRequest) {
 
       // Determine if warranty is expired
       const now = new Date();
-      const expiryDate = new Date(warrantyRecord[0].expirydate);
+      const expiryDate = new Date(warrantyRecord[0].expirydate as string);
       const newStatus = now > expiryDate ? "Expired" : "Active";
 
       try {
         // Update the warranty status
-        await prisma.$queryRaw`
+        await prisma.$queryRaw<Record<string, unknown>[]>`
           UPDATE "info"."warranty"
           SET "status" = ${newStatus}
           WHERE "warrantyid" = ${warrantyId}

@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/auth";
 
 export async function GET(request: Request, props: { params: Promise<{ warehouseId: string }> }) {
   const params = await props.params;
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const warehouseId = parseInt(params.warehouseId);
 
@@ -46,6 +49,8 @@ export async function GET(request: Request, props: { params: Promise<{ warehouse
 
 export async function POST(request: Request, props: { params: Promise<{ warehouseId: string }> }) {
   const params = await props.params;
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const warehouseId = parseInt(params.warehouseId);
     const { productId, quantity, ProductGradeId } = await request.json();
@@ -55,31 +60,31 @@ export async function POST(request: Request, props: { params: Promise<{ warehous
     }
 
     if (ProductGradeId) {
-      const gradeResult = await prisma.$queryRaw`
+      const gradeResult = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT * FROM "support"."ProductGrade" 
         WHERE "ProductGradeId" = ${ProductGradeId} 
         AND "ProductId" = ${productId}
       `;
-      if ((gradeResult as any[]).length === 0) {
+      if (gradeResult.length === 0) {
         return NextResponse.json({ error: "گرید محصول معتبر نیست" }, { status: 400 });
       }
     }
 
-    const warehouseResult = await prisma.$queryRaw`
+    const warehouseResult = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM "support"."warehouse" WHERE "warehouseid" = ${warehouseId}
     `;
-    if ((warehouseResult as any[]).length === 0) {
+    if (warehouseResult.length === 0) {
       return NextResponse.json({ error: "انبار یافت نشد" }, { status: 404 });
     }
 
-    const productResult = await prisma.$queryRaw`
+    const productResult = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM "support"."Product" WHERE "ProductId" = ${productId}
     `;
-    if ((productResult as any[]).length === 0) {
+    if (productResult.length === 0) {
       return NextResponse.json({ error: "محصول یافت نشد" }, { status: 404 });
     }
 
-    const existing = await prisma.$queryRaw`
+    const existing = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM "support"."warehouseproduct"
       WHERE "warehouseid" = ${warehouseId} 
       AND "ProductId" = ${productId}
@@ -90,8 +95,8 @@ export async function POST(request: Request, props: { params: Promise<{ warehous
       )
     `;
 
-    if ((existing as any[]).length > 0) {
-      const updated = await prisma.$queryRaw`
+    if (existing.length > 0) {
+      const updated = await prisma.$queryRaw<Record<string, unknown>[]>`
         UPDATE "support"."warehouseproduct"
         SET "quantity" = "quantity" + ${quantity}
         WHERE "warehouseid" = ${warehouseId} 
@@ -103,10 +108,10 @@ export async function POST(request: Request, props: { params: Promise<{ warehous
         )
         RETURNING *
       `;
-      return NextResponse.json((updated as any[])[0], { status: 200 });
+      return NextResponse.json(updated[0], { status: 200 });
     }
 
-    const inserted = await prisma.$queryRaw`
+    const inserted = await prisma.$queryRaw<Record<string, unknown>[]>`
       INSERT INTO "support"."warehouseproduct" ("warehouseid", "ProductId", "quantity", "ProductGradeId")
       VALUES (
         ${warehouseId}, 
@@ -116,7 +121,7 @@ export async function POST(request: Request, props: { params: Promise<{ warehous
       )
       RETURNING *
     `;
-    return NextResponse.json((inserted as any[])[0], { status: 201 });
+    return NextResponse.json(inserted[0], { status: 201 });
   } catch (error) {
     console.error("Error adding product to warehouse:", error);
     return NextResponse.json({ error: "خطا در افزودن محصول به انبار" }, { status: 500 });

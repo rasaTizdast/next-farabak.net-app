@@ -1,12 +1,10 @@
-import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
 /**
  * @swagger
@@ -67,13 +65,13 @@ export async function GET(request: Request) {
 
     try {
       // Verify JWT
-      const { payload } = await jwtVerify(accessToken, new TextEncoder().encode(JWT_SECRET));
+      const decoded = await verifyToken(accessToken);
 
       // Get userId from payload
-      const userId = payload.userId || payload.id || payload.sub;
+      const userId = (decoded as any).userId || (decoded as any).id || (decoded as any).sub;
 
       if (!userId) {
-        console.error("JWT payload missing userId:", payload);
+        console.error("JWT payload missing userId:", decoded);
         return NextResponse.json(
           { error: "دسترسی غیرمجاز - اطلاعات کاربر معتبر نیست" },
           { status: 401 }
@@ -81,12 +79,12 @@ export async function GET(request: Request) {
       }
 
       // Verify the branch belongs to this user
-      const branch = await prisma.$queryRaw`
+      const branch = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT "branchid" FROM "support"."branch"
         WHERE "UserID" = ${Number(userId)} AND "branchid" = ${Number(branchId)}
       `;
 
-      if (!branch || (branch as any[]).length === 0) {
+      if (!branch || branch.length === 0) {
         return NextResponse.json(
           { error: "شعبه مورد نظر برای این کاربر یافت نشد" },
           { status: 403 }
@@ -95,21 +93,21 @@ export async function GET(request: Request) {
 
       // Just check if the invoice contains the product, without trying to check branch ownership
       // since the Invoice table doesn't have a BranchId column
-      const invoiceProductCheck = await prisma.$queryRaw`
+      const invoiceProductCheck = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT COUNT(*) as count
         FROM "info"."Invoice_Details" id
         WHERE id."Invoiceid" = ${Number(invoiceId)}
         AND id."ProductId"::text = ${productId}::text
       `;
 
-      let hasProduct = ((invoiceProductCheck as any[])[0].count as number) > 0;
+      let hasProduct = (invoiceProductCheck[0].count as number) > 0;
 
       // If product is in invoice, we can assume the branch has access
       // This is a simplification - in a more secure system, you'd verify branch ownership of invoices
 
       // Optionally check if there's any existing warranty to confirm this branch is authorized
       if (hasProduct) {
-        const existingWarranty = await prisma.$queryRaw`
+        const existingWarranty = await prisma.$queryRaw<Record<string, unknown>[]>`
           SELECT COUNT(*) as count
           FROM "info"."warranty" w
           WHERE w."branchid" = ${Number(branchId)}
@@ -117,7 +115,7 @@ export async function GET(request: Request) {
         `;
 
         // If there's an existing warranty for this product with this branch, that's even better validation
-        const hasWarranty = ((existingWarranty as any[])[0].count as number) > 0;
+        const hasWarranty = (existingWarranty[0].count as number) > 0;
 
         // Either way, we'll return true if product is in invoice
         hasProduct = hasProduct || hasWarranty;

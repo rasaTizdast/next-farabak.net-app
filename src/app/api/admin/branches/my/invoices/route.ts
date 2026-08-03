@@ -1,16 +1,8 @@
-import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
 
 export const dynamic = "force-dynamic";
 
@@ -77,21 +69,21 @@ export async function GET(request: Request) {
     }
 
     // Find the branch associated with this user
-    const branchResult = await prisma.$queryRaw`
+    const branchResult = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT "branchid", "name", "location"
       FROM "support"."branch"
       WHERE "UserID" = ${Number(userId)}
     `;
 
-    if (!branchResult || (branchResult as any[]).length === 0) {
+    if (!branchResult || branchResult.length === 0) {
       return NextResponse.json({ error: "شعبه‌ای برای این کاربر یافت نشد" }, { status: 404 });
     }
 
-    const branch = (branchResult as any[])[0];
+    const branch = branchResult[0];
     const branchId = branch.branchid;
 
     // Count total invoices for pagination
-    const countResult = await prisma.$queryRaw`
+    const countResult = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT COUNT(DISTINCT i."Invoiceid") as total
       FROM 
         "info"."Invoice" i
@@ -99,10 +91,10 @@ export async function GET(request: Request) {
         i."UserId" = ${Number(userId)}
     `;
 
-    const totalCount = Number((countResult as any[])[0].total);
+    const totalCount = Number(countResult[0].total);
 
     // Find all invoices created by this branch with pagination
-    const invoices = await prisma.$queryRaw`
+    const invoices = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT DISTINCT
         i."Invoiceid", i."FactorGuid", i."Fullname", i."Phonenumber",
         i."UserId", i."TotalAmount", i."Checked", i."Date"
@@ -118,10 +110,10 @@ export async function GET(request: Request) {
 
     // For each invoice, get its details and warranties
     const invoicesWithDetails = await Promise.all(
-      (invoices as any[]).map(async (invoice) => {
+      invoices.map(async (invoice) => {
         // Get invoice details and warranties in parallel
         const [details, warranties] = await Promise.all([
-          prisma.$queryRaw`
+          prisma.$queryRaw<Record<string, unknown>[]>`
             SELECT
               id."Invoice_Details", id."ProductId", id."quantity",
               id."price", id."total_price",
@@ -133,7 +125,7 @@ export async function GET(request: Request) {
             WHERE
               id."Invoiceid" = ${invoice.Invoiceid}
           `,
-          prisma.$queryRaw`
+          prisma.$queryRaw<Record<string, unknown>[]>`
             SELECT
               w."warrantyid", w."invoicedetailid", w."warrantycode",
               w."startdate", w."expirydate", w."status", w."ProductId", w."branchid"
@@ -148,7 +140,7 @@ export async function GET(request: Request) {
         ]);
 
         // Process warranty status
-        const processedWarranties = (warranties as any[]).map((warranty) => {
+        const processedWarranties = warranties.map((warranty: any) => {
           const today = new Date();
           const expiryDate = new Date(warranty.expirydate);
 
@@ -167,7 +159,7 @@ export async function GET(request: Request) {
         });
 
         // Map warranty data to invoice details
-        const detailsWithWarranty = (details as any[]).map((detail) => {
+        const detailsWithWarranty = details.map((detail: any) => {
           const warranty = processedWarranties.find(
             (w) => w.invoicedetailid === detail.Invoice_Details
           );
@@ -196,7 +188,7 @@ export async function GET(request: Request) {
     );
 
     // Get standalone warranties (warranties associated with the branch but not attached to any invoices in the current pagination set)
-    const invoiceIds = (invoices as any[]).map((invoice) => invoice.Invoiceid);
+    const invoiceIds = invoices.map((invoice) => invoice.Invoiceid);
 
     // Get all invoice detail IDs for these invoices
     let detailIds: any[] = [];
@@ -245,7 +237,7 @@ export async function GET(request: Request) {
 
       standaloneWarranties = await prisma.$queryRawUnsafe(query, branchId, ...detailIds);
     } else {
-      standaloneWarranties = await prisma.$queryRaw`
+      standaloneWarranties = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT 
           w."warrantyid", w."invoicedetailid", w."warrantycode", 
           w."startdate", w."expirydate", w."status", w."ProductId", w."branchid", w."userid",
@@ -293,7 +285,7 @@ export async function GET(request: Request) {
 
     // Calculate summary of active and expired warranties (for all invoices, not just paginated ones)
     // Get all warranties for this branch
-    const allWarranties = await prisma.$queryRaw`
+    const allWarranties = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT 
         w."warrantyid", w."startdate", w."expirydate", w."status", w."branchid"
       FROM 
@@ -305,7 +297,7 @@ export async function GET(request: Request) {
     let active = 0;
     let expired = 0;
 
-    (allWarranties as any[]).forEach((warranty) => {
+    allWarranties.forEach((warranty: any) => {
       const today = new Date();
       const expiryDate = new Date(warranty.expirydate);
 

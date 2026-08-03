@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockPrisma } = vi.hoisted(() => ({
@@ -29,7 +30,7 @@ describe("POST /api/warehouses/products", () => {
     };
     mockPrisma.warehouseproduct.create.mockResolvedValue(mockProduct);
 
-    const req = new Request("http://localhost/api/warehouses/products", {
+    const req = new NextRequest("http://localhost/api/warehouses/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -59,7 +60,7 @@ describe("POST /api/warehouses/products", () => {
     };
     mockPrisma.warehouseproduct.create.mockResolvedValue(mockProduct);
 
-    const req = new Request("http://localhost/api/warehouses/products", {
+    const req = new NextRequest("http://localhost/api/warehouses/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -83,7 +84,7 @@ describe("POST /api/warehouses/products", () => {
   it("should return 500 on error", async () => {
     mockPrisma.warehouseproduct.create.mockRejectedValue(new Error("DB error"));
 
-    const req = new Request("http://localhost/api/warehouses/products", {
+    const req = new NextRequest("http://localhost/api/warehouses/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ warehouseid: 1, ProductId: 10, ProductGradeId: 20 }),
@@ -112,7 +113,7 @@ describe("PUT /api/warehouses/products", () => {
     };
     mockPrisma.warehouseproduct.update.mockResolvedValue(mockUpdated);
 
-    const req = new Request("http://localhost/api/warehouses/products", {
+    const req = new NextRequest("http://localhost/api/warehouses/products", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -132,7 +133,7 @@ describe("PUT /api/warehouses/products", () => {
   it("should return 500 on error", async () => {
     mockPrisma.warehouseproduct.update.mockRejectedValue(new Error("DB error"));
 
-    const req = new Request("http://localhost/api/warehouses/products", {
+    const req = new NextRequest("http://localhost/api/warehouses/products", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ warehouseproductid: 1, ProductGradeId: 30, quantity: 10 }),

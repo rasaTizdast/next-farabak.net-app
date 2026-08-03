@@ -1,11 +1,9 @@
 import bcrypt from "bcryptjs";
-import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma"; // Import Prisma client
-
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 const SALT_ROUNDS = 10;
 
 /**
@@ -46,8 +44,8 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     }
 
     // Verify JWT and extract userId
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
-    const { userId } = payload as { userId: string };
+    const decoded = await verifyToken(token);
+    const { userId } = decoded;
 
     // Parse the request body
     const { currentPassword, newPassword } = await request.json();

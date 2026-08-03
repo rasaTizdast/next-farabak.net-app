@@ -1,12 +1,9 @@
 export const dynamic = "force-dynamic";
 
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET;
 
 /**
  * @swagger
@@ -51,27 +48,13 @@ const JWT_SECRET = process.env.JWT_SECRET;
  *         description: Internal server error.
  */
 
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
-
 export async function GET(): Promise<NextResponse> {
   try {
     // Get userRole from the HTTP-only cookie
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
-    }
-
-    const decoded = await verifyToken(token);
-
-    const userRole = decoded.role;
-
-    if (!userRole || userRole !== "Admin") {
+    if (auth.role !== "Admin") {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 

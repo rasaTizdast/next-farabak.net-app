@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockPrisma } = vi.hoisted(() => ({
@@ -20,7 +21,7 @@ vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 import { GET, PUT } from "../route";
 
 function makePutRequest(body: unknown) {
-  return new Request("http://localhost/api/activities", {
+  return new NextRequest("http://localhost/api/activities", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

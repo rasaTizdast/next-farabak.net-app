@@ -1,19 +1,9 @@
 // app/api/admin/users/route.ts
-import { PrismaClient } from "@prisma/client";
-import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/lib/prisma"; // Assuming you have a prisma client setup
-
-const JWT_SECRET = process.env.JWT_SECRET;
-const prismaClient = new PrismaClient();
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
+import { verifyToken } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -98,7 +88,7 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     // Get all users with left join to check if they have branches
-    const usersWithBranches = await prismaClient.$queryRaw`
+    const usersWithBranches = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT 
         c."UserID", 
         c."Username", 

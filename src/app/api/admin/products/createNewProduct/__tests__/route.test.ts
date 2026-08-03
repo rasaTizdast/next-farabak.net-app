@@ -51,6 +51,7 @@ describe("POST /api/admin/products/createNewProduct", () => {
     Name: "Short description",
     SEO_Title: "SEO Title",
     SEO_Description: "SEO Description",
+    productBlog: undefined,
   };
 
   beforeEach(() => {

@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/utils/invoiceJwt", () => ({
@@ -7,7 +8,7 @@ vi.mock("@/utils/invoiceJwt", () => ({
 import { POST } from "../route";
 
 function makeRequest(body: any) {
-  return new Request("http://localhost/api/invoice/save", {
+  return new NextRequest("http://localhost/api/invoice/save", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

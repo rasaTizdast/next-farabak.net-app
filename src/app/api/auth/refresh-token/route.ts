@@ -10,8 +10,15 @@ interface DecodedToken {
   role: string;
 }
 
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "your_refresh_token_secret";
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+const REFRESH_TOKEN_SECRET_ENV = process.env.REFRESH_TOKEN_SECRET;
+const JWT_SECRET_ENV = process.env.JWT_SECRET;
+
+if (!JWT_SECRET_ENV) {
+  throw new Error("Missing JWT_SECRET environment variable");
+}
+if (!REFRESH_TOKEN_SECRET_ENV) {
+  throw new Error("Missing REFRESH_TOKEN_SECRET environment variable");
+}
 
 // Token expiration times (in seconds)
 const ACCESS_TOKEN_EXPIRATION = 15 * 60; // 15 minutes
@@ -147,7 +154,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     try {
       decodedToken = await verifyToken(
         refreshToken,
-        new TextEncoder().encode(REFRESH_TOKEN_SECRET)
+        new TextEncoder().encode(REFRESH_TOKEN_SECRET_ENV)
       );
     } catch (error) {
       return NextResponse.json({ message: (error as Error).message }, { status: 401 });
@@ -162,7 +169,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
       .setExpirationTime("15m")
-      .sign(new TextEncoder().encode(JWT_SECRET));
+      .sign(new TextEncoder().encode(JWT_SECRET_ENV));
 
     // Set the new access token as an HTTP-only cookie
     const response = NextResponse.json({

@@ -1,5 +1,39 @@
 import { NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 
+type ProductType = {
+  ProductId: number;
+  CategoryId: number | null;
+  CategoryContentId: string | null;
+  Name: string | null;
+  Type: string | null;
+  Description: string | null;
+  Price: any;
+  Discount: any;
+  Available: boolean | null;
+  Slug: string | null;
+  SEO_Title: string | null;
+  SEO_Description: string | null;
+  QrCode_Key: string | null;
+  QrCode_expiryDays: string | null;
+  Category: { 
+    CategoryID: number | null; 
+    Name: string | null; 
+    Slug: string | null; 
+    Available: boolean | null; 
+    InsertDate: Date | null; 
+    ModifyDate: Date | null; 
+    Category_groupId: number | null; 
+    Banner: string | null; 
+    TopBlog: string | null; 
+    BottomBlog: string | null 
+  } | null;
+  img1: string | null;
+  img2: string | null;
+  [key: string]: unknown;
+};
+
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -113,7 +147,7 @@ import { prisma } from "@/lib/prisma";
  *         description: Internal server error
  */
 
-type ProductType = {
+type CreateProductInput = {
   ProductId: number;
   Name: string | null;
   Type: string | null;
@@ -254,6 +288,8 @@ function parseCategoryContentIds(product: ProductType): number[] {
 }
 
 export async function GET(request: Request) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = parseInt(searchParams.get("limit") || "30", 10);
@@ -263,13 +299,13 @@ export async function GET(request: Request) {
   const available = searchParams.get("available");
 
   try {
-    const conditions: any = {};
+    const conditions: Prisma.ProductWhereInput = {};
 
     // Enhanced search logic with variants
     if (query.trim()) {
       const searchQuery = query.trim();
       const searchVariants = generateSearchVariants(searchQuery);
-      const orConditions: any[] = [];
+      const orConditions: Prisma.ProductWhereInput[] = [];
 
       // For each variant, search across all fields
       for (const variant of searchVariants) {
@@ -318,22 +354,20 @@ export async function GET(request: Request) {
       const subcategoryIds = subcategory.split(",").map((id) => id.trim());
 
       // Handle the OR conditions for subcategories properly
-      if (!conditions.OR) {
-        conditions.OR = [];
-      } else if (!Array.isArray(conditions.OR)) {
-        conditions.OR = [conditions.OR];
-      }
+      const subcategoryConditions = subcategoryIds.map((id) => ({
+        CategoryContentId: {
+          contains: id,
+          mode: "insensitive",
+        } as Prisma.StringFilter,
+      }));
 
-      // Add subcategory conditions
-      conditions.OR = [
-        ...conditions.OR,
-        ...subcategoryIds.map((id) => ({
-          CategoryContentId: {
-            contains: id,
-            mode: "insensitive",
-          },
-        })),
-      ];
+      if (!conditions.OR) {
+        conditions.OR = subcategoryConditions;
+      } else if (Array.isArray(conditions.OR)) {
+        conditions.OR = [...conditions.OR, ...subcategoryConditions];
+      } else {
+        conditions.OR = [conditions.OR, ...subcategoryConditions];
+      }
     }
 
     if (available && available !== "all") {
@@ -381,7 +415,7 @@ export async function GET(request: Request) {
     });
 
     // Create maps for efficient lookups
-    const subcategoryMap = new Map();
+    const subcategoryMap = new Map<number, { CategoryContentId: number; [key: string]: unknown }>();
     allSubCategories.forEach((sub) => {
       subcategoryMap.set(sub.CategoryContentId, sub);
     });
@@ -397,9 +431,15 @@ export async function GET(request: Request) {
       },
     });
 
+    interface StructuredCategoryData {
+  category: { CategoryID: string | number; [key: string]: unknown };
+  subcategories: Record<string, { subcategory: { CategoryContentId: number; [key: string]: unknown }; products: ProductType[] }>;
+  products: ProductType[];
+}
+
     // STEP 3: Create structured data organized by category, subcategory, and product
-    const structuredData: any = {};
-    let allProcessedProducts: any[] = [];
+    const structuredData: Record<string, StructuredCategoryData> = {};
+    let allProcessedProducts: ProductType[] = [];
 
     // Process all products and organize by category and subcategory
     for (const category of allCategories) {

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { CategoryContent } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma"; // Assuming you have a Prisma instance set up
 
@@ -181,7 +182,7 @@ export async function GET(req: Request, props: { params: Promise<{ categoryName:
     });
 
     // Create maps for efficient lookups
-    const subcategoryMap = new Map();
+    const subcategoryMap = new Map<number, CategoryContent>();
     allSubCategories.forEach((sub) => {
       subcategoryMap.set(sub.CategoryContentId, sub);
     });
@@ -212,7 +213,7 @@ export async function GET(req: Request, props: { params: Promise<{ categoryName:
     // Create structured data organized by subcategory and product
     const structuredData: {
       category: typeof category;
-      subcategories: { [key: string]: { subcategory: any; products: ProductType[] } };
+      subcategories: { [key: string]: { subcategory: CategoryContent; products: ProductType[] } };
       products: ProductType[];
     } = {
       category: category,

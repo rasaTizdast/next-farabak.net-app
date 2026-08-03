@@ -18,15 +18,17 @@ const cache = {
 async function fetchExchangeRateFromApi() {
   try {
     const response = await fetch(
-      `https://BrsApi.ir/Api/Market/Gold_Currency.php?key=${process.env.CURRENCY_API_KEY}`
+      `https://api.brsapi.ir/Market/Gold_Currency.php?key=${process.env.CURRENCY_API_KEY}`
     );
 
     if (!response.ok) {
       throw new Error(`خطا در دریافت اطلاعات: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    const usdRate = data.currency.find((item: any) => item.symbol === "USD")?.price;
+    const data = (await response.json()) as {
+      currency: { symbol: string; price: string | number }[];
+    };
+    const usdRate = data.currency.find((item) => item.symbol === "USD")?.price;
 
     if (!usdRate) {
       throw new Error("نرخ دلار در پاسخ دریافتی یافت نشد");

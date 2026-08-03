@@ -1,31 +1,9 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
 export const dynamic = "force-dynamic";
-
-// Helper function to verify the JWT token
-async function verifyToken() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const secret = new TextEncoder().encode(JWT_SECRET);
-    const { payload } = await jwtVerify(token, secret);
-    return payload;
-  } catch (error) {
-    console.error("Token verification failed:", error);
-    return null;
-  }
-}
 
 /**
  * GET handler for checking if the current branch has stock of a specific product
@@ -41,16 +19,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "شناسه محصول الزامی است" }, { status: 400 });
     }
 
-    // Verify authentication
-    const tokenPayload = await verifyToken();
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!tokenPayload) {
-      return NextResponse.json({ error: "احراز هویت الزامی است" }, { status: 401 });
-    }
-
-    // Get user info from token
-    const userId = tokenPayload.id;
-    const userRole = tokenPayload.role;
+    const userId = auth.userId;
+    const userRole = auth.role;
 
     // Only Branch users can check their own stock
     if (userRole !== "Branch") {
@@ -62,7 +35,7 @@ export async function GET(request: Request) {
 
     // Get the branch associated with this user
     // Using a raw query to avoid model naming issues
-    const branchStaffResult = await prisma.$queryRaw`
+    const branchStaffResult = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT branchid FROM branch_staff 
       WHERE userid = ${userId} 
       LIMIT 1
@@ -72,7 +45,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "شما با هیچ شعبه‌ای مرتبط نیستید" }, { status: 404 });
     }
 
-    const branchId = branchStaffResult[0].branchid;
+    const branchId = branchStaffResult[0].branchid as number;
 
     // Get branch details
     const branch = await prisma.branch.findUnique({

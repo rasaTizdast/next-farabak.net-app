@@ -64,21 +64,21 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
     }
 
     const body = await request.json();
-    const { Name, Items } = body;
+    const { Name, Items }: { Name?: string; Items?: { Title: string }[] } = body;
 
     if (!Name) {
       return NextResponse.json({ message: "Template name is required" }, { status: 400 });
     }
 
     // Update the template using raw SQL
-    await prisma.$queryRaw`
+    await prisma.$queryRaw<Record<string, unknown>[]>`
       UPDATE "support"."SpecTemplate" 
       SET "Name" = ${Name}, "ModifyDate" = NOW()
       WHERE "SpecTemplateId" = ${id}
     `;
 
     // Delete all existing items using raw SQL
-    await prisma.$queryRaw`
+    await prisma.$queryRaw<Record<string, unknown>[]>`
       DELETE FROM "support"."SpecTemplateItem" 
       WHERE "SpecTemplateId" = ${id}
     `;
@@ -88,7 +88,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       await Promise.all(
         Items.map(
           (item) =>
-            prisma.$queryRaw`
+            prisma.$queryRaw<Record<string, unknown>[]>`
             INSERT INTO "support"."SpecTemplateItem" ("SpecTemplateId", "Title", "InsertDate", "ModifyDate")
             VALUES (${id}, ${item.Title}, NOW(), NOW())
           `
@@ -128,7 +128,7 @@ export async function DELETE(request: NextRequest, props: { params: Promise<{ id
     }
 
     // Delete the template using raw SQL (cascade delete will handle items)
-    await prisma.$queryRaw`
+    await prisma.$queryRaw<Record<string, unknown>[]>`
       DELETE FROM "support"."SpecTemplate" 
       WHERE "SpecTemplateId" = ${id}
     `;

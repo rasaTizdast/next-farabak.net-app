@@ -1,81 +1,21 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { requireAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
+import { formatBigIntResults } from "@/lib/formatBigInt";
 import { prisma } from "@/lib/prisma";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
 export const dynamic = "force-dynamic";
-
-async function verifyToken(token: string) {
-  try {
-    const secret = new TextEncoder().encode(JWT_SECRET);
-    const { payload } = await jwtVerify(token, secret);
-    return {
-      userId: payload.userId as string,
-      role: payload.role as string,
-      branchId: payload.branchId as number,
-    };
-  } catch (error) {
-    console.error("Token verification error:", error);
-    return null;
-  }
-}
-
-// Helper function to format BigInt in query results to Number
-function formatBigIntResults(results: any[]) {
-  if (!Array.isArray(results)) return [];
-
-  return results.map((item) => {
-    if (!item) return item;
-
-    const formattedItem: any = {};
-    Object.keys(item).forEach((key) => {
-      if (typeof item[key] === "bigint") {
-        formattedItem[key] = Number(item[key]);
-      } else {
-        formattedItem[key] = item[key];
-      }
-    });
-    return formattedItem;
-  });
-}
 
 /**
  * Get warranty statistics for branches
  */
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json(
-        {
-          message: "Authorization token required",
-          allBranches: [],
-          myBranches: [],
-        },
-        { status: 401 }
-      );
-    }
-
-    const decoded = await verifyToken(token);
-
-    if (!decoded) {
-      return NextResponse.json(
-        {
-          message: "Invalid token",
-          allBranches: [],
-          myBranches: [],
-        },
-        { status: 401 }
-      );
-    }
-
-    const userRole = decoded.role;
-    const userId = decoded.userId;
+    const userRole = auth.role;
+    const userId = auth.userId;
 
     if (!userRole || (userRole !== "Admin" && userRole !== "Branch")) {
       return NextResponse.json(
@@ -93,7 +33,7 @@ export async function GET() {
     if (userRole === "Admin") {
       // For admin, get statistics for all branches
       try {
-        const branchStats = await prisma.$queryRaw`
+        const branchStats = await prisma.$queryRaw<Record<string, unknown>[]>`
           SELECT 
             b."branchid", 
             b."name" as branch_name,
@@ -106,7 +46,7 @@ export async function GET() {
           ORDER BY b."name"
         `;
 
-        const formattedStats = formatBigIntResults(branchStats as any[]);
+        const formattedStats = formatBigIntResults(branchStats);
         result = { allBranches: formattedStats, myBranches: [] };
       } catch (error) {
         console.error("[STATS API] SQL error in admin branch stats:", error);
@@ -138,7 +78,7 @@ export async function GET() {
         if (userBranches.length === 0) {
           result = { allBranches: [], myBranches: [] };
         } else {
-          const branchStats = await prisma.$queryRaw`
+          const branchStats = await prisma.$queryRaw<Record<string, unknown>[]>`
             SELECT 
               b."branchid", 
               b."name" as branch_name,
@@ -152,7 +92,7 @@ export async function GET() {
             ORDER BY b."name"
           `;
 
-          const formattedStats = formatBigIntResults(branchStats as any[]);
+          const formattedStats = formatBigIntResults(branchStats);
           result = { allBranches: [], myBranches: formattedStats };
         }
       } catch (error) {

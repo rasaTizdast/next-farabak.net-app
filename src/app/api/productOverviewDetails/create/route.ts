@@ -49,10 +49,9 @@
  */
 
 import { S3 } from "aws-sdk";
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // Ensure S3 bucket name is always a string
@@ -64,13 +63,6 @@ const s3 = new S3({
   secretAccessKey: process.env.LIARA_SECRET_KEY,
   endpoint: process.env.LIARA_ENDPOINT,
 });
-
-// JWT verification function
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
 
 // Type definition for overview details
 type OverviewDetail = {
@@ -85,18 +77,10 @@ type OverviewDetail = {
 
 export async function POST(req: Request) {
   try {
-    // Verify admin token
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
-    }
-
-    const decoded = await verifyToken(token);
-    const userRole = decoded.role;
-
-    if (!userRole || userRole !== "Admin") {
+    if (auth.role !== "Admin") {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -147,7 +131,7 @@ export async function POST(req: Request) {
 
         // Upload to S3 and wait for the result
         await new Promise<AWS.S3.ManagedUpload.SendData>((resolve, reject) => {
-          s3.upload(uploadParams, (err, data) => {
+          s3.upload(uploadParams, (err: Error, data: AWS.S3.ManagedUpload.SendData) => {
             if (err) reject(err);
             else resolve(data);
           });

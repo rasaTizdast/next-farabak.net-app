@@ -1,9 +1,7 @@
-import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 
+import { prisma } from "@/lib/prisma";
 import { getCurrentJalaliDate } from "@/utils/jalaliDate";
-
-const prisma = new PrismaClient();
 
 /**
  * @swagger
@@ -59,11 +57,6 @@ export async function GET(req: Request, props: { params: Promise<{ blogId: strin
       orderBy: { order: "asc" },
     });
 
-    console.log(
-      `Fetched ${faqs.length} FAQs for blog ${blogId}:`,
-      faqs.map((f) => ({ id: f.id, order: f.order, question: f.question.substring(0, 30) + "..." }))
-    );
-
     return NextResponse.json({ faqs });
   } catch (error) {
     console.error("Error fetching blog FAQs:", error);
@@ -96,8 +89,6 @@ export async function POST(req: Request, props: { params: Promise<{ blogId: stri
       return NextResponse.json({ message: "بلاگ مورد نظر یافت نشد" }, { status: 404 });
     }
 
-    console.log(`Creating FAQ for blog ${blogId} with order: ${order}`);
-
     const faq = await prisma.blogFAQs.create({
       data: {
         blog_id: blogId,
@@ -109,8 +100,6 @@ export async function POST(req: Request, props: { params: Promise<{ blogId: stri
         updated_at: getCurrentJalaliDate(),
       },
     });
-
-    console.log(`Created FAQ with ID ${faq.id} and order ${faq.order}`);
 
     return NextResponse.json({ faq }, { status: 201 });
   } catch (error) {

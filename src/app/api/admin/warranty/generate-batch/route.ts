@@ -1,16 +1,7 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { requireAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
 
 export const dynamic = "force-dynamic";
 
@@ -20,18 +11,13 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     // Auth check
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json({ error: "Authorization token required" }, { status: 401 });
-    }
-
-    const decoded = await verifyToken(token);
-    const userRole = decoded.role;
+    const userRole = auth.role;
 
     // Only admin or branch users can generate warranty codes
-    if (!userRole || (userRole !== "Admin" && userRole !== "Branch")) {
+    if (userRole !== "Admin" && userRole !== "Branch") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -51,13 +37,13 @@ export async function POST(request: Request) {
     // Get existing codes with this prefix for optimization
     const prefix = `${branchCode}-${yearMonth}`;
     const existingCodes = new Set<string>();
-    const existingCodesResult = await prisma.$queryRaw`
+    const existingCodesResult = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT "warrantycode" FROM "info"."warranty"
       WHERE "warrantycode" LIKE ${prefix + "-%"}
     `;
 
-    (existingCodesResult as any[]).forEach((code) => {
-      existingCodes.add(code.warrantycode);
+    existingCodesResult.forEach((code) => {
+      existingCodes.add(code.warrantycode as string);
     });
 
     // Generate codes
