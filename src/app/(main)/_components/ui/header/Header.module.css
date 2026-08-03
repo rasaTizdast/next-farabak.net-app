@@ -2,13 +2,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 10rem;
+  padding-block: 0;
+  padding-inline: 0 10rem;
   position: sticky;
   top: 0;
   z-index: 6;
   width: 100%;
   background-color: #000814;
-  padding-top: 1rem;
+  padding-block-start: 1rem;
   transition: all 0.3s ease-in-out;
 }
 
@@ -29,7 +30,7 @@
   cursor: pointer;
   width: 110%;
   max-width: 180px;
-  margin-bottom: 0.5rem;
+  margin-block-end: 0.5rem;
 }
 
 .icons {
@@ -51,7 +52,8 @@
 .signup {
   display: inline-block;
   border: none;
-  padding: 0.5rem 10px;
+  padding-block: 0.5rem;
+  padding-inline: 10px;
   border-radius: 8px;
   align-self: flex-start;
   cursor: pointer;
