@@ -1,24 +1,15 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
-
-import styles from "./not-found.module.css";
+import { ErrorPage } from "@/components/ui/ErrorPage";
 
 export const metadata: Metadata = {
   robots: {
-    index: false, // prevents indexing of 404 pages
-    follow: true, // usually keep "follow" so bots still crawl links on the 404 page
+    index: false,
+    follow: true,
   },
 };
 
 const NotFound = () => {
-  return (
-    <div className={styles.nf_cont}>
-      <h1>محصولی یافت نشد !!!</h1>
-      <Link href="/">برگشت به صفحه اصلی</Link>
-      <Image src="/404.png" alt="تصویر ۴۰۴" width={1366} height={666} quality={100} />
-    </div>
-  );
+  return <ErrorPage statusCode={404} title="محصولی یافت نشد" message="محصولی که به دنبال آن هستید وجود ندارد." />;
 };
 
 export default NotFound;
