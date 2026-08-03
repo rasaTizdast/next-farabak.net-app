@@ -80,7 +80,7 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
 
     // Update the overviews state
     if (overviews) {
-      const updatedOverviews = { ...overviews, isChanged: true };
+      const updatedOverviews = { ...overviews, isChanged: true } as Record<string, unknown>;
       // Reset all properties
       ["Property1", "Property2", "Property3", "Property4"].forEach((prop) => {
         updatedOverviews[prop] = "";
@@ -89,7 +89,7 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
       newOverviews.forEach((value, idx) => {
         updatedOverviews[`Property${idx + 1}`] = value;
       });
-      SetOverviews(updatedOverviews);
+      SetOverviews(updatedOverviews as Overview);
     }
   };
 
@@ -105,7 +105,7 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
               type="text"
               name={`Property${index + 1}`}
               aria-label={`ویژگی ${index + 1}`}
-              value={overviews?.[`Property${index + 1}`] || ""}
+              value={(overviews?.[`Property${index + 1}`] as string) || ""}
               onChange={inputHandler}
               className="mt-2 w-full rounded border border-gray-800 bg-gray-700 p-2"
               placeholder={`ویژگی ${index + 1} محصول را وارد کنید`}

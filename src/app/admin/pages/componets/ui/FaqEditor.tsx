@@ -39,7 +39,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
     Available: true, // Always true
   });
 
-  const { data: faqsData } = useApiFetch("/api/admin/faqs");
+  const { data: faqsData } = useApiFetch<{ faqs: FAQ[] }>("/api/admin/faqs");
   const { mutate: deleteFaqMutate } = useApiMutation("delete");
   const { mutate: saveFaqMutate } = useApiMutation("post");
   const { mutate: updateFaqMutate } = useApiMutation("put");

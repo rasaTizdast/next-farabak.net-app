@@ -43,7 +43,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const projectUrl = id ? `/api/projects/${id}` : null;
-  const { data: projectData, loading: projectLoading } = useApiFetch(projectUrl);
+  const { data: projectData, loading: projectLoading } = useApiFetch<any>(projectUrl);
   const isLoading = projectUrl ? projectLoading || !projectData : false;
   const { mutate: saveProjectMutate } = useApiMutation("put");
   const initializedRef = useRef(false);

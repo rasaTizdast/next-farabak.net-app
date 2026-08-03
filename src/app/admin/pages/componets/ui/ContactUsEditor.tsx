@@ -51,8 +51,12 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
   });
   const [emails, setEmails] = useState<Array<{ id: number; title: string; address: string }>>([]);
   const [phoneNumbers, setPhoneNumbers] = useState<Array<{ id: number; number: string }>>([]);
-  const { data: contactData } = useApiFetch("/api/contact-us");
-  const { mutate: saveContact, loading: saving } = useApiMutation("put");
+  const { data: contactData } = useApiFetch<{
+    address: { id: number; address: string; postal_code: number; alt_text: string } | null;
+    emails: Array<{ id: number; title: string; address: string }>;
+    phone_numbers: Array<{ id: number; number: string }>;
+  }>("/api/contact-us");
+  const { mutate: saveContact, loading: saving } = useApiMutation<Record<string, unknown>>("put");
   const initializedRef = useRef(false);
 
   const loading = !contactData;
@@ -61,7 +65,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
     if (contactData && !initializedRef.current) {
       initializedRef.current = true;
       const { address: a, emails: e, phone_numbers: p } = contactData;
-      setAddress(a);
+      setAddress(a ?? { id: 0, address: "", postal_code: 0, alt_text: "" });
       setEmails(e);
       setPhoneNumbers(p);
     }

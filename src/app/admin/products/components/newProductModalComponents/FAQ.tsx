@@ -38,7 +38,7 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
 
   // Compute formatted errors for parent
   const formattedErrors = (() => {
-    const errors = {};
+    const errors: Record<string, string> = {};
     Object.entries(localErrors).forEach(([key, value]) => {
       if (value) {
         errors[`faq-${key}`] = value;

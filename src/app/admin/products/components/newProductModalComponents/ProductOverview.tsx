@@ -25,7 +25,7 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
   // Enhanced error reporting to parent component
   useEffect(() => {
     // Format errors with proper prefixes for parent component
-    const formattedErrors = {};
+    const formattedErrors: Record<string, string> = {};
 
     // Add feature-specific errors
     Object.entries(localErrors).forEach(([key, value]) => {
@@ -74,7 +74,7 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
       overviewInitGuard.current = true;
       setLocalFeatures(state.features);
 
-      const initialErrors = {};
+      const initialErrors: Record<string, string> = {};
       state.features.forEach((feature, index) => {
         const error = validateField(feature);
         if (error) {
@@ -117,7 +117,7 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
     dispatch({ type: "SET_FEATURES", features: updatedFeatures });
 
     // Remove error for deleted feature and reindex remaining errors
-    const newErrors = {};
+    const newErrors: Record<string, string> = {};
     Object.entries(localErrors).forEach(([key, value]) => {
       const match = key.match(/feature-(\d+)/);
       if (match) {

@@ -44,7 +44,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set<number>());
 
   const initializedRef = useRef(false);
-  const { data: activitiesData } = useApiFetch("/api/activities");
+  const { data: activitiesData } = useApiFetch<Activity[]>("/api/activities");
   const { mutate: saveActivities, loading: isSaving } = useApiMutation("put");
 
   const isFetching = !activitiesData;
