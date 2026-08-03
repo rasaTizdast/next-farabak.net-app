@@ -1,9 +1,18 @@
 import { jwtVerify, SignJWT } from "jose";
 import { NextResponse, NextRequest } from "next/server";
 
+import { verifyToken } from "@/lib/auth";
+
 // Define your JWT secrets (ensure they're stored securely)
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "your_refresh_jwt_secret";
+const JWT_SECRET = process.env.JWT_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error("Missing JWT_SECRET environment variable");
+}
+if (!REFRESH_TOKEN_SECRET) {
+  throw new Error("Missing REFRESH_TOKEN_SECRET environment variable");
+}
 
 // Token expiration times (in seconds)
 const ACCESS_TOKEN_EXPIRATION = 15 * 60; // 15 minutes
@@ -106,8 +115,8 @@ export async function proxy(req: ExtendedNextRequest) {
   // If there's an access token, verify it
   if (accessToken) {
     try {
-      // Verify the access token using jose
-      const { payload } = await jwtVerify(accessToken, new TextEncoder().encode(JWT_SECRET));
+      // Verify the access token using shared auth module
+      const payload = await verifyToken(accessToken);
 
       const user = payload as {
         userId: string;

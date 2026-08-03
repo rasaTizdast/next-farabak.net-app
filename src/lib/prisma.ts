@@ -19,7 +19,7 @@ if (!globalForPrisma.prisma) {
   prisma
     .$connect()
     .then(() => {
-      console.log("✅ Prisma connected successfully");
+      // connected
     })
     .catch((error) => {
       console.error("❌ Prisma connection failed:", error);
@@ -29,12 +29,10 @@ if (!globalForPrisma.prisma) {
 
 // Enhanced graceful shutdown
 const cleanup = async () => {
-  console.log("🔌 Disconnecting Prisma...");
   try {
     await prisma.$disconnect();
-    console.log("✅ Prisma disconnected");
-  } catch (error) {
-    console.error("❌ Error disconnecting Prisma:", error);
+  } catch {
+    // ignore disconnect errors during shutdown
   } finally {
     process.exit(0);
   }
