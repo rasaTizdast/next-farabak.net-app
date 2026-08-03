@@ -1,4 +1,5 @@
 import { fetchUsdToRialRate } from "./Usd2RialRate";
+import type { Product } from "@/types/product";
 
 export interface ProductPricing {
   originalPrice: number | null;
@@ -59,7 +60,7 @@ export function formatPriceForSchema(price: number | null): string {
   return Math.round(price).toString();
 }
 
-export function getPriceRangeForSchema(products: any[]): { minPrice: string; maxPrice: string } {
+export function getPriceRangeForSchema(products: Record<string, unknown>[]): { minPrice: string; maxPrice: string } {
   if (!products || products.length === 0) {
     return { minPrice: "0", maxPrice: "0" };
   }

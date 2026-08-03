@@ -42,18 +42,20 @@ export const getUserInvoices = async () => {
 
     // Validate Invoice_Details structure in each invoice
     if (Array.isArray(res.data)) {
-      res.data.forEach((invoice, index) => {
+      res.data.forEach((invoice: { Invoice_Details?: { Invoice_Details?: unknown }[] }, index: number) => {
         if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
           console.warn(`Invoice at index ${index} has invalid Invoice_Details`, invoice);
         } else {
-          invoice.Invoice_Details.forEach((detail, detailIndex) => {
-            if (!detail.Invoice_Details) {
-              console.warn(
-                `Detail at index ${detailIndex} in invoice ${index} is missing Invoice_Details ID`,
-                detail
-              );
+          invoice.Invoice_Details.forEach(
+            (detail: { Invoice_Details?: unknown }, detailIndex: number) => {
+              if (!detail.Invoice_Details) {
+                console.warn(
+                  `Detail at index ${detailIndex} in invoice ${index} is missing Invoice_Details ID`,
+                  detail
+                );
+              }
             }
-          });
+          );
         }
       });
     }

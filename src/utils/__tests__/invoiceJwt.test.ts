@@ -65,7 +65,7 @@ describe("verifyInvoiceData", () => {
       timestamp: Date.now(),
     };
 
-    mockJwtVerify.mockResolvedValue({ payload: mockData as any });
+    mockJwtVerify.mockResolvedValue({ payload: mockData } as never);
 
     const result = await verifyInvoiceData("valid-token");
     expect(result).toEqual(mockData);
@@ -86,7 +86,7 @@ describe("verifyInvoiceData", () => {
   });
 
   it("calls jwtVerify with the token", async () => {
-    mockJwtVerify.mockResolvedValue({ payload: {} as any });
+    mockJwtVerify.mockResolvedValue({ payload: {} } as never);
 
     await verifyInvoiceData("test-token");
     expect(mockJwtVerify).toHaveBeenCalledTimes(1);

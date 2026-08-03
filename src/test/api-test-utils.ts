@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import { vi } from "vitest";
 
 export interface ApiTestContext {
@@ -6,6 +7,15 @@ export interface ApiTestContext {
   mockPrisma: Record<string, any>;
   setupAuth: (role?: string, overrides?: Record<string, any>) => void;
   resetAll: () => void;
+  mockNextHeaders: () => {
+    cookies: ReturnType<typeof vi.fn>;
+  };
+  mockJose: () => {
+    jwtVerify: (...args: any[]) => ReturnType<typeof vi.fn>;
+  };
+  mockPrismaModule: () => {
+    prisma: Record<string, any>;
+  };
 }
 
 /**
@@ -67,15 +77,15 @@ export function createApiTestContext(
 }
 
 /**
- * Creates a Request object for API route testing.
+ * Creates a NextRequest object for API route testing.
  */
 export function makeApiRequest(
   method: string,
   url: string,
   body?: any,
   headers?: Record<string, string>
-): Request {
-  return new Request(url, {
+): NextRequest {
+  return new NextRequest(url, {
     method,
     headers: {
       "Content-Type": "application/json",

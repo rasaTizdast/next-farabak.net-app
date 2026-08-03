@@ -1,7 +1,10 @@
 import { SignJWT, jwtVerify } from "jose";
 
 // Use the same secret as login or create a specific one for invoices
-const INVOICE_SECRET = process.env.JWT_SECRET || "your_invoice_secret";
+const INVOICE_SECRET = process.env.JWT_SECRET;
+if (!INVOICE_SECRET) {
+  throw new Error("Missing JWT_SECRET environment variable");
+}
 const COOKIE_NAME = "invoiceData";
 
 // Interface for invoice data

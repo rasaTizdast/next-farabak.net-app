@@ -23,10 +23,15 @@ interface FaqManagerProps {
   onClose: () => void;
 }
 
+interface UpdateFaqResponse {
+  faq: FaqItem;
+  success: boolean;
+}
+
 async function doUpdateFaqOrder(
   updatedFaqs: FaqItem[],
   originalFaqs: FaqItem[],
-  updateFaq: (url: string, body: any) => Promise<any>,
+  updateFaq: (url: string, body: FaqItem) => Promise<UpdateFaqResponse | null>,
   fetchFaqs: () => void,
   setFaqs: (faqs: FaqItem[]) => void
 ) {
@@ -39,7 +44,7 @@ async function doUpdateFaqOrder(
     const results = await Promise.all(
       faqsToUpdate.map(async (faq) => {
         if (faq.id) {
-          return updateFaq(`/api/blogs/faqs/${faq.id}`, { order: faq.order });
+          return updateFaq(`/api/blogs/faqs/${faq.id}`, faq);
         }
         return null;
       })
@@ -71,9 +76,9 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
     loading: isLoading,
     refetch: fetchFaqs,
   } = useApiFetch<any>(blogId ? `/api/blogs/manage/${blogId}/faqs` : null);
-  const { mutate: createFaq } = useApiMutation("post");
-  const { mutate: updateFaq } = useApiMutation("put");
-  const { mutate: deleteFaq } = useApiMutation("delete");
+  const { mutate: createFaq } = useApiMutation<{ question: string; answer: string; order: number; available: boolean }, { faq: FaqItem }>("post");
+  const { mutate: updateFaq } = useApiMutation<FaqItem, UpdateFaqResponse>("put");
+  const { mutate: deleteFaq } = useApiMutation<undefined, { success: boolean }>("delete");
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [newFaq, setNewFaq] = useState<FaqItem>({
     question: "",
@@ -85,14 +90,6 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
   useEffect(() => {
     if (faqsData) {
       const items = faqsData.faqs || [];
-      console.log(
-        "Fetched FAQs from database:",
-        items.map((f: any) => ({
-          id: f.id,
-          order: f.order,
-          question: f.question.substring(0, 30) + "...",
-        }))
-      );
       setFaqs(items);
     }
   }, [faqsData]);
@@ -111,15 +108,6 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
     // Calculate the next order value - get the maximum order from current FAQs
     const maxOrder = faqs.length > 0 ? Math.max(...faqs.map((faq) => faq.order || 0)) : -1;
     const nextOrder = maxOrder + 1;
-    console.log(
-      "Creating new FAQ with order:",
-      nextOrder,
-      "Max order in current FAQs:",
-      maxOrder,
-      "Current FAQs:",
-      faqs.map((f) => ({ id: f.id, order: f.order }))
-    );
-
     const res = await createFaq(`/api/blogs/manage/${blogId}/faqs`, {
       ...newFaq,
       order: nextOrder,
@@ -134,7 +122,7 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
   };
 
   const handleUpdateFaq = async (faqId: number, updatedFaq: FaqItem) => {
-    const data = (await updateFaq(`/api/blogs/faqs/${faqId}`, updatedFaq)) as any;
+    const data = await updateFaq(`/api/blogs/faqs/${faqId}`, updatedFaq);
     if (data) {
       setFaqs(faqs.map((faq) => (faq.id === faqId ? data.faq : faq)));
       setEditingFaq(null);
@@ -189,13 +177,6 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
       ...faq,
       order: index,
     }));
-
-    console.log("Reordering FAQs:", {
-      draggedItem,
-      targetFaqId,
-      oldOrder: faqs.map((f) => ({ id: f.id, order: f.order })),
-      newOrder: updatedFaqs.map((f) => ({ id: f.id, order: f.order })),
-    });
 
     // Update UI immediately
     setFaqs(updatedFaqs);

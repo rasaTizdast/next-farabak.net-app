@@ -1,5 +1,6 @@
 import React from "react";
 import { render, type RenderOptions } from "@testing-library/react";
+import { vi } from "vitest";
 import { UserProvider } from "@/context/UserContext";
 import { InvoiceProvider } from "@/context/InvoiceContext";
 

@@ -39,7 +39,7 @@ describe("useApiMutation", () => {
   it("calls PUT when method is put", async () => {
     mockAxiosPut.mockResolvedValue({ data: { id: 1 }, status: 200 });
 
-    const { result } = renderHook(() => useApiMutation<"put">("put"));
+    const { result } = renderHook(() => useApiMutation<{ name: string }>("put"));
 
     await act(async () => {
       await result.current.mutate("/api/test/1", { name: "Updated" });
@@ -51,7 +51,7 @@ describe("useApiMutation", () => {
   it("calls PATCH when method is patch", async () => {
     mockAxiosPatch.mockResolvedValue({ data: { id: 1 }, status: 200 });
 
-    const { result } = renderHook(() => useApiMutation<"patch">("patch"));
+    const { result } = renderHook(() => useApiMutation<{ name: string }>("patch"));
 
     await act(async () => {
       await result.current.mutate("/api/test/1", { name: "Patched" });
@@ -63,7 +63,7 @@ describe("useApiMutation", () => {
   it("calls DELETE with data in config", async () => {
     mockAxiosDelete.mockResolvedValue({ data: { success: true }, status: 200 });
 
-    const { result } = renderHook(() => useApiMutation<"delete">("delete"));
+    const { result } = renderHook(() => useApiMutation<{ id: number }>("delete"));
 
     await act(async () => {
       await result.current.mutate("/api/test/1", { id: 1 });

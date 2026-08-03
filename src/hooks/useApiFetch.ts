@@ -27,8 +27,9 @@ async function executeApiFetch<T>(
       return;
     }
     setData(response.data);
-  } catch (e: any) {
-    const message = e?.response?.data?.message || e?.message || "خطا در دریافت اطلاعات";
+  } catch (e: unknown) {
+    const error = e as { response?: { data?: { message?: string } }; message?: string };
+    const message = error?.response?.data?.message || error?.message || "خطا در دریافت اطلاعات";
     setError(message);
     setData(null);
   } finally {
@@ -36,7 +37,7 @@ async function executeApiFetch<T>(
   }
 }
 
-export function useApiFetch<T = any>(
+export function useApiFetch<T = unknown>(
   url: string | null,
   fetchOnMount: boolean = true,
   config?: AxiosRequestConfig
