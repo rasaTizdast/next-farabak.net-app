@@ -10,7 +10,7 @@ import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import { generateSlug } from "@/utils/generateSlug";
 
-import TipTapBlogEditor from "./blogEditor/TipTapEditor";
+import {TipTapEditor} from "@/components/editor/TipTapEditor";
 
 type BlogEditModalProps = {
   id: number | null;
@@ -34,6 +34,11 @@ interface Category {
   slug: string;
 }
 
+type BlogData = {
+  blog: BlogFormData & { content?: string };
+  categories: Category[];
+};
+
 const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   const [step, setStep] = useState(1);
   const blogIdRef = useRef<number | null>(null);
@@ -41,6 +46,13 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
   const [categoryInput, setCategoryInput] = useState("");
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [blogContent, setBlogContent] = useState("");
+  const [editorContent, setEditorContent] = useState("");
+
+  useEffect(() => {
+    if (blogContent) {
+      setEditorContent(blogContent);
+    }
+  }, [blogContent]);
 
   // Add these state variables at the top of the component
   const selectedImageRef = useRef<File | null>(null);
@@ -84,14 +96,14 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
     data: blogData,
     loading: blogLoading,
     error: blogError,
-  } = useApiFetch(id ? `/api/blogs/getBlogData/${id}` : null);
+  } = useApiFetch<BlogData>(id ? `/api/blogs/getBlogData/${id}` : null);
   const isLoading = id ? blogLoading : false;
 
-  const { mutate: deleteCategoryMutate } = useApiMutation("delete");
-  const { mutate: createCategoryMutate } = useApiMutation("post");
-  const { mutate: updateBlogMutate } = useApiMutation("put");
-  const { mutate: uploadImageMutate } = useApiMutation("post");
-  const { mutate: patchBlogMutate } = useApiMutation("patch");
+  const { mutate: deleteCategoryMutate } = useApiMutation<Record<string, unknown>>("delete");
+  const { mutate: createCategoryMutate } = useApiMutation<Record<string, unknown>, Category>("post");
+  const { mutate: updateBlogMutate } = useApiMutation<Record<string, unknown>>("put");
+  const { mutate: uploadImageMutate } = useApiMutation<FormData, { url: string }>("post");
+  const { mutate: patchBlogMutate } = useApiMutation<Record<string, unknown>, { id: number }>("patch");
 
   useEffect(() => {
     if (blogData && !initializedRef.current) {
@@ -106,8 +118,8 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
         image_alt: blogData.blog.image_alt,
         categories: blogData.categories.map((c: Category) => c.id),
       });
-      setPreviewImage(blogData.blog.image_URL);
-      setBlogContent(blogData.blog.content);
+      setPreviewImage(blogData.blog.image_URL ?? null);
+      setBlogContent(blogData.blog.content ?? "");
     }
   }, [blogData]);
 
@@ -187,7 +199,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
     return errors.length === 0;
   };
 
-  const { data: categoriesData } = useApiFetch("/api/blogs/categories");
+  const { data: categoriesData } = useApiFetch<Category[]>("/api/blogs/categories");
 
   useEffect(() => {
     if (categoriesData && !categoriesInitializedRef.current) {
@@ -357,9 +369,9 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
     setIsSubmitting(false);
   };
 
-  const handleEditorSave = async (content: string, publish: boolean = false) => {
+  const handleEditorSave = async (publish: boolean = false) => {
     const res = await updateBlogMutate(`/api/blogs/update/${blogIdRef.current}`, {
-      content,
+      content: editorContent,
       status: publish ? "Published" : "Draft",
     });
 
@@ -896,7 +908,7 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
               </div>
             )}
           </>
-        ) : (
+          ) : (
           <div className="flex h-full flex-col">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-bold">نوشتن محتوای وبلاگ</h2>
@@ -910,6 +922,20 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
                 </button>
                 <button
                   type="button"
+                  onClick={() => handleEditorSave(false)}
+                  className="rounded-lg bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700"
+                >
+                  ذخیره پیش‌نویس
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleEditorSave(true)}
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+                >
+                  انتشار
+                </button>
+                <button
+                  type="button"
                   onClick={onClose}
                   className="text-gray-400 transition-colors hover:text-gray-200"
                 >
@@ -918,10 +944,10 @@ const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
               </div>
             </div>
             <div className="flex-1">
-              <TipTapBlogEditor
-                onSave={(content, status) => handleEditorSave(content, status)}
-                slug={formData.slug}
-                blogData={blogContent}
+              <TipTapEditor
+                content={editorContent}
+                onChange={setEditorContent}
+                placeholder="محتوا را وارد کنید..."
               />
             </div>
           </div>

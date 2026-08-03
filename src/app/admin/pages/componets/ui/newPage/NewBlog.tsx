@@ -11,7 +11,7 @@ import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import { generateSlug } from "@/utils/generateSlug";
 
-import TipTapBlogEditor from "../blogEditor/TipTapEditor";
+import {TipTapEditor} from "@/components/editor/TipTapEditor";
 
 interface BlogFormData {
   title: string;
@@ -62,6 +62,8 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   // FAQ management state
   const [showFaqManager, setShowFaqManager] = useState(false);
+
+  const [editorContent, setEditorContent] = useState("");
 
   const [formData, setFormData] = useState<BlogFormData>({
     title: "",
@@ -140,12 +142,12 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   };
 
   const categoriesInitializedRef = useRef(false);
-  const { data: categoriesData } = useApiFetch("/api/blogs/categories");
+  const { data: categoriesData } = useApiFetch<Category[]>("/api/blogs/categories");
   const { mutate: deleteCategoryMutate } = useApiMutation("delete");
-  const { mutate: createCategoryMutate } = useApiMutation("post");
+  const { mutate: createCategoryMutate } = useApiMutation<Record<string, unknown>, Category>("post");
   const { mutate: updateBlogMutate } = useApiMutation("put");
-  const { mutate: uploadImageMutate } = useApiMutation("post");
-  const { mutate: createBlogMutate } = useApiMutation("post");
+  const { mutate: uploadImageMutate } = useApiMutation<FormData, { url: string }>("post");
+  const { mutate: createBlogMutate } = useApiMutation<Record<string, unknown>, { id: number }>("post");
 
   useEffect(() => {
     if (categoriesData && !categoriesInitializedRef.current) {
@@ -311,9 +313,9 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     setIsSubmitting(false);
   };
 
-  const handleEditorSave = async (content: string, publish: boolean = false) => {
+  const handleEditorSave = async (publish: boolean = false) => {
     const res = await updateBlogMutate(`/api/blogs/update/${blogId}`, {
-      content,
+      content: editorContent,
       status: publish ? "Published" : "Draft",
     });
 
@@ -799,13 +801,29 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               <h2 className="text-xl font-bold">نوشتن محتوای وبلاگ</h2>
               <div className="flex gap-3">
                 {blogId && (
-                  <button
-                    type="button"
-                    onClick={() => setShowFaqManager(true)}
-                    className="rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
-                  >
-                    مدیریت سوالات متداول
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setShowFaqManager(true)}
+                      className="rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
+                    >
+                      مدیریت سوالات متداول
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleEditorSave(false)}
+                      className="rounded-lg bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700"
+                    >
+                      ذخیره پیش‌نویس
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleEditorSave(true)}
+                      className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+                    >
+                      انتشار
+                    </button>
+                  </>
                 )}
                 <button
                   type="button"
@@ -817,9 +835,10 @@ const NewBlog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               </div>
             </div>
             <div className="flex-1">
-              <TipTapBlogEditor
-                onSave={(content, status) => handleEditorSave(content, status)}
-                slug={formData.slug}
+              <TipTapEditor
+                content={editorContent}
+                onChange={setEditorContent}
+                placeholder="محتوا را وارد کنید..."
               />
             </div>
           </div>

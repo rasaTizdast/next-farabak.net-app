@@ -1,6 +1,6 @@
 import React, { useCallback, useRef } from "react";
 
-import TipTapBlogEditor from "../productBlogCreator/TipTapEditor";
+import {TipTapEditor} from "@/components/editor/TipTapEditor";
 
 type Props = {
   dispatch: React.Dispatch<{ type: string; productBlog: string }>;
@@ -11,10 +11,7 @@ const ProductBlog = ({ dispatch, slug }: Props) => {
   const contentRef = useRef<string>("");
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleContentChange = (contentObj: { productBlog: string }) => {
-    const content = contentObj.productBlog;
-
-    // Avoid unnecessary updates if content hasn't changed
+  const handleContentChange = (content: string) => {
     if (content === contentRef.current) return;
 
     // Update our reference immediately
@@ -45,7 +42,7 @@ const ProductBlog = ({ dispatch, slug }: Props) => {
           <h1 className="my-3 text-center font-extrabold text-red-300">
             محتوای مقاله به صورت خودکار ذخیره خواهد شد
           </h1>
-          <TipTapBlogEditor slug={slug} onSave={handleContentChange} />
+          <TipTapEditor content="" onChange={handleContentChange} />
         </>
       )}
     </div>
