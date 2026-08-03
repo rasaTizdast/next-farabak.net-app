@@ -1,9 +1,10 @@
 "use client";
 
 import { Input } from "antd";
-import { ChevronDown, ChevronUp, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import Script from "next/script";
 import { useState } from "react";
+import { Accordion } from "@/components/ui/Accordion";
 
 export interface BlogFaqItem {
   id: number;
@@ -27,14 +28,8 @@ const BlogFaqAccordion = ({
   description,
   className = "",
 }: BlogFaqAccordionProps) => {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const toggleFaq = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
-
-  // Filter FAQs based on search query
   const filteredFaqs = faqs.filter(
     (faq) =>
       faq.question?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -42,10 +37,9 @@ const BlogFaqAccordion = ({
   );
 
   if (!faqs || faqs.length === 0) {
-    return null; // Don't render anything if no FAQs
+    return null;
   }
 
-  // Generate JSON-LD structured data for FAQ
   const generateFaqJsonString = () => {
     const faqJsonLd = {
       "@context": "https://schema.org",
@@ -98,64 +92,26 @@ const BlogFaqAccordion = ({
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {filteredFaqs.map((faq, index) => {
-              const isOpen = openIndex === index;
-              return (
-                <div
-                  key={faq.id}
-                  className={`overflow-hidden rounded-lg border bg-white ${
-                    isOpen
-                      ? "border-blue-400 shadow-lg shadow-blue-50"
-                      : "border-gray-400 shadow-sm hover:border-gray-500 hover:shadow-md"
-                  } transition-all duration-300`}
-                >
-                  <button
-                    type="button"
-                    onClick={() => toggleFaq(index)}
-                    className={`flex w-full items-center justify-between p-4 text-right focus:outline-none md:p-5 ${
-                      isOpen ? "bg-blue-50" : "hover:bg-gray-50"
-                    } transition-colors duration-300`}
-                    aria-expanded={isOpen}
-                    aria-controls={`faq-answer-${faq.id}`}
-                  >
-                    <h3
-                      className={`text-sm font-semibold md:text-base ${
-                        isOpen ? "text-blue-800" : "text-gray-900"
-                      } pr-2 text-right transition-colors duration-300 md:pr-3`}
-                    >
-                      {faq.question}
-                    </h3>
-                    <span
-                      className={`ml-2 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full md:ml-4 md:h-8 md:w-8 ${
-                        isOpen ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-500"
-                      } transition-all duration-300`}
-                    >
-                      {isOpen ? (
-                        <ChevronUp className="h-4 w-4 md:h-5 md:w-5" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4 md:h-5 md:w-5" />
-                      )}
-                    </span>
-                  </button>
-
-                  {isOpen && (
-                    <div id={`faq-answer-${faq.id}`} className="px-4 pb-4 pt-0 md:px-5 md:pb-5">
-                      <div className="border-t border-blue-50 pt-3">
-                        <p className="text-sm leading-relaxed text-gray-700 md:text-base">
-                          {faq.answer}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <Accordion<BlogFaqItem>
+            allowMultiple={false}
+            items={filteredFaqs.map((faq) => ({
+              id: String(faq.id),
+              data: faq,
+              renderHeader: (item) => (
+                <h3 className="pr-2 text-right text-sm font-semibold text-gray-900 md:pr-3 md:text-base">
+                  {item.question}
+                </h3>
+              ),
+              renderContent: (item) => (
+                <p className="text-sm leading-relaxed text-gray-700 md:text-base">
+                  {item.answer}
+                </p>
+              ),
+            }))}
+          />
         )}
       </div>
 
-      {/* JSON-LD Structured Data for SEO */}
       <Script
         id={`faq-jsonld-${blogSlug}`}
         type="application/ld+json"
