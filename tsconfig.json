@@ -5,7 +5,6 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
-    "noImplicitAny": false,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -25,7 +24,6 @@
     }
   },
   "include": [
-    "cypress",
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
@@ -34,5 +32,5 @@
     "src/app/sitemap.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "cypress"]
 }

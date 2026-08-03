@@ -6,6 +6,10 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
+    env: {
+      JWT_SECRET: "test-jwt-secret",
+      REFRESH_TOKEN_SECRET: "test-refresh-token-secret",
+    },
     include: ["src/**/*.test.{ts,tsx}"],
     globals: true,
     coverage: {
