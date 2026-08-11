@@ -225,7 +225,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
             loading={loading}
             pagination={false} // No pagination
             scroll={{ x: "max-content", y: "calc(100vh - 300px)" }}
-            className="dark-table"
+            className="dark-table [&_.ant-table-cell-scrollbar]:!shadow-none"
             locale={{
               emptyText: <span className="text-gray-400">سوالی موجود نیست</span>,
             }}
@@ -241,7 +241,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
         onCancel={() => setModalVisible(false)}
         footer={null}
         width={600}
-        className="dark-modal"
+        className="dark-modal [&_.ant-btn-primary]:!border-blue-600 [&_.ant-btn-primary]:!bg-blue-600 hover:[&_.ant-btn-primary]:!border-blue-700 hover:[&_.ant-btn-primary]:!bg-blue-700 [&_.ant-btn]:!border-gray-600 [&_.ant-btn]:!bg-gray-700 [&_.ant-btn]:!text-gray-200 hover:[&_.ant-btn]:!border-gray-500 hover:[&_.ant-btn]:!bg-gray-600 [&_.ant-input-affix-wrapper-focused]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-input-affix-wrapper:focus]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-input-affix-wrapper:hover]:!border-gray-500 [&_.ant-input-focused]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-input-number-input::placeholder]:!text-gray-400 [&_.ant-input-textarea-show-count::after]:!text-gray-200 [&_.ant-input::placeholder]:!text-gray-400 [&_.ant-input:focus]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-input:hover]:!border-gray-500 [&_.ant-modal-body]:!p-0 [&_.ant-modal-content]:!bg-transparent [&_.ant-modal-content]:!shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] [&_.ant-select-selector:hover]:!border-gray-500"
         closeIcon={null}
         centered
         styles={{
@@ -330,105 +330,6 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
           </div>
         </div>
       </Modal>
-
-      {/* Add global styles for antd dark mode */}
-      <style jsx global>{`
-        .dark-table .ant-table {
-          background-color: #1f2937 !important;
-          color: #e5e7eb !important;
-        }
-
-        .dark-table .ant-table-thead > tr > th {
-          background-color: #111827 !important;
-          color: #e5e7eb !important;
-          border-bottom: 1px solid #374151 !important;
-        }
-
-        .dark-table .ant-table-tbody > tr > td {
-          border-bottom: 1px solid #374151 !important;
-          color: #e5e7eb !important;
-        }
-
-        .dark-table .ant-table-tbody > tr:hover > td {
-          background-color: #374151 !important;
-        }
-
-        .dark-table .ant-empty-description {
-          color: #9ca3af !important;
-        }
-
-        .dark-table .ant-table-cell-scrollbar {
-          box-shadow: none !important;
-        }
-
-        .dark-modal .ant-input-affix-wrapper:focus,
-        .dark-modal .ant-input-affix-wrapper-focused,
-        .dark-modal .ant-input:focus,
-        .dark-modal .ant-input-focused {
-          border-color: #3b82f6 !important;
-          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
-        }
-
-        .dark-modal .ant-modal-content {
-          background-color: transparent !important;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
-        }
-
-        .dark-modal .ant-modal-body {
-          padding: 0 !important;
-        }
-
-        .dark-modal .ant-input,
-        .dark-modal .ant-input-number,
-        .dark-modal .ant-input-affix-wrapper,
-        .dark-modal .ant-select-selector,
-        .dark-modal .ant-input-number-input,
-        .dark-modal .ant-select-selection-search-input,
-        .dark-modal .ant-select-selection-item,
-        .dark-modal .ant-select-selection-placeholder,
-        .dark-modal .ant-input-textarea-show-count::after {
-          background-color: #374151 !important;
-          border-color: #4b5563 !important;
-          color: #e5e7eb !important;
-        }
-
-        .dark-modal .ant-input::placeholder,
-        .dark-modal .ant-input-affix-wrapper input::placeholder,
-        .dark-modal .ant-input-number-input::placeholder {
-          color: #9ca3af !important;
-        }
-
-        .dark-modal .ant-input:hover,
-        .dark-modal .ant-input-affix-wrapper:hover,
-        .dark-modal .ant-select-selector:hover {
-          border-color: #6b7280 !important;
-        }
-
-        .dark-modal .ant-btn {
-          background-color: #374151;
-          border-color: #4b5563;
-          color: #e5e7eb;
-        }
-
-        .dark-modal .ant-btn:hover,
-        .dark-modal .ant-btn:focus {
-          background-color: #4b5563;
-          border-color: #6b7280;
-          color: #f9fafb;
-        }
-
-        .dark-modal .ant-btn-primary {
-          background-color: #2563eb;
-          border-color: #2563eb;
-          color: white;
-        }
-
-        .dark-modal .ant-btn-primary:hover,
-        .dark-modal .ant-btn-primary:focus {
-          background-color: #1d4ed8;
-          border-color: #1d4ed8;
-        }
-      `}</style>
     </div>
   );
 };

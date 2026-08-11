@@ -12,7 +12,6 @@ import ProductsModal from "./components/ProductsModal";
 import { AutoCompleteBase, ButtonBase, InputBase } from "./components/ui";
 import WarehouseFormModal from "./components/WarehouseFormModal";
 import WarehousesTable from "./components/WarehousesTable";
-import Styles from "./styles";
 
 type Warehouse = {
   warehouseid: number;
@@ -370,7 +369,6 @@ function WarehousesPageContent() {
           </div>
         ))}
       </div>
-      <Styles />
     </div>
   );
 }

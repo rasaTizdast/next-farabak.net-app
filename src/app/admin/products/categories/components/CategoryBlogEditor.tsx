@@ -159,7 +159,7 @@ export default function CategoryBlogEditor({
           <TableIcon className="inline h-4 w-4" />
         </button>
       </div>
-      <div className="tiptap-editor">
+      <div className="tiptap-editor [&_.ProseMirror_table]:w-full [&_.ProseMirror_table]:border-collapse [&_.ProseMirror_td]:!border [&_.ProseMirror_td]:!border-gray-700 [&_.ProseMirror_td]:!p-2 [&_.ProseMirror_th]:!border [&_.ProseMirror_th]:!border-gray-700 [&_.ProseMirror_th]:!bg-gray-800 [&_.ProseMirror_th]:!p-2">
         <EditorContent editor={editor} />
       </div>
       {placeholder && !value && <p className="mt-1 text-xs text-gray-400">{placeholder}</p>}
@@ -301,20 +301,6 @@ export default function CategoryBlogEditor({
           </button>
         </div>
       )}
-      <style jsx>{`
-        .tiptap-editor :global(.ProseMirror table) {
-          width: 100%;
-          border-collapse: collapse;
-        }
-        .tiptap-editor :global(.ProseMirror th),
-        .tiptap-editor :global(.ProseMirror td) {
-          border: 1px solid #374151; /* tailwind gray-700 */
-          padding: 0.5rem;
-        }
-        .tiptap-editor :global(.ProseMirror th) {
-          background-color: #1f2937; /* tailwind gray-800 */
-        }
-      `}</style>
     </div>
   );
 }
