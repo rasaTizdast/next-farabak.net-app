@@ -27,10 +27,7 @@ export default function WarrantyPrintMode({
   if (!warrantyData.hasWarranty) return null;
 
   return (
-    <div
-      ref={printRef}
-      className={`warranty-print-view ${!showPrintView ? "hidden" : ""}`}
-    >
+    <div ref={printRef} className={`m-0 p-0 ${!showPrintView ? "hidden" : ""}`}>
       <div className="warranty-certificate">
         <div className="mb-1 text-center">
           <img

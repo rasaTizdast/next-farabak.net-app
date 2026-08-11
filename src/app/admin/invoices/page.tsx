@@ -208,7 +208,9 @@ const AdminInvoicesPage = () => {
   const [searchMode, setSearchMode] = useState<"basic" | "warranty">("basic");
   const [isCheckingWarranties, setIsCheckingWarranties] = useState(false);
 
-  const { mutate: checkWarrantyMutate } = useApiMutation<undefined, { updatedCount: number }>("post");
+  const { mutate: checkWarrantyMutate } = useApiMutation<undefined, { updatedCount: number }>(
+    "post"
+  );
   const { mutate: updateStatusMutate } = useApiMutation("patch");
   const { mutate: deleteInvoiceMutate } = useApiMutation("delete");
 
@@ -340,8 +342,8 @@ const AdminInvoicesPage = () => {
                 onChange={(value) => {
                   setSearchMode(value);
                 }}
-                className="search-select"
-                popupClassName="bg-gray-800 text-white"
+                className="search-select [&.ant-select-focused_.ant-select-selector]:!border-blue-500 [&.ant-select-focused_.ant-select-selector]:!shadow-none [&.ant-select:hover_.ant-select-selector]:!border-gray-600 [&_.ant-select-selector]:!rounded-l-none [&_.ant-select-selector]:!rounded-r-md [&_.ant-select-selector]:!border-[#384152] [&_.ant-select-selector]:!bg-slate-800 [&_.ant-select-selector]:!text-white"
+                popupClassName="!bg-gray-800 !text-white !border !border-gray-600 [&_.ant-select-item]:!text-white"
                 style={{
                   width: "105px",
                   color: "white",
@@ -367,7 +369,7 @@ const AdminInvoicesPage = () => {
                 onChange={(e) => {
                   setSearchText(e.target.value);
                 }}
-                className="search-input"
+                className="search-input focus:z-[2] [&.ant-input::placeholder]:!text-slate-300 [&.ant-input::placeholder]:!opacity-100 [&.ant-input:focus]:!border-blue-500 [&.ant-input:focus]:!bg-slate-800 [&.ant-input:focus]:!shadow-none [&.ant-input:hover]:!border-gray-600 [&.ant-input:hover]:!bg-slate-800 [&.ant-input]:!text-white"
                 style={{
                   backgroundColor: "#1e293b",
                   color: "white",
@@ -386,7 +388,7 @@ const AdminInvoicesPage = () => {
                 onClick={() => {
                   // Search is handled by the useMemo filter
                 }}
-                className="search-button h-8 w-8 rounded-l-md rounded-r-none p-0 flex items-center justify-center"
+                className="search-button flex h-8 w-8 items-center justify-center rounded-l-md rounded-r-none !border-blue-500 !bg-blue-500 p-0 hover:!border-blue-600 hover:!bg-blue-600"
               />
             </div>
 
@@ -592,80 +594,6 @@ const AdminInvoicesPage = () => {
           </>
         )}
       </div>
-
-      <style jsx global>{`
-        /* Styles for search input */
-        .search-input.ant-input {
-          color: white !important;
-        }
-
-        .search-input.ant-input::placeholder {
-          color: #cbd5e1 !important;
-          opacity: 1 !important;
-        }
-
-        .search-input.ant-input:hover {
-          background-color: #1e293b !important;
-          border-color: #4b5563 !important;
-        }
-
-        .search-input.ant-input:focus,
-        .search-input.ant-input-focused {
-          background-color: #1e293b !important;
-          border-color: #3b82f6 !important;
-          box-shadow: none !important;
-          z-index: 2;
-        }
-
-        .search-button {
-          background-color: #3b82f6 !important;
-          border-color: #3b82f6 !important;
-        }
-
-        .search-button:hover {
-          background-color: #2563eb !important;
-          border-color: #2563eb !important;
-        }
-
-        .search-select.ant-select .ant-select-selector {
-          border-radius: 0 0.375rem 0.375rem 0 !important;
-          background-color: #1e293b !important;
-          border-color: #384152 !important;
-          color: white !important;
-        }
-
-        .search-select.ant-select:hover .ant-select-selector {
-          border-color: #4b5563 !important;
-        }
-
-        .search-select.ant-select-focused .ant-select-selector {
-          border-color: #3b82f6 !important;
-          box-shadow: none !important;
-        }
-
-        .ant-select-dropdown {
-          background-color: #1f2937 !important;
-          border: 1px solid #4b5563 !important;
-        }
-
-        .ant-select-item {
-          color: white !important;
-        }
-
-        .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
-          background-color: #374151 !important;
-        }
-
-        .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
-          background-color: #3b82f6 !important;
-        }
-
-        .ant-btn-icon {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-      `}</style>
     </div>
   );
 };

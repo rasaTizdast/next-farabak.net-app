@@ -100,11 +100,15 @@ export default function WarrantyCreateMode({
                 ابتدا شعبه را انتخاب کنید، سپس کد گارانتی تولید خواهد شد
               </p>
               <div>
-                <label htmlFor="branch-select" className="mb-2 block text-sm font-medium text-gray-300">
+                <label
+                  htmlFor="branch-select"
+                  className="mb-2 block text-sm font-medium text-gray-300"
+                >
                   شعبه
                 </label>
                 <div className="mb-2 text-xs text-gray-400">
-                  توجه: فقط شعبه‌هایی که این محصول را در انبار خود دارند نمایش داده می‌شوند. با ثبت گارانتی، یک عدد از موجودی محصول در شعبه کم می‌شود.
+                  توجه: فقط شعبه‌هایی که این محصول را در انبار خود دارند نمایش داده می‌شوند. با ثبت
+                  گارانتی، یک عدد از موجودی محصول در شعبه کم می‌شود.
                 </div>
                 {loadingBranches ? (
                   <div className="flex justify-center p-2">
@@ -114,13 +118,13 @@ export default function WarrantyCreateMode({
                   <div>
                     <Select
                       id="branch-select"
-                      className="warranty-select w-full text-right"
+                      className="warranty-select w-full text-right [&.ant-select-disabled_.ant-select-selector]:!bg-slate-900 [&.ant-select-disabled_.ant-select-selector]:!opacity-70 [&_.ant-select-arrow]:!text-slate-400 [&_.ant-select-arrow_.anticon-loading]:!text-blue-500 [&_.ant-select-clear]:!bg-slate-800 [&_.ant-select-clear]:!text-slate-400 [&_.ant-select-focused_.ant-select-selector]:!border-blue-500 [&_.ant-select-focused_.ant-select-selector]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-select-selection-item]:!pr-3 [&_.ant-select-selection-item]:!text-right [&_.ant-select-selection-item]:!text-white [&_.ant-select-selection-placeholder]:!text-slate-400 [&_.ant-select-selector]:!flex [&_.ant-select-selector]:!h-10 [&_.ant-select-selector]:!items-center [&_.ant-select-selector]:!rounded-lg [&_.ant-select-selector]:!border-slate-700 [&_.ant-select-selector]:!bg-slate-800 [&_.ant-select-selector]:!text-right [&_.ant-select-selector]:!text-white hover:[&_.ant-select-selector]:!border-gray-600 hover:[&_.ant-select-selector]:!shadow-[0_0_0_2px_rgba(59,130,246,0.1)]"
                       placeholder="انتخاب شعبه"
                       value={warrantyData.branchId || undefined}
                       onChange={handleBranchChange}
                       loading={loadingBranches}
                       disabled={loadingBranches}
-                      popupClassName="warranty-select-dropdown"
+                      popupClassName="warranty-select-dropdown !bg-slate-800 !border !border-slate-700 !rounded-lg [&_.ant-select-item]:!pr-3 [&_.ant-select-item]:!text-right [&_.ant-select-item]:!text-white [&_.ant-select-item-option-active:not(.ant-select-item-option-disabled)]:!bg-[#2d3748] [&_.ant-select-item-option-selected:not(.ant-select-item-option-disabled)]:!bg-blue-500 [&_.ant-empty-description]:!text-red-400 [&_.ant-select-item-empty]:!py-3 [&_.ant-select-item-empty]:!text-center [&_.ant-select-item-empty]:!text-red-400"
                       notFoundContent={
                         <div className="py-3 text-center text-red-400">
                           هیچ شعبه‌ای با موجودی این محصول یافت نشد
