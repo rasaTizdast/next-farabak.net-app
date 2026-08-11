@@ -207,7 +207,10 @@ const WarrantyTrackingPage = () => {
                 با وارد کردن کد گارانتی محصول، از وضعیت و اعتبار گارانتی خود مطلع شوید
               </Paragraph>
 
-              <Steps current={currentStep} className="warranty-steps font-inherit mb-8">
+              <Steps
+                current={currentStep}
+                className="mb-8 max-[576px]:[&_.ant-steps-item-description]:!hidden"
+              >
                 {stepsConfig.map((step, index) => (
                   <Step
                     key={step.title}
@@ -497,7 +500,10 @@ const WarrantyTrackingPage = () => {
           <div className="mt-12 text-center text-gray-500">
             <Paragraph className="font-inherit">
               جهت اطلاعات بیشتر با شماره{" "}
-              <Text strong className="contact-number cursor-pointer text-blue-500">
+              <Text
+                strong
+                className="contact-number inline-block cursor-pointer text-blue-500 [direction:ltr] [unicode-bidi:plaintext]"
+              >
                 021-77500008
               </Text>{" "}
               تماس بگیرید
@@ -505,98 +511,6 @@ const WarrantyTrackingPage = () => {
           </div>
         </div>
       )}
-
-      <style jsx global>{`
-        .warranty-page {
-          font-family: "IranYekan", sans-serif;
-        }
-
-        .font-inherit {
-          font-family: inherit !important;
-        }
-
-        .warranty-steps .ant-steps-item-title {
-          font-weight: 500;
-          font-family: inherit !important;
-        }
-
-        .warranty-steps .ant-steps-item-description {
-          font-size: 12px;
-          font-family: inherit !important;
-        }
-
-        .ant-result-title {
-          font-size: 20px;
-          font-weight: 600;
-          font-family: inherit !important;
-        }
-
-        .ant-result-subtitle {
-          font-family: inherit !important;
-        }
-
-        .ant-card-head-title {
-          font-family: inherit !important;
-        }
-
-        .ant-typography {
-          font-family: inherit !important;
-        }
-
-        .ant-btn {
-          font-family: inherit !important;
-        }
-
-        .ant-input {
-          font-family: inherit !important;
-        }
-
-        .ant-alert-message,
-        .ant-alert-description {
-          font-family: inherit !important;
-        }
-
-        .contact-number {
-          unicode-bidi: plaintext;
-          direction: ltr;
-          display: inline-block;
-        }
-
-        .ant-result .ant-result-content {
-          font-family: inherit !important;
-        }
-
-        /* Add missing Ant Design component styles */
-        .ant-card,
-        .ant-card-body,
-        .ant-steps,
-        .ant-steps-item,
-        .ant-steps-item-container,
-        .ant-form,
-        .ant-form-item,
-        .ant-form-item-label,
-        .ant-form-item-control,
-        .ant-spin,
-        .ant-spin-text,
-        .ant-result,
-        .ant-result-icon,
-        .ant-col,
-        .ant-row,
-        .ant-paragraph {
-          font-family: inherit !important;
-        }
-
-        /* Target all Ant Design components */
-        [class*="ant-"] {
-          font-family: inherit !important;
-        }
-
-        @media (max-width: 576px) {
-          .ant-steps-horizontal:not(.ant-steps-label-vertical) .ant-steps-item-description {
-            display: none;
-          }
-        }
-      `}</style>
     </div>
   );
 };
