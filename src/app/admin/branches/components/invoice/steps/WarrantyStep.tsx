@@ -123,7 +123,9 @@ async function doUpdateWarranties(
 
     for (const product of selectedProducts) {
       const items = productsWithWarranty.filter((p) => p.ProductId === product.ProductId);
-      const existingCodes = items.flatMap((item) => (item.warranty?.warrantycode ? [item.warranty.warrantycode] : []));
+      const existingCodes = items.flatMap((item) =>
+        item.warranty?.warrantycode ? [item.warranty.warrantycode] : []
+      );
       const codesNeeded = Math.max(0, product.quantity - existingCodes.length);
       totalCodesNeeded += codesNeeded;
       productCodeNeeds.push({
@@ -201,7 +203,10 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
   const [isDatePickerLoading, setIsDatePickerLoading] = useState(false);
   const [todayTimestamp] = useState(() => Date.now());
 
-  const { mutate: generateBatchMutate } = useApiMutation<{ branchCode: string; yearMonth: string; count: number }, { warrantyCodes: string[] }>("post");
+  const { mutate: generateBatchMutate } = useApiMutation<
+    { branchCode: string; yearMonth: string; count: number },
+    { warrantyCodes: string[] }
+  >("post");
 
   // Generate warranty codes in a batch to reduce API calls
   const generateBatchWarrantyCodes = useCallback(
@@ -530,7 +535,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
           columns={columns}
           rowKey="singleItemId"
           pagination={false}
-          className="custom-dark-table"
+          className="custom-dark-table [&_.ant-table-tbody>tr:hover>td]:!bg-[#2d3748] [&_.ant-table-tbody>tr>td]:!border-b-gray-700 [&_.ant-table-tbody>tr>td]:!text-white [&_.ant-table-thead>tr>th]:sticky [&_.ant-table-thead>tr>th]:top-0 [&_.ant-table-thead>tr>th]:z-[2] [&_.ant-table-thead>tr>th]:!border-b-gray-700 [&_.ant-table-thead>tr>th]:!bg-gray-800 [&_.ant-table-thead>tr>th]:!text-white [&_.ant-table]:!bg-gray-900 [&_.ant-table]:!text-white"
           rowClassName={(record) => {
             // Find all items with same product ID
             const sameProductItems = productsWithWarranty.filter(
@@ -542,25 +547,25 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
               (item) => item.singleItemId === record.singleItemId
             );
 
-            // Add a class based on position
-            let className = "dark-table-row";
+            // Zebra backgrounds for group rows
+            let className = "odd:!bg-gray-900 even:!bg-[#1a202c]";
 
             // First item of a group
             if (currentIndex === 0) {
-              className += " first-group-item";
+              className += " [&>td]:!border-b-0 [&>td]:!pb-2 [&>td:first-child]:rounded-tl-[3px]";
             }
             // Last item of a group
             else if (currentIndex === sameProductItems.length - 1) {
-              className += " last-group-item";
+              className += " [&>td]:!border-t-0 [&>td]:!pt-2 [&>td:first-child]:rounded-bl-[3px]";
             }
             // Middle items
             else {
-              className += " middle-group-item";
+              className += " [&>td]:!border-y-0 [&>td]:!py-2";
             }
 
             // Add product-specific color class
             const colorIndex = getProductColorIndex(record.ProductId);
-            className += ` product-color-${getColorNameByIndex(colorIndex)}`;
+            className += ` ${getProductRowBorderClass(getColorNameByIndex(colorIndex))}`;
 
             return className;
           }}
@@ -574,7 +579,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
         onOk={handleSaveWarranty}
         okText="ذخیره"
         cancelText="انصراف"
-        className="warranty-modal"
+        className="warranty-modal [&_.ant-modal-header]:!mb-5 [&_.ant-modal-header]:!pb-2.5"
         zIndex={1000}
       >
         {isDatePickerLoading ? (
@@ -595,7 +600,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
                 handleWarrantyToggle(changedValues.hasWarranty);
               }
             }}
-            className="warranty-form"
+            className="warranty-form [&_.ant-form-item-label>label]:!text-gray-200 [&_.ant-form-item]:!mb-6"
           >
             <Form.Item
               name="hasWarranty"
@@ -745,173 +750,6 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
           </Form>
         )}
       </Modal>
-
-      <style jsx global>{`
-        .custom-dark-table .ant-table {
-          background-color: #111827;
-          color: white;
-        }
-
-        .custom-dark-table .ant-table-thead > tr > th {
-          background-color: #1f2937;
-          color: white;
-          border-bottom: 1px solid #374151;
-          position: sticky;
-          top: 0;
-          z-index: 2;
-        }
-
-        .custom-dark-table .ant-table-tbody > tr > td {
-          border-bottom: 1px solid #374151;
-          color: white;
-        }
-
-        .custom-dark-table .ant-table-tbody > tr.dark-table-row:hover > td {
-          background-color: #2d3748;
-        }
-
-        .dark-table-row {
-          background-color: #111827;
-        }
-
-        /* Clean group styling */
-        .first-group-item td {
-          border-bottom-width: 0 !important;
-          padding-bottom: 8px !important;
-        }
-
-        .middle-group-item td {
-          border-top-width: 0 !important;
-          border-bottom-width: 0 !important;
-          padding-top: 8px !important;
-          padding-bottom: 8px !important;
-        }
-
-        .last-group-item td {
-          border-top-width: 0 !important;
-          padding-top: 8px !important;
-        }
-
-        /* Group row backgrounds */
-        .dark-table-row:nth-child(odd) {
-          background-color: #111827 !important;
-        }
-
-        .dark-table-row:nth-child(even) {
-          background-color: #1a202c !important;
-        }
-
-        /* Product color indicators */
-        .product-color-blue td:first-child {
-          border-left: 3px solid #3b82f6 !important;
-        }
-
-        .product-color-green td:first-child {
-          border-left: 3px solid #10b981 !important;
-        }
-
-        .product-color-purple td:first-child {
-          border-left: 3px solid #8b5cf6 !important;
-        }
-
-        .product-color-orange td:first-child {
-          border-left: 3px solid #f59e0b !important;
-        }
-
-        .product-color-pink td:first-child {
-          border-left: 3px solid #ec4899 !important;
-        }
-
-        .product-color-cyan td:first-child {
-          border-left: 3px solid #06b6d4 !important;
-        }
-
-        .product-color-red td:first-child {
-          border-left: 3px solid #ef4444 !important;
-        }
-
-        .product-color-lime td:first-child {
-          border-left: 3px solid #84cc16 !important;
-        }
-
-        /* Badge colors for quantity */
-        .bg-color-blue {
-          background-color: #3b82f6 !important;
-        }
-
-        .bg-color-green {
-          background-color: #10b981 !important;
-        }
-
-        .bg-color-purple {
-          background-color: #8b5cf6 !important;
-        }
-
-        .bg-color-orange {
-          background-color: #f59e0b !important;
-        }
-
-        .bg-color-pink {
-          background-color: #ec4899 !important;
-        }
-
-        .bg-color-cyan {
-          background-color: #06b6d4 !important;
-        }
-
-        .bg-color-red {
-          background-color: #ef4444 !important;
-        }
-
-        .bg-color-lime {
-          background-color: #84cc16 !important;
-        }
-
-        /* Round corners for first and last items */
-        .first-group-item td:first-child {
-          border-top-left-radius: 3px;
-        }
-
-        .last-group-item td:first-child {
-          border-bottom-left-radius: 3px;
-        }
-
-        .warranty-modal .ant-modal-content {
-          background-color: #1f2937;
-          color: white;
-        }
-
-        .warranty-modal .ant-modal-header {
-          background-color: #1f2937;
-          border-bottom: 1px solid #374151;
-          padding-bottom: 10px;
-          margin-bottom: 20px;
-        }
-
-        .warranty-modal .ant-modal-title {
-          color: white;
-        }
-
-        /* Style form elements */
-        .warranty-form .ant-form-item-label > label {
-          color: #e5e7eb;
-        }
-
-        .warranty-form .ant-form-item {
-          margin-bottom: 24px;
-        }
-
-        /* Make modals have lower z-index than DatePicker popover */
-        .ant-modal-mask,
-        .ant-modal-wrap {
-          z-index: 1000;
-        }
-
-        /* Override any other styles that might interfere */
-        .ant-picker-dropdown {
-          z-index: 3000 !important;
-        }
-      `}</style>
     </Card>
   );
 };
@@ -937,11 +775,50 @@ const getProductColorIndex = (productId: string | number): number => {
   return numValue % 8;
 };
 
+// Color utilities mapped from the color name
+const colorClassMap: Record<string, { badge: string; rowBorder: string }> = {
+  blue: {
+    badge: "!bg-blue-500",
+    rowBorder: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-blue-500",
+  },
+  green: {
+    badge: "!bg-emerald-500",
+    rowBorder: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-emerald-500",
+  },
+  purple: {
+    badge: "!bg-violet-500",
+    rowBorder: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-violet-500",
+  },
+  orange: {
+    badge: "!bg-amber-500",
+    rowBorder: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-amber-500",
+  },
+  pink: {
+    badge: "!bg-pink-500",
+    rowBorder: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-pink-500",
+  },
+  cyan: {
+    badge: "!bg-cyan-500",
+    rowBorder: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-cyan-500",
+  },
+  red: {
+    badge: "!bg-red-500",
+    rowBorder: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-red-500",
+  },
+  lime: {
+    badge: "!bg-lime-500",
+    rowBorder: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-lime-500",
+  },
+};
+
 // Function to deterministically assign a color class based on product ID
 const getProductColor = (productId: string | number): string => {
   const colorIndex = getProductColorIndex(productId);
-  return `bg-color-${getColorNameByIndex(colorIndex)}`;
+  return colorClassMap[getColorNameByIndex(colorIndex)].badge;
 };
+
+// Function to get the row border class for a color name
+const getProductRowBorderClass = (colorName: string): string => colorClassMap[colorName].rowBorder;
 
 // Get color name by index
 const getColorNameByIndex = (index: number): string => {

@@ -75,13 +75,13 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
   }
 
   return (
-    <div className="warranty-stats-wrapper space-y-6 rounded-lg border border-gray-800 bg-gray-900 p-6 shadow-xl">
+    <div className="warranty-stats-wrapper space-y-6 rounded-lg border border-gray-800 bg-gray-900 p-6 shadow-xl [&_.ant-card-head]:!bg-gray-800/90">
       {/* Total Statistics Summary - Row Layout */}
 
       {/* Detailed breakdown for each period */}
       {statistics.length > 0 && (
         <Card
-          className="border-0 shadow-md"
+          className="overflow-hidden border-0 shadow-md"
           style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
           title={
             <div className="flex items-center justify-between">
@@ -120,54 +120,6 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
           </div>
         </Card>
       )}
-
-      <style jsx global>{`
-        .warranty-stats-wrapper {
-          font-family: inherit !important;
-        }
-
-        .warranty-stats-wrapper * {
-          font-family: inherit !important;
-        }
-
-        .ant-card-head-title,
-        .ant-statistic-title {
-          color: #e5e7eb !important;
-        }
-
-        .ant-statistic-content-value-int {
-          font-size: 2rem;
-        }
-
-        .ant-card {
-          border-radius: 8px;
-          overflow: hidden;
-        }
-
-        .ant-card-head {
-          background-color: rgba(31, 41, 55, 0.9);
-        }
-
-        /* Fix font-family issues */
-        .ant-card,
-        .ant-card-head,
-        .ant-card-head-title,
-        .ant-card-body,
-        .ant-statistic,
-        .ant-statistic-title,
-        .ant-statistic-content,
-        .ant-typography,
-        .ant-spin,
-        .ant-alert {
-          font-family: inherit !important;
-        }
-
-        /* Ensure numeric values also use the right font */
-        .ant-statistic-content-value-int,
-        .ant-statistic-content-value-decimal {
-          font-family: inherit !important;
-        }
-      `}</style>
     </div>
   );
 }

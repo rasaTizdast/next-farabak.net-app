@@ -1,9 +1,10 @@
 "use client";
 
-import { Card, Empty, Spin, Button, Table } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { Product } from "../../components/types";
+import { Card, Empty, Spin, Button, Table } from "antd";
+
 import BranchProductSearch from "./BranchProductSearch";
+import { Product } from "../../components/types";
 
 interface ProductTabProps {
   products: Product[];
@@ -76,9 +77,9 @@ export default function ProductTab({
                 showQuickJumper: true,
                 pageSizeOptions: ["10", "20", "50"],
                 position: ["bottomCenter"],
-                className: "pagination-dark",
+                className: "pagination-dark [&_.ant-pagination-options-quick-jumper]:!hidden",
               }}
-              className="dark-table enhanced-table rtl-table"
+              className="dark-table enhanced-table rtl-table [&_.ant-pagination-next]:rotate-180 [&_.ant-pagination-prev]:rotate-180 [&_.ant-table-pagination]:!my-4"
               locale={{
                 emptyText: (
                   <Empty

@@ -1,22 +1,9 @@
 "use client";
 
+import { ReloadOutlined, PlusOutlined, SearchOutlined, EyeOutlined } from "@ant-design/icons";
+import { Card, Empty, Spin, Button, Table, Tag, Input, AutoComplete } from "antd";
 import moment from "jalali-moment";
-import {
-  Card,
-  Empty,
-  Spin,
-  Button,
-  Table,
-  Tag,
-  Input,
-  AutoComplete,
-} from "antd";
-import {
-  ReloadOutlined,
-  PlusOutlined,
-  SearchOutlined,
-  EyeOutlined,
-} from "@ant-design/icons";
+
 import { AdminInvoice } from "@/app/admin/invoices/type";
 
 function formatPersianDate(date: string) {
@@ -71,9 +58,7 @@ export default function InvoiceTab({
       dataIndex: "warrantycode",
       key: "warrantycode",
       className: "text-right font-medium",
-      render: (text: string) => (
-        <span className="font-medium text-orange-400">{text}</span>
-      ),
+      render: (text: string) => <span className="font-medium text-orange-400">{text}</span>,
     },
     {
       title: "نام مشتری",
@@ -81,9 +66,7 @@ export default function InvoiceTab({
       key: "clientFullName",
       className: "text-right font-medium",
       render: (text: string) => (
-        <span className="font-medium text-green-400">
-          {text || "نامشخص"}
-        </span>
+        <span className="font-medium text-green-400">{text || "نامشخص"}</span>
       ),
     },
     {
@@ -93,10 +76,7 @@ export default function InvoiceTab({
       className: "text-right font-medium",
       render: (phone: string) =>
         phone ? (
-          <a
-            href={`tel:${phone}`}
-            className="text-blue-400 transition-colors hover:text-blue-300"
-          >
+          <a href={`tel:${phone}`} className="text-blue-400 transition-colors hover:text-blue-300">
             {phone}
           </a>
         ) : (
@@ -108,31 +88,21 @@ export default function InvoiceTab({
       dataIndex: "Type",
       key: "Type",
       className: "text-right font-medium",
-      render: (text: string) => (
-        <span className="text-gray-100">{text}</span>
-      ),
+      render: (text: string) => <span className="text-gray-100">{text}</span>,
     },
     {
       title: "تاریخ شروع",
       dataIndex: "startdate",
       key: "startdate",
       className: "text-right font-medium",
-      render: (date: string) => (
-        <span className="text-gray-200">
-          {formatPersianDate(date)}
-        </span>
-      ),
+      render: (date: string) => <span className="text-gray-200">{formatPersianDate(date)}</span>,
     },
     {
       title: "تاریخ انقضا",
       dataIndex: "expirydate",
       key: "expirydate",
       className: "text-right font-medium",
-      render: (date: string) => (
-        <span className="text-gray-200">
-          {formatPersianDate(date)}
-        </span>
-      ),
+      render: (date: string) => <span className="text-gray-200">{formatPersianDate(date)}</span>,
     },
     {
       title: "وضعیت",
@@ -187,9 +157,7 @@ export default function InvoiceTab({
         }}
         title={
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="m-0 text-lg font-medium text-white">
-              فاکتورها و گارانتی‌های شعبه
-            </h2>
+            <h2 className="m-0 text-lg font-medium text-white">فاکتورها و گارانتی‌های شعبه</h2>
             <div className="flex items-center gap-2">
               <Button
                 htmlType="button"
@@ -226,7 +194,7 @@ export default function InvoiceTab({
             listItemHeight={38}
             showSearch
             filterOption={false}
-            popupClassName="enhanced-dropdown"
+            popupClassName="enhanced-dropdown !bg-gray-800 !border !border-gray-600 !rounded-lg !shadow-[0_8px_16px_rgba(0,0,0,0.5)] !overflow-hidden !py-1.5 [&_.ant-select-item]:!my-0.5 [&_.ant-select-item]:!mx-1.5 [&_.ant-select-item]:!rounded [&_.ant-empty-description]:!text-gray-200"
           >
             <Input
               suffix={<SearchOutlined className="text-blue-400" />}
@@ -330,10 +298,10 @@ export default function InvoiceTab({
               showQuickJumper: true,
               pageSizeOptions: ["10", "20", "50"],
               position: ["bottomCenter"],
-              className: "pagination-dark",
+              className: "pagination-dark [&_.ant-pagination-options-quick-jumper]:!hidden",
             }}
             scroll={{ x: "max-content" }}
-            className="branch-invoices-table enhanced-table rtl-table"
+            className="branch-invoices-table enhanced-table rtl-table [&_.ant-pagination-next]:rotate-180 [&_.ant-pagination-prev]:rotate-180 [&_.ant-table-pagination]:!my-4"
             rowClassName={(record: AdminInvoice) => (!record.Checked ? "unread-invoice-row" : "")}
           />
         )}
@@ -377,10 +345,10 @@ export default function InvoiceTab({
                   pageSize: 5,
                   hideOnSinglePage: true,
                   position: ["bottomCenter"],
-                  className: "pagination-dark",
+                  className: "pagination-dark [&_.ant-pagination-options-quick-jumper]:!hidden",
                 }}
                 scroll={{ x: "max-content" }}
-                className="standalone-warranties-table enhanced-table rtl-table"
+                className="standalone-warranties-table enhanced-table rtl-table [&_.ant-pagination-next]:rotate-180 [&_.ant-pagination-prev]:rotate-180 [&_.ant-table-pagination]:!my-4"
               />
             )}
           </Card>

@@ -59,7 +59,9 @@ async function branchProductSearch(
         return acc;
       }, []);
     } else if (data && Array.isArray(data.branches)) {
-      processedData = data.branches.filter((branch: Record<string, unknown>) => branch && branch.branchid);
+      processedData = data.branches.filter(
+        (branch: Record<string, unknown>) => branch && branch.branchid
+      );
     }
 
     setBranchProducts(processedData);
@@ -164,7 +166,7 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
               value={selectedProduct}
               loading={productsLoading}
               className="w-full border-gray-600 bg-gray-700 text-white"
-              popupClassName="custom-dropdown enhanced-dropdown"
+              popupClassName="custom-dropdown enhanced-dropdown !bg-gray-800 !border !border-gray-600 !rounded-lg !shadow-[0_8px_16px_rgba(0,0,0,0.5)] !overflow-hidden !max-h-[400px] !py-1.5 [&_.ant-select-item]:!text-white [&_.ant-select-item]:!bg-gray-800 [&_.ant-select-item]:!px-3 [&_.ant-select-item]:!py-2.5 [&_.ant-select-item]:!my-0.5 [&_.ant-select-item]:!mx-1.5 [&_.ant-select-item]:!rounded [&_.ant-select-item-option-active]:!bg-slate-700 [&_.ant-empty-description]:!text-gray-200"
               filterOption={(input, option) =>
                 (option?.label?.toString() || "").toLowerCase().includes(input.toLowerCase())
               }
@@ -214,7 +216,7 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
                   columns={columns}
                   rowKey="branchid"
                   pagination={{ pageSize: 5, size: "small" }}
-                  className="branch-result-table enhanced-table rtl-table"
+                  className="branch-result-table enhanced-table rtl-table [&_.ant-pagination-next]:rotate-180 [&_.ant-pagination-prev]:rotate-180 [&_.ant-table-pagination]:!my-4"
                   size="small"
                   scroll={{ x: 500 }}
                 />

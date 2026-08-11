@@ -27,54 +27,9 @@ const PersianPagination: React.FC<PaginationProps> = (props) => {
     <>
       <Pagination
         {...modifiedProps}
-        className={`persian-pagination ${props.className || ""}`}
+        className={`persian-pagination !my-4 [&_.ant-pagination-item-active_a]:!text-white [&_.ant-pagination-item]:!border-gray-600 [&_.ant-pagination-item_a]:!text-gray-200 [&_.ant-pagination-next_button]:!border-gray-600 [&_.ant-pagination-next_button]:!bg-gray-800 [&_.ant-pagination-next_button]:!text-gray-200 [&_.ant-pagination-options-size-changer_.ant-select-selection-item::before]:!text-[14px] [&_.ant-pagination-options-size-changer_.ant-select-selection-item::before]:!content-[attr(title)] [&_.ant-pagination-options-size-changer_.ant-select-selection-item]:!text-[0] [&_.ant-pagination-prev_button]:!border-gray-600 [&_.ant-pagination-prev_button]:!bg-gray-800 [&_.ant-pagination-prev_button]:!text-gray-200 ${props.className || ""}`}
         locale={persianLocale}
       />
-
-      <style jsx global>{`
-        /* Custom styles for Persian pagination */
-        .persian-pagination {
-          margin: 16px 0;
-          direction: rtl !important;
-        }
-
-        .persian-pagination .ant-pagination-item {
-          background-color: #1f2937 !important;
-          border-color: #4b5563 !important;
-        }
-
-        .persian-pagination .ant-pagination-item a {
-          color: #e5e7eb !important;
-        }
-
-        .persian-pagination .ant-pagination-item-active {
-          background-color: #3b82f6 !important;
-          border-color: #3b82f6 !important;
-        }
-
-        .persian-pagination .ant-pagination-item-active a {
-          color: white !important;
-        }
-
-        .persian-pagination .ant-pagination-prev button,
-        .persian-pagination .ant-pagination-next button {
-          color: #e5e7eb !important;
-          background-color: #1f2937 !important;
-          border-color: #4b5563 !important;
-        }
-
-        /* Hide the original "/ page" text from the selector */
-        .persian-pagination .ant-pagination-options-size-changer .ant-select-selection-item {
-          font-size: 0 !important;
-        }
-
-        .persian-pagination
-          .ant-pagination-options-size-changer
-          .ant-select-selection-item::before {
-          content: attr(title) !important;
-          font-size: 14px !important;
-        }
-      `}</style>
     </>
   );
 };

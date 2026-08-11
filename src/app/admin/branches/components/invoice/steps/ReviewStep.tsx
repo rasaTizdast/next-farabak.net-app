@@ -115,7 +115,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ invoice, productsWithWarranty }
         title={<span className="text-white">اطلاعات خریدار</span>}
         bordered
         column={1}
-        className="custom-dark-descriptions mb-4"
+        className="custom-dark-descriptions mb-4 [&_.ant-descriptions-header]:!text-white [&_.ant-descriptions-title]:!text-white [&_.ant-descriptions-view]:!border-gray-700 [&_td.ant-descriptions-item-content]:!border-gray-700 [&_th.ant-descriptions-item-label]:!border-gray-700"
         labelStyle={{ color: "#d1d5db", backgroundColor: "#1f2937" }}
         contentStyle={{ color: "white", backgroundColor: "#111827" }}
       >
@@ -132,7 +132,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ invoice, productsWithWarranty }
           columns={columns}
           rowKey="singleItemId"
           pagination={false}
-          className="custom-dark-table"
+          className="custom-dark-table [&_.ant-table-container]:overflow-hidden [&_.ant-table-container]:!rounded-t-lg [&_.ant-table-container]:!border [&_.ant-table-container]:!border-gray-700 [&_.ant-table-footer]:!bg-gray-800 [&_.ant-table-footer]:!text-white [&_.ant-table-tbody>tr:hover>td]:!bg-[#2d3748] [&_.ant-table-tbody>tr>td]:!border-b-gray-700 [&_.ant-table-tbody>tr>td]:!text-white [&_.ant-table-thead>tr>th]:sticky [&_.ant-table-thead>tr>th]:top-0 [&_.ant-table-thead>tr>th]:z-[2] [&_.ant-table-thead>tr>th]:!border-b-gray-700 [&_.ant-table-thead>tr>th]:!bg-gray-800 [&_.ant-table-thead>tr>th]:!text-white [&_.ant-table]:!bg-gray-900 [&_.ant-table]:!text-white"
           scroll={{ x: "max-content" }}
           rowClassName={(record) => {
             // Find all items with same product ID
@@ -145,25 +145,25 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ invoice, productsWithWarranty }
               (item) => item.singleItemId === record.singleItemId
             );
 
-            // Add a class based on position
-            let className = "dark-table-row";
+            // Zebra backgrounds for group rows
+            let className = "odd:!bg-gray-900 even:!bg-[#1a202c]";
 
             // First item of a group
             if (currentIndex === 0) {
-              className += " first-group-item";
+              className += " [&>td]:!border-b-0 [&>td]:!pb-2 [&>td:first-child]:rounded-tl-[3px]";
             }
             // Last item of a group
             else if (currentIndex === sameProductItems.length - 1) {
-              className += " last-group-item";
+              className += " [&>td]:!border-t-0 [&>td]:!pt-2 [&>td:first-child]:rounded-bl-[3px]";
             }
             // Middle items
             else {
-              className += " middle-group-item";
+              className += " [&>td]:!border-y-0 [&>td]:!py-2";
             }
 
             // Add product-specific color class
             const colorIndex = getProductColorIndex(record.ProductId);
-            className += ` product-color-${getColorNameByIndex(colorIndex)}`;
+            className += ` ${getProductRowBorderClass(getColorNameByIndex(colorIndex))}`;
 
             return className;
           }}
@@ -182,165 +182,6 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ invoice, productsWithWarranty }
       <div className="mt-4 text-right text-white">
         <p>با ثبت فاکتور، این اطلاعات ذخیره شده و قابل مشاهده در بخش فاکتورها خواهد بود.</p>
       </div>
-
-      <style jsx global>{`
-        .custom-dark-descriptions .ant-descriptions-header {
-          color: white;
-        }
-
-        .custom-dark-descriptions .ant-descriptions-title {
-          color: white;
-        }
-
-        .custom-dark-descriptions .ant-descriptions-view {
-          border-color: #374151;
-        }
-
-        .custom-dark-descriptions th.ant-descriptions-item-label,
-        .custom-dark-descriptions td.ant-descriptions-item-content {
-          border-color: #374151;
-        }
-
-        .custom-dark-table .ant-table {
-          background-color: #111827;
-          color: white;
-        }
-
-        .custom-dark-table .ant-table-thead > tr > th {
-          background-color: #1f2937;
-          color: white;
-          border-bottom: 1px solid #374151;
-          position: sticky;
-          top: 0;
-          z-index: 2;
-        }
-
-        .custom-dark-table .ant-table-tbody > tr > td {
-          border-bottom: 1px solid #374151;
-          color: white;
-        }
-
-        .custom-dark-table .ant-table-tbody > tr.dark-table-row:hover > td {
-          background-color: #2d3748;
-        }
-
-        .dark-table-row {
-          background-color: #111827;
-        }
-
-        .custom-dark-table .ant-table-container {
-          border: 1px solid #374151;
-          border-radius: 8px 8px 0 0;
-          overflow: hidden;
-        }
-
-        .custom-dark-table .ant-table-footer {
-          background-color: #1f2937;
-          color: white;
-        }
-
-        /* Clean group styling */
-        .first-group-item td {
-          border-bottom-width: 0 !important;
-          padding-bottom: 8px !important;
-        }
-
-        .middle-group-item td {
-          border-top-width: 0 !important;
-          border-bottom-width: 0 !important;
-          padding-top: 8px !important;
-          padding-bottom: 8px !important;
-        }
-
-        .last-group-item td {
-          border-top-width: 0 !important;
-          padding-top: 8px !important;
-        }
-
-        /* Group row backgrounds */
-        .dark-table-row:nth-child(odd) {
-          background-color: #111827 !important;
-        }
-
-        .dark-table-row:nth-child(even) {
-          background-color: #1a202c !important;
-        }
-
-        /* Product color indicators */
-        .product-color-blue td:first-child {
-          border-left: 3px solid #3b82f6 !important;
-        }
-
-        .product-color-green td:first-child {
-          border-left: 3px solid #10b981 !important;
-        }
-
-        .product-color-purple td:first-child {
-          border-left: 3px solid #8b5cf6 !important;
-        }
-
-        .product-color-orange td:first-child {
-          border-left: 3px solid #f59e0b !important;
-        }
-
-        .product-color-pink td:first-child {
-          border-left: 3px solid #ec4899 !important;
-        }
-
-        .product-color-cyan td:first-child {
-          border-left: 3px solid #06b6d4 !important;
-        }
-
-        .product-color-red td:first-child {
-          border-left: 3px solid #ef4444 !important;
-        }
-
-        .product-color-lime td:first-child {
-          border-left: 3px solid #84cc16 !important;
-        }
-
-        /* Badge colors for quantity */
-        .bg-color-blue {
-          background-color: #3b82f6 !important;
-        }
-
-        .bg-color-green {
-          background-color: #10b981 !important;
-        }
-
-        .bg-color-purple {
-          background-color: #8b5cf6 !important;
-        }
-
-        .bg-color-orange {
-          background-color: #f59e0b !important;
-        }
-
-        .bg-color-pink {
-          background-color: #ec4899 !important;
-        }
-
-        .bg-color-cyan {
-          background-color: #06b6d4 !important;
-        }
-
-        .bg-color-red {
-          background-color: #ef4444 !important;
-        }
-
-        .bg-color-lime {
-          background-color: #84cc16 !important;
-        }
-
-        /* Round corners for first and last items */
-        .first-group-item td:first-child {
-          border-top-left-radius: 3px;
-        }
-
-        .last-group-item td:first-child {
-          border-bottom-left-radius: 3px;
-        }
-      `}</style>
     </Card>
   );
 };
@@ -366,11 +207,50 @@ const getProductColorIndex = (productId: string | number): number => {
   return numValue % 8;
 };
 
+// Color utilities mapped from the color name
+const colorClassMap: Record<string, { badge: string; rowBorder: string }> = {
+  blue: {
+    badge: "!bg-blue-500",
+    rowBorder: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-blue-500",
+  },
+  green: {
+    badge: "!bg-emerald-500",
+    rowBorder: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-emerald-500",
+  },
+  purple: {
+    badge: "!bg-violet-500",
+    rowBorder: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-violet-500",
+  },
+  orange: {
+    badge: "!bg-amber-500",
+    rowBorder: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-amber-500",
+  },
+  pink: {
+    badge: "!bg-pink-500",
+    rowBorder: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-pink-500",
+  },
+  cyan: {
+    badge: "!bg-cyan-500",
+    rowBorder: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-cyan-500",
+  },
+  red: {
+    badge: "!bg-red-500",
+    rowBorder: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-red-500",
+  },
+  lime: {
+    badge: "!bg-lime-500",
+    rowBorder: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-lime-500",
+  },
+};
+
 // Function to deterministically assign a color class based on product ID
 const getProductColor = (productId: string | number): string => {
   const colorIndex = getProductColorIndex(productId);
-  return `bg-color-${getColorNameByIndex(colorIndex)}`;
+  return colorClassMap[getColorNameByIndex(colorIndex)].badge;
 };
+
+// Function to get the row border class for a color name
+const getProductRowBorderClass = (colorName: string): string => colorClassMap[colorName].rowBorder;
 
 // Get color name by index
 const getColorNameByIndex = (index: number): string => {

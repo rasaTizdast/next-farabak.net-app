@@ -83,24 +83,6 @@ const LoadingSkeleton: React.FC = () => {
           </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes skeletonPulse {
-          0% {
-            opacity: 0.6;
-          }
-          50% {
-            opacity: 0.8;
-          }
-          100% {
-            opacity: 0.6;
-          }
-        }
-
-        .animate-pulse {
-          animation: skeletonPulse 1.5s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   );
 };

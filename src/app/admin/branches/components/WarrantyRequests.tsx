@@ -235,7 +235,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
       dataIndex: "status",
       className: "font-medium text-center",
       render: () => (
-        <Tag color="gold" className="px-3 py-1">
+        <Tag color="gold" className="!m-0 px-3 py-1 !text-center">
           درخواست بررسی
         </Tag>
       ),
@@ -317,7 +317,8 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
               dataSource={requests}
               pagination={false}
               rowKey="warrantyid"
-              className="warranty-requests-table"
+              className="warranty-requests-table [&_.ant-table-tbody>tr.ant-table-row:hover>td]:!bg-gray-700 [&_.ant-table-tbody>tr>td]:!border-gray-700 [&_.ant-table-tbody>tr>td]:transition-colors [&_.ant-table-thead>tr>th]:!bg-[#263244] [&_.ant-table-thead>tr>th]:!text-center [&_.ant-table-thead>tr>th]:!font-semibold [&_.ant-table-thead>tr>th]:!text-white [&_.ant-table]:!bg-gray-800 [&_.ant-table]:!text-white"
+              rowClassName={() => "odd:!bg-gray-800 even:!bg-[#263144]"}
             />
           </div>
 
@@ -328,7 +329,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
                 pageSize={pagination.pageSize}
                 total={pagination.total}
                 onChange={handlePaginationChange}
-                className="custom-pagination"
+                className="custom-pagination [&_.ant-pagination-item-active>a]:!text-white [&_.ant-pagination-item-active]:!border-blue-600 [&_.ant-pagination-item-active]:!bg-blue-600"
                 showSizeChanger
                 showQuickJumper
                 pageSizeOptions={["10", "20", "50"]}
@@ -337,51 +338,6 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
           )}
         </>
       )}
-
-      <style jsx global>{`
-        .warranty-requests-table .ant-table {
-          background-color: #1f2937;
-          color: white;
-        }
-
-        .warranty-requests-table .ant-table-thead > tr > th {
-          background-color: #263244;
-          color: white;
-          text-align: center;
-          font-weight: 600;
-        }
-
-        .warranty-requests-table .ant-table-tbody > tr > td {
-          border-color: #374151;
-          transition: background 0.2s;
-        }
-
-        .warranty-requests-table .ant-table-tbody > tr:nth-child(odd) {
-          background-color: #1f2937;
-        }
-
-        .warranty-requests-table .ant-table-tbody > tr:nth-child(even) {
-          background-color: #263144;
-        }
-
-        .warranty-requests-table .ant-table-tbody > tr.ant-table-row:hover > td {
-          background-color: #374151;
-        }
-
-        .custom-pagination .ant-pagination-item-active {
-          background-color: #2563eb;
-          border-color: #2563eb;
-        }
-
-        .custom-pagination .ant-pagination-item-active a {
-          color: white;
-        }
-
-        .ant-tag {
-          margin: 0;
-          text-align: center;
-        }
-      `}</style>
     </div>
   );
 }

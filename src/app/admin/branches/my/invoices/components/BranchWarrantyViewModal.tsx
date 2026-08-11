@@ -167,19 +167,19 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
             <div className="space-y-2 text-right">
               <label
                 htmlFor="productName"
-                className="no-print block text-sm font-medium text-gray-300"
+                className="block text-sm font-medium text-gray-300 print:hidden"
               >
                 محصول
               </label>
               <input
                 type="text"
                 id="productName"
-                className="no-print w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70"
+                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70 print:hidden"
                 value={item.Name || `محصول #${item.ProductId}`}
                 disabled
                 readOnly
               />
-              <div className="print-only">
+              <div className="hidden print:block">
                 <span className="font-semibold">محصول:</span>{" "}
                 {item.Name || `محصول #${item.ProductId}`}
               </div>
@@ -188,7 +188,7 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
             <div className="space-y-2 text-right">
               <label
                 htmlFor="warrantycode"
-                className="no-print block text-sm font-medium text-gray-300"
+                className="block text-sm font-medium text-gray-300 print:hidden"
               >
                 کد گارانتی
               </label>
@@ -196,12 +196,12 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
                 type="text"
                 id="warrantycode"
                 name="warrantycode"
-                className="no-print w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:bg-slate-700"
+                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:bg-slate-700 print:hidden"
                 value={warranty.warrantycode || "بدون گارانتی"}
                 disabled
                 readOnly
               />
-              <div className="print-only">
+              <div className="hidden print:block">
                 <span className="font-semibold">کد گارانتی:</span> {warranty.warrantycode}
               </div>
             </div>
@@ -209,7 +209,7 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
             <div className="space-y-2 text-right">
               <label
                 htmlFor="branchname"
-                className="no-print block text-sm font-medium text-gray-300"
+                className="block text-sm font-medium text-gray-300 print:hidden"
               >
                 شعبه مسئول گارانتی
               </label>
@@ -218,7 +218,7 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
                   type="text"
                   id="branchname"
                   name="branchname"
-                  className="no-print w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:bg-slate-700"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:bg-slate-700 print:hidden"
                   value={branchLoading ? "در حال بارگذاری..." : displayBranchName}
                   disabled
                   readOnly
@@ -229,12 +229,12 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
                   </div>
                 )}
               </div>
-              <div className="print-only">
+              <div className="hidden print:block">
                 <span className="font-semibold">شعبه مسئول:</span> {displayBranchName}
               </div>
             </div>
 
-            <div className="no-print grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 print:hidden">
               <div className="space-y-2 text-right">
                 <label htmlFor="startdate" className="block text-sm font-medium text-gray-300">
                   تاریخ شروع
@@ -264,7 +264,7 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
               </div>
             </div>
 
-            <div className="print-only">
+            <div className="hidden print:block">
               <div className="flex items-center justify-between border-b border-gray-200 py-1">
                 <span className="font-semibold">تاریخ شروع:</span>
                 <span dir="ltr">{formatDate(warranty.startdate)}</span>
@@ -279,7 +279,7 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
               </div>
             </div>
 
-            <div className="no-print mt-4 text-center">
+            <div className="mt-4 text-center print:hidden">
               <span className="text-xs text-gray-300">وضعیت گارانتی: </span>
               {!hasValidWarranty ? (
                 <span className="text-xs text-amber-400">بدون گارانتی</span>
@@ -303,7 +303,7 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
             )}
           </div>
 
-          <div className="no-print flex justify-between gap-4 p-6">
+          <div className="flex justify-between gap-4 p-6 print:hidden">
             {hasValidWarranty && (
               <PrintButton
                 onPrint={handleWarrantyPrint}
@@ -322,11 +322,7 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
         </div>
 
         {/* Print view with warranty card format - displayed only when printing */}
-        <div
-          ref={componentRef}
-          className={`warranty-print-view ${!showPrintView ? "hidden" : ""}`}
-          dir="rtl"
-        >
+        <div ref={componentRef} className={`m-0 p-0 ${!showPrintView ? "hidden" : ""}`} dir="rtl">
           <div className="warranty-certificate">
             <div className="mb-1 text-center">
               <Image
@@ -376,127 +372,6 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
           </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        /* Print-only classes */
-        @media screen {
-          .print-only {
-            display: none !important;
-          }
-        }
-
-        @media print {
-          .print-only {
-            display: block !important;
-          }
-
-          .no-print {
-            display: none !important;
-          }
-
-          body,
-          .bg-slate-900 {
-            background-color: white !important;
-            color: black !important;
-          }
-
-          .border-slate-700,
-          .border-gray-700 {
-            border-color: #eee !important;
-          }
-
-          h1,
-          h2,
-          h3,
-          h4,
-          h5,
-          h6 {
-            color: black !important;
-          }
-
-          .text-red-600 {
-            color: #dc2626 !important;
-          }
-
-          .text-green-600 {
-            color: #16a34a !important;
-          }
-
-          .warranty-certificate {
-            padding: 1.5rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: white;
-            color: black;
-            max-width: 600px;
-            margin: 0 auto;
-          }
-
-          .warranty-certificate h1 {
-            color: #000;
-            font-size: 1.5rem;
-            font-weight: bold;
-          }
-
-          .warranty-certificate .border-b {
-            border-bottom: 1px solid #eee;
-          }
-        }
-
-        .warranty-print-view {
-          padding: 0 !important;
-          margin: 0 !important;
-        }
-
-        @media print {
-          @page {
-            size: 3.5in 2in !important;
-            margin: 0 !important;
-          }
-
-          body {
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-
-          .warranty-certificate {
-            width: 3.5in !important;
-            height: 2in !important;
-            padding: 5px !important;
-            border: 1px solid #000 !important;
-            display: flex !important;
-            flex-direction: column !important;
-            box-sizing: border-box !important;
-            font-size: 10px !important;
-          }
-
-          .warranty-certificate h1 {
-            margin: 0 0 4px 0 !important;
-            padding: 0 !important;
-            font-size: 12px !important;
-          }
-
-          .warranty-certificate .flex {
-            padding: 3px 0 !important;
-            margin: 0 !important;
-          }
-
-          .warranty-certificate .border-b {
-            border-bottom: 1px dotted #999 !important;
-            margin-bottom: 2px !important;
-          }
-
-          .warranty-certificate .mt-auto {
-            margin-top: auto !important;
-          }
-
-          .warranty-certificate img {
-            width: 60px !important;
-            height: 60px !important;
-            margin-bottom: 1px !important;
-          }
-        }
-      `}</style>
     </div>
   );
 };

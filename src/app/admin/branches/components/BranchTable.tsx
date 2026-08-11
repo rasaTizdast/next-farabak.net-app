@@ -168,7 +168,8 @@ const BranchTable: React.FC<BranchTableProps> = ({
                   danger
                   className="text-red-400 hover:!border-red-700 hover:!bg-red-600 hover:!text-white"
                   style={{
-                    transition: "background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease",
+                    transition:
+                      "background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease",
                   }}
                 >
                   حذف
@@ -198,10 +199,10 @@ const BranchTable: React.FC<BranchTableProps> = ({
             showQuickJumper: false,
             pageSizeOptions: ["10", "20", "50"],
             position: ["bottomCenter"],
-            className: "pagination-dark",
+            className: "pagination-dark [&_.ant-pagination-options-quick-jumper]:!hidden",
           }}
           scroll={{ x: "max-content" }}
-          className="branch-table dark-table rtl-table"
+          className="branch-table dark-table rtl-table [&_.ant-pagination-next]:rotate-180 [&_.ant-pagination-prev]:rotate-180 [&_.ant-table-pagination]:!my-4"
           locale={{
             emptyText: (
               <Empty
@@ -214,8 +215,8 @@ const BranchTable: React.FC<BranchTableProps> = ({
           rowClassName={(record) => {
             if (isSearching && record.specificProductQuantity !== undefined) {
               return record.specificProductQuantity > 0
-                ? "searched-product-found-row"
-                : "searched-product-not-found-row";
+                ? "[&>td]:!bg-emerald-500/5 hover:[&>td]:!bg-emerald-500/10"
+                : "opacity-75 hover:opacity-100";
             }
             return "";
           }}

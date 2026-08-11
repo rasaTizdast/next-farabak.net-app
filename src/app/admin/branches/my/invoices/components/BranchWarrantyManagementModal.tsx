@@ -351,7 +351,7 @@ const BranchWarrantyManagementModal = ({
             <div className="space-y-2 text-right">
               <label
                 htmlFor="productName"
-                className="no-print block text-sm font-medium text-gray-300"
+                className="block text-sm font-medium text-gray-300 print:hidden"
               >
                 محصول
               </label>
@@ -359,17 +359,17 @@ const BranchWarrantyManagementModal = ({
                 type="text"
                 id="productName"
                 readOnly
-                className="no-print w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70"
+                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70 print:hidden"
                 value={item.Name || `محصول #${item.ProductId}`}
                 disabled
               />
-              <div className="print-only">
+              <div className="hidden print:block">
                 <span className="font-semibold">محصول:</span>{" "}
                 {item.Name || `محصول #${item.ProductId}`}
               </div>
             </div>
 
-            <div className="no-print space-y-2 text-right">
+            <div className="space-y-2 text-right print:hidden">
               <label
                 htmlFor="warranty-branch-name"
                 className="block text-sm font-medium text-gray-300"
@@ -402,16 +402,16 @@ const BranchWarrantyManagementModal = ({
             <div className="mt-4 space-y-2 text-right">
               <label
                 htmlFor="warrantycode"
-                className="no-print block text-sm font-medium text-gray-300"
+                className="block text-sm font-medium text-gray-300 print:hidden"
               >
                 کد گارانتی
               </label>
               {!branchHasProduct ? (
-                <p className="no-print mb-1 text-sm text-amber-400">
+                <p className="mb-1 text-sm text-amber-400 print:hidden">
                   شعبه شما این محصول را در موجودی ندارد
                 </p>
               ) : generatingCode ? (
-                <div className="no-print flex justify-center p-2">
+                <div className="flex justify-center p-2 print:hidden">
                   <Spin size="small" />
                 </div>
               ) : (
@@ -420,7 +420,7 @@ const BranchWarrantyManagementModal = ({
                     type="text"
                     id="warrantycode"
                     name="warrantycode"
-                    className="no-print w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:bg-slate-700"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:bg-slate-700 print:hidden"
                     value={warrantyData.warrantycode}
                     disabled
                     readOnly
@@ -429,22 +429,22 @@ const BranchWarrantyManagementModal = ({
                   <button
                     type="button"
                     onClick={() => generateWarrantyCode()}
-                    className="no-print rounded-lg bg-blue-700 px-2 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+                    className="rounded-lg bg-blue-700 px-2 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-600 print:hidden"
                     disabled={generatingCode || !branchHasProduct}
                   >
                     {generatingCode ? <Spin size="small" /> : <RotateCcw size={20} />}
                   </button>
                 </div>
               )}
-              <div className="print-only">
+              <div className="hidden print:block">
                 <span className="font-semibold">کد گارانتی:</span> {warrantyData.warrantycode}
               </div>
-              <div className="print-only">
+              <div className="hidden print:block">
                 <span className="font-semibold">شعبه مسئول:</span> {currentBranch?.name}
               </div>
             </div>
 
-            <div className="no-print mt-4 grid grid-cols-2 gap-4">
+            <div className="mt-4 grid grid-cols-2 gap-4 print:hidden">
               <div className="space-y-2 text-right">
                 <label htmlFor="startdate" className="block text-sm font-medium text-gray-300">
                   تاریخ شروع
@@ -478,7 +478,7 @@ const BranchWarrantyManagementModal = ({
               </div>
             </div>
 
-            <div className="print-only">
+            <div className="hidden print:block">
               <div className="flex items-center justify-between border-b border-gray-200 py-1">
                 <span className="font-semibold">تاریخ شروع:</span>
                 <span dir="ltr">
@@ -499,7 +499,7 @@ const BranchWarrantyManagementModal = ({
 
             {durationText && (
               <>
-                <div className="no-print mt-4 text-center">
+                <div className="mt-4 text-center print:hidden">
                   <span className="text-xs text-gray-300">وضعیت گارانتی: </span>
                   {nowTimestamp && new Date(warrantyData.expirydate).getTime() < nowTimestamp ? (
                     <span className="text-xs text-red-400">منقضی شده</span>
@@ -523,7 +523,7 @@ const BranchWarrantyManagementModal = ({
               </>
             )}
 
-            <div className="print-only mt-4 text-center">
+            <div className="mt-4 hidden text-center print:block">
               <Image
                 src="/Farabak_Logo.webp"
                 alt="Farabak Logo"
@@ -535,7 +535,7 @@ const BranchWarrantyManagementModal = ({
             </div>
           </form>
 
-          <div className="no-print flex justify-between gap-4 p-6">
+          <div className="flex justify-between gap-4 p-6 print:hidden">
             <div className="ml-auto flex gap-2">
               <button
                 type="button"
@@ -556,148 +556,6 @@ const BranchWarrantyManagementModal = ({
           </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        /* Print-only classes */
-        @media screen {
-          .print-only {
-            display: none !important;
-          }
-        }
-
-        @media print {
-          .print-only {
-            display: block !important;
-          }
-
-          .no-print {
-            display: none !important;
-          }
-
-          body,
-          .bg-slate-900 {
-            background-color: white !important;
-            color: black !important;
-          }
-
-          .border-slate-700,
-          .border-gray-700 {
-            border-color: #eee !important;
-          }
-
-          h1,
-          h2,
-          h3,
-          h4,
-          h5,
-          h6 {
-            color: black !important;
-          }
-
-          .text-red-600 {
-            color: #dc2626 !important;
-          }
-
-          .text-green-600 {
-            color: #16a34a !important;
-          }
-        }
-
-        /* Fix RTL issues for the select component */
-        .warranty-select .ant-select-selector {
-          background-color: #1e293b !important;
-          border-color: #334155 !important;
-          color: white !important;
-          height: 40px !important;
-          border-radius: 0.5rem !important;
-          display: flex;
-          align-items: center;
-          transition: all 0.3s ease;
-          text-align: right !important;
-          direction: rtl !important;
-        }
-
-        .warranty-select:hover .ant-select-selector {
-          border-color: #4b5563 !important;
-          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-        }
-
-        .warranty-select.ant-select-focused .ant-select-selector {
-          border-color: #3b82f6 !important;
-          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
-        }
-
-        .warranty-select .ant-select-selection-placeholder {
-          color: #94a3b8 !important;
-          text-align: right !important;
-          direction: rtl !important;
-          right: 12px !important;
-          left: auto !important;
-        }
-
-        .warranty-select .ant-select-selection-item {
-          color: white !important;
-          text-align: right !important;
-          padding-right: 12px !important;
-          direction: rtl !important;
-        }
-
-        .warranty-select .ant-select-arrow {
-          color: #94a3b8 !important;
-          right: auto !important;
-          left: 11px !important;
-        }
-
-        .warranty-select .ant-select-clear {
-          background-color: #1e293b !important;
-          color: #94a3b8 !important;
-          right: auto !important;
-          left: 11px !important;
-        }
-
-        .warranty-select-dropdown {
-          background-color: #1e293b !important;
-          border: 1px solid #334155 !important;
-          border-radius: 0.5rem !important;
-          direction: rtl !important;
-          text-align: right !important;
-        }
-
-        .warranty-select-dropdown .ant-select-item {
-          color: white !important;
-          text-align: right !important;
-          direction: rtl !important;
-          padding-right: 12px !important;
-        }
-
-        .warranty-select-dropdown
-          .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
-          background-color: #2d3748 !important;
-        }
-
-        .warranty-select-dropdown
-          .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
-          background-color: #3b82f6 !important;
-        }
-
-        /* Fix RTL for Zaman DatePicker component */
-        .zaman-input {
-          text-align: right !important;
-          direction: rtl !important;
-        }
-
-        @media print {
-          @page {
-            size: 3.5in 2in !important;
-            margin: 0 !important;
-          }
-
-          body {
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-        }
-      `}</style>
     </div>
   );
 };

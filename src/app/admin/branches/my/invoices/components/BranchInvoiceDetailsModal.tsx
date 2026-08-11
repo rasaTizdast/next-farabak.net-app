@@ -245,7 +245,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                 alt="Farabak Logo"
                 width={130}
                 height={130}
-                className="logo print-only mx-auto mb-5 mt-4 flex items-center justify-center"
+                className="logo mx-auto mb-5 mt-4 hidden items-center justify-center print:flex"
               />
               <h2 className="text-center text-xl font-bold sm:text-2xl">
                 جزئیات فاکتور
@@ -271,7 +271,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                     {formatDate(invoice.Date)}
                   </span>
                 </div>
-                <div className="no-print flex items-center justify-between">
+                <div className="flex items-center justify-between print:hidden">
                   <span className="text-gray-300">وضعیت فاکتور:</span>
                   <span className="font-medium">
                     {invoice.Checked ? (
@@ -296,12 +296,12 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                           قیمت واحد - تومان
                         </th>
                         <th className="p-2 text-right font-medium text-gray-300 sm:p-4">گارانتی</th>
-                        <th className="no-print p-2 text-right font-medium text-gray-300 sm:p-4">
+                        <th className="p-2 text-right font-medium text-gray-300 sm:p-4 print:hidden">
                           عملیات
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-700">
+                    <tbody className="divide-y divide-slate-700 [&>tr:nth-child(even)]:!bg-slate-900 [&>tr:nth-child(odd)]:!bg-slate-800">
                       {expandedItems.length > 0 ? (
                         expandedItems.map((item, index) => {
                           // Find all items with the same product ID
@@ -325,23 +325,22 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                           let rowClass = "hover:bg-slate-750";
                           if (sameProductItems.length > 1) {
                             if (currentIndex === 0) {
-                              rowClass += " first-group-item";
+                              rowClass +=
+                                " [&>td]:!border-b-0 [&>td]:!pb-2 [&>td:first-child]:!rounded-tl-[3px]";
                             } else if (currentIndex === sameProductItems.length - 1) {
-                              rowClass += " last-group-item";
+                              rowClass +=
+                                " [&>td]:!border-t-0 [&>td]:!pt-2 [&>td:first-child]:!rounded-bl-[3px]";
                             } else {
-                              rowClass += " middle-group-item";
+                              rowClass += " [&>td]:!border-y-0 [&>td]:!py-2";
                             }
                           }
 
-                          // Add product-specific color class
+                          // Add product-specific color border
                           const colorIndex = getProductColorIndex(item.ProductId);
-                          rowClass += ` product-color-${getColorNameByIndex(colorIndex)}`;
+                          rowClass += ` ${getProductBorderColor(getColorNameByIndex(colorIndex))}`;
 
                           return (
-                            <tr
-                              key={`${item.ProductId}-${item.itemNumber}`}
-                              className={rowClass}
-                            >
+                            <tr key={`${item.ProductId}-${item.itemNumber}`} className={rowClass}>
                               <td className="p-2 sm:p-4">
                                 {isFirstOccurrence ? (
                                   <div className="flex items-start gap-2">
@@ -371,11 +370,11 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                                     (item.individualWarranty.expirydate &&
                                       new Date(item.individualWarranty.expirydate).getTime() <
                                         nowTimestamp) ? (
-                                      <span className="no-print inline-block w-fit rounded-full bg-red-900/40 px-2 py-1 text-xs text-red-300">
+                                      <span className="inline-block w-fit rounded-full bg-red-900/40 px-2 py-1 text-xs text-red-300 print:hidden">
                                         منقضی شده
                                       </span>
                                     ) : (
-                                      <span className="no-print inline-block w-fit rounded-full bg-green-900/40 px-2 py-1 text-xs text-green-300">
+                                      <span className="inline-block w-fit rounded-full bg-green-900/40 px-2 py-1 text-xs text-green-300 print:hidden">
                                         فعال
                                       </span>
                                     )}
@@ -416,7 +415,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
                                   <span className="text-xs text-gray-500">بدون گارانتی</span>
                                 )}
                               </td>
-                              <td className="no-print p-2 sm:p-4">
+                              <td className="p-2 sm:p-4 print:hidden">
                                 {item.individualWarranty && item.individualWarranty.warrantycode ? (
                                   <button
                                     type="button"
@@ -472,7 +471,7 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="no-print flex justify-between gap-4 border-t border-slate-700 p-3 sm:p-6">
+        <div className="flex justify-between gap-4 border-t border-slate-700 p-3 sm:p-6 print:hidden">
           <PrintButton onPrint={handleInvoicePrint} />
           <button
             type="button"
@@ -498,177 +497,6 @@ const BranchInvoiceDetailsModal: React.FC<BranchInvoiceDetailsModalProps> = ({
           onSuccess={handleWarrantyUpdated}
         />
       )}
-
-      {/* Add styles for product grouping */}
-      <style jsx>{`
-        /* Clean group styling */
-        .first-group-item td {
-          border-bottom-width: 0 !important;
-          padding-bottom: 8px !important;
-        }
-
-        .middle-group-item td {
-          border-top-width: 0 !important;
-          border-bottom-width: 0 !important;
-          padding-top: 8px !important;
-          padding-bottom: 8px !important;
-        }
-
-        .last-group-item td {
-          border-top-width: 0 !important;
-          padding-top: 8px !important;
-        }
-
-        /* Group row backgrounds */
-        tr:nth-child(odd) {
-          background-color: #1e293b !important;
-        }
-
-        tr:nth-child(even) {
-          background-color: #0f172a !important;
-        }
-
-        /* Product color indicators */
-        .product-color-blue td:first-child {
-          border-left: 3px solid #3b82f6 !important;
-        }
-
-        .product-color-green td:first-child {
-          border-left: 3px solid #10b981 !important;
-        }
-
-        .product-color-purple td:first-child {
-          border-left: 3px solid #8b5cf6 !important;
-        }
-
-        .product-color-orange td:first-child {
-          border-left: 3px solid #f59e0b !important;
-        }
-
-        .product-color-pink td:first-child {
-          border-left: 3px solid #ec4899 !important;
-        }
-
-        .product-color-cyan td:first-child {
-          border-left: 3px solid #06b6d4 !important;
-        }
-
-        .product-color-red td:first-child {
-          border-left: 3px solid #ef4444 !important;
-        }
-
-        .product-color-lime td:first-child {
-          border-left: 3px solid #84cc16 !important;
-        }
-
-        /* Badge colors for quantity */
-        .bg-color-blue {
-          background-color: #3b82f6 !important;
-        }
-
-        .bg-color-green {
-          background-color: #10b981 !important;
-        }
-
-        .bg-color-purple {
-          background-color: #8b5cf6 !important;
-        }
-
-        .bg-color-orange {
-          background-color: #f59e0b !important;
-        }
-
-        .bg-color-pink {
-          background-color: #ec4899 !important;
-        }
-
-        .bg-color-cyan {
-          background-color: #06b6d4 !important;
-        }
-
-        .bg-color-red {
-          background-color: #ef4444 !important;
-        }
-
-        .bg-color-lime {
-          background-color: #84cc16 !important;
-        }
-
-        /* Round corners for first and last items */
-        .first-group-item td:first-child {
-          border-top-left-radius: 3px;
-        }
-
-        .last-group-item td:first-child {
-          border-bottom-left-radius: 3px;
-        }
-
-        /* Ensure header stays on top */
-        thead {
-          position: sticky;
-          top: 0;
-          z-index: 10;
-        }
-
-        /* Print-specific styles */
-        @media print {
-          .no-print {
-            display: none !important;
-          }
-
-          .print-only {
-            display: inline-block !important;
-          }
-
-          body {
-            background-color: white;
-            color: black;
-          }
-
-          .bg-slate-900,
-          .bg-slate-800,
-          .bg-slate-700 {
-            background-color: white !important;
-            color: black !important;
-          }
-
-          .text-gray-100,
-          .text-gray-300,
-          .text-gray-400 {
-            color: #333 !important;
-          }
-
-          /* Invoice table specific styles */
-          .invoice-table-container {
-            max-height: none !important;
-            height: auto !important;
-            overflow: visible !important;
-          }
-
-          /* Remove height limits and overflow restrictions when printing */
-          .overflow-auto,
-          .overflow-x-auto {
-            overflow: visible !important;
-            max-height: none !important;
-          }
-
-          /* Ensure table rows don't break across pages */
-          tr {
-            page-break-inside: avoid;
-          }
-
-          /* Ensure proper spacing between table rows in print */
-          td,
-          th {
-            padding: 8px !important;
-          }
-        }
-
-        /* Add class to hide logo in normal view */
-        .print-only {
-          display: none;
-        }
-      `}</style>
     </div>
   );
 };
@@ -697,7 +525,7 @@ const getProductColorIndex = (productId: string | number): number => {
 // Function to deterministically assign a color class based on product ID
 const getProductColor = (productId: string | number): string => {
   const colorIndex = getProductColorIndex(productId);
-  return `bg-color-${getColorNameByIndex(colorIndex)}`;
+  return productBadgeColors[getColorNameByIndex(colorIndex)] ?? "bg-blue-500";
 };
 
 // Get color name by index
@@ -705,6 +533,32 @@ const getColorNameByIndex = (index: number): string => {
   const colorNames = ["blue", "green", "purple", "orange", "pink", "cyan", "red", "lime"];
 
   return colorNames[index];
+};
+
+const productBadgeColors: Record<string, string> = {
+  blue: "bg-blue-500",
+  green: "bg-emerald-500",
+  purple: "bg-violet-500",
+  orange: "bg-amber-500",
+  pink: "bg-pink-500",
+  cyan: "bg-cyan-500",
+  red: "bg-red-500",
+  lime: "bg-lime-500",
+};
+
+const getProductBorderColor = (colorName: string): string => {
+  const borderColors: Record<string, string> = {
+    blue: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-blue-500",
+    green: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-emerald-500",
+    purple: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-violet-500",
+    orange: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-amber-500",
+    pink: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-pink-500",
+    cyan: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-cyan-500",
+    red: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-red-500",
+    lime: "[&>td:first-child]:!border-l-[3px] [&>td:first-child]:!border-lime-500",
+  };
+
+  return borderColors[colorName] ?? borderColors.blue;
 };
 
 export default BranchInvoiceDetailsModal;
