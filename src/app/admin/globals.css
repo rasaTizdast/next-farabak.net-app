@@ -1,0 +1,24 @@
+/* Portal z-index overrides for the admin panel.
+   These target elements rendered by AntD/zaman into React portals (outside the
+   component tree), so they cannot be reached with Tailwind descendant variants.
+*/
+
+/* Ensure the zaman DatePicker popover appears above AntD modals */
+.zaman-calendar,
+.zaman-cell,
+.zaman-calendar-popover,
+.zaman-calendar-container {
+  z-index: 3000 !important;
+}
+
+/* Make modals have lower z-index than the DatePicker popover */
+.ant-modal,
+.ant-modal-mask,
+.ant-modal-wrap {
+  z-index: 1000 !important;
+}
+
+/* Override any other styles that might interfere */
+.ant-picker-dropdown {
+  z-index: 3000 !important;
+}
