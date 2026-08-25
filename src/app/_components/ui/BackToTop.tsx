@@ -39,14 +39,14 @@ const BackToTop = () => {
   return (
     <button
       type="button"
-      className={`fixed bottom-[4.5rem] left-4 z-50 flex cursor-pointer items-center rounded-full shadow-md transition-all duration-500 ease-in-out ${showBackToTop ? "translate-x-0" : "-translate-x-[200%]"} ${isHovered && !isMobile ? "bg-blue-600" : "bg-blue-500"} `}
+      className={`fixed bottom-[4.5rem] left-4 z-50 flex cursor-pointer items-center rounded-full shadow-md transition-[transform,background-color] duration-500 ease-in-out ${showBackToTop ? "translate-x-0" : "-translate-x-[200%]"} ${isHovered && !isMobile ? "bg-blue-600" : "bg-blue-500"} `}
       onClick={scrollToTop}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       aria-label="بازگشت به بالا"
     >
       <span
-        className={`overflow-hidden whitespace-nowrap text-white transition-all duration-500 ease-in-out ${
+        className={`overflow-hidden whitespace-nowrap text-white transition-[max-width,padding-inline-end,opacity] duration-500 ease-in-out ${
           isHovered && !isMobile ? "max-w-32 pr-4 opacity-100" : "max-w-0 px-0 opacity-0"
         } `}
       >

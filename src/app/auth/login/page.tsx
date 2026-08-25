@@ -13,7 +13,6 @@ import { useApiMutation } from "@/hooks/useApiMutation";
 
 import ForgotPasswordModal from "../_components/ForgotPasswordModal";
 import TextInput from "../_components/TextInput";
-import styles from "../FormStyles.module.css";
 
 const SignIn = () => {
   const [errorMessage, setErrorMessage] = useState("");
@@ -40,7 +39,13 @@ const SignIn = () => {
   const onSubmit = async (data: { username: string; password: string }) => {
     setErrorMessage("");
 
-    const response = (await login("/api/auth/login", data)) as any;
+    type LoginResponse = {
+      message: string;
+      role: string;
+      error?: string;
+    };
+
+    const response = (await login("/api/auth/login", data)) as LoginResponse | null;
     if (response) {
       if (response.message === "ورود با موفقیت انجام شد") {
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -60,7 +65,7 @@ const SignIn = () => {
           router.push("/dashboard");
         }
       } else {
-        setErrorMessage(response.message || "خطا در فرایند ورود.");
+        setErrorMessage(response.error || response.message || "خطا در فرایند ورود.");
       }
     } else {
       setErrorMessage("خطا در فرایند ورود.");
@@ -69,26 +74,31 @@ const SignIn = () => {
 
   return (
     <FormProvider {...methods}>
-      <div className={styles.form_parent}>
-        <form className={styles.signin_form} onSubmit={handleSubmit(onSubmit)}>
-          <div className={styles.group}>
+      <div className="m-[3rem] flex min-h-[600px] max-w-[1250px] items-center rounded-[20px] bg-white/40 shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur-[5px] md:m-[2rem] md:min-h-[550px] lg:m-[1.5rem]">
+        <form
+          className="flex h-full min-h-[600px] w-[60%] max-w-[550px] flex-col justify-between gap-[3rem] rounded-tr-[20px] rounded-br-[20px] bg-white/30 p-[1.5rem] pt-[1rem] shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur-[5px] md:p-[1.3rem]"
+          onSubmit={handleSubmit(onSubmit)}
+        >
+          <div className="flex w-full items-center justify-center gap-[0.5rem]">
             <Link href="/">
               <Image
                 width={2066}
                 height={182}
                 src="/Farabak_Logo.webp"
-                className={styles.logo}
+                className="min-h-[20px] w-[175px] cursor-pointer"
                 alt="farabak logo"
               />
             </Link>
-            <div className={styles.vr_line}></div>
-            <div className={styles.col_group}>
-              <h3>ورود به حساب کاربری</h3>
-              <div>شرکت فرابک</div>
+            <div className="h-[60px] w-[2px] bg-white md:h-[60px] md:w-[2px] lg:h-[2px] lg:w-full"></div>
+            <div className="flex flex-col">
+              <h3 className="text-[1.1rem] font-medium md:text-[1rem] lg:text-[1.1rem]">
+                ورود به حساب کاربری
+              </h3>
+              <div className="text-base font-light md:text-[0.9rem] lg:text-base">شرکت فرابک</div>
             </div>
           </div>
 
-          <div className={styles.input_group}>
+          <div className="flex flex-col gap-[4rem]">
             <TextInput
               name="username"
               label="نام کاربری"
@@ -111,46 +121,52 @@ const SignIn = () => {
             />
             <button
               type="button"
-              className={styles.forgot}
+              className="dashed mt-[-3rem] mb-[2rem] inline-block w-fit cursor-pointer text-[0.8rem] text-[#003262] underline underline-offset-[6px]"
               onClick={() => setIsForgotPasswordModalOpen(true)}
             >
               کلمه عبور خود را فراموش کرده‌اید؟
             </button>
             <input
-              className={styles.login_submit}
               type="submit"
               value={isSubmitting ? "در حال ورود..." : "ورود به حساب کاربری"}
               disabled={isSubmitting}
               readOnly
+              className="mt-0 mb-[-1rem] w-full cursor-pointer rounded-lg border-none bg-[#03a9f4] px-0 py-[0.8rem] text-base font-medium text-white transition-[background-color,box-shadow] duration-300 hover:bg-[#036bf4] hover:shadow-[rgba(0,0,0,0.25)_0_8px_15px] disabled:cursor-not-allowed"
               data-testid="submit-button"
             />
           </div>
 
-          {errorMessage && <p className={styles.error}>{errorMessage}</p>}
+          {errorMessage && (
+            <p className="text-[0.9rem] font-medium text-[#e74c3c]">{errorMessage}</p>
+          )}
 
-          <div className={styles.b_group}>
-            <div className={styles.or_line}>
-              <div className={styles.text}>یا</div>
+          <div className="flex flex-col gap-[1rem] self-end">
+            <div className="relative mb-[1rem] flex w-full items-center justify-center">
+              <div className="absolute start-0 top-1/2 h-[2px] w-[47%] -translate-y-1/2 rounded-lg bg-white"></div>
+              <div className="absolute end-0 top-1/2 h-[2px] w-[47%] -translate-y-1/2 rounded-lg bg-white"></div>
+              <div className="relative z-10">یا</div>
             </div>
-            <div className={styles.new_user}>
+            <div className="flex w-full justify-center gap-[0.5rem]">
               کاربر جدید هستید؟
-              <Link className={styles.switch_form} href="/auth/signup">
+              <Link href="/auth/signup" className="cursor-pointer text-[#0116cb]">
                 ثبت نام
               </Link>
             </div>
           </div>
         </form>
 
-        <div className={styles.view}>
+        <div className="mx-[1.5rem] hidden w-[60%] flex-col items-center justify-center gap-[2rem] text-center lg:flex">
           <Image
             src="/signIn_image.svg"
             width={552}
             height={412}
             quality={100}
             alt="farabak-signIn-Image"
-            style={{ display: "block" }}
+            className="w-[30vw] min-w-[500px] md:w-[45vw] md:min-w-[300px] lg:w-[40vw] lg:min-w-[200px]"
           />
-          <h3>با ورود به حساب کاربری خود، میتوانید از تمامی امکانات وبسایت استفاده کنید.</h3>
+          <h3 className="w-[70%] text-[1.3rem] font-semibold lg:text-[1.1rem]">
+            با ورود به حساب کاربری خود، میتوانید از تمامی امکانات وبسایت استفاده کنید.
+          </h3>
         </div>
       </div>
 

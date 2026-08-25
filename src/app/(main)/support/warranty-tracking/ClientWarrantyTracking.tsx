@@ -15,6 +15,8 @@ import {
 import { Button, Input, Card, Alert, Spin, Typography, Steps, Row, Col, Result } from "antd";
 import React, { useState } from "react";
 
+import { adminColors } from "@/constants/adminColors";
+
 const faDateFormatter = new Intl.DateTimeFormat("fa-IR");
 
 type WarrantyResult = {
@@ -71,7 +73,7 @@ async function searchWarranty(
 
     setResult(data);
     setCurrentStep(1);
-  } catch (err) {
+  } catch {
     setError("خطا در بررسی گارانتی");
   } finally {
     setLoading(false);
@@ -104,7 +106,7 @@ async function confirmWarrantyRequest(
 
     setResult(data);
     setCurrentStep(2);
-  } catch (err) {
+  } catch {
     setError("خطا در ثبت درخواست گارانتی");
   } finally {
     setConfirmLoading(false);
@@ -211,7 +213,7 @@ const WarrantyTrackingPage = () => {
                 current={currentStep}
                 className="mb-8 max-[576px]:[&_.ant-steps-item-description]:!hidden"
               >
-                {stepsConfig.map((step, index) => (
+                {stepsConfig.map((step) => (
                   <Step
                     key={step.title}
                     title={step.title}
@@ -299,7 +301,7 @@ const WarrantyTrackingPage = () => {
                 {result.data && (
                   <Card
                     className="font-inherit mb-6 border-t border-gray-200"
-                    headStyle={{ borderBottom: "1px solid #f0f0f0" }}
+                    headStyle={{ borderBottom: `1px solid ${adminColors.borderSoft}` }}
                   >
                     <Row gutter={[16, 16]} className="font-inherit">
                       {result.data.productType && (

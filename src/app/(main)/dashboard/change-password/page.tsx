@@ -1,23 +1,45 @@
-/* eslint-disable */
-
 "use client";
 
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
-import { Controller, FormProvider, useForm, useFormContext } from "react-hook-form";
-import toast, { Toaster } from "react-hot-toast";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { changePasswordSchema } from "@/helpers/validationSchema";
+import { useEffect, useState } from "react";
+import {
+  Controller,
+  FormProvider,
+  useForm,
+  useFormContext,
+  Control,
+  FieldErrors,
+} from "react-hook-form";
+import toast, { Toaster } from "react-hot-toast";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
-import { changePasswordHandler } from "@/helpers/changePasswordHandler";
 
-import styles from "./ChangePassword.module.css";
+import { changePasswordHandler } from "@/helpers/changePasswordHandler";
+import { changePasswordSchema } from "@/helpers/validationSchema";
 
 interface FormData {
   currentPassword: string;
   newPassword: string;
 }
+
+const onSubmit = async (data: FormData) => {
+  try {
+    await changePasswordHandler(data);
+    toast.success("کلمه عبور شما با موفقیت تغییر پیدا کرد!");
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error &&
+      "response" in error &&
+      typeof error.response === "object" &&
+      error.response !== null &&
+      "data" in error.response
+        ? (error.response.data as { message?: string })?.message ||
+          "خطایی رخ داد. لطفا دوباره امتحان کنید."
+        : "خطایی رخ داد. لطفا دوباره امتحان کنید.";
+    toast.error(errorMessage);
+  }
+};
 
 const ChangePassword = () => {
   const methods = useForm<FormData>({
@@ -34,22 +56,11 @@ const ChangePassword = () => {
     formState: { errors, isDirty },
   } = methods;
 
-  const onSubmit = async (data: FormData) => {
-    try {
-      await changePasswordHandler(data);
-      toast.success("کلمه عبور شما با موفقیت تغییر پیدا کرد!");
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || "خطایی رخ داد. لطفا دوباره امتحان کنید.";
-      toast.error(errorMessage);
-    }
-  };
-
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (isDirty) {
         event.preventDefault();
-        event.returnValue = ""; // For modern browsers, this triggers the dialog.
+        event.returnValue = "";
       }
     };
 
@@ -64,8 +75,11 @@ const ChangePassword = () => {
     <>
       <Toaster position="bottom-center" reverseOrder={false} />
       <FormProvider {...methods}>
-        <form className={styles.changePass} onSubmit={handleSubmit(onSubmit)}>
-          <div className={styles.inputs}>
+        <form
+          className="mt-6 flex w-full max-w-[500px] min-w-[190px] flex-col items-center justify-center gap-6 self-center rounded-lg bg-white p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] md:p-6"
+          onSubmit={handleSubmit(onSubmit)}
+        >
+          <div className="flex w-full flex-wrap justify-evenly gap-8">
             <InputGroup
               name="currentPassword"
               label="کلمه عبور قبلی"
@@ -86,7 +100,12 @@ const ChangePassword = () => {
             />
           </div>
 
-          <button type="submit">ثبت اطلاعات</button>
+          <button
+            type="submit"
+            className="mt-4 inline-block cursor-pointer rounded-[6px] bg-[#003262] px-6 py-2 text-base text-white transition-[transform,background-color,box-shadow] duration-300 hover:scale-[1.05] hover:bg-[#000814] hover:shadow-[0_4px_10px_rgba(0,0,0,0.3)]"
+          >
+            ثبت اطلاعات
+          </button>
         </form>
       </FormProvider>
     </>
@@ -99,8 +118,8 @@ interface InputGroupProps {
   name: keyof FormData;
   label: string;
   placeholder?: string;
-  control: any;
-  errors: any;
+  control: Control<FormData>;
+  errors: FieldErrors<FormData>;
   autoComplete?: string;
   type?: string;
 }
@@ -122,10 +141,15 @@ const InputGroup = ({
     setShowPassword((prev) => !prev);
   };
 
+  const hasError = !!errors[name];
+  const hasValue = !!value;
+
   return (
-    <div className={styles.inputGroup}>
-      <label htmlFor={name}>{label}</label>
-      <div className={styles.input_wrapper}>
+    <div className="flex w-full flex-col gap-[0.5rem]">
+      <label htmlFor={name} className="text-base">
+        {label}
+      </label>
+      <div className="relative">
         <Controller
           name={name}
           control={control}
@@ -137,14 +161,20 @@ const InputGroup = ({
               id={name}
               placeholder={placeholder}
               value={value ?? ""}
-              className={errors[name] ? styles.not_valid : value ? styles.valid : ""}
+              className={`w-full rounded-lg border border-[#c7c7c7] px-[14px] py-[14px] text-start text-base font-medium transition-colors duration-300 outline-none ${
+                hasError
+                  ? "border-2 border-[#e74c3c] text-[#e74c3c] placeholder:font-light placeholder:text-[#e74c3c]"
+                  : hasValue
+                    ? "border-2 border-[#2ecc71] text-[#03af4b]"
+                    : ""
+              }`}
             />
           )}
         />
         {type === "password" && (
           <button
             type="button"
-            className={styles.password_toggle_icon}
+            className="absolute start-[15px] top-1/2 -translate-y-1/2 cursor-pointer text-[1.2rem] text-gray-500"
             onClick={handleTogglePassword}
             aria-label={showPassword ? "مخفی کردن رمز" : "نمایش رمز"}
           >
@@ -152,7 +182,11 @@ const InputGroup = ({
           </button>
         )}
       </div>
-      {errors[name] && <p className={styles.error}>{errors[name].message}</p>}
+      {hasError && (
+        <p className="mt-[0.25rem] text-[0.875rem] text-[#e74c3c]">
+          {errors[name]?.message ?? "ورودی نامعتبر"}
+        </p>
+      )}
     </div>
   );
 };

@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("next/image", () => ({
-  default: (props: any) => <img {...props} />,
+  default: (props: any) => <img alt={props.alt} {...props} />,
 }));
 
 vi.mock("next/link", () => ({

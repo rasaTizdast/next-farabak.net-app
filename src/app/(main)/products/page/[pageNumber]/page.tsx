@@ -40,6 +40,8 @@ export const generateMetadata = async (props: ProductsPageProps): Promise<Metada
   };
 };
 
+const pageNumberBreadcrumbs = ["/", "/products"];
+
 export default async function ProductsPage(props: ProductsPageProps) {
   const params = await props.params;
   const currentPage = parseInt(params.pageNumber, 10);
@@ -51,12 +53,10 @@ export default async function ProductsPage(props: ProductsPageProps) {
       ? `${process.env.NEXT_PUBLIC_BASE_URL}/products`
       : `${process.env.NEXT_PUBLIC_BASE_URL}/products/page/${params.pageNumber}`;
 
-  const breadcrumbs = ["/", "/products"];
-
   return (
     <>
       <Suspense fallback={<BreadcrumbSkeleton />}>
-        <BreadcrumbWrapper breadcrumbs={breadcrumbs} />
+        <BreadcrumbWrapper breadcrumbs={pageNumberBreadcrumbs} />
       </Suspense>
       <Suspense fallback={<CategorySliderSkeleton />}>
         <CategorySliderWrapper type="categories" />

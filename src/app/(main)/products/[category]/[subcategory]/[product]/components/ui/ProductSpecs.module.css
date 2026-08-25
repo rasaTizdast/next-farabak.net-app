@@ -1,6 +1,7 @@
 .specsParent {
   background-color: #fff;
-  padding: 1.5rem;
+  padding-block: 1.5rem;
+  padding-inline: 1.5rem;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -22,12 +23,13 @@
 }
 
 .spec {
-  text-align: right;
+  text-align: start;
   width: 100%;
   display: flex;
   justify-content: space-between;
   gap: 2.5rem;
-  padding: 1rem 1.2rem;
+  padding-block: 1rem;
+  padding-inline: 1.2rem;
 }
 
 .oddSpec {
@@ -46,12 +48,13 @@
   width: 100%;
   max-width: 450px;
   font-weight: 300;
-  text-align: right;
+  text-align: start;
 }
 
 @media (max-width: 576px) {
   .specsParent {
-    padding: 1rem 0.5rem;
+    padding-block: 1rem;
+    padding-inline: 0.5rem;
   }
 
   .specsParent h3 {
@@ -59,7 +62,8 @@
   }
 
   .spec {
-    padding: 0.9rem 1rem;
+    padding-block: 0.9rem;
+    padding-inline: 1rem;
   }
 
   .spec .key {

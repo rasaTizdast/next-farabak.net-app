@@ -104,7 +104,7 @@ const BlogContent = ({ blogs, categorySlug }: { blogs: Blogs; categorySlug: stri
   return (
     <div className="w-full">
       {/* Latest Blog */}
-      <div className="mb-10 mt-5">
+      <div className="mt-5 mb-10">
         <h1 className="mb-5 text-right text-3xl font-extrabold text-gray-800 md:text-4xl">
           جدیدترین بلاگ ({categoryDisplay})
         </h1>
@@ -139,7 +139,7 @@ const BlogContent = ({ blogs, categorySlug }: { blogs: Blogs; categorySlug: stri
           <Link
             key={blog.id}
             href={`/support/blog/${blog.categories[0].slug}/${blog.slug}`}
-            className="block rounded-lg border border-gray-200 bg-white shadow-lg transition-all hover:scale-[1.02] hover:shadow-2xl"
+            className="block rounded-lg border border-gray-200 bg-white shadow-lg transition-[transform,box-shadow] hover:scale-[1.02] hover:shadow-2xl"
           >
             <div className="overflow-hidden rounded-t-lg">
               <Image
@@ -164,6 +164,8 @@ const BlogContent = ({ blogs, categorySlug }: { blogs: Blogs; categorySlug: stri
   );
 };
 
+const blogCategoryBreadCrumbs = ["/", "/support", "/support/blog"];
+
 const BlogLandingPage = async (props: { params: Promise<{ blogCategory: string }> }) => {
   const params = await props.params;
   const { blogCategory } = params;
@@ -179,11 +181,9 @@ const BlogLandingPage = async (props: { params: Promise<{ blogCategory: string }
     notFound();
   }
 
-  const breadCrumbs = ["/", "/support", "/support/blog"];
-
   return (
     <div className="max-w-[1580px]">
-      <Breadcrumb breadcrumbs={breadCrumbs} />
+      <Breadcrumb breadcrumbs={blogCategoryBreadCrumbs} />
       <BlogContent blogs={blogData || { blogs: [] }} categorySlug={params.blogCategory} />
     </div>
   );

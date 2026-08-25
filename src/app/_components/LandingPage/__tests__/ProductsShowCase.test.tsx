@@ -8,7 +8,7 @@ const { mockPrisma } = vi.hoisted(() => ({
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 
 vi.mock("next/image", () => ({
-  default: (props: any) => <img {...props} />,
+  default: (props: any) => <img alt={props.alt} {...props} />,
 }));
 
 vi.mock("next/link", () => ({
@@ -37,8 +37,22 @@ describe("ProductsShowCase", () => {
 
   it("renders showcase products", async () => {
     mockPrisma.showcase_products.findMany.mockResolvedValue([
-      { id: 1, title: "Product 1", image: "img1.jpg", link: "/p1", description: "Desc 1", order: 1 },
-      { id: 2, title: "Product 2", image: "img2.jpg", link: "/p2", description: "Desc 2", order: 2 },
+      {
+        id: 1,
+        title: "Product 1",
+        image: "img1.jpg",
+        link: "/p1",
+        description: "Desc 1",
+        order: 1,
+      },
+      {
+        id: 2,
+        title: "Product 2",
+        image: "img2.jpg",
+        link: "/p2",
+        description: "Desc 2",
+        order: 2,
+      },
     ]);
 
     const { default: ProductsShowCase } = await import("../ProductsShowCase");
@@ -52,7 +66,14 @@ describe("ProductsShowCase", () => {
 
   it("renders product descriptions", async () => {
     mockPrisma.showcase_products.findMany.mockResolvedValue([
-      { id: 1, title: "Camera", image: "cam.jpg", link: "/cam", description: "HD Camera", order: 1 },
+      {
+        id: 1,
+        title: "Camera",
+        image: "cam.jpg",
+        link: "/cam",
+        description: "HD Camera",
+        order: 1,
+      },
     ]);
 
     const { default: ProductsShowCase } = await import("../ProductsShowCase");

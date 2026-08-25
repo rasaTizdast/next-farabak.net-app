@@ -1,14 +1,14 @@
-import type { Metadata } from "next";
-import localFont from "next/font/local";
-import "./globals.css";
-import Script from "next/script";
-import { Suspense } from "react";
 import { ConfigProvider } from "antd";
 import faIR from "antd/locale/fa_IR";
+import type { Metadata } from "next";
+import localFont from "next/font/local";
+import Script from "next/script";
+import { Suspense } from "react";
 
 import { InvoiceProvider } from "@/context/InvoiceContext";
 import { UserProvider } from "@/context/UserContext";
 
+import "./globals.css";
 import { AnalyticsProvider } from "./providers/AnalyticsProvider";
 
 // Importing the custom iran yekan font

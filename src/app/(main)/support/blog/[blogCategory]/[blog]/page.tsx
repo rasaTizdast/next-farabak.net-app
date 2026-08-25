@@ -1,7 +1,7 @@
+import DOMPurify from "isomorphic-dompurify";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import Script from "next/script";
-import DOMPurify from "isomorphic-dompurify";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import BlogFaqAccordion from "@/components/BlogFaqAccordion";
@@ -217,7 +217,7 @@ export default async function BlogPage(props: {
             quality={100}
           />
           <div className="scrollbar-hide mb-4 overflow-x-auto rounded-lg bg-gray-100 p-2">
-            <div className="flex items-center gap-3 whitespace-nowrap text-xs text-gray-600 mobile:text-base">
+            <div className="mobile:text-base flex items-center gap-3 text-xs whitespace-nowrap text-gray-600">
               <span>{blog.author}</span>
               <span>•</span>
               <time>{new Date(blog.created_at).toLocaleDateString("fa")}</time>

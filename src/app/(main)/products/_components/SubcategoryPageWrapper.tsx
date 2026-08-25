@@ -9,6 +9,15 @@ import ProductGridWrapper from "./ProductGridWrapper";
 import { ProductGridSkeleton } from "./ProductListSkeletons";
 import { fetchProducts } from "../_utils/fetchProducts";
 
+interface Product {
+  ProductId: number;
+  Name: string | null;
+  Type: string | null;
+  Price: string | null;
+  Discount: string | null;
+  Available: boolean | null;
+}
+
 interface SubcategoryPageWrapperProps {
   categoryName: string;
   subcategoryName: string;
@@ -30,14 +39,14 @@ async function fetchSubcategoryData(subcategoryName: string) {
 
 async function fetchProductsAndPricing(apiUrl: string) {
   const { data: products } = await fetchProducts(apiUrl);
-  const availableProducts = products.filter((product: any) => product.Available);
+  const availableProducts = products.filter((product: Product) => product.Available);
 
   let minPrice = "0";
   let maxPrice = "0";
   let hasValidPricing = false;
 
   if (availableProducts.length > 0) {
-    const pricingPromises = availableProducts.map(async (product: any) => {
+    const pricingPromises = availableProducts.map(async (product: Product) => {
       return await calculateProductPricing(product.Price, product.Discount);
     });
 

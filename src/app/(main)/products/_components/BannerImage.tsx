@@ -9,7 +9,7 @@ export default function BannerImage({ src, alt }: { src: string; alt?: string })
   return (
     <div
       key={src}
-      className="relative mb-8 w-full mobile:mb-12"
+      className="mobile:mb-12 relative mb-8 w-full"
       style={{ aspectRatio: "1920 / 600" }}
     >
       {!loaded && (

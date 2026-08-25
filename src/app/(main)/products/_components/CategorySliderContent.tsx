@@ -4,8 +4,15 @@ import { useRef, useState } from "react";
 
 import CategoryCard from "./CategoryCard";
 
+interface SliderItem {
+  Name: string;
+  Slug: string;
+  Banner?: string;
+  Link?: string;
+}
+
 interface CategorySliderContentProps {
-  items: any[];
+  items: SliderItem[];
 }
 
 export default function CategorySliderContent({ items }: CategorySliderContentProps) {
@@ -83,7 +90,7 @@ export default function CategorySliderContent({ items }: CategorySliderContentPr
         type="button"
         onClick={() => scroll("right")}
         disabled={!canScrollRight}
-        className="order-1 hidden h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white shadow-md transition-all duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-30 mobile:flex"
+        className="mobile:flex order-1 hidden h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white shadow-md transition-shadow duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-30"
         aria-label="قبلی"
       >
         <svg
@@ -104,8 +111,10 @@ export default function CategorySliderContent({ items }: CategorySliderContentPr
         aria-label="لیست دسته‌بندی‌ها"
         tabIndex={0}
         onKeyDown={(e) => {
-          if (e.key === "ArrowLeft") sliderRef.current?.scrollBy({ left: -200, behavior: "smooth" });
-          if (e.key === "ArrowRight") sliderRef.current?.scrollBy({ left: 200, behavior: "smooth" });
+          if (e.key === "ArrowLeft")
+            sliderRef.current?.scrollBy({ left: -200, behavior: "smooth" });
+          if (e.key === "ArrowRight")
+            sliderRef.current?.scrollBy({ left: 200, behavior: "smooth" });
         }}
         onScroll={checkScroll}
         onLoad={checkScroll}
@@ -122,7 +131,7 @@ export default function CategorySliderContent({ items }: CategorySliderContentPr
           userSelect: "none",
         }}
       >
-        {items.map((item: any) => (
+        {items.map((item: SliderItem) => (
           <CategoryCard
             key={item.Slug}
             name={item.Name}
@@ -139,7 +148,7 @@ export default function CategorySliderContent({ items }: CategorySliderContentPr
         type="button"
         onClick={() => scroll("left")}
         disabled={!canScrollLeft}
-        className="order-3 hidden h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white shadow-md transition-all duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-30 mobile:flex"
+        className="mobile:flex order-3 hidden h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white shadow-md transition-shadow duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-30"
         aria-label="بعدی"
       >
         <svg

@@ -6,8 +6,6 @@ import { PiUserCircleDashedFill } from "react-icons/pi";
 import { useInvoice } from "@/context/InvoiceContext";
 import { useUser } from "@/context/UserContext";
 
-import styles from "./UserDropDown.module.css";
-
 const faNumberFormatter = new Intl.NumberFormat("fa-IR");
 
 const UserDropDown = () => {
@@ -17,11 +15,10 @@ const UserDropDown = () => {
   const { isAdmin, isBranch, logout } = useUser();
   const { invoice, removeProductFromInvoice, updateProductQuantity } = useInvoice();
 
-  const dropdownRef = useRef<HTMLUListElement | null>(null); // Ref to track the dropdown element
-  const iconRef = useRef<HTMLDivElement | null>(null); // Ref to track the icon element
-  const invoiceMenuItemRef = useRef<HTMLLIElement | null>(null); // Ref to track invoice option in menu
+  const dropdownRef = useRef<HTMLUListElement | null>(null);
+  const iconRef = useRef<HTMLDivElement | null>(null);
+  const invoiceMenuItemRef = useRef<HTMLLIElement | null>(null);
 
-  // Calculate total monetary amount
   const calculateTotalAmount = () => {
     return invoice.products.reduce((total, product) => {
       const itemPrice = product.Price || 0;
@@ -31,7 +28,6 @@ const UserDropDown = () => {
     }, 0);
   };
 
-  // Calculate total quantity of all products
   const calculateTotalQuantity = () => {
     return invoice.products.reduce((total, product) => {
       return total + product.Quantity;
@@ -42,19 +38,17 @@ const UserDropDown = () => {
   const totalQuantity = calculateTotalQuantity();
   const formattedAmount = faNumberFormatter.format(totalAmount);
 
-  // Function to handle clicks outside the component
   const handleClickOutside = (event: MouseEvent) => {
     if (
       dropdownRef.current &&
-      !dropdownRef.current.contains(event.target as Node) && // Click is outside the dropdown menu
+      !dropdownRef.current.contains(event.target as Node) &&
       iconRef.current &&
-      !iconRef.current.contains(event.target as Node) // Click is outside the icon
+      !iconRef.current.contains(event.target as Node)
     ) {
-      setIsVis(false); // Close the submenu
+      setIsVis(false);
     }
   };
 
-  // Handle quantity change for a product
   const handleQuantityChange = (productId: number, newQuantity: number) => {
     if (newQuantity <= 0) {
       removeProductFromInvoice(productId);
@@ -63,44 +57,43 @@ const UserDropDown = () => {
     }
   };
 
-  // Toggle expanded invoice view
   const toggleExpandedInvoice = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigation
-    e.stopPropagation(); // Prevent closing the dropdown
+    e.preventDefault();
+    e.stopPropagation();
     setExpandedInvoice((prev) => !prev);
   };
 
   useEffect(() => {
-    // Add event listener when the component mounts
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      // Clean up the event listener when the component unmounts
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   return (
-    <div ref={iconRef} className={styles.userIcon}>
-      <div className={styles.iconContainer}>
+    <div ref={iconRef} className="relative flex items-center">
+      <div className="relative flex items-center">
         <PiUserCircleDashedFill
-          onClick={() => setIsVis((v) => !v)} // Toggle the submenu when clicking the icon
+          onClick={() => setIsVis((v) => !v)}
+          className="cursor-pointer text-[2.3rem] text-[#ddd] md:text-[1.9rem] 2xl:text-[2.7rem]"
         />
         {invoice.products.length > 0 && (
-          <div className={styles.invoiceBadge}>{faNumberFormatter.format(totalQuantity)}</div>
+          <div className="absolute -end-[5px] top-[-5px] flex h-[18px] w-[18px] cursor-pointer items-center justify-center rounded-full bg-[#0e6aff] text-[0.7rem] text-white md:h-[16px] md:w-[16px] md:text-[0.65rem]">
+            {faNumberFormatter.format(totalQuantity)}
+          </div>
         )}
       </div>
 
       {isVis && (
         <ul
-          className={styles.subMenu}
+          className="absolute -start-[151%] top-[150%] z-[100] max-w-[300px] min-w-[280px] cursor-pointer overflow-visible rounded-lg bg-[#f8f8f8] p-0 shadow-[0_4px_12px_1px_rgba(0,0,0,0.3)] md:max-w-[220px] md:min-w-[220px]"
           ref={dropdownRef}
           role="none"
           onClick={(e) => {
-            // Don't close if clicking in the expanded invoice area
             if (
               expandedInvoice &&
               e.target instanceof Node &&
-              dropdownRef.current?.querySelector(`.${styles.expandedInvoice}`)?.contains(e.target)
+              dropdownRef.current?.querySelector(".expanded-invoice")?.contains(e.target)
             ) {
               e.stopPropagation();
             } else if (!e.defaultPrevented) {
@@ -110,23 +103,38 @@ const UserDropDown = () => {
         >
           {isAdmin && (
             <li>
-              <Link href="/admin">پنل مدیریت</Link>
+              <Link
+                href="/admin"
+                className="block border-b border-[#ddd] px-4 py-3 transition-[background-color,padding-inline-end] duration-200 hover:bg-[#aceaff] hover:pr-6"
+              >
+                پنل مدیریت
+              </Link>
             </li>
           )}
           {isBranch && (
             <li>
-              <Link href="/admin/branches/my">پنل شعبه</Link>
+              <Link
+                href="/admin/branches/my"
+                className="block border-b border-[#ddd] px-4 py-3 transition-[background-color,padding-inline-end] duration-200 hover:bg-[#aceaff] hover:pr-6"
+              >
+                پنل شعبه
+              </Link>
             </li>
           )}
           {!isAdmin && !isBranch && (
             <li>
-              <Link href="/dashboard">پروفایل</Link>
+              <Link
+                href="/dashboard"
+                className="block border-b border-[#ddd] px-4 py-3 transition-[background-color,padding-inline-end] duration-200 hover:bg-[#aceaff] hover:pr-6"
+              >
+                پروفایل
+              </Link>
             </li>
           )}
           {!isAdmin && !isBranch && (
             <>
               <li
-                className={`${styles.invoiceOption} ${expandedInvoice ? styles.expanded : ""}`}
+                className={`relative border-b border-[#ddd] p-0 ${expandedInvoice ? "bg-[#f0f0f0]" : ""}`}
                 ref={invoiceMenuItemRef}
                 role="none"
                 onClick={(e) => {
@@ -137,24 +145,31 @@ const UserDropDown = () => {
               >
                 <button
                   type="button"
-                  className={styles.invoiceOptionHeader}
+                  className="w-full cursor-pointer px-4 py-3"
                   onClick={toggleExpandedInvoice}
                   aria-label="تغییر وضعیت فاکتور"
                 >
-                  <div className={styles.invoiceTitle}>
+                  <div className="flex flex-col gap-[0.3rem]">
                     فاکتور فعلی
                     {invoice.products.length > 0 && (
-                      <span className={styles.invoiceAmount}>{formattedAmount} تومان</span>
+                      <span className="text-[0.8rem] font-medium text-[#1a73e8]">
+                        {formattedAmount} تومان
+                      </span>
                     )}
                   </div>
                 </button>
 
                 {expandedInvoice && (
-                  <div className={styles.expandedInvoice} onClick={(e) => e.stopPropagation()}>
-                    <h4>فاکتور فعلی</h4>
+                  <div
+                    className="expanded-invoice w-full overflow-hidden bg-white shadow-[0_1px_4px_rgba(0,0,0,0.1)]"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <h4 className="m-0 bg-[#003566] p-[0.8rem] text-center text-[0.95rem] font-semibold text-white">
+                      فاکتور فعلی
+                    </h4>
                     {invoice.products.length > 0 ? (
                       <>
-                        <div className={styles.expandedInvoiceContent}>
+                        <div className="max-h-[300px] overflow-y-auto">
                           {invoice.products.map((product) => {
                             const itemPrice = product.Price || 0;
                             const itemDiscount = product.Discount || 0;
@@ -167,40 +182,45 @@ const UserDropDown = () => {
                             const canIncrease = max === Infinity || current < max;
 
                             return (
-                              <div key={product.ProductId} className={styles.expandedInvoiceItem}>
-                                <div className={styles.productDetails}>
-                                  <div className={styles.productName}>{product.ProductName}</div>
-                                  <div className={styles.priceContainer}>
+                              <div
+                                key={product.ProductId}
+                                className="flex flex-col gap-[0.8rem] border-b border-[#eee] p-[0.8rem]"
+                              >
+                                <div className="flex flex-col gap-[0.3rem]">
+                                  <div className="text-[0.95rem] font-medium">
+                                    {product.ProductName}
+                                  </div>
+                                  <div className="flex flex-col gap-[0.2rem]">
                                     {itemDiscount > 0 ? (
                                       <>
-                                        <span className={styles.originalPrice}>
+                                        <span className="text-[0.8rem] text-[#777] line-through">
                                           {faNumberFormatter.format(itemPrice)} تومان
                                         </span>
-                                        <span className={styles.finalPrice}>
+                                        <span className="text-[0.9rem] font-semibold text-[#0077b6]">
                                           {faNumberFormatter.format(finalUnitPrice)} تومان
                                         </span>
                                       </>
                                     ) : (
-                                      <span className={styles.finalPrice}>
+                                      <span className="text-[0.9rem] font-semibold text-[#0077b6]">
                                         {faNumberFormatter.format(itemPrice)} تومان
                                       </span>
                                     )}
                                   </div>
                                 </div>
 
-                                <div className={styles.quantityControls}>
+                                <div className="flex items-center justify-between">
                                   <button
                                     type="button"
-                                    className={styles.removeBtn}
+                                    className="cursor-pointer rounded-[4px] border-none bg-[#f44336] px-[0.7rem] py-[0.4rem] text-[0.9rem] text-white hover:bg-[#d32f2f]"
                                     onClick={() => removeProductFromInvoice(product.ProductId)}
                                   >
                                     حذف
                                   </button>
 
-                                  <div className={styles.quantityButtons}>
+                                  <div className="ltr flex items-center rounded-[6px] bg-[#ececec] px-[0.2rem] py-[0.2rem]">
                                     <button
                                       type="button"
-                                      className={`${styles.quantityBtn} ${!canIncrease ? styles.disabled : ""}`}
+                                      className={`flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[4px] border-none bg-[#f8f8f8] text-base font-bold transition-colors duration-200 hover:bg-white ${!canIncrease ? "cursor-not-allowed opacity-50" : ""}`}
                                       onClick={() =>
                                         canIncrease &&
                                         handleQuantityChange(product.ProductId, current + 1)
@@ -212,7 +232,7 @@ const UserDropDown = () => {
                                       +
                                     </button>
 
-                                    <span className={`${styles.quantity} px-2`}>
+                                    <span className="inline-block min-w-[30px] px-2 text-center text-[0.9rem]">
                                       {faNumberFormatter.format(current)}
                                       {min > 1 && current === min && " (حداقل)"}
                                       {max < Infinity && current === max && " (حداکثر)"}
@@ -220,7 +240,7 @@ const UserDropDown = () => {
 
                                     <button
                                       type="button"
-                                      className={`${styles.quantityBtn} ${current <= min ? styles.disabled : ""}`}
+                                      className={`flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[4px] border-none bg-[#f8f8f8] text-base font-bold transition-colors duration-200 hover:bg-white ${current <= min ? "cursor-not-allowed opacity-50" : ""}`}
                                       onClick={() =>
                                         current > min &&
                                         handleQuantityChange(product.ProductId, current - 1)
@@ -237,14 +257,16 @@ const UserDropDown = () => {
                             );
                           })}
                         </div>
-                        <div className={styles.expandedInvoiceFooter}>
-                          <div className={styles.totalSection}>
-                            <span className={styles.totalLabel}>مجموع:</span>
-                            <span className={styles.totalAmount}>{formattedAmount} تومان</span>
+                        <div className="flex flex-col gap-[0.8rem] border-t border-[#eee] bg-[#f8f8f8] p-[0.8rem]">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[0.95rem] font-semibold text-[#333]">مجموع:</span>
+                            <span className="text-[1.1rem] font-bold text-[#0077b6]">
+                              {formattedAmount} تومان
+                            </span>
                           </div>
                           <button
                             type="button"
-                            className={styles.checkoutBtn}
+                            className="w-full cursor-pointer rounded-[6px] border-none bg-[#318ce7] px-[0.7rem] py-[0.7rem] text-base font-medium text-white transition-colors duration-200 hover:bg-[#0e6aff]"
                             onClick={(e) => {
                               e.preventDefault();
                               setIsVis(false);
@@ -256,7 +278,7 @@ const UserDropDown = () => {
                         </div>
                       </>
                     ) : (
-                      <div className={styles.expandedInvoiceEmpty}>فاکتور شما خالی است</div>
+                      <div className="p-8 text-center text-[#888]">فاکتور شما خالی است</div>
                     )}
                   </div>
                 )}
@@ -264,17 +286,27 @@ const UserDropDown = () => {
             </>
           )}
           <li>
-            <Link href="/dashboard/all-invoices">فاکتور‌ها</Link>
+            <Link
+              href="/dashboard/all-invoices"
+              className="block border-b border-[#ddd] px-4 py-3 transition-[background-color,padding-inline-end] duration-200 hover:bg-[#aceaff] hover:pr-6"
+            >
+              فاکتور‌ها
+            </Link>
           </li>
           {!isAdmin && !isBranch && (
             <li>
-              <Link href="/dashboard/edit-user">ویرایش اطلاعات</Link>
+              <Link
+                href="/dashboard/edit-user"
+                className="block border-b border-[#ddd] px-4 py-3 transition-[background-color,padding-inline-end] duration-200 hover:bg-[#aceaff] hover:pr-6"
+              >
+                ویرایش اطلاعات
+              </Link>
             </li>
           )}
-          <li className={styles.logoutOption}>
+          <li className="text-red-500">
             <button
               type="button"
-              className="w-full text-right"
+              className="w-full border-b border-[#ddd] px-4 py-3 text-right transition-colors duration-200"
               onClick={() => logout()}
             >
               خروج از حساب

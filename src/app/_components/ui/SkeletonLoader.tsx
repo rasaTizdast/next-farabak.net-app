@@ -6,7 +6,7 @@ const CategorySliderLoader = ({ amount = 6 }: Props) => {
   return (
     <div className="flex items-center gap-2 pb-10 md:gap-4">
       {/* Right Button Skeleton */}
-      <div className="order-1 hidden h-10 w-10 flex-shrink-0 animate-pulse rounded-full bg-gray-200 mobile:flex"></div>
+      <div className="mobile:flex order-1 hidden h-10 w-10 flex-shrink-0 animate-pulse rounded-full bg-gray-200"></div>
 
       {/* Slider Container */}
       <div
@@ -26,7 +26,7 @@ const CategorySliderLoader = ({ amount = 6 }: Props) => {
       </div>
 
       {/* Left Button Skeleton */}
-      <div className="order-3 hidden h-10 w-10 flex-shrink-0 animate-pulse rounded-full bg-gray-200 mobile:flex"></div>
+      <div className="mobile:flex order-3 hidden h-10 w-10 flex-shrink-0 animate-pulse rounded-full bg-gray-200"></div>
 
       {/* Hide scrollbar */}
       <style>{`

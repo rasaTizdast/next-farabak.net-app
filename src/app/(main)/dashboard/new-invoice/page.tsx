@@ -11,11 +11,8 @@ import { useInvoice } from "@/context/InvoiceContext";
 import { useUser } from "@/context/UserContext";
 import { addNewInvoice } from "@/helpers/invoiceHandlers";
 
-import styles from "./NewInvoice.module.css";
-
 const currencyFormatter = new Intl.NumberFormat("fa-IR");
 
-// Persian digits helper
 const e2p = (n: number | null | undefined) => {
   if (n === null || n === undefined) return "—";
   return n.toString().replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d)]);
@@ -77,9 +74,9 @@ const NewInvoicePage = () => {
   return (
     <>
       <Toaster position="bottom-center" reverseOrder={false} />
-      <div className={styles.container}>
+      <div className="mx-auto max-w-[1200px] rounded-lg bg-[#f9f9f9] px-4 py-8 shadow-[0_4px_12px_rgba(0,0,0,0.1)] md:px-8">
         {invoiceSuccess && (
-          <div className={styles.successNotice}>
+          <div className="animate-fade-in mb-6 rounded-lg border border-[#2e7d32] bg-[#e6f7e6] p-4 text-center font-semibold text-[#2e7d32] shadow-[0_4px_8px_rgba(0,0,0,0.05)]">
             فاکتور جدید با موفقیت ساخته شد، برای دیدن فاکتور به صفحه{" "}
             <Link
               href="/dashboard/all-invoices"
@@ -92,23 +89,23 @@ const NewInvoicePage = () => {
           </div>
         )}
 
-        <h1 className={styles.header}>ثبت فاکتور جدید</h1>
+        <h1 className="mb-8 text-center text-[1.3rem] font-extrabold">ثبت فاکتور جدید</h1>
 
         {invoice.products.length === 0 ? (
           <div className="py-10 text-center text-lg text-gray-600">
             فعلاً محصولی داخل فاکتور شما نیست!
           </div>
         ) : (
-          <table className={`${styles.invoiceTable} table-fixed`}>
+          <table className="mb-8 w-full table-fixed border-collapse">
             <thead>
               <tr>
-                <th>نام محصول</th>
-                <th>قیمت واحد (تومان)</th>
-                <th>تعداد</th>
-                <th>مجموع قیمت</th>
-                <th>تخفیف کل</th>
-                <th>قیمت نهایی</th>
-                <th>عملیات</th>
+                <th className="border border-[#ccc] bg-white p-4 text-start">نام محصول</th>
+                <th className="border border-[#ccc] bg-white p-4 text-start">قیمت واحد (تومان)</th>
+                <th className="border border-[#ccc] bg-white p-4 text-start">تعداد</th>
+                <th className="border border-[#ccc] bg-white p-4 text-start">مجموع قیمت</th>
+                <th className="border border-[#ccc] bg-white p-4 text-start">تخفیف کل</th>
+                <th className="border border-[#ccc] bg-white p-4 text-start">قیمت نهایی</th>
+                <th className="border border-[#ccc] bg-white p-4 text-start">عملیات</th>
               </tr>
             </thead>
             <tbody>
@@ -124,11 +121,14 @@ const NewInvoicePage = () => {
 
                 return (
                   <tr key={product.ProductId} className={quantity === 0 ? "opacity-50" : ""}>
-                    <td className="font-medium">{product.ProductName}</td>
-                    <td>{currencyFormatter.format(price)}</td>
+                    <td className="border border-[#ccc] p-4 text-start font-medium">
+                      {product.ProductName}
+                    </td>
+                    <td className="border border-[#ccc] p-4 text-start">
+                      {currencyFormatter.format(price)}
+                    </td>
 
-                    {/* Quantity with limits */}
-                    <td>
+                    <td className="border border-[#ccc] p-4 text-start">
                       <div className="flex flex-col items-center gap-1">
                         <input
                           type="number"
@@ -137,14 +137,15 @@ const NewInvoicePage = () => {
                           value={quantity}
                           onChange={(e) => handleQuantityChange(product.ProductId, e.target.value)}
                           aria-label={`تعداد ${product.ProductName}`}
-                          className={`${styles.quantityInput} w-20 text-center`}
-                          style={{
-                            borderColor: isAtMin ? "#16a34a" : isAtMax ? "#dc2626" : undefined,
-                            borderWidth: isAtMin || isAtMax ? "2px" : "1px",
-                          }}
+                          className={`w-20 rounded-[4px] border p-2 text-center ${
+                            isAtMin
+                              ? "border-2 border-[#2e7d32]"
+                              : isAtMax
+                                ? "border-2 border-[#d32f2f]"
+                                : "border border-[#ccc]"
+                          }`}
                         />
 
-                        {/* Limits indicator */}
                         {(min !== null || max !== null) && (
                           <div className="flex gap-3 text-xs text-gray-600">
                             {min !== null && min > 0 && (
@@ -162,17 +163,21 @@ const NewInvoicePage = () => {
                       </div>
                     </td>
 
-                    <td>{currencyFormatter.format(price * quantity)}</td>
-                    <td>{currencyFormatter.format(discount * quantity)}</td>
-                    <td className="text-lg font-bold">
+                    <td className="border border-[#ccc] p-4 text-start">
+                      {currencyFormatter.format(price * quantity)}
+                    </td>
+                    <td className="border border-[#ccc] p-4 text-start">
+                      {currencyFormatter.format(discount * quantity)}
+                    </td>
+                    <td className="border border-[#ccc] p-4 text-start text-lg font-bold">
                       {currencyFormatter.format((price - discount) * quantity)}
                     </td>
 
-                    <td>
+                    <td className="border border-[#ccc] p-4 text-start">
                       <button
                         type="button"
-                        className={styles.clearButton}
                         onClick={() => removeProductFromInvoice(product.ProductId)}
+                        className="cursor-pointer rounded-[4px] border-none bg-[#ff4d4d] px-4 py-2 text-sm text-white transition-colors duration-300 hover:bg-[#ff3333] md:px-4 md:py-2"
                       >
                         حذف محصول
                       </button>
@@ -184,15 +189,15 @@ const NewInvoicePage = () => {
           </table>
         )}
 
-        <div className={styles.actions}>
-          <p className={styles.total}>
+        <div className="flex flex-col gap-4">
+          <p className="text-[1.25rem] font-bold">
             تعداد کل محصولات: {currencyFormatter.format(invoice.TotalAmount)}
           </p>
           <button
             type="button"
-            className={styles.finalizeButton}
             onClick={addNewInvoiceHandler}
             disabled={invoice.products.length === 0}
+            className="w-full cursor-pointer rounded-[6px] border-none bg-[#003262] px-8 py-3 text-white transition-colors duration-300 hover:bg-[#0e6aff] disabled:cursor-not-allowed disabled:opacity-50"
           >
             ذخیره فاکتور جدید
           </button>

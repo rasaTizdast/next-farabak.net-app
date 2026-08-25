@@ -3,7 +3,6 @@ import { Suspense } from "react";
 import BannerImage from "./BannerImage";
 import BlogContent from "./BlogContent";
 import { GridContentServer } from "./GridContentServer";
-import styles from "./ProductGrid.module.css";
 import { ProductGridSkeleton } from "./ProductListSkeletons";
 
 interface ProductGridProps {
@@ -70,14 +69,24 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   const blogsPromise = fetchBlogs();
 
   return (
-    <div className={styles.gridContainer}>
-      <Suspense fallback={<h1 className={styles.gridTitle}>{title}</h1>}>
+    <div className="w-full">
+      <Suspense
+        fallback={
+          <h1 className="mb-8 border-b-2 border-dashed border-[#cecece] pb-6 text-start text-[24px] font-semibold">
+            {title}
+          </h1>
+        }
+      >
         {(async () => {
           const { topBlog } = await blogsPromise;
           if (topBlog) {
             return <BlogContent text={topBlog} as="h1" />;
           }
-          return <h1 className={styles.gridTitle}>{title}</h1>;
+          return (
+            <h1 className="mb-8 border-b-2 border-dashed border-[#cecece] pb-6 text-start text-[24px] font-semibold">
+              {title}
+            </h1>
+          );
         })()}
       </Suspense>
 

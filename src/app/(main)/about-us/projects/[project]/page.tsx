@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import VideoPlayer from "@/app/_components/ui/VideoPlayer";
 
-import styles from "./ProjectPage.module.css";
 import ProjectSlider from "./ProjectSlider";
 
 type ParamsType = {
@@ -21,7 +20,6 @@ type ProjectProps = {
   video?: string;
 };
 
-// Fetch project data from the API
 async function getProjectData(slug: string) {
   try {
     const response = await fetch(`${process.env.BASE_URL}/api/projects/getProjectData/${slug}`, {
@@ -56,6 +54,8 @@ export const generateMetadata = async (props: ParamsType): Promise<Metadata> => 
   };
 };
 
+const projectBreadcrumbs = ["/", "/about-us", "/about-us/projects"];
+
 const ProjectPage = async (props: ParamsType) => {
   const params = await props.params;
   const projectData = await getProjectData(params.project);
@@ -66,9 +66,6 @@ const ProjectPage = async (props: ParamsType) => {
 
   const { title, date, images, largeDesc, location, video }: ProjectProps = projectData;
 
-  const breadcrumbs = ["/", "/about-us", "/about-us/projects"];
-
-  // Prepare structured data for Schema.org
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -128,14 +125,18 @@ const ProjectPage = async (props: ParamsType) => {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <section className={styles.content}>
-        <Breadcrumb breadcrumbs={breadcrumbs} />
-        <h1>{title}</h1>
-        <h3 aria-label="date of the project">{new Date(date).toLocaleDateString("fa")}</h3>
-        <h4 aria-label="location of the project">{location}</h4>
-        <p>{largeDesc}</p>
+      <section className="w-full max-w-[calc(1900px-20rem)]">
+        <Breadcrumb breadcrumbs={projectBreadcrumbs} />
+        <h1 className="mt-8 text-[1.5rem] font-bold">{title}</h1>
+        <h3 className="mt-5 mb-2 font-light" aria-label="date of the project">
+          {new Date(date).toLocaleDateString("fa")}
+        </h3>
+        <h4 className="mb-1 font-light">{location}</h4>
+        <p className="my-8 text-[1.1rem] leading-[1.7]">{largeDesc}</p>
 
-        <ProjectSlider slides={images} />
+        <div className="mb-10 max-h-[800px] max-w-[calc(1900px-20rem)] rounded-xl md:max-h-[300px]">
+          <ProjectSlider slides={images} />
+        </div>
 
         {video && <VideoPlayer url={video} />}
       </section>

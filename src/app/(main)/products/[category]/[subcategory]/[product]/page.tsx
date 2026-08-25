@@ -106,7 +106,7 @@ export async function generateMetadata(props: ProductPageProps): Promise<Metadat
         follow: true,
       },
     };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(error);
     return {
       title: "محصولی یافت نشد | فرابک",

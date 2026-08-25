@@ -42,14 +42,14 @@ const WhatsAppContactButton = ({
   return (
     <button
       type="button"
-      className={`fixed bottom-4 left-4 z-50 flex translate-x-0 items-center rounded-full shadow-md transition-all duration-500 ease-in-out ${isHovered && !isMobile ? "bg-green-600" : "bg-green-500"} `}
+      className={`fixed bottom-4 left-4 z-50 flex translate-x-0 items-center rounded-full shadow-md transition-colors duration-500 ease-in-out ${isHovered && !isMobile ? "bg-green-600" : "bg-green-500"} `}
       onClick={openWhatsApp}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       aria-label="ارسال پیام به پشتیبانی در واتساپ"
     >
       <div
-        className={`overflow-hidden whitespace-nowrap text-white transition-all duration-500 ease-in-out ${
+        className={`overflow-hidden whitespace-nowrap text-white transition-[max-width,padding-inline-end,opacity] duration-500 ease-in-out ${
           isHovered && !isMobile ? "max-w-32 pr-4 opacity-100" : "max-w-0 px-0 opacity-0"
         } `}
       >

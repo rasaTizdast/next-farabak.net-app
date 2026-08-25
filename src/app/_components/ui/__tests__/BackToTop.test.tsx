@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import BackToTop from "../BackToTop";
 
@@ -7,8 +7,16 @@ describe("BackToTop", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     Object.defineProperty(window, "scrollY", { value: 0, writable: true, configurable: true });
-    Object.defineProperty(window, "innerHeight", { value: 800, writable: true, configurable: true });
-    Object.defineProperty(window, "innerWidth", { value: 1024, writable: true, configurable: true });
+    Object.defineProperty(window, "innerHeight", {
+      value: 800,
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(window, "innerWidth", {
+      value: 1024,
+      writable: true,
+      configurable: true,
+    });
   });
 
   it("renders the back to top button", () => {
@@ -32,7 +40,11 @@ describe("BackToTop", () => {
   });
 
   it("shows text on hover on desktop", () => {
-    Object.defineProperty(window, "innerWidth", { value: 1024, writable: true, configurable: true });
+    Object.defineProperty(window, "innerWidth", {
+      value: 1024,
+      writable: true,
+      configurable: true,
+    });
 
     render(<BackToTop />);
     const button = screen.getByLabelText("بازگشت به بالا");

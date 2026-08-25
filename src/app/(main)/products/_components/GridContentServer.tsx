@@ -65,13 +65,13 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
             <Link
               key={product.ProductId}
               href={`/products/${product.link}`}
-              className="group relative flex w-full min-w-[130px] flex-col items-center overflow-hidden rounded-2xl border border-gray-200 bg-white p-3 shadow-sm transition-all duration-300 hover:shadow-xl max-[484px]:flex-row max-[484px]:gap-3 sm:min-w-0 sm:p-4 sm:hover:scale-105"
+              className="group relative flex w-full min-w-[130px] flex-col items-center overflow-hidden rounded-2xl border border-gray-200 bg-white p-3 shadow-sm transition-[transform,box-shadow] duration-300 hover:shadow-xl max-[484px]:flex-row max-[484px]:gap-3 sm:min-w-0 sm:p-4 sm:hover:scale-105"
             >
               {/* Product Image Container with Discount Badge */}
               <div className="relative mb-3 w-full max-[484px]:mb-0 max-[484px]:w-[120px] max-[484px]:flex-shrink-0 sm:mb-4">
                 {/* Discount Badge */}
                 {hasDiscount && discountPercentage > 0 && (
-                  <div className="absolute left-2 top-2 z-[1] rounded-full bg-red-500 px-2 py-1 text-xs font-bold text-white shadow-md sm:px-3 sm:text-sm">
+                  <div className="absolute top-2 left-2 z-[1] rounded-full bg-red-500 px-2 py-1 text-xs font-bold text-white shadow-md sm:px-3 sm:text-sm">
                     {discountPercentage.toLocaleString("fa-IR")}% تخفیف
                   </div>
                 )}
@@ -89,7 +89,7 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
               {/* Product Info - Now uses flex-col with flex-1 to push price to bottom */}
               <div className="flex w-full flex-1 flex-col items-start gap-2 text-right">
                 {/* Product Name */}
-                <h2 className="line-clamp-2 text-base font-medium leading-tight text-gray-800">
+                <h2 className="line-clamp-2 text-base leading-tight font-medium text-gray-800">
                   {product.Type}
                 </h2>
 

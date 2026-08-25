@@ -1,7 +1,9 @@
-import styles from "./SupportLayout.module.css";
-
 const SupportLayout = ({ children }: { children: React.ReactNode }) => {
-  return <main className={styles.main}>{children}</main>;
+  return (
+    <main className="flex w-full flex-col items-center px-[10rem] py-12 md:px-[6rem] lg:px-[4rem] xl:px-[3rem] 2xl:px-[1.5rem]">
+      {children}
+    </main>
+  );
 };
 
 export default SupportLayout;

@@ -20,7 +20,8 @@
   font-size: 1rem;
   line-height: 2.2rem;
   text-align: justify;
-  padding: 2rem 3rem;
+  padding-block: 2rem;
+  padding-inline: 3rem;
 }
 
 .content h1 {
@@ -44,7 +45,8 @@
   flex-direction: column;
   align-items: center;
   gap: 2rem;
-  padding: 2rem 1.5rem;
+  padding-block: 2rem;
+  padding-inline: 1.5rem;
 }
 
 .section aside span {
@@ -67,7 +69,8 @@
 
 .links a {
   position: relative; /* Ensure the pseudo-element is positioned relative to the li */
-  padding: 1rem;
+  padding-block: 1rem;
+  padding-inline: 1rem;
   background-color: rgba(123, 222, 255, 0.2);
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -76,7 +79,9 @@
   justify-content: space-between;
   align-items: center;
   overflow: hidden; /* Hide the pseudo-element overflow */
-  transition: all 0.3s ease-in-out;
+  transition:
+    color 0.3s ease-in-out,
+    box-shadow 0.3s ease-in-out;
   z-index: 1; /* Ensure content is above the pseudo-element */
   color: inherit; /* Inherit color from li */
   text-decoration: none; /* Remove underline for better appearance */
@@ -129,7 +134,8 @@
   .section aside {
     width: 100%;
     min-width: 100%;
-    padding: 2rem;
+    padding-block: 2rem;
+    padding-inline: 2rem;
     font-size: 1rem;
   }
 
@@ -158,9 +164,9 @@
     content: "";
     position: absolute;
     top: 0;
-    right: 0;
+    inset-inline-end: 0;
     bottom: 0;
-    left: 100%;
+    inset-inline-start: 100%;
     background-color: var(--secondary-color);
     transition:
       left 0.5s ease-in-out,
@@ -169,8 +175,8 @@
   }
 
   .links a:hover::after {
-    left: 0;
-    right: 0;
+    inset-inline-start: 0;
+    inset-inline-end: 0;
   }
 
   .links a:hover {

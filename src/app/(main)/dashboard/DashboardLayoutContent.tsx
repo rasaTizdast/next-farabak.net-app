@@ -10,8 +10,6 @@ import { TbInvoice } from "react-icons/tb";
 
 import { useUser } from "@/context/UserContext";
 
-import styles from "./DashboardLayout.module.css";
-
 const asideData = [
   { id: 1, link: "/dashboard", name: "داشبورد", icon: <MdDashboard /> },
   {
@@ -41,14 +39,13 @@ const asideData = [
 ];
 
 const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => {
-  const [width, setWidth] = useState<number | undefined>(undefined); // Initialize as undefined
+  const [width, setWidth] = useState<number | undefined>(undefined);
   const [overlay, setOverlay] = useState(false);
   const [textVis, setTextVis] = useState(false);
   const { logout } = useUser();
   const pathname = usePathname();
 
   useEffect(() => {
-    // Only runs on the client
     const handleResize = () => {
       const currentWidth = window.innerWidth;
       setWidth(currentWidth);
@@ -56,7 +53,6 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
       setOverlay(false);
     };
 
-    // Set initial width and text visibility on mount
     handleResize();
     window.addEventListener("resize", handleResize);
 
@@ -64,15 +60,19 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
   }, []);
 
   return (
-    <div className={styles.dashboard}>
-      {overlay && <div className={styles.overlay}></div>}
-      <aside className={textVis ? styles.extended : ""}>
-        <ul>
+    <div className="relative flex gap-[2rem]">
+      {overlay && (
+        <div className="fixed start-0 top-[80px] z-[2] h-screen w-full bg-black/50"></div>
+      )}
+      <aside
+        className={`z-[3] flex w-[25%] max-w-[200px] min-w-[150px] flex-col bg-[#003262] text-white ${textVis ? "" : ""}`}
+      >
+        <ul className="sticky top-[61px] flex max-h-max w-full flex-1 list-none flex-col text-base">
           {asideData.map(({ id, link, name, icon }) => (
             <li key={id}>
               <Link
                 href={link}
-                className={pathname === link ? styles.active : styles.asideLinks}
+                className={`block w-full px-4 py-4 font-medium transition-colors duration-300 ${pathname === link ? "bg-[#318ce7]" : ""}`}
                 onClick={() => {
                   if (width && width <= 576) {
                     setTextVis(false);
@@ -80,15 +80,17 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
                   }
                 }}
               >
-                {textVis && <span className={styles.text}>{name}</span>}
-                {width && width <= 576 && <span className={styles.icon}>{icon}</span>}
+                {textVis && <span className="block flex-1">{name}</span>}
+                {width && width <= 576 && (
+                  <span className="ms-[0.5rem] mt-[0.5rem] text-[1rem]">{icon}</span>
+                )}
               </Link>
             </li>
           ))}
           {width && width <= 576 && (
             <button
               type="button"
-              className={styles.toggleButton}
+              className="z-[10] mt-8 flex cursor-pointer items-center justify-center border-none bg-[#003262] px-[0.6rem] py-[0.6rem] text-inherit text-white"
               onClick={() => {
                 setTextVis((v) => !v);
                 setOverlay((v) => !v);
@@ -99,13 +101,17 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
             </button>
           )}
           <li>
-            <button type="button" onClick={() => logout()} className={styles.asideLinks}>
+            <button
+              type="button"
+              onClick={() => logout()}
+              className="flex w-full cursor-pointer items-center justify-between justify-center gap-4 px-4 py-4 text-center font-medium text-red-400 transition-colors duration-300 last:mt-auto"
+            >
               {textVis ? "خروج از حساب" : <ImExit />}
             </button>
           </li>
         </ul>
       </aside>
-      <div className={styles.dashboardContent}>{children}</div>
+      <div className="mb-[2.5rem] flex w-full flex-col ps-4 pe-0 pt-4 pb-4">{children}</div>
     </div>
   );
 };

@@ -11,7 +11,6 @@ import {
 } from "@/helpers/validationSchema";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
-import styles from "./ForgotPasswordModal.module.css";
 import TextInput from "./TextInput";
 
 enum ForgotPasswordStep {
@@ -26,7 +25,6 @@ interface ForgotPasswordModalProps {
   onClose: () => void;
 }
 
-// The component that will be exported
 const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState<ForgotPasswordStep>(ForgotPasswordStep.EMAIL);
   const [email, setEmail] = useState<string>("");
@@ -141,11 +139,11 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
   if (!isOpen) return null;
 
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContent}>
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 p-5">
+      <div className="rtl relative w-full max-w-[450px] rounded-lg bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.15)] md:p-8">
         <button
           type="button"
-          className={styles.closeButton}
+          className="absolute start-[10px] top-[10px] flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-full border-none bg-none text-[24px] text-[#666] hover:bg-[#f5f5f5] hover:text-[#333]"
           onClick={handleClose}
           aria-label="بستن"
         >
@@ -154,9 +152,16 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
 
         {currentStep === ForgotPasswordStep.EMAIL && (
           <FormProvider {...emailMethods}>
-            <form onSubmit={emailMethods.handleSubmit(handleEmailSubmit)}>
-              <h2 className={styles.modalTitle}>بازیابی رمز عبور</h2>
-              <p className={styles.modalDescription}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void emailMethods.handleSubmit(handleEmailSubmit)(e);
+              }}
+            >
+              <h2 className="m-0 mb-[15px] text-center text-[24px] text-[#333]">
+                بازیابی رمز عبور
+              </h2>
+              <p className="mb-[20px] text-center text-[14px] text-[#666]">
                 آدرس ایمیل خود را وارد کنید تا کد بازیابی برای شما ارسال شود
               </p>
 
@@ -169,10 +174,16 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
                 type="email"
               />
 
-              {errorMessage && <p className={styles.error}>{errorMessage}</p>}
+              {errorMessage && (
+                <p className="mt-[5px] text-start text-[14px] text-[#e53e3e]">{errorMessage}</p>
+              )}
 
-              <div className={styles.buttonGroup}>
-                <button type="submit" className={styles.submitButton} disabled={submittingForgot}>
+              <div className="mt-[20px] flex flex-col gap-[10px]">
+                <button
+                  type="submit"
+                  className="cursor-pointer rounded-[4px] border-none bg-[#3182ce] px-[16px] py-[12px] text-[14px] text-white transition-colors duration-200 hover:bg-[#2b6cb0] disabled:cursor-not-allowed disabled:bg-[#90cdf4]"
+                  disabled={submittingForgot}
+                >
                   {submittingForgot ? "در حال ارسال..." : "ارسال کد بازیابی"}
                 </button>
               </div>
@@ -182,9 +193,16 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
 
         {currentStep === ForgotPasswordStep.VERIFY_CODE && (
           <FormProvider {...codeMethods}>
-            <form onSubmit={codeMethods.handleSubmit(handleCodeSubmit)}>
-              <h2 className={styles.modalTitle}>تایید کد بازیابی</h2>
-              <p className={styles.modalDescription}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void codeMethods.handleSubmit(handleCodeSubmit)(e);
+              }}
+            >
+              <h2 className="m-0 mb-[15px] text-center text-[24px] text-[#333]">
+                تایید کد بازیابی
+              </h2>
+              <p className="mb-[20px] text-center text-[14px] text-[#666]">
                 کد بازیابی ارسال شده به ایمیل {email} را وارد کنید
               </p>
 
@@ -197,16 +215,22 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
                 type="text"
               />
 
-              {errorMessage && <p className={styles.error}>{errorMessage}</p>}
+              {errorMessage && (
+                <p className="mt-[5px] text-start text-[14px] text-[#e53e3e]">{errorMessage}</p>
+              )}
 
-              <div className={styles.buttonGroup}>
-                <button type="submit" className={styles.submitButton} disabled={submittingVerify}>
+              <div className="mt-[20px] flex flex-col gap-[10px]">
+                <button
+                  type="submit"
+                  className="cursor-pointer rounded-[4px] border-none bg-[#3182ce] px-[16px] py-[12px] text-[14px] text-white transition-colors duration-200 hover:bg-[#2b6cb0] disabled:cursor-not-allowed disabled:bg-[#90cdf4]"
+                  disabled={submittingVerify}
+                >
                   {submittingVerify ? "در حال تایید..." : "تایید کد"}
                 </button>
 
                 <button
                   type="button"
-                  className={styles.backButton}
+                  className="cursor-pointer rounded-[4px] border-none bg-[#e2e8f0] px-[16px] py-[12px] text-[14px] text-[#4a5568] transition-colors duration-200 hover:bg-[#cbd5e0]"
                   onClick={() => setCurrentStep(ForgotPasswordStep.EMAIL)}
                 >
                   بازگشت
@@ -218,9 +242,16 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
 
         {currentStep === ForgotPasswordStep.RESET_PASSWORD && (
           <FormProvider {...passwordMethods}>
-            <form onSubmit={passwordMethods.handleSubmit(handlePasswordSubmit)}>
-              <h2 className={styles.modalTitle}>تغییر رمز عبور</h2>
-              <p className={styles.modalDescription}>رمز عبور جدید خود را وارد کنید</p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void passwordMethods.handleSubmit(handlePasswordSubmit)(e);
+              }}
+            >
+              <h2 className="m-0 mb-[15px] text-center text-[24px] text-[#333]">تغییر رمز عبور</h2>
+              <p className="mb-[20px] text-center text-[14px] text-[#666]">
+                رمز عبور جدید خود را وارد کنید
+              </p>
 
               <TextInput
                 name="password"
@@ -242,16 +273,22 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
                 type="password"
               />
 
-              {errorMessage && <p className={styles.error}>{errorMessage}</p>}
+              {errorMessage && (
+                <p className="mt-[5px] text-start text-[14px] text-[#e53e3e]">{errorMessage}</p>
+              )}
 
-              <div className={styles.buttonGroup}>
-                <button type="submit" className={styles.submitButton} disabled={submittingReset}>
+              <div className="mt-[20px] flex flex-col gap-[10px]">
+                <button
+                  type="submit"
+                  className="cursor-pointer rounded-[4px] border-none bg-[#3182ce] px-[16px] py-[12px] text-[14px] text-white transition-colors duration-200 hover:bg-[#2b6cb0] disabled:cursor-not-allowed disabled:bg-[#90cdf4]"
+                  disabled={submittingReset}
+                >
                   {submittingReset ? "در حال ذخیره..." : "تغییر رمز عبور"}
                 </button>
 
                 <button
                   type="button"
-                  className={styles.backButton}
+                  className="cursor-pointer rounded-[4px] border-none bg-[#e2e8f0] px-[16px] py-[12px] text-[14px] text-[#4a5568] transition-colors duration-200 hover:bg-[#cbd5e0]"
                   onClick={() => setCurrentStep(ForgotPasswordStep.VERIFY_CODE)}
                 >
                   بازگشت
@@ -262,13 +299,19 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
         )}
 
         {currentStep === ForgotPasswordStep.SUCCESS && (
-          <div className={styles.successContainer}>
-            <h2 className={styles.modalTitle}>تغییر رمز عبور با موفقیت انجام شد</h2>
-            <p className={styles.modalDescription}>
+          <div className="flex flex-col items-center text-center">
+            <h2 className="m-0 mb-[15px] text-center text-[24px] text-[#333]">
+              تغییر رمز عبور با موفقیت انجام شد
+            </h2>
+            <p className="mb-[20px] text-center text-[14px] text-[#666]">
               رمز عبور شما با موفقیت تغییر یافت. اکنون می‌توانید با رمز عبور جدید وارد شوید.
             </p>
 
-            <button type="button" className={styles.submitButton} onClick={handleClose}>
+            <button
+              type="button"
+              className="cursor-pointer rounded-[4px] border-none bg-[#3182ce] px-[16px] py-[12px] text-[14px] text-white transition-colors duration-200 hover:bg-[#2b6cb0]"
+              onClick={handleClose}
+            >
               بازگشت به صفحه ورود
             </button>
           </div>

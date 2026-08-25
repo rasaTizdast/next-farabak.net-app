@@ -2,79 +2,118 @@ import Link from "next/link";
 import { BsFillSignpostSplitFill } from "react-icons/bs";
 import { FaInstagram, FaPhoneSquare, FaWhatsapp } from "react-icons/fa";
 
-import styles from "./Footer.module.css";
-
 const Footer = async () => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/contact-us`, {
     next: { revalidate: 3600 },
   });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
   const { phone_numbers, address } = (await response.json()) as {
     phone_numbers: { id: string; number: string }[];
     address: { address: string; postal_code: string } | null;
   };
 
   return (
-    <footer className={styles.footer}>
-      <div className={styles.footerContent}>
-        <div className={styles.footerRow}>
-          <div className={styles.detailColumn}>
-            <h4 className={styles.cTitle}>صفحات اصلی</h4>
-            <div className={styles.cItems}>
-              <Link href="/" className={styles.cItem}>
+    <footer className="flex w-full justify-center bg-[#000814] px-[10rem] py-12 text-[#cecece] md:px-[6rem] md:py-4 lg:px-[4rem] xl:px-[3rem] 2xl:px-[1.5rem]">
+      <div className="flex w-full max-w-[calc(1900px-20rem)] flex-col items-center justify-between gap-6">
+        <div className="mb-8 flex w-full flex-wrap items-start justify-evenly border-b border-[#aaa] pb-[1.1rem] md:flex-nowrap lg:gap-4 2xl:gap-2">
+          <div className="flex min-h-[120px] min-w-[130px] flex-col">
+            <h4 className="mb-4 text-base font-bold transition-colors duration-300 md:text-base lg:text-base 2xl:text-[1.2rem]">
+              صفحات اصلی
+            </h4>
+            <div className="flex w-[80%] flex-col gap-6">
+              <Link
+                href="/"
+                className="flex w-full gap-2 text-[0.8rem] leading-[1rem] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+              >
                 صفحه اصلی
               </Link>
-              <Link href="/products" className={styles.cItem}>
+              <Link
+                href="/products"
+                className="flex w-full gap-2 text-[0.8rem] leading-[1rem] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+              >
                 محصولات
               </Link>
-              <Link href="/about-us" className={styles.cItem}>
+              <Link
+                href="/about-us"
+                className="flex w-full gap-2 text-[0.8rem] leading-[1rem] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+              >
                 درباره ما
               </Link>
             </div>
           </div>
-          <div className={styles.detailColumn}>
-            <h4 className={styles.cTitle}>
-              <Link href="/support">پشتیبانی</Link>
+          <div className="flex min-h-[120px] min-w-[130px] flex-col">
+            <h4 className="mb-4 text-base font-bold transition-colors duration-300">
+              <Link href="/support" className="text-[#cecece]">
+                پشتیبانی
+              </Link>
             </h4>
-            <div className={styles.cItems}>
-              <Link href="/support/warranty-tracking" className={styles.cItem}>
+            <div className="flex w-[80%] flex-col gap-6">
+              <Link
+                href="/support/warranty-tracking"
+                className="flex w-full gap-2 text-[0.8rem] leading-[1rem] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+              >
                 پیگیری گارانتی
               </Link>
-              <Link href="/support/download-center" className={styles.cItem}>
+              <Link
+                href="/support/download-center"
+                className="flex w-full gap-2 text-[0.8rem] leading-[1rem] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+              >
                 نرم‌افزارها و آپدیت‌ها
               </Link>
-              <Link href="/support/faq" className={styles.cItem}>
+              <Link
+                href="/support/faq"
+                className="flex w-full gap-2 text-[0.8rem] leading-[1rem] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+              >
                 سوالات متداول
               </Link>
             </div>
           </div>
-          <div className={styles.detailColumn}>
-            <h4 className={styles.cTitle}>
-              <Link href="/about-us">شرکت فرابک</Link>
+          <div className="flex min-h-[120px] min-w-[130px] flex-col">
+            <h4 className="mb-4 text-base font-bold transition-colors duration-300">
+              <Link href="/about-us" className="text-[#cecece]">
+                شرکت فرابک
+              </Link>
             </h4>
-            <div className={styles.cItems}>
-              <Link href="/about-us/projects" className={styles.cItem}>
+            <div className="flex w-[80%] flex-col gap-6">
+              <Link
+                href="/about-us/projects"
+                className="flex w-full gap-2 text-[0.8rem] leading-[1rem] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+              >
                 پروژه‌ها
               </Link>
-              <Link href="/about-us/activity" className={styles.cItem}>
+              <Link
+                href="/about-us/activity"
+                className="flex w-full gap-2 text-[0.8rem] leading-[1rem] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+              >
                 فعالیت شرکت
               </Link>
-              <Link href="/about-us/members" className={styles.cItem}>
+              <Link
+                href="/about-us/members"
+                className="flex w-full gap-2 text-[0.8rem] leading-[1rem] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+              >
                 اعضای هیئت مدیره
               </Link>
             </div>
           </div>
-          <div className={styles.detailColumn}>
-            <h4 className={styles.cTitle}>شبکه‌های مجازی</h4>
-            <div className={styles.cItems}>
+          <div className="flex min-h-[120px] min-w-[130px] flex-col">
+            <h4 className="mb-4 text-base font-bold transition-colors duration-300">
+              شبکه‌های مجازی
+            </h4>
+            <div className="flex w-[80%] flex-col gap-6">
               <Link
                 target="_blank"
                 href="https://www.instagram.com/farabak_cctv"
-                className={styles.cItem}
+                className="flex w-full gap-2 text-[0.8rem] leading-[1rem] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
               >
                 <FaInstagram />
                 اینستاگرام
               </Link>
-              <Link href="https://wa.me/989121007066" className={styles.cItem}>
+              <Link
+                href="https://wa.me/989121007066"
+                className="flex w-full gap-2 text-[0.8rem] leading-[1rem] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+              >
                 <FaWhatsapp />
                 واتس‌آپ
               </Link>
@@ -82,21 +121,31 @@ const Footer = async () => {
           </div>
         </div>
 
-        <div className={styles.footerRow}>
-          <div className={styles.addressParent}>
-            <div className={styles.cTitle}>آدرس دفتر مرکزی</div>
+        <div className="flex w-full items-center justify-evenly gap-5 md:flex-row lg:flex-row xl:flex-row 2xl:flex-row">
+          <div className="flex-1">
+            <div className="mb-0 text-base font-bold transition-colors duration-300">
+              آدرس دفتر مرکزی
+            </div>
             {address && (
               <>
-                <div className={`${styles.cItem} ${styles.address}`}>{address.address}</div>
-                <div className={styles.details}>
-                  <div className={`${styles.cItem} ${styles.addressItem}`}>
+                <div className="mt-6 flex w-full gap-2 text-start text-[0.8rem] leading-[1.8] leading-[1rem] font-light text-[#c7c7c7]">
+                  <BsFillSignpostSplitFill />
+                  <span>{address.postal_code}</span>
+                </div>
+                <div className="mt-6 flex flex-col flex-wrap justify-center gap-5 md:flex-row">
+                  <div className="flex w-full gap-2 text-[0.8rem] leading-[1rem] font-light text-[#c7c7c7] md:w-auto">
                     <BsFillSignpostSplitFill />
                     <span>{address.postal_code}</span>
                   </div>
                   {phone_numbers.map((phone) => (
-                    <div key={phone.id} className={`${styles.cItem} ${styles.addressItem}`}>
+                    <div
+                      key={phone.id}
+                      className="flex w-full gap-2 text-[0.8rem] leading-[1rem] font-light text-[#c7c7c7] md:w-auto"
+                    >
                       <FaPhoneSquare />
-                      <Link href={`tel:${phone.number}`}>{phone.number}</Link>
+                      <Link href={`tel:${phone.number}`} className="text-[#cecece]">
+                        {phone.number}
+                      </Link>
                     </div>
                   ))}
                 </div>
@@ -110,7 +159,7 @@ const Footer = async () => {
             allowFullScreen
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            className={styles.map}
+            className="mt-0 h-[350px] w-full flex-1 md:mt-6 md:h-[300px]"
           />
         </div>
       </div>

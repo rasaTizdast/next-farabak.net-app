@@ -67,7 +67,7 @@ const ProductBlog = ({ productBlog }: Props) => {
       <article className="mx-auto mt-5 w-full max-w-[1580px] rounded-lg bg-gray-300 p-5 shadow-lg">
         <div className="mb-5 text-center text-2xl font-bold">توضیحات تکمیلی محصول</div>
         <div
-          className="prose-view overflow-wrap-break-word word-wrap-break-word word-break-break-word max-w-none hyphens-auto rounded-lg bg-gray-200 p-5 shadow-md"
+          className="prose-view overflow-wrap-break-word word-wrap-break-word word-break-break-word max-w-none rounded-lg bg-gray-200 p-5 hyphens-auto shadow-md"
           style={{
             overflowWrap: "break-word",
             wordWrap: "break-word",

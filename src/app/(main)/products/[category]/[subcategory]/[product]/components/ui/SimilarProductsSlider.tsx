@@ -4,8 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState, useEffect, useCallback } from "react";
 
-import styles from "@/app/(main)/products/_components/ProductGrid.module.css";
-
 type SliderProduct = {
   ProductId: number;
   Type: string;
@@ -41,7 +39,6 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     el.scrollBy({ left: dir * amount, behavior: "smooth" });
   };
 
-  // Smooth momentum scrolling
   const momentumScrollRef = useRef<() => void>(() => {});
 
   const momentumScroll = () => {
@@ -58,7 +55,6 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     }
   };
 
-  // Sync refs
   useEffect(() => {
     momentumScrollRef.current = momentumScroll;
   }, []);
@@ -67,7 +63,6 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     isDraggingRef.current = isDragging;
   }, [isDragging]);
 
-  // Mouse drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     const el = scrollerRef.current;
     if (!el) return;
@@ -122,7 +117,6 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     }
   };
 
-  // Touch drag handlers
   const handleTouchStart = (e: React.TouchEvent) => {
     const el = scrollerRef.current;
     if (!el) return;
@@ -169,7 +163,6 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     }
   }, []);
 
-  // Store handlers in refs so the effect doesn't re-run when they change
   const handleMouseMoveRef = useRef(handleMouseMove);
   const handleMouseUpRef = useRef(handleMouseUp);
   const handleTouchMoveRef = useRef(handleTouchMove);
@@ -179,7 +172,6 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     handleTouchMoveRef.current = handleTouchMove;
   });
 
-  // Global event listeners for better performance
   useEffect(() => {
     if (isDragging) {
       const onMove = (e: MouseEvent) => handleMouseMoveRef.current(e);
@@ -199,7 +191,6 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
     }
   }, [isDragging, handleTouchEnd]);
 
-  // Cleanup animation frame on unmount
   useEffect(() => {
     return () => {
       if (animationFrameRef.current) {
@@ -213,11 +204,13 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
   return (
     <section aria-labelledby="similar-products-heading" className="mt-12">
       <div className="flex items-center justify-between">
-        <h2 id="similar-products-heading" className={`${styles.gridTitle}`}>
+        <h2
+          id="similar-products-heading"
+          className="mb-8 border-b-2 border-dashed border-[#cecece] pb-6 text-start text-[24px] font-semibold"
+        >
           {title}
         </h2>
         <div className="flex items-center gap-2">
-          {/* In RTL, left arrow should scroll forward (positive) and right arrow backward */}
           <button
             type="button"
             aria-label="قبلی"
@@ -237,8 +230,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
         </div>
       </div>
 
-      {/* Full-width divider under the title */}
-      <div className="mb-4 mt-2 h-px w-full bg-gray-200" aria-hidden="true" />
+      <div className="mt-2 mb-4 h-px w-full bg-gray-200" aria-hidden="true" />
 
       <div
         ref={scrollerRef}
@@ -246,10 +238,12 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
         aria-label="لیست محصولات مشابه"
         tabIndex={0}
         onKeyDown={(e) => {
-          if (e.key === "ArrowLeft") scrollerRef.current?.scrollBy({ left: -200, behavior: "smooth" });
-          if (e.key === "ArrowRight") scrollerRef.current?.scrollBy({ left: 200, behavior: "smooth" });
+          if (e.key === "ArrowLeft")
+            scrollerRef.current?.scrollBy({ left: -200, behavior: "smooth" });
+          if (e.key === "ArrowRight")
+            scrollerRef.current?.scrollBy({ left: 200, behavior: "smooth" });
         }}
-        className={`relative mt-2 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 ${styles.hideScrollbar}`}
+        className={`hide-scrollbar relative mt-2 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2`}
         style={{
           scrollBehavior: isDragging ? "auto" : "smooth",
           cursor: isDragging ? "grabbing" : "grab",
@@ -261,7 +255,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
           <Link
             key={product.ProductId}
             href={`/products/${product.link}`}
-            className={`${styles.productCard} shrink-0 snap-start`}
+            className="flex h-auto shrink-0 snap-start flex-col items-center justify-between rounded-lg border border-[#ddd] bg-white p-4 text-center shadow-[2px_2px_12px_rgba(0,0,0,0.05)] transition-transform duration-300 hover:scale-[1.05]"
             style={{ width: 260 }}
           >
             <Image
@@ -271,7 +265,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
               src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/productImages/${product.img1 ?? ""}`}
               alt={product.Type}
               loading="lazy"
-              className="w-full"
+              className="mb-8 aspect-square w-full object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.1)] filter"
             />
             <h2>{product.Type}</h2>
             <div className="mt-3 font-extralight">

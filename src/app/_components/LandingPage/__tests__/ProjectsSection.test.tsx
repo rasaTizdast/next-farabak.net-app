@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { cleanup } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("next/image", () => ({
-  default: (props: any) => <img {...props} />,
+  default: (props: any) => <img {...props} alt={props.alt} />,
 }));
 
 vi.mock("next/link", () => ({

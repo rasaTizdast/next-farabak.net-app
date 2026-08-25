@@ -1,9 +1,6 @@
-// app/activity/page.tsx
 export const dynamic = "force-dynamic";
 
 import { Metadata } from "next";
-
-import styles from "./ActivityPage.module.css";
 
 export const metadata: Metadata = {
   title: "فعالیت های شرکت فرابک | فرابک",
@@ -23,16 +20,21 @@ type DetailsActivity = {
 type MasterActivity = {
   id: number;
   title: string;
-  Details_activity: DetailsActivity[]; // Use `Details_activity` instead of `details`
+  Details_activity: DetailsActivity[];
 };
 
 const Card = ({ data: { title, items } }: CardProps) => {
   return (
-    <section className={styles.section}>
-      <h1>{title}</h1>
-      <ul>
+    <section className="flex flex-col gap-4 rounded-lg bg-white p-8 shadow-[0px_8px_20px_rgba(0,0,0,0.1)] md:p-8 lg:p-8">
+      <h1 className="text-[calc(0.9rem+0.5vw)] font-extrabold text-[#1e90ff]">{title}</h1>
+      <ul className="list-square me-10 flex flex-col gap-4">
         {items.map((item, index) => (
-          <li key={item}>{item}</li>
+          <li
+            key={index}
+            className="text-justify leading-[2] font-medium hyphens-auto text-[#003262] md:text-[calc(0.8rem+0.5vw)] lg:text-[calc(0.8rem+0.5vw)] xl:text-[calc(0.7rem+0.5vw)]"
+          >
+            {item}
+          </li>
         ))}
       </ul>
     </section>
@@ -44,9 +46,12 @@ const ActivityPage = async () => {
     next: { revalidate: 3600 },
   });
 
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
   const activities: MasterActivity[] = await response.json();
 
-  // Prepare structured data for Schema.org
   const structuredData = {
     "@context": "https://schema.org",
     "@type": ["AboutPage", "ItemList"],
@@ -98,7 +103,7 @@ const ActivityPage = async () => {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <div className={styles.parent}>
+      <div className="mb-4 flex w-full max-w-[calc(1900px-20rem)] flex-col gap-8">
         {activities.map((activity: MasterActivity) => (
           <Card
             key={activity.id}

@@ -84,7 +84,7 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
 
             {/* Image */}
             <Image
-              className={`w-full transition-all duration-500 ${
+              className={`w-full transition-opacity duration-500 ${
                 imageLoaded[index] ? "opacity-100" : "opacity-0"
               }`}
               src={slide.img}
@@ -107,7 +107,7 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
       <button
         type="button"
         onClick={nextSlide}
-        className="absolute left-5 top-[45.5%] hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
+        className="absolute top-[45.5%] left-5 hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
         aria-label="اسلاید بعدی"
       >
         <BsChevronCompactLeft size={30} />
@@ -116,7 +116,7 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
       <button
         type="button"
         onClick={prevSlide}
-        className="absolute right-5 top-[45.5%] hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
+        className="absolute top-[45.5%] right-5 hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
         aria-label="اسلاید قبلی"
       >
         <BsChevronCompactRight size={30} />
@@ -133,7 +133,7 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
             aria-label={`اسلاید ${slideIndex + 1}`}
           >
             <RxDotFilled
-              className={`transition-all ${
+              className={`transition-colors ${
                 slideIndex === currentIndex ? "text-[#000000]" : "text-[#0e8bff]"
               }`}
             />

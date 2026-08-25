@@ -10,11 +10,38 @@ import ProductGridWrapper from "./ProductGridWrapper";
 import { CategorySliderSkeleton, ProductGridSkeleton } from "./ProductListSkeletons";
 import { fetchProducts } from "../_utils/fetchProducts";
 
+interface Subcategory {
+  Name: string;
+  Slug: string;
+  Link?: string;
+  Available?: boolean;
+  SEO_Details?: {
+    SEO_Title: string | null;
+    SEO_Description: string | null;
+    SEO_Keywords: string[] | null;
+  };
+}
+
+interface Category {
+  Slug: string;
+  Subcategories?: Subcategory[];
+  Available?: boolean;
+}
+
 interface CategoryPageWrapperProps {
   categoryName: string;
   currentPage: number;
   limit: number;
   canonicalUrl: string;
+}
+
+interface Product {
+  ProductId: number;
+  Name: string | null;
+  Type: string | null;
+  Price: string | null;
+  Discount: string | null;
+  Available: boolean | null;
 }
 
 async function fetchCategoryData(categoryName: string) {
@@ -35,9 +62,9 @@ async function fetchCategorySubcategories(categoryName: string) {
     });
     if (!categoriesRes.ok) return [];
     const allCategories = await categoriesRes.json();
-    const categoryData = allCategories.find((cat: any) => cat.Slug === categoryName);
+    const categoryData = allCategories.find((cat: Category) => cat.Slug === categoryName);
     if (categoryData && categoryData.Subcategories) {
-      return categoryData.Subcategories.filter((subcat: any) => subcat.Available !== false);
+      return categoryData.Subcategories.filter((subcat: Subcategory) => subcat.Available !== false);
     }
   } catch (error) {
     console.error("Error fetching category data for schema:", error);
@@ -47,14 +74,14 @@ async function fetchCategorySubcategories(categoryName: string) {
 
 async function fetchProductsAndPricing(apiUrl: string) {
   const { data: products } = await fetchProducts(apiUrl);
-  const availableProducts = products.filter((product: any) => product.Available);
+  const availableProducts = products.filter((product: Product) => product.Available);
 
   let minPrice = "0";
   let maxPrice = "0";
   let hasValidPricing = false;
 
   if (availableProducts.length > 0) {
-    const pricingPromises = availableProducts.map(async (product: any) => {
+    const pricingPromises = availableProducts.map(async (product: Product) => {
       return await calculateProductPricing(product.Price, product.Discount);
     });
 
@@ -93,7 +120,7 @@ export default async function CategoryPageWrapper({
 
   const priceValidUntil = getPriceValidUntil();
 
-  const subcategoryItemList = subcategories.map((subcat: any, index: number) => ({
+  const subcategoryItemList = subcategories.map((subcat: Subcategory, index: number) => ({
     "@type": "ListItem",
     position: index + 1,
     name: subcat.Name,

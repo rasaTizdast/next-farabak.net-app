@@ -10,8 +10,6 @@ import { escape } from "validator";
 
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 
-import styles from "./SearchBox.module.css";
-
 // Utility function to normalize Persian text
 const normalizePersianText = (text: string) => {
   return text
@@ -21,7 +19,7 @@ const normalizePersianText = (text: string) => {
     .replace(/ؤ/g, "و")
     .replace(/أ/g, "ا")
     .replace(/إ/g, "ا")
-    .replace(/\s+/g, " ") // Replace multiple spaces with a single space
+    .replace(/\s+/g, " ")
     .trim();
 };
 
@@ -67,16 +65,14 @@ const debouncedSearchHandler = debounce(
         throw new Error("مشکلی در دریافت محصولات به وجود آمده است.");
       }
 
-      // Extract the data from the response, assuming API returns { products, pagination }
       const { data: products } = await response.json();
 
       const availableProducts = products.filter((product: Product) => product.Available);
 
-      // Set the results to the products data from the API response
       setResults(availableProducts);
     } catch (error) {
       console.error(error);
-      setResults([]); // If there's an error, return no results
+      setResults([]);
     } finally {
       setLoading(false);
     }
@@ -98,7 +94,7 @@ const SearchInput = ({
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
 }) => (
-  <div className={styles.search_input}>
+  <div className="flex w-full max-w-[calc(1900px-20rem)]">
     <input
       type="text"
       placeholder="جستجو"
@@ -107,8 +103,14 @@ const SearchInput = ({
       value={searchValue}
       ref={inputRef}
       onKeyDown={onKeyDown}
+      className="h-full w-full rounded-tr-lg rounded-br-lg border-none bg-white px-4 py-4 text-base focus:outline-none"
     />
-    <button type="button" onClick={onSearchClick} aria-label="جستجو">
+    <button
+      type="button"
+      onClick={onSearchClick}
+      aria-label="جستجو"
+      className="flex cursor-pointer items-center justify-center rounded-tl-lg rounded-bl-lg border-none bg-white px-4 py-4 text-[1.2rem]"
+    >
       <CgSearch />
     </button>
   </div>
@@ -121,20 +123,19 @@ const SearchResults = ({
   closeSearchBox,
   exchangeRate,
 }: {
-  searchResults: Product[]; // No longer allowing undefined, ensures it's always an array
+  searchResults: Product[];
   hasSearched: boolean;
   closeSearchBox: () => void;
   exchangeRate: number | null;
 }) => {
   return (
-    <div className={styles.results}>
-      {/* Display results only if there are search results */}
+    <div className="mt-8 flex h-full w-full max-w-[1580px] flex-wrap justify-start gap-[1.2rem] text-center font-normal">
       {searchResults.length > 0 ? (
         searchResults.map((product) => (
           <Link
             key={product.productId}
             href={`/products/${product.link}`}
-            className={styles.result}
+            className="flex min-h-[150px] w-[25%] max-w-[300px] flex-col items-center gap-4 rounded-[6px] bg-white p-4"
             onClick={() => {
               closeSearchBox();
             }}
@@ -168,7 +169,7 @@ const SearchResults = ({
           </Link>
         ))
       ) : hasSearched ? (
-        <p style={{ color: "#fff", fontWeight: 600 }}>نتیجه ای یافت نشد، مجددا تلاش کنید.</p>
+        <p className="font-semibold text-white">نتیجه ای یافت نشد، مجددا تلاش کنید.</p>
       ) : null}
     </div>
   );
@@ -225,9 +226,7 @@ const SearchBox = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  // Fetch exchange rate only once when the component mounts
   useEffect(() => {
-    // Define a function to fetch the exchange rate
     fetchExchangeRate(
       exchangeRate,
       isExchangeRateLoading,
@@ -311,12 +310,15 @@ const SearchBox = () => {
   }, []);
 
   return (
-    <div className={styles.search} ref={searchBoxRef}>
+    <div className="me-6" ref={searchBoxRef}>
       <button type="button" onClick={(event) => toggleSearchBox(event)} aria-label="جستجو">
-        <CgSearch className={styles.search_icon} strokeWidth={1} />
+        <CgSearch
+          className="relative mb-2 inline-block h-full cursor-pointer self-start border-none text-[2rem] text-[#ddd] md:text-[2.5rem] lg:text-[1.6rem] xl:text-[1.8rem] 2xl:text-[2.5rem]"
+          strokeWidth={1}
+        />
       </button>
       {searchVis && (
-        <div className={styles.search_box}>
+        <div className="absolute start-0 top-full max-h-[75vh] w-screen overflow-y-auto bg-gradient-to-r from-[#003e9b] via-[#0047b3] to-[#0056d8] ps-[10rem] pe-[10rem] pt-4 pb-12 shadow-[0_4px_20px_rgba(0,0,0,0.3)] md:ps-[6rem] md:pe-[6rem] lg:ps-[4rem] lg:pe-[4rem] xl:ps-[3rem] xl:pe-[3rem] 2xl:ps-[1.5rem] 2xl:pe-[1.5rem]">
           <SearchInput
             inputChangeHandler={inputChangeHandler}
             searchValue={searchValue}

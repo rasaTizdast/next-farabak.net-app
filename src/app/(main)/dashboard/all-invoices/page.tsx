@@ -9,7 +9,6 @@ import { Toaster } from "react-hot-toast";
 
 import { getUserInvoices } from "@/helpers/invoiceHandlers";
 
-import styles from "./AllInvoices.module.css";
 import InvoiceDetails from "./components/ui/InvoiceDetails";
 import SkeletonTable from "./components/ui/SkeletonTable";
 
@@ -20,10 +19,9 @@ type Product = {
   ProductId: number;
   quantity: number;
   total_price: number;
-  Invoice_Details: number; // ID field from API response
+  Invoice_Details: number;
 };
 
-// Types
 type Invoice = {
   Fullname: string;
   Phonenumber: string;
@@ -35,12 +33,6 @@ type Invoice = {
   Invoiceid: number;
   Invoice_Details: Product[];
 };
-
-// interface EmailDetails {
-//   to: string;
-//   text: string;
-//   subject: string;
-// }
 
 async function doFetchInvoices(
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
@@ -63,12 +55,10 @@ async function doFetchInvoices(
   }
 }
 
-// Format date to Persian
 function formatPersianDate(dateString: string) {
   try {
     let creationDate;
 
-    // Handle ISO format Jalali date (e.g., "1404-04-09T18:13:49")
     if (dateString.includes("T")) {
       const [datePart, timePart] = dateString.split("T");
       const [year, month, day] = datePart.split("-").map(Number);
@@ -76,16 +66,13 @@ function formatPersianDate(dateString: string) {
 
       creationDate = jalaali()
         .jYear(year)
-        .jMonth(month - 1) // Convert to 0-based month
+        .jMonth(month - 1)
         .jDate(day)
         .hour(hour)
         .minute(minute)
         .second(second || 0);
-    }
-    // Handle other possible formats
-    else if (dateString.includes("-")) {
+    } else if (dateString.includes("-")) {
       const parts = dateString.split(/[- :]/);
-      // Check if year is first (YYYY-MM-DD)
       if (parts[0].length === 4) {
         const year = parseInt(parts[0]);
         const month = parseInt(parts[1]) - 1;
@@ -93,22 +80,18 @@ function formatPersianDate(dateString: string) {
 
         creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
 
-        // Add time if available
         if (parts.length >= 6) {
           creationDate.hour(parseInt(parts[3] || "0"));
           creationDate.minute(parseInt(parts[4] || "0"));
           creationDate.second(parseInt(parts[5] || "0"));
         }
-      }
-      // Day first format (DD-MM-YYYY)
-      else {
+      } else {
         const day = parseInt(parts[0]);
         const month = parseInt(parts[1]) - 1;
         const year = parseInt(parts[2]);
 
         creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
 
-        // Add time if available
         if (parts.length >= 6) {
           creationDate.hour(parseInt(parts[3] || "0"));
           creationDate.minute(parseInt(parts[4] || "0"));
@@ -116,10 +99,9 @@ function formatPersianDate(dateString: string) {
         }
       }
     } else {
-      return dateString; // Return original if format not recognized
+      return dateString;
     }
 
-    // Return Persian formatted date
     return creationDate.locale("fa").format("YYYY/MM/DD HH:mm:ss");
   } catch (error) {
     console.error("Error formatting date:", dateString, error);
@@ -127,14 +109,12 @@ function formatPersianDate(dateString: string) {
   }
 }
 
-// Calculate time remaining before invoice expires (48 hours after creation)
 function calculateTimeRemaining(dateString: string) {
   if (!dateString) return { hours: 0, minutes: 0, isExpired: true };
 
   try {
     let creationDate;
 
-    // Handle ISO format Jalali date (e.g., "1404-04-09T18:13:49")
     if (dateString.includes("T")) {
       const [datePart, timePart] = dateString.split("T");
       const [year, month, day] = datePart.split("-").map(Number);
@@ -142,16 +122,13 @@ function calculateTimeRemaining(dateString: string) {
 
       creationDate = jalaali()
         .jYear(year)
-        .jMonth(month - 1) // Convert to 0-based month
+        .jMonth(month - 1)
         .jDate(day)
         .hour(hour)
         .minute(minute)
         .second(second || 0);
-    }
-    // Handle other possible formats
-    else if (dateString.includes("-")) {
+    } else if (dateString.includes("-")) {
       const parts = dateString.split(/[- :]/);
-      // Check if year is first (YYYY-MM-DD)
       if (parts[0].length === 4) {
         const year = parseInt(parts[0]);
         const month = parseInt(parts[1]) - 1;
@@ -159,22 +136,18 @@ function calculateTimeRemaining(dateString: string) {
 
         creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
 
-        // Add time if available
         if (parts.length >= 6) {
           creationDate.hour(parseInt(parts[3] || "0"));
           creationDate.minute(parseInt(parts[4] || "0"));
           creationDate.second(parseInt(parts[5] || "0"));
         }
-      }
-      // Day first format (DD-MM-YYYY)
-      else {
+      } else {
         const day = parseInt(parts[0]);
         const month = parseInt(parts[1]) - 1;
         const year = parseInt(parts[2]);
 
         creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
 
-        // Add time if available
         if (parts.length >= 6) {
           creationDate.hour(parseInt(parts[3] || "0"));
           creationDate.minute(parseInt(parts[4] || "0"));
@@ -185,18 +158,13 @@ function calculateTimeRemaining(dateString: string) {
       throw new Error("Unsupported date format");
     }
 
-    // Set the current time for comparison
     const now = jalaali();
-
-    // Calculate expiry (48 hours after creation)
     const expiryDate = creationDate.clone().add(48, "hours");
 
-    // Check if expired
     if (now.isAfter(expiryDate)) {
       return { hours: 0, minutes: 0, isExpired: true };
     }
 
-    // Calculate time difference
     const diffHours = expiryDate.diff(now, "hours");
     const diffMinutes = expiryDate.diff(now, "minutes") % 60;
 
@@ -236,13 +204,13 @@ function getTimeRemainingClass(dateString: string, checked?: boolean) {
   const { hours, isExpired } = calculateTimeRemaining(dateString);
 
   if (isExpired) {
-    return checked ? styles.checked : styles.expired;
+    return checked ? "text-[#3d5afe] font-semibold" : "text-[#7d2f2f] font-bold line-through";
   } else if (hours < 6) {
-    return styles.urgent;
+    return "text-[#d32f2f] font-bold animate-pulse";
   } else if (hours < 12) {
-    return styles.warning;
+    return "text-[#ff8f00] font-semibold";
   } else {
-    return styles.normal;
+    return "text-[#2e7d32] font-semibold";
   }
 }
 
@@ -274,10 +242,16 @@ const AllInvoices = () => {
 
   if (error) {
     return (
-      <div className={styles.error}>
-        <div className={styles.errorContent}>
-          <span>مشکلی در دریافت اطلاعات به وجود آمده است، دوباره تلاش کنید.</span>
-          <button type="button" onClick={fetchInvoices}>
+      <div className="flex w-full justify-center">
+        <div className="flex flex-col items-center gap-4 rounded-lg bg-white p-6 shadow-[0_4px_10px_rgba(0,0,0,0.3)]">
+          <span className="font-bold">
+            مشکلی در دریافت اطلاعات به وجود آمده است، دوباره تلاش کنید.
+          </span>
+          <button
+            type="button"
+            onClick={fetchInvoices}
+            className="cursor-pointer rounded-[6px] border-none bg-[#003262] px-6 py-2 text-white transition-colors duration-300 hover:bg-[#0e6aff]"
+          >
             تلاش مجدد
           </button>
         </div>
@@ -320,40 +294,58 @@ const AllInvoices = () => {
         </div>
       </div>
       <h3 className="font-bold">فاکتورها ثبت شده توسط شما</h3>
-      <div className={styles.tableContainer}>
-        <table className={styles.invoicesTable}>
+      <div className="mt-5 max-h-[620px] overflow-y-auto border border-[#ccc]">
+        <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th>شماره فاکتور</th>
-              <th>تعداد محصولات</th>
-              <th>وضعیت</th>
-              <th>زمان باقیمانده</th>
-              <th>عملیات‌ها</th>
+              <th className="sticky top-0 z-10 w-[15%] border-b border-[#d3d3d3] bg-white p-[10px] text-center">
+                شماره فاکتور
+              </th>
+              <th className="sticky top-0 z-10 w-[15%] border-b border-[#d3d3d3] bg-white p-[10px] text-center">
+                مبلغ کل
+              </th>
+              <th className="sticky top-0 z-10 w-[15%] border-b border-[#d3d3d3] bg-white p-[10px] text-center">
+                وضعیت
+              </th>
+              <th className="sticky top-0 z-10 w-[15%] border-b border-[#d3d3d3] bg-white p-[10px] text-center">
+                زمان باقیمانده
+              </th>
+              <th className="sticky top-0 z-10 w-[15%] border-b border-[#d3d3d3] bg-white p-[10px] text-center">
+                عملیات‌ها
+              </th>
             </tr>
           </thead>
           <tbody>
             {invoices.length === 0 ? (
               <tr>
-                <td colSpan={4} style={{ textAlign: "center" }}>
+                <td colSpan={4} className="p-[10px] text-center">
                   هیچ فاکتوری پیدا نشد
                 </td>
               </tr>
             ) : (
               invoices.map((item) => (
-                <tr key={item.FactorGuid}>
-                  <td>{item.FactorGuid}</td>
-                  <td>{item.TotalAmount}</td>
-                  <td>{item.Checked ? "بررسی شده" : "بررسی نشده"}</td>
-                  <td className={getTimeRemainingClass(item.Date, item.Checked)}>
+                <tr key={item.FactorGuid} className="transition-colors duration-300 hover:bg-white">
+                  <td className="w-[15%] border-b border-[#d3d3d3] p-[10px] text-center">
+                    {item.FactorGuid}
+                  </td>
+                  <td className="w-[15%] border-b border-[#d3d3d3] p-[10px] text-center">
+                    {item.TotalAmount}
+                  </td>
+                  <td className="w-[15%] border-b border-[#d3d3d3] p-[10px] text-center">
+                    {item.Checked ? "بررسی شده" : "بررسی نشده"}
+                  </td>
+                  <td
+                    className={`w-[15%] border-b border-[#d3d3d3] p-[10px] text-center ${getTimeRemainingClass(item.Date, item.Checked)}`}
+                  >
                     <div className="group relative cursor-help">
                       <span>{getTimeRemainingText(item.Date, item.Checked)}</span>
                       <div
-                        className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                        className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                         dir="ltr"
                       >
                         {formatPersianDate(item.Date)}
                         <svg
-                          className="absolute left-0 top-full h-2 w-full text-gray-800"
+                          className="absolute top-full left-0 h-2 w-full text-gray-800"
                           x="0px"
                           y="0px"
                           viewBox="0 0 255 255"
@@ -364,14 +356,16 @@ const AllInvoices = () => {
                       </div>
                     </div>
                   </td>
-                  <td className={styles.actionsParent}>
-                    <button
-                      type="button"
-                      onClick={() => handleShowInvoice(item)}
-                      className={styles.show}
-                    >
-                      مشاهده فاکتور
-                    </button>
+                  <td className="w-[15%] border-b border-[#d3d3d3] p-[10px] text-center">
+                    <div className="flex w-full flex-col items-center gap-4">
+                      <button
+                        type="button"
+                        onClick={() => handleShowInvoice(item)}
+                        className="w-full max-w-[180px] cursor-pointer rounded-[6px] border-none bg-[#003262] px-6 py-2 text-white transition-[background-color,box-shadow] duration-300 hover:bg-[#0e6aff] hover:shadow-[0_4px_10px_rgba(0,0,0,0.3)]"
+                      >
+                        مشاهده فاکتور
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

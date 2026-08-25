@@ -4,6 +4,33 @@ import SkeletonLoader from "@/app/_components/ui/SkeletonLoader";
 
 import CategorySliderContent from "./CategorySliderContent";
 
+interface Subcategory {
+  Name: string;
+  Slug: string;
+  Link?: string;
+  Banner?: string;
+  Available?: boolean;
+  SEO_Details?: {
+    SEO_Title: string | null;
+    SEO_Description: string | null;
+    SEO_Keywords: string[] | null;
+  };
+}
+
+interface Category {
+  Slug: string;
+  Name: string;
+  Available?: boolean;
+  Subcategories?: Subcategory[];
+  Banner?: string;
+  Link?: string;
+  SEO_Details?: {
+    SEO_Title: string | null;
+    SEO_Description: string | null;
+    SEO_Keywords: string[] | null;
+  };
+}
+
 interface CategorySliderProps {
   type: "categories" | "subcategories";
   categorySlug?: string;
@@ -22,11 +49,11 @@ async function fetchCategoriesData(type: "categories" | "subcategories", categor
 
     // Filter categories/subcategories based on type
     if (type === "categories") {
-      return allCategories.filter((cat: any) => cat.Available !== false);
+      return allCategories.filter((cat: Category) => cat.Available !== false);
     } else if (type === "subcategories" && categorySlug) {
-      const category = allCategories.find((cat: any) => cat.Slug === categorySlug);
+      const category = allCategories.find((cat: Category) => cat.Slug === categorySlug);
       if (category && category.Subcategories) {
-        return category.Subcategories.filter((subcat: any) => subcat.Available !== false);
+        return category.Subcategories.filter((subcat: Subcategory) => subcat.Available !== false);
       }
     }
 

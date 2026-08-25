@@ -81,7 +81,7 @@ const BlogContent = ({
   return (
     <div className="w-full">
       {/* Latest Blog */}
-      <div className="mb-10 mt-5">
+      <div className="mt-5 mb-10">
         <h1 className="mb-5 text-right text-3xl font-extrabold text-gray-800 md:text-4xl">
           جدیدترین بلاگ
         </h1>
@@ -117,7 +117,7 @@ const BlogContent = ({
             <Link
               key={category.id}
               href={`/support/blog/${category.slug}`}
-              className="group relative flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-l from-[#0e6aff] to-[#1e90ff] px-10 py-2 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              className="group relative flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-l from-[#0e6aff] to-[#1e90ff] px-10 py-2 text-white shadow-lg transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-xl"
             >
               <span className="absolute inset-0 rounded-xl bg-white opacity-10 transition duration-300 group-hover:opacity-20"></span>
               <span className="relative z-10 flex items-center gap-2 text-lg font-medium text-white">
@@ -137,7 +137,7 @@ const BlogContent = ({
           <Link
             key={blog.id}
             href={`/support/blog/${blog.categories[0].slug}/${blog.slug}`}
-            className="block rounded-lg border border-gray-200 bg-white shadow-lg transition-all hover:scale-[1.02] hover:shadow-2xl"
+            className="block rounded-lg border border-gray-200 bg-white shadow-lg transition-[transform,box-shadow] hover:scale-[1.02] hover:shadow-2xl"
           >
             <div className="overflow-hidden rounded-t-lg">
               <Image
@@ -162,6 +162,8 @@ const BlogContent = ({
   );
 };
 
+const blogBreadCrumbs = ["/", "/support", "/support/blog"];
+
 const BlogLandingPage = async () => {
   let blogData: Blogs | null = null;
   let categoryData: { id: number; name: string; slug: string }[] = [];
@@ -180,15 +182,13 @@ const BlogLandingPage = async () => {
     console.error("Error fetching category data:", error);
   }
 
-  const breadCrumbs = ["/", "/support", "/support/blog"];
-
   if (!blogData?.blogs?.length) {
     notFound();
   }
 
   return (
     <div className="max-w-[1580px]">
-      <Breadcrumb breadcrumbs={breadCrumbs} />
+      <Breadcrumb breadcrumbs={blogBreadCrumbs} />
       <BlogContent blogs={blogData || { blogs: [] }} categoryData={categoryData} />
     </div>
   );

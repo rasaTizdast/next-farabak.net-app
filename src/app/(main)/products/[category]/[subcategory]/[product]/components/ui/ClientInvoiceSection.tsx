@@ -43,9 +43,12 @@ const ClientInvoiceSection = ({
   useEffect(() => {
     const getExchangeRate = async () => {
       setIsFetchingRate(true);
-      const rate = await fetchUsdToRialRate();
-      setExchangeRate(rate);
-      setIsFetchingRate(false);
+      try {
+        const rate = await fetchUsdToRialRate();
+        setExchangeRate(rate);
+      } finally {
+        setIsFetchingRate(false);
+      }
     };
     getExchangeRate();
   }, []);
@@ -119,7 +122,7 @@ const ClientInvoiceSection = ({
         </p>
         <Link
           href="tel:02177500008"
-          className="animate-fade-in rounded-lg bg-blue-600 px-4 py-2 text-base text-white transition-all hover:bg-blue-700 md:text-lg"
+          className="animate-fade-in rounded-lg bg-blue-600 px-4 py-2 text-base text-white transition-colors hover:bg-blue-700 md:text-lg"
         >
           تماس با بخش فروش
         </Link>
@@ -139,7 +142,7 @@ const ClientInvoiceSection = ({
   // Price display block - now with conditional rendering based on discount
   const priceBlock = (
     <div
-      className={`flex ${styles.priceParent} my-6 max-w-full animate-fade-in flex-col gap-3 rounded-lg bg-blue-100 p-3`}
+      className={`flex ${styles.priceParent} animate-fade-in my-6 max-w-full flex-col gap-3 rounded-lg bg-blue-100 p-3`}
     >
       {hasDiscount ? (
         // Show before/after prices with discount badge
@@ -150,14 +153,14 @@ const ClientInvoiceSection = ({
               {e2p(priceInRial?.toLocaleString() || "0")} تومان
             </span>
             <span
-              className={`${styles.discount} rounded-lg bg-dark-blue px-2 py-1 text-xs font-semibold text-white lg:rounded-xl`}
+              className={`${styles.discount} bg-dark-blue rounded-lg px-2 py-1 text-xs font-semibold text-white lg:rounded-xl`}
             >
               {e2p(discountPercentage?.toLocaleString() || "0")}%
             </span>
           </div>
           <div className="flex content-center items-center gap-2">
             قیمت جدید:{" "}
-            <span className="text-2xl font-black text-dark-blue">
+            <span className="text-dark-blue text-2xl font-black">
               {e2p(finalPrice?.toLocaleString() || "0")} تومان
             </span>
           </div>
@@ -166,7 +169,7 @@ const ClientInvoiceSection = ({
         // Show only current price without discount styling
         <div className="flex content-center items-center gap-2">
           قیمت:{" "}
-          <span className="text-2xl font-black text-dark-blue">
+          <span className="text-dark-blue text-2xl font-black">
             {e2p(finalPrice?.toLocaleString() || "0")} تومان
           </span>
         </div>
@@ -242,7 +245,7 @@ const ClientInvoiceSection = ({
       {hasMaximum && (
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
           <div
-            className={`h-full rounded-full transition-all duration-500 ${
+            className={`h-full rounded-full transition-[width,background-color] duration-500 ${
               isAtMaximum
                 ? "bg-gradient-to-r from-orange-500 to-red-500"
                 : progressPercentage > 75
@@ -281,7 +284,7 @@ const ClientInvoiceSection = ({
           {isAdmin && (
             <Link
               href="/admin/invoices"
-              className="animate-fade-in rounded-lg bg-blue-600 px-4 py-2 text-base text-white transition-all hover:bg-blue-700 md:text-lg"
+              className="animate-fade-in rounded-lg bg-blue-600 px-4 py-2 text-base text-white transition-colors hover:bg-blue-700 md:text-lg"
             >
               رفتن به پنل مدیریت
             </Link>
@@ -289,7 +292,7 @@ const ClientInvoiceSection = ({
           {isBranch && (
             <Link
               href="/admin/branches/my"
-              className="animate-fade-in rounded-lg bg-blue-600 px-4 py-2 text-base text-white transition-all hover:bg-blue-700 md:text-lg"
+              className="animate-fade-in rounded-lg bg-blue-600 px-4 py-2 text-base text-white transition-colors hover:bg-blue-700 md:text-lg"
             >
               رفتن به پنل شعبه
             </Link>
@@ -307,7 +310,7 @@ const ClientInvoiceSection = ({
       {!user ? (
         <Link
           href="/auth/login"
-          className="flex w-full justify-center rounded-lg bg-dark-blue p-2 text-sm text-white sm:mt-0 md:text-base"
+          className="bg-dark-blue flex w-full justify-center rounded-lg p-2 text-sm text-white sm:mt-0 md:text-base"
         >
           برای ثبت فاکتور وارد شوید
         </Link>
@@ -322,7 +325,7 @@ const ClientInvoiceSection = ({
                 {/* + button */}
                 <button
                   type="button"
-                  className={`${styles.action} origin-right transition-all ${
+                  className={`${styles.action} origin-right transition-[background-color,filter,opacity] ${
                     !canIncrease
                       ? "cursor-not-allowed bg-gray-300 opacity-50"
                       : "hover:bg-green-600 hover:brightness-110"
@@ -345,7 +348,7 @@ const ClientInvoiceSection = ({
                   <button
                     type="button"
                     onClick={() => removeProductFromInvoice(ProductId)}
-                    className={`${styles.action} origin-left transition-all hover:bg-red-600 hover:brightness-110`}
+                    className={`${styles.action} origin-left transition-[background-color,filter] hover:bg-red-600 hover:brightness-110`}
                     aria-label="حذف کامل از فاکتور"
                   >
                     <FaRegTrashAlt />
@@ -353,7 +356,7 @@ const ClientInvoiceSection = ({
                 ) : (
                   <button
                     type="button"
-                    className={`${styles.action} origin-left transition-all hover:bg-yellow-600 hover:brightness-110`}
+                    className={`${styles.action} origin-left transition-[background-color,filter] hover:bg-yellow-600 hover:brightness-110`}
                     onClick={() => handleQuantityChange(-1)}
                     title="کاهش تعداد"
                   >
@@ -364,7 +367,7 @@ const ClientInvoiceSection = ({
             ) : (
               <button
                 type="button"
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-dark-blue p-3 text-sm text-white transition-all hover:bg-[#00244a] hover:shadow-lg sm:mt-0 md:text-base"
+                className="bg-dark-blue flex w-full items-center justify-center gap-2 rounded-lg p-3 text-sm text-white transition-[background-color,box-shadow] hover:bg-[#00244a] hover:shadow-lg sm:mt-0 md:text-base"
                 onClick={handleInitialAdd}
               >
                 <span>افزودن به فاکتور</span>

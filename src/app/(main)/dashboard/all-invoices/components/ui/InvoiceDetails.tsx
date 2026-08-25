@@ -4,7 +4,6 @@ import jsPDF from "jspdf";
 import Image from "next/image";
 import { useRef, useEffect, useState } from "react";
 
-import styles from "./InvoiceDetails.module.css";
 import logo from "../../../../../../../public/Farabak_Logo.webp";
 
 const currencyFormatter = new Intl.NumberFormat("fa-IR");
@@ -30,7 +29,7 @@ async function fetchInvoiceData(
     }[];
   },
   setProductNames: React.Dispatch<React.SetStateAction<{ [key: number]: string }>>,
-  setWarranties: React.Dispatch<React.SetStateAction<{ [key: number]: any }>>,
+  setWarranties: React.Dispatch<React.SetStateAction<{ [key: number]: Warranty }>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ) {
   try {
@@ -107,7 +106,6 @@ type Product = {
   Invoice_Details: number;
 };
 
-// Add warranty type
 type Warranty = {
   warrantyid: number;
   warrantycode: string;
@@ -133,17 +131,14 @@ type Props = {
 
 function formatDateTime(isoString: string) {
   try {
-    // Handle Jalali dates in ISO format (e.g. "1404-04-07T21:04:51" or "1404-04-7T21:04:51")
     if (isoString && isoString.includes("T")) {
       const [datePart, timePart] = isoString.split("T");
       const [year, month, day] = datePart.split("-");
       const [hour, minute] = timePart.split(":").slice(0, 2);
 
-      // Make sure to handle single digit days by explicitly parsing as integers
       return `${year}/${month}/${day} | ${hour}:${minute}`;
     }
 
-    // Fallback to standard Date parsing for non-Jalali dates
     const date = new Date(isoString);
     if (!isNaN(date.getTime())) {
       const year = date.getFullYear();
@@ -161,22 +156,18 @@ function formatDateTime(isoString: string) {
   }
 }
 
-// Helper function to format date to Persian format
 function formatPersianDate(isoString: string) {
   try {
-    // Handle Jalali dates in ISO format (e.g. "1404-04-07T21:04:51" or "1404-04-7T21:04:51")
     if (isoString && isoString.includes("T")) {
       const [datePart] = isoString.split("T");
       const [year, month, day] = datePart.split("-");
 
-      // Ensure we have proper formatting with zero-padded month and day
       const formattedMonth = month.padStart(2, "0");
       const formattedDay = day.padStart(2, "0");
 
       return `${year}/${formattedMonth}/${formattedDay}`;
     }
 
-    // Fallback to standard Date parsing for non-Jalali dates
     const date = new Date(isoString);
     if (!isNaN(date.getTime())) {
       return date.toLocaleDateString("fa-IR", {
@@ -193,21 +184,19 @@ function formatPersianDate(isoString: string) {
   }
 }
 
-// Helper function to format warranty status
 function formatWarrantyStatus(status: string) {
   switch (status) {
     case "Active":
-      return { text: "فعال", className: styles.statusActive };
+      return { text: "فعال", className: "bg-[#e6f7e6] text-[#2e7d32]" };
     case "Expired":
-      return { text: "منقضی شده", className: styles.statusExpired };
+      return { text: "منقضی شده", className: "bg-[#ffeaea] text-[#d32f2f]" };
     case "Requested":
-      return { text: "درخواست شده", className: styles.statusRequested };
+      return { text: "درخواست شده", className: "bg-[#fff8e1] text-[#ff8f00]" };
     default:
       return { text: status, className: "" };
   }
 }
 
-// Format currency
 function formatCurrency(amount: number) {
   return currencyFormatter.format(amount) + " تومان";
 }
@@ -215,11 +204,9 @@ function formatCurrency(amount: number) {
 const InvoiceDetails = ({ invoice, onClose }: Props) => {
   const componentRef = useRef<HTMLDivElement>(null);
   const [productNames, setProductNames] = useState<{ [key: number]: string }>({});
-  // Add state for warranties
   const [warranties, setWarranties] = useState<{ [key: number]: Warranty }>({});
   const [loading, setLoading] = useState(true);
 
-  // Fetch product names and warranties
   useEffect(() => {
     fetchInvoiceData(invoice, setProductNames, setWarranties, setLoading);
   }, [invoice]);
@@ -261,10 +248,9 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
   if (!invoice) return null;
 
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContent}>
+    <div className="fixed inset-0 z-[10] flex items-center justify-center overflow-y-auto bg-black/70 p-4">
+      <div className="max-h-[90vh] w-[90%] max-w-[850px] overflow-y-auto rounded-xl bg-white p-8 text-start shadow-[0_10px_25px_rgba(0,0,0,0.2)] md:p-8">
         {loading ? (
-          // Skeleton Loader while loading data
           <div className="space-y-4 p-8">
             <div className="mx-auto h-6 w-48 animate-pulse rounded-md bg-gray-300"></div>
             <div className="mx-auto h-4 w-32 animate-pulse rounded-md bg-gray-300"></div>
@@ -274,8 +260,8 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
             <div className="h-48 w-full animate-pulse rounded-md bg-gray-300"></div>
           </div>
         ) : (
-          <div ref={componentRef} className={styles.invoice} dir="rtl">
-            <div className={styles.invoiceLogo}>
+          <div ref={componentRef} className="flex flex-col justify-center p-4 md:p-4" dir="rtl">
+            <div className="mb-8 flex w-full items-center justify-center">
               <Image
                 src={logo}
                 alt="لوگوی فرابک"
@@ -283,19 +269,23 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
                 height={182}
                 quality={100}
                 priority
+                className="w-[25%] md:w-[40%] lg:w-[25%] xl:w-[25%] 2xl:w-[25%]"
               />
             </div>
-            <div className={styles.invoiceHeader}>
-              <h3>فاکتور شماره: {invoice.FactorGuid}</h3>
+            <div className="mb-8 border-b border-[#eaeaea] pb-6 text-center">
+              <h3 className="mb-6 text-[1.5rem] text-[#003262]">
+                فاکتور شماره: {invoice.FactorGuid}
+              </h3>
 
-              <div className={styles.userDetails}>
-                <div className={styles.name}>
-                  نام و نام خانوادگی: <span>{invoice.Fullname}</span>
+              <div className="my-4 flex flex-col gap-2">
+                <div className="flex justify-center gap-4 font-bold">
+                  نام و نام خانوادگی:{" "}
+                  <span className="font-medium text-[#444]">{invoice.Fullname}</span>
                 </div>
-                <div className={styles.phoneNumber}>
-                  شماره تماس: <span>{invoice.Phonenumber}</span>
+                <div className="flex justify-center gap-4 font-bold">
+                  شماره تماس: <span className="font-medium text-[#444]">{invoice.Phonenumber}</span>
                 </div>
-                <div className={styles.date}>
+                <div className="my-6">
                   تاریخ صدور: <span>{formatDateTime(invoice.Date)}</span>
                 </div>
                 <div>
@@ -307,41 +297,53 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
               </div>
             </div>
 
-            <table className={styles.invoiceTable}>
+            <table className="mb-8 w-full border-collapse overflow-hidden rounded-lg shadow-[0_2px_5px_rgba(0,0,0,0.05)]">
               <thead>
                 <tr>
-                  <th>محصول</th>
-                  <th>قیمت نهایی</th>
-                  <th>وضعیت گارانتی</th>
+                  <th className="border border-[#eaeaea] bg-[#003262] p-3 text-start font-semibold text-white">
+                    محصول
+                  </th>
+                  <th className="border border-[#eaeaea] bg-[#003262] p-3 text-start font-semibold text-white">
+                    قیمت نهایی
+                  </th>
+                  <th className="border border-[#eaeaea] bg-[#003262] p-3 text-start font-semibold text-white">
+                    وضعیت گارانتی
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {invoice.Invoice_Details.map((product, index) => {
-                  // Generate a consistent key for the warranty lookup
                   const detailId = product.Invoice_Details || product.ProductId || index;
                   const lookupKey = typeof detailId === "number" ? detailId : index;
                   const warranty = warranties[lookupKey];
                   const warrantyStyling = warranty ? formatWarrantyStatus(warranty.status) : null;
 
                   return (
-                    <tr key={product.ProductId}>
-                      <td>{productNames[product.ProductId] || "در حال بارگذاری..."}</td>
-                      <td>{formatCurrency(product.total_price)}</td>
-                      <td>
+                    <tr key={product.ProductId} className="even:bg-[#f9f9f9] hover:bg-[#f1f1f1]">
+                      <td className="border border-[#eaeaea] p-3">
+                        {productNames[product.ProductId] || "در حال بارگذاری..."}
+                      </td>
+                      <td className="border border-[#eaeaea] p-3">
+                        {formatCurrency(product.total_price)}
+                      </td>
+                      <td className="border border-[#eaeaea] p-3">
                         {warranty ? (
-                          <div className={styles.warrantyInfo}>
-                            <div>
-                              <strong>کد گارانتی:</strong> {warranty.warrantycode}
+                          <div className="rounded-[6px] bg-[#f8f8f8] p-2 text-[0.9rem] leading-[1.6]">
+                            <div className="mb-1">
+                              <strong className="ms-1 text-[#003262]">کد گارانتی:</strong>{" "}
+                              {warranty.warrantycode}
                             </div>
-                            <div>
-                              <strong>وضعیت:</strong>
-                              <span className={`${styles.statusTag} ${warrantyStyling?.className}`}>
+                            <div className="mb-1">
+                              <strong className="ms-1 text-[#003262]">وضعیت:</strong>
+                              <span
+                                className={`ms-2 inline-block rounded-[4px] p-1 px-2 text-[0.8rem] font-semibold ${warrantyStyling?.className}`}
+                              >
                                 {warrantyStyling?.text}
                               </span>
                             </div>
                             {warranty.startdate && warranty.expirydate && (
                               <div>
-                                <strong>اعتبار:</strong>
+                                <strong className="ms-1 text-[#003262]">اعتبار:</strong>
                                 <span>{formatPersianDate(warranty.startdate)}</span>
                                 {" تا "}
                                 <span>{formatPersianDate(warranty.expirydate)}</span>
@@ -349,7 +351,9 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
                             )}
                           </div>
                         ) : (
-                          <span className={styles.noWarranty}>گارانتی ثبت نشده</span>
+                          <span className="inline-block rounded-[4px] bg-[#f5f5f5] p-1 px-2 text-[0.9rem] text-[#757575] italic">
+                            گارانتی ثبت نشده
+                          </span>
                         )}
                       </td>
                     </tr>
@@ -359,16 +363,21 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
             </table>
           </div>
         )}
-        <div className={styles.actions}>
+        <div className="mt-6 flex justify-center gap-4 md:flex-row lg:flex-row xl:flex-row 2xl:flex-row">
           <button
             type="button"
-            className={styles.downloadButton}
             onClick={handleDownload}
             title="دانلود فاکتور"
+            className="cursor-pointer rounded-lg border-none bg-[#003262] px-6 py-3 text-base font-semibold text-white transition-[transform,background-color] duration-200 hover:-translate-y-[2px] hover:bg-[#0e6aff] md:w-auto lg:w-auto xl:w-auto 2xl:w-auto"
           >
             دانلود فاکتور
           </button>
-          <button type="button" className={styles.closeButton} onClick={onClose} title="بستن">
+          <button
+            type="button"
+            className="cursor-pointer rounded-lg border-none bg-[#f0f0f0] px-6 py-3 text-base font-semibold text-[#333] transition-[transform,background-color] duration-200 hover:-translate-y-[2px] hover:bg-[#e0e0e0] md:w-auto lg:w-auto xl:w-auto 2xl:w-auto"
+            onClick={onClose}
+            title="بستن"
+          >
             بستن
           </button>
         </div>

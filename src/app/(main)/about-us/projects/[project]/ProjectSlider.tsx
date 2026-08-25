@@ -67,7 +67,7 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
       <button
         type="button"
         onClick={prevSlide}
-        className="absolute left-5 top-[45.5%] hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
+        className="absolute top-[45.5%] left-5 hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
         aria-label="اسلاید قبلی"
       >
         <BsChevronCompactLeft size={30} />
@@ -76,7 +76,7 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
       <button
         type="button"
         onClick={nextSlide}
-        className="absolute right-5 top-[45.5%] hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
+        className="absolute top-[45.5%] right-5 hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
         aria-label="اسلاید بعدی"
       >
         <BsChevronCompactRight size={30} />
@@ -94,7 +94,7 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
           >
             <RxDotFilled
               size={33}
-              className={`transition-all ${
+              className={`transition-colors ${
                 slideIndex === currentIndex ? "text-[#000000]" : "text-[#0e8bff]"
               }`}
             />
