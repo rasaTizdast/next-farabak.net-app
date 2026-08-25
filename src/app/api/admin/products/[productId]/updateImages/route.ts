@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 
+import { unauthorizedResponse, serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  validateParams,
+  validateBody,
+  productIdParamSchema,
+  updateProductImagesSchema,
+} from "@/lib/validation";
 
 /**
  * @swagger
@@ -85,34 +92,28 @@ import { prisma } from "@/lib/prisma";
 
 export async function PATCH(request: Request, props: { params: Promise<{ productId: string }> }) {
   const params = await props.params;
-  const productId = parseInt(params.productId, 10);
 
   try {
     const auth = await requireAuth();
     if (auth instanceof NextResponse) return auth;
 
     if (auth.role !== "Admin") {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return unauthorizedResponse("Unauthorized");
     }
 
-    // Validate input
-    if (!productId) {
-      return NextResponse.json({ error: "Product ID is required." }, { status: 400 });
-    }
+    const paramResult = validateParams(params, productIdParamSchema);
+    if ("error" in paramResult) return paramResult.error;
+    const productId = paramResult.data.productId;
 
-    // Parse the request body
-    const { img1, img2 } = await request.json();
-    if (!img1 && !img2) {
-      return NextResponse.json(
-        { error: "At least one of 'img1' or 'img2' is required to update." },
-        { status: 400 }
-      );
-    }
+    // Validate the request body
+    const result = await validateBody(request, updateProductImagesSchema);
+    if ("error" in result) return result.error;
+    const data = result.data;
 
     // Build update data object dynamically
     const updateData: { img1?: string; img2?: string } = {};
-    if (img1) updateData.img1 = img1;
-    if (img2) updateData.img2 = img2;
+    if (data.img1 !== undefined) updateData.img1 = data.img1;
+    if (data.img2 !== undefined) updateData.img2 = data.img2;
 
     // Update the product images in the database
     const updatedProduct = await prisma.product.update({
@@ -126,6 +127,6 @@ export async function PATCH(request: Request, props: { params: Promise<{ product
     });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Failed to update product images." }, { status: 500 });
+    return serverErrorResponse("Failed to update product images.");
   }
 }

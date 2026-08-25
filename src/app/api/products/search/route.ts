@@ -105,6 +105,18 @@ type ProductType = {
   } | null;
 };
 
+type ProductWithCategory = Prisma.ProductGetPayload<{
+  include: {
+    Category: {
+      select: {
+        Slug: true;
+        Name: true;
+        CategoryID: true;
+      };
+    };
+  };
+}>;
+
 /**
  * Normalize text for better matching:
  * - Convert to lowercase
@@ -322,7 +334,7 @@ export async function GET(request: Request) {
       },
     });
 
-    const subcategoryMap = new Map();
+    const subcategoryMap = new Map<number, (typeof allSubCategories)[number]>();
     allSubCategories.forEach((sub) => {
       subcategoryMap.set(sub.CategoryContentId, sub);
     });
@@ -345,8 +357,21 @@ export async function GET(request: Request) {
     });
 
     // Organize by category and subcategory
-    const structuredData: any = {};
-    let allProcessedProducts: any[] = [];
+    const structuredData: Record<
+      string,
+      {
+        category: (typeof allCategories)[number];
+        subcategories: Record<
+          string,
+          {
+            subcategory: (typeof allSubCategories)[number];
+            products: ProductWithCategory[];
+          }
+        >;
+        products: ProductWithCategory[];
+      }
+    > = {};
+    let allProcessedProducts: ProductWithCategory[] = [];
 
     for (const category of allCategories) {
       structuredData[category.CategoryID] = {
@@ -393,21 +418,17 @@ export async function GET(request: Request) {
         const subcatData = categoryData.subcategories[subcatId];
         if (subcatData.products.length === 0) continue;
 
-        const sortedProducts = subcatData.products.sort(
-          (a: any, b: any) => b.ProductId - a.ProductId
-        );
+        const sortedProducts = subcatData.products.sort((a, b) => b.ProductId - a.ProductId);
 
         allProcessedProducts = [...allProcessedProducts, ...sortedProducts];
       }
 
-      const productsNotInSubcats = categoryData.products.filter((p: any) => {
+      const productsNotInSubcats = categoryData.products.filter((p) => {
         return !parseCategoryContentIds(p).some((id) => categoryData.subcategories[id]);
       });
 
       if (productsNotInSubcats.length > 0) {
-        const sortedDirectProducts = productsNotInSubcats.sort(
-          (a: any, b: any) => b.ProductId - a.ProductId
-        );
+        const sortedDirectProducts = productsNotInSubcats.sort((a, b) => b.ProductId - a.ProductId);
         allProcessedProducts = [...allProcessedProducts, ...sortedDirectProducts];
       }
     }
@@ -444,7 +465,7 @@ export async function GET(request: Request) {
 
         const subcategories = categoryContentIds
           .map((id: number) => subcategoryMap.get(id))
-          .filter((sub: any) => sub !== undefined);
+          .filter((sub) => sub !== undefined);
 
         const firstSubCategory = subcategories.length > 0 ? subcategories[0] : null;
 

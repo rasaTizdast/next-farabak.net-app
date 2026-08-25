@@ -7,7 +7,9 @@ const { mockPrisma } = vi.hoisted(() => ({
   },
 }));
 vi.mock("@prisma/client", () => ({
-  PrismaClient: vi.fn().mockImplementation(function () { return mockPrisma; }),
+  PrismaClient: vi.fn().mockImplementation(function () {
+    return mockPrisma;
+  }),
 }));
 
 import { GET } from "../route";

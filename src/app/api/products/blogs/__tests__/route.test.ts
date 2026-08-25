@@ -82,7 +82,7 @@ describe("GET /api/products/blogs", () => {
 
     const req = new Request("http://localhost/api/products/blogs?subcategorySlug=ptz");
     const res = await GET(req as any);
-    const body = await res.json();
+    await res.json();
 
     expect(res.status).toBe(500);
   });

@@ -71,7 +71,7 @@ describe("POST /api/warehouses/products", () => {
     });
 
     const res = await POST(req);
-    const body = await res.json();
+    await res.json();
 
     expect(res.status).toBe(200);
     expect(mockPrisma.warehouseproduct.create).toHaveBeenCalledWith(

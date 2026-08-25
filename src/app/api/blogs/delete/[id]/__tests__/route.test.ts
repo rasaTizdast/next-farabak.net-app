@@ -10,7 +10,9 @@ vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 vi.mock("aws-sdk", () => ({
   S3: vi.fn().mockImplementation(function () {
     return {
-      listObjectsV2: vi.fn().mockReturnValue({ promise: vi.fn().mockResolvedValue({ Contents: [] }) }),
+      listObjectsV2: vi
+        .fn()
+        .mockReturnValue({ promise: vi.fn().mockResolvedValue({ Contents: [] }) }),
       deleteObjects: vi.fn().mockReturnValue({ promise: vi.fn().mockResolvedValue({}) }),
     };
   }),

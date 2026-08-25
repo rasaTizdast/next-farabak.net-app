@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
@@ -111,6 +112,18 @@ type ProductType = {
   } | null;
 };
 
+type ProductWithCategory = Prisma.ProductGetPayload<{
+  include: {
+    Category: {
+      select: {
+        Slug: true;
+        Name: true;
+        CategoryID: true;
+      };
+    };
+  };
+}>;
+
 /**
  * Parse the CategoryContentId string into an array of numbers
  */
@@ -154,7 +167,7 @@ export async function GET(request: Request) {
     });
 
     // Create maps for efficient lookups
-    const subcategoryMap = new Map();
+    const subcategoryMap = new Map<number, (typeof allSubCategories)[number]>();
     allSubCategories.forEach((sub) => {
       subcategoryMap.set(sub.CategoryContentId, sub);
     });
@@ -180,8 +193,21 @@ export async function GET(request: Request) {
     }
 
     // STEP 4: Create structured data organized by category, subcategory, and product
-    const structuredData: any = {};
-    let allProcessedProducts: any[] = [];
+    const structuredData: Record<
+      string,
+      {
+        category: (typeof allCategories)[number];
+        subcategories: Record<
+          string,
+          {
+            subcategory: (typeof allSubCategories)[number];
+            products: ProductWithCategory[];
+          }
+        >;
+        products: ProductWithCategory[];
+      }
+    > = {};
+    let allProcessedProducts: ProductWithCategory[] = [];
 
     // Process all products and organize by category and subcategory
     for (const category of allCategories) {

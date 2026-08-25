@@ -26,7 +26,9 @@ describe("GET /api/productOverviewDetails/getProductOverviewDetails/[productId]"
     ];
     mockPrisma.details_ProductOverviewDetails.findMany.mockResolvedValue(mockData);
 
-    const req = new Request("http://localhost/api/productOverviewDetails/getProductOverviewDetails/10");
+    const req = new Request(
+      "http://localhost/api/productOverviewDetails/getProductOverviewDetails/10"
+    );
     const res = await GET(req as any, { params: Promise.resolve({ productId: "10" }) });
     const body = await res.json();
 
@@ -39,7 +41,9 @@ describe("GET /api/productOverviewDetails/getProductOverviewDetails/[productId]"
   it("should return 404 when no details found", async () => {
     mockPrisma.details_ProductOverviewDetails.findMany.mockResolvedValue([]);
 
-    const req = new Request("http://localhost/api/productOverviewDetails/getProductOverviewDetails/999");
+    const req = new Request(
+      "http://localhost/api/productOverviewDetails/getProductOverviewDetails/999"
+    );
     const res = await GET(req as any, { params: Promise.resolve({ productId: "999" }) });
     const body = await res.json();
 
@@ -48,7 +52,9 @@ describe("GET /api/productOverviewDetails/getProductOverviewDetails/[productId]"
   });
 
   it("should return 400 for invalid productId format", async () => {
-    const req = new Request("http://localhost/api/productOverviewDetails/getProductOverviewDetails/abc");
+    const req = new Request(
+      "http://localhost/api/productOverviewDetails/getProductOverviewDetails/abc"
+    );
     const res = await GET(req as any, { params: Promise.resolve({ productId: "abc" }) });
     const body = await res.json();
 
@@ -59,7 +65,9 @@ describe("GET /api/productOverviewDetails/getProductOverviewDetails/[productId]"
   it("should return 500 on database error", async () => {
     mockPrisma.details_ProductOverviewDetails.findMany.mockRejectedValue(new Error("DB error"));
 
-    const req = new Request("http://localhost/api/productOverviewDetails/getProductOverviewDetails/1");
+    const req = new Request(
+      "http://localhost/api/productOverviewDetails/getProductOverviewDetails/1"
+    );
     const res = await GET(req as any, { params: Promise.resolve({ productId: "1" }) });
     const body = await res.json();
 

@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import type { CategoryContent } from "@prisma/client";
+import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma"; // Assuming you have a Prisma instance set up
 

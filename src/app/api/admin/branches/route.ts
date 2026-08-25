@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 
+import { errorResponse, notFoundResponse, serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  branchQuerySchema,
+  createBranchSchema,
+  validateParams,
+  validateBody,
+} from "@/lib/validation";
 
 /**
  * @swagger
@@ -35,11 +42,14 @@ import { prisma } from "@/lib/prisma";
 export async function GET(request: Request) {
   const auth = await requireAuth();
   if (auth instanceof NextResponse) return auth;
+  const { searchParams } = new URL(request.url);
+  const queryResult = validateParams(Object.fromEntries(searchParams), branchQuerySchema);
+  if ("error" in queryResult) return queryResult.error;
+  const data = queryResult.data;
   try {
-    const url = new URL(request.url);
-    const productId = url.searchParams.get("productId");
-    const page = parseInt(url.searchParams.get("page") || "1");
-    const limit = parseInt(url.searchParams.get("limit") || "10");
+    const productId = data.productId;
+    const page = data.page;
+    const limit = data.limit;
     const offset = (page - 1) * limit;
 
     let branchesWithCounts;
@@ -59,7 +69,7 @@ export async function GET(request: Request) {
         FROM "support"."branch" b
         WHERE EXISTS (
           SELECT 1 FROM "support"."branchproduct" bp2 
-          WHERE bp2."branchid" = b."branchid" AND bp2."ProductId" = ${parseInt(productId)}
+          WHERE bp2."branchid" = b."branchid" AND bp2."ProductId" = ${productId}
         )
       `;
 
@@ -75,9 +85,7 @@ export async function GET(request: Request) {
           b."createdat",
           COUNT(DISTINCT bp."ProductId") as "productCount",
           COALESCE(SUM(bp."quantity"), 0)::integer as "totalQuantity",
-          COALESCE(MAX(CASE WHEN bp."ProductId" = ${parseInt(
-            productId
-          )} THEN bp."quantity" ELSE 0 END), 0)::integer as "specificProductQuantity"
+          COALESCE(MAX(CASE WHEN bp."ProductId" = ${productId} THEN bp."quantity" ELSE 0 END), 0)::integer as "specificProductQuantity"
         FROM 
           "support"."branch" b
         LEFT JOIN 
@@ -85,7 +93,7 @@ export async function GET(request: Request) {
         WHERE 
           EXISTS (
             SELECT 1 FROM "support"."branchproduct" bp2 
-            WHERE bp2."branchid" = b."branchid" AND bp2."ProductId" = ${parseInt(productId)}
+            WHERE bp2."branchid" = b."branchid" AND bp2."ProductId" = ${productId}
           )
         GROUP BY 
           b."branchid", b."UserID", b."name", b."location", b."createdat"
@@ -156,7 +164,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("Error fetching branches:", error);
-    return NextResponse.json({ error: "خطا در بارگذاری شعبه‌ها" }, { status: 500 });
+    return serverErrorResponse("خطا در بارگذاری شعبه‌ها");
   }
 }
 
@@ -198,22 +206,19 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const auth = await requireAuth();
   if (auth instanceof NextResponse) return auth;
+  const bodyValidation = await validateBody(request, createBranchSchema);
+  if ("error" in bodyValidation) return bodyValidation.error;
   try {
-    const body = await request.json();
-    const { userId, name, location } = body;
-
-    if (!userId || !name || !location) {
-      return NextResponse.json({ error: "تمامی فیلدها الزامی هستند" }, { status: 400 });
-    }
+    const { userId, name, location } = bodyValidation.data;
 
     // Check if user exists in info schema
     const user = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM "info"."Client" 
-      WHERE "UserID" = ${parseInt(userId)}
+      WHERE "UserID" = ${userId}
     `;
 
     if (!user || user.length === 0) {
-      return NextResponse.json({ error: "کاربر مورد نظر پیدا نشد" }, { status: 404 });
+      return notFoundResponse("کاربر مورد نظر پیدا نشد");
     }
 
     // Check if branch name is already taken in support schema
@@ -223,13 +228,13 @@ export async function POST(request: Request) {
     `;
 
     if (existingBranch.length > 0) {
-      return NextResponse.json({ error: "این نام شعبه قبلاً استفاده شده است" }, { status: 400 });
+      return errorResponse("این نام شعبه قبلاً استفاده شده است", 400);
     }
 
     // Create new branch in support schema
     const newBranch = await prisma.$queryRaw<Record<string, unknown>[]>`
       INSERT INTO "support"."branch" ("UserID", "name", "location")
-      VALUES (${parseInt(userId)}, ${name}, ${location})
+      VALUES (${userId}, ${name}, ${location})
       RETURNING *
     `;
 
@@ -237,12 +242,12 @@ export async function POST(request: Request) {
     await prisma.$queryRaw<Record<string, unknown>[]>`
       UPDATE "info"."Client"
       SET "Role" = 'Branch'
-      WHERE "UserID" = ${parseInt(userId)}
+      WHERE "UserID" = ${userId}
     `;
 
     return NextResponse.json(newBranch[0], { status: 201 });
   } catch (error) {
     console.error("Error creating branch:", error);
-    return NextResponse.json({ error: "خطا در ایجاد شعبه" }, { status: 500 });
+    return serverErrorResponse("خطا در ایجاد شعبه");
   }
 }

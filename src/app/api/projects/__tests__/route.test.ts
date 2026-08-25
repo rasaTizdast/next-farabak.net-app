@@ -18,7 +18,9 @@ const { mockPrisma, mockS3 } = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 vi.mock("aws-sdk", () => ({
-  S3: vi.fn().mockImplementation(function () { return mockS3; }),
+  S3: vi.fn().mockImplementation(function () {
+    return mockS3;
+  }),
 }));
 
 import { GET, POST } from "../route";
@@ -174,7 +176,7 @@ describe("POST /api/projects", () => {
     });
 
     const res = await POST(req);
-    const body = await res.json();
+    await res.json();
 
     expect(res.status).toBe(500);
   });

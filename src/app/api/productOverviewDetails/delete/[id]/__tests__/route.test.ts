@@ -42,7 +42,9 @@ describe("DELETE /api/productOverviewDetails/delete/[id]", () => {
     mockPrisma.details_ProductOverviewDetails.deleteMany.mockResolvedValue({ count: 2 });
     mockPrisma.master_ProductOverviewDetails.delete.mockResolvedValue({});
 
-    const req = new Request("http://localhost/api/productOverviewDetails/delete/5", { method: "DELETE" });
+    const req = new Request("http://localhost/api/productOverviewDetails/delete/5", {
+      method: "DELETE",
+    });
     const res = await DELETE(req as any, { params: Promise.resolve({ id: "5" }) });
     const body = await res.json();
 
@@ -57,7 +59,9 @@ describe("DELETE /api/productOverviewDetails/delete/[id]", () => {
   });
 
   it("should return 400 for invalid id", async () => {
-    const req = new Request("http://localhost/api/productOverviewDetails/delete/abc", { method: "DELETE" });
+    const req = new Request("http://localhost/api/productOverviewDetails/delete/abc", {
+      method: "DELETE",
+    });
     const res = await DELETE(req as any, { params: Promise.resolve({ id: "abc" }) });
     const body = await res.json();
 
@@ -68,7 +72,9 @@ describe("DELETE /api/productOverviewDetails/delete/[id]", () => {
   it("should return 404 when overview detail not found", async () => {
     mockPrisma.master_ProductOverviewDetails.findUnique.mockResolvedValue(null);
 
-    const req = new Request("http://localhost/api/productOverviewDetails/delete/999", { method: "DELETE" });
+    const req = new Request("http://localhost/api/productOverviewDetails/delete/999", {
+      method: "DELETE",
+    });
     const res = await DELETE(req as any, { params: Promise.resolve({ id: "999" }) });
     const body = await res.json();
 
@@ -79,7 +85,9 @@ describe("DELETE /api/productOverviewDetails/delete/[id]", () => {
   it("should return 500 on database error", async () => {
     mockPrisma.master_ProductOverviewDetails.findUnique.mockRejectedValue(new Error("DB error"));
 
-    const req = new Request("http://localhost/api/productOverviewDetails/delete/5", { method: "DELETE" });
+    const req = new Request("http://localhost/api/productOverviewDetails/delete/5", {
+      method: "DELETE",
+    });
     const res = await DELETE(req as any, { params: Promise.resolve({ id: "5" }) });
     const body = await res.json();
 

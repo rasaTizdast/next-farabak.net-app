@@ -28,7 +28,7 @@ vi.mock("next/headers", () => ({
 }));
 
 vi.mock("jose", () => ({
-  jwtVerify: (...args: any[]) => mockJwtVerify(...args),
+  jwtVerify: (...args: unknown[]) => mockJwtVerify(...args),
 }));
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
@@ -39,7 +39,7 @@ vi.mock("uuid", () => ({
 
 import { GET, POST, PATCH, DELETE } from "../route";
 
-function makeRequest(method: string, body?: any, query?: string) {
+function makeRequest(method: string, body?: unknown, query?: string) {
   const url = query
     ? `http://localhost/api/admin/invoices?${query}`
     : "http://localhost/api/admin/invoices";
@@ -80,37 +80,65 @@ describe("POST /api/admin/invoices", () => {
     mockCookieStore.clear();
   });
 
+  it("returns 401 when no token", async () => {
+    const res = await POST(
+      makeRequest("POST", {
+        branchId: 1,
+        invoiceData: { Fullname: "Ali" },
+      })
+    );
+    expect(res.status).toBe(401);
+  });
+
   it("returns 400 when body is invalid", async () => {
+    mockCookieStore.set("accessToken", "token");
+    mockJwtVerify.mockResolvedValue({ payload: { role: "Admin", userId: 1 } });
+
     const res = await POST(makeRequest("POST", { branchId: 1 }));
     expect(res.status).toBe(400);
   });
 
   it("creates invoice successfully", async () => {
+    mockCookieStore.set("accessToken", "token");
+    mockJwtVerify.mockResolvedValue({ payload: { role: "Admin", userId: 1 } });
     mockPrisma.invoice.findFirst.mockResolvedValue(null);
     mockPrisma.invoice.create.mockResolvedValue({ Invoiceid: 1 });
     mockPrisma.$queryRaw.mockResolvedValue([{ Invoice_Details: 1 }]);
 
-    const res = await POST(makeRequest("POST", {
-      branchId: 1,
-      invoiceData: {
-        Fullname: "Ali",
-        Phonenumber: "09121234567",
-        TotalAmount: 100000,
-        Date: "1403-06-15",
-        UserId: 1,
-        products: [{ ProductId: 1, quantity: 1, price: 100000, total_price: 100000 }],
-      },
-    }));
+    const res = await POST(
+      makeRequest("POST", {
+        branchId: 1,
+        invoiceData: {
+          Fullname: "Ali",
+          Phonenumber: "09121234567",
+          TotalAmount: 100000,
+          Date: "1403-06-15",
+          UserId: 1,
+          products: [{ ProductId: 1, quantity: 1, price: 100000, total_price: 100000 }],
+        },
+      })
+    );
     expect(res.status).toBe(201);
   });
 
   it("returns 500 on error", async () => {
+    mockCookieStore.set("accessToken", "token");
+    mockJwtVerify.mockResolvedValue({ payload: { role: "Admin", userId: 1 } });
     mockPrisma.invoice.create.mockRejectedValue(new Error("DB error"));
 
-    const res = await POST(makeRequest("POST", {
-      branchId: 1,
-      invoiceData: { Fullname: "Ali", Phonenumber: "09121234567" },
-    }));
+    const res = await POST(
+      makeRequest("POST", {
+        branchId: 1,
+        invoiceData: {
+          Fullname: "Ali",
+          Phonenumber: "09121234567",
+          TotalAmount: 100000,
+          Date: "1403-06-15",
+          UserId: 1,
+          products: [{ ProductId: 1, quantity: 1, price: 100000, total_price: 100000 }],
+        },
+      })
+    );
     expect(res.status).toBe(500);
   });
 });

@@ -64,7 +64,7 @@ describe("POST /api/products/qrCode", () => {
     });
 
     const res = await POST(req as any);
-    const body = await res.json();
+    await res.json();
 
     expect(res.status).toBe(500);
   });
@@ -123,7 +123,7 @@ describe("DELETE /api/products/qrCode", () => {
     });
 
     const res = await DELETE(req as any);
-    const body = await res.json();
+    await res.json();
 
     expect(res.status).toBe(500);
   });

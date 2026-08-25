@@ -1,6 +1,9 @@
 import { SignJWT } from "jose";
 import { NextResponse } from "next/server";
 
+import { serverErrorResponse } from "@/lib/api-response";
+import { forgotPasswordSchema, validateBody } from "@/lib/validation";
+
 export const dynamic = "force-dynamic";
 
 // Generate a random 6-digit code
@@ -69,11 +72,9 @@ async function sendEmailWithRetry(email: string, code: string, maxRetries = 2): 
 
 export async function POST(request: Request) {
   try {
-    const { email } = await request.json();
-
-    if (!email) {
-      return NextResponse.json({ error: "آدرس ایمیل الزامی است" }, { status: 400 });
-    }
+    const result = await validateBody(request, forgotPasswordSchema);
+    if ("error" in result) return result.error;
+    const { email } = result.data;
 
     // In a real application, verify if the email exists in your database
     // For demo purposes, we'll assume it exists
@@ -95,15 +96,10 @@ export async function POST(request: Request) {
       });
     } else {
       // Email sending failed even after retries
-      return NextResponse.json(
-        {
-          error: "خطا در ارسال ایمیل. لطفا بعدا دوباره تلاش کنید.",
-        },
-        { status: 500 }
-      );
+      return serverErrorResponse("خطا در ارسال ایمیل. لطفا بعدا دوباره تلاش کنید.");
     }
   } catch (error) {
     console.error("Error in forgot-password endpoint:", error);
-    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+    return serverErrorResponse("خطای سرور");
   }
 }

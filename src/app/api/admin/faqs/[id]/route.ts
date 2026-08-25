@@ -5,8 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 // GET: Fetch a specific FAQ by ID
 export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
   try {
     const id = parseInt(params.id);
@@ -31,8 +30,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
 // PUT: Update a specific FAQ
 export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
   try {
     const id = parseInt(params.id);
@@ -72,8 +70,7 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
 
 // DELETE: Delete a specific FAQ
 export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
   try {
     const id = parseInt(params.id);

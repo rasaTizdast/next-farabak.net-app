@@ -20,7 +20,9 @@ describe("DELETE /api/landingPage/showcase_products/[id]", () => {
   it("should delete a showcase product", async () => {
     mockPrisma.showcase_products.delete.mockResolvedValue({ id: 1 });
 
-    const req = new Request("http://localhost/api/landingPage/showcase_products/1", { method: "DELETE" });
+    const req = new Request("http://localhost/api/landingPage/showcase_products/1", {
+      method: "DELETE",
+    });
     const res = await DELETE(req as any, { params: Promise.resolve({ id: "1" }) });
     const body = await res.json();
 
@@ -32,7 +34,9 @@ describe("DELETE /api/landingPage/showcase_products/[id]", () => {
   it("should return 500 on error", async () => {
     mockPrisma.showcase_products.delete.mockRejectedValue(new Error("DB error"));
 
-    const req = new Request("http://localhost/api/landingPage/showcase_products/1", { method: "DELETE" });
+    const req = new Request("http://localhost/api/landingPage/showcase_products/1", {
+      method: "DELETE",
+    });
     const res = await DELETE(req as any, { params: Promise.resolve({ id: "1" }) });
     const body = await res.json();
 

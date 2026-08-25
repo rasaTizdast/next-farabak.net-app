@@ -31,7 +31,7 @@ vi.mock("jose", () => ({
 
 import { POST } from "../route";
 
-function makeSignupRequest(body: any) {
+function makeSignupRequest(body: unknown) {
   return new Request("http://localhost/api/auth/signup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -60,7 +60,7 @@ describe("POST /api/auth/signup", () => {
     expect(res.status).toBe(400);
 
     const json = await res.json();
-    expect(json.message).toContain("فیلدهای ضروری");
+    expect(json.error).toContain("الزامی");
   });
 
   it("returns 400 when user already exists", async () => {
@@ -70,7 +70,7 @@ describe("POST /api/auth/signup", () => {
     expect(res.status).toBe(400);
 
     const json = await res.json();
-    expect(json.message).toContain("ثبت شده");
+    expect(json.error).toContain("ثبت شده");
   });
 
   it("creates user successfully and returns tokens", async () => {

@@ -1,6 +1,6 @@
-import { requireAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
@@ -83,7 +83,10 @@ export async function POST(request: Request) {
   } catch (error: unknown) {
     console.error("Error deleting warranty:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "An error occurred while deleting the warranty" },
+      {
+        error:
+          error instanceof Error ? error.message : "An error occurred while deleting the warranty",
+      },
       { status: 500 }
     );
   }

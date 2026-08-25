@@ -1,7 +1,19 @@
 import { NextResponse } from "next/server";
 
+import {
+  errorResponse,
+  unauthorizedResponse,
+  notFoundResponse,
+  serverErrorResponse,
+} from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  validateParams,
+  validateBody,
+  productIdParamSchema,
+  updateProductSchema,
+} from "@/lib/validation";
 
 /**
  * @swagger
@@ -40,41 +52,39 @@ export async function DELETE(
     if (auth instanceof NextResponse) return auth;
 
     if (auth.role !== "Admin") {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return unauthorizedResponse("Unauthorized");
     }
 
-    const { productId } = params;
-
-    if (!productId) {
-      return NextResponse.json({ message: "Product ID is required" }, { status: 400 });
-    }
+    const paramResult = validateParams(params, productIdParamSchema);
+    if ("error" in paramResult) return paramResult.error as NextResponse;
+    const productId = paramResult.data.productId;
 
     // Check if the product exists in the database
     const productExists = await prisma.product.findUnique({
-      where: { ProductId: parseInt(productId, 10) },
+      where: { ProductId: productId },
     });
 
     if (!productExists) {
-      return NextResponse.json({ message: "Product not found" }, { status: 404 });
+      return notFoundResponse("Product not found");
     }
 
     // Start a transaction to delete from multiple tables
     try {
       await prisma.$transaction([
         prisma.product.delete({
-          where: { ProductId: parseInt(productId, 10) },
+          where: { ProductId: productId },
         }),
         prisma.productOverview.deleteMany({
-          where: { ProductId: parseInt(productId, 10) },
+          where: { ProductId: productId },
         }),
         prisma.details_ProductOverviewDetails.deleteMany({
-          where: { productid: parseInt(productId, 10) },
+          where: { productid: productId },
         }),
         prisma.productSpecs.deleteMany({
-          where: { ProductId: parseInt(productId, 10) },
+          where: { ProductId: productId },
         }),
         prisma.fAQs.deleteMany({
-          where: { ProductId: parseInt(productId, 10) },
+          where: { ProductId: productId },
         }),
       ]);
 
@@ -84,14 +94,11 @@ export async function DELETE(
       );
     } catch (error) {
       console.error(error);
-      return NextResponse.json(
-        { message: "Failed to remove product and related data" },
-        { status: 500 }
-      );
+      return serverErrorResponse("Failed to remove product and related data");
     }
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ message: "An unexpected error occurred." }, { status: 500 });
+    return serverErrorResponse("An unexpected error occurred.");
   }
 }
 
@@ -245,65 +252,35 @@ export async function DELETE(
 
 export async function PATCH(request: Request, props: { params: Promise<{ productId: string }> }) {
   const params = await props.params;
-  const productId = parseInt(params.productId, 10);
-
-  if (isNaN(productId)) {
-    return NextResponse.json({ error: "Invalid product ID" }, { status: 400 });
-  }
+  const paramResult = validateParams(params, productIdParamSchema);
+  if ("error" in paramResult) return paramResult.error;
+  const productId = paramResult.data.productId;
 
   try {
     const auth = await requireAuth();
     if (auth instanceof NextResponse) return auth;
 
     if (auth.role !== "Admin") {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return unauthorizedResponse("Unauthorized");
     }
 
-    const body = await request.json();
-
-    // Allowable fields for update
-    const validFields = new Set([
-      "Name",
-      "Type",
-      "Price",
-      "Discount",
-      "CategoryContentId",
-      "img1",
-      "img2",
-      "Available",
-      "Description",
-      "CategoryId",
-      "Slug",
-      "SEO_Title",
-      "SEO_Description",
-      "productBlog",
-      "Partner_Price",
-    ]);
-
-    // Filter out only valid fields to update
-    const updateData = Object.keys(body).reduce(
-      (acc, key) => {
-        if (validFields.has(key)) {
-          acc[key] = body[key];
-        }
-        return acc;
-      },
-      {} as Record<string, unknown>
-    );
+    const result = await validateBody(request, updateProductSchema);
+    if ("error" in result) return result.error;
+    const data = result.data;
 
     // If no valid fields are provided, return an error
-    if (Object.keys(updateData).length === 0) {
-      return NextResponse.json({ error: "No valid fields provided for update" }, { status: 400 });
+    if (Object.keys(data).length === 0) {
+      return errorResponse("No valid fields provided for update", 400);
     }
 
     const updatedProduct = await prisma.product.update({
       where: { ProductId: productId },
-      data: updateData,
+      data: data as Record<string, unknown>,
     });
 
     return NextResponse.json(updatedProduct);
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
+    return serverErrorResponse("Failed to update product");
   }
 }

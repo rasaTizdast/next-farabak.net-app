@@ -69,7 +69,7 @@ describe("PUT /api/productOverviewDetails/update", () => {
     });
 
     const res = await PUT(req as any);
-    const body = await res.json();
+    await res.json();
 
     expect(res.status).toBe(400);
   });

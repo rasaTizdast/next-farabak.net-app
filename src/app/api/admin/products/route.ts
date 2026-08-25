@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
+import { NextResponse } from "next/server";
 
 type ProductType = {
   ProductId: number;
@@ -8,33 +8,35 @@ type ProductType = {
   Name: string | null;
   Type: string | null;
   Description: string | null;
-  Price: any;
-  Discount: any;
+  Price: string | null;
+  Discount: string | null;
   Available: boolean | null;
   Slug: string | null;
   SEO_Title: string | null;
   SEO_Description: string | null;
   QrCode_Key: string | null;
   QrCode_expiryDays: string | null;
-  Category: { 
-    CategoryID: number | null; 
-    Name: string | null; 
-    Slug: string | null; 
-    Available: boolean | null; 
-    InsertDate: Date | null; 
-    ModifyDate: Date | null; 
-    Category_groupId: number | null; 
-    Banner: string | null; 
-    TopBlog: string | null; 
-    BottomBlog: string | null 
+  Category: {
+    CategoryID: number | null;
+    Name: string | null;
+    Slug: string | null;
+    Available: boolean | null;
+    InsertDate: Date | null;
+    ModifyDate: Date | null;
+    Category_groupId: number | null;
+    Banner: string | null;
+    TopBlog: string | null;
+    BottomBlog: string | null;
   } | null;
   img1: string | null;
   img2: string | null;
   [key: string]: unknown;
 };
 
+import { serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { validateParams, productsQuerySchema } from "@/lib/validation";
 
 /**
  * @swagger
@@ -146,34 +148,6 @@ import { prisma } from "@/lib/prisma";
  *       500:
  *         description: Internal server error
  */
-
-type CreateProductInput = {
-  ProductId: number;
-  Name: string | null;
-  Type: string | null;
-  Price: string | null;
-  Discount: string | null;
-  CategoryContentId: string | null;
-  img1: string | null;
-  img2: string | null;
-  Available: boolean | null;
-  Description: string | null;
-  CategoryId: number | null;
-  Slug: string | null;
-  SEO_Title: string | null;
-  SEO_Description: string | null;
-  QrCode_Key: string | null;
-  QrCode_expiryDays: string | null;
-  Category?: {
-    CategoryID: number;
-    Name: string | null;
-    Slug: string | null;
-    Available: boolean | null;
-    InsertDate: Date | null;
-    ModifyDate: Date | null;
-    Category_groupId: number | null;
-  } | null;
-};
 
 /**
  * Normalize text for better matching:
@@ -291,12 +265,16 @@ export async function GET(request: Request) {
   const auth = await requireAuth();
   if (auth instanceof NextResponse) return auth;
   const { searchParams } = new URL(request.url);
-  const page = parseInt(searchParams.get("page") || "1", 10);
-  const limit = parseInt(searchParams.get("limit") || "30", 10);
-  const query = searchParams.get("q") || "";
-  const category = parseInt(searchParams.get("category") || "0", 10);
-  const subcategory = searchParams.get("subcategory") || "";
-  const available = searchParams.get("available");
+  const result = validateParams(Object.fromEntries(searchParams), productsQuerySchema);
+  if ("error" in result) return result.error;
+  const data = result.data;
+
+  const page = data.page;
+  const limit = data.limit;
+  const query = data.q || "";
+  const category = data.category;
+  const subcategory = data.subcategory || "";
+  const available = data.available;
 
   try {
     const conditions: Prisma.ProductWhereInput = {};
@@ -432,10 +410,16 @@ export async function GET(request: Request) {
     });
 
     interface StructuredCategoryData {
-  category: { CategoryID: string | number; [key: string]: unknown };
-  subcategories: Record<string, { subcategory: { CategoryContentId: number; [key: string]: unknown }; products: ProductType[] }>;
-  products: ProductType[];
-}
+      category: { CategoryID: string | number; [key: string]: unknown };
+      subcategories: Record<
+        string,
+        {
+          subcategory: { CategoryContentId: number; [key: string]: unknown };
+          products: ProductType[];
+        }
+      >;
+      products: ProductType[];
+    }
 
     // STEP 3: Create structured data organized by category, subcategory, and product
     const structuredData: Record<string, StructuredCategoryData> = {};
@@ -608,8 +592,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("Error fetching products:", error);
-    return new NextResponse("دریافت محصولات با شکست مواجه شد!", {
-      status: 500,
-    });
+    return serverErrorResponse("دریافت محصولات با شکست مواجه شد!");
   }
 }

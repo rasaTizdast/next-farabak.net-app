@@ -21,7 +21,7 @@ vi.mock("next/headers", () => ({
 }));
 
 vi.mock("jose", () => ({
-  jwtVerify: (...args: any[]) => mockJwtVerify(...args),
+  jwtVerify: (...args: unknown[]) => mockJwtVerify(...args),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -41,7 +41,7 @@ describe("GET /api/auth/profile", () => {
     expect(res.status).toBe(401);
 
     const json = await res.json();
-    expect(json.message).toContain("توکن");
+    expect(json.error).toContain("توکن");
   });
 
   it("returns 500 when token verification fails", async () => {

@@ -45,12 +45,13 @@ export async function GET() {
   }
 }
 
+const requiredFields = ["title", "description", "slug", "date", "city", "mainImage"];
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
 
     // Validate required fields
-    const requiredFields = ["title", "description", "slug", "date", "city", "mainImage"];
     for (const field of requiredFields) {
       if (!formData.get(field)) {
         return NextResponse.json({ error: `فیلد ${field} الزامی است` }, { status: 400 });

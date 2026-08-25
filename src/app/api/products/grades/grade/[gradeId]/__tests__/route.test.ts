@@ -101,7 +101,7 @@ describe("PUT /api/products/grades/grade/[gradeId]", () => {
     });
 
     const res = await PUT(req as any, { params: Promise.resolve({ gradeId: "5" }) });
-    const body = await res.json();
+    await res.json();
 
     expect(res.status).toBe(500);
   });
@@ -140,7 +140,7 @@ describe("DELETE /api/products/grades/grade/[gradeId]", () => {
 
     const req = new Request("http://localhost/api/products/grades/grade/5", { method: "DELETE" });
     const res = await DELETE(req as any, { params: Promise.resolve({ gradeId: "5" }) });
-    const body = await res.json();
+    await res.json();
 
     expect(res.status).toBe(500);
   });

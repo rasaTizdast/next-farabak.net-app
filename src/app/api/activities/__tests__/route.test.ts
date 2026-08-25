@@ -65,7 +65,11 @@ describe("PUT /api/activities", () => {
 
   it("updates existing activities and their details", async () => {
     mockPrisma.master_activity.findMany.mockResolvedValue([
-      { id: 1, title: "Old Title", Details_activity: [{ id: 10, activityID: 1, description: "Old" }] },
+      {
+        id: 1,
+        title: "Old Title",
+        Details_activity: [{ id: 10, activityID: 1, description: "Old" }],
+      },
     ]);
     mockPrisma.master_activity.update.mockResolvedValue({ id: 1, title: "New Title" });
     mockPrisma.details_activity.update.mockResolvedValue({});
@@ -89,9 +93,7 @@ describe("PUT /api/activities", () => {
     mockPrisma.details_activity.create.mockResolvedValue({});
 
     const res = await PUT(
-      makePutRequest([
-        { id: 0, title: "New", Details_activity: [{ description: "Detail" }] },
-      ])
+      makePutRequest([{ id: 0, title: "New", Details_activity: [{ description: "Detail" }] }])
     );
 
     expect(res.status).toBe(200);

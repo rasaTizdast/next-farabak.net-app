@@ -24,12 +24,14 @@ describe("GET /api/products/getProductsBySubcategory/[subCategoryName]", () => {
     });
     mockPrisma.product.count.mockResolvedValue(1);
     mockPrisma.categoryContent.findMany.mockResolvedValue([{ CategoryContentId: 10, Slug: "ptz" }]);
-    mockPrisma.product.findMany.mockResolvedValue([{
-      ProductId: 1,
-      Name: "Camera",
-      CategoryContentId: "10",
-      Category: { Slug: "home-edition", Name: "Home", CategoryID: 1 },
-    }]);
+    mockPrisma.product.findMany.mockResolvedValue([
+      {
+        ProductId: 1,
+        Name: "Camera",
+        CategoryContentId: "10",
+        Category: { Slug: "home-edition", Name: "Home", CategoryID: 1 },
+      },
+    ]);
 
     const res = await GET(new Request("http://localhost"), {
       params: Promise.resolve({ subCategoryName: "ptz" }),

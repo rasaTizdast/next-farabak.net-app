@@ -1,6 +1,6 @@
-import { requireAuth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { formatBigIntResults } from "@/lib/formatBigInt";
 import { prisma } from "@/lib/prisma";
 

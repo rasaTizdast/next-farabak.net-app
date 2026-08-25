@@ -1,6 +1,8 @@
 import { jwtVerify, SignJWT } from "jose"; // Using jose for JWT handling
 import { NextResponse } from "next/server";
 
+import { errorResponse, serverErrorResponse, unauthorizedResponse } from "@/lib/api-response";
+
 /**
  * Interface for the decoded token payload.
  */
@@ -146,7 +148,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     if (!refreshToken) {
-      return NextResponse.json({ message: "توکن بازیابی الزامی است" }, { status: 400 });
+      return errorResponse("توکن بازیابی الزامی است", 400);
     }
 
     // Decode the refresh token using jose
@@ -157,7 +159,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         new TextEncoder().encode(REFRESH_TOKEN_SECRET_ENV)
       );
     } catch (error) {
-      return NextResponse.json({ message: (error as Error).message }, { status: 401 });
+      return unauthorizedResponse((error as Error).message);
     }
 
     // Generate a new access token
@@ -192,6 +194,6 @@ export async function POST(request: Request): Promise<NextResponse> {
     return response;
   } catch (error) {
     console.error("خطا در بازیابی توکن:", error);
-    return NextResponse.json({ message: "خطای داخلی سرور", success: false }, { status: 500 });
+    return serverErrorResponse("خطای داخلی سرور");
   }
 }

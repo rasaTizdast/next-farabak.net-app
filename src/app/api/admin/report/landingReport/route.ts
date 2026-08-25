@@ -62,19 +62,27 @@ export async function GET(): Promise<NextResponse> {
     const invoiceCount = await prisma.invoice.count();
 
     // Fetch the count of available and unavailable products
+    const [availableCount, unavailableCount] = await Promise.all([
+      prisma.product.count({ where: { Available: true } }),
+      prisma.product.count({ where: { Available: false } }),
+    ]);
     const productCount = {
-      available: await prisma.product.count({ where: { Available: true } }),
-      unavailable: await prisma.product.count({ where: { Available: false } }),
+      available: availableCount,
+      unavailable: unavailableCount,
     };
 
     // Fetch the total amount of invoices based on Checked status
-    const invoiceStatusCount = {
-      checked: await prisma.invoice.count({ where: { Checked: true } }),
-      unchecked: await prisma.invoice.count({
+    const [checkedCount, uncheckedCount] = await Promise.all([
+      prisma.invoice.count({ where: { Checked: true } }),
+      prisma.invoice.count({
         where: {
           OR: [{ Checked: false }, { Checked: null }],
         },
       }),
+    ]);
+    const invoiceStatusCount = {
+      checked: checkedCount,
+      unchecked: uncheckedCount,
     };
 
     return NextResponse.json({

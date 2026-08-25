@@ -49,9 +49,7 @@ describe("GET /api/sitemap", () => {
     const res = await GET();
     const json = await res.json();
 
-    expect(json.urls).toContain(
-      "https://farabak.net/products/home-edition/battery/camera-1"
-    );
+    expect(json.urls).toContain("https://farabak.net/products/home-edition/battery/camera-1");
   });
 
   it("generates category URLs", async () => {

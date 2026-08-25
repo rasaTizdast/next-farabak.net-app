@@ -20,7 +20,9 @@ describe("GET /api/contact-us", () => {
 
   it("returns contact info", async () => {
     mockPrisma.address.findFirst.mockResolvedValue({ id: 1, address: "Tehran" });
-    mockPrisma.emails.findMany.mockResolvedValue([{ id: 1, address: "info@test.com", title: "Info" }]);
+    mockPrisma.emails.findMany.mockResolvedValue([
+      { id: 1, address: "info@test.com", title: "Info" },
+    ]);
     mockPrisma.phone_numbers.findMany.mockResolvedValue([{ id: 1, number: "09121234567" }]);
 
     const res = await GET();

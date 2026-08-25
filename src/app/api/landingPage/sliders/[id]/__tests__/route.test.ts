@@ -19,7 +19,7 @@ vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 vi.mock("aws-sdk", () => ({
   S3: class {
     constructor() {}
-    deleteObject(...args: any[]) {
+    deleteObject(...args: unknown[]) {
       return mockS3Instance.deleteObject(...args);
     }
   },

@@ -19,7 +19,7 @@ vi.mock("jose", () => ({
 
 import { POST } from "../route";
 
-function makeRequest(body: any) {
+function makeRequest(body: unknown) {
   return new Request("http://localhost/api/auth/forgot-password", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

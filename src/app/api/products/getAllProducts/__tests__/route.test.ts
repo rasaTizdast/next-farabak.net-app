@@ -34,9 +34,7 @@ describe("GET /api/products/getAllProducts", () => {
 
   it("returns products with pagination", async () => {
     mockPrisma.product.count.mockResolvedValue(2);
-    mockPrisma.category.findMany.mockResolvedValue([
-      { CategoryID: 1, Slug: "cat1", Name: "Cat1" },
-    ]);
+    mockPrisma.category.findMany.mockResolvedValue([{ CategoryID: 1, Slug: "cat1", Name: "Cat1" }]);
     mockPrisma.categoryContent.findMany.mockResolvedValue([]);
     mockPrisma.product.findMany.mockResolvedValue([
       {

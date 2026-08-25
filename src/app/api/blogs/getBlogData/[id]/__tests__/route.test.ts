@@ -23,12 +23,8 @@ const mockBlogData = {
   SEO_description: "desc",
   image_URL: "img.jpg",
   image_alt: "alt",
-  BlogCategories: [
-    { Categories: { id: 1, name: "Tech", slug: "tech" } },
-  ],
-  Comments: [
-    { id: 1, content: "Nice!", created_at: "2025-01-02" },
-  ],
+  BlogCategories: [{ Categories: { id: 1, name: "Tech", slug: "tech" } }],
+  Comments: [{ id: 1, content: "Nice!", created_at: "2025-01-02" }],
   Likes: [{ id: 1 }],
 };
 

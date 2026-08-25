@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 
+import { errorResponse, serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  createWarehouseSchema,
+  validateBody,
+  validateParams,
+  warehouseQuerySchema,
+} from "@/lib/validation";
 
 export async function GET(request: Request) {
   const auth = await requireAuth();
@@ -15,11 +22,11 @@ export async function GET(request: Request) {
     `;
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const queryValidation = validateParams(Object.fromEntries(searchParams), warehouseQuerySchema);
+    if ("error" in queryValidation) return queryValidation.error;
+
+    const { page, limit, q, productId } = queryValidation.data;
     const offset = (page - 1) * limit;
-    const q = searchParams.get("q");
-    const productId = searchParams.get("productId");
 
     let countResult: Record<string, unknown>[];
     if (productId) {
@@ -27,7 +34,7 @@ export async function GET(request: Request) {
         SELECT COUNT(DISTINCT w."warehouseid")::integer as total
         FROM "support"."warehouse" w
         INNER JOIN "support"."warehouseproduct" wp ON w."warehouseid" = wp."warehouseid"
-        WHERE wp."ProductId" = ${parseInt(productId)}
+        WHERE wp."ProductId" = ${productId}
       `;
     } else if (q) {
       const like = `%${q.toLowerCase()}%`;
@@ -53,7 +60,7 @@ export async function GET(request: Request) {
                COALESCE(wp1."quantity", 0)::integer as "productQuantity",
                COALESCE(SUM(wp2."quantity"), 0)::integer as "totalQuantity"
         FROM "support"."warehouse" w
-        INNER JOIN "support"."warehouseproduct" wp1 ON w."warehouseid" = wp1."warehouseid" AND wp1."ProductId" = ${parseInt(productId)}
+        INNER JOIN "support"."warehouseproduct" wp1 ON w."warehouseid" = wp1."warehouseid" AND wp1."ProductId" = ${productId}
         LEFT JOIN "support"."warehouseproduct" wp2 ON w."warehouseid" = wp2."warehouseid"
         GROUP BY w."warehouseid", w."name", w."location", w."createdat", wp1."quantity"
         ORDER BY wp1."quantity" DESC
@@ -88,7 +95,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ items, total, page, limit });
   } catch (error) {
     console.error("Error fetching warehouses:", error);
-    return NextResponse.json({ error: "خطا در دریافت انبارها" }, { status: 500 });
+    return serverErrorResponse("خطا در دریافت انبارها");
   }
 }
 
@@ -96,11 +103,10 @@ export async function POST(request: Request) {
   const auth = await requireAuth();
   if (auth instanceof NextResponse) return auth;
   try {
-    const { name, location } = await request.json();
+    const bodyValidation = await validateBody(request, createWarehouseSchema);
+    if ("error" in bodyValidation) return bodyValidation.error;
 
-    if (!name) {
-      return NextResponse.json({ error: "نام انبار الزامی است" }, { status: 400 });
-    }
+    const { name, location } = bodyValidation.data;
 
     // Check if warehouse name already exists
     const existingWarehouse = await prisma.$queryRaw<Record<string, unknown>[]>`
@@ -109,10 +115,7 @@ export async function POST(request: Request) {
     `;
 
     if (existingWarehouse.length > 0) {
-      return NextResponse.json(
-        { error: "نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید." },
-        { status: 409 }
-      );
+      return errorResponse("نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید.", 409);
     }
 
     const created = await prisma.$queryRaw<Record<string, unknown>[]>`
@@ -127,12 +130,9 @@ export async function POST(request: Request) {
 
     // Handle unique constraint violation at database level as fallback
     if (error instanceof Error && error.message.includes("unique")) {
-      return NextResponse.json(
-        { error: "نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید." },
-        { status: 409 }
-      );
+      return errorResponse("نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید.", 409);
     }
 
-    return NextResponse.json({ error: "خطا در ایجاد انبار" }, { status: 500 });
+    return serverErrorResponse("خطا در ایجاد انبار");
   }
 }

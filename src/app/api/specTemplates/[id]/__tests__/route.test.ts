@@ -18,9 +18,7 @@ describe("GET /api/specTemplates/[id]", () => {
     const template = [{ SpecTemplateId: 1, Name: "Template A" }];
     const items = [{ SpecTemplateItemId: 1, SpecTemplateId: 1, Title: "Item 1" }];
 
-    mockPrisma.$queryRaw
-      .mockResolvedValueOnce(template)
-      .mockResolvedValueOnce(items);
+    mockPrisma.$queryRaw.mockResolvedValueOnce(template).mockResolvedValueOnce(items);
 
     const req = new Request("http://localhost/api/specTemplates/1");
     const res = await GET(req as any, { params: Promise.resolve({ id: "1" }) });

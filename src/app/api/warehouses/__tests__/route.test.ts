@@ -23,9 +23,7 @@ describe("GET /api/warehouses", () => {
       {
         id: 1,
         name: "Warehouse A",
-        warehouseproduct: [
-          { Product: { name: "P1" }, ProductGrade: { grade: "A" } },
-        ],
+        warehouseproduct: [{ Product: { name: "P1" }, ProductGrade: { grade: "A" } }],
       },
     ];
     mockPrisma.warehouse.findMany.mockResolvedValue(mockWarehouses);

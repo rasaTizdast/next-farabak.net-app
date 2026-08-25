@@ -1,23 +1,42 @@
 import { NextResponse } from "next/server";
 
+import { errorResponse, notFoundResponse, serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  productIdParamSchema,
+  updateWarehouseProductSchema,
+  validateBody,
+  validateParams,
+  warehouseIdParamSchema,
+} from "@/lib/validation";
 
 export async function PUT(
   request: Request,
   props: { params: Promise<{ warehouseId: string; productId: string }> }
 ) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
   try {
-    const warehouseId = parseInt(params.warehouseId);
-    const productId = parseInt(params.productId);
-    const { quantity, ProductGradeId } = await request.json();
+    const warehouseParamValidation = validateParams(
+      { warehouseId: params.warehouseId },
+      warehouseIdParamSchema
+    );
+    if ("error" in warehouseParamValidation) return warehouseParamValidation.error;
 
-    if (quantity === undefined && ProductGradeId === undefined) {
-      return NextResponse.json({ error: "تعداد یا گرید الزامی است" }, { status: 400 });
-    }
+    const productParamValidation = validateParams(
+      { productId: params.productId },
+      productIdParamSchema
+    );
+    if ("error" in productParamValidation) return productParamValidation.error;
+
+    const warehouseId = warehouseParamValidation.data.warehouseId;
+    const productId = productParamValidation.data.productId;
+
+    const bodyValidation = await validateBody(request, updateWarehouseProductSchema);
+    if ("error" in bodyValidation) return bodyValidation.error;
+
+    const { quantity, ProductGradeId } = bodyValidation.data;
 
     // First check if the warehouse product exists
     const existingProduct = await prisma.warehouseproduct.findUnique({
@@ -30,7 +49,7 @@ export async function PUT(
     });
 
     if (!existingProduct || existingProduct.warehouseid !== warehouseId) {
-      return NextResponse.json({ error: "محصول در این انبار یافت نشد" }, { status: 404 });
+      return notFoundResponse("محصول در این انبار یافت نشد");
     }
 
     // If updating grade, validate it exists for this product
@@ -43,7 +62,7 @@ export async function PUT(
       });
 
       if (!validGrade) {
-        return NextResponse.json({ error: "گرید محصول معتبر نیست" }, { status: 400 });
+        return errorResponse("گرید محصول معتبر نیست", 400);
       }
     }
 
@@ -80,7 +99,7 @@ export async function PUT(
     return NextResponse.json(formattedProduct);
   } catch (error) {
     console.error("Error updating warehouse product:", error);
-    return NextResponse.json({ error: "خطا در بروزرسانی محصول انبار" }, { status: 500 });
+    return serverErrorResponse("خطا در بروزرسانی محصول انبار");
   }
 }
 
@@ -88,12 +107,23 @@ export async function DELETE(
   request: Request,
   props: { params: Promise<{ warehouseId: string; productId: string }> }
 ) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
   try {
-    const warehouseId = parseInt(params.warehouseId);
-    const productId = parseInt(params.productId);
+    const warehouseParamValidation = validateParams(
+      { warehouseId: params.warehouseId },
+      warehouseIdParamSchema
+    );
+    if ("error" in warehouseParamValidation) return warehouseParamValidation.error;
+
+    const productParamValidation = validateParams(
+      { productId: params.productId },
+      productIdParamSchema
+    );
+    if ("error" in productParamValidation) return productParamValidation.error;
+
+    const warehouseId = warehouseParamValidation.data.warehouseId;
+    const productId = productParamValidation.data.productId;
 
     // Verify the warehouseproduct belongs to the warehouse
     const existing = await prisma.warehouseproduct.findUnique({
@@ -101,7 +131,7 @@ export async function DELETE(
     });
 
     if (!existing || existing.warehouseid !== warehouseId) {
-      return NextResponse.json({ error: "محصول در این انبار یافت نشد" }, { status: 404 });
+      return notFoundResponse("محصول در این انبار یافت نشد");
     }
 
     const deleted = await prisma.warehouseproduct.delete({
@@ -111,6 +141,6 @@ export async function DELETE(
     return NextResponse.json(deleted);
   } catch (error) {
     console.error("Error removing product from warehouse:", error);
-    return NextResponse.json({ error: "خطا در حذف محصول از انبار" }, { status: 500 });
+    return serverErrorResponse("خطا در حذف محصول از انبار");
   }
 }

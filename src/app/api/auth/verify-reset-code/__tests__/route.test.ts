@@ -5,12 +5,12 @@ const { mockJwtVerify } = vi.hoisted(() => ({
 }));
 
 vi.mock("jose", () => ({
-  jwtVerify: (...args: any[]) => mockJwtVerify(...args),
+  jwtVerify: (...args: unknown[]) => mockJwtVerify(...args),
 }));
 
 import { POST } from "../route";
 
-function makeRequest(body: any) {
+function makeRequest(body: unknown) {
   return new Request("http://localhost/api/auth/verify-reset-code", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -34,11 +34,13 @@ describe("POST /api/auth/verify-reset-code", () => {
   it("returns 400 when token verification fails", async () => {
     mockJwtVerify.mockRejectedValue(new Error("Invalid token"));
 
-    const res = await POST(makeRequest({
-      email: "test@test.com",
-      code: "123456",
-      resetToken: "invalid-token",
-    }));
+    const res = await POST(
+      makeRequest({
+        email: "test@test.com",
+        code: "123456",
+        resetToken: "invalid-token",
+      })
+    );
     expect(res.status).toBe(400);
   });
 
@@ -47,11 +49,13 @@ describe("POST /api/auth/verify-reset-code", () => {
       payload: { email: "other@test.com", code: "654321" },
     });
 
-    const res = await POST(makeRequest({
-      email: "test@test.com",
-      code: "123456",
-      resetToken: "valid-token",
-    }));
+    const res = await POST(
+      makeRequest({
+        email: "test@test.com",
+        code: "123456",
+        resetToken: "valid-token",
+      })
+    );
     expect(res.status).toBe(400);
   });
 
@@ -60,11 +64,13 @@ describe("POST /api/auth/verify-reset-code", () => {
       payload: { email: "test@test.com", code: "123456" },
     });
 
-    const res = await POST(makeRequest({
-      email: "test@test.com",
-      code: "123456",
-      resetToken: "valid-token",
-    }));
+    const res = await POST(
+      makeRequest({
+        email: "test@test.com",
+        code: "123456",
+        resetToken: "valid-token",
+      })
+    );
     expect(res.status).toBe(200);
 
     const json = await res.json();
@@ -73,13 +79,17 @@ describe("POST /api/auth/verify-reset-code", () => {
   });
 
   it("returns 400 on token verification error", async () => {
-    mockJwtVerify.mockImplementation(() => { throw "unexpected"; });
+    mockJwtVerify.mockImplementation(() => {
+      throw "unexpected";
+    });
 
-    const res = await POST(makeRequest({
-      email: "test@test.com",
-      code: "123456",
-      resetToken: "token",
-    }));
+    const res = await POST(
+      makeRequest({
+        email: "test@test.com",
+        code: "123456",
+        resetToken: "token",
+      })
+    );
     expect(res.status).toBe(400);
   });
 });

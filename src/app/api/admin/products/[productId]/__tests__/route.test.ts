@@ -27,7 +27,7 @@ vi.mock("next/headers", () => ({
 }));
 
 vi.mock("jose", () => ({
-  jwtVerify: (...args: any[]) => mockJwtVerify(...args),
+  jwtVerify: (...args: unknown[]) => mockJwtVerify(...args),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -36,7 +36,7 @@ vi.mock("@/lib/prisma", () => ({
 
 import { DELETE, PATCH } from "../route";
 
-function makeRequest(method: string, body?: any) {
+function makeRequest(method: string, body?: unknown) {
   return new Request(`http://localhost/api/admin/products/123`, {
     method,
     headers: { "Content-Type": "application/json" },

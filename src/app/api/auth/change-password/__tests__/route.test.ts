@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockCookieStore, mockJwtVerify, mockPrisma } = vi.hoisted(() => ({
@@ -22,7 +23,7 @@ vi.mock("next/headers", () => ({
 }));
 
 vi.mock("jose", () => ({
-  jwtVerify: (...args: any[]) => mockJwtVerify(...args),
+  jwtVerify: (...args: unknown[]) => mockJwtVerify(...args),
 }));
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
@@ -32,11 +33,10 @@ vi.mock("bcryptjs", () => ({
 }));
 
 import { PATCH } from "../route";
-import bcrypt from "bcryptjs";
 
 const mockedBcrypt = vi.mocked(bcrypt);
 
-function makeRequest(body: any) {
+function makeRequest(body: unknown) {
   return new Request("http://localhost/api/auth/change-password", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
@@ -60,7 +60,7 @@ describe("PATCH /api/auth/change-password", () => {
     mockJwtVerify.mockResolvedValue({ payload: { userId: "1" } });
     mockPrisma.password.findFirst.mockResolvedValue(null);
 
-    const res = await PATCH(makeRequest({ currentPassword: "old", newPassword: "new" }));
+    const res = await PATCH(makeRequest({ currentPassword: "old", newPassword: "new12345" }));
     expect(res.status).toBe(401);
   });
 
@@ -70,7 +70,7 @@ describe("PATCH /api/auth/change-password", () => {
     mockPrisma.password.findFirst.mockResolvedValue({ Password1: "hashed-old" });
     mockedBcrypt.compare.mockResolvedValue(false as never);
 
-    const res = await PATCH(makeRequest({ currentPassword: "wrong", newPassword: "new" }));
+    const res = await PATCH(makeRequest({ currentPassword: "wrong", newPassword: "new12345" }));
     expect(res.status).toBe(401);
   });
 

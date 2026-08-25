@@ -1,16 +1,14 @@
 import { jwtVerify } from "jose";
 import { NextResponse } from "next/server";
 
+import { errorResponse, serverErrorResponse } from "@/lib/api-response";
+import { validateBody, verifyResetCodeSchema } from "@/lib/validation";
+
 export async function POST(request: Request) {
   try {
-    const { email, code, resetToken } = await request.json();
-
-    if (!email || !code || !resetToken) {
-      return NextResponse.json(
-        { error: "ایمیل، کد بازیابی و توکن بازیابی الزامی هستند" },
-        { status: 400 }
-      );
-    }
+    const result = await validateBody(request, verifyResetCodeSchema);
+    if ("error" in result) return result.error;
+    const { email, code, resetToken } = result.data;
 
     // Verify the JWT token
     try {
@@ -19,7 +17,7 @@ export async function POST(request: Request) {
 
       // Check if the email and code in the token match the provided ones
       if (payload.email !== email || payload.code !== code) {
-        return NextResponse.json({ error: "کد بازیابی نامعتبر است" }, { status: 400 });
+        return errorResponse("کد بازیابی نامعتبر است", 400);
       }
 
       // If we get here, the token is valid
@@ -32,10 +30,10 @@ export async function POST(request: Request) {
     } catch (error) {
       // Token verification failed (expired or invalid)
       console.error(error);
-      return NextResponse.json({ error: "کد بازیابی منقضی شده یا نامعتبر است" }, { status: 400 });
+      return errorResponse("کد بازیابی منقضی شده یا نامعتبر است", 400);
     }
   } catch (error) {
     console.error("Error in verify-reset-code endpoint:", error);
-    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+    return serverErrorResponse("خطای سرور");
   }
 }

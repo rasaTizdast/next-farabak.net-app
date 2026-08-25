@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 
+import { notFoundResponse, serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  assignBranchProductSchema,
+  branchIdParamSchema,
+  validateBody,
+  validateParams,
+} from "@/lib/validation";
 
 /**
  * @swagger
@@ -24,11 +31,12 @@ import { prisma } from "@/lib/prisma";
  *         description: Server error
  */
 export async function GET(request: Request, props: { params: Promise<{ branchId: string }> }) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
+  const paramValidation = validateParams(params, branchIdParamSchema);
+  if ("error" in paramValidation) return paramValidation.error;
   try {
-    const branchId = parseInt(params.branchId);
+    const branchId = paramValidation.data.branchId;
 
     // Check if branch exists
     const branchResult = await prisma.$queryRaw<Record<string, unknown>[]>`
@@ -39,7 +47,7 @@ export async function GET(request: Request, props: { params: Promise<{ branchId:
     const branch = branchResult[0];
 
     if (!branch) {
-      return NextResponse.json({ error: "شعبه یافت نشد" }, { status: 404 });
+      return notFoundResponse("شعبه یافت نشد");
     }
 
     // Get all branch products with product details without pagination
@@ -62,7 +70,7 @@ export async function GET(request: Request, props: { params: Promise<{ branchId:
     return NextResponse.json(branchProducts);
   } catch (error) {
     console.error("Error fetching branch products:", error);
-    return NextResponse.json({ error: "خطا در بارگذاری محصولات شعبه" }, { status: 500 });
+    return serverErrorResponse("خطا در بارگذاری محصولات شعبه");
   }
 }
 
@@ -100,16 +108,15 @@ export async function GET(request: Request, props: { params: Promise<{ branchId:
  *         description: Server error
  */
 export async function POST(request: Request, props: { params: Promise<{ branchId: string }> }) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
+  const paramValidation = validateParams(params, branchIdParamSchema);
+  if ("error" in paramValidation) return paramValidation.error;
+  const bodyValidation = await validateBody(request, assignBranchProductSchema);
+  if ("error" in bodyValidation) return bodyValidation.error;
   try {
-    const branchId = parseInt(params.branchId);
-    const { productId, quantity } = await request.json();
-
-    if (!productId || quantity === undefined) {
-      return NextResponse.json({ error: "شناسه محصول و تعداد الزامی است" }, { status: 400 });
-    }
+    const branchId = paramValidation.data.branchId;
+    const { productId, quantity } = bodyValidation.data;
 
     // Check if branch exists
     const branchResult = await prisma.$queryRaw<Record<string, unknown>[]>`
@@ -118,7 +125,7 @@ export async function POST(request: Request, props: { params: Promise<{ branchId
     `;
 
     if (branchResult.length === 0) {
-      return NextResponse.json({ error: "شعبه یافت نشد" }, { status: 404 });
+      return notFoundResponse("شعبه یافت نشد");
     }
 
     // Check if product exists
@@ -128,7 +135,7 @@ export async function POST(request: Request, props: { params: Promise<{ branchId
     `;
 
     if (productResult.length === 0) {
-      return NextResponse.json({ error: "محصول یافت نشد" }, { status: 404 });
+      return notFoundResponse("محصول یافت نشد");
     }
 
     // Check if product already exists in branch
@@ -159,6 +166,6 @@ export async function POST(request: Request, props: { params: Promise<{ branchId
     return NextResponse.json(newBranchProduct[0], { status: 201 });
   } catch (error) {
     console.error("Error adding product to branch:", error);
-    return NextResponse.json({ error: "خطا در افزودن محصول به شعبه" }, { status: 500 });
+    return serverErrorResponse("خطا در افزودن محصول به شعبه");
   }
 }

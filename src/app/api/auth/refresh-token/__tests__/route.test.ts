@@ -5,7 +5,7 @@ const { mockJwtVerify } = vi.hoisted(() => ({
 }));
 
 vi.mock("jose", () => ({
-  jwtVerify: (...args: any[]) => mockJwtVerify(...args),
+  jwtVerify: (...args: unknown[]) => mockJwtVerify(...args),
   SignJWT: vi.fn().mockImplementation(function () {
     return {
       setProtectedHeader: vi.fn().mockReturnThis(),
@@ -18,7 +18,7 @@ vi.mock("jose", () => ({
 
 import { POST } from "../route";
 
-function makeRefreshRequest(body?: any, headers?: Record<string, string>) {
+function makeRefreshRequest(body?: unknown, headers?: Record<string, string>) {
   return new Request("http://localhost/api/auth/refresh-token", {
     method: "POST",
     headers: { "Content-Type": "application/json", ...headers },
@@ -36,7 +36,7 @@ describe("POST /api/auth/refresh-token", () => {
     expect(res.status).toBe(400);
 
     const json = await res.json();
-    expect(json.message).toContain("بازیابی");
+    expect(json.error).toContain("بازیابی");
   });
 
   it("returns 401 when refresh token is invalid", async () => {

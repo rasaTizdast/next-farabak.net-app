@@ -7,7 +7,9 @@ const { mockPrisma } = vi.hoisted(() => ({
   },
 }));
 vi.mock("@prisma/client", () => ({
-  PrismaClient: vi.fn().mockImplementation(function () { return mockPrisma; }),
+  PrismaClient: vi.fn().mockImplementation(function () {
+    return mockPrisma;
+  }),
 }));
 vi.mock("@/utils/jalaliDate", () => ({
   getCurrentJalaliDate: vi.fn().mockReturnValue("1404-06-23"),

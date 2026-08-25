@@ -1,10 +1,48 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
-import { verifyToken } from "@/lib/auth";
+import { notFoundResponse, serverErrorResponse, unauthorizedResponse } from "@/lib/api-response";
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { validateParams } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
+
+const invoicesQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
+});
+
+interface WarrantyRaw {
+  warrantyid: number;
+  invoicedetailid: number;
+  warrantycode: string;
+  branchid: number | string;
+  startdate: Date | string;
+  expirydate: Date | string;
+  status: string;
+  ProductId: number;
+  userid?: number;
+  Name?: string | null;
+  Type?: string | null;
+  quantity?: number | null;
+  price?: number | null;
+  ClientFirstName?: string | null;
+  ClientLastName?: string | null;
+  ClientPhoneNumber?: string | null;
+  [key: string]: unknown;
+}
+
+interface InvoiceDetailRaw {
+  Invoice_Details: number;
+  ProductId: number;
+  quantity: number;
+  price: number;
+  total_price: number;
+  Name?: string | null;
+  Type?: string | null;
+  [key: string]: unknown;
+}
 
 /**
  * @swagger
@@ -40,34 +78,28 @@ export const dynamic = "force-dynamic";
  *         description: Server error
  */
 export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const queryResult = validateParams(Object.fromEntries(url.searchParams), invoicesQuerySchema);
+  if ("error" in queryResult) return queryResult.error;
+  const data = queryResult.data;
+
+  const page = data.page;
+  const limit = data.limit;
+  const offset = (page - 1) * limit;
+
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+
+  const userId = auth.userId;
+  const userRole = auth.role;
+
+  if (userRole !== "Branch") {
+    return unauthorizedResponse(
+      "دسترسی غیرمجاز: فقط کاربران شعبه می‌توانند به این بخش دسترسی داشته باشند"
+    );
+  }
+
   try {
-    const url = new URL(request.url);
-    const page = parseInt(url.searchParams.get("page") || "1");
-    const limit = parseInt(url.searchParams.get("limit") || "10");
-    const offset = (page - 1) * limit;
-
-    // Get the access token from cookies
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "توکن احراز هویت مورد نیاز است" }, { status: 401 });
-    }
-
-    // Verify and decode the token
-    const decoded = await verifyToken(token);
-    const userId = decoded.userId;
-    const userRole = decoded.role;
-
-    if (!userId || userRole !== "Branch") {
-      return NextResponse.json(
-        {
-          error: "دسترسی غیرمجاز: فقط کاربران شعبه می‌توانند به این بخش دسترسی داشته باشند",
-        },
-        { status: 401 }
-      );
-    }
-
     // Find the branch associated with this user
     const branchResult = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT "branchid", "name", "location"
@@ -76,7 +108,7 @@ export async function GET(request: Request) {
     `;
 
     if (!branchResult || branchResult.length === 0) {
-      return NextResponse.json({ error: "شعبه‌ای برای این کاربر یافت نشد" }, { status: 404 });
+      return notFoundResponse("شعبه‌ای برای این کاربر یافت نشد");
     }
 
     const branch = branchResult[0];
@@ -140,7 +172,7 @@ export async function GET(request: Request) {
         ]);
 
         // Process warranty status
-        const processedWarranties = warranties.map((warranty: any) => {
+        const processedWarranties = (warranties as WarrantyRaw[]).map((warranty) => {
           const today = new Date();
           const expiryDate = new Date(warranty.expirydate);
 
@@ -159,7 +191,7 @@ export async function GET(request: Request) {
         });
 
         // Map warranty data to invoice details
-        const detailsWithWarranty = details.map((detail: any) => {
+        const detailsWithWarranty = (details as InvoiceDetailRaw[]).map((detail) => {
           const warranty = processedWarranties.find(
             (w) => w.invoicedetailid === detail.Invoice_Details
           );
@@ -191,7 +223,7 @@ export async function GET(request: Request) {
     const invoiceIds = invoices.map((invoice) => invoice.Invoiceid);
 
     // Get all invoice detail IDs for these invoices
-    let detailIds: any[] = [];
+    let detailIds: number[] = [];
 
     if (invoiceIds.length > 0) {
       // Create a dynamic query for the IN clause
@@ -205,11 +237,13 @@ export async function GET(request: Request) {
 
       const invoiceDetailsIds = await prisma.$queryRawUnsafe(query, ...invoiceIds);
 
-      detailIds = (invoiceDetailsIds as any[]).map((detail) => detail.Invoice_Details);
+      detailIds = (invoiceDetailsIds as Array<{ Invoice_Details: number }>).map(
+        (detail) => detail.Invoice_Details
+      );
     }
 
     // Now get all standalone warranties for this branch that are not in the current set of invoice details
-    let standaloneWarranties: any[] = [];
+    let standaloneWarranties: WarrantyRaw[] = [];
 
     if (detailIds.length > 0) {
       // Create a dynamic query for the NOT IN clause
@@ -235,9 +269,13 @@ export async function GET(request: Request) {
           AND w."invoicedetailid" NOT IN (${placeholders})
       `;
 
-      standaloneWarranties = await prisma.$queryRawUnsafe(query, branchId, ...detailIds);
+      standaloneWarranties = await prisma.$queryRawUnsafe<WarrantyRaw[]>(
+        query,
+        branchId,
+        ...detailIds
+      );
     } else {
-      standaloneWarranties = await prisma.$queryRaw<Record<string, unknown>[]>`
+      standaloneWarranties = await prisma.$queryRaw<WarrantyRaw[]>`
         SELECT 
           w."warrantyid", w."invoicedetailid", w."warrantycode", 
           w."startdate", w."expirydate", w."status", w."ProductId", w."branchid", w."userid",
@@ -297,7 +335,7 @@ export async function GET(request: Request) {
     let active = 0;
     let expired = 0;
 
-    allWarranties.forEach((warranty: any) => {
+    (allWarranties as WarrantyRaw[]).forEach((warranty) => {
       const today = new Date();
       const expiryDate = new Date(warranty.expirydate);
 
@@ -326,6 +364,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("Error fetching branch invoices:", error);
-    return NextResponse.json({ error: "خطای داخلی سرور" }, { status: 500 });
+    return serverErrorResponse("خطای داخلی سرور");
   }
 }

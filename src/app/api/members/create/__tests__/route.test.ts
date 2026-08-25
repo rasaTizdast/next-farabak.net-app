@@ -12,7 +12,9 @@ const { mockPrisma, mockS3 } = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 vi.mock("aws-sdk", () => ({
-  S3: vi.fn().mockImplementation(function () { return mockS3; }),
+  S3: vi.fn().mockImplementation(function () {
+    return mockS3;
+  }),
 }));
 
 import { POST } from "../route";

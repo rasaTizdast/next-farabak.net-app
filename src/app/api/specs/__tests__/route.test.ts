@@ -18,7 +18,13 @@ describe("POST /api/specs", () => {
 
   it("should create specs successfully", async () => {
     const specs = [
-      { Name: "Battery", Title: "Battery Life", Description: "12 hours", ProductId: 1, Available: true },
+      {
+        Name: "Battery",
+        Title: "Battery Life",
+        Description: "12 hours",
+        ProductId: 1,
+        Available: true,
+      },
       { Name: "Weight", Title: "Weight", Description: "1.5kg", ProductId: 1, Available: true },
     ];
     mockPrisma.productSpecs.createMany.mockResolvedValue({ count: 2 });
@@ -81,7 +87,9 @@ describe("POST /api/specs", () => {
     const req = new Request("http://localhost/api/specs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify([{ Name: "Test", Title: "Test", Description: "Test", ProductId: 1, Available: true }]),
+      body: JSON.stringify([
+        { Name: "Test", Title: "Test", Description: "Test", ProductId: 1, Available: true },
+      ]),
     });
 
     const res = await POST(req as any);

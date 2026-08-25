@@ -23,7 +23,9 @@ describe("GET /api/products/getProductSpecsByProductId", () => {
     ];
     mockPrisma.productSpecs.findMany.mockResolvedValue(mockSpecs);
 
-    const req = new Request("http://localhost/api/products/getProductSpecsByProductId?productId=10");
+    const req = new Request(
+      "http://localhost/api/products/getProductSpecsByProductId?productId=10"
+    );
     const res = await GET(req as any);
     const body = await res.json();
 
@@ -32,7 +34,9 @@ describe("GET /api/products/getProductSpecsByProductId", () => {
   });
 
   it("should return 400 when productId is invalid", async () => {
-    const req = new Request("http://localhost/api/products/getProductSpecsByProductId?productId=abc");
+    const req = new Request(
+      "http://localhost/api/products/getProductSpecsByProductId?productId=abc"
+    );
     const res = await GET(req as any);
 
     expect(res.status).toBe(400);
@@ -41,7 +45,9 @@ describe("GET /api/products/getProductSpecsByProductId", () => {
   it("should return 404 when no specs found", async () => {
     mockPrisma.productSpecs.findMany.mockResolvedValue([]);
 
-    const req = new Request("http://localhost/api/products/getProductSpecsByProductId?productId=999");
+    const req = new Request(
+      "http://localhost/api/products/getProductSpecsByProductId?productId=999"
+    );
     const res = await GET(req as any);
 
     expect(res.status).toBe(404);
@@ -50,7 +56,9 @@ describe("GET /api/products/getProductSpecsByProductId", () => {
   it("should return 500 on database error", async () => {
     mockPrisma.productSpecs.findMany.mockRejectedValue(new Error("DB error"));
 
-    const req = new Request("http://localhost/api/products/getProductSpecsByProductId?productId=10");
+    const req = new Request(
+      "http://localhost/api/products/getProductSpecsByProductId?productId=10"
+    );
     const res = await GET(req as any);
 
     expect(res.status).toBe(500);

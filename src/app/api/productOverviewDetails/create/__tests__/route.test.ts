@@ -43,9 +43,15 @@ describe("POST /api/productOverviewDetails/create", () => {
   it("should create overview details successfully", async () => {
     mockCookies.mockResolvedValue({ get: () => ({ value: "valid-token" }) });
     mockJwtVerify.mockResolvedValue({ payload: { role: "Admin" } });
-    mockS3.upload.mockImplementation((_params: any, cb: any) => cb(null, { Location: "url" }));
+    mockS3.upload.mockImplementation(
+      (_params: unknown, cb: (err: null, data: { Location: string }) => void) =>
+        cb(null, { Location: "url" })
+    );
     mockPrisma.master_ProductOverviewDetails.create.mockResolvedValue({ id: 1 });
-    mockPrisma.master_ProductOverviewDetails.update.mockResolvedValue({ id: 1, ProductOverviewDetailsId: 1 });
+    mockPrisma.master_ProductOverviewDetails.update.mockResolvedValue({
+      id: 1,
+      ProductOverviewDetailsId: 1,
+    });
 
     const req = new Request("http://localhost/api/productOverviewDetails/create", {
       method: "POST",
@@ -74,7 +80,7 @@ describe("POST /api/productOverviewDetails/create", () => {
     const body = await res.json();
 
     expect(res.status).toBe(401);
-    expect(body.message).toContain("Unauthorized");
+    expect(body.error).toContain("Unauthorized");
   });
 
   it("should return 401 when user role is not Admin", async () => {
@@ -114,7 +120,10 @@ describe("POST /api/productOverviewDetails/create", () => {
   it("should return 500 on error", async () => {
     mockCookies.mockResolvedValue({ get: () => ({ value: "token" }) });
     mockJwtVerify.mockResolvedValue({ payload: { role: "Admin" } });
-    mockS3.upload.mockImplementation((_params: any, cb: any) => cb(null, { Location: "url" }));
+    mockS3.upload.mockImplementation(
+      (_params: unknown, cb: (err: null, data: { Location: string }) => void) =>
+        cb(null, { Location: "url" })
+    );
     mockPrisma.master_ProductOverviewDetails.create.mockRejectedValue(new Error("DB error"));
 
     const req = new Request("http://localhost/api/productOverviewDetails/create", {

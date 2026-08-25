@@ -7,7 +7,7 @@ vi.mock("@/utils/invoiceJwt", () => ({
 
 import { POST } from "../route";
 
-function makeRequest(body: any) {
+function makeRequest(body: unknown) {
   return new NextRequest("http://localhost/api/invoice/save", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -48,10 +48,12 @@ describe("POST /api/invoice/save", () => {
     const { signInvoiceData } = await import("@/utils/invoiceJwt");
     vi.mocked(signInvoiceData).mockRejectedValueOnce(new Error("sign failed"));
 
-    const res = await POST(makeRequest({
-      products: [{ ProductId: 1, ProductName: "Test", Quantity: 1 }],
-      TotalAmount: 100000,
-    }));
+    const res = await POST(
+      makeRequest({
+        products: [{ ProductId: 1, ProductName: "Test", Quantity: 1 }],
+        TotalAmount: 100000,
+      })
+    );
     expect(res.status).toBe(500);
   });
 });

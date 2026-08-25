@@ -22,7 +22,7 @@ vi.mock("next/headers", () => ({
 }));
 
 vi.mock("jose", () => ({
-  jwtVerify: (...args: any[]) => mockJwtVerify(...args),
+  jwtVerify: (...args: unknown[]) => mockJwtVerify(...args),
 }));
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
@@ -35,7 +35,7 @@ vi.mock("@prisma/client", () => ({
 
 import { POST, GET } from "../route";
 
-function makePostRequest(body: any) {
+function makePostRequest(body: unknown) {
   return new Request("http://localhost/api/admin/users", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

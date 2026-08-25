@@ -24,7 +24,9 @@ const { mockPrisma, mockS3Instance } = vi.hoisted(() => ({
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 vi.mock("aws-sdk", () => ({
-  S3: vi.fn().mockImplementation(function () { return mockS3Instance; }),
+  S3: vi.fn().mockImplementation(function () {
+    return mockS3Instance;
+  }),
 }));
 
 import { GET, PUT, DELETE } from "../route";
@@ -123,7 +125,7 @@ describe("PUT /api/projects/[id]", () => {
     const req = new NextRequest("http://localhost", { method: "PUT", body: fd });
 
     const res = await PUT(req, { params: Promise.resolve({ id: "1" }) });
-    const body = await res.json();
+    await res.json();
 
     expect(res.status).toBe(500);
   });
@@ -177,7 +179,7 @@ describe("DELETE /api/projects/[id]", () => {
     const res = await DELETE(new NextRequest("http://localhost", { method: "DELETE" }), {
       params: Promise.resolve({ id: "1" }),
     });
-    const body = await res.json();
+    await res.json();
 
     expect(res.status).toBe(500);
   });

@@ -49,9 +49,7 @@ describe("GET /api/products/search", () => {
 
   it("returns matching products", async () => {
     mockPrisma.product.count.mockResolvedValue(1);
-    mockPrisma.category.findMany.mockResolvedValue([
-      { CategoryID: 1, Slug: "cat1", Name: "Cat1" },
-    ]);
+    mockPrisma.category.findMany.mockResolvedValue([{ CategoryID: 1, Slug: "cat1", Name: "Cat1" }]);
     mockPrisma.categoryContent.findMany.mockResolvedValue([]);
     mockPrisma.product.findMany.mockResolvedValue([
       {

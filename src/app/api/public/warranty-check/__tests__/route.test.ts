@@ -112,9 +112,7 @@ describe("POST /api/public/warranty-check", () => {
 
   describe("confirm mode", () => {
     it("updates status to Requested for active warranty", async () => {
-      mockPrisma.$queryRaw
-        .mockResolvedValueOnce(activeWarranty)
-        .mockResolvedValueOnce([]);
+      mockPrisma.$queryRaw.mockResolvedValueOnce(activeWarranty).mockResolvedValueOnce([]);
 
       const res = await POST(makePostRequest({ warrantycode: "W-001", confirm: true }));
       const json = await res.json();
@@ -144,9 +142,7 @@ describe("POST /api/public/warranty-check", () => {
 
   describe("legacy path (no checkOnly/confirm flags)", () => {
     it("updates active warranty to Requested", async () => {
-      mockPrisma.$queryRaw
-        .mockResolvedValueOnce(activeWarranty)
-        .mockResolvedValueOnce([]);
+      mockPrisma.$queryRaw.mockResolvedValueOnce(activeWarranty).mockResolvedValueOnce([]);
 
       const res = await POST(makePostRequest({ warrantycode: "W-001" }));
       const json = await res.json();

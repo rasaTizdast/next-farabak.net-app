@@ -185,7 +185,14 @@ async function sendEmail(mailOptions: nodemailer.SendMailOptions) {
 }
 
 export async function POST(req: Request) {
-  const { to, subject, text, html, template, templateData }: {
+  const {
+    to,
+    subject,
+    text,
+    html,
+    template,
+    templateData,
+  }: {
     to?: string;
     subject?: string;
     text?: string;

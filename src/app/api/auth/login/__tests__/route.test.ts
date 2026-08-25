@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockPrisma } = vi.hoisted(() => ({
@@ -25,11 +26,10 @@ vi.mock("jose", () => ({
 }));
 
 import { POST } from "../route";
-import bcrypt from "bcryptjs";
 
 const mockedBcrypt = vi.mocked(bcrypt);
 
-function makeLoginRequest(body: any) {
+function makeLoginRequest(body: unknown) {
   return new Request("http://localhost/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -49,7 +49,7 @@ describe("POST /api/auth/login", () => {
     expect(res.status).toBe(401);
 
     const json = await res.json();
-    expect(json.message).toContain("نام کاربری");
+    expect(json.error).toContain("نام کاربری");
   });
 
   it("returns 401 when password array is empty", async () => {

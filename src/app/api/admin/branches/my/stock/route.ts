@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 
+import { errorResponse, notFoundResponse, serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { branchProductQuerySchema, validateParams } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
@@ -10,29 +12,24 @@ export const dynamic = "force-dynamic";
  * Used for warranty assignment within a branch
  */
 export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const queryResult = validateParams(Object.fromEntries(searchParams), branchProductQuerySchema);
+  if ("error" in queryResult) return queryResult.error;
+  const data = queryResult.data;
+
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+
+  const userId = auth.userId;
+  const userRole = auth.role;
+  const productId = data.productId;
+
+  // Only Branch users can check their own stock
+  if (userRole !== "Branch") {
+    return errorResponse("این سرویس فقط برای کاربران شعبه قابل دسترسی است", 403);
+  }
+
   try {
-    // Get productId from URL
-    const { searchParams } = new URL(request.url);
-    const productId = searchParams.get("productId");
-
-    if (!productId) {
-      return NextResponse.json({ error: "شناسه محصول الزامی است" }, { status: 400 });
-    }
-
-    const auth = await requireAuth();
-    if (auth instanceof NextResponse) return auth;
-
-    const userId = auth.userId;
-    const userRole = auth.role;
-
-    // Only Branch users can check their own stock
-    if (userRole !== "Branch") {
-      return NextResponse.json(
-        { error: "این سرویس فقط برای کاربران شعبه قابل دسترسی است" },
-        { status: 403 }
-      );
-    }
-
     // Get the branch associated with this user
     // Using a raw query to avoid model naming issues
     const branchStaffResult = await prisma.$queryRaw<Record<string, unknown>[]>`
@@ -42,7 +39,7 @@ export async function GET(request: Request) {
     `;
 
     if (!branchStaffResult || !Array.isArray(branchStaffResult) || branchStaffResult.length === 0) {
-      return NextResponse.json({ error: "شما با هیچ شعبه‌ای مرتبط نیستید" }, { status: 404 });
+      return notFoundResponse("شما با هیچ شعبه‌ای مرتبط نیستید");
     }
 
     const branchId = branchStaffResult[0].branchid as number;
@@ -55,14 +52,14 @@ export async function GET(request: Request) {
     });
 
     if (!branch) {
-      return NextResponse.json({ error: "شعبه یافت نشد" }, { status: 404 });
+      return notFoundResponse("شعبه یافت نشد");
     }
 
     // Check if the branch has the product in stock
     const productStock = await prisma.branchproduct.findFirst({
       where: {
         branchid: branchId,
-        ProductId: parseInt(productId),
+        ProductId: productId,
       },
     });
 
@@ -77,6 +74,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("Error checking branch stock:", error);
-    return NextResponse.json({ error: "خطا در بررسی موجودی شعبه" }, { status: 500 });
+    return serverErrorResponse("خطا در بررسی موجودی شعبه");
   }
 }

@@ -39,6 +39,22 @@ export const dynamic = "force-dynamic";
  *       500:
  *         description: Internal server error
  */
+// Static URLs
+const staticUrls = [
+  "https://farabak.net",
+  "https://farabak.net/products",
+  "https://farabak.net/support",
+  "https://farabak.net/support/download-center",
+  "https://farabak.net/support/blog",
+  "https://farabak.net/support/faq",
+  "https://farabak.net/support/warranty-tracking",
+  "https://farabak.net/about-us",
+  "https://farabak.net/about-us/projects",
+  "https://farabak.net/about-us/members",
+  "https://farabak.net/about-us/activity",
+  "https://farabak.net/contact-us",
+];
+
 export async function GET() {
   try {
     // Fetch all the data we need in parallel
@@ -160,22 +176,6 @@ export async function GET() {
     const projectUrls = projects.map(
       (project) => `https://farabak.net/about-us/projects/${project.Slug}`
     );
-
-    // Static URLs
-    const staticUrls = [
-      "https://farabak.net",
-      "https://farabak.net/products",
-      "https://farabak.net/support",
-      "https://farabak.net/support/download-center",
-      "https://farabak.net/support/blog",
-      "https://farabak.net/support/faq",
-      "https://farabak.net/support/warranty-tracking",
-      "https://farabak.net/about-us",
-      "https://farabak.net/about-us/projects",
-      "https://farabak.net/about-us/members",
-      "https://farabak.net/about-us/activity",
-      "https://farabak.net/contact-us",
-    ];
 
     // Combine all URLs
     const allUrls = {

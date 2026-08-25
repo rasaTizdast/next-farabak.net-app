@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 
+import { notFoundResponse, serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { branchIdParamSchema, validateParams } from "@/lib/validation";
 
 /**
  * @swagger
@@ -24,15 +26,12 @@ import { prisma } from "@/lib/prisma";
  *         description: Server error
  */
 export async function GET(request: Request, props: { params: Promise<{ branchId: string }> }) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
+  const paramValidation = validateParams(params, branchIdParamSchema);
+  if ("error" in paramValidation) return paramValidation.error;
   try {
-    const branchId = parseInt(params.branchId);
-
-    if (isNaN(branchId)) {
-      return NextResponse.json({ error: "شناسه شعبه نامعتبر است" }, { status: 400 });
-    }
+    const branchId = paramValidation.data.branchId;
 
     // Check if branch exists
     const branch = await prisma.$queryRaw<Record<string, unknown>[]>`
@@ -40,7 +39,7 @@ export async function GET(request: Request, props: { params: Promise<{ branchId:
     `;
 
     if (!branch || branch.length === 0) {
-      return NextResponse.json({ error: "شعبه مورد نظر یافت نشد" }, { status: 404 });
+      return notFoundResponse("شعبه مورد نظر یافت نشد");
     }
 
     // Get branch's user ID
@@ -105,6 +104,6 @@ export async function GET(request: Request, props: { params: Promise<{ branchId:
     return NextResponse.json(invoicesWithDetails);
   } catch (error) {
     console.error("Error fetching branch invoices:", error);
-    return NextResponse.json({ error: "خطا در بارگذاری فاکتورهای شعبه" }, { status: 500 });
+    return serverErrorResponse("خطا در بارگذاری فاکتورهای شعبه");
   }
 }

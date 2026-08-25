@@ -122,7 +122,7 @@ describe("POST /api/products/grades", () => {
     });
 
     const res = await POST(req as any);
-    const body = await res.json();
+    await res.json();
 
     expect(res.status).toBe(500);
   });

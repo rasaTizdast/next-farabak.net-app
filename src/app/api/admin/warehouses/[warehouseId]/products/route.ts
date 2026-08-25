@@ -1,14 +1,22 @@
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/lib/prisma";
+import { errorResponse, notFoundResponse, serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import {
+  assignWarehouseProductSchema,
+  validateBody,
+  validateParams,
+  warehouseIdParamSchema,
+} from "@/lib/validation";
 
 export async function GET(request: Request, props: { params: Promise<{ warehouseId: string }> }) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
   try {
-    const warehouseId = parseInt(params.warehouseId);
+    const paramValidation = validateParams(params, warehouseIdParamSchema);
+    if ("error" in paramValidation) return paramValidation.error;
+    const warehouseId = paramValidation.data.warehouseId;
 
     const products = await prisma.warehouseproduct.findMany({
       where: {
@@ -43,21 +51,22 @@ export async function GET(request: Request, props: { params: Promise<{ warehouse
     return NextResponse.json(formattedProducts);
   } catch (error) {
     console.error("Error fetching warehouse products:", error);
-    return NextResponse.json({ error: "خطا در دریافت محصولات انبار" }, { status: 500 });
+    return serverErrorResponse("خطا در دریافت محصولات انبار");
   }
 }
 
 export async function POST(request: Request, props: { params: Promise<{ warehouseId: string }> }) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
   try {
-    const warehouseId = parseInt(params.warehouseId);
-    const { productId, quantity, ProductGradeId } = await request.json();
+    const paramValidation = validateParams(params, warehouseIdParamSchema);
+    if ("error" in paramValidation) return paramValidation.error;
+    const warehouseId = paramValidation.data.warehouseId;
 
-    if (!productId || quantity === undefined) {
-      return NextResponse.json({ error: "شناسه محصول و تعداد الزامی است" }, { status: 400 });
-    }
+    const bodyValidation = await validateBody(request, assignWarehouseProductSchema);
+    if ("error" in bodyValidation) return bodyValidation.error;
+
+    const { productId, quantity, ProductGradeId } = bodyValidation.data;
 
     if (ProductGradeId) {
       const gradeResult = await prisma.$queryRaw<Record<string, unknown>[]>`
@@ -66,7 +75,7 @@ export async function POST(request: Request, props: { params: Promise<{ warehous
         AND "ProductId" = ${productId}
       `;
       if (gradeResult.length === 0) {
-        return NextResponse.json({ error: "گرید محصول معتبر نیست" }, { status: 400 });
+        return errorResponse("گرید محصول معتبر نیست", 400);
       }
     }
 
@@ -74,14 +83,14 @@ export async function POST(request: Request, props: { params: Promise<{ warehous
       SELECT * FROM "support"."warehouse" WHERE "warehouseid" = ${warehouseId}
     `;
     if (warehouseResult.length === 0) {
-      return NextResponse.json({ error: "انبار یافت نشد" }, { status: 404 });
+      return notFoundResponse("انبار یافت نشد");
     }
 
     const productResult = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM "support"."Product" WHERE "ProductId" = ${productId}
     `;
     if (productResult.length === 0) {
-      return NextResponse.json({ error: "محصول یافت نشد" }, { status: 404 });
+      return notFoundResponse("محصول یافت نشد");
     }
 
     const existing = await prisma.$queryRaw<Record<string, unknown>[]>`
@@ -124,6 +133,6 @@ export async function POST(request: Request, props: { params: Promise<{ warehous
     return NextResponse.json(inserted[0], { status: 201 });
   } catch (error) {
     console.error("Error adding product to warehouse:", error);
-    return NextResponse.json({ error: "خطا در افزودن محصول به انبار" }, { status: 500 });
+    return serverErrorResponse("خطا در افزودن محصول به انبار");
   }
 }

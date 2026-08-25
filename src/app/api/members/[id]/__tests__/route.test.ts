@@ -14,7 +14,9 @@ const { mockPrisma, mockS3 } = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 vi.mock("aws-sdk", () => ({
-  S3: vi.fn().mockImplementation(function () { return mockS3; }),
+  S3: vi.fn().mockImplementation(function () {
+    return mockS3;
+  }),
 }));
 
 import { GET, DELETE } from "../route";
@@ -91,7 +93,7 @@ describe("DELETE /api/members/[id]", () => {
     const res = await DELETE(new Request("http://localhost", { method: "DELETE" }), {
       params: Promise.resolve({ id: "1" }),
     });
-    const body = await res.json();
+    await res.json();
 
     expect(res.status).toBe(200);
     expect(mockS3.deleteObject).not.toHaveBeenCalled();

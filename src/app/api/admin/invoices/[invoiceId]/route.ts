@@ -1,20 +1,19 @@
 import { NextResponse } from "next/server";
 
+import { notFoundResponse, serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { invoiceIdParamSchema, validateParams } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request, props: { params: Promise<{ invoiceId: string }> }) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
   try {
-    const invoiceId = parseInt(params.invoiceId);
-
-    if (isNaN(invoiceId)) {
-      return NextResponse.json({ error: "Invalid invoice ID" }, { status: 400 });
-    }
+    const paramValidation = validateParams(params, invoiceIdParamSchema);
+    if ("error" in paramValidation) return paramValidation.error;
+    const invoiceId = paramValidation.data.invoiceId;
 
     // Fetch the specific invoice
     const invoiceData = await prisma.$queryRaw<Record<string, unknown>[]>`
@@ -29,7 +28,7 @@ export async function GET(request: Request, props: { params: Promise<{ invoiceId
 
     // Check if invoice exists
     if (!invoiceData || invoiceData.length === 0) {
-      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+      return notFoundResponse("Invoice not found");
     }
 
     const invoice = invoiceData[0];
@@ -59,25 +58,25 @@ export async function GET(request: Request, props: { params: Promise<{ invoiceId
     `;
 
     interface WarrantyRaw {
-  warrantyid: number;
-  invoicedetailid: number;
-  warrantycode: string;
-  branchid: number | string;
-  startdate: Date | string;
-  expirydate: Date | string;
-  status: string;
-  ProductId: number;
-  [key: string]: unknown;
-}
+      warrantyid: number;
+      invoicedetailid: number;
+      warrantycode: string;
+      branchid: number | string;
+      startdate: Date | string;
+      expirydate: Date | string;
+      status: string;
+      ProductId: number;
+      [key: string]: unknown;
+    }
 
-interface InvoiceDetailRaw {
-  Invoice_Details: number;
-  ProductId: number;
-  quantity: number;
-  price: number;
-  total_price: number;
-  [key: string]: unknown;
-}
+    interface InvoiceDetailRaw {
+      Invoice_Details: number;
+      ProductId: number;
+      quantity: number;
+      price: number;
+      total_price: number;
+      [key: string]: unknown;
+    }
 
     // Process warranty status
     const processedWarranties = (warranties as WarrantyRaw[]).map((warranty) => {
@@ -99,18 +98,28 @@ interface InvoiceDetailRaw {
     });
 
     // Group warranties by invoice detail and product
-    const warrantiesByDetail = processedWarranties.reduce<Record<number, {
-      warrantyid: number;
-      invoicedetailid: number;
-      warrantycode: string;
-      branchid: number | string;
-      startdate: Date | string;
-      expirydate: Date | string;
-      status: string;
-      ProductId: number;
-      displayStatus: string;
-      warrantycodes: { code: string; startdate: Date | string; expirydate: Date | string; status: string }[];
-    }>>((acc, warranty) => {
+    const warrantiesByDetail = processedWarranties.reduce<
+      Record<
+        number,
+        {
+          warrantyid: number;
+          invoicedetailid: number;
+          warrantycode: string;
+          branchid: number | string;
+          startdate: Date | string;
+          expirydate: Date | string;
+          status: string;
+          ProductId: number;
+          displayStatus: string;
+          warrantycodes: {
+            code: string;
+            startdate: Date | string;
+            expirydate: Date | string;
+            status: string;
+          }[];
+        }
+      >
+    >((acc, warranty) => {
       const key = warranty.invoicedetailid;
       if (!acc[key]) {
         acc[key] = {
@@ -162,6 +171,6 @@ interface InvoiceDetailRaw {
     });
   } catch (error) {
     console.error("Error fetching invoice:", error);
-    return NextResponse.json({ error: "خطا در بارگذاری فاکتور" }, { status: 500 });
+    return serverErrorResponse("خطا در بارگذاری فاکتور");
   }
 }

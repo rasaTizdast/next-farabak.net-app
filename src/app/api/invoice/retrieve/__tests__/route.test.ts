@@ -5,7 +5,7 @@ const { mockVerifyInvoiceData } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/utils/invoiceJwt", () => ({
-  verifyInvoiceData: (...args: any[]) => mockVerifyInvoiceData(...args),
+  verifyInvoiceData: (...args: unknown[]) => mockVerifyInvoiceData(...args),
 }));
 
 import { GET } from "../route";

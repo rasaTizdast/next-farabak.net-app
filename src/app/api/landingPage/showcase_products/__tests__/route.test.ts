@@ -20,7 +20,7 @@ vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 vi.mock("aws-sdk", () => ({
   S3: class {
     constructor() {}
-    putObject(...args: any[]) {
+    putObject(...args: unknown[]) {
       return mockS3Instance.putObject(...args);
     }
   },
@@ -132,7 +132,7 @@ describe("POST /api/landingPage/showcase_products", () => {
     });
 
     const res = await POST(req);
-    const body = await res.json();
+    await res.json();
 
     expect(res.status).toBe(500);
   });

@@ -1,52 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  validateParams,
+  validateBody,
+  productIdParamSchema,
+  amountLimitsSchema,
+} from "@/lib/validation";
 
 export async function PATCH(
   request: NextRequest,
   props: { params: Promise<{ productId: string }> }
 ) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
   try {
-    const { productId } = params;
     // Validate product ID
-    if (!productId || isNaN(Number(productId))) {
-      return NextResponse.json({ message: "شناسه محصول نامعتبر است" }, { status: 400 });
-    }
+    const paramResult = validateParams(params, productIdParamSchema);
+    if ("error" in paramResult) return paramResult.error;
+    const productId = paramResult.data.productId;
 
-    const body = await request.json();
-    const { minimum_amount, maximum_amount } = body;
-
-    // Validate amounts
-    if (minimum_amount !== null && minimum_amount !== undefined) {
-      if (typeof minimum_amount !== "number" || minimum_amount < 0) {
-        return NextResponse.json({ message: "حداقل مقدار باید عدد مثبت باشد" }, { status: 400 });
-      }
-    }
-
-    if (maximum_amount !== null && maximum_amount !== undefined) {
-      if (typeof maximum_amount !== "number" || maximum_amount < 0) {
-        return NextResponse.json({ message: "حداکثر مقدار باید عدد مثبت باشد" }, { status: 400 });
-      }
-    }
-
-    if (minimum_amount !== null && maximum_amount !== null && minimum_amount > maximum_amount) {
-      return NextResponse.json(
-        { message: "حداقل مقدار نمی‌تواند بیشتر از حداکثر باشد" },
-        { status: 400 }
-      );
-    }
+    // Validate the request body
+    const result = await validateBody(request, amountLimitsSchema);
+    if ("error" in result) return result.error;
+    const data = result.data;
 
     // TODO: Replace with your actual database query
     // Example with Prisma:
     const updatedProduct = await prisma.product.update({
-      where: { ProductId: Number(productId) },
+      where: { ProductId: productId },
       data: {
-        Minimum_Amount: minimum_amount,
-        Maximum_Amount: maximum_amount,
+        Minimum_Amount: data.minimum_amount,
+        Maximum_Amount: data.maximum_amount,
       },
     });
 
@@ -56,6 +43,6 @@ export async function PATCH(
     });
   } catch (error) {
     console.error("Error updating product amounts:", error);
-    return NextResponse.json({ message: "خطای سرور در ذخیره تغییرات" }, { status: 500 });
+    return serverErrorResponse("خطای سرور در ذخیره تغییرات");
   }
 }

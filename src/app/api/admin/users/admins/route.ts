@@ -1,8 +1,10 @@
 // app/api/admins/route.ts
 import { NextResponse } from "next/server";
 
+import { serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma"; // Assuming you have a prisma client setup
+import { userIdSchema, validateBody } from "@/lib/validation";
 
 // Fetch all admins
 export async function GET() {
@@ -26,22 +28,27 @@ export async function GET() {
 
 // Demote an admin to "Public"
 export async function POST(request: Request) {
-  const auth = await requireAuth();
-  if (auth instanceof NextResponse) return auth;
-  const { userId } = await request.json();
+  try {
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-  if (!userId) {
-    return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+    const bodyValidation = await validateBody(request, userIdSchema);
+    if ("error" in bodyValidation) return bodyValidation.error;
+
+    const { userId } = bodyValidation.data;
+
+    const updatedUser = await prisma.client.update({
+      where: {
+        UserID: userId,
+      },
+      data: {
+        Role: "Public",
+      },
+    });
+
+    return NextResponse.json(updatedUser);
+  } catch (error) {
+    console.error("Error demoting admin:", error);
+    return serverErrorResponse("خطا در تغییر نقش کاربر");
   }
-
-  const updatedUser = await prisma.client.update({
-    where: {
-      UserID: userId,
-    },
-    data: {
-      Role: "Public",
-    },
-  });
-
-  return NextResponse.json(updatedUser);
 }

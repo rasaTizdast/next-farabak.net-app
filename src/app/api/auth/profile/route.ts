@@ -1,8 +1,10 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { notFoundResponse, serverErrorResponse, unauthorizedResponse } from "@/lib/api-response";
 import { verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { profileUpdateSchema, validateBody } from "@/lib/validation";
 
 /**
  * @swagger
@@ -71,13 +73,13 @@ import { prisma } from "@/lib/prisma";
  *       500:
  *         description: Internal server error.
  */
-export async function GET(): Promise<NextResponse> {
+export async function GET(): Promise<Response> {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json({ message: "توکن احراز هویت الزامی است" }, { status: 401 });
+      return unauthorizedResponse("توکن احراز هویت الزامی است");
     }
 
     // Verify the token
@@ -97,7 +99,7 @@ export async function GET(): Promise<NextResponse> {
     });
 
     if (!user) {
-      return NextResponse.json({ message: "کاربر یافت نشد" }, { status: 404 });
+      return notFoundResponse("کاربر یافت نشد");
     }
 
     return NextResponse.json({
@@ -111,37 +113,25 @@ export async function GET(): Promise<NextResponse> {
     });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
+    return serverErrorResponse("خطای داخلی سرور");
   }
 }
 
-export async function PATCH(request: Request): Promise<NextResponse> {
+export async function PATCH(request: Request): Promise<Response> {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json({ message: "توکن احراز هویت الزامی است" }, { status: 401 });
+      return unauthorizedResponse("توکن احراز هویت الزامی است");
     }
 
     // Use jose to verify the token
     const decoded = await verifyToken(token);
 
-    const updates: {
-      firstName?: string;
-      lastName?: string;
-      phoneNumber?: string;
-      email?: string;
-      city?: string;
-      job?: string;
-    } = await request.json();
-
-    if (Object.keys(updates).length === 0) {
-      return NextResponse.json(
-        { message: "هیچ داده‌ای برای به‌روزرسانی ارائه نشده است" },
-        { status: 400 }
-      );
-    }
+    const result = await validateBody(request, profileUpdateSchema);
+    if ("error" in result) return result.error;
+    const updates = result.data;
 
     await prisma.client.update({
       where: { UserID: parseInt(decoded.userId, 10) },
@@ -158,6 +148,6 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     return NextResponse.json({ message: "پروفایل با موفقیت به‌روزرسانی شد" });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
+    return serverErrorResponse("خطای داخلی سرور");
   }
 }

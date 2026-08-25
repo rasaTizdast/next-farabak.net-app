@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 
+import { errorResponse, notFoundResponse, serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  branchIdParamSchema,
+  updateBranchSchema,
+  validateBody,
+  validateParams,
+} from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
@@ -26,18 +33,12 @@ export const dynamic = "force-dynamic";
  *         description: Server error
  */
 export async function GET(request: Request, props: { params: Promise<{ branchId: string }> }) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
+  const paramValidation = validateParams(params, branchIdParamSchema);
+  if ("error" in paramValidation) return paramValidation.error;
   try {
-    if (!params.branchId) {
-      return NextResponse.json({ error: "Branch ID is required" }, { status: 400 });
-    }
-
-    const branchId = parseInt(params.branchId);
-    if (isNaN(branchId)) {
-      return NextResponse.json({ error: "Invalid branch ID format" }, { status: 400 });
-    }
+    const branchId = paramValidation.data.branchId;
 
     const branch = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT "branchid", "name", "location" FROM "support"."branch"
@@ -45,13 +46,13 @@ export async function GET(request: Request, props: { params: Promise<{ branchId:
     `;
 
     if (!branch || branch.length === 0) {
-      return NextResponse.json({ error: "Branch not found" }, { status: 404 });
+      return notFoundResponse("Branch not found");
     }
 
     return NextResponse.json(branch[0]);
   } catch (error) {
     console.error("Error fetching branch:", error);
-    return NextResponse.json({ error: "Failed to fetch branch information" }, { status: 500 });
+    return serverErrorResponse("خطا در بارگذاری اطلاعات شعبه");
   }
 }
 
@@ -94,16 +95,15 @@ export async function GET(request: Request, props: { params: Promise<{ branchId:
  *         description: Server error
  */
 export async function PUT(request: Request, props: { params: Promise<{ branchId: string }> }) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
+  const paramValidation = validateParams(params, branchIdParamSchema);
+  if ("error" in paramValidation) return paramValidation.error;
+  const bodyValidation = await validateBody(request, updateBranchSchema);
+  if ("error" in bodyValidation) return bodyValidation.error;
   try {
-    const branchId = parseInt(params.branchId);
-    const { name, location } = await request.json();
-
-    if (!name || !location) {
-      return NextResponse.json({ error: "نام و کد مکان شعبه الزامی هستند" }, { status: 400 });
-    }
+    const branchId = paramValidation.data.branchId;
+    const { name, location } = bodyValidation.data;
 
     // Check if branch exists
     const branchResult = await prisma.$queryRaw<Record<string, unknown>[]>`
@@ -112,7 +112,7 @@ export async function PUT(request: Request, props: { params: Promise<{ branchId:
     `;
 
     if (branchResult.length === 0) {
-      return NextResponse.json({ error: "شعبه یافت نشد" }, { status: 404 });
+      return notFoundResponse("شعبه یافت نشد");
     }
 
     // Check if another branch already has this name (except the current branch)
@@ -122,7 +122,7 @@ export async function PUT(request: Request, props: { params: Promise<{ branchId:
     `;
 
     if (existingBranch.length > 0) {
-      return NextResponse.json({ error: "این نام شعبه قبلاً استفاده شده است" }, { status: 400 });
+      return errorResponse("این نام شعبه قبلاً استفاده شده است", 400);
     }
 
     // Update branch
@@ -136,7 +136,7 @@ export async function PUT(request: Request, props: { params: Promise<{ branchId:
     return NextResponse.json(updatedBranch[0]);
   } catch (error) {
     console.error("Error updating branch:", error);
-    return NextResponse.json({ error: "خطا در بروزرسانی شعبه" }, { status: 500 });
+    return serverErrorResponse("خطا در بروزرسانی شعبه");
   }
 }
 
@@ -161,11 +161,12 @@ export async function PUT(request: Request, props: { params: Promise<{ branchId:
  *         description: Server error
  */
 export async function DELETE(request: Request, props: { params: Promise<{ branchId: string }> }) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
+  const paramValidation = validateParams(params, branchIdParamSchema);
+  if ("error" in paramValidation) return paramValidation.error;
   try {
-    const branchId = parseInt(params.branchId);
+    const branchId = paramValidation.data.branchId;
 
     // Check if branch exists
     const branchResult = await prisma.$queryRaw<Record<string, unknown>[]>`
@@ -176,7 +177,7 @@ export async function DELETE(request: Request, props: { params: Promise<{ branch
     const branch = branchResult[0];
 
     if (!branch) {
-      return NextResponse.json({ error: "شعبه یافت نشد" }, { status: 404 });
+      return notFoundResponse("شعبه یافت نشد");
     }
 
     // Store the UserID before deleting the branch
@@ -212,6 +213,6 @@ export async function DELETE(request: Request, props: { params: Promise<{ branch
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting branch:", error);
-    return NextResponse.json({ error: "خطا در حذف شعبه" }, { status: 500 });
+    return serverErrorResponse("خطا در حذف شعبه");
   }
 }

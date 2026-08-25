@@ -1,14 +1,22 @@
 import { NextResponse } from "next/server";
 
+import { errorResponse, notFoundResponse, serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  updateWarehouseSchema,
+  validateBody,
+  validateParams,
+  warehouseIdParamSchema,
+} from "@/lib/validation";
 
 export async function GET(request: Request, props: { params: Promise<{ warehouseId: string }> }) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
   try {
-    const id = parseInt(params.warehouseId);
+    const paramValidation = validateParams(params, warehouseIdParamSchema);
+    if ("error" in paramValidation) return paramValidation.error;
+    const id = paramValidation.data.warehouseId;
 
     const result = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT w."warehouseid", w."name", w."location", w."createdat",
@@ -21,22 +29,27 @@ export async function GET(request: Request, props: { params: Promise<{ warehouse
     `;
 
     if (result.length === 0) {
-      return NextResponse.json({ error: "انبار یافت نشد" }, { status: 404 });
+      return notFoundResponse("انبار یافت نشد");
     }
     return NextResponse.json(result[0]);
   } catch (error) {
     console.error("Error fetching warehouse:", error);
-    return NextResponse.json({ error: "خطا در دریافت انبار" }, { status: 500 });
+    return serverErrorResponse("خطا در دریافت انبار");
   }
 }
 
 export async function PUT(request: Request, props: { params: Promise<{ warehouseId: string }> }) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
   try {
-    const id = parseInt(params.warehouseId);
-    const { name, location } = await request.json();
+    const paramValidation = validateParams(params, warehouseIdParamSchema);
+    if ("error" in paramValidation) return paramValidation.error;
+    const id = paramValidation.data.warehouseId;
+
+    const bodyValidation = await validateBody(request, updateWarehouseSchema);
+    if ("error" in bodyValidation) return bodyValidation.error;
+
+    const { name, location } = bodyValidation.data;
 
     // If name is being updated, check for duplicates
     if (name) {
@@ -46,10 +59,7 @@ export async function PUT(request: Request, props: { params: Promise<{ warehouse
       `;
 
       if (existingWarehouse.length > 0) {
-        return NextResponse.json(
-          { error: "نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید." },
-          { status: 409 }
-        );
+        return errorResponse("نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید.", 409);
       }
     }
 
@@ -62,7 +72,7 @@ export async function PUT(request: Request, props: { params: Promise<{ warehouse
     `;
 
     if (updated.length === 0) {
-      return NextResponse.json({ error: "انبار یافت نشد" }, { status: 404 });
+      return notFoundResponse("انبار یافت نشد");
     }
     return NextResponse.json(updated[0]);
   } catch (error) {
@@ -70,13 +80,10 @@ export async function PUT(request: Request, props: { params: Promise<{ warehouse
 
     // Handle unique constraint violation at database level as fallback
     if (error instanceof Error && error.message.includes("unique")) {
-      return NextResponse.json(
-        { error: "نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید." },
-        { status: 409 }
-      );
+      return errorResponse("نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید.", 409);
     }
 
-    return NextResponse.json({ error: "خطا در بروزرسانی انبار" }, { status: 500 });
+    return serverErrorResponse("خطا در بروزرسانی انبار");
   }
 }
 
@@ -84,11 +91,12 @@ export async function DELETE(
   request: Request,
   props: { params: Promise<{ warehouseId: string }> }
 ) {
-  const params = await props.params;
-  const auth = await requireAuth();
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
   try {
-    const id = parseInt(params.warehouseId);
+    const paramValidation = validateParams(params, warehouseIdParamSchema);
+    if ("error" in paramValidation) return paramValidation.error;
+    const id = paramValidation.data.warehouseId;
     // First, delete all warehouseproduct records for this warehouse
     await prisma.$queryRaw<Record<string, unknown>[]>`
       DELETE FROM "support"."warehouseproduct"
@@ -103,11 +111,11 @@ export async function DELETE(
     `;
 
     if (deleted.length === 0) {
-      return NextResponse.json({ error: "انبار یافت نشد" }, { status: 404 });
+      return notFoundResponse("انبار یافت نشد");
     }
     return NextResponse.json(deleted[0]);
   } catch (error) {
     console.error("Error deleting warehouse:", error);
-    return NextResponse.json({ error: "خطا در حذف انبار" }, { status: 500 });
+    return serverErrorResponse("خطا در حذف انبار");
   }
 }

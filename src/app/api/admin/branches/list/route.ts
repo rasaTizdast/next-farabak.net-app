@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { errorResponse, serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -18,7 +19,7 @@ export async function GET() {
 
     // Only Admin or Branch users can see branches
     if (userRole !== "Admin" && userRole !== "Branch") {
-      return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
+      return errorResponse("دسترسی غیرمجاز", 403);
     }
 
     // Get all branches with simplified data for dropdowns
@@ -36,6 +37,6 @@ export async function GET() {
     return NextResponse.json(branches);
   } catch (error) {
     console.error("Error fetching branches list:", error);
-    return NextResponse.json({ error: "خطا در بارگذاری لیست شعبه‌ها" }, { status: 500 });
+    return serverErrorResponse("خطا در بارگذاری لیست شعبه‌ها");
   }
 }

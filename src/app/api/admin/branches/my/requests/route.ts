@@ -1,39 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
+import { serverErrorResponse, unauthorizedResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { formatBigIntResults } from "@/lib/formatBigInt";
 import { prisma } from "@/lib/prisma";
+import { validateParams } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
+const requestsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
+});
+
 export async function GET(req: NextRequest) {
+  // Verify branch owner
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+
+  if (auth.role !== "Branch") {
+    return unauthorizedResponse("دسترسی غیرمجاز - فقط مدیران شعبه");
+  }
+
+  // Extract pagination parameters from URL
+  const url = new URL(req.url);
+  const queryResult = validateParams(Object.fromEntries(url.searchParams), requestsQuerySchema);
+  if ("error" in queryResult) return queryResult.error;
+  const data = queryResult.data;
+
+  const page = data.page;
+  const limit = data.limit;
+  const offset = (page - 1) * limit;
+
   try {
-    // Verify branch owner
-    const auth = await requireAuth();
-    if (auth instanceof NextResponse) return auth;
-
-    if (auth.role !== "Branch") {
-      return NextResponse.json(
-        {
-          error: "دسترسی غیرمجاز - فقط مدیران شعبه",
-          requests: [],
-          pagination: {
-            currentPage: 1,
-            pageSize: 10,
-            totalCount: 0,
-            totalPages: 0,
-          },
-        },
-        { status: 401 }
-      );
-    }
-
-    // Extract pagination parameters from URL
-    const url = new URL(req.url);
-    const page = parseInt(url.searchParams.get("page") || "1");
-    const limit = parseInt(url.searchParams.get("limit") || "10");
-    const offset = (page - 1) * limit;
-
     let requests = [];
     let totalCount = 0;
 
@@ -97,18 +97,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching branch warranty requests:", error);
-    return NextResponse.json(
-      {
-        error: "خطا در دریافت درخواست‌های گارانتی شعبه",
-        requests: [],
-        pagination: {
-          currentPage: 1,
-          pageSize: 10,
-          totalCount: 0,
-          totalPages: 0,
-        },
-      },
-      { status: 500 }
-    );
+    return serverErrorResponse("خطا در دریافت درخواست‌های گارانتی شعبه");
   }
 }

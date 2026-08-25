@@ -21,7 +21,7 @@ vi.mock("next/headers", () => ({
 }));
 
 vi.mock("jose", () => ({
-  jwtVerify: (...args: any[]) => mockJwtVerify(...args),
+  jwtVerify: (...args: unknown[]) => mockJwtVerify(...args),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -30,7 +30,7 @@ vi.mock("@/lib/prisma", () => ({
 
 import { POST } from "../route";
 
-function makeRequest(body: any) {
+function makeRequest(body: unknown) {
   return new Request("http://localhost/api/admin/products/createNewProduct", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -76,7 +76,7 @@ describe("POST /api/admin/products/createNewProduct", () => {
     expect(res.status).toBe(401);
 
     const json = await res.json();
-    expect(json.message).toBe("Unauthorized");
+    expect(json.error).toBe("Unauthorized");
   });
 
   it("returns 400 when required fields are missing", async () => {
@@ -90,7 +90,7 @@ describe("POST /api/admin/products/createNewProduct", () => {
     expect(res.status).toBe(400);
 
     const json = await res.json();
-    expect(json.error).toBe("Missing required fields");
+    expect(json.error).toContain("الزامی");
   });
 
   it("returns 400 when product with same slug and type exists", async () => {

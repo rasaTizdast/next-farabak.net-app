@@ -2,8 +2,10 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { errorResponse, serverErrorResponse, unauthorizedResponse } from "@/lib/api-response";
 import { verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { userSearchSchema, validateBody } from "@/lib/validation";
 
 /**
  * @swagger
@@ -32,20 +34,23 @@ import { prisma } from "@/lib/prisma";
  *         description: Bad request - Invalid parameters
  */
 export async function POST(request: Request) {
-  const { phoneNumber, userId } = await request.json();
+  const bodyValidation = await validateBody(request, userSearchSchema);
+  if ("error" in bodyValidation) return bodyValidation.error;
+
+  const { phoneNumber, userId } = bodyValidation.data;
 
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
-    return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
+    return unauthorizedResponse("Authorization token required");
   }
 
   const decoded = await verifyToken(token);
   const userRole = decoded.role;
 
   if (!userRole || userRole !== "Admin") {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return unauthorizedResponse("Unauthorized");
   }
 
   if (phoneNumber) {
@@ -71,7 +76,7 @@ export async function POST(request: Request) {
     return NextResponse.json(updatedUser);
   }
 
-  return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  return errorResponse("Invalid request", 400);
 }
 
 /**
@@ -119,6 +124,6 @@ export async function GET() {
     return NextResponse.json(cleanedUsers);
   } catch (error) {
     console.error("Error fetching users:", error);
-    return NextResponse.json({ error: "خطا در بارگذاری کاربران" }, { status: 500 });
+    return serverErrorResponse("خطا در بارگذاری کاربران");
   }
 }

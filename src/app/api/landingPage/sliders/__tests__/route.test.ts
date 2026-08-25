@@ -20,7 +20,7 @@ vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 vi.mock("aws-sdk", () => ({
   S3: class {
     constructor() {}
-    putObject(...args: any[]) {
+    putObject(...args: unknown[]) {
       return mockS3Instance.putObject(...args);
     }
   },
@@ -65,7 +65,12 @@ describe("POST /api/landingPage/sliders", () => {
   });
 
   it("should create a slider with file upload", async () => {
-    const newSlider = { id: 1, image_URL: "slider-imgs/test-uuid-123-photo.jpg", image_alt: "alt text", link: "/page1" };
+    const newSlider = {
+      id: 1,
+      image_URL: "slider-imgs/test-uuid-123-photo.jpg",
+      image_alt: "alt text",
+      link: "/page1",
+    };
     mockPrisma.sliders.create.mockResolvedValue(newSlider);
 
     const file = new File(["content"], "photo.jpg", { type: "image/jpeg" });
@@ -114,7 +119,7 @@ describe("POST /api/landingPage/sliders", () => {
     });
 
     const res = await POST(req);
-    const body = await res.json();
+    await res.json();
 
     expect(res.status).toBe(400);
   });
@@ -133,7 +138,7 @@ describe("POST /api/landingPage/sliders", () => {
     });
 
     const res = await POST(req);
-    const body = await res.json();
+    await res.json();
 
     expect(res.status).toBe(500);
   });

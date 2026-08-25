@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -89,6 +90,6 @@ export async function GET() {
     return NextResponse.json({ categories: formattedCategories });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    return serverErrorResponse("Internal Server Error");
   }
 }

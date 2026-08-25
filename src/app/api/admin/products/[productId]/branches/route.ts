@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 
+import { errorResponse, serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { validateParams, productIdParamSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
@@ -16,14 +18,13 @@ export async function GET(request: Request, props: { params: Promise<{ productId
 
     // Only Admin or Branch users can search branches
     if (userRole !== "Admin" && userRole !== "Branch") {
-      return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
+      return errorResponse("دسترسی غیرمجاز", 403);
     }
 
     // Get product ID from params
-    const productId = Number(params.productId);
-    if (isNaN(productId)) {
-      return NextResponse.json({ error: "شناسه محصول نامعتبر است" }, { status: 400 });
-    }
+    const paramResult = validateParams(params, productIdParamSchema);
+    if ("error" in paramResult) return paramResult.error;
+    const productId = paramResult.data.productId;
 
     // For branch users, get their branch ID
     let currentBranchId: number | undefined = undefined;
@@ -73,6 +74,6 @@ export async function GET(request: Request, props: { params: Promise<{ productId
     });
   } catch (error) {
     console.error("Error searching branches for product:", error);
-    return NextResponse.json({ error: "خطا در جستجوی شعبه‌ها" }, { status: 500 });
+    return serverErrorResponse("خطا در جستجوی شعبه‌ها");
   }
 }

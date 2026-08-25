@@ -17,7 +17,13 @@ describe("GET /api/productOverview/getProductOverview/[productId]", () => {
   });
 
   it("should return product overview for a valid productId", async () => {
-    const mockResult = { ProductId: 1, Property1: "A", Property2: "B", Property3: "C", Property4: "D" };
+    const mockResult = {
+      ProductId: 1,
+      Property1: "A",
+      Property2: "B",
+      Property3: "C",
+      Property4: "D",
+    };
     mockPrisma.productOverview.findFirst.mockResolvedValue(mockResult);
 
     const req = new Request("http://localhost/api/productOverview/getProductOverview/1");

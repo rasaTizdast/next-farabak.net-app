@@ -2,8 +2,16 @@ import moment from "jalali-moment";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 
+import { errorResponse, serverErrorResponse, unauthorizedResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  createInvoiceSchema,
+  invoiceIdParamSchema,
+  updateInvoiceSchema,
+  validateBody,
+  validateParams,
+} from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +31,17 @@ interface WarrantyRaw {
   expirydate: Date | string;
   status: string;
   [key: string]: unknown;
+}
+
+interface WarrantyDetailRaw extends WarrantyRaw {
+  displayStatus: string;
+  warrantycodes: {
+    code: string;
+    startdate: Date | string;
+    expirydate: Date | string;
+    status: string;
+    branchid: number | string;
+  }[];
 }
 
 interface InvoiceDetailRaw {
@@ -216,17 +235,28 @@ export async function GET() {
         });
 
         // Group warranties by invoice detail and product
-        const warrantiesByDetail = processedWarranties.reduce<Record<number, {
-          warrantyid: number;
-          invoicedetailid: number;
-          warrantycode: string;
-          branchid: number | string;
-          startdate: Date | string;
-          expirydate: Date | string;
-          status: string;
-          displayStatus: string;
-          warrantycodes: { code: string; startdate: Date | string; expirydate: Date | string; status: string; branchid: number | string }[];
-        }>>((acc, warranty) => {
+        const warrantiesByDetail = processedWarranties.reduce<
+          Record<
+            number,
+            {
+              warrantyid: number;
+              invoicedetailid: number;
+              warrantycode: string;
+              branchid: number | string;
+              startdate: Date | string;
+              expirydate: Date | string;
+              status: string;
+              displayStatus: string;
+              warrantycodes: {
+                code: string;
+                startdate: Date | string;
+                expirydate: Date | string;
+                status: string;
+                branchid: number | string;
+              }[];
+            }
+          >
+        >((acc, warranty) => {
           const key = warranty.invoicedetailid;
           if (!acc[key]) {
             acc[key] = {
@@ -265,14 +295,19 @@ export async function GET() {
         });
 
         // Sort details by ProductId to group same products together
-        const sortedDetails = detailsWithWarranty.toSorted((a: InvoiceDetailRaw & { warranty: any }, b: InvoiceDetailRaw & { warranty: any }) => {
-          // First sort by ProductId to group same products together
-          if (a.ProductId !== b.ProductId) {
-            return (a.ProductId || 0) - (b.ProductId || 0);
+        const sortedDetails = detailsWithWarranty.toSorted(
+          (
+            a: InvoiceDetailRaw & { warranty: WarrantyDetailRaw | null },
+            b: InvoiceDetailRaw & { warranty: WarrantyDetailRaw | null }
+          ) => {
+            // First sort by ProductId to group same products together
+            if (a.ProductId !== b.ProductId) {
+              return (a.ProductId || 0) - (b.ProductId || 0);
+            }
+            // If same product, preserve original order
+            return 0;
           }
-          // If same product, preserve original order
-          return 0;
-        });
+        );
 
         return {
           ...invoice,
@@ -284,7 +319,7 @@ export async function GET() {
     return NextResponse.json(invoicesWithDetails);
   } catch (error) {
     console.error("Error fetching invoices:", error);
-    return NextResponse.json({ error: "خطا در بارگذاری فاکتورها" }, { status: 500 });
+    return serverErrorResponse("خطا در بارگذاری فاکتورها");
   }
 }
 
@@ -317,36 +352,19 @@ export async function GET() {
  *       500:
  *         description: Server error
  */
-interface InvoiceProductInput {
-  ProductId: number;
-  quantity: number;
-  price: number;
-  total_price: number;
-  warranty?: {
-    hasWarranty: boolean;
-    warrantycode: string;
-    startdate: string;
-    expirydate: string;
-  };
-}
-
-interface InvoiceDataInput {
-  Fullname: string;
-  Phonenumber: string;
-  TotalAmount: number;
-  Date: string;
-  UserId: number;
-  products: InvoiceProductInput[];
-}
-
 export async function POST(request: Request) {
   try {
-    const { branchId, invoiceData } = await request.json() as { branchId: string; invoiceData: InvoiceDataInput };
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    // Validation
-    if (!branchId || !invoiceData || !invoiceData.Fullname || !invoiceData.Phonenumber) {
-      return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
+    if (auth.role !== "Admin" && auth.role !== "Branch") {
+      return unauthorizedResponse("دسترسی غیرمجاز");
     }
+
+    const bodyValidation = await validateBody(request, createInvoiceSchema);
+    if ("error" in bodyValidation) return bodyValidation.error;
+
+    const { branchId, invoiceData } = bodyValidation.data;
 
     // Generate shorter, unique GUID
     const factorGuid = await generateShortGuid();
@@ -425,7 +443,7 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error("Error creating invoice:", error);
-    return NextResponse.json({ error: "خطا در ثبت فاکتور" }, { status: 500 });
+    return serverErrorResponse("خطا در ثبت فاکتور");
   }
 }
 
@@ -462,7 +480,7 @@ export async function POST(request: Request) {
  *       500:
  *         description: Server error.
  */
-export async function PATCH(req: Request): Promise<NextResponse> {
+export async function PATCH(req: Request): Promise<Response> {
   try {
     const auth = await requireAuth();
     if (auth instanceof NextResponse) return auth;
@@ -471,37 +489,22 @@ export async function PATCH(req: Request): Promise<NextResponse> {
 
     // Allow both Admin and Branch users to update invoice status
     if (!userRole || (userRole !== "Admin" && userRole !== "Branch")) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return unauthorizedResponse("Unauthorized");
     }
 
     // Get invoice ID from query parameters
     const { searchParams } = new URL(req.url);
-    const queryInvoiceId = searchParams.get("id");
+    const idValidation = validateParams(
+      { invoiceId: searchParams.get("id") ?? undefined },
+      invoiceIdParamSchema
+    );
+    if ("error" in idValidation) return idValidation.error;
+    const invoiceId = idValidation.data.invoiceId;
 
-    // Get request body
-    const body = await req.json();
-
-    // Check for invoiceId in both query params and request body
-    const invoiceId = queryInvoiceId || body.Invoiceid?.toString();
-
-    if (!invoiceId) {
-      return NextResponse.json(
-        {
-          message:
-            "Invoice ID is required in either query params ('id') or request body ('Invoiceid')",
-        },
-        { status: 400 }
-      );
-    }
-
-    const checked = body.checked;
-
-    if (typeof checked !== "boolean") {
-      return NextResponse.json(
-        { message: "Invalid data: 'checked' must be a boolean" },
-        { status: 400 }
-      );
-    }
+    // Validate request body
+    const bodyValidation = await validateBody(req, updateInvoiceSchema);
+    if ("error" in bodyValidation) return bodyValidation.error;
+    const checked = bodyValidation.data.checked;
 
     // For branch users, check if they're allowed to update this invoice
     if (userRole === "Branch") {
@@ -513,7 +516,7 @@ export async function PATCH(req: Request): Promise<NextResponse> {
       `;
 
       if (!branch || branch.length === 0) {
-        return NextResponse.json({ message: "No branch found for this user" }, { status: 403 });
+        return errorResponse("No branch found for this user", 403);
       }
 
       // Check if the invoice is associated with this branch through warranties
@@ -522,28 +525,25 @@ export async function PATCH(req: Request): Promise<NextResponse> {
         FROM "info"."Invoice" i
         JOIN "info"."Invoice_Details" id ON i."Invoiceid" = id."Invoiceid"
         JOIN "info"."warranty" w ON id."Invoice_Details" = w."invoicedetailid"
-        WHERE i."Invoiceid" = ${parseInt(invoiceId)}
+        WHERE i."Invoiceid" = ${invoiceId}
         AND w."branchid" = ${branch[0].branchid}
       `;
 
       if (!branchInvoices || branchInvoices.length === 0) {
-        return NextResponse.json(
-          { message: "You are not authorized to update this invoice" },
-          { status: 403 }
-        );
+        return errorResponse("You are not authorized to update this invoice", 403);
       }
     }
 
     // Update the invoice
     const updatedInvoice = await prisma.invoice.update({
-      where: { Invoiceid: parseInt(invoiceId) },
+      where: { Invoiceid: invoiceId },
       data: { Checked: checked },
     });
 
     return NextResponse.json(updatedInvoice, { status: 200 });
   } catch (error) {
     console.error("Error updating invoice:", error);
-    return NextResponse.json({ message: "Failed to update invoice" }, { status: 500 });
+    return serverErrorResponse("Failed to update invoice");
   }
 }
 
@@ -570,27 +570,28 @@ export async function PATCH(req: Request): Promise<NextResponse> {
  *       500:
  *         description: Server error.
  */
-export async function DELETE(req: Request): Promise<NextResponse> {
+export async function DELETE(req: Request): Promise<Response> {
   try {
     const auth = await requireAuth();
     if (auth instanceof NextResponse) return auth;
 
     if (auth.role !== "Admin") {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return unauthorizedResponse("Unauthorized");
     }
 
     const { searchParams } = new URL(req.url);
-    const invoiceId = searchParams.get("invoiceId");
-
-    if (!invoiceId) {
-      return NextResponse.json({ message: "Invoice ID is required" }, { status: 400 });
-    }
+    const idValidation = validateParams(
+      { invoiceId: searchParams.get("invoiceId") ?? undefined },
+      invoiceIdParamSchema
+    );
+    if ("error" in idValidation) return idValidation.error;
+    const invoiceId = idValidation.data.invoiceId;
 
     // Delete Invoice and associated details
     await prisma.invoice_Details.deleteMany({
-      where: { Invoiceid: +invoiceId },
+      where: { Invoiceid: invoiceId },
     });
-    await prisma.invoice.delete({ where: { Invoiceid: +invoiceId } });
+    await prisma.invoice.delete({ where: { Invoiceid: invoiceId } });
 
     return NextResponse.json(
       { message: "Invoice and its details successfully deleted" },
@@ -598,6 +599,6 @@ export async function DELETE(req: Request): Promise<NextResponse> {
     );
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ message: "Failed to delete invoice" }, { status: 500 });
+    return serverErrorResponse("Failed to delete invoice");
   }
 }

@@ -2,20 +2,15 @@ import bcrypt from "bcryptjs";
 import { jwtVerify } from "jose";
 import { NextResponse } from "next/server";
 
+import { errorResponse, notFoundResponse, serverErrorResponse } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
+import { resetPasswordSchema, validateBody } from "@/lib/validation";
 
 export async function POST(request: Request) {
   try {
-    const { email, code, newPassword, resetToken } = await request.json();
-
-    if (!email || !code || !newPassword || !resetToken) {
-      return NextResponse.json(
-        {
-          error: "ایمیل، کد بازیابی، رمز عبور جدید و توکن بازیابی الزامی هستند",
-        },
-        { status: 400 }
-      );
-    }
+    const result = await validateBody(request, resetPasswordSchema);
+    if ("error" in result) return result.error;
+    const { email, code, newPassword, resetToken } = result.data;
 
     // Verify the JWT token
     try {
@@ -24,7 +19,7 @@ export async function POST(request: Request) {
 
       // Check if the email and code in the token match the provided ones
       if (payload.email !== email || payload.code !== code) {
-        return NextResponse.json({ error: "کد بازیابی نامعتبر است" }, { status: 400 });
+        return errorResponse("کد بازیابی نامعتبر است", 400);
       }
 
       // If we get here, the token is valid - update the user's password
@@ -40,7 +35,7 @@ export async function POST(request: Request) {
         });
 
         if (!user) {
-          return NextResponse.json({ error: "کاربری با این ایمیل یافت نشد" }, { status: 404 });
+          return notFoundResponse("کاربری با این ایمیل یافت نشد");
         }
 
         // Create a new password entry for the user
@@ -81,21 +76,15 @@ export async function POST(request: Request) {
         });
       } catch (dbError) {
         console.error("Database error:", dbError);
-        return NextResponse.json(
-          {
-            error: "خطا در تغییر رمز عبور",
-            details: dbError instanceof Error ? dbError.message : "Unknown error",
-          },
-          { status: 500 }
-        );
+        return serverErrorResponse("خطا در تغییر رمز عبور");
       }
     } catch (tokenError) {
       // Token verification failed (expired or invalid)
       console.error(tokenError);
-      return NextResponse.json({ error: "کد بازیابی منقضی شده یا نامعتبر است" }, { status: 400 });
+      return errorResponse("کد بازیابی منقضی شده یا نامعتبر است", 400);
     }
   } catch (error) {
     console.error("Error in reset-password endpoint:", error);
-    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+    return serverErrorResponse("خطای سرور");
   }
 }

@@ -57,24 +57,24 @@ import { prisma } from "@/lib/prisma";
  *                   example: "An unexpected error occurred."
  */
 
+// Static routes (you can reuse your existing constants)
+const staticRoutes: Record<string, string> = {
+  "/": "صفحه اصلی",
+  "/products": "محصولات",
+
+  "/admin-panel": "پنل ادمین",
+  "/dashboard": "داشبورد",
+
+  "/about-us": "درباره ما",
+  "/about-us/projects": "گالری تصاویر پروژه‌ها",
+  "/about-us/members": "اعضای هیئت مدیره",
+
+  "/support": "پشتیبانی",
+  "/support/blog": "بلاگ",
+};
+
 export async function POST(request: Request) {
   const { paths }: { paths: string[] } = await request.json();
-
-  // Static routes (you can reuse your existing constants)
-  const staticRoutes: Record<string, string> = {
-    "/": "صفحه اصلی",
-    "/products": "محصولات",
-
-    "/admin-panel": "پنل ادمین",
-    "/dashboard": "داشبورد",
-
-    "/about-us": "درباره ما",
-    "/about-us/projects": "گالری تصاویر پروژه‌ها",
-    "/about-us/members": "اعضای هیئت مدیره",
-
-    "/support": "پشتیبانی",
-    "/support/blog": "بلاگ",
-  };
 
   const results: Record<string, string> = {};
 

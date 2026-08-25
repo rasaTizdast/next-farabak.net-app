@@ -14,7 +14,9 @@ const { mockPrisma, mockS3 } = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 vi.mock("aws-sdk", () => ({
-  S3: vi.fn().mockImplementation(function () { return mockS3; }),
+  S3: vi.fn().mockImplementation(function () {
+    return mockS3;
+  }),
 }));
 
 import { PUT } from "../route";
@@ -80,7 +82,7 @@ describe("PUT /api/members/update", () => {
     });
 
     const res = await PUT(req);
-    const body = await res.json();
+    await res.json();
 
     expect(res.status).toBe(200);
     expect(mockS3.deleteObject).toHaveBeenCalled();
