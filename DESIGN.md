@@ -12,6 +12,44 @@
 
 _Defined in `src/app/globals.css:20-27`_
 
+### shadcn/ui Design Tokens
+
+The project uses a shadcn/ui design system on top of the brand palette. CSS variables are defined in `src/app/globals.css` and mapped to Tailwind utilities in `tailwind.config.ts`:
+
+| Token                             | Value                           | Tailwind usage               |
+| --------------------------------- | ------------------------------- | ---------------------------- |
+| `--primary`                       | `195 100% 50%` (`#00bfff`)      | `bg-primary`, `text-primary` |
+| `--primary-foreground`            | `0 0% 100%` (white)             | `text-primary-foreground`    |
+| `--secondary`                     | `210 79% 55%` (`#318ce7`)       | `bg-secondary`               |
+| `--secondary-foreground`          | `0 0% 100%`                     | `text-secondary-foreground`  |
+| `--accent`                        | `195 100% 94%` (light blue)     | `bg-accent`, hover states    |
+| `--accent-foreground`             | `209 100% 19%` (`#003262`)      | `text-accent-foreground`     |
+| `--background`                    | `0 0% 94%` (`#f0f0f0`)          | `bg-background`              |
+| `--foreground`                    | `221 39% 11%` (near-black)      | `text-foreground`            |
+| `--muted` / `--muted-foreground`  | light gray / slate              | secondary text, disabled     |
+| `--destructive`                   | `0 84% 60%` (`#ef4444`)         | `bg-destructive`, errors     |
+| `--border` / `--input` / `--ring` | gray-200 / gray-300 / `#00bfff` | borders, focus ring          |
+| `--radius`                        | `0.5rem` (8px)                  | `rounded-md`/`lg`            |
+
+Brand extras: `third` (`#1e90ff`), `fourth` (`#0e6aff`), `dark-blue` (`#003262`), `brand.*` namespace.
+
+### RTL Animation Utilities
+
+Custom Tailwind plugin in `tailwind.config.ts` adds logical `end`/`start` slide animations (RTL-aware):
+`slide-in-from-end-2`, `slide-in-from-start-2`, `slide-out-to-end-2`, `slide-out-to-start-2`.
+
+### Component Library
+
+23 shadcn primitives in `src/components/ui/` (all `"use client"`, Radix-based):
+
+- **Core:** `button`, `badge`, `card`, `input`, `label`, `textarea`, `separator`, `skeleton`, `switch`, `checkbox`
+- **Overlays:** `dialog`, `alert-dialog`, `dropdown-menu`, `tooltip`, `popover`, `alert`, `progress`
+- **Data:** `table`, `select`, `tabs`, `accordion`, `radio-group`, `scroll-area`, `toast` (+ `Toaster`, `useToast`)
+
+Plus: `ErrorPage`, `ItemsAccordion` (FAQ items-based accordion).
+
+Dependencies: `class-variance-authority`, `clsx`, `tailwind-merge` (`cn` in `src/lib/utils.ts`), `tailwindcss-animate`, Radix primitives, `lucide-react`.
+
 ### Color Usage Guidelines
 
 - Primary actions use `bg-[#00bfff]` or `bg-primary` (via Tailwind extended color)
