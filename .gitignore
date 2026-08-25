@@ -8,6 +8,7 @@
 
 # testing
 /coverage
+coverage-report.txt
 
 # next.js
 /.next/
@@ -42,4 +43,4 @@ next-env.d.ts
 
 
 .mimocode/
-docs/
+.husky/_/

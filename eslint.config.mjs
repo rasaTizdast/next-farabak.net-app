@@ -68,7 +68,17 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, ...compat.extends
     ],
   },
 }, {
-  ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts"]
+  ignores: [
+    "node_modules/**",
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+    "coverage/**",
+    ".agents/**",
+    ".remember/**",
+    "cypress/**",
+  ],
 }];
 
 export default eslintConfig;

@@ -1,386 +1,445 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
-/* Critical CSS - Above the fold styles */
+@theme {
+  --animate-fade-in: fade-in 0.3s ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  --color-primary: #00bfff;
+  --color-secondary: #318ce7;
+  --color-third: #1e90ff;
+  --color-fourth: #0e6aff;
+  --color-dark-blue: #003262;
+  --color-brand-primary: var(--color-primary);
+  --color-brand-secondary: var(--color-secondary);
+  --color-brand-accent: var(--color-third);
+  --color-brand-deep: var(--color-fourth);
+  --color-brand-dark: var(--color-dark-blue);
+  --radius: 0.5rem;
+  --font-iran-yekan: "IRANYekan", sans-serif;
+  --breakpoint-xs: 577px;
+  --breakpoint-mobile: 577px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1400px;
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+}
+
 @layer base {
+  :root {
+    --font-family: var(--font-iran-yekan);
+    --background: 0 0% 94%;
+    --foreground: 221 39% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 221 39% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 221 39% 11%;
+    --primary: 195 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 79% 55%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 195 100% 94%;
+    --accent-foreground: 209 100% 19%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 216 12% 84%;
+    --ring: 195 100% 50%;
+  }
+
+  * {
+    margin-block: 0;
+    margin-inline: 0;
+    padding-block: 0;
+    padding-inline: 0;
+    box-sizing: border-box;
+    font-family: var(--font-iran-yekan);
+    font-variation-settings: "dots" 4;
+    border-color: hsl(var(--border));
+  }
+
   html {
     scroll-behavior: smooth;
   }
 
   body {
-    background-color: #f0f0f0;
-    font-display: swap; /* Improve font loading performance */
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-display: swap;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
   }
-}
 
-:root {
-  --primary-color: #00bfff;
-  --secondary-color: #318ce7;
-  --third-color: #1e90ff;
-  --fourth-color: #0e6aff;
-  --dark-blue-color: #003262;
-  --font-iran-yekan: "IranYekan", sans-serif; /* Fallback to sans-serif */
-}
-
-#__next {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: var(--font-iran-yekan);
-  font-variation-settings: "dots" 4;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  background-color: #f0f0f0;
-}
-
-a {
-  text-decoration: none;
-  color: #000;
-}
-
-/* width */
-::-webkit-scrollbar {
-  width: 12px;
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-  background: var(--primary-color);
-}
-
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-  background: var(--secondary-color);
-}
-
-.glass-card {
-  @apply rounded-2xl border border-white/30 bg-white/20 p-6 shadow-lg backdrop-blur-md;
-  position: relative;
-  overflow: hidden;
-  transition:
-    transform 0.3s ease-in-out,
-    box-shadow 0.3s ease-in-out,
-    background 0.3s ease-in-out;
-}
-
-.glass-card:before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1));
-  mix-blend-mode: overlay;
-  opacity: 0.6;
-  pointer-events: none;
-  transition: opacity 0.3s ease-in-out;
-}
-
-.glass-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
-}
-
-.glass-card:hover:before {
-  opacity: 0.9;
-}
-
-.glass-card:hover h3,
-.glass-card:hover span,
-.glass-card:hover a {
-  transition: color 0.3s ease-in-out;
-}
-
-.input-field {
-  @apply w-full rounded-md border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500;
-}
-
-.textarea-field {
-  @apply h-24 w-full resize-none rounded-md border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500;
-}
-
-.file-input {
-  @apply w-full rounded-md border border-gray-300 px-4 py-2 text-gray-900 file:cursor-pointer file:rounded-md file:bg-blue-500 file:px-4 file:py-2 file:text-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500;
-}
-
-/* TipTap In-Editor styles */
-
-.tiptap h1,
-.tiptap h2,
-.tiptap h3,
-.tiptap h4,
-.tiptap h5,
-.tiptap h6,
-.tiptap p {
-  @apply selection:bg-blue-500/30;
-}
-
-.tiptap {
   a {
+    text-decoration: none;
+    color: #000;
+  }
+
+  ::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-secondary);
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply rounded-2xl border border-white/30 bg-white/20 p-6 shadow-lg backdrop-blur-md;
+    position: relative;
+    overflow: hidden;
+    transition:
+      transform 0.3s ease-in-out,
+      box-shadow 0.3s ease-in-out,
+      background 0.3s ease-in-out;
+  }
+
+  .glass-card:before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1));
+    mix-blend-mode: overlay;
+    opacity: 0.6;
+    pointer-events: none;
+    transition: opacity 0.3s ease-in-out;
+  }
+
+  .glass-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
+  }
+
+  .glass-card:hover:before {
+    opacity: 0.9;
+  }
+
+  .glass-card:hover h3,
+  .glass-card:hover span,
+  .glass-card:hover a {
+    transition: color 0.3s ease-in-out;
+  }
+
+  .input-field {
+    @apply w-full rounded-md border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none;
+  }
+
+  .textarea-field {
+    @apply h-24 w-full resize-none rounded-md border border-gray-300 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none;
+  }
+
+  .file-input {
+    @apply w-full rounded-md border border-gray-300 px-4 py-2 text-gray-900 file:cursor-pointer file:rounded-md file:bg-blue-500 file:px-4 file:py-2 file:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .animate-gradient {
+    animation: gradient 10s ease-in-out infinite;
+  }
+
+  /* TipTap In-Editor styles */
+  .tiptap h1,
+  .tiptap h2,
+  .tiptap h3,
+  .tiptap h4,
+  .tiptap h5,
+  .tiptap h6,
+  .tiptap p {
+    @apply selection:bg-blue-500/30;
+  }
+
+  .tiptap a {
     @apply mb-4 text-blue-200 underline;
   }
-  h1 {
+
+  .tiptap h1 {
     @apply mb-4 text-4xl font-bold;
   }
-  h2 {
+  .tiptap h2 {
     @apply mb-4 text-3xl font-bold;
   }
-  h3 {
+  .tiptap h3 {
     @apply mb-4 text-2xl font-bold;
   }
-  h4 {
+  .tiptap h4 {
     @apply mb-4 text-xl font-bold;
   }
-  h5 {
+  .tiptap h5 {
     @apply mb-4 text-lg font-bold;
   }
-  h6 {
+  .tiptap h6 {
     @apply mb-4 font-bold;
   }
 
-  ul,
-  ol {
-    @apply mb-4 pl-6;
-    li {
-      @apply mb-2;
-    }
+  .tiptap ul,
+  .tiptap ol {
+    @apply mb-4 ps-6;
   }
-
-  ul {
+  .tiptap li {
+    @apply mb-2;
+  }
+  .tiptap ul {
     @apply list-disc;
   }
-  ol {
+  .tiptap ol {
     @apply list-decimal;
   }
 
-  code {
+  .tiptap code {
     @apply rounded bg-gray-700 px-2 py-1 font-mono text-sm;
   }
-
-  pre {
+  .tiptap pre {
     @apply my-4 overflow-x-auto rounded bg-gray-700 p-4;
-    code {
-      @apply bg-transparent p-0;
-    }
   }
-}
+  .tiptap pre code {
+    @apply bg-transparent p-0;
+  }
 
-.prose-view img {
-  @apply mx-auto my-4 rounded-md mobile:my-10;
-  max-width: 100%;
-}
+  .prose-view img {
+    @apply mobile:my-10 mx-auto my-4 rounded-md;
+    max-width: 100%;
+  }
 
-/* Video styling for blog content */
-.prose-view video {
-  @apply mx-auto my-4 w-full max-w-4xl rounded-md mobile:my-10;
-  aspect-ratio: 16 / 9;
-}
+  .prose-view video {
+    @apply mobile:my-10 mx-auto my-4 w-full max-w-4xl rounded-md;
+    aspect-ratio: 16 / 9;
+  }
 
-.prose-view .w-1\/2 {
-  @apply mx-auto max-w-[500px];
-  width: 50%;
-}
+  .prose-view .w-1\/2 {
+    @apply mx-auto max-w-[500px];
+    width: 50%;
+  }
+  .prose-view .w-1\/3 {
+    @apply mx-auto max-w-[333px];
+    width: 33.333333%;
+  }
 
-.prose-view .w-1\/3 {
-  @apply mx-auto max-w-[333px];
-  width: 33.333333%;
-}
+  .prose-view img[style*="width"] {
+    width: var(--img-width) !important;
+    height: auto !important;
+  }
 
-/* Support for inline styles for custom sizes */
-.prose-view img[style*="width"] {
-  width: var(--img-width) !important;
-  height: auto !important;
-}
+  .prose-view img[size="full"],
+  .prose-view Image[size="full"] {
+    --img-width: 100%;
+    max-width: 1000px;
+    width: 100%;
+    margin-inline: auto;
+  }
 
-/* Image size attributes for both TipTap editors */
-.prose-view img[size="full"],
-.prose-view Image[size="full"] {
-  --img-width: 100%;
-  max-width: 1000px;
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-}
+  .prose-view img[size="half"],
+  .prose-view Image[size="half"] {
+    --img-width: 50%;
+    max-width: 500px;
+    width: 50%;
+    margin-inline: auto;
+  }
 
-.prose-view img[size="half"],
-.prose-view Image[size="half"] {
-  --img-width: 50%;
-  max-width: 500px;
-  width: 50%;
-  margin-left: auto;
-  margin-right: auto;
-}
+  .prose-view img[size="third"],
+  .prose-view Image[size="third"] {
+    --img-width: 33.333333%;
+    max-width: 333px;
+    width: 33.333333%;
+    margin-inline: auto;
+  }
 
-.prose-view img[size="third"],
-.prose-view Image[size="third"] {
-  --img-width: 33.333333%;
-  max-width: 333px;
-  width: 33.333333%;
-  margin-left: auto;
-  margin-right: auto;
-}
+  .prose-view img[size="custom"],
+  .prose-view Image[size="custom"] {
+    --img-width: var(--custom-width, auto);
+    width: var(--custom-width, auto) !important;
+    margin-inline: auto;
+  }
 
-.prose-view img[size="custom"],
-.prose-view Image[size="custom"] {
-  --img-width: var(--custom-width, auto);
-  width: var(--custom-width, auto) !important;
-  margin-left: auto;
-  margin-right: auto;
-}
+  .prose-view img,
+  .prose-view Image {
+    --img-width: auto;
+    --custom-width: auto;
+  }
 
-/* Add a default value for the CSS variable */
-.prose-view img,
-.prose-view Image {
-  --img-width: auto;
-  --custom-width: auto;
-}
+  .prose-view a {
+    @apply relative my-3 inline-block rounded-lg bg-blue-200 px-2 text-blue-950 transition-colors hover:bg-blue-300 hover:text-[#000000];
+  }
 
-.prose-view a {
-  @apply relative my-3 inline-block rounded-lg bg-blue-200 px-2 text-blue-950 transition-all hover:bg-blue-300 hover:text-[#000000];
-}
+  .prose-view p {
+    @apply mobile:text-lg my-2 text-sm leading-relaxed text-gray-700;
+  }
+  .prose-view h1 {
+    @apply mobile:text-2xl my-4 text-sm leading-normal font-bold text-gray-900 sm:text-4xl;
+  }
+  .prose-view h2 {
+    @apply mobile:text-xl mt-6 mb-1 text-lg leading-normal font-semibold text-gray-800 sm:text-3xl;
+  }
+  .prose-view h3 {
+    @apply mobile:text-xl mt-6 mb-1 text-lg leading-normal font-semibold text-gray-800;
+  }
+  .prose-view h4 {
+    @apply mobile:text-base mt-6 mb-1 text-sm leading-normal font-semibold text-gray-800 sm:text-lg;
+  }
+  .prose-view h5 {
+    @apply mobile:text-sm mt-6 mb-1 text-xs leading-normal font-semibold text-gray-800 sm:text-base;
+  }
+  .prose-view h6 {
+    @apply mt-6 mb-1 text-xs leading-normal font-semibold text-gray-800 sm:text-sm;
+  }
+  .prose-view ul {
+    @apply my-6 list-disc ps-4;
+  }
+  .prose-view ol {
+    @apply my-6 list-decimal ps-4;
+  }
+  .prose-view li {
+    @apply me-5 mb-2;
+  }
+  .prose-view blockquote {
+    @apply my-4 border-s-4 border-gray-400 ps-4 italic;
+  }
+  .prose-view code {
+    @apply rounded bg-gray-300 px-2 py-1;
+  }
+  .prose-view pre {
+    @apply overflow-x-auto rounded bg-gray-800 p-4 text-white;
+  }
 
-.prose-view p {
-  @apply my-2 text-sm leading-relaxed text-gray-700 mobile:text-lg;
-}
-.prose-view h1 {
-  @apply my-4 text-sm font-bold leading-normal text-gray-900 mobile:text-2xl sm:text-4xl;
-}
-.prose-view h2 {
-  @apply mb-1 mt-6 text-lg font-semibold leading-normal text-gray-800 mobile:text-xl sm:text-3xl;
-}
-.prose-view h3 {
-  @apply mb-1 mt-6 text-lg font-semibold leading-normal text-gray-800 mobile:text-xl;
-}
-.prose-view h4 {
-  @apply mb-1 mt-6 text-sm font-semibold leading-normal text-gray-800 mobile:text-base sm:text-lg;
-}
-.prose-view h5 {
-  @apply mb-1 mt-6 text-xs font-semibold leading-normal text-gray-800 mobile:text-sm sm:text-base;
-}
-.prose-view h6 {
-  @apply mb-1 mt-6 text-xs font-semibold leading-normal text-gray-800 sm:text-sm;
-}
-.prose-view ul {
-  @apply my-6 list-disc pl-4;
-}
-.prose-view ol {
-  @apply my-6 list-decimal pl-4;
-}
-.prose-view li {
-  @apply mb-2 mr-5;
-}
-
-.prose-view blockquote {
-  @apply my-4 border-l-4 border-gray-400 pl-4 italic;
-}
-.prose-view code {
-  @apply rounded bg-gray-300 px-2 py-1;
-}
-.prose-view pre {
-  @apply overflow-x-auto rounded bg-gray-800 p-4 text-white;
-}
-
-/* Table styles for blog content */
-.prose-view table {
-  @apply my-6 w-full border-collapse rounded-lg shadow-sm;
-  direction: rtl;
-  border: 1px solid #e2e8f0;
-  table-layout: auto;
-}
-
-.prose-view thead {
-  @apply bg-blue-50;
-}
-
-.prose-view th {
-  @apply border-b-2 border-gray-300 px-4 py-3 text-center font-semibold text-gray-800;
-  border-right: 1px solid #e2e8f0;
-}
-
-.prose-view th:last-child {
-  border-right: none;
-}
-
-.prose-view td {
-  @apply border-t border-gray-200 px-4 py-3 text-center text-gray-700;
-  border-right: 1px solid #e2e8f0;
-}
-
-.prose-view td:last-child {
-  border-right: none;
-}
-
-.prose-view tr {
-  @apply bg-white transition-colors duration-150 even:bg-gray-50;
-}
-
-.prose-view tr:hover {
-  @apply bg-blue-50;
-}
-
-.prose-view caption {
-  @apply mb-4 mt-2 text-xs italic text-gray-600;
-}
-
-/* Responsive table wrapper for mobile */
-@media (max-width: 768px) {
-  /* Wrap table in scrollable container */
   .prose-view table {
-    display: block;
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    @apply my-6 w-full border-collapse rounded-lg shadow-sm;
+    direction: rtl;
+    border: 1px solid #e2e8f0;
+    table-layout: auto;
   }
 
-  .prose-view thead,
-  .prose-view tbody {
-    display: table;
-    width: 100%;
+  .prose-view thead {
+    @apply bg-blue-50;
+  }
+
+  .prose-view th {
+    @apply border-b-2 border-gray-300 px-4 py-3 text-center font-semibold text-gray-800;
+    border-inline-end: 1px solid #e2e8f0;
+  }
+
+  .prose-view th:last-child {
+    border-inline-end: none;
+  }
+
+  .prose-view td {
+    @apply border-t border-gray-200 px-4 py-3 text-center text-gray-700;
+    border-inline-end: 1px solid #e2e8f0;
+  }
+
+  .prose-view td:last-child {
+    border-inline-end: none;
   }
 
   .prose-view tr {
-    display: table-row;
+    @apply bg-white transition-colors duration-150 even:bg-gray-50;
+  }
+  .prose-view tr:hover {
+    @apply bg-blue-50;
+  }
+  .prose-view caption {
+    @apply mt-2 mb-4 text-xs text-gray-600 italic;
   }
 
-  .prose-view th,
-  .prose-view td {
-    @apply px-3 py-2 text-sm;
-    display: table-cell;
-    white-space: nowrap;
-    min-width: 120px;
-    text-align: right;
-    vertical-align: middle;
+  @media (max-width: 768px) {
+    .prose-view table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .prose-view thead,
+    .prose-view tbody {
+      display: table;
+      width: 100%;
+    }
+    .prose-view tr {
+      display: table-row;
+    }
+    .prose-view th,
+    .prose-view td {
+      @apply px-3 py-2 text-sm;
+      display: table-cell;
+      white-space: nowrap;
+      min-width: 120px;
+      text-align: start;
+      vertical-align: middle;
+    }
   }
-}
 
-/* Extra small screens */
-@media (max-width: 480px) {
-  .prose-view th,
-  .prose-view td {
-    @apply px-2 py-1 text-xs;
-    min-width: 100px;
+  @media (max-width: 480px) {
+    .prose-view th,
+    .prose-view td {
+      @apply px-2 py-1 text-xs;
+      min-width: 100px;
+    }
   }
-}
-
-/* Scrollbar hide utility */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
 }

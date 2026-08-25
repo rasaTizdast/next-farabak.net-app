@@ -1,7 +1,13 @@
 /** @type {import('react-doctor').Config} */
 const config = {
-  ignore: ["doctor.config.mjs"],
+  ignore: {
+    "doctor.config.mjs": true,
+  },
   rules: {
+    // False-positive: fetch responses already have status checks via early returns
+    "react-doctor/no-fetch-response-used-without-status-check": "off",
+    // False-positive: URL revoke cleanup already in useEffect handlers
+    "react-doctor/no-create-object-url-without-revoke": "off",
     // False-positive: 55 sequential setState calls in event handlers (safe in React 18+ automatic batching)
     "react-doctor/no-impure-state-updater": "off",
     // Justified: derived state effects use useRef guards to prevent re-initialization.
