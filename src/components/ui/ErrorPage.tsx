@@ -3,6 +3,7 @@ interface ErrorPageProps {
   message?: string;
   statusCode?: number;
   onRetry?: () => void;
+  children?: React.ReactNode;
 }
 
 export function ErrorPage({
@@ -10,6 +11,7 @@ export function ErrorPage({
   message = "خطایی رخ داده است",
   statusCode,
   onRetry,
+  children,
 }: ErrorPageProps) {
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 text-center">
@@ -19,6 +21,7 @@ export function ErrorPage({
       {statusCode && <span className="text-dark-blue text-6xl font-bold">{statusCode}</span>}
       <h1 className="text-dark-blue text-2xl font-bold">{title}</h1>
       <p className="text-gray-600">{message}</p>
+      {children}
       {onRetry && (
         <button
           onClick={onRetry}

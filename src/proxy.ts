@@ -2,6 +2,7 @@ import { jwtVerify, SignJWT } from "jose";
 import { NextResponse, NextRequest } from "next/server";
 
 import { verifyToken } from "@/lib/auth";
+import { negotiate } from "@/lib/contentNegotiation";
 
 // Define your JWT secrets (ensure they're stored securely)
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -16,6 +17,14 @@ if (!REFRESH_TOKEN_SECRET) {
 
 // Token expiration times (in seconds)
 const ACCESS_TOKEN_EXPIRATION = 15 * 60; // 15 minutes
+
+// Pass-through response for HTML requests; declares Accept so caches
+// never serve a cached HTML variant to an agent asking for markdown.
+function htmlResponse() {
+  const response = NextResponse.next();
+  response.headers.append("Vary", "Accept");
+  return response;
+}
 
 interface ExtendedNextRequest extends NextRequest {
   user?: { userId: string; username: string; role: string };
@@ -56,15 +65,40 @@ const refreshAccessToken = async (refreshToken: string) => {
 
 // Middleware function to protect routes and handle token refresh
 export async function proxy(req: ExtendedNextRequest) {
+  const pathname = req.nextUrl.pathname;
+  const isProtectedRoute = pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
+
+  // Content negotiation for AI agents (acceptmarkdown.com):
+  // serve text/markdown when the client prefers it, and always declare
+  // Vary: Accept so caches never mix HTML and markdown variants.
+  const isPageRequest =
+    !pathname.startsWith("/api") &&
+    !pathname.startsWith("/_next") &&
+    !pathname.startsWith("/markdown") &&
+    !pathname.includes(".");
+
+  if (isPageRequest && !isProtectedRoute) {
+    const negotiated = negotiate(req.headers.get("accept"));
+
+    if (negotiated === null) {
+      // Accept header lists only types we cannot produce -> 406 per RFC 9110
+      return new NextResponse("Not Acceptable", {
+        status: 406,
+        headers: { "Content-Type": "text/plain; charset=utf-8", Vary: "Accept, Accept-Encoding" },
+      });
+    }
+
+    if (negotiated === "text/markdown") {
+      const markdownUrl = new URL(pathname === "/" ? "/markdown" : `/markdown${pathname}`, req.url);
+      const response = NextResponse.rewrite(markdownUrl);
+      response.headers.set("Vary", "Accept, Accept-Encoding");
+      return response;
+    }
+  }
+
   // Extract tokens from cookies
   const accessToken = req.cookies.get("accessToken")?.value;
   const refreshToken = req.cookies.get("refreshToken")?.value;
-
-  // Define protected routes
-  const protectedRoutes = ["/dashboard", "/admin"];
-
-  // Check if the request is for a protected route
-  const isProtectedRoute = protectedRoutes.some((route) => req.nextUrl.pathname.startsWith(route));
 
   // If the user is trying to access a protected route without any token, redirect to login
   if (isProtectedRoute && !accessToken && !refreshToken) {
@@ -77,7 +111,7 @@ export async function proxy(req: ExtendedNextRequest) {
       const newAccessToken = await refreshAccessToken(refreshToken);
 
       // Add the new access token to the cookies
-      const response = NextResponse.next();
+      const response = htmlResponse();
       response.cookies.set("accessToken", newAccessToken, {
         httpOnly: true,
         path: "/",
@@ -137,7 +171,7 @@ export async function proxy(req: ExtendedNextRequest) {
             req.nextUrl.pathname === "/admin/branches/my/partner-prices" ||
             req.nextUrl.pathname.startsWith("/admin/branches/my/partner-prices/")
           ) {
-            return NextResponse.next();
+            return htmlResponse();
           } else if (req.nextUrl.pathname === "/admin" || req.nextUrl.pathname === "/admin/") {
             // Redirect to their branch page if they try to access the admin home
             return NextResponse.redirect(new URL("/admin/branches/my", req.url));
@@ -168,7 +202,7 @@ export async function proxy(req: ExtendedNextRequest) {
         return NextResponse.redirect(new URL("/dashboard", req.url));
       }
 
-      return NextResponse.next(); // Proceed to the requested route if all checks pass
+      return htmlResponse(); // Proceed to the requested route if all checks pass
     } catch (error) {
       console.error("Access token verification error:", error);
 
@@ -178,7 +212,7 @@ export async function proxy(req: ExtendedNextRequest) {
           const newAccessToken = await refreshAccessToken(refreshToken);
 
           // Create a new response with the refreshed token
-          const response = NextResponse.next();
+          const response = htmlResponse();
           response.cookies.set("accessToken", newAccessToken, {
             httpOnly: true,
             path: "/",
@@ -213,7 +247,7 @@ export async function proxy(req: ExtendedNextRequest) {
   }
 
   // Proceed if no token is needed and no refresh process is triggered
-  return NextResponse.next();
+  return htmlResponse();
 }
 
 // Specify the routes where this middleware should be applied

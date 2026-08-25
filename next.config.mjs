@@ -42,6 +42,16 @@ const nextConfig = {
   },
   // Enable compression
   compress: true,
+  // Content negotiation cache-safety: declare Accept so CDNs never serve
+  // a cached HTML variant to an agent asking for text/markdown (or vice versa)
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [{ key: "Vary", value: "Accept" }],
+      },
+    ];
+  },
   // Enable static optimization
   trailingSlash: false,
   // Optimize for production

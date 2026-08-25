@@ -2,7 +2,6 @@ export const dynamic = "force-dynamic";
 
 import { Metadata } from "next";
 import dynamicImport from "next/dynamic";
-import Script from "next/script";
 
 // Dynamic imports for better performance
 const ImageSlider = dynamicImport(() => import("../_components/imageSlider/ImageSlider"), {
@@ -32,9 +31,25 @@ type slider = {
 };
 
 export const generateMetadata = async (): Promise<Metadata> => {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net";
   return {
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_BASE_URL}`,
+      canonical: baseUrl,
+    },
+    openGraph: {
+      title: "خرید محصولات نظارتی و امنیتی با گارانتی معتبر | فرابک",
+      description:
+        "فرابک ارائه‌دهنده انواع محصولات نظارتی و امنیتی شامل دوربین مداربسته ریولینک با گارانتی معتبر، تضمین اصالت کالا و خدمات پس از فروش حرفه‌ای.",
+      url: baseUrl,
+      type: "website",
+      siteName: "فرابک",
+      locale: "fa_IR",
+      images: [
+        {
+          url: `${baseUrl}/opengraph-image.webp`,
+          alt: "فرابک | فروشگاه محصولات نظارتی و امنیتی",
+        },
+      ],
     },
   };
 };
@@ -83,10 +98,13 @@ const jsonLd = {
         "@type": "PostalAddress",
         addressCountry: "IR",
         addressLocality: "تهران",
+        streetAddress: "سعادت آباد، میدان کتاب، خیابان عسگری گراوندی، نبش آسمان هشتم، پلاک ۶",
       },
+      email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "info@farabak.net",
       contactPoint: {
         "@type": "ContactPoint",
         telephone: process.env.NEXT_PUBLIC_SUPPORT_NUMBER,
+        email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "info@farabak.net",
         contactType: "customer service",
         availableLanguage: "Persian",
       },
@@ -217,13 +235,23 @@ const HomePage = async () => {
 
   return (
     <>
-      <Script
+      {/* Server-rendered JSON-LD so AI crawlers see structured data without JavaScript */}
+      <script
         id="json-ld"
         type="application/ld+json"
-        strategy="afterInteractive"
         dangerouslySetInnerHTML={{ __html: jsonLdString }}
       />
       <div>
+        <div className="sr-only">
+          <h1>خرید محصولات نظارتی و امنیتی با گارانتی معتبر | فرابک</h1>
+          <p>
+            فرابک واردکننده اصلی محصولات ریولینک (Reolink)، Smiths Detection و Ceia در ایران است. در
+            فروشگاه فرابک می‌توانید انواع دوربین مداربسته، دوربین تحت شبکه، سیستم‌های نظارت تصویری
+            منزل و محل کار و تجهیزات تشخیص و بازرسی امنیتی را با قیمت مناسب، گارانتی معتبر، تضمین
+            اصالت کالا و خدمات پس از فروش حرفه‌ای تهیه کنید. کارشناسان فرابک برای انتخاب سیستم نظارت
+            تصویری مناسب پروژه‌های مسکونی، تجاری و صنعتی مشاوره تخصصی ارائه می‌دهند.
+          </p>
+        </div>
         <ImageSlider slides={sliderLinks} />
         <div style={{ contentVisibility: "auto", containIntrinsicSize: "800px 600px" }}>
           <ProductsShowCase />

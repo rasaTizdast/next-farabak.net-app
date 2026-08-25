@@ -1,7 +1,5 @@
 "use client";
 
-/* eslint-disable */
-
 import { useState } from "react";
 import { Control, FieldValues, useController, FieldErrors, Path } from "react-hook-form";
 
