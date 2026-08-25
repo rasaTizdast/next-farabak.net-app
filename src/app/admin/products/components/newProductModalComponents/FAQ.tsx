@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 
 type FAQItem = {
@@ -68,6 +68,7 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
         initialErrors[`question-${index}`] = validateField("question", faq.question);
         initialErrors[`answer-${index}`] = validateField("answer", faq.answer);
       });
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local validation state from faqs prop once, guarded by ref.
       setLocalErrors(initialErrors);
     }
   }, [state.faqs, validateField]);
@@ -188,7 +189,7 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
               data-testid={`remove-faq-${index}`}
               onClick={() => handleRemoveFAQ(index)}
               aria-label="حذف سوال"
-              className="text-red-500 transition-all hover:text-red-600"
+              className="text-red-500 transition-colors hover:text-red-600"
             >
               <FaTrashAlt size={20} />
             </button>

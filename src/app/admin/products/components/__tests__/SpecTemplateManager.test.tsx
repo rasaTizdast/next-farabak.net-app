@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import axios from "axios";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("axios");
 const mockAxiosGet = vi.mocked(axios.get);
@@ -54,7 +54,9 @@ describe("SpecTemplateManager", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockAxiosGet.mockResolvedValue({ data: { Items: [{ Title: "Core Count" }, { Title: "Clock Speed" }] } });
+    mockAxiosGet.mockResolvedValue({
+      data: { Items: [{ Title: "Core Count" }, { Title: "Clock Speed" }] },
+    });
   });
 
   it("renders the manager heading", () => {

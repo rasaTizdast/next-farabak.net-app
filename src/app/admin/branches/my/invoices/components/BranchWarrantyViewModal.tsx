@@ -224,7 +224,7 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
                   readOnly
                 />
                 {branchLoading && (
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 transform">
+                  <div className="absolute top-1/2 left-3 -translate-y-1/2 transform">
                     <Spin size="small" />
                   </div>
                 )}

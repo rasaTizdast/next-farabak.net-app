@@ -25,7 +25,7 @@ async function checkDetailInUse(
       setInUseInfo({ isInUse: data.isInUse, productsCount: data.productsCount });
     }
     setShowConfirmModal(true);
-  } catch (error) {
+  } catch {
     toast.error("بررسی وضعیت استفاده با خطا مواجه شد");
   } finally {
     setIsLoading(false);
@@ -51,15 +51,18 @@ const DeleteOverviewDetailButton = ({
 
   const handleDelete = async () => {
     setIsLoading(true);
-    const res = await deleteDetail(`/api/productOverviewDetails/delete/${detailId}`);
-    if (res) {
-      toast.success("توضیحات محصول با موفقیت حذف شد");
-      setShowConfirmModal(false);
-      onSuccess();
-    } else {
-      toast.error("حذف توضیحات محصول با خطا مواجه شد");
+    try {
+      const res = await deleteDetail(`/api/productOverviewDetails/delete/${detailId}`);
+      if (res) {
+        toast.success("توضیحات محصول با موفقیت حذف شد");
+        setShowConfirmModal(false);
+        onSuccess();
+      } else {
+        toast.error("حذف توضیحات محصول با خطا مواجه شد");
+      }
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
@@ -76,26 +79,26 @@ const DeleteOverviewDetailButton = ({
 
       {/* Confirmation Modal */}
       {showConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
+        <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm">
           <div className="relative w-full max-w-md rounded-lg bg-gray-800 p-6 text-white shadow-lg">
             <button
               type="button"
               aria-label="بستن"
               onClick={() => setShowConfirmModal(false)}
-              className="absolute right-3 top-3 text-red-400 hover:text-red-500"
+              className="absolute top-3 right-3 text-red-400 hover:text-red-500"
               disabled={isLoading}
             >
               <IoIosClose size={35} />
             </button>
 
-            <h2 className="mb-4 mt-2 text-center text-xl font-bold">حذف توضیحات محصول</h2>
+            <h2 className="mt-2 mb-4 text-center text-xl font-bold">حذف توضیحات محصول</h2>
 
             <p className="mb-4 text-center">
               آیا از حذف توضیحات &quot;{detailTitle}&quot; اطمینان دارید؟
             </p>
 
             {inUseInfo.isInUse && (
-              <div className="mb-4 rounded-lg border border-yellow-500 bg-yellow-600 bg-opacity-30 p-3">
+              <div className="bg-opacity-30 mb-4 rounded-lg border border-yellow-500 bg-yellow-600 p-3">
                 <p className="text-sm text-yellow-300">
                   هشدار: این توضیحات در {inUseInfo.productsCount} محصول استفاده شده است. حذف آن باعث
                   حذف این ویژگی از تمام محصولات خواهد شد.

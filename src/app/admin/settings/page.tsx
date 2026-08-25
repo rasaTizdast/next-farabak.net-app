@@ -36,8 +36,12 @@ const SettingsPage = () => {
   const admins = adminsData || [];
 
   const { mutate: searchUsersMutate } = useApiMutation<{ phoneNumber: string }, Client[]>("post");
-  const { mutate: makeAdminMutate } = useApiMutation<Record<string, unknown>, { UserID: number }>("post");
-  const { mutate: demoteAdminMutate } = useApiMutation<Record<string, unknown>, { UserID: number }>("post");
+  const { mutate: makeAdminMutate } = useApiMutation<Record<string, unknown>, { UserID: number }>(
+    "post"
+  );
+  const { mutate: demoteAdminMutate } = useApiMutation<Record<string, unknown>, { UserID: number }>(
+    "post"
+  );
   const { mutate: changePasswordMutate } = useApiMutation<Record<string, unknown>>("patch");
 
   const handlePasswordChange = async () => {
@@ -84,55 +88,58 @@ const SettingsPage = () => {
     }
 
     setLoading(true);
+    try {
+      const data = await searchUsersMutate("/api/admin/users", { phoneNumber });
 
-    const data = await searchUsersMutate("/api/admin/users", { phoneNumber });
-
-    if (data) {
-      if (data.length === 0) {
-        toast.error("کاربری با این شماره تلفن یافت نشد.");
+      if (data) {
+        if (data.length === 0) {
+          toast.error("کاربری با این شماره تلفن یافت نشد.");
+        } else {
+          setSearchResults(data);
+        }
       } else {
-        setSearchResults(data);
+        toast.error("خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.");
       }
-    } else {
-      toast.error("خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const handleMakeAdmin = async () => {
     if (selectedUser) {
       setLoading(true);
+      try {
+        const data = await makeAdminMutate("/api/admin/users", { userId: selectedUser.UserID });
 
-      const data = await makeAdminMutate("/api/admin/users", { userId: selectedUser.UserID });
-
-      if (data?.UserID) {
-        toast.success("کاربر با موفقیت ادمین شد!");
-        setSearchResults([]);
-        setSelectedUser(null);
-        setPhoneNumber("");
-        refetchAdmins();
-      } else {
-        toast.error("خطا در بروزرسانی نقش کاربر.");
+        if (data?.UserID) {
+          toast.success("کاربر با موفقیت ادمین شد!");
+          setSearchResults([]);
+          setSelectedUser(null);
+          setPhoneNumber("");
+          refetchAdmins();
+        } else {
+          toast.error("خطا در بروزرسانی نقش کاربر.");
+        }
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     }
   };
 
   const handleDemoteAdmin = async (userId: number) => {
     setLoading(true);
+    try {
+      const data = await demoteAdminMutate("/api/admin/users/admins", { userId });
 
-    const data = await demoteAdminMutate("/api/admin/users/admins", { userId });
-
-    if (data?.UserID) {
-      toast.success("کاربر با موفقیت به کاربر عادی تبدیل شد!");
-      refetchAdmins();
-    } else {
-      toast.error("خطا در بروزرسانی نقش کاربر.");
+      if (data?.UserID) {
+        toast.success("کاربر با موفقیت به کاربر عادی تبدیل شد!");
+        refetchAdmins();
+      } else {
+        toast.error("خطا در بروزرسانی نقش کاربر.");
+      }
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (

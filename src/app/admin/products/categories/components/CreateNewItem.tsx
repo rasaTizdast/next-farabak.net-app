@@ -23,7 +23,7 @@ const CreateNewItem = ({ refetchCategories, isLoading, categories }: Props) => {
         ) : (
           <button
             type="button"
-            className="text-md rounded-xl bg-blue-300 p-3 shadow-lg transition-all hover:bg-blue-400"
+            className="text-md rounded-xl bg-blue-300 p-3 shadow-lg transition-colors hover:bg-blue-400"
             onClick={openModalHandler}
           >
             ساخت دسته‌بندی یا زیردسته‌بندی جدید

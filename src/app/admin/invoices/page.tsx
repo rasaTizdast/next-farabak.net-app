@@ -5,9 +5,10 @@ export const dynamic = "force-dynamic";
 import { SearchOutlined } from "@ant-design/icons";
 import { Input, Button, Select } from "antd";
 import jalaali from "jalali-moment";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
+import { adminColors } from "@/constants/adminColors";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
@@ -226,6 +227,7 @@ const AdminInvoicesPage = () => {
   useEffect(() => {
     if (invoicesData && prevInvoicesData.current !== invoicesData) {
       prevInvoicesData.current = invoicesData;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync fetched invoices into editable local state once, guarded by ref.
       setInvoices(invoicesData);
     }
   }, [invoicesData]);
@@ -342,7 +344,7 @@ const AdminInvoicesPage = () => {
                 onChange={(value) => {
                   setSearchMode(value);
                 }}
-                className="search-select [&.ant-select-focused_.ant-select-selector]:!border-blue-500 [&.ant-select-focused_.ant-select-selector]:!shadow-none [&.ant-select:hover_.ant-select-selector]:!border-gray-600 [&_.ant-select-selector]:!rounded-l-none [&_.ant-select-selector]:!rounded-r-md [&_.ant-select-selector]:!border-[#384152] [&_.ant-select-selector]:!bg-slate-800 [&_.ant-select-selector]:!text-white"
+                className="search-select [&_.ant-select-selector]:!rounded-l-none [&_.ant-select-selector]:!rounded-r-md [&_.ant-select-selector]:!border-[#384152] [&_.ant-select-selector]:!bg-slate-800 [&_.ant-select-selector]:!text-white [&.ant-select-focused_.ant-select-selector]:!border-blue-500 [&.ant-select-focused_.ant-select-selector]:!shadow-none [&.ant-select:hover_.ant-select-selector]:!border-gray-600"
                 popupClassName="!bg-gray-800 !text-white !border !border-gray-600 [&_.ant-select-item]:!text-white"
                 style={{
                   width: "105px",
@@ -369,9 +371,9 @@ const AdminInvoicesPage = () => {
                 onChange={(e) => {
                   setSearchText(e.target.value);
                 }}
-                className="search-input focus:z-[2] [&.ant-input::placeholder]:!text-slate-300 [&.ant-input::placeholder]:!opacity-100 [&.ant-input:focus]:!border-blue-500 [&.ant-input:focus]:!bg-slate-800 [&.ant-input:focus]:!shadow-none [&.ant-input:hover]:!border-gray-600 [&.ant-input:hover]:!bg-slate-800 [&.ant-input]:!text-white"
+                className="search-input focus:z-[2] [&.ant-input]:!text-white [&.ant-input::placeholder]:!text-slate-300 [&.ant-input::placeholder]:!opacity-100 [&.ant-input:focus]:!border-blue-500 [&.ant-input:focus]:!bg-slate-800 [&.ant-input:focus]:!shadow-none [&.ant-input:hover]:!border-gray-600 [&.ant-input:hover]:!bg-slate-800"
                 style={{
-                  backgroundColor: "#1e293b",
+                  backgroundColor: adminColors.panelInner,
                   color: "white",
                   borderColor: "#384152",
                   height: "32px",
@@ -506,12 +508,12 @@ const AdminInvoicesPage = () => {
                           {getTimeRemainingText(invoice.Date, invoice.Checked)}
                         </span>
                         <div
-                          className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                          className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                           dir="ltr"
                         >
                           {formatPersianDate(invoice.Date)}
                           <svg
-                            className="absolute left-0 top-full h-2 w-full text-gray-800"
+                            className="absolute top-full left-0 h-2 w-full text-gray-800"
                             x="0px"
                             y="0px"
                             viewBox="0 0 255 255"
@@ -527,27 +529,27 @@ const AdminInvoicesPage = () => {
                       <button
                         type="button"
                         onClick={() => handleViewInvoice(invoice)}
-                        className="flex items-center justify-center rounded-lg bg-blue-700 px-2 py-1 text-white transition-all hover:bg-blue-600"
+                        className="flex items-center justify-center rounded-lg bg-blue-700 px-2 py-1 text-white transition-colors hover:bg-blue-600"
                       >
                         مشاهده فاکتور
                       </button>
                       <button
                         type="button"
-                        className="flex items-center justify-center rounded-lg bg-green-700 px-2 py-1 text-white transition-all hover:bg-green-600"
+                        className="flex items-center justify-center rounded-lg bg-green-700 px-2 py-1 text-white transition-colors hover:bg-green-600"
                         onClick={() => handlePhoneNumberClick(invoice)}
                       >
                         تماس با مشتری
                       </button>
                       <button
                         type="button"
-                        className="flex items-center justify-center rounded-lg bg-orange-700 px-2 py-1 text-white transition-all hover:bg-orange-600"
+                        className="flex items-center justify-center rounded-lg bg-orange-700 px-2 py-1 text-white transition-colors hover:bg-orange-600"
                         onClick={() => setStatusModalInvoice(invoice)}
                       >
                         تغییر وضعیت
                       </button>
                       <button
                         type="button"
-                        className="flex items-center justify-center rounded-lg bg-red-700 px-2 py-1 text-white transition-all hover:bg-red-600"
+                        className="flex items-center justify-center rounded-lg bg-red-700 px-2 py-1 text-white transition-colors hover:bg-red-600"
                         onClick={() => setDeleteModalInvoice(invoice)}
                       >
                         حذف فاکتور

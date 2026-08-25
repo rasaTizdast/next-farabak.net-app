@@ -6,9 +6,15 @@ import { User } from "./types";
 
 const EMPTY_USERS: User[] = [];
 
+export interface BranchFormValues {
+  userId: number;
+  name: string;
+  location: string;
+}
+
 interface BranchFormProps {
-  form: FormInstance;
-  onFinish: (values: Record<string, unknown>) => void;
+  form: FormInstance<any>;
+  onFinish: (values: BranchFormValues) => void;
   onCancel: () => void;
   users?: User[];
   isEdit?: boolean;

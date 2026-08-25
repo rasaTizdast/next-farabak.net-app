@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 
+import { WizardState, WizardAction } from "../newProductModal/NewProductWizardContext";
+
 type Category = {
   CategoryID: number;
   Name: string;
@@ -7,8 +9,8 @@ type Category = {
 };
 
 type Props = {
-  state: any;
-  dispatch: React.Dispatch<any>;
+  state: WizardState;
+  dispatch: React.Dispatch<WizardAction>;
   categories: Category[];
   setErrors: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
 };
@@ -262,7 +264,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
           زیر دسته بندی
           <div className="group relative">
             <span className="cursor-pointer text-gray-500 hover:text-blue-500">ℹ️</span>
-            <div className="absolute right-0 top-full z-40 mt-1 hidden w-64 rounded bg-gray-700 p-3 text-justify text-sm text-white shadow-2xl group-hover:block">
+            <div className="absolute top-full right-0 z-40 mt-1 hidden w-64 rounded bg-gray-700 p-3 text-justify text-sm text-white shadow-2xl group-hover:block">
               شما می‌توانید چندین زیر دسته‌بندی را انتخاب کنید. اولین زیر دسته‌بندی که انتخاب می‌شود
               به عنوان زیر دسته‌بندی اصلی محصول نشان داده می‌شود.
             </div>
@@ -493,7 +495,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
               <button
                 type="button"
                 key={keyword}
-                className="flex animate-fade-in items-center gap-2 rounded-lg bg-green-700 px-4 py-1 transition-all hover:bg-red-700 hover:text-white"
+                className="animate-fade-in flex items-center gap-2 rounded-lg bg-green-700 px-4 py-1 transition-colors hover:bg-red-700 hover:text-white"
                 onClick={() => {
                   const updatedKeywords = state.keywords
                     .split(" ")

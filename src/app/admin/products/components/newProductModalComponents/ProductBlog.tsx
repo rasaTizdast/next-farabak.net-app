@@ -1,6 +1,6 @@
-import React, { useCallback, useRef } from "react";
+import React, { useRef } from "react";
 
-import {TipTapEditor} from "@/components/editor/TipTapEditor";
+import { TipTapEditor } from "@/components/editor/TipTapEditor";
 
 type Props = {
   dispatch: React.Dispatch<{ type: string; productBlog: string }>;

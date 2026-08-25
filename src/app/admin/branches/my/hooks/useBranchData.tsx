@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
 import { message, Form, InputNumber } from "antd";
+import { useState, useEffect, useRef, useCallback } from "react";
+
+import { adminColors } from "@/constants/adminColors";
 import { useApiMutation } from "@/hooks/useApiMutation";
+
 import { Branch, Product } from "../../components/types";
 
 async function fetchAllProductsHelper(
@@ -286,9 +289,18 @@ export function useBranchData() {
   );
 
   const fetchBranchProductsRef = useRef(fetchBranchProducts);
+  const productsRefreshTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     fetchBranchProductsRef.current = fetchBranchProducts;
   }, [fetchBranchProducts]);
+
+  useEffect(() => {
+    return () => {
+      if (productsRefreshTimeoutIdRef.current) {
+        clearTimeout(productsRefreshTimeoutIdRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let productsIntervalId: NodeJS.Timeout | null = null;
@@ -297,7 +309,7 @@ export function useBranchData() {
       productsIntervalId = setInterval(() => {
         setProductsLoading(true);
         fetchBranchProductsRef.current(branch.branchid).finally(() => {
-          setTimeout(() => setProductsLoading(false), 500);
+          productsRefreshTimeoutIdRef.current = setTimeout(() => setProductsLoading(false), 500);
         });
       }, 30000);
     }
@@ -305,6 +317,9 @@ export function useBranchData() {
     return () => {
       if (productsIntervalId) {
         clearInterval(productsIntervalId);
+      }
+      if (productsRefreshTimeoutIdRef.current) {
+        clearTimeout(productsRefreshTimeoutIdRef.current);
       }
     };
   }, [productDrawerVisible, branch]);
@@ -397,9 +412,9 @@ export function useBranchData() {
           }}
           className="dark-input-number w-20"
           style={{
-            backgroundColor: "#374151",
-            borderColor: "#4b5563",
-            color: "#e5e7eb",
+            backgroundColor: adminColors.border,
+            borderColor: adminColors.borderLight,
+            color: adminColors.textLight,
           }}
         />
       ),
@@ -415,7 +430,7 @@ export function useBranchData() {
     loading,
     setLoading,
     productsLoading,
-refreshing,
+    refreshing,
     setRefreshing,
     error,
     setError,

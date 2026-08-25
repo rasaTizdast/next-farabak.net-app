@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import type { TableColumnsType } from "antd";
 
-import { ButtonBase, TableBase } from "./ui";
+import { Button } from "@/components/ui/antd/Button";
+import { DataTable } from "@/components/ui/antd/DataTable";
 
 type Warehouse = {
   warehouseid: number;
@@ -35,7 +36,7 @@ export default function WarehousesTable({
   onProducts: (w: Warehouse) => void;
   isSearching?: boolean;
 }) {
-  const columns = [
+  const columns: TableColumnsType<Warehouse> = [
     { title: "نام", dataIndex: "name", key: "name" },
     { title: "مکان", dataIndex: "location", key: "location" },
     { title: "تعداد محصولات", dataIndex: "productCount", key: "productCount" },
@@ -45,7 +46,7 @@ export default function WarehousesTable({
           {
             title: "تعداد این محصول",
             key: "specificProductQuantity",
-            render: (_: any, record: Warehouse) => (
+            render: (_: unknown, record: Warehouse) => (
               <span
                 className={
                   (record.specificProductQuantity || 0) > 0
@@ -64,39 +65,39 @@ export default function WarehousesTable({
     {
       title: "عملیات",
       key: "actions",
-      render: (_: any, record: Warehouse) => (
+      render: (_: unknown, record: Warehouse) => (
         <div className="flex gap-2">
-          <ButtonBase
-            onClick={() => onEdit(record)}
-            className="flex items-center gap-2 !bg-amber-600 hover:!bg-amber-700"
+          <Button
             variant="primary"
+            onClick={() => onEdit(record)}
+            className="flex items-center gap-2"
           >
             ویرایش
-          </ButtonBase>
-          <ButtonBase
+          </Button>
+          <Button
+            variant="danger"
             onClick={() => onDelete(record)}
             className="flex items-center gap-2"
-            variant="danger"
           >
             حذف
-          </ButtonBase>
-          <ButtonBase
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => onProducts(record)}
             className="flex items-center gap-2"
-            variant="primary"
           >
             محصولات
-          </ButtonBase>
+          </Button>
         </div>
       ),
     },
   ];
 
   return (
-    <TableBase
-      data={items}
+    <DataTable<Warehouse>
+      dataSource={items}
       rowKey={(r) => r.warehouseid}
-      columns={columns as any}
+      columns={columns}
       loading={loading}
       pagination={{ current: page, pageSize: 20, total, onChange: (p) => onPageChange(p) }}
     />

@@ -3,16 +3,12 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 
+import { AutoComplete } from "@/components/ui/antd/AutoComplete";
+import { Button } from "@/components/ui/antd/Button";
+import { DataTable } from "@/components/ui/antd/DataTable";
+import { Input } from "@/components/ui/antd/Input";
+import { Modal } from "@/components/ui/antd/Modal";
 import { useApiMutation } from "@/hooks/useApiMutation";
-
-import {
-  AutoCompleteBase,
-  ButtonBase,
-  InputBase,
-  ModalBase,
-  TableBase,
-  useBodyScrollLock,
-} from "./ui";
 
 type WarehouseProduct = {
   warehouseproductid: number; // Add unique identifier for the warehouseproduct record
@@ -42,6 +38,16 @@ type Product = {
   }[];
 };
 
+type UpdateProductBody = {
+  quantity?: number;
+  ProductGradeId?: number | null;
+};
+
+type DeleteResponse = unknown;
+
+type UpdateMutateFn = (url: string, data: UpdateProductBody) => Promise<WarehouseProduct | null>;
+type DeleteMutateFn = (url: string) => Promise<DeleteResponse | null>;
+
 async function loadWarehouseProducts(
   whId: number,
   setProductLoading: React.Dispatch<React.SetStateAction<boolean>>,
@@ -49,7 +55,7 @@ async function loadWarehouseProducts(
 ) {
   setProductLoading(true);
   try {
-    const res = await axios.get(`/api/admin/warehouses/${whId}/products`);
+    const res = await axios.get<WarehouseProduct[]>(`/api/admin/warehouses/${whId}/products`);
     setProducts(res.data);
   } catch (e) {
     console.error(e);
@@ -67,8 +73,8 @@ async function updateProductGrade(
   products: WarehouseProduct[],
   setProducts: React.Dispatch<React.SetStateAction<WarehouseProduct[]>>,
   refreshWarehouses: () => void,
-  updateMutate: any,
-  deleteMutate: any
+  updateMutate: UpdateMutateFn,
+  deleteMutate: DeleteMutateFn
 ) {
   const existingWithGrade = products.find(
     (p) =>
@@ -80,7 +86,10 @@ async function updateProductGrade(
   if (existingWithGrade) {
     const r1 = await updateMutate(
       `/api/admin/warehouses/${warehouseId}/products/${existingWithGrade.warehouseproductid}`,
-      { quantity: existingWithGrade.quantity + currentQuantity }
+      {
+        quantity: existingWithGrade.quantity + currentQuantity,
+        ProductGradeId: existingWithGrade.ProductGradeId,
+      }
     );
     if (r1) {
       await deleteMutate(
@@ -108,8 +117,8 @@ async function doUpdateGrade(
   products: WarehouseProduct[],
   setProducts: React.Dispatch<React.SetStateAction<WarehouseProduct[]>>,
   refreshWarehouses: () => void,
-  updateMutate: any,
-  deleteMutate: any,
+  updateMutate: UpdateMutateFn,
+  deleteMutate: DeleteMutateFn,
   setActionLoading: React.Dispatch<
     React.SetStateAction<{
       add: boolean;
@@ -161,10 +170,9 @@ export default function ProductsModal({
   allProducts: Product[];
   refreshWarehouses: () => void;
 }) {
-  useBodyScrollLock(open);
   const [productLoading, setProductLoading] = useState(false);
   const [products, setProducts] = useState<WarehouseProduct[]>([]);
-  const { mutate: updateMutate } = useApiMutation("put");
+  const { mutate: updateMutate } = useApiMutation<UpdateProductBody, WarehouseProduct>("put");
   const { mutate: deleteMutate } = useApiMutation("delete");
   const { mutate: addMutate, loading: addingProduct } = useApiMutation("post");
   const [addProductId, setAddProductId] = useState("");
@@ -247,9 +255,9 @@ export default function ProductsModal({
   };
 
   return (
-    <ModalBase
+    <Modal
       open={open}
-      onClose={onClose}
+      onCancel={onClose}
       title={
         <div className="flex items-center justify-between">
           <span className="text-lg font-semibold">محصولات انبار {warehouseName}</span>
@@ -267,7 +275,7 @@ export default function ProductsModal({
             <label htmlFor="warehouse-product-name" className="text-xs text-gray-400">
               نام محصول
             </label>
-            <AutoCompleteBase
+            <AutoComplete
               aria-label="نام محصول"
               options={allProducts.map((p) => ({
                 value: p.Type || "",
@@ -285,9 +293,9 @@ export default function ProductsModal({
                 setAddProductId(foundExact ? String(foundExact.ProductId) : "");
                 setAddGradeId(""); // Reset grade when product changes
               }}
-              onSelect={(value: string, option: any) => {
+              onSelect={(value: string, option: Record<string, unknown>) => {
                 setAddProductName(value);
-                setAddProductId(option.productId);
+                setAddProductId(option.productId as string);
                 setAddGradeId(""); // Reset grade when product changes
               }}
               placeholder="جستجو و انتخاب محصول"
@@ -306,7 +314,7 @@ export default function ProductsModal({
               <select
                 id="warehouse-product-grade"
                 aria-label="گرید محصول"
-                className={`w-full rounded border border-gray-600 bg-gray-700 px-3 py-2 text-white transition-all duration-200 ${
+                className={`w-full rounded border border-gray-600 bg-gray-700 px-3 py-2 text-white transition-[opacity,color] duration-200 ${
                   !selectedProduct || !addProductId ? "cursor-not-allowed opacity-30" : ""
                 } ${!selectedProduct || selectedProduct?.ProductGrade?.length === 0 ? "text-transparent" : ""}`}
                 value={addGradeId}
@@ -333,18 +341,18 @@ export default function ProductsModal({
             <label htmlFor="warehouse-product-quantity" className="text-xs text-gray-400">
               تعداد
             </label>
-            <InputBase
+            <Input
               id="warehouse-product-quantity"
               type="number"
               min={1}
               aria-label="تعداد"
               value={addQuantity}
-              onChange={(e) => setAddQuantity((e.target as HTMLInputElement).value)}
+              onChange={(e) => setAddQuantity(e.target.value)}
             />
           </div>
-          <ButtonBase
+          <Button
             variant="primary"
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700"
+            className="flex items-center gap-2"
             loading={addingProduct}
             disabled={!addProductId || !addQuantity || parseInt(addQuantity || "0") < 1}
             onClick={async () => {
@@ -374,21 +382,21 @@ export default function ProductsModal({
           >
             <span className="-mt-0.5 text-lg">＋</span>
             افزودن محصول
-          </ButtonBase>
+          </Button>
         </div>
       </div>
 
-      <TableBase<WarehouseProduct>
-        data={products}
+      <DataTable<WarehouseProduct>
+        dataSource={products}
         rowKey={(r) => r.warehouseproductid}
         loading={productLoading}
-        pagination={false as any}
+        pagination={false}
         columns={[
           { title: "نام محصول", dataIndex: "Type", key: "Type" },
           {
             title: "گرید",
             key: "grade",
-            render: (_: any, record: WarehouseProduct) => {
+            render: (_: unknown, record: WarehouseProduct) => {
               const grades = record.availableGrades || [];
               const isLoading = actionLoading.modify[record.warehouseproductid];
               return (
@@ -409,8 +417,9 @@ export default function ProductsModal({
                             record.quantity,
                             record.warehouseproductid // Pass the warehouseproductid
                           );
-                        } catch (error: any) {
-                          alert(error.response?.data?.error || "خطا در بروزرسانی گرید محصول");
+                        } catch (error: unknown) {
+                          const err = error as { response?: { data?: { error?: string } } };
+                          alert(err.response?.data?.error || "خطا در بروزرسانی گرید محصول");
                         }
                       }}
                       disabled={isLoading || !grades.length}
@@ -430,7 +439,7 @@ export default function ProductsModal({
                     )}
                   </div>
                   {isLoading && (
-                    <span className="inline-flex items-center gap-1 whitespace-nowrap text-xs text-blue-400">
+                    <span className="inline-flex items-center gap-1 text-xs whitespace-nowrap text-blue-400">
                       در حال بروزرسانی...
                     </span>
                   )}
@@ -444,9 +453,9 @@ export default function ProductsModal({
           {
             title: "تعداد",
             key: "quantity",
-            render: (_: any, record: WarehouseProduct) => (
+            render: (_: unknown, record: WarehouseProduct) => (
               <div className="flex items-center gap-2">
-                <InputBase
+                <Input
                   type="number"
                   min={0}
                   className="w-24"
@@ -456,7 +465,7 @@ export default function ProductsModal({
                   onChange={(e) =>
                     updateQuantity(
                       record.warehouseproductid,
-                      Math.max(0, parseInt((e.target as HTMLInputElement).value || "0"))
+                      Math.max(0, parseInt(e.target.value || "0"))
                     )
                   }
                 />
@@ -466,19 +475,19 @@ export default function ProductsModal({
           {
             title: "عملیات",
             key: "actions",
-            render: (_: any, record: WarehouseProduct) => (
-              <ButtonBase
+            render: (_: unknown, record: WarehouseProduct) => (
+              <Button
                 variant="danger"
                 loading={actionLoading.remove[record.warehouseproductid]}
                 onClick={() => removeProduct(record)}
                 className="flex items-center gap-2"
               >
                 حذف
-              </ButtonBase>
+              </Button>
             ),
           },
         ]}
       />
-    </ModalBase>
+    </Modal>
   );
 }

@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 import { useUser } from "@/context/UserContext";
 import { useApiFetch } from "@/hooks/useApiFetch";
+
+import { SelectedProduct } from "./types";
 
 const faNumberFormatter = new Intl.NumberFormat("fa-IR");
 
@@ -12,7 +14,12 @@ function formatNumber(num: number) {
 }
 
 // Extended Product interface with additional properties
-interface ExtendedProduct extends Product {
+interface ExtendedProduct {
+  ProductId: number;
+  Type: string;
+  Price?: string;
+  Discount?: string;
+  quantity?: number;
   priceInRials: number;
   currentQuantity: number;
   selectedQuantity: number;
@@ -22,10 +29,10 @@ interface ExtendedProduct extends Product {
 
 interface ProductSelectionStepProps {
   branchId: number;
-  selectedProducts: any[];
-  setSelectedProducts: React.Dispatch<React.SetStateAction<any[]>>;
+  selectedProducts: SelectedProduct[];
+  setSelectedProducts: React.Dispatch<React.SetStateAction<SelectedProduct[]>>;
   usdToRialRate: number | null;
-  onUpdate: (products: any[], totalAmount: number) => void;
+  onUpdate: (products: SelectedProduct[], totalAmount: number) => void;
 }
 
 interface Product {
@@ -48,7 +55,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     loading,
     error,
   } = useApiFetch<Product[]>(branchId ? `/api/admin/branches/${branchId}/products` : null);
-  const [localSelectedProducts, setLocalSelectedProducts] = useState<any[]>([]);
+  const [localSelectedProducts, setLocalSelectedProducts] = useState<SelectedProduct[]>([]);
   const prevSelectedRef = useRef(selectedProducts);
   const [manualExchangeRate, setManualExchangeRate] = useState<number | null>(null);
   const [rawInput, setRawInput] = useState<string>("");
@@ -68,6 +75,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
   useEffect(() => {
     if (prevSelectedRef.current !== selectedProducts) {
       prevSelectedRef.current = selectedProducts;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync local editable selection state from parent prop, guarded by ref to fire only on prop change.
       setLocalSelectedProducts(selectedProducts);
     }
   }, [selectedProducts]);
@@ -221,7 +229,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
               min={1}
               value={rawInput}
               onChange={(e) => handleManualRateChange(e.target.value)}
-              className="w-48 rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-48 rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
               placeholder="نرخ ارز را وارد کنید"
             />
 
@@ -317,7 +325,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                     <input
                       type="search"
                       aria-label="جستجوی محصول"
-                      className="block w-full rounded-lg border border-gray-700 bg-gray-800 p-2.5 pl-10 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="block w-full rounded-lg border border-gray-700 bg-gray-800 p-2.5 pl-10 text-sm text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       placeholder="جستجوی محصول..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -328,7 +336,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                 {filteredProducts.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full overflow-hidden rounded-lg border border-gray-700 text-right text-sm text-gray-200">
-                      <thead className="bg-gray-800 text-xs uppercase text-gray-200">
+                      <thead className="bg-gray-800 text-xs text-gray-200 uppercase">
                         <tr>
                           <th scope="col" className="px-4 py-3">
                             نام محصول
@@ -434,7 +442,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                                         );
                                         handleQuantityChange(product.ProductId, validQuantity);
                                       }}
-                                      className="h-full w-10 border-0 bg-gray-950 text-center text-white [appearance:textfield] focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                      className="h-full w-10 [appearance:textfield] border-0 bg-gray-950 text-center text-white focus:ring-0 focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                     />
                                     <button
                                       type="button"
@@ -508,7 +516,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                 {localSelectedProducts.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full overflow-hidden rounded-lg border border-gray-700 text-right text-sm text-gray-200">
-                      <thead className="bg-gray-800 text-xs uppercase text-gray-200">
+                      <thead className="bg-gray-800 text-xs text-gray-200 uppercase">
                         <tr>
                           <th scope="col" className="px-6 py-3">
                             نام محصول

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import toast from "react-hot-toast";
 import { FiPlus } from "react-icons/fi";
 import { IoIosClose } from "react-icons/io";
 
@@ -9,6 +8,12 @@ import { useApiFetch } from "@/hooks/useApiFetch";
 
 import SpecTemplateManager from "./SpecTemplateManager";
 import { Specs } from "../types";
+
+type SpecApiResponse = {
+  ProductSpecsId: number;
+  Title: string;
+  Description: string;
+};
 
 type SpecItemLocal = {
   ProductSpecsId: number;
@@ -38,7 +43,7 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
   const [showTemplateManager, setShowTemplateManager] = useState(false);
   const [internalSpecs, setInternalSpecs] = useState<SpecsInternal | null>(null);
 
-  const { data: fetchedSpecs, loading: isLoading } = useApiFetch<any[]>(
+  const { data: fetchedSpecs, loading: isLoading } = useApiFetch<SpecApiResponse[]>(
     productId ? `/api/specs/${productId}` : null
   );
 
@@ -49,9 +54,10 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
 
     if (fetchedSpecs) {
       specsInitGuard.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable specs state from fetched data once, guarded by ref.
       setInternalSpecs({
         isChanged: false,
-        data: fetchedSpecs.map((s: any) => ({
+        data: fetchedSpecs.map((s: SpecApiResponse) => ({
           ProductSpecsId: s.ProductSpecsId,
           Title: s.Title,
           Description: s.Description,

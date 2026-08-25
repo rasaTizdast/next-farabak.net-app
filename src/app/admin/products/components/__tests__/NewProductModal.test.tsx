@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("react-hot-toast", () => ({
   default: { success: vi.fn(), error: vi.fn() },
@@ -9,10 +9,74 @@ vi.mock("react-hot-toast", () => ({
 vi.mock("react-icons/fi", () => ({
   FiChevronDown: () => <span>▼</span>,
   FiChevronUp: () => <span>▲</span>,
+  FiPlus: () => <span>+</span>,
 }));
 
 vi.mock("react-icons/io", () => ({
-  IoIosClose: ({ size }: any) => <span data-testid="close-icon">✕</span>,
+  IoIosClose: () => <span data-testid="close-icon">✕</span>,
+}));
+
+vi.mock("../newProductModal/steps/BaseDetailsStep", () => ({
+  default: () => <div data-testid="base-details">BaseDetailsStep</div>,
+  BaseDetailsStep: () => <div data-testid="base-details">BaseDetailsStep</div>,
+}));
+
+vi.mock("../newProductModal/steps/ProductOverviewStep", () => ({
+  default: () => <div data-testid="product-overview">ProductOverviewStep</div>,
+  ProductOverviewStep: () => <div data-testid="product-overview">ProductOverviewStep</div>,
+}));
+
+vi.mock("../newProductModal/steps/OverviewDetailsStep", async () => {
+  const { useNewProductWizard } = await import("../newProductModal/NewProductWizardContext");
+  const MockOverviewDetailsStep = () => {
+    const { actions, showOverviewDetailsModal } = useNewProductWizard();
+    return (
+      <div data-testid="overview-details-modal-wrapper">
+        <button type="button" onClick={() => actions.setShowOverviewDetailsModal(true)}>
+          ساخت توضیحات محصول جدید
+        </button>
+        {showOverviewDetailsModal && (
+          <div data-testid="overview-details-modal">
+            <button type="button" onClick={() => actions.setShowOverviewDetailsModal(false)}>
+              close overview
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+  return {
+    default: MockOverviewDetailsStep,
+    OverviewDetailsStep: MockOverviewDetailsStep,
+  };
+});
+
+vi.mock("../newProductModal/steps/ProductBlogStep", () => ({
+  default: () => <div data-testid="product-blog">ProductBlogStep</div>,
+  ProductBlogStep: () => <div data-testid="product-blog">ProductBlogStep</div>,
+}));
+
+vi.mock("../newProductModal/steps/SpecsStep", () => ({
+  default: () => <div data-testid="specs">SpecsStep</div>,
+  SpecsStep: () => <div data-testid="specs">SpecsStep</div>,
+}));
+
+vi.mock("../newProductModal/steps/FAQsStep", () => ({
+  default: () => <div data-testid="faq">FAQsStep</div>,
+  FAQsStep: () => <div data-testid="faq">FAQsStep</div>,
+}));
+
+vi.mock("../newProductModal/steps/PreviewStep", () => ({
+  default: () => <div data-testid="preview">PreviewStep</div>,
+  PreviewStep: () => <div data-testid="preview">PreviewStep</div>,
+}));
+
+vi.mock("../newProductModalComponents/ProgressModal", () => ({
+  default: ({ progress, currentStep }: any) => (
+    <div data-testid="progress-modal">
+      {progress}% - step {currentStep}
+    </div>
+  ),
 }));
 
 vi.mock("../NewOverviewDetailsModal", () => ({
@@ -23,41 +87,11 @@ vi.mock("../NewOverviewDetailsModal", () => ({
   ),
 }));
 
-vi.mock("../newProductModalComponents/BaseDetails", () => ({
-  default: () => <div data-testid="base-details">BaseDetails</div>,
-}));
-
-vi.mock("../newProductModalComponents/FAQ", () => ({
-  default: () => <div data-testid="faq">FAQ</div>,
-}));
-
-vi.mock("../newProductModalComponents/OverviewDetails", () => ({
-  default: () => <div data-testid="overview-details">OverviewDetails</div>,
-}));
-
-vi.mock("../newProductModalComponents/ProductBlog", () => ({
-  default: () => <div data-testid="product-blog">ProductBlog</div>,
-}));
-
-vi.mock("../newProductModalComponents/ProductOverview", () => ({
-  default: () => <div data-testid="product-overview">ProductOverview</div>,
-}));
-
-vi.mock("../newProductModalComponents/Specs", () => ({
-  default: () => <div data-testid="specs">Specs</div>,
-}));
-
-vi.mock("../newProductModalComponents/ProgressModal", () => ({
-  default: ({ progress, currentStep }: any) => (
-    <div data-testid="progress-modal">{progress}% - step {currentStep}</div>
-  ),
-}));
-
 vi.mock("../utils/createProduct", () => ({
   createProduct: vi.fn().mockResolvedValue(undefined),
 }));
 
-import NewProductModal from "../NewProductModal";
+import NewProductModal from "../newProductModal/NewProductWizard";
 
 const mockCategories = [
   {
@@ -98,8 +132,8 @@ describe("NewProductModal", () => {
     expect(screen.getByText("جزئیات پایه")).toBeInTheDocument();
     expect(screen.getByText("بررسی محصول")).toBeInTheDocument();
     expect(screen.getByText("توضیحات محصول")).toBeInTheDocument();
-    expect(screen.getByText("توضیحات تکمیلی (مقاله محصول)")).toBeInTheDocument();
-    expect(screen.getByText("مشخصات محصول")).toBeInTheDocument();
+    expect(screen.getByText("مقاله محصول")).toBeInTheDocument();
+    expect(screen.getByText("مشخصات")).toBeInTheDocument();
     expect(screen.getByText("سوالات متداول")).toBeInTheDocument();
   });
 
@@ -159,7 +193,7 @@ describe("NewProductModal", () => {
         categories={mockCategories}
       />
     );
-    fireEvent.click(screen.getByText("مشخصات محصول"));
+    fireEvent.click(screen.getByText("مشخصات"));
     expect(screen.getByTestId("specs")).toBeInTheDocument();
   });
 
@@ -183,7 +217,7 @@ describe("NewProductModal", () => {
         categories={mockCategories}
       />
     );
-    fireEvent.click(screen.getByText("توضیحات تکمیلی (مقاله محصول)"));
+    fireEvent.click(screen.getByText("مقاله محصول"));
     expect(screen.getByTestId("product-blog")).toBeInTheDocument();
   });
 

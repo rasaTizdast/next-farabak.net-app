@@ -119,6 +119,7 @@ export function useProductAssignment({
   const productQuantityRef = useRef<number>(1);
   const [productForm] = Form.useForm();
   const fetchBranchProductsRef = useRef<(branchId: number) => Promise<void>>(undefined);
+  const productsRefreshTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
 
   const { mutate: addProductMutate } = useApiMutation("post");
   const { mutate: updateProductQtyMutate } = useApiMutation("put");
@@ -137,13 +138,21 @@ export function useProductAssignment({
   }, []);
 
   useEffect(() => {
+    return () => {
+      if (productsRefreshTimeoutIdRef.current) {
+        clearTimeout(productsRefreshTimeoutIdRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     let productsIntervalId: NodeJS.Timeout | null = null;
 
     if (productDrawerVisible && currentBranch) {
       productsIntervalId = setInterval(() => {
         setProductsLoading(true);
         fetchBranchProductsRef.current?.(currentBranch.branchid).finally(() => {
-          setTimeout(() => setProductsLoading(false), 500);
+          productsRefreshTimeoutIdRef.current = setTimeout(() => setProductsLoading(false), 500);
         });
       }, 30000);
     }
@@ -151,6 +160,9 @@ export function useProductAssignment({
     return () => {
       if (productsIntervalId) {
         clearInterval(productsIntervalId);
+      }
+      if (productsRefreshTimeoutIdRef.current) {
+        clearTimeout(productsRefreshTimeoutIdRef.current);
       }
     };
   }, [productDrawerVisible, currentBranch]);

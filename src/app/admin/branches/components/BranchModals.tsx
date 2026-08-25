@@ -1,21 +1,28 @@
 "use client";
 
+import { FormInstance } from "antd";
 import React from "react";
+import { z } from "zod";
+
+import { createBranchSchema, updateBranchSchema } from "@/lib/validation";
 
 import CreateBranchModal from "./CreateBranchModal";
 import EditBranchModal from "./EditBranchModal";
 import { Branch, User } from "./types";
 
+type CreateBranchInput = z.infer<typeof createBranchSchema>;
+type UpdateBranchInput = z.infer<typeof updateBranchSchema>;
+
 interface BranchModalsProps {
   createVisible: boolean;
   editVisible: boolean;
   currentBranch: Branch | null;
-  form: any;
-  editForm: any;
+  form: FormInstance<CreateBranchInput>;
+  editForm: FormInstance<UpdateBranchInput>;
   users: User[];
   currentUserId?: number;
-  onCreate: (values: any) => void;
-  onUpdate: (values: any) => void;
+  onCreate: (values: CreateBranchInput) => void;
+  onUpdate: (values: UpdateBranchInput) => void;
   onCloseCreate: () => void;
   onCloseEdit: () => void;
 }

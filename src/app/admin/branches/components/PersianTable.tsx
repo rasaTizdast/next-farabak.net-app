@@ -1,10 +1,10 @@
-import { Table, TableProps } from "antd";
+import { Table, TableProps, TablePaginationConfig } from "antd";
 import React from "react";
 
 import PersianPagination from "./PersianPagination";
 
 // Use generic type parameter to make the component work with any data type
-function renderPagination(pagination: any) {
+function renderPagination(pagination: TablePaginationConfig) {
   if (!pagination) return false;
 
   // Make sure the quick jumper is always disabled
@@ -17,7 +17,7 @@ function renderPagination(pagination: any) {
   return {
     ...modifiedPagination,
     // This render function will be used by Table to render pagination
-    render: (paginationProps: any) => (
+    render: (paginationProps: TablePaginationConfig) => (
       <PersianPagination
         {...paginationProps}
         showQuickJumper={false}
@@ -27,7 +27,9 @@ function renderPagination(pagination: any) {
   };
 }
 
-function PersianTable<RecordType extends object = any>(props: TableProps<RecordType>) {
+function PersianTable<RecordType extends object = Record<string, unknown>>(
+  props: TableProps<RecordType>
+) {
   return (
     <Table {...props} pagination={props.pagination ? renderPagination(props.pagination) : false} />
   );

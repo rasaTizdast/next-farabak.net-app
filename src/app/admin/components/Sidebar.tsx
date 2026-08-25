@@ -18,52 +18,52 @@ import { MdOutlineStorefront } from "react-icons/md";
 
 import { useUser } from "@/context/UserContext";
 
+// Define sidebar items for each role
+const adminSidebarItems = [
+  { name: "داشبورد", href: "/admin", icon: <FiHome size={20} /> },
+  { name: "محصولات", href: "/admin/products", icon: <FiBox size={20} /> },
+  { name: "قیمت‌های همکار", href: "/admin/partner-prices", icon: <FiTag size={20} /> },
+  {
+    name: "دسته‌بندی‌ها",
+    href: "/admin/products/categories",
+    icon: <BiCategory />,
+  },
+  { name: "صفحات", href: "/admin/pages", icon: <FiFileText size={20} /> },
+  {
+    name: "گزارش‌ها",
+    href: "/admin/analytics",
+    icon: <FiBarChart2 size={20} />,
+  },
+  {
+    name: "شعبه‌ها",
+    href: "/admin/branches",
+    icon: <MdOutlineStorefront size={20} />,
+  },
+  {
+    name: "انبارها",
+    href: "/admin/warehouses",
+    icon: <MdOutlineStorefront size={20} />,
+  },
+  { name: "فاکتورها", href: "/admin/invoices", icon: <FiFile size={20} /> },
+  {
+    name: "تنظیمات",
+    href: "/admin/settings",
+    icon: <FiSettings size={20} />,
+  },
+];
+
+const branchSidebarItems = [
+  { name: "شعبه من", href: "/admin/branches/my", icon: <MdOutlineStorefront size={20} /> },
+  {
+    name: "قیمت‌های همکار",
+    href: "/admin/branches/my/partner-prices",
+    icon: <FiTag size={20} />,
+  },
+];
+
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const { logout, user } = useUser();
-
-  // Define sidebar items for each role
-  const adminSidebarItems = [
-    { name: "داشبورد", href: "/admin", icon: <FiHome size={20} /> },
-    { name: "محصولات", href: "/admin/products", icon: <FiBox size={20} /> },
-    { name: "قیمت‌های همکار", href: "/admin/partner-prices", icon: <FiTag size={20} /> },
-    {
-      name: "دسته‌بندی‌ها",
-      href: "/admin/products/categories",
-      icon: <BiCategory />,
-    },
-    { name: "صفحات", href: "/admin/pages", icon: <FiFileText size={20} /> },
-    {
-      name: "گزارش‌ها",
-      href: "/admin/analytics",
-      icon: <FiBarChart2 size={20} />,
-    },
-    {
-      name: "شعبه‌ها",
-      href: "/admin/branches",
-      icon: <MdOutlineStorefront size={20} />,
-    },
-    {
-      name: "انبارها",
-      href: "/admin/warehouses",
-      icon: <MdOutlineStorefront size={20} />,
-    },
-    { name: "فاکتورها", href: "/admin/invoices", icon: <FiFile size={20} /> },
-    {
-      name: "تنظیمات",
-      href: "/admin/settings",
-      icon: <FiSettings size={20} />,
-    },
-  ];
-
-  const branchSidebarItems = [
-    { name: "شعبه من", href: "/admin/branches/my", icon: <MdOutlineStorefront size={20} /> },
-    {
-      name: "قیمت‌های همکار",
-      href: "/admin/branches/my/partner-prices",
-      icon: <FiTag size={20} />,
-    },
-  ];
 
   // Select the sidebar items based on user role
   const isBranch = user?.role === "Branch";
@@ -83,7 +83,7 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <div
-        className={`fixed right-0 top-0 z-50 flex h-full flex-col bg-[#0074e0] text-gray-200 transition-all ${
+        className={`fixed top-0 right-0 z-50 flex h-full flex-col bg-[#0074e0] text-gray-200 transition-[width] ${
           isCollapsed ? "w-16" : "w-64"
         }`}
         onMouseEnter={() => setIsCollapsed(false)}
@@ -92,7 +92,7 @@ const Sidebar = () => {
         {/* Logo */}
         <div className="flex h-16 items-center justify-center">
           <h1
-            className={`text-xl font-bold transition-all ${
+            className={`text-xl font-bold transition-opacity ${
               isCollapsed ? "opacity-0" : "opacity-100"
             }`}
           >

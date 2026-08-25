@@ -22,6 +22,15 @@ function calcOriginal(p: ProductRow) {
   return Math.max(price - discount, 0);
 }
 
+type ProductApiResponse = {
+  ProductId: number;
+  Type: string;
+  Price: number | null;
+  Discount: number | null;
+  Partner_Price: string | null;
+  link: string;
+};
+
 async function fetchPartnerPrices(
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
   setData: React.Dispatch<React.SetStateAction<ProductRow[]>>,
@@ -30,8 +39,10 @@ async function fetchPartnerPrices(
 ) {
   try {
     setLoading(true);
-    const res = await axios.get("/api/admin/products", { params: { limit: 500 } });
-    const rows = (res.data?.data || []).map((p: any) => ({
+    const res = await axios.get<{ data: ProductApiResponse[] }>("/api/admin/products", {
+      params: { limit: 500 },
+    });
+    const rows = (res.data?.data || []).map((p: ProductApiResponse) => ({
       ProductId: p.ProductId,
       Type: p.Type,
       Price: Number(p.Price ?? 0),
@@ -45,8 +56,8 @@ async function fetchPartnerPrices(
       initial[r.ProductId] = r.Partner_Price ?? "";
     });
     setPartnerValues(initial);
-  } catch (e: any) {
-    setError(e?.message || "خطا در دریافت اطلاعات");
+  } catch (e: unknown) {
+    setError(e instanceof Error ? e.message : "خطا در دریافت اطلاعات");
   } finally {
     setLoading(false);
   }
@@ -102,7 +113,6 @@ export default function AdminPartnerPricesPage() {
     await fetchPartnerPrices(setLoading, setData, setPartnerValues, setError);
   };
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
     fetchData();
   }, []);
@@ -190,8 +200,12 @@ export default function AdminPartnerPricesPage() {
         <table className="w-full table-auto text-sm">
           <thead className="sticky top-0 z-10 bg-slate-800 text-gray-100">
             <tr>
-              <th className="cursor-pointer px-4 py-3" onClick={() => setSort("Type")}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSort("Type"); }}
+              <th
+                className="cursor-pointer px-4 py-3"
+                onClick={() => setSort("Type")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") setSort("Type");
+                }}
                 tabIndex={0}
               >
                 نام محصول {sortKey === "Type" ? (sortDir === "asc" ? "▲" : "▼") : ""}
@@ -199,7 +213,9 @@ export default function AdminPartnerPricesPage() {
               <th
                 className="cursor-pointer px-4 py-3 text-center"
                 onClick={() => setSort("Original")}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSort("Original"); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") setSort("Original");
+                }}
                 tabIndex={0}
               >
                 قیمت اصلی با تخفیف
@@ -208,7 +224,9 @@ export default function AdminPartnerPricesPage() {
               <th
                 className="cursor-pointer px-4 py-3 text-center"
                 onClick={() => setSort("Partner")}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSort("Partner"); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") setSort("Partner");
+                }}
                 tabIndex={0}
               >
                 قیمت همکار {sortKey === "Partner" ? (sortDir === "asc" ? "▲" : "▼") : ""}
@@ -248,7 +266,7 @@ export default function AdminPartnerPricesPage() {
                       const price = p.Price;
                       const discount = p.Discount;
                       if (!price || price === 0) {
-                        return <span className="italic text-gray-300">بدون قیمت</span>;
+                        return <span className="text-gray-300 italic">بدون قیمت</span>;
                       }
                       if (discount && discount > 0) {
                         const originalUsd = price;

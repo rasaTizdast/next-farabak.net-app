@@ -189,7 +189,7 @@ export default function CategoryBlogEditor({
                     value={tableRows}
                     aria-label="تعداد سطرها"
                     onChange={(e) => setTableRows(parseInt(e.target.value) || 3)}
-                    className="w-14 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center"
+                    className="w-14 border-t border-b border-gray-600 bg-gray-900 px-2 py-1 text-center"
                   />
                   <button
                     type="button"
@@ -222,7 +222,7 @@ export default function CategoryBlogEditor({
                     value={tableCols}
                     aria-label="تعداد ستون‌ها"
                     onChange={(e) => setTableCols(parseInt(e.target.value) || 3)}
-                    className="w-14 border-b border-t border-gray-600 bg-gray-900 px-2 py-1 text-center"
+                    className="w-14 border-t border-b border-gray-600 bg-gray-900 px-2 py-1 text-center"
                   />
                   <button
                     type="button"

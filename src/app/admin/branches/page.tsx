@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import { Card, Tabs } from "antd";
 import { Suspense, useEffect, useRef } from "react";
 
+import { adminColors } from "@/constants/adminColors";
 import { useUser } from "@/context/UserContext";
 
 import BranchList from "./components/BranchList";
@@ -32,6 +33,8 @@ function BranchesPageContent() {
   const warranty = useWarrantyStats();
 
   const searchProductIdSyncedRef = useRef(false);
+  const latestFetchBranchesRef = useRef<() => Promise<void>>(() => Promise.resolve());
+  const refreshTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     const productId = crud.searchParams.get("productId");
     if (productId && !crud.initialLoading && !searchProductIdSyncedRef.current) {
@@ -53,6 +56,8 @@ function BranchesPageContent() {
     crud.initialLoading,
     crud.fetchBranches,
     crud.pagination.pageSize,
+    crud.setSearchProductId,
+    crud.setSearchValue,
   ]);
 
   useEffect(() => {
@@ -62,16 +67,21 @@ function BranchesPageContent() {
 
     const intervalId = setInterval(() => {
       crud.setRefreshing(true);
-      crud.fetchBranchesRef.current?.().finally(() => {
-        setTimeout(() => crud.setRefreshing(false), 500);
+      latestFetchBranchesRef.current?.().finally(() => {
+        refreshTimeoutIdRef.current = setTimeout(() => crud.setRefreshing(false), 500);
       });
     }, 30000);
 
-    return () => clearInterval(intervalId);
-  }, [crud.fetchBranches, assignment.fetchAllProducts]);
+    return () => {
+      clearInterval(intervalId);
+      if (refreshTimeoutIdRef.current) {
+        clearTimeout(refreshTimeoutIdRef.current);
+      }
+    };
+  }, [crud.fetchBranches, assignment.fetchAllProducts, crud.setInitialLoading, crud.setRefreshing]);
 
   useEffect(() => {
-    crud.fetchBranchesRef.current = () =>
+    latestFetchBranchesRef.current = () =>
       crud.fetchBranches(crud.pagination.current, crud.pagination.pageSize);
   }, [crud.pagination, crud.fetchBranches]);
 
@@ -121,7 +131,7 @@ function BranchesPageContent() {
 
       <Tabs
         activeKey={warranty.activeTab}
-        className="branches-tabs mt-4 [&_.ant-tabs-content]:!bg-transparent [&_.ant-tabs-content]:!p-0 [&_.ant-tabs-nav-list]:gap-2 [&_.ant-tabs-nav::before]:!border-b-gray-600 [&_.ant-tabs-tab.ant-tabs-tab-active]:!border-[#1f73f1] [&_.ant-tabs-tab.ant-tabs-tab-active]:!bg-[#1f73f1] [&_.ant-tabs-tab.ant-tabs-tab-active_.tab-label]:!font-semibold [&_.ant-tabs-tab.ant-tabs-tab-active_.tab-label]:!text-white [&_.ant-tabs-tab:not(.ant-tabs-tab-active):hover]:!bg-gray-600 [&_.ant-tabs-tab:not(.ant-tabs-tab-active)]:!border-gray-600 [&_.ant-tabs-tab:not(.ant-tabs-tab-active)]:!bg-gray-700 [&_.ant-tabs-tab]:relative [&_.ant-tabs-tab]:z-[1] [&_.ant-tabs-tab]:!m-0 [&_.ant-tabs-tab]:!-mb-px [&_.ant-tabs-tab]:!rounded-t-md [&_.ant-tabs-tab]:!px-4 [&_.ant-tabs-tab]:!py-2"
+        className="branches-tabs mt-4 [&_.ant-tabs-content]:!bg-transparent [&_.ant-tabs-content]:!p-0 [&_.ant-tabs-nav-list]:gap-2 [&_.ant-tabs-nav::before]:!border-b-gray-600 [&_.ant-tabs-tab]:relative [&_.ant-tabs-tab]:z-[1] [&_.ant-tabs-tab]:!m-0 [&_.ant-tabs-tab]:!-mb-px [&_.ant-tabs-tab]:!rounded-t-md [&_.ant-tabs-tab]:!px-4 [&_.ant-tabs-tab]:!py-2 [&_.ant-tabs-tab.ant-tabs-tab-active]:!border-[#1f73f1] [&_.ant-tabs-tab.ant-tabs-tab-active]:!bg-[#1f73f1] [&_.ant-tabs-tab.ant-tabs-tab-active_.tab-label]:!font-semibold [&_.ant-tabs-tab.ant-tabs-tab-active_.tab-label]:!text-white [&_.ant-tabs-tab:not(.ant-tabs-tab-active)]:!border-gray-600 [&_.ant-tabs-tab:not(.ant-tabs-tab-active)]:!bg-gray-700 [&_.ant-tabs-tab:not(.ant-tabs-tab-active):hover]:!bg-gray-600"
         onChange={warranty.handleTabChange}
       >
         <TabPane
@@ -144,7 +154,7 @@ function BranchesPageContent() {
             title="آمار گارانتی‌ها"
             bordered={false}
             className="bg-gray-800 text-white"
-            headStyle={{ color: "white", borderBottom: "1px solid #4b5563" }}
+            headStyle={{ color: "white", borderBottom: `1px solid ${adminColors.borderLight}` }}
           >
             <p className="mb-4 text-gray-400">
               آمار گارانتی‌های فعال، منقضی شده و درخواست‌های بررسی
@@ -167,7 +177,7 @@ function BranchesPageContent() {
             title="درخواست‌های بررسی گارانتی"
             bordered={false}
             className="bg-gray-800 text-white"
-            headStyle={{ color: "white", borderBottom: "1px solid #4b5563" }}
+            headStyle={{ color: "white", borderBottom: `1px solid ${adminColors.borderLight}` }}
           >
             <p className="mb-4 text-gray-400">لیست درخواست‌های بررسی گارانتی از تمام شعبه‌ها</p>
             <WarrantyRequests
@@ -208,6 +218,7 @@ function BranchesPageContent() {
         onUpdateQuantity={assignment.handleUpdateProductQuantity}
         onRemoveProduct={assignment.handleRemoveProduct}
         onSelectProduct={assignment.setSelectedProduct}
+        // eslint-disable-next-line react-hooks/immutability -- productQuantityRef is owned by the useProductAssignment hook (in hooks/useProductAssignment.tsx); mutating it here is required by that hook's API.
         onQuantityChange={(value) => (assignment.productQuantityRef.current = value || 1)}
       />
     </div>

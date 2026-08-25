@@ -23,7 +23,7 @@ const SubcategoryRow: React.FC<SubcategoryRowProps> = ({
     key={subcategory.CategoryContentId}
     className={`${
       subIndex % 2 === 0 ? "bg-slate-900" : "bg-slate-800"
-    } transition-all duration-200 hover:bg-sky-900`}
+    } transition-colors duration-200 hover:bg-sky-900`}
   >
     <td className="px-12 py-4 text-white">{subcategory.Name}</td>
     <td className="px-12 py-4 text-gray-300">{subcategory.Slug}</td>
@@ -32,7 +32,7 @@ const SubcategoryRow: React.FC<SubcategoryRowProps> = ({
       <Link href={subcategory.Link} target="_blank">
         <button
           type="button"
-          className="rounded bg-blue-600 px-5 py-2 text-white transition-all hover:bg-blue-700"
+          className="rounded bg-blue-600 px-5 py-2 text-white transition-colors hover:bg-blue-700"
         >
           مشاهده
         </button>
@@ -40,7 +40,7 @@ const SubcategoryRow: React.FC<SubcategoryRowProps> = ({
       <button
         type="button"
         onClick={(e) => onEditClick(subcategory, e)}
-        className="flex items-center justify-center gap-1 rounded bg-yellow-600 px-5 py-2 text-white transition-all hover:bg-yellow-700"
+        className="flex items-center justify-center gap-1 rounded bg-yellow-600 px-5 py-2 text-white transition-colors hover:bg-yellow-700"
       >
         ویرایش
         <FaEdit />
@@ -48,7 +48,7 @@ const SubcategoryRow: React.FC<SubcategoryRowProps> = ({
       <button
         type="button"
         onClick={() => onDeleteClick(subcategory)}
-        className="flex items-center gap-1 rounded bg-red-600 px-5 py-2 text-white transition-all hover:bg-red-700"
+        className="flex items-center gap-1 rounded bg-red-600 px-5 py-2 text-white transition-colors hover:bg-red-700"
       >
         حذف
         <FaTrash className="mb-1" />

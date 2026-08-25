@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import axios from "axios";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { createProduct } from "../createProduct";
 
 vi.mock("axios");
@@ -72,7 +73,7 @@ describe("createProduct", () => {
     mockAxiosPatch.mockResolvedValue({ status: 200 });
 
     // Steps 4-7: Features, overview details, specs, FAQs
-    mockAxiosPost.mockImplementation(async (url: string) => {
+    mockAxiosPost.mockImplementation(async () => {
       return { data: { success: true } };
     });
 
@@ -88,16 +89,17 @@ describe("createProduct", () => {
     mockAxiosPost.mockRejectedValue(new Error("Server error"));
 
     const promise = createProduct(validState, mockSetProgress, mockSetCurrentStep);
+    const rejection = expect(promise).rejects.toThrow("Server error");
     await vi.advanceTimersByTimeAsync(10000);
-    await expect(promise).rejects.toThrow();
+    await rejection;
   });
 
   it("throws error when no ProductId is returned", async () => {
     mockAxiosPost.mockResolvedValueOnce({ data: {} });
 
-    await expect(
-      createProduct(validState, mockSetProgress, mockSetCurrentStep)
-    ).rejects.toThrow("ساخت محصول ناموفق بود");
+    await expect(createProduct(validState, mockSetProgress, mockSetCurrentStep)).rejects.toThrow(
+      "ساخت محصول ناموفق بود"
+    );
   });
 
   it("continues even if features step fails", async () => {
@@ -165,7 +167,9 @@ describe("createProduct", () => {
 
     expect(result).toBeDefined();
     // Should not have called productOverview, specs, faqs endpoints
-    const overviewCall = mockAxiosPost.mock.calls.find((call) => call[0] === "/api/productOverview");
+    const overviewCall = mockAxiosPost.mock.calls.find(
+      (call) => call[0] === "/api/productOverview"
+    );
     const specsCall = mockAxiosPost.mock.calls.find((call) => call[0] === "/api/specs");
     const faqsCall = mockAxiosPost.mock.calls.find((call) => call[0] === "/api/faqs");
 

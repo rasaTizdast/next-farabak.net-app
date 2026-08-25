@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 
-import {TipTapEditor} from "@/components/editor/TipTapEditor";
+import { TipTapEditor } from "@/components/editor/TipTapEditor";
 
 type Props = {
   blog: string;

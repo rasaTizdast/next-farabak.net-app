@@ -3,6 +3,8 @@
 import { Form, Input, Card } from "antd";
 import React from "react";
 
+import { adminColors } from "@/constants/adminColors";
+
 import { Invoice } from "../../types";
 
 interface CustomerInfoStepProps {
@@ -52,9 +54,9 @@ const CustomerInfoStep: React.FC<CustomerInfoStepProps> = ({ invoice, onUpdate }
             placeholder="نام و نام خانوادگی خریدار"
             className="dark-input !placeholder-gray-400"
             style={{
-              backgroundColor: "#374151",
-              borderColor: "#4b5563",
-              color: "#e5e7eb",
+              backgroundColor: adminColors.border,
+              borderColor: adminColors.borderLight,
+              color: adminColors.textLight,
             }}
           />
         </Form.Item>
@@ -74,9 +76,9 @@ const CustomerInfoStep: React.FC<CustomerInfoStepProps> = ({ invoice, onUpdate }
             placeholder="مثال: 09123456789"
             className="dark-input !placeholder-gray-400"
             style={{
-              backgroundColor: "#374151",
-              borderColor: "#4b5563",
-              color: "#e5e7eb",
+              backgroundColor: adminColors.border,
+              borderColor: adminColors.borderLight,
+              color: adminColors.textLight,
             }}
           />
         </Form.Item>

@@ -1,5 +1,5 @@
+import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -25,27 +25,32 @@ vi.mock("antd", () => ({
     </div>
   ),
   Spin: ({ indicator }: any) => <div data-testid="spin">{indicator}</div>,
-  Alert: ({ message, description, type, showIcon }: any) => (
+  Alert: ({ message, description, type }: any) => (
     <div data-testid={`alert-${type}`}>
       <span>{message}</span>
       <div>{description}</div>
     </div>
   ),
   Tag: ({ children, color }: any) => <span data-color={color}>{children}</span>,
-  Typography: Object.assign({}, {
-    Text: ({ children, className }: any) => <span className={className}>{children}</span>,
-  }),
-  Pagination: ({ current, pageSize, total, onChange }: any) => (
+  Typography: Object.assign(
+    {},
+    {
+      Text: ({ children, className }: any) => <span className={className}>{children}</span>,
+    }
+  ),
+  Pagination: ({ onChange }: any) => (
     <div data-testid="pagination">
       <button onClick={() => onChange?.(2)}>page 2</button>
     </div>
   ),
-  Modal: Object.assign(
-    ({ open, title, children }: any) => open ? <div>{children}</div> : null,
-    { confirm: vi.fn() }
-  ),
-  Button: ({ children, onClick, icon, loading, htmlType, type, className }: any) => (
-    <button onClick={onClick} data-loading={loading} className={className}>{icon}{children}</button>
+  Modal: Object.assign(({ open, children }: any) => (open ? <div>{children}</div> : null), {
+    confirm: vi.fn(),
+  }),
+  Button: ({ children, onClick, icon, loading, className }: any) => (
+    <button onClick={onClick} data-loading={loading} className={className}>
+      {icon}
+      {children}
+    </button>
   ),
 }));
 
@@ -80,10 +85,11 @@ describe("WarrantyRequests", () => {
   it("shows empty alert when no requests", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({
-        requests: [],
-        pagination: { currentPage: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
-      }),
+      json: () =>
+        Promise.resolve({
+          requests: [],
+          pagination: { currentPage: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
+        }),
     });
 
     render(<WarrantyRequests isTabActive={true} />);
@@ -95,22 +101,23 @@ describe("WarrantyRequests", () => {
   it("renders requests in table when data is available", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({
-        requests: [
-          {
-            warrantyid: 1,
-            warrantycode: "WR-001",
-            startdate: "2024-01-01",
-            expirydate: "2025-01-01",
-            status: "requested",
-            branch_name: "Branch A",
-            product_name: "Laptop",
-            customer_name: "Ali",
-            customer_phone: "09121234567",
-          },
-        ],
-        pagination: { currentPage: 1, pageSize: 10, totalCount: 1, totalPages: 1 },
-      }),
+      json: () =>
+        Promise.resolve({
+          requests: [
+            {
+              warrantyid: 1,
+              warrantycode: "WR-001",
+              startdate: "2024-01-01",
+              expirydate: "2025-01-01",
+              status: "requested",
+              branch_name: "Branch A",
+              product_name: "Laptop",
+              customer_name: "Ali",
+              customer_phone: "09121234567",
+            },
+          ],
+          pagination: { currentPage: 1, pageSize: 10, totalCount: 1, totalPages: 1 },
+        }),
     });
 
     render(<WarrantyRequests isTabActive={true} />);
@@ -136,10 +143,11 @@ describe("WarrantyRequests", () => {
   it("shows refresh button", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({
-        requests: [],
-        pagination: { currentPage: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
-      }),
+      json: () =>
+        Promise.resolve({
+          requests: [],
+          pagination: { currentPage: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
+        }),
     });
 
     render(<WarrantyRequests isTabActive={true} />);
@@ -151,10 +159,11 @@ describe("WarrantyRequests", () => {
   it("renders header text", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({
-        requests: [],
-        pagination: { currentPage: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
-      }),
+      json: () =>
+        Promise.resolve({
+          requests: [],
+          pagination: { currentPage: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
+        }),
     });
 
     render(<WarrantyRequests isTabActive={true} />);

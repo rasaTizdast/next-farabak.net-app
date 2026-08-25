@@ -28,7 +28,7 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
         : index % 2 === 0
           ? "bg-slate-700"
           : "bg-slate-600"
-    } transition-all duration-300 ease-in-out hover:bg-blue-950`}
+    } transition-colors duration-300 ease-in-out hover:bg-blue-950`}
   >
     <td className="px-6 py-4 font-medium text-white">{category.Name}</td>
     <td className="px-6 py-4 font-medium text-gray-300">{category.Slug}</td>
@@ -37,7 +37,7 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
       <Link href={category.Link} target="_blank">
         <button
           type="button"
-          className="rounded bg-blue-600 px-5 py-2 text-white transition-all hover:bg-blue-700"
+          className="rounded bg-blue-600 px-5 py-2 text-white transition-colors hover:bg-blue-700"
         >
           مشاهده
         </button>
@@ -45,7 +45,7 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
       <button
         type="button"
         onClick={(e) => onEditClick(category, e)}
-        className="flex items-center justify-center gap-1 rounded bg-yellow-600 px-5 py-2 text-white transition-all hover:bg-yellow-700"
+        className="flex items-center justify-center gap-1 rounded bg-yellow-600 px-5 py-2 text-white transition-colors hover:bg-yellow-700"
       >
         ویرایش
         <FaEdit />
@@ -53,7 +53,7 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
       <button
         type="button"
         onClick={() => onDeleteClick(category)}
-        className="flex items-center gap-1 rounded bg-red-600 px-5 py-2 text-white transition-all hover:bg-red-700"
+        className="flex items-center gap-1 rounded bg-red-600 px-5 py-2 text-white transition-colors hover:bg-red-700"
       >
         حذف
         <FaTrash className="mb-1" />
@@ -61,7 +61,7 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
       <button
         type="button"
         onClick={() => onToggleExpand(category.CategoryID)}
-        className={`rounded bg-green-600 px-5 py-2 text-white transition-all hover:bg-green-700 ${
+        className={`rounded bg-green-600 px-5 py-2 text-white transition-colors hover:bg-green-700 ${
           !category.Subcategories.length ? "cursor-not-allowed opacity-30" : ""
         }`}
         disabled={!category.Subcategories.length}

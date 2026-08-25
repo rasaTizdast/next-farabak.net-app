@@ -27,7 +27,7 @@ const MinimumAmountSelector = ({ product, refetchProducts }: ButtonProps) => {
         type="button"
         aria-label="محدودیت مقدار محصول"
         onClick={() => setIsModalOpen(true)}
-        className={`rounded-lg p-2 transition-all ${product.Minimum_Amount || product.Maximum_Amount ? "bg-orange-700 ring-2 ring-orange-300 hover:bg-orange-800" : "bg-orange-700 hover:bg-orange-800"}`}
+        className={`rounded-lg p-2 transition-[background-color,box-shadow] ${product.Minimum_Amount || product.Maximum_Amount ? "bg-orange-700 ring-2 ring-orange-300 hover:bg-orange-800" : "bg-orange-700 hover:bg-orange-800"}`}
         title="محدودیت‌ مقدار‌ محصول"
       >
         <TbShoppingCartCog size={23} color="#fff" />
@@ -94,7 +94,7 @@ const MinimumAmountSelectorModal = ({ product, onClose, refetchProducts }: Modal
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-50 p-4 backdrop-blur-sm">
+    <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black p-4 backdrop-blur-sm">
       <div className="min-w-[450px] rounded-lg bg-slate-800 p-6 text-white shadow-xl">
         <div className="mb-6 flex items-center justify-between">
           <h3 className="text-2xl font-bold">محدودیت مقدار محصول</h3>
@@ -128,7 +128,7 @@ const MinimumAmountSelectorModal = ({ product, onClose, refetchProducts }: Modal
                 value={minAmount}
                 onChange={(e) => setMinAmount(e.target.value)}
                 placeholder="بدون محدودیت"
-                className="w-full rounded-lg border border-slate-600 bg-slate-700 p-2 text-sm text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-600 bg-slate-700 p-2 text-sm text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
               <p className="mt-1 text-xs text-slate-400">برای حذف محدودیت، فیلد را خالی بگذارید</p>
             </div>
@@ -145,7 +145,7 @@ const MinimumAmountSelectorModal = ({ product, onClose, refetchProducts }: Modal
                 value={maxAmount}
                 onChange={(e) => setMaxAmount(e.target.value)}
                 placeholder="بدون محدودیت"
-                className="w-full rounded-lg border border-slate-600 bg-slate-700 p-2 text-sm text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-600 bg-slate-700 p-2 text-sm text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
               <p className="mt-1 text-xs text-slate-400">برای حذف محدودیت، فیلد را خالی بگذارید</p>
             </div>
@@ -155,7 +155,7 @@ const MinimumAmountSelectorModal = ({ product, onClose, refetchProducts }: Modal
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 rounded-lg bg-blue-700 p-2 transition-all hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 rounded-lg bg-blue-700 p-2 transition-colors hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? "در حال ذخیره..." : "ذخیره تغییرات"}
             </button>
@@ -163,7 +163,7 @@ const MinimumAmountSelectorModal = ({ product, onClose, refetchProducts }: Modal
               type="button"
               onClick={handleClear}
               disabled={isLoading}
-              className="rounded-lg bg-slate-700 px-4 transition-all hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg bg-slate-700 px-4 transition-colors hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               پاک کردن
             </button>

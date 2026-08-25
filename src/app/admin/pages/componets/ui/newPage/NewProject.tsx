@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { BiTrash } from "react-icons/bi";
 import { DatePicker } from "zaman";
@@ -32,6 +32,31 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { mutate: createProjectMutate } = useApiMutation("post");
+
+  const [mainImagePreview, setMainImagePreview] = useState<string | null>(null);
+  const [detailImagePreviews, setDetailImagePreviews] = useState<string[]>([]);
+  const [videoPreviews, setVideoPreviews] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (mainImage) {
+      const url = URL.createObjectURL(mainImage);
+      setMainImagePreview(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setMainImagePreview(null);
+  }, [mainImage]);
+
+  useEffect(() => {
+    const urls = detailImages.map((f) => URL.createObjectURL(f));
+    setDetailImagePreviews(urls);
+    return () => urls.forEach((u) => URL.revokeObjectURL(u));
+  }, [detailImages]);
+
+  useEffect(() => {
+    const urls = videos.map((f) => URL.createObjectURL(f));
+    setVideoPreviews(urls);
+    return () => urls.forEach((u) => URL.revokeObjectURL(u));
+  }, [videos]);
 
   // Handle form field changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -74,27 +99,28 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
     }
 
     setIsSubmitting(true);
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("title", formData.title);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("slug", formData.slug);
+      formDataToSend.append("isActive", formData.isActive.toString());
+      formDataToSend.append("date", formData.date);
+      formDataToSend.append("city", formData.city);
+      if (mainImage) formDataToSend.append("mainImage", mainImage);
+      detailImages.forEach((file) => formDataToSend.append("detailImages", file));
+      videos.forEach((file) => formDataToSend.append("videos", file));
 
-    const formDataToSend = new FormData();
-    formDataToSend.append("title", formData.title);
-    formDataToSend.append("description", formData.description);
-    formDataToSend.append("slug", formData.slug);
-    formDataToSend.append("isActive", formData.isActive.toString());
-    formDataToSend.append("date", formData.date);
-    formDataToSend.append("city", formData.city);
-    if (mainImage) formDataToSend.append("mainImage", mainImage);
-    detailImages.forEach((file) => formDataToSend.append("detailImages", file));
-    videos.forEach((file) => formDataToSend.append("videos", file));
+      const res = await createProjectMutate("/api/projects", formDataToSend);
 
-    const res = await createProjectMutate("/api/projects", formDataToSend);
-
-    if (res) {
-      onClose();
-    } else {
-      setErrors((prev) => ({ ...prev, form: "خطا در ذخیره پروژه." }));
+      if (res) {
+        onClose();
+      } else {
+        setErrors((prev) => ({ ...prev, form: "خطا در ذخیره پروژه." }));
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   };
 
   // Main image dropzone
@@ -154,7 +180,7 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
   });
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+    <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black backdrop-blur-sm">
       <div className="max-h-[95vh] w-full max-w-4xl overflow-auto rounded-xl bg-gray-800 p-6 text-gray-100 shadow-2xl">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
@@ -162,6 +188,7 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
           <button
             type="button"
             onClick={onClose}
+            aria-label="بستن"
             className="rounded-full p-2 transition-colors hover:bg-gray-700"
           >
             ✕
@@ -259,14 +286,14 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
               {mainImage ? (
                 <div className="group relative">
                   <img
-                    src={URL.createObjectURL(mainImage)}
+                    src={mainImagePreview ?? ""}
                     alt="تصویر اصلی"
                     className="mx-auto max-h-48 rounded-lg"
                   />
                   <button
                     type="button"
                     onClick={() => setMainImage(null)}
-                    className="absolute right-1 top-1 rounded-lg bg-red-500 p-2 opacity-0 transition-all hover:bg-red-600 group-hover:opacity-100"
+                    className="absolute top-1 right-1 rounded-lg bg-red-500 p-2 opacity-0 transition-[opacity,background-color] group-hover:opacity-100 hover:bg-red-600"
                     aria-label="حذف عکس اصلی"
                   >
                     <BiTrash size={20} />
@@ -296,14 +323,14 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
               {detailImages.map((file, index) => (
                 <div key={file.name + file.size} className="group relative">
                   <img
-                    src={URL.createObjectURL(file)}
+                    src={detailImagePreviews[index] ?? ""}
                     alt={`Detail ${index + 1}`}
                     className="h-32 w-full rounded-lg object-cover"
                   />
                   <button
                     type="button"
                     onClick={() => removeFile(setDetailImages, detailImages, index)}
-                    className="absolute right-1 top-1 rounded-lg bg-red-500 p-2 opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
+                    className="absolute top-1 right-1 rounded-lg bg-red-500 p-2 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-600"
                     aria-label="حذف تصویر"
                   >
                     <BiTrash size={20} />
@@ -335,12 +362,12 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
                   className="group relative rounded-lg bg-gray-700 p-3"
                 >
                   <video className="h-32 w-full rounded-lg object-cover">
-                    <source src={URL.createObjectURL(file)} />
+                    <source src={videoPreviews[index] ?? ""} />
                   </video>
                   <button
                     type="button"
                     onClick={() => removeFile(setVideos, videos, index)}
-                    className="absolute right-1 top-1 rounded-lg bg-red-500 p-2 opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
+                    className="absolute top-1 right-1 rounded-lg bg-red-500 p-2 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-600"
                     aria-label="حذف ویدیو"
                   >
                     <BiTrash size={20} />

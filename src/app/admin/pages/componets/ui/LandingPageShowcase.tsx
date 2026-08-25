@@ -30,7 +30,7 @@ const ShowcaseProductItem = ({
   isFirst: boolean;
   isLast: boolean;
 }) => (
-  <div className="relative flex items-center justify-between rounded-lg bg-gray-800 p-4 shadow-md transition-all hover:shadow-lg">
+  <div className="relative flex items-center justify-between rounded-lg bg-gray-800 p-4 shadow-md transition-shadow hover:shadow-lg">
     <div className="flex flex-1 items-center gap-4 space-x-4">
       <div className="relative">
         <Image
@@ -42,7 +42,7 @@ const ShowcaseProductItem = ({
           className="h-20 w-32 cursor-zoom-in rounded-lg object-cover"
           onClick={() => onPreview(`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${product.image}`)}
         />
-        <FiZoomIn size={20} className="absolute left-1 top-1 rounded bg-black/50 p-1 text-white" />
+        <FiZoomIn size={20} className="absolute top-1 left-1 rounded bg-black/50 p-1 text-white" />
       </div>
       <div className="min-w-0 flex-1">
         <h4 className="truncate font-medium text-white">{product.title}</h4>
@@ -202,7 +202,6 @@ export const ShowcaseProductSection = ({
   isDeletingProduct,
   newShowcaseProduct,
   setNewShowcaseProduct,
-  productFile,
   setProductFile,
   isUploadingProduct,
   handleAddShowcaseProduct,

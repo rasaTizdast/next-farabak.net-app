@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("react-hot-toast", () => ({
   default: { success: vi.fn(), error: vi.fn() },
@@ -58,58 +58,78 @@ describe("QrCodeModal", () => {
   });
 
   it("renders the modal heading", () => {
-    render(<QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />);
+    render(
+      <QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />
+    );
     expect(screen.getByText("تولید کد QR")).toBeInTheDocument();
   });
 
   it("renders generate normal QR button", () => {
-    render(<QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />);
+    render(
+      <QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />
+    );
     expect(screen.getByText("تولید کد QR برای لینک محصول")).toBeInTheDocument();
   });
 
   it("renders generate unique QR button", () => {
-    render(<QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />);
+    render(
+      <QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />
+    );
     expect(screen.getByText("تولید کد QR با لینک یکتا")).toBeInTheDocument();
   });
 
   it("calls onClose when close button is clicked", () => {
-    render(<QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />);
+    render(
+      <QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />
+    );
     fireEvent.click(screen.getByLabelText("بستن"));
     expect(mockOnClose).toHaveBeenCalledWith(false);
   });
 
   it("returns null when product is null", () => {
-    const { container } = render(<QrCodeModal onClose={mockOnClose} product={null} refetchProducts={mockRefetch} />);
+    const { container } = render(
+      <QrCodeModal onClose={mockOnClose} product={null} refetchProducts={mockRefetch} />
+    );
     expect(container.innerHTML).toBe("");
   });
 
   it("shows expiry days selector", () => {
-    render(<QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />);
+    render(
+      <QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />
+    );
     expect(screen.getByLabelText("مدت زمان اعتبار")).toBeInTheDocument();
   });
 
   it("shows QR code when generate normal QR is clicked", () => {
-    render(<QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />);
+    render(
+      <QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />
+    );
     fireEvent.click(screen.getByText("تولید کد QR برای لینک محصول"));
     expect(screen.getByText("کد QR شما:")).toBeInTheDocument();
     expect(screen.getByTestId("qr-canvas")).toBeInTheDocument();
   });
 
   it("shows download button after QR is generated", () => {
-    render(<QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />);
+    render(
+      <QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />
+    );
     fireEvent.click(screen.getByText("تولید کد QR برای لینک محصول"));
     expect(screen.getByText("دانلود تصویر کد QR")).toBeInTheDocument();
   });
 
   it("shows confirm modal when unique QR button is clicked", () => {
-    render(<QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />);
+    render(
+      <QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />
+    );
     fireEvent.click(screen.getByText("تولید کد QR با لینک یکتا"));
     expect(screen.getByText("بله، تولید کن")).toBeInTheDocument();
     expect(screen.getByText("انصراف")).toBeInTheDocument();
   });
 
   it("dismisses confirm modal when cancel is clicked", () => {
-    render(<QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />);
+    render(
+      <QrCodeModal onClose={mockOnClose} product={mockProduct} refetchProducts={mockRefetch} />
+    );
     fireEvent.click(screen.getByText("تولید کد QR با لینک یکتا"));
     fireEvent.click(screen.getByText("انصراف"));
     expect(screen.queryByText("بله، تولید کن")).not.toBeInTheDocument();

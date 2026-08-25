@@ -3,11 +3,16 @@
 import { Form, message } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { z } from "zod";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { createBranchSchema, updateBranchSchema } from "@/lib/validation";
 
 import { Branch, Product, User } from "../components/types";
+
+type CreateBranchInput = z.infer<typeof createBranchSchema>;
+type UpdateBranchInput = z.infer<typeof updateBranchSchema>;
 
 async function fetchBranchesHelper(
   page: number,
@@ -48,6 +53,43 @@ async function fetchBranchesHelper(
   } finally {
     setLoading(false);
   }
+}
+
+function getSearchOptions(allProducts: Product[], searchValue: string) {
+  if (!allProducts || allProducts.length === 0) return [];
+
+  if (!searchValue || searchValue.trim() === "") {
+    return allProducts.map((product) => ({
+      value: product.Type || "",
+      label: (
+        <div className="flex items-center justify-between">
+          <span className="font-medium text-white">{product.Type}</span>
+          <span className="rounded-md bg-blue-900/30 px-2 py-0.5 text-xs text-blue-300">
+            کد: {product.ProductId}
+          </span>
+        </div>
+      ),
+    }));
+  }
+
+  const lowerCaseSearch = searchValue.toLowerCase();
+
+  return allProducts.reduce<{ value: string; label: React.JSX.Element }[]>((acc, product) => {
+    if (product.Type && product.Type.toLowerCase().includes(lowerCaseSearch)) {
+      acc.push({
+        value: product.Type,
+        label: (
+          <div className="flex items-center justify-between">
+            <span className="font-medium text-white">{product.Type}</span>
+            <span className="rounded-md bg-blue-900/30 px-2 py-0.5 text-xs text-blue-300">
+              کد: {product.ProductId}
+            </span>
+          </div>
+        ),
+      });
+    }
+    return acc;
+  }, []);
 }
 
 export function useBranchCRUD() {
@@ -107,7 +149,7 @@ export function useBranchCRUD() {
     []
   );
 
-  const handleCreateBranch = async (values: any) => {
+  const handleCreateBranch = async (values: CreateBranchInput) => {
     const result = await createBranchMutate("/api/admin/branches", values);
     if (result) {
       message.success("شعبه با موفقیت ایجاد شد");
@@ -119,7 +161,7 @@ export function useBranchCRUD() {
     }
   };
 
-  const handleUpdateBranch = async (values: any) => {
+  const handleUpdateBranch = async (values: UpdateBranchInput) => {
     if (!currentBranch) return;
 
     const result = await updateBranchMutate(
@@ -189,43 +231,6 @@ export function useBranchCRUD() {
       fetchBranches(1, currentPagination.pageSize, null);
       router.push("/admin/branches");
     }
-  };
-
-  const getSearchOptions = (allProducts: Product[], searchValue: string) => {
-    if (!allProducts || allProducts.length === 0) return [];
-
-    if (!searchValue || searchValue.trim() === "") {
-      return allProducts.map((product) => ({
-        value: product.Type || "",
-        label: (
-          <div className="flex items-center justify-between">
-            <span className="font-medium text-white">{product.Type}</span>
-            <span className="rounded-md bg-blue-900/30 px-2 py-0.5 text-xs text-blue-300">
-              کد: {product.ProductId}
-            </span>
-          </div>
-        ),
-      }));
-    }
-
-    const lowerCaseSearch = searchValue.toLowerCase();
-
-    return allProducts.reduce<{ value: string; label: React.JSX.Element }[]>((acc, product) => {
-      if (product.Type && product.Type.toLowerCase().includes(lowerCaseSearch)) {
-        acc.push({
-          value: product.Type,
-          label: (
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-white">{product.Type}</span>
-              <span className="rounded-md bg-blue-900/30 px-2 py-0.5 text-xs text-blue-300">
-                کد: {product.ProductId}
-              </span>
-            </div>
-          ),
-        });
-      }
-      return acc;
-    }, []);
   };
 
   return {

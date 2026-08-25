@@ -5,6 +5,10 @@ import { Card, Empty, Spin, Button, Table, Tag, Input, AutoComplete } from "antd
 import moment from "jalali-moment";
 
 import { AdminInvoice } from "@/app/admin/invoices/type";
+import { adminColors } from "@/constants/adminColors";
+
+import { InvoiceColumn } from "../hooks/invoiceManagement/hooks/useInvoiceColumns";
+import { StandaloneWarranty } from "../hooks/invoiceManagement/invoiceManagementContext";
 
 function formatPersianDate(date: string) {
   try {
@@ -22,20 +26,19 @@ interface InvoiceTabProps {
   searchText: string;
   searchOptions: { value: string; label: React.ReactNode }[];
   filteredInvoices: AdminInvoice[];
-  filteredStandaloneWarranties: any[];
+  filteredStandaloneWarranties: StandaloneWarranty[];
   warrantySummary: { active: number; expired: number };
-  memoizedInvoiceColumns: any[];
+  memoizedInvoiceColumns: InvoiceColumn[];
   branchName?: string;
   onSearchChange: (value: string) => void;
   onRefresh: () => void;
   onCreateInvoice: () => void;
   onInvoicePageChange: (page: number, pageSize: number) => void;
   onViewInvoice: (invoice: AdminInvoice) => void;
-  onViewWarranty: (warranty: any, branchName?: string) => void;
+  onViewWarranty: (warranty: StandaloneWarranty, branchName?: string) => void;
 }
 
 export default function InvoiceTab({
-  invoices,
   invoicesLoading,
   invoicePagination,
   searchText,
@@ -49,7 +52,6 @@ export default function InvoiceTab({
   onRefresh,
   onCreateInvoice,
   onInvoicePageChange,
-  onViewInvoice,
   onViewWarranty,
 }: InvoiceTabProps) {
   const standaloneColumns = [
@@ -126,7 +128,7 @@ export default function InvoiceTab({
       title: "عملیات",
       key: "actions",
       className: "text-center font-medium",
-      render: (_: any, warranty: any) => (
+      render: (_: unknown, warranty: StandaloneWarranty) => (
         <Button
           htmlType="button"
           type="primary"
@@ -145,13 +147,13 @@ export default function InvoiceTab({
       <Card
         className="mb-4 border-0 bg-gray-800 shadow-md"
         headStyle={{
-          backgroundColor: "#1f2937",
-          borderBottom: "1px solid #374151",
+          backgroundColor: adminColors.panel,
+          borderBottom: `1px solid ${adminColors.border}`,
           padding: "16px 20px",
           fontFamily: "inherit",
         }}
         bodyStyle={{
-          backgroundColor: "#1f2937",
+          backgroundColor: adminColors.panel,
           padding: "16px 20px",
           fontFamily: "inherit",
         }}
@@ -199,9 +201,9 @@ export default function InvoiceTab({
             <Input
               suffix={<SearchOutlined className="text-blue-400" />}
               style={{
-                backgroundColor: "#54647c",
+                backgroundColor: adminColors.textPlaceholder,
                 color: "white",
-                borderColor: "#4b5563",
+                borderColor: adminColors.borderLight,
                 padding: "10px 12px",
                 height: "42px",
                 fontSize: "15px",
@@ -218,7 +220,7 @@ export default function InvoiceTab({
           bodyStyle={{
             padding: "16px 20px",
             fontFamily: "inherit",
-            backgroundColor: "#1f2937",
+            backgroundColor: adminColors.panel,
           }}
         >
           <div className="flex items-center justify-between">
@@ -237,7 +239,7 @@ export default function InvoiceTab({
           bodyStyle={{
             padding: "16px 20px",
             fontFamily: "inherit",
-            backgroundColor: "#1f2937",
+            backgroundColor: adminColors.panel,
           }}
         >
           <div className="flex items-center justify-between">
@@ -258,7 +260,7 @@ export default function InvoiceTab({
         bodyStyle={{
           padding: "0",
           fontFamily: "inherit",
-          backgroundColor: "#1f2937",
+          backgroundColor: adminColors.panel,
         }}
         title={
           <div className="flex items-center px-4 py-2">
@@ -266,9 +268,9 @@ export default function InvoiceTab({
           </div>
         }
         headStyle={{
-          backgroundColor: "#1f2937",
-          borderBottom: "1px solid #374151",
-          color: "#f3f4f6",
+          backgroundColor: adminColors.panel,
+          borderBottom: `1px solid ${adminColors.border}`,
+          color: adminColors.textBright,
           padding: "12px 0",
         }}
       >
@@ -315,7 +317,7 @@ export default function InvoiceTab({
             bodyStyle={{
               padding: "0",
               fontFamily: "inherit",
-              backgroundColor: "#1f2937",
+              backgroundColor: adminColors.panel,
             }}
             title={
               <div className="flex items-center px-4 py-2">
@@ -326,9 +328,9 @@ export default function InvoiceTab({
               </div>
             }
             headStyle={{
-              backgroundColor: "#1f2937",
-              borderBottom: "1px solid #374151",
-              color: "#f3f4f6",
+              backgroundColor: adminColors.panel,
+              borderBottom: `1px solid ${adminColors.border}`,
+              color: adminColors.textBright,
               padding: "12px 0",
             }}
           >

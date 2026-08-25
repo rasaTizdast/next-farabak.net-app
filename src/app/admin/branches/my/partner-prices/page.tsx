@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 import { useApiFetch } from "@/hooks/useApiFetch";
@@ -50,7 +50,16 @@ export default function BranchPartnerPricesPage() {
     error,
   } = useApiFetch<ApiResponse>("/api/admin/products?limit=500");
 
-  const data: ProductRow[] = (apiData?.data || []).map((p: any) => ({
+  interface RawProduct {
+    ProductId: number;
+    Type: string;
+    Price: number | string | null;
+    Discount: number | string | null;
+    Partner_Price?: string | null;
+    link: string;
+  }
+
+  const data: ProductRow[] = (apiData?.data || []).map((p: RawProduct) => ({
     ProductId: p.ProductId,
     Type: p.Type,
     Price: Number(p.Price ?? 0),
@@ -139,14 +148,22 @@ export default function BranchPartnerPricesPage() {
         <table className="w-full table-auto text-sm">
           <thead className="sticky top-0 z-10 bg-slate-800 text-gray-100">
             <tr>
-              <th className="cursor-pointer px-4 py-3" onClick={() => setSort("Type")}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSort("Type"); }}
+              <th
+                className="cursor-pointer px-4 py-3"
+                onClick={() => setSort("Type")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") setSort("Type");
+                }}
                 tabIndex={0}
               >
                 نام محصول {sortKey === "Type" ? (sortDir === "asc" ? "▲" : "▼") : ""}
               </th>
-              <th className="cursor-pointer px-4 py-3" onClick={() => setSort("Original")}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSort("Original"); }}
+              <th
+                className="cursor-pointer px-4 py-3"
+                onClick={() => setSort("Original")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") setSort("Original");
+                }}
                 tabIndex={0}
               >
                 قیمت (ریال)
@@ -155,7 +172,9 @@ export default function BranchPartnerPricesPage() {
               <th
                 className="cursor-pointer px-4 py-3 text-center"
                 onClick={() => setSort("Partner")}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSort("Partner"); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") setSort("Partner");
+                }}
                 tabIndex={0}
               >
                 قیمت همکار {sortKey === "Partner" ? (sortDir === "asc" ? "▲" : "▼") : ""}
@@ -196,7 +215,7 @@ export default function BranchPartnerPricesPage() {
                       const discount = p.Discount;
                       if (!price || price === 0) {
                         return (
-                          <span className="flex justify-center italic text-gray-300">
+                          <span className="flex justify-center text-gray-300 italic">
                             بدون قیمت
                           </span>
                         );

@@ -23,7 +23,7 @@ type Props = {
 const truncateText = (text: string, maxLength: number): string =>
   text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
 
-const OverviewDetails = ({ dispatch, setErrors }: Props) => {
+const OverviewDetails = ({ dispatch }: Props) => {
   const [overviewDetails, setOverviewDetails] = useState<OverviewDetail[]>([]);
   const [selectedDetail, setSelectedDetail] = useState<OverviewDetail | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -31,15 +31,18 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
     data: detailsData,
     loading,
     refetch: fetchOverviewDetails,
-  } = useApiFetch<any>("/api/productOverviewDetails/getAll");
+  } = useApiFetch<OverviewDetail[]>("/api/productOverviewDetails/getAll");
   const [showAll, setShowAll] = useState(false); // State to toggle between showing limited or all details
 
   useEffect(() => {
     if (detailsData) {
-      const data = (Array.isArray(detailsData) ? detailsData : []).map((detail: any) => ({
-        ...detail,
-        selected: false,
-      }));
+      const data = (Array.isArray(detailsData) ? detailsData : []).map(
+        (detail: OverviewDetail) => ({
+          ...detail,
+          selected: false,
+        })
+      );
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable overview details state from fetched data.
       setOverviewDetails(data);
       dispatch({ type: "SET_OVERVIEW_DETAILS", details: data });
     }
@@ -170,18 +173,18 @@ const OverviewDetails = ({ dispatch, setErrors }: Props) => {
 
       {/* Detail Modal */}
       {selectedDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
+        <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm">
           <div className="relative max-h-[700px] w-full max-w-lg overflow-y-scroll rounded-lg bg-gray-800 p-6 text-white shadow-lg">
             <button
               type="button"
               aria-label="بستن"
               onClick={closeDetailModal}
-              className="absolute right-3 top-3 text-red-400 hover:text-red-500"
+              className="absolute top-3 right-3 text-red-400 hover:text-red-500"
             >
               <IoIosClose size={35} />
             </button>
             {/* Full Title */}
-            <h2 className="mb-4 mt-7 text-center text-xl font-bold">{selectedDetail.Title}</h2>
+            <h2 className="mt-7 mb-4 text-center text-xl font-bold">{selectedDetail.Title}</h2>
             <p className="mb-4 text-gray-400">{selectedDetail.Description}</p>
 
             {/* Image with Loading State */}

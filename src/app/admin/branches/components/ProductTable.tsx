@@ -4,6 +4,8 @@ import { DeleteOutlined } from "@ant-design/icons";
 import { Table, Button, Popconfirm, InputNumber, Empty, Spin } from "antd";
 import React, { useState, useRef, useEffect } from "react";
 
+import { adminColors } from "@/constants/adminColors";
+
 import { Product } from "./types";
 
 interface ProductTableProps {
@@ -83,9 +85,9 @@ const ProductTable: React.FC<ProductTableProps> = ({
           }}
           className="dark-input-number w-20"
           style={{
-            backgroundColor: "#374151",
-            borderColor: "#4b5563",
-            color: "#e5e7eb",
+            backgroundColor: adminColors.border,
+            borderColor: adminColors.borderLight,
+            color: adminColors.textLight,
           }}
         />
       ),
@@ -100,7 +102,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
           title: "عملیات",
           key: "actions",
           width: "20%",
-          render: (_: any, product: Product) => (
+          render: (_: unknown, product: Product) => (
             <Popconfirm
               title="حذف محصول"
               description="آیا از حذف این محصول از شعبه اطمینان دارید؟"

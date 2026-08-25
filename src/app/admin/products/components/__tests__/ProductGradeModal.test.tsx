@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("react-hot-toast", () => ({
   default: { success: vi.fn(), error: vi.fn() },
@@ -62,43 +62,85 @@ describe("ProductGradeModal", () => {
   });
 
   it("renders the modal with product type heading", () => {
-    render(<ProductGradeModal product={mockProduct} onClose={mockOnClose} refetchProducts={mockRefetch} />);
+    render(
+      <ProductGradeModal
+        product={mockProduct}
+        onClose={mockOnClose}
+        refetchProducts={mockRefetch}
+      />
+    );
     expect(screen.getByText("Laptop")).toBeInTheDocument();
   });
 
   it("renders grade form fields", () => {
-    render(<ProductGradeModal product={mockProduct} onClose={mockOnClose} refetchProducts={mockRefetch} />);
+    render(
+      <ProductGradeModal
+        product={mockProduct}
+        onClose={mockOnClose}
+        refetchProducts={mockRefetch}
+      />
+    );
     expect(screen.getByLabelText("گرید")).toBeInTheDocument();
     expect(screen.getByLabelText("قیمت")).toBeInTheDocument();
     expect(screen.getByLabelText("تخفیف")).toBeInTheDocument();
   });
 
   it("renders submit button", () => {
-    render(<ProductGradeModal product={mockProduct} onClose={mockOnClose} refetchProducts={mockRefetch} />);
+    render(
+      <ProductGradeModal
+        product={mockProduct}
+        onClose={mockOnClose}
+        refetchProducts={mockRefetch}
+      />
+    );
     expect(screen.getByText("افزودن گرید")).toBeInTheDocument();
   });
 
   it("calls onClose when close button is clicked", () => {
-    render(<ProductGradeModal product={mockProduct} onClose={mockOnClose} refetchProducts={mockRefetch} />);
+    render(
+      <ProductGradeModal
+        product={mockProduct}
+        onClose={mockOnClose}
+        refetchProducts={mockRefetch}
+      />
+    );
     fireEvent.click(screen.getByLabelText("بستن"));
     expect(mockOnClose).toHaveBeenCalled();
   });
 
   it("shows grade list component", () => {
-    render(<ProductGradeModal product={mockProduct} onClose={mockOnClose} refetchProducts={mockRefetch} />);
+    render(
+      <ProductGradeModal
+        product={mockProduct}
+        onClose={mockOnClose}
+        refetchProducts={mockRefetch}
+      />
+    );
     expect(screen.getByTestId("grade-list")).toBeInTheDocument();
     expect(screen.getByText("GradeList for product 1")).toBeInTheDocument();
   });
 
   it("converts grade input to uppercase", () => {
-    render(<ProductGradeModal product={mockProduct} onClose={mockOnClose} refetchProducts={mockRefetch} />);
+    render(
+      <ProductGradeModal
+        product={mockProduct}
+        onClose={mockOnClose}
+        refetchProducts={mockRefetch}
+      />
+    );
     const gradeInput = screen.getByLabelText("گرید");
     fireEvent.change(gradeInput, { target: { name: "grade", value: "a" } });
     expect((gradeInput as HTMLInputElement).value).toBe("A");
   });
 
   it("shows product price in the info section", async () => {
-    render(<ProductGradeModal product={mockProduct} onClose={mockOnClose} refetchProducts={mockRefetch} />);
+    render(
+      <ProductGradeModal
+        product={mockProduct}
+        onClose={mockOnClose}
+        refetchProducts={mockRefetch}
+      />
+    );
     await waitFor(() => {
       expect(screen.getByText("قیمت اصلی:")).toBeInTheDocument();
     });

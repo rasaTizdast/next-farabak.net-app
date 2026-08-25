@@ -89,7 +89,7 @@ const DeleteInvoiceModal = ({ invoice, onClose, onDelete }: DeleteInvoiceModalPr
         <button
           type="button"
           onClick={() => dialogRef.current?.close()}
-          className="w-full rounded-lg bg-gray-700 px-6 py-3 text-gray-100 transition hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-auto"
+          className="w-full rounded-lg bg-gray-700 px-6 py-3 text-gray-100 transition hover:bg-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none sm:w-auto"
           aria-label="Close modal"
         >
           بستن
@@ -100,7 +100,7 @@ const DeleteInvoiceModal = ({ invoice, onClose, onDelete }: DeleteInvoiceModalPr
           disabled={!termsAccepted}
           className={`w-full rounded-lg px-6 py-3 transition-colors sm:w-auto ${
             termsAccepted
-              ? "bg-red-600 text-gray-100 hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+              ? "bg-red-600 text-gray-100 hover:bg-red-500 focus:ring-2 focus:ring-red-500 focus:outline-none"
               : "cursor-not-allowed bg-red-400 text-gray-300"
           }`}
           aria-label="Delete invoice"

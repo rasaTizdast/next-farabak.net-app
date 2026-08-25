@@ -1,6 +1,9 @@
 "use client";
 
 import { Card } from "antd";
+
+import { adminColors } from "@/constants/adminColors";
+
 import { Branch, toPersianDate } from "../../components/types";
 
 interface BranchInfoProps {
@@ -13,12 +16,12 @@ export default function BranchInfo({ branch }: BranchInfoProps) {
       title={<span className="text-lg">اطلاعات شعبه</span>}
       className="mb-6 overflow-hidden rounded-lg bg-gray-800 text-white shadow-md"
       headStyle={{
-        backgroundColor: "#1f2937",
-        borderBottom: "1px solid #374151",
-        color: "#f3f4f6",
+        backgroundColor: adminColors.panel,
+        borderBottom: `1px solid ${adminColors.border}`,
+        color: adminColors.textBright,
         padding: "12px 16px",
       }}
-      bodyStyle={{ backgroundColor: "#1f2937", padding: "16px" }}
+      bodyStyle={{ backgroundColor: adminColors.panel, padding: "16px" }}
     >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="rounded bg-gray-900/30 p-2">

@@ -41,17 +41,18 @@ const ProductDeletionModal = ({ currentAction, handleModalConfirm, setIsModalOpe
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+      className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm transition-opacity"
       data-testid="delete-confirmation-modal"
     >
       <div
-        className={`relative w-full max-w-md animate-fade-in rounded-lg p-8 shadow-lg ${modalStyles}`}
+        className={`animate-fade-in relative w-full max-w-md rounded-lg p-8 shadow-lg ${modalStyles}`}
       >
         {/* Close Button */}
         <button
           type="button"
           onClick={() => setIsModalOpen(false)}
-          className="absolute right-4 top-4 font-bold text-gray-900 hover:text-gray-600 focus:outline-none"
+          aria-label="بستن"
+          className="absolute top-4 right-4 font-bold text-gray-900 hover:text-gray-600 focus:outline-none"
         >
           ✕
         </button>
@@ -77,14 +78,14 @@ const ProductDeletionModal = ({ currentAction, handleModalConfirm, setIsModalOpe
           <button
             type="button"
             onClick={handleModalConfirm}
-            className={`rounded-lg px-6 py-2 text-white transition-all focus:outline-none ${buttonStyles}`}
+            className={`rounded-lg px-6 py-2 text-white transition-colors focus:outline-none ${buttonStyles}`}
           >
             تایید
           </button>
           <button
             type="button"
             onClick={() => setIsModalOpen(false)}
-            className={`rounded-lg px-6 py-2 text-gray-800 transition-all focus:outline-none ${cancelButtonStyles}`}
+            className={`rounded-lg px-6 py-2 text-gray-800 transition-colors focus:outline-none ${cancelButtonStyles}`}
           >
             لغو
           </button>

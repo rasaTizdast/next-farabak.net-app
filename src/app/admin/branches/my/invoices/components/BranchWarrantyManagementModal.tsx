@@ -30,6 +30,9 @@ type BranchWarrantyManagementModalProps = {
   onSuccess: () => void;
 };
 
+type GenerateWarrantyRequest = { branchCode: string; yearMonth: string };
+type GenerateWarrantyResponse = { warrantyCode: string };
+
 async function generateWarrantyCodeForBranch(
   currentBranch: Branch | null,
   warrantyData: {
@@ -50,7 +53,10 @@ async function generateWarrantyCodeForBranch(
       hasWarranty: boolean;
     }>
   >,
-  generateWarrantyMutate: any,
+  generateWarrantyMutate: (
+    url: string,
+    data?: GenerateWarrantyRequest
+  ) => Promise<GenerateWarrantyResponse | null>,
   branchId?: number
 ): Promise<string | null> {
   if (!branchId && !warrantyData.branchId) return null;
@@ -127,22 +133,24 @@ const BranchWarrantyManagementModal = ({
   onClose,
   onSuccess,
 }: BranchWarrantyManagementModalProps) => {
-  const { data: currentBranchData, error: branchError } = useApiFetch<Branch>(
-    "/api/admin/branches/current"
-  );
-  const { data: productCheckData, error: productCheckError } = useApiFetch<{ hasProduct: boolean }>(
+  const { data: currentBranchData } = useApiFetch<Branch>("/api/admin/branches/current");
+  const { data: productCheckData } = useApiFetch<{ hasProduct: boolean }>(
     currentBranchData?.branchid
       ? `/api/admin/branches/check-product?branchId=${currentBranchData.branchid}&productId=${item.ProductId}&invoiceId=${invoiceId}`
       : null
   );
-  const { mutate: generateWarrantyMutate, loading: generatingCode } = useApiMutation<{
-    warrantyCode: string;
-  }>("post");
+  type GenerateWarrantyRequest = { branchCode: string; yearMonth: string };
+  type GenerateWarrantyResponse = { warrantyCode: string };
+
+  const { mutate: generateWarrantyMutate, loading: generatingCode } = useApiMutation<
+    GenerateWarrantyRequest,
+    GenerateWarrantyResponse
+  >("post");
   const { mutate: createWarrantyMutate, loading: submittingCreate } = useApiMutation("post");
 
   const [nowTimestamp] = useState(() => Date.now());
-  const [loading, setLoading] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [loading] = useState(true);
+  const [isInitialized] = useState(false);
   const currentBranch = currentBranchData ?? null;
   const branchHasProduct = productCheckData?.hasProduct ?? false;
   const [warrantyData, setWarrantyData] = useState<{
@@ -173,6 +181,7 @@ const BranchWarrantyManagementModal = ({
   useEffect(() => {
     if (currentBranchData && !branchSyncedRef.current) {
       branchSyncedRef.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync local editable warranty form state from fetched branch data once, guarded by ref.
       setWarrantyData((prev) => ({ ...prev, branchId: currentBranchData.branchid }));
     }
   }, [currentBranchData]);
@@ -239,6 +248,7 @@ const BranchWarrantyManagementModal = ({
       const expectedStatus = ed < cd ? "Expired" : "Active";
       if (warrantyData.status !== expectedStatus && statusRef.current !== expectedStatus) {
         statusRef.current = expectedStatus;
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Derive status from expiry date inside effect since expiry changes only via user input.
         setWarrantyData((p) => ({ ...p, status: expectedStatus }));
       }
     }
@@ -255,7 +265,11 @@ const BranchWarrantyManagementModal = ({
     }
   }, [branchHasProduct, currentBranch, warrantyData.warrantycode, generateWarrantyCode]);
 
-  const handleStartDateChange = (date: any) => {
+  interface DatePickerValue {
+    value?: Date | number | string;
+  }
+
+  const handleStartDateChange = (date: DatePickerValue) => {
     // Convert the date object provided by zaman DatePicker
     const formattedDate = date && date.value ? formatDateToISOString(new Date(date.value)) : null;
     setWarrantyData({
@@ -264,7 +278,7 @@ const BranchWarrantyManagementModal = ({
     });
   };
 
-  const handleEndDateChange = (date: any) => {
+  const handleEndDateChange = (date: DatePickerValue) => {
     // Convert the date object provided by zaman DatePicker
     const formattedDate = date && date.value ? formatDateToISOString(new Date(date.value)) : null;
     setWarrantyData({
@@ -329,7 +343,7 @@ const BranchWarrantyManagementModal = ({
           onClick={(e) => e.stopPropagation()}
         >
           <Spin size="large" />
-          <span className="mr-2 mt-4 text-white">در حال بارگذاری فرم گارانتی...</span>
+          <span className="mt-4 mr-2 text-white">در حال بارگذاری فرم گارانتی...</span>
         </div>
       </div>
     );

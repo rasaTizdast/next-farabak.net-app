@@ -4,6 +4,7 @@ import { Switch } from "antd";
 import { DatePicker } from "zaman";
 
 import PrintButton from "@/app/components/ui/PrintButton";
+
 import { ExpandedInvoiceItem } from "./types";
 
 interface WarrantyData {
@@ -19,8 +20,8 @@ interface WarrantyUpdateModeProps {
   item: ExpandedInvoiceItem;
   selectedBranchName: string;
   warrantyData: WarrantyData;
-  handleStartDateChange: (date: any) => void;
-  handleEndDateChange: (date: any) => void;
+  handleStartDateChange: (payload: { value: Date }) => void;
+  handleEndDateChange: (payload: { value: Date }) => void;
   handleWarrantyToggle: (checked: boolean) => void;
   handleSubmit: (e: React.FormEvent) => void;
   durationText: string | null;

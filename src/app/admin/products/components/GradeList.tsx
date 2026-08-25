@@ -53,7 +53,7 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
     fetchExchangeRate();
   }, []);
 
-  const { mutate: deleteGrade, loading: deletingGrade } = useApiMutation("delete");
+  const { mutate: deleteGrade } = useApiMutation("delete");
 
   const handleDelete = async (gradeId: number) => {
     if (!confirm("آیا از حذف این گرید اطمینان دارید؟")) return;
@@ -75,7 +75,7 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
     });
   };
 
-  const { mutate: updateGrade, loading: updatingGrade } = useApiMutation("put");
+  const { mutate: updateGrade } = useApiMutation("put");
 
   const handleUpdate = async () => {
     if (!editingGrade) return;
@@ -137,7 +137,7 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
           {grades.map((grade) => (
             <div
               key={grade.ProductGradeId}
-              className="overflow-hidden rounded-lg bg-slate-700 shadow-sm transition-all hover:shadow-md"
+              className="overflow-hidden rounded-lg bg-slate-700 shadow-sm transition-shadow hover:shadow-md"
             >
               {editingGrade?.id === grade.ProductGradeId ? (
                 <div className="p-3">
@@ -157,7 +157,7 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                         value={editingGrade.grade}
                         onChange={handleInputChange}
                         maxLength={1}
-                        className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-[border-color,box-shadow] focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       />
                     </div>
 
@@ -177,7 +177,7 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                         onChange={handleInputChange}
                         min="0"
                         step="0.01"
-                        className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-[border-color,box-shadow] focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       />
                       {isValidRate && editingGrade.price > 0 && (
                         <div className="mt-2 flex items-center justify-between rounded-md bg-slate-600/50 p-3">
@@ -205,7 +205,7 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                         onChange={handleInputChange}
                         min="0"
                         step="0.01"
-                        className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-[border-color,box-shadow] focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       />
                       {isValidRate && editingGrade.discount > 0 && (
                         <div className="space-y-2 pt-2">
@@ -244,14 +244,14 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                       <button
                         type="button"
                         onClick={handleUpdate}
-                        className="flex-1 rounded-md bg-green-600 p-3 font-medium text-white transition-all hover:bg-green-700"
+                        className="flex-1 rounded-md bg-green-600 p-3 font-medium text-white transition-colors hover:bg-green-700"
                       >
                         ذخیره تغییرات
                       </button>
                       <button
                         type="button"
                         onClick={() => setEditingGrade(null)}
-                        className="flex-1 rounded-md bg-slate-600 p-3 font-medium text-white transition-all hover:bg-slate-700"
+                        className="flex-1 rounded-md bg-slate-600 p-3 font-medium text-white transition-colors hover:bg-slate-700"
                       >
                         انصراف
                       </button>
@@ -266,7 +266,7 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                       <button
                         type="button"
                         onClick={() => handleEdit(grade)}
-                        className="rounded-md bg-blue-500/20 p-2 text-blue-400 transition-all hover:bg-blue-500/30"
+                        className="rounded-md bg-blue-500/20 p-2 text-blue-400 transition-colors hover:bg-blue-500/30"
                         aria-label="ویرایش گرید"
                       >
                         <FaEdit size={16} />
@@ -274,7 +274,7 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                       <button
                         type="button"
                         onClick={() => handleDelete(grade.ProductGradeId)}
-                        className="rounded-md bg-red-500/20 p-2 text-red-400 transition-all hover:bg-red-500/30"
+                        className="rounded-md bg-red-500/20 p-2 text-red-400 transition-colors hover:bg-red-500/30"
                         aria-label="حذف گرید"
                       >
                         <FaTrash size={16} />

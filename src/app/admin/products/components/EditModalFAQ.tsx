@@ -10,6 +10,12 @@ type FAQItem = {
   answer: string;
 };
 
+type FAQApiResponse = {
+  FAQsId: number;
+  Title: string;
+  Description: string;
+};
+
 type Props = {
   productId: number;
   setFaqs: (faqs: FAQItem[]) => void;
@@ -30,7 +36,7 @@ function validateField(field: string, value: string) {
 const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
   const [localFaqs, setLocalFaqs] = useState<FAQItem[]>([]);
   const hasFetched = useRef(false);
-  const { data: faqsResponse, loading: isLoading } = useApiFetch<any>(
+  const { data: faqsResponse, loading: isLoading } = useApiFetch<FAQApiResponse[]>(
     productId ? `/api/faqs/product/${productId}` : null
   );
   const [localErrors, setLocalErrors] = useState<{ [key: string]: string }>({});
@@ -41,10 +47,13 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
   useEffect(() => {
     if (faqsResponse && !hasFetched.current) {
       hasFetched.current = true;
-      const mappedFaqs = (Array.isArray(faqsResponse) ? faqsResponse : []).map((faq: any) => ({
-        question: faq.Title,
-        answer: faq.Description,
-      }));
+      const mappedFaqs = (Array.isArray(faqsResponse) ? faqsResponse : []).map(
+        (faq: FAQApiResponse) => ({
+          question: faq.Title,
+          answer: faq.Description,
+        })
+      );
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable FAQ state from fetched data once, guarded by ref.
       setLocalFaqs(mappedFaqs);
       setFaqs(mappedFaqs);
       const initialErrors: { [key: string]: string } = {};
@@ -170,7 +179,7 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
               <button
                 type="button"
                 onClick={handleAddFAQ}
-                className="rounded-md bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-700"
+                className="rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
               >
                 افزودن اولین سوال
               </button>
@@ -204,7 +213,7 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
                       type="button"
                       onClick={() => handleRemoveFAQ(index)}
                       aria-label="حذف سوال"
-                      className="text-red-500 transition-all hover:text-red-600"
+                      className="text-red-500 transition-colors hover:text-red-600"
                     >
                       <FaTrashAlt size={18} />
                     </button>
@@ -232,7 +241,7 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
             <button
               type="button"
               onClick={handleAddFAQ}
-              className="w-full rounded-md bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-700"
+              className="w-full rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
             >
               افزودن سوال جدید
             </button>

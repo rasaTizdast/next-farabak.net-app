@@ -1,6 +1,8 @@
 "use client";
 
-import { ButtonBase, InputBase, ModalBase } from "./ui";
+import { Button } from "@/components/ui/antd/Button";
+import { Input } from "@/components/ui/antd/Input";
+import { Modal } from "@/components/ui/antd/Modal";
 
 const EMPTY_WAREHOUSES: Array<{ warehouseid: number; name: string }> = [];
 
@@ -16,7 +18,8 @@ function getNameError(
     (wh) => wh.name.toLowerCase() === trimmedName.toLowerCase()
   );
   if (!existingWarehouse) return "";
-  if (editing && editingWarehouseId && existingWarehouse.warehouseid === editingWarehouseId) return "";
+  if (editing && editingWarehouseId && existingWarehouse.warehouseid === editingWarehouseId)
+    return "";
   return "نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید.";
 }
 
@@ -49,36 +52,39 @@ export default function WarehouseFormModal({
   const isFormValid = formName.trim() && formLocation?.trim() && !nameError;
 
   return (
-    <ModalBase
+    <Modal
       open={open}
-      onClose={onClose}
+      onCancel={onClose}
       title={editing ? "ویرایش انبار" : "ایجاد انبار جدید"}
+      width={600}
       footer={
         <>
-          <ButtonBase onClick={onClose}>انصراف</ButtonBase>
-          <ButtonBase variant="primary" onClick={onSubmit} disabled={!isFormValid}>
+          <Button variant="secondary" onClick={onClose}>
+            انصراف
+          </Button>
+          <Button variant="primary" onClick={onSubmit} disabled={!isFormValid}>
             {editing ? "ذخیره" : "ایجاد"}
-          </ButtonBase>
+          </Button>
         </>
       }
     >
       <div className="space-y-4">
         <label className="flex flex-col gap-2">
           <span className="text-sm text-gray-300">نام انبار</span>
-          <InputBase
+          <Input
             value={formName}
-            onChange={(e) => setFormName((e.target as HTMLInputElement).value)}
+            onChange={(e) => setFormName(e.target.value)}
             placeholder="نام انبار را وارد کنید"
             required
-            className={nameError ? "border-red-500 focus:border-red-500" : ""}
+            status={nameError ? "error" : undefined}
           />
           {nameError && <div className="text-sm text-red-400">{nameError}</div>}
         </label>
         <label className="flex flex-col gap-2">
           <span className="text-sm text-gray-300">مکان</span>
-          <InputBase
+          <Input
             value={formLocation}
-            onChange={(e) => setFormLocation((e.target as HTMLInputElement).value)}
+            onChange={(e) => setFormLocation(e.target.value)}
             placeholder="مکان انبار را وارد کنید"
             required
           />
@@ -89,6 +95,6 @@ export default function WarehouseFormModal({
           </div>
         )}
       </div>
-    </ModalBase>
+    </Modal>
   );
 }

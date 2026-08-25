@@ -1,5 +1,16 @@
 import { useState } from "react";
 
+// Regex patterns
+const regexPatterns = {
+  Name: /^[a-zA-Z0-9-\u0600-\u06FF\s_\u200C\u002D\u2013\u2014]{0,1000}$/, // Persian, English, numbers, up to 1000 characters
+  Slug: /^[a-z0-9-]{0,200}$/, // Lowercase English, numbers, and dashes only, up to 200 characters
+};
+
+const errorMessages = {
+  Name: "نام باید حروف فارسی یا انگلیسی و حداکثر ۱۰۰۰ کاراکتر باشد.",
+  Slug: "شناسه فقط باید حروف انگلیسی کوچک، اعداد و خط تیره باشد و حداکثر ۲۰۰ کاراکتر باشد.",
+};
+
 const CategoryFields = ({
   name,
   slug,
@@ -18,17 +29,6 @@ const CategoryFields = ({
   editable?: boolean;
 }) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  // Regex patterns
-  const regexPatterns = {
-    Name: /^[a-zA-Z0-9-\u0600-\u06FF\s_\u200C\u002D\u2013\u2014]{0,1000}$/, // Persian, English, numbers, up to 1000 characters
-    Slug: /^[a-z0-9-]{0,200}$/, // Lowercase English, numbers, and dashes only, up to 200 characters
-  };
-
-  const errorMessages = {
-    Name: "نام باید حروف فارسی یا انگلیسی و حداکثر ۱۰۰۰ کاراکتر باشد.",
-    Slug: "شناسه فقط باید حروف انگلیسی کوچک، اعداد و خط تیره باشد و حداکثر ۲۰۰ کاراکتر باشد.",
-  };
 
   // Handle input change with validation
   const handleInputChange = (field: string, value: string) => {
@@ -70,7 +70,7 @@ const CategoryFields = ({
           value={name}
           onChange={(e) => handleInputChange("Name", e.target.value)}
           disabled={!editable}
-          className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-500"
+          className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-500"
           placeholder="نام دسته‌بندی را وارد کنید"
         />
         {errors.Name && <p className="text-sm text-red-500">{errors.Name}</p>}
@@ -88,7 +88,7 @@ const CategoryFields = ({
           value={slug}
           onChange={handleSlugChange} // Use the space-to-dash handler
           disabled={!editable}
-          className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-500"
+          className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-500"
           placeholder="شناسه دسته‌بندی"
         />
         {errors.Slug && <p className="text-sm text-red-500">{errors.Slug}</p>}
@@ -105,7 +105,7 @@ const CategoryFields = ({
           value={available ? "true" : "false"}
           onChange={(e) => setAvailable(e.target.value === "true")}
           disabled={!editable}
-          className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:text-slate-300"
+          className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-400 disabled:text-slate-300"
         >
           <option value="true">بله</option>
           <option value="false">خیر</option>

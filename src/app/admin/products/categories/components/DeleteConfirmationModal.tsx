@@ -22,7 +22,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   if (!isOpen || !item) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+    <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black backdrop-blur-sm">
       <div className="w-96 rounded-xl bg-gray-800 p-6 text-white">
         <h2 className="text-center text-lg font-semibold">حذف {item.Name} را تأیید کنید</h2>
         <p className="mt-4 text-center">
@@ -39,14 +39,14 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
           <button
             type="button"
             onClick={onDeleteConfirm}
-            className="rounded bg-red-700 px-4 py-2 text-white transition-all hover:bg-red-800"
+            className="rounded bg-red-700 px-4 py-2 text-white transition-colors hover:bg-red-800"
           >
             بله، حذف کن
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="rounded bg-gray-500 px-4 py-2 text-white transition-all hover:bg-gray-600"
+            className="rounded bg-gray-500 px-4 py-2 text-white transition-colors hover:bg-gray-600"
           >
             انصراف
           </button>

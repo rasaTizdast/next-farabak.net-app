@@ -4,6 +4,7 @@ import { SearchOutlined, ShopOutlined } from "@ant-design/icons";
 import { Button, Table, Empty, Spin, message, Select, Card, Alert, Tag } from "antd";
 import { useState } from "react";
 
+import { adminColors } from "@/constants/adminColors";
 import { useApiFetch } from "@/hooks/useApiFetch";
 
 import { Product } from "../../components/types";
@@ -131,12 +132,12 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
         title="جستجوی محصول در شعبه‌های دیگر"
         className="h-full border-0 bg-gray-800"
         headStyle={{
-          backgroundColor: "#19202b",
+          backgroundColor: adminColors.panelAlt,
           color: "white",
-          borderBottom: "1px solid #374151",
+          borderBottom: `1px solid ${adminColors.border}`,
         }}
         bodyStyle={{
-          backgroundColor: "#19202b",
+          backgroundColor: adminColors.panelAlt,
           padding: "16px",
           display: "flex",
           flexDirection: "column",

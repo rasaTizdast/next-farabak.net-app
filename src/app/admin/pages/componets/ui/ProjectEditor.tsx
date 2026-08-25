@@ -5,6 +5,25 @@ type ProjectEditModalProps = {
   onClose: () => void;
 };
 
+type ProjectMedia = {
+  MediaType: string;
+  MediaURL: string;
+};
+
+type ProjectApiResponse = {
+  project: {
+    ProjectID: number;
+    Title: string;
+    Description: string;
+    Slug: string;
+    IsActive: boolean;
+    date: string;
+    city: string;
+    Main_img_URL: string | null;
+  };
+  media: ProjectMedia[];
+};
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { BiTrash } from "react-icons/bi";
@@ -20,12 +39,47 @@ const removeFile = (setter: Function, files: (File | string)[], index: number) =
   setter(newFiles);
 };
 
-// Update your preview logic to handle both URLs and Files
-const getPreviewUrl = (file: File | string) => {
-  return typeof file === "string"
-    ? `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${file}`
-    : URL.createObjectURL(file);
-};
+function usePreviewUrls(files: (File | string)[]) {
+  const [urls, setUrls] = useState<Map<File, string>>(new Map());
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- object-URL create/revoke lifecycle must stay in sync with the files array
+    setUrls((prevUrls) => {
+      const newUrls = new Map<File, string>();
+      for (const file of files) {
+        if (file instanceof File) {
+          const existing = prevUrls.get(file);
+          if (existing) {
+            newUrls.set(file, existing);
+          } else {
+            newUrls.set(file, URL.createObjectURL(file));
+          }
+        }
+      }
+      for (const [file, url] of prevUrls) {
+        if (!newUrls.has(file)) {
+          URL.revokeObjectURL(url);
+        }
+      }
+      return newUrls;
+    });
+    return () => {
+      setUrls((currentUrls) => {
+        for (const url of currentUrls.values()) {
+          URL.revokeObjectURL(url);
+        }
+        return new Map<File, string>();
+      });
+    };
+  }, [files]);
+
+  return (file: File | string) => {
+    if (typeof file === "string") {
+      return `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${file}`;
+    }
+    return urls.get(file) ?? "";
+  };
+}
 
 const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
   const [formData, setFormData] = useState({
@@ -36,14 +90,21 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
     date: "",
     city: "",
   });
-  const [mainImage, setMainImage] = useState<File | null>(null);
-  const [detailImages, setDetailImages] = useState<File[]>([]);
-  const [videos, setVideos] = useState<File[]>([]);
+  const [mainImage, setMainImage] = useState<File | string | null>(null);
+  const [detailImages, setDetailImages] = useState<(File | string)[]>([]);
+  const [videos, setVideos] = useState<(File | string)[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const allMediaFiles = [...(mainImage ? [mainImage] : []), ...detailImages, ...videos] as (
+    | File
+    | string
+  )[];
+  const getPreviewUrl = usePreviewUrls(allMediaFiles);
+
   const projectUrl = id ? `/api/projects/${id}` : null;
-  const { data: projectData, loading: projectLoading } = useApiFetch<any>(projectUrl);
+  const { data: projectData, loading: projectLoading } =
+    useApiFetch<ProjectApiResponse>(projectUrl);
   const isLoading = projectUrl ? projectLoading || !projectData : false;
   const { mutate: saveProjectMutate } = useApiMutation("put");
   const initializedRef = useRef(false);
@@ -51,6 +112,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
   useEffect(() => {
     if (projectData && !initializedRef.current) {
       initializedRef.current = true;
+
       setFormData({
         title: projectData.project.Title,
         description: projectData.project.Description,
@@ -61,13 +123,13 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
       });
       setMainImage(projectData.project.Main_img_URL);
       setDetailImages(
-        projectData.media.reduce((acc: string[], m: any) => {
+        projectData.media.reduce((acc: string[], m: ProjectMedia) => {
           if (m.MediaType === "image") acc.push(m.MediaURL);
           return acc;
         }, [])
       );
       setVideos(
-        projectData.media.reduce((acc: string[], m: any) => {
+        projectData.media.reduce((acc: string[], m: ProjectMedia) => {
           if (m.MediaType === "video") acc.push(m.MediaURL);
           return acc;
         }, [])
@@ -116,47 +178,48 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
     }
 
     setIsSubmitting(true);
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("projectId", id?.toString() || "");
+      formDataToSend.append("title", formData.title);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("slug", formData.slug);
+      formDataToSend.append("isActive", formData.isActive.toString());
+      formDataToSend.append("date", formData.date);
+      formDataToSend.append("city", formData.city);
 
-    const formDataToSend = new FormData();
-    formDataToSend.append("projectId", id?.toString() || "");
-    formDataToSend.append("title", formData.title);
-    formDataToSend.append("description", formData.description);
-    formDataToSend.append("slug", formData.slug);
-    formDataToSend.append("isActive", formData.isActive.toString());
-    formDataToSend.append("date", formData.date);
-    formDataToSend.append("city", formData.city);
-
-    if (typeof mainImage === "string") {
-      formDataToSend.append("existingMainImage", mainImage);
-    } else if (mainImage) {
-      formDataToSend.append("mainImage", mainImage);
-    }
-
-    detailImages.forEach((item) => {
-      if (typeof item === "string") {
-        formDataToSend.append("existingDetailImages", item);
-      } else {
-        formDataToSend.append("detailImages", item);
+      if (typeof mainImage === "string") {
+        formDataToSend.append("existingMainImage", mainImage);
+      } else if (mainImage) {
+        formDataToSend.append("mainImage", mainImage);
       }
-    });
 
-    videos.forEach((item) => {
-      if (typeof item === "string") {
-        formDataToSend.append("existingVideos", item);
+      detailImages.forEach((item) => {
+        if (typeof item === "string") {
+          formDataToSend.append("existingDetailImages", item);
+        } else {
+          formDataToSend.append("detailImages", item);
+        }
+      });
+
+      videos.forEach((item) => {
+        if (typeof item === "string") {
+          formDataToSend.append("existingVideos", item);
+        } else {
+          formDataToSend.append("videos", item);
+        }
+      });
+
+      const res = await saveProjectMutate(`/api/projects/${id}`, formDataToSend);
+
+      if (res) {
+        onClose();
       } else {
-        formDataToSend.append("videos", item);
+        setErrors((prev) => ({ ...prev, form: "خطا در ذخیره پروژه." }));
       }
-    });
-
-    const res = await saveProjectMutate(`/api/projects/${id}`, formDataToSend);
-
-    if (res) {
-      onClose();
-    } else {
-      setErrors((prev) => ({ ...prev, form: "خطا در ذخیره پروژه." }));
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   };
 
   // Main image dropzone
@@ -222,7 +285,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
   });
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+    <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black backdrop-blur-sm">
       <div className="max-h-[95vh] w-full max-w-4xl overflow-auto rounded-xl bg-gray-800 p-6 text-gray-100 shadow-2xl">
         {isLoading ? (
           <div className="animate-pulse space-y-6" role="status" aria-label="در حال بارگذاری">
@@ -296,6 +359,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
               <button
                 type="button"
                 onClick={onClose}
+                aria-label="بستن"
                 className="rounded-full p-2 transition-colors hover:bg-gray-700"
               >
                 ✕
@@ -402,7 +466,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
                         type="button"
                         onClick={() => setMainImage(null)}
                         aria-label="حذف عکس اصلی"
-                        className="absolute right-1 top-1 rounded-lg bg-red-500 p-2 opacity-0 transition-all hover:bg-red-600 group-hover:opacity-100"
+                        className="absolute top-1 right-1 rounded-lg bg-red-500 p-2 opacity-0 transition-[opacity,background-color] group-hover:opacity-100 hover:bg-red-600"
                       >
                         <BiTrash size={20} />
                       </button>
@@ -432,23 +496,27 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
                   {errors.details && <p className="mt-2 text-sm text-red-400">{errors.details}</p>}
                 </div>
                 <div className="mt-4 grid grid-cols-4 gap-4">
-                  {detailImages.map((file, index) => (
-                    <div key={file.name + file.size} className="group relative">
-                      <img
-                        src={getPreviewUrl(file)}
-                        alt={`Detail ${index + 1}`}
-                        className="h-32 w-full rounded-lg object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeFile(setDetailImages, detailImages, index)}
-                        aria-label="حذف تصویر"
-                        className="absolute right-1 top-1 rounded-lg bg-red-500 p-2 opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
-                      >
-                        <BiTrash size={20} />
-                      </button>
-                    </div>
-                  ))}
+                  {detailImages.map((file, index) => {
+                    const isFile = file instanceof File;
+                    const key = isFile ? file.name + file.size : String(file) + index;
+                    return (
+                      <div key={key} className="group relative">
+                        <img
+                          src={getPreviewUrl(file)}
+                          alt={`Detail ${index + 1}`}
+                          className="h-32 w-full rounded-lg object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeFile(setDetailImages, detailImages, index)}
+                          aria-label="حذف تصویر"
+                          className="absolute top-1 right-1 rounded-lg bg-red-500 p-2 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-600"
+                        >
+                          <BiTrash size={20} />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -468,24 +536,25 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
                   {errors.videos && <p className="mt-2 text-sm text-red-400">{errors.videos}</p>}
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-4">
-                  {videos.map((file, index) => (
-                    <div
-                      key={file.name + file.size}
-                      className="group relative rounded-lg bg-gray-700 p-3"
-                    >
-                      <video className="h-32 w-full rounded-lg object-cover">
-                        <source src={getPreviewUrl(file)} />
-                      </video>
-                      <button
-                        type="button"
-                        onClick={() => removeFile(setVideos, videos, index)}
-                        aria-label="حذف ویدیو"
-                        className="absolute right-1 top-1 rounded-lg bg-red-500 p-2 opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
-                      >
-                        <BiTrash size={20} />
-                      </button>
-                    </div>
-                  ))}
+                  {videos.map((file, index) => {
+                    const isFile = file instanceof File;
+                    const key = isFile ? file.name + file.size : String(file) + index;
+                    return (
+                      <div key={key} className="group relative rounded-lg bg-gray-700 p-3">
+                        <video className="h-32 w-full rounded-lg object-cover">
+                          <source src={getPreviewUrl(file)} />
+                        </video>
+                        <button
+                          type="button"
+                          onClick={() => removeFile(setVideos, videos, index)}
+                          aria-label="حذف ویدیو"
+                          className="absolute top-1 right-1 rounded-lg bg-red-500 p-2 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-600"
+                        >
+                          <BiTrash size={20} />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 

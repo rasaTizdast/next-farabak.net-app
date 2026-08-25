@@ -1,11 +1,18 @@
 import { PlusOutlined } from "@ant-design/icons";
-import { Form, Select, InputNumber, Button } from "antd";
+import { Form, Select, InputNumber, Button, FormInstance } from "antd";
 import React from "react";
+
+import { adminColors } from "@/constants/adminColors";
 
 import { Product } from "./types";
 
+interface ProductFormValues {
+  productId: number;
+  quantity: number;
+}
+
 interface ProductFormProps {
-  form: any;
+  form: FormInstance<ProductFormValues>;
   allProducts: Product[];
   onFinish: () => void;
   onSelectProduct: (value: number) => void;
@@ -61,9 +68,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
               }}
               className="dark-input-number w-full text-right"
               style={{
-                backgroundColor: "#374151",
-                borderColor: "#4b5563",
-                color: "#e5e7eb",
+                backgroundColor: adminColors.border,
+                borderColor: adminColors.borderLight,
+                color: adminColors.textLight,
               }}
             />
           </Form.Item>

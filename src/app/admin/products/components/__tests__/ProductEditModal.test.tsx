@@ -1,5 +1,5 @@
+import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
 vi.mock("react-hot-toast", () => ({
   default: { success: vi.fn(), error: vi.fn() },
@@ -7,7 +7,7 @@ vi.mock("react-hot-toast", () => ({
 }));
 
 vi.mock("react-icons/cg", () => ({
-  CgSpinnerTwo: ({ className, size }: any) => <span data-testid="spinner">spinner</span>,
+  CgSpinnerTwo: () => <span data-testid="spinner">spinner</span>,
 }));
 
 vi.mock("axios", () => ({
@@ -39,35 +39,27 @@ vi.mock("@/hooks/useApiMutation", () => ({
 }));
 
 vi.mock("../EditModalFAQ", () => ({
-  default: ({ productId, setFaqs }: any) => <div data-testid="edit-modal-faq">EditModalFAQ</div>,
+  default: () => <div data-testid="edit-modal-faq">EditModalFAQ</div>,
 }));
 
 vi.mock("../EditModalOverview", () => ({
-  default: ({ ProductId, overviews, SetOverviews }: any) => (
-    <div data-testid="edit-modal-overview">EditModalOverview</div>
-  ),
+  default: () => <div data-testid="edit-modal-overview">EditModalOverview</div>,
 }));
 
 vi.mock("../EditModalOverviewDetails", () => ({
-  default: ({ productId, setProductOverviewDetails }: any) => (
-    <div data-testid="edit-modal-overview-details">EditModalOverviewDetails</div>
-  ),
+  default: () => <div data-testid="edit-modal-overview-details">EditModalOverviewDetails</div>,
 }));
 
 vi.mock("../EditModalProductBlog", () => ({
-  default: ({ blog, onSave, slug }: any) => (
-    <div data-testid="edit-modal-product-blog">EditModalProductBlog</div>
-  ),
+  default: () => <div data-testid="edit-modal-product-blog">EditModalProductBlog</div>,
 }));
 
 vi.mock("../EditModalSpecs", () => ({
-  default: ({ productId, productName, specs, setSpecs }: any) => (
-    <div data-testid="edit-modal-specs">EditModalSpecs</div>
-  ),
+  default: () => <div data-testid="edit-modal-specs">EditModalSpecs</div>,
 }));
 
 vi.mock("../ImageInput", () => ({
-  default: ({ label, imageUrl, onChange }: any) => (
+  default: ({ label }: any) => (
     <div data-testid="image-input">
       <span>{label}</span>
     </div>

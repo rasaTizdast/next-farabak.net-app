@@ -5,7 +5,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { toast, Toaster } from "react-hot-toast";
 
 import FilterModal from "./components/FilterModal";
-import NewProductModal from "./components/NewProductModal";
+import NewProductModal from "./components/newProductModal/NewProductWizard";
 import Pagination from "./components/Pagination";
 import ProductDeletionModal from "./components/ProductDeletionModal";
 import ProductsTable from "./components/ProductsTable";
@@ -200,16 +200,14 @@ const AdminProductsPage = () => {
     toast.success("فیلترها حذف شدند.");
   };
 
-  const fetchCategories = async () => {
-    const res = await axios.get("/api/categories/getAll");
-    setCategories(res.data);
-  };
-
   const catFetchGuard = useRef(false);
   useEffect(() => {
     if (!catFetchGuard.current) {
       catFetchGuard.current = true;
-      fetchCategories();
+      (async () => {
+        const res = await axios.get("/api/categories/getAll");
+        setCategories(res.data);
+      })();
     }
   }, []);
 
@@ -229,7 +227,7 @@ const AdminProductsPage = () => {
                 value={tempSearchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 aria-label="جستجوی محصول"
-                className="w-full rounded-lg border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 lg:min-w-[200px] lg:max-w-[350px]"
+                className="w-full rounded-lg border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none lg:max-w-[350px] lg:min-w-[200px]"
               />
             </div>
             <button
@@ -239,7 +237,7 @@ const AdminProductsPage = () => {
                 hasFilters(filters)
                   ? "bg-orange-600 hover:bg-orange-700"
                   : "bg-blue-950 hover:bg-blue-600"
-              } rounded-lg text-white transition-all`}
+              } rounded-lg text-white transition-colors`}
             >
               {hasFilters(filters) ? "فیلتر فعال" : "فیلتر"}
             </button>

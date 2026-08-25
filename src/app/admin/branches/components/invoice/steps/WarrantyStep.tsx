@@ -8,6 +8,7 @@ import { useUser } from "@/context/UserContext";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import { formatDateToISOString, persianToEnglishDigits } from "@/lib/validators";
 
+import { SelectedProduct, ProductWithWarranty } from "./types";
 import { Branch } from "../../types";
 
 const persianYearFormatter = new Intl.DateTimeFormat("fa-IR", { year: "numeric" });
@@ -58,20 +59,19 @@ function calculateDuration(startDate: Date | string | null, endDate: Date | stri
   }
 }
 
-// Define props interface for DatePicker to resolve type issues
 interface WarrantyStepProps {
-  selectedProducts: any[];
+  selectedProducts: SelectedProduct[];
   branch: Branch;
-  productsWithWarranty: any[];
-  setProductsWithWarranty: React.Dispatch<React.SetStateAction<any[]>>;
+  productsWithWarranty: ProductWithWarranty[];
+  setProductsWithWarranty: React.Dispatch<React.SetStateAction<ProductWithWarranty[]>>;
 }
 
 async function doUpdateWarranties(
-  selectedProducts: any[],
+  selectedProducts: SelectedProduct[],
   isGeneratingCodes: boolean,
-  branch: any,
-  productsWithWarranty: any[],
-  setProductsWithWarranty: React.Dispatch<React.SetStateAction<any[]>>,
+  branch: Branch,
+  productsWithWarranty: ProductWithWarranty[],
+  setProductsWithWarranty: React.Dispatch<React.SetStateAction<ProductWithWarranty[]>>,
   setIsGeneratingCodes: React.Dispatch<React.SetStateAction<boolean>>,
   generateBatchWarrantyCodes: (
     branchCode: string,
@@ -140,7 +140,7 @@ async function doUpdateWarranties(
       allNewCodes = await generateBatchWarrantyCodes(branchCode, yearMonth, totalCodesNeeded);
     }
 
-    const expandedItems: any[] = [];
+    const expandedItems: ProductWithWarranty[] = [];
     let usedCodesCount = 0;
 
     for (let i = 0; i < productCodeNeeds.length; i++) {
@@ -195,7 +195,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
   setProductsWithWarranty,
 }) => {
   const { isBranch } = useUser();
-  const editingProductRef = useRef<any | null>(null);
+  const editingProductRef = useRef<ProductWithWarranty | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [durationText, setDurationText] = useState<string | null>(null);
@@ -256,26 +256,26 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
     setProductsWithWarranty,
   ]);
 
-  const handleEdit = (item: any) => {
+  const handleEdit = (item: ProductWithWarranty) => {
     editingProductRef.current = item;
     setIsDatePickerLoading(true);
 
     // Set default values based on the item's warranty
     const hasWarranty = item.warranty?.hasWarranty !== false;
-    let startDate = item.warranty?.startdate;
-    let expiryDate = item.warranty?.expirydate;
+    let startDate: string = item.warranty?.startdate || "";
+    let expiryDate: string = item.warranty?.expirydate || "";
 
     // If no dates are set or creating new warranty, set defaults
     if (!startDate || !expiryDate) {
       const today = new Date();
-      startDate = formatDateToISOString(today);
+      startDate = formatDateToISOString(today) || "";
 
       // Default end date (1 year)
       const oneYearLater = new Date(today);
       oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
       // Ensure we keep the same day of month
       oneYearLater.setDate(today.getDate());
-      expiryDate = formatDateToISOString(oneYearLater);
+      expiryDate = formatDateToISOString(oneYearLater) || "";
     }
 
     // For the form, use the Date objects - Zaman requires Date objects for defaultValue
@@ -308,7 +308,8 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
     form
       .validateFields()
       .then((values) => {
-        if (!editingProductRef.current) return;
+        const currentEditing = editingProductRef.current;
+        if (!currentEditing) return;
 
         // Extract form values
         const { hasWarranty } = values;
@@ -336,20 +337,20 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
         }
 
         // For branch users, preserve the original start date
-        if (isBranch && editingProductRef.current.warranty?.startdate) {
-          startdate = editingProductRef.current.warranty.startdate;
+        if (isBranch && currentEditing.warranty?.startdate) {
+          startdate = currentEditing.warranty.startdate;
         }
 
         // Find the item in the current list and update it
         const updatedItems = productsWithWarranty.map((item) => {
-          if (item.singleItemId === editingProductRef.current.singleItemId) {
+          if (item.singleItemId === currentEditing.singleItemId) {
             return {
               ...item,
               warranty: {
                 ...item.warranty,
                 startdate,
                 expirydate,
-                warrantycode: editingProductRef.current.warranty?.warrantycode, // Always preserve the original code
+                warrantycode: currentEditing.warranty?.warrantycode, // Always preserve the original code
                 hasWarranty,
               },
             };
@@ -437,7 +438,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
       title: "نام محصول",
       dataIndex: "Name",
       key: "name",
-      render: (text: any, record: any) => {
+      render: (text: string, record: ProductWithWarranty) => {
         // Find all items with the same product ID
         const sameProductItems = productsWithWarranty.filter(
           (item) => item.ProductId === record.ProductId
@@ -466,7 +467,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
     {
       title: "کد گارانتی",
       key: "warrantyCode",
-      render: (_: unknown, record: any) => {
+      render: (_: unknown, record: ProductWithWarranty) => {
         // Find all items with same product ID
         const sameProductItems = productsWithWarranty.filter(
           (item) => item.ProductId === record.ProductId
@@ -498,7 +499,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
     {
       title: "مدت گارانتی",
       key: "warrantyDuration",
-      render: (_: unknown, record: any) => {
+      render: (_: unknown, record: ProductWithWarranty) => {
         if (record.warranty?.hasWarranty === false) return "بدون گارانتی";
         if (!record.warranty?.startdate || !record.warranty?.expirydate) return "-";
 
@@ -511,7 +512,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
     {
       title: "عملیات",
       key: "action",
-      render: (_: unknown, record: any) => (
+      render: (_: unknown, record: ProductWithWarranty) => (
         <Space size="middle">
           <Button htmlType="button" type="primary" size="small" onClick={() => handleEdit(record)}>
             تنظیم گارانتی
@@ -535,7 +536,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
           columns={columns}
           rowKey="singleItemId"
           pagination={false}
-          className="custom-dark-table [&_.ant-table-tbody>tr:hover>td]:!bg-[#2d3748] [&_.ant-table-tbody>tr>td]:!border-b-gray-700 [&_.ant-table-tbody>tr>td]:!text-white [&_.ant-table-thead>tr>th]:sticky [&_.ant-table-thead>tr>th]:top-0 [&_.ant-table-thead>tr>th]:z-[2] [&_.ant-table-thead>tr>th]:!border-b-gray-700 [&_.ant-table-thead>tr>th]:!bg-gray-800 [&_.ant-table-thead>tr>th]:!text-white [&_.ant-table]:!bg-gray-900 [&_.ant-table]:!text-white"
+          className="custom-dark-table [&_.ant-table]:!bg-gray-900 [&_.ant-table]:!text-white [&_.ant-table-tbody>tr:hover>td]:!bg-[#2d3748] [&_.ant-table-tbody>tr>td]:!border-b-gray-700 [&_.ant-table-tbody>tr>td]:!text-white [&_.ant-table-thead>tr>th]:sticky [&_.ant-table-thead>tr>th]:top-0 [&_.ant-table-thead>tr>th]:z-[2] [&_.ant-table-thead>tr>th]:!border-b-gray-700 [&_.ant-table-thead>tr>th]:!bg-gray-800 [&_.ant-table-thead>tr>th]:!text-white"
           rowClassName={(record) => {
             // Find all items with same product ID
             const sameProductItems = productsWithWarranty.filter(
@@ -600,7 +601,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
                 handleWarrantyToggle(changedValues.hasWarranty);
               }
             }}
-            className="warranty-form [&_.ant-form-item-label>label]:!text-gray-200 [&_.ant-form-item]:!mb-6"
+            className="warranty-form [&_.ant-form-item]:!mb-6 [&_.ant-form-item-label>label]:!text-gray-200"
           >
             <Form.Item
               name="hasWarranty"
@@ -738,7 +739,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
 
             {durationText && (
               <div
-                className={`mb-4 mt-4 rounded p-2 text-center ${
+                className={`mt-4 mb-4 rounded p-2 text-center ${
                   durationText.includes("باید") || durationText.includes("خطا")
                     ? "bg-red-900 text-red-200"
                     : "bg-blue-900 text-blue-200"

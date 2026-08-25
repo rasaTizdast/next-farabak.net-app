@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import axios from "axios";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("axios");
 const mockAxiosGet = vi.mocked(axios.get);
@@ -14,20 +14,26 @@ vi.mock("@/hooks/useApiMutation", () => ({
   }),
 }));
 
-vi.mock("../ui", () => ({
-  ModalBase: ({ open, onClose, title, children, width }: any) =>
+vi.mock("@/components/ui/antd/Modal", () => ({
+  Modal: ({ open, title, children }: any) =>
     open ? (
       <div data-testid="modal">
         <div data-testid="modal-title">{title}</div>
         {children}
       </div>
     ) : null,
-  ButtonBase: ({ children, onClick, variant, className, disabled, loading }: any) => (
+}));
+
+vi.mock("@/components/ui/antd/Button", () => ({
+  Button: ({ children, onClick, variant, className, disabled, loading }: any) => (
     <button onClick={onClick} disabled={disabled} className={className} data-variant={variant}>
       {loading ? "loading..." : children}
     </button>
   ),
-  InputBase: ({ value, onChange, placeholder, type, min, id, className, disabled }: any) => (
+}));
+
+vi.mock("@/components/ui/antd/Input", () => ({
+  Input: ({ value, onChange, placeholder, type, min, id, className, disabled }: any) => (
     <input
       value={value}
       onChange={onChange}
@@ -39,7 +45,10 @@ vi.mock("../ui", () => ({
       disabled={disabled}
     />
   ),
-  AutoCompleteBase: ({ options, value, onChange, onSelect, placeholder, "aria-label": ariaLabel }: any) => (
+}));
+
+vi.mock("@/components/ui/antd/AutoComplete", () => ({
+  AutoComplete: ({ value, onChange, placeholder, "aria-label": ariaLabel }: any) => (
     <input
       aria-label={ariaLabel}
       value={value}
@@ -47,9 +56,12 @@ vi.mock("../ui", () => ({
       placeholder={placeholder}
     />
   ),
-  TableBase: ({ data, columns, loading, rowKey }: any) => (
+}));
+
+vi.mock("@/components/ui/antd/DataTable", () => ({
+  DataTable: ({ dataSource, columns, rowKey }: any) => (
     <div data-testid="products-table">
-      {data?.map((item: any) => (
+      {dataSource?.map((item: any) => (
         <div key={rowKey(item)}>
           {columns?.map((col: any) => (
             <div key={col.key || col.title}>
@@ -60,7 +72,6 @@ vi.mock("../ui", () => ({
       ))}
     </div>
   ),
-  useBodyScrollLock: vi.fn(),
 }));
 
 import ProductsModal from "../ProductsModal";

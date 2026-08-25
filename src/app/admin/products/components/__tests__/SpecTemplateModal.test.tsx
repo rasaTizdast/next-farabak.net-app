@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("react-hot-toast", () => ({
   default: { success: vi.fn(), error: vi.fn() },
@@ -34,11 +34,15 @@ describe("SpecTemplateModal", () => {
     const template = {
       SpecTemplateId: 1,
       Name: "CPU Specs",
-      Items: [
-        { SpecTemplateItemId: 1, SpecTemplateId: 1, Title: "Core Count" },
-      ],
+      Items: [{ SpecTemplateItemId: 1, SpecTemplateId: 1, Title: "Core Count" }],
     };
-    render(<SpecTemplateModal onClose={mockOnClose} onTemplateAdded={mockOnTemplateAdded} templateToEdit={template} />);
+    render(
+      <SpecTemplateModal
+        onClose={mockOnClose}
+        onTemplateAdded={mockOnTemplateAdded}
+        templateToEdit={template}
+      />
+    );
     expect(screen.getByText("ویرایش قالب مشخصات")).toBeInTheDocument();
   });
 
@@ -84,7 +88,13 @@ describe("SpecTemplateModal", () => {
       Name: "CPU Specs",
       Items: [],
     };
-    render(<SpecTemplateModal onClose={mockOnClose} onTemplateAdded={mockOnTemplateAdded} templateToEdit={template} />);
+    render(
+      <SpecTemplateModal
+        onClose={mockOnClose}
+        onTemplateAdded={mockOnTemplateAdded}
+        templateToEdit={template}
+      />
+    );
     expect(screen.getByText("به‌روزرسانی")).toBeInTheDocument();
   });
 
@@ -97,7 +107,13 @@ describe("SpecTemplateModal", () => {
         { SpecTemplateItemId: 2, SpecTemplateId: 1, Title: "Clock Speed" },
       ],
     };
-    render(<SpecTemplateModal onClose={mockOnClose} onTemplateAdded={mockOnTemplateAdded} templateToEdit={template} />);
+    render(
+      <SpecTemplateModal
+        onClose={mockOnClose}
+        onTemplateAdded={mockOnTemplateAdded}
+        templateToEdit={template}
+      />
+    );
     expect((screen.getByLabelText("نام قالب") as HTMLInputElement).value).toBe("CPU Specs");
     const items = screen.getAllByLabelText("عنوان مشخصات");
     expect(items).toHaveLength(2);

@@ -147,7 +147,12 @@ const AdminPageManager: React.FC = () => {
 
   const fetchPageData = () => {
     fetch("/api/admin/pages")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        return res.json();
+      })
       .then((data) => {
         setRowNames(data.rowNames);
         setSubPages(data.subPages);
@@ -279,7 +284,7 @@ const AdminPageManager: React.FC = () => {
             {rowNames.map((row) => (
               <div
                 key={row.link}
-                className="overflow-hidden rounded-lg border border-gray-700 bg-gray-800 transition-all duration-200 hover:border-gray-600 hover:shadow-lg sm:rounded-xl"
+                className="overflow-hidden rounded-lg border border-gray-700 bg-gray-800 transition-[border-color,box-shadow] duration-200 hover:border-gray-600 hover:shadow-lg sm:rounded-xl"
               >
                 {/* Main Row */}
                 <div className="p-3 sm:p-4 lg:p-6">
@@ -315,9 +320,9 @@ const AdminPageManager: React.FC = () => {
                       <Link
                         href={row.link}
                         target="_blank"
-                        className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-gray-700 px-2.5 py-2 text-xs font-medium text-gray-200 shadow-sm transition-all hover:bg-gray-600 hover:shadow-md active:bg-gray-500 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
+                        className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-gray-700 px-2.5 py-2 text-xs font-medium text-gray-200 shadow-sm transition-[background-color,box-shadow] hover:bg-gray-600 hover:shadow-md active:bg-gray-500 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
                       >
-                        <Eye className="sm:w-4.5 sm:h-4.5 h-4 w-4 flex-shrink-0 lg:h-5 lg:w-5" />
+                        <Eye className="h-4 w-4 flex-shrink-0 sm:h-4.5 sm:w-4.5 lg:h-5 lg:w-5" />
                         <span className="hidden md:inline">مشاهده</span>
                       </Link>
 
@@ -325,10 +330,10 @@ const AdminPageManager: React.FC = () => {
                       {!row.multiPage && (
                         <button
                           type="button"
-                          className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md active:bg-blue-800 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
+                          className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-[background-color,box-shadow] hover:bg-blue-700 hover:shadow-md active:bg-blue-800 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
                           onClick={() => openEditor(row.editorType)}
                         >
-                          <FaEdit className="sm:w-4.5 sm:h-4.5 h-4 w-4 flex-shrink-0 lg:h-5 lg:w-5" />
+                          <FaEdit className="h-4 w-4 flex-shrink-0 sm:h-4.5 sm:w-4.5 lg:h-5 lg:w-5" />
                           <span className="hidden md:inline">ویرایش</span>
                         </button>
                       )}
@@ -337,10 +342,10 @@ const AdminPageManager: React.FC = () => {
                       {row.multiPage && (
                         <button
                           type="button"
-                          className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-green-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-all hover:bg-green-700 hover:shadow-md active:bg-green-800 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
+                          className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-green-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-[background-color,box-shadow] hover:bg-green-700 hover:shadow-md active:bg-green-800 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
                           onClick={() => openNewPageBuilder(row.newType)}
                         >
-                          <Plus className="sm:w-4.5 sm:h-4.5 h-4 w-4 flex-shrink-0 lg:h-5 lg:w-5" />
+                          <Plus className="h-4 w-4 flex-shrink-0 sm:h-4.5 sm:w-4.5 lg:h-5 lg:w-5" />
                           <span className="hidden md:inline">افزودن</span>
                         </button>
                       )}
@@ -350,7 +355,7 @@ const AdminPageManager: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => toggleExpand(row.link)}
-                          className={`flex min-w-[36px] items-center justify-center rounded-lg p-2 shadow-sm transition-all hover:shadow-md sm:min-w-[40px] sm:p-2.5 ${
+                          className={`flex min-w-[36px] items-center justify-center rounded-lg p-2 shadow-sm transition-shadow hover:shadow-md sm:min-w-[40px] sm:p-2.5 ${
                             expanded === row.link
                               ? "bg-blue-600 text-white"
                               : "bg-gray-700 text-gray-200 hover:bg-gray-600 active:bg-gray-500"
@@ -358,9 +363,9 @@ const AdminPageManager: React.FC = () => {
                           aria-label={expanded === row.link ? "بستن" : "باز کردن"}
                         >
                           {expanded === row.link ? (
-                            <ChevronUp className="w-4.5 h-4.5 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
+                            <ChevronUp className="h-4.5 w-4.5 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
                           ) : (
-                            <ChevronDown className="w-4.5 h-4.5 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
+                            <ChevronDown className="h-4.5 w-4.5 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
                           )}
                         </button>
                       )}
@@ -370,7 +375,7 @@ const AdminPageManager: React.FC = () => {
 
                 {/* Expanded SubPages */}
                 {row.multiPage && expanded === row.link && (
-                  <div className="animate-in slide-in-from-top-2 border-t border-gray-700 bg-gray-800/50 duration-200">
+                  <div className="animate-in slide-in-from-top-2 border-t border-gray-700 bg-gray-800/50 transition-opacity transition-transform duration-200">
                     <div className="space-y-1.5 p-2 sm:space-y-2 sm:p-3 lg:p-4">
                       {subPages[row.link]?.length === 0 ? (
                         <div className="py-6 text-center sm:py-8">
@@ -380,7 +385,7 @@ const AdminPageManager: React.FC = () => {
                         subPages[row.link]?.map((subPage) => (
                           <div
                             key={subPage.id}
-                            className="group flex items-center justify-between rounded-lg bg-gray-700/50 p-2.5 transition-all hover:bg-gray-700 active:bg-gray-600 sm:p-3 lg:p-4"
+                            className="group flex items-center justify-between rounded-lg bg-gray-700/50 p-2.5 transition-colors hover:bg-gray-700 active:bg-gray-600 sm:p-3 lg:p-4"
                           >
                             {/* SubPage Name */}
                             <div className="flex min-w-0 flex-1 items-center gap-2 pr-2 sm:gap-3">
@@ -396,40 +401,40 @@ const AdminPageManager: React.FC = () => {
                               <Link
                                 href={subPage.link}
                                 target="_blank"
-                                className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg bg-gray-600 p-2 text-gray-200 shadow-sm transition-all hover:bg-gray-500 hover:shadow active:bg-gray-400 sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5"
+                                className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg bg-gray-600 p-2 text-gray-200 shadow-sm transition-[background-color,box-shadow] hover:bg-gray-500 hover:shadow active:bg-gray-400 sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5"
                                 title="مشاهده"
                                 aria-label="مشاهده صفحه"
                               >
-                                <Eye className="sm:w-4.5 sm:h-4.5 h-4 w-4 lg:h-5 lg:w-5" />
+                                <Eye className="h-4 w-4 sm:h-4.5 sm:w-4.5 lg:h-5 lg:w-5" />
                               </Link>
 
                               {/* Edit */}
                               <button
                                 type="button"
-                                className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg bg-blue-600 p-2 text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow active:bg-blue-800 sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5"
+                                className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg bg-blue-600 p-2 text-white shadow-sm transition-[background-color,box-shadow] hover:bg-blue-700 hover:shadow active:bg-blue-800 sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5"
                                 onClick={() => openEditor(row.editorType, subPage.id)}
                                 title="ویرایش"
                                 aria-label="ویرایش صفحه"
                               >
-                                <FaEdit className="sm:w-4.5 sm:h-4.5 h-4 w-4 lg:h-5 lg:w-5" />
+                                <FaEdit className="h-4 w-4 sm:h-4.5 sm:w-4.5 lg:h-5 lg:w-5" />
                               </button>
 
                               {/* Delete */}
                               <button
                                 type="button"
-                                className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg bg-red-600 p-2 text-white shadow-sm transition-all hover:bg-red-700 hover:shadow active:bg-red-800 sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5"
+                                className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg bg-red-600 p-2 text-white shadow-sm transition-[background-color,box-shadow] hover:bg-red-700 hover:shadow active:bg-red-800 sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5"
                                 onClick={() => deleteItem(row.editorType, subPage.id)}
                                 title="حذف"
                                 aria-label="حذف صفحه"
                               >
-                                <MdDeleteForever className="w-4.5 h-4.5 lg:w-5.5 lg:h-5.5 sm:h-5 sm:w-5" />
+                                <MdDeleteForever className="h-4.5 w-4.5 sm:h-5 sm:w-5 lg:h-5.5 lg:w-5.5" />
                               </button>
 
                               {/* QR Code (Blog only) */}
                               {row.editorType === "blog" && (
                                 <button
                                   type="button"
-                                  className={`flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg p-2 shadow-sm transition-all hover:shadow sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5 ${
+                                  className={`flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg p-2 shadow-sm transition-shadow hover:shadow sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5 ${
                                     subPage.QrCode_key
                                       ? "bg-violet-600 hover:bg-violet-700 active:bg-violet-800"
                                       : "bg-violet-500 hover:bg-violet-600 active:bg-violet-700"
@@ -445,7 +450,7 @@ const AdminPageManager: React.FC = () => {
                                   title="QR Code"
                                   aria-label="مدیریت QR Code"
                                 >
-                                  <IoQrCode className="w-4.5 h-4.5 lg:w-5.5 lg:h-5.5 sm:h-5 sm:w-5" />
+                                  <IoQrCode className="h-4.5 w-4.5 sm:h-5 sm:w-5 lg:h-5.5 lg:w-5.5" />
                                 </button>
                               )}
                             </div>

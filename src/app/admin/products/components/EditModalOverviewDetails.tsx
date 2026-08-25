@@ -1,6 +1,6 @@
 import axios from "axios";
 import Image from "next/image";
-import { useCallback, useRef, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { IoIosClose } from "react-icons/io";
@@ -185,17 +185,17 @@ const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Prop
 
       {/* Detail Modal */}
       {showDetailModal && selectedDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
+        <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm">
           <div className="relative max-h-[700px] w-full max-w-lg overflow-y-scroll rounded-lg bg-gray-800 p-6 text-white shadow-lg">
             <button
               type="button"
               aria-label="بستن"
               onClick={closeDetailModal}
-              className="absolute right-3 top-3 text-red-400 hover:text-red-500"
+              className="absolute top-3 right-3 text-red-400 hover:text-red-500"
             >
               <IoIosClose size={35} />
             </button>
-            <h2 className="mb-4 mt-7 text-center text-xl font-bold">{selectedDetail.Title}</h2>
+            <h2 className="mt-7 mb-4 text-center text-xl font-bold">{selectedDetail.Title}</h2>
             <p className="mb-4 text-gray-400">{selectedDetail.Description}</p>
 
             <div className="relative h-64 w-full overflow-hidden rounded-md bg-gray-700">

@@ -79,8 +79,8 @@ const BranchTable: React.FC<BranchTableProps> = ({
             <div
               className={
                 record.specificProductQuantity > 0
-                  ? "mt-2 rounded-lg border border-green-700 bg-green-900/30 px-3 py-1.5 text-center transition-all"
-                  : "mt-2 rounded-lg border border-gray-700 bg-gray-800/80 px-3 py-1.5 text-center transition-all"
+                  ? "mt-2 rounded-lg border border-green-700 bg-green-900/30 px-3 py-1.5 text-center transition-colors"
+                  : "mt-2 rounded-lg border border-gray-700 bg-gray-800/80 px-3 py-1.5 text-center transition-colors"
               }
             >
               {record.specificProductQuantity > 0 ? (

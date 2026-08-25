@@ -3,6 +3,7 @@
 import { LoadingOutlined, ReloadOutlined } from "@ant-design/icons";
 import { Card, Spin, Alert, Typography, Empty } from "antd";
 
+import { adminColors } from "@/constants/adminColors";
 import { useApiFetch } from "@/hooks/useApiFetch";
 
 const { Title, Text } = Typography;
@@ -82,7 +83,7 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
       {statistics.length > 0 && (
         <Card
           className="overflow-hidden border-0 shadow-md"
-          style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
+          style={{ backgroundColor: adminColors.panel, borderColor: adminColors.border }}
           title={
             <div className="flex items-center justify-between">
               <Title level={5} className="!text-white">

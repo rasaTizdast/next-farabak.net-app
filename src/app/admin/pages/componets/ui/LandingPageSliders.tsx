@@ -19,7 +19,7 @@ const SliderItem = ({
   onDelete: (id: number) => void;
   isDeleting: boolean;
 }) => (
-  <div className="relative flex items-center justify-between rounded-lg bg-gray-800 p-4 shadow-md transition-all hover:shadow-lg">
+  <div className="relative flex items-center justify-between rounded-lg bg-gray-800 p-4 shadow-md transition-shadow hover:shadow-lg">
     <div className="flex flex-1 items-center gap-4 space-x-4">
       <div className="relative">
         <Image
@@ -33,7 +33,7 @@ const SliderItem = ({
             onPreview(`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/slider-imgs/${slider.image_URL}`)
           }
         />
-        <FiZoomIn size={20} className="absolute left-1 top-1 rounded bg-black/50 p-1 text-white" />
+        <FiZoomIn size={20} className="absolute top-1 left-1 rounded bg-black/50 p-1 text-white" />
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm text-gray-300">{slider.link}</p>
@@ -129,7 +129,6 @@ export const SliderSection = ({
   isDeletingSlider,
   newSlider,
   setNewSlider,
-  sliderFile,
   setSliderFile,
   isUploadingSlider,
   handleAddSlider,

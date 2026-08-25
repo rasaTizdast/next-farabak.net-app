@@ -9,21 +9,36 @@ import { useEffect, Suspense } from "react";
 
 import BranchInfo from "./components/BranchInfo";
 import BranchTabs from "./components/BranchTabs";
-import { useBranchData } from "./hooks/useBranchData";
-import { loadInitialBranchData, doAutoRefresh } from "./hooks/useBranchData";
-import { useInvoiceManagement } from "./hooks/useInvoiceManagement";
+import { useBranchData, loadInitialBranchData, doAutoRefresh } from "./hooks/useBranchData";
+import {
+  InvoiceManagementProvider,
+  useInvoiceManagement,
+  StandaloneWarranty,
+} from "./hooks/useInvoiceManagement";
 import { useWarrantyManagement } from "./hooks/useWarrantyManagement";
 import InvoiceModal from "../components/invoice/InvoiceModal";
 import ProductDrawer from "../components/ProductDrawer";
 import SkeletonLoading from "./components/SkeletonLoading";
+import { ExpandedInvoiceItem } from "./invoices/components/branchInvoiceDetails/types";
 import BranchInvoiceDetailsModal from "./invoices/components/BranchInvoiceDetailsModal";
 import BranchWarrantyViewModal from "./invoices/components/BranchWarrantyViewModal";
 
+type BranchData = ReturnType<typeof useBranchData>;
+
 function MyBranchContent() {
+  const branchData = useBranchData();
+
+  return (
+    <InvoiceManagementProvider branchRef={branchData.branchRef}>
+      <MyBranchDashboard branchData={branchData} />
+    </InvoiceManagementProvider>
+  );
+}
+
+function MyBranchDashboard({ branchData }: { branchData: BranchData }) {
   const {
     branch,
     setBranch,
-    branchRef,
     products,
     allProducts,
     loading,
@@ -41,40 +56,43 @@ function MyBranchContent() {
     setSelectedProduct,
     productQuantityRef,
     productForm,
-    debouncedQuantities,
-    quantityTimersRef,
     productPagination,
     fetchAllProducts,
     fetchBranchProducts,
     fetchBranchProductsRef,
     handleAddProduct,
     handleUpdateProductQuantity,
-    handleDebouncedQuantityChange,
     productColumns,
-  } = useBranchData();
+  } = branchData;
+
+  const { state, actions } = useInvoiceManagement();
 
   const {
     invoices,
-    invoicesLoading,
-    setInvoicesLoading,
+    loading: invoicesLoading,
     searchText,
-    setSearchText,
-    selectedInvoice,
-    setSelectedInvoice,
-    selectedStandaloneWarranty,
-    setSelectedStandaloneWarranty,
+    pagination: invoicePagination,
+    modalVisible: invoiceModalVisible,
     warrantySummary,
-    invoicePagination,
-    invoiceModalVisible,
-    setInvoiceModalVisible,
+  } = state.list;
+
+  const {
+    setSearchText,
     fetchInvoices,
     handleCreateInvoice,
     handleInvoiceCreationSuccess,
-    searchOptions,
-    filteredInvoices,
-    filteredStandaloneWarranties,
-    memoizedInvoiceColumns,
-  } = useInvoiceManagement(branchRef);
+    setModalVisible,
+  } = actions.list;
+
+  const {
+    selectedInvoice,
+    selectedStandaloneWarranty,
+    setSelectedInvoice,
+    setSelectedStandaloneWarranty,
+  } = actions.selection;
+
+  const { searchOptions, filteredInvoices, filteredStandaloneWarranties } = actions.filters;
+  const { memoizedInvoiceColumns } = actions.columns;
 
   const { activeTab, handleTabChange } = useWarrantyManagement();
 
@@ -100,7 +118,19 @@ function MyBranchContent() {
     }, 30000);
 
     return () => clearInterval(intervalId);
-  }, []);
+  }, [
+    loadInitialBranchData,
+    setLoading,
+    setError,
+    setAuthError,
+    setBranch,
+    fetchBranchProducts,
+    fetchInvoices,
+    fetchAllProducts,
+    doAutoRefresh,
+    setRefreshing,
+    fetchBranchProductsRef,
+  ]);
 
   if (loading) {
     return <SkeletonLoading />;
@@ -111,9 +141,7 @@ function MyBranchContent() {
       <div className="p-6">
         <Card className="overflow-hidden rounded-lg bg-gray-800 text-white shadow-md">
           <div className="flex flex-col items-center justify-center py-8">
-            <ExclamationCircleOutlined
-              style={{ fontSize: 48, color: "#f5222d", marginBottom: 16 }}
-            />
+            <ExclamationCircleOutlined className="mb-4 text-5xl text-red-500" />
             <h1 className="text-center text-xl font-bold">{error}</h1>
             {authError ? (
               <div className="mt-4 text-center">
@@ -154,8 +182,8 @@ function MyBranchContent() {
     );
   }
 
-  const handleViewWarranty = (warranty: any) => {
-    const warrantyItem = {
+  const handleViewWarranty = (warranty: StandaloneWarranty) => {
+    const warrantyItem: ExpandedInvoiceItem = {
       Invoice_Details: String(warranty.invoicedetailid || ""),
       ProductId: String(warranty.ProductId || ""),
       quantity: warranty.quantity || 1,
@@ -235,7 +263,7 @@ function MyBranchContent() {
       {branch && (
         <InvoiceModal
           visible={invoiceModalVisible}
-          onClose={() => setInvoiceModalVisible(false)}
+          onClose={() => setModalVisible(false)}
           branch={branch}
           onSuccess={handleInvoiceCreationSuccess}
         />

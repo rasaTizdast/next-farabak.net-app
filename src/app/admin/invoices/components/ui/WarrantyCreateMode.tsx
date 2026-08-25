@@ -31,8 +31,8 @@ interface WarrantyCreateModeProps {
   warrantyData: WarrantyData;
   generatingCode: boolean;
   handleBranchChange: (value: number) => void;
-  handleStartDateChange: (date: any) => void;
-  handleEndDateChange: (date: any) => void;
+  handleStartDateChange: (payload: { value: Date }) => void;
+  handleEndDateChange: (payload: { value: Date }) => void;
   handleWarrantyToggle: (checked: boolean) => void;
   generateWarrantyCode: () => Promise<void>;
   handleSubmit: (e: React.FormEvent) => void;
@@ -118,7 +118,7 @@ export default function WarrantyCreateMode({
                   <div>
                     <Select
                       id="branch-select"
-                      className="warranty-select w-full text-right [&.ant-select-disabled_.ant-select-selector]:!bg-slate-900 [&.ant-select-disabled_.ant-select-selector]:!opacity-70 [&_.ant-select-arrow]:!text-slate-400 [&_.ant-select-arrow_.anticon-loading]:!text-blue-500 [&_.ant-select-clear]:!bg-slate-800 [&_.ant-select-clear]:!text-slate-400 [&_.ant-select-focused_.ant-select-selector]:!border-blue-500 [&_.ant-select-focused_.ant-select-selector]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-select-selection-item]:!pr-3 [&_.ant-select-selection-item]:!text-right [&_.ant-select-selection-item]:!text-white [&_.ant-select-selection-placeholder]:!text-slate-400 [&_.ant-select-selector]:!flex [&_.ant-select-selector]:!h-10 [&_.ant-select-selector]:!items-center [&_.ant-select-selector]:!rounded-lg [&_.ant-select-selector]:!border-slate-700 [&_.ant-select-selector]:!bg-slate-800 [&_.ant-select-selector]:!text-right [&_.ant-select-selector]:!text-white hover:[&_.ant-select-selector]:!border-gray-600 hover:[&_.ant-select-selector]:!shadow-[0_0_0_2px_rgba(59,130,246,0.1)]"
+                      className="warranty-select w-full text-right [&_.ant-select-arrow]:!text-slate-400 [&_.ant-select-arrow_.anticon-loading]:!text-blue-500 [&_.ant-select-clear]:!bg-slate-800 [&_.ant-select-clear]:!text-slate-400 [&_.ant-select-focused_.ant-select-selector]:!border-blue-500 [&_.ant-select-focused_.ant-select-selector]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-select-selection-item]:!pr-3 [&_.ant-select-selection-item]:!text-right [&_.ant-select-selection-item]:!text-white [&_.ant-select-selection-placeholder]:!text-slate-400 [&_.ant-select-selector]:!flex [&_.ant-select-selector]:!h-10 [&_.ant-select-selector]:!items-center [&_.ant-select-selector]:!rounded-lg [&_.ant-select-selector]:!border-slate-700 [&_.ant-select-selector]:!bg-slate-800 [&_.ant-select-selector]:!text-right [&_.ant-select-selector]:!text-white hover:[&_.ant-select-selector]:!border-gray-600 hover:[&_.ant-select-selector]:!shadow-[0_0_0_2px_rgba(59,130,246,0.1)] [&.ant-select-disabled_.ant-select-selector]:!bg-slate-900 [&.ant-select-disabled_.ant-select-selector]:!opacity-70"
                       placeholder="انتخاب شعبه"
                       value={warrantyData.branchId || undefined}
                       onChange={handleBranchChange}

@@ -89,7 +89,10 @@ const SortableHeader = ({
   sortConfig: SortConfig;
   onSort: (key: SortKey) => void;
 }) => (
-  <th scope="col" className="cursor-pointer select-none px-6 py-3" onClick={() => onSort(sortKey)}
+  <th
+    scope="col"
+    className="cursor-pointer px-6 py-3 select-none"
+    onClick={() => onSort(sortKey)}
     onKeyDown={(e) => {
       if (e.key === "Enter" || e.key === " ") onSort(sortKey);
     }}
@@ -265,7 +268,7 @@ const ProductsTable = ({
 
   if (notFound) {
     return (
-      <div className="w-full animate-fade-in rounded-lg bg-blue-600 p-5 text-center text-white shadow-lg transition-all">
+      <div className="animate-fade-in w-full rounded-lg bg-blue-600 p-5 text-center text-white shadow-lg transition-colors">
         محصولی یافت نشد
       </div>
     );
@@ -280,7 +283,7 @@ const ProductsTable = ({
             <button
               type="button"
               onClick={resetSorting}
-              className="flex items-center gap-1 rounded-lg bg-blue-800 px-3 py-1 text-xs text-white transition-all hover:bg-blue-900"
+              className="flex items-center gap-1 rounded-lg bg-blue-800 px-3 py-1 text-xs text-white transition-colors hover:bg-blue-900"
             >
               <FaTimes size={10} />
               <span>حذف مرتب‌سازی</span>
@@ -295,7 +298,7 @@ const ProductsTable = ({
               <button
                 type="button"
                 onClick={() => handleBulkAction("delete")}
-                className="rounded-lg bg-red-600 px-3 py-1 text-xs text-white transition-all hover:bg-red-700"
+                className="rounded-lg bg-red-600 px-3 py-1 text-xs text-white transition-colors hover:bg-red-700"
               >
                 حذف محصولات
               </button>
@@ -303,16 +306,16 @@ const ProductsTable = ({
           </div>
         )}
         <table
-          className="w-full table-auto border-separate border-spacing-0 whitespace-nowrap text-center text-xs text-gray-300 lg:text-sm"
+          className="w-full table-auto border-separate border-spacing-0 text-center text-xs whitespace-nowrap text-gray-300 lg:text-sm"
           data-testid="products-table"
         >
-          <thead className="bg-slate-800 uppercase text-gray-100">
+          <thead className="bg-slate-800 text-gray-100 uppercase">
             <tr>
               <th scope="col" className="w-12 px-6 py-3">
                 <input
                   type="checkbox"
                   aria-label="انتخاب همه محصولات"
-                  className="h-4 w-4 text-indigo-600 transition-all duration-150 ease-in-out"
+                  className="h-4 w-4 text-indigo-600 transition-colors duration-150 ease-in-out"
                   checked={selectedProducts.length === sortedProducts.length}
                   onChange={handleSelectAll}
                   disabled={isLoading}
@@ -350,7 +353,7 @@ const ProductsTable = ({
                     key={product.ProductId}
                     className={`${
                       index % 2 === 0 ? "bg-slate-700" : "bg-slate-600"
-                    } transition-all hover:bg-slate-900`}
+                    } transition-colors hover:bg-slate-900`}
                   >
                     <td className="px-6 py-4">
                       <input
@@ -373,7 +376,7 @@ const ProductsTable = ({
                               subCategories: product.CategoryContentIds.map((sub) => sub.Name),
                             })
                           }
-                          className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-700"
+                          className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
                         >
                           مشاهده
                         </button>
@@ -384,7 +387,7 @@ const ProductsTable = ({
 
                     <td className="px-6 py-4">{product.productSlug}</td>
                     <td className="group relative cursor-help px-6 py-4">
-                      <span className="absolute bottom-full left-1/2 -mb-3 -translate-x-1/2 whitespace-nowrap rounded bg-blue-900 px-2 py-1 text-xs font-extralight text-white opacity-0 transition-opacity group-hover:opacity-100">
+                      <span className="absolute bottom-full left-1/2 -mb-3 -translate-x-1/2 rounded bg-blue-900 px-2 py-1 text-xs font-extralight whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100">
                         قیمت دلار:{" "}
                         {isValidRate ? (
                           <span className="font-normal">
@@ -397,7 +400,7 @@ const ProductsTable = ({
                       {product.Price === null ||
                       product.Price === undefined ||
                       +product.Price === 0 ? (
-                        <span className="italic text-gray-400">بدون قیمت</span>
+                        <span className="text-gray-400 italic">بدون قیمت</span>
                       ) : !isValidRate ? (
                         <span className="font-medium text-yellow-300">خطا در دریافت نرخ ارز</span>
                       ) : product.Discount && +product.Discount > 0 ? (
@@ -443,7 +446,7 @@ const ProductsTable = ({
                           onClick={() => qrCodeModalHandler(product)}
                           className={`${product.QrCode_Key ? "bg-violet-800" : "bg-sky-600"} ${
                             product.QrCode_Key ? "hover:bg-violet-900" : "hover:bg-sky-700"
-                          } rounded-lg p-2 transition-all`}
+                          } rounded-lg p-2 transition-colors`}
                         >
                           <IoQrCode size={20} color="#fff" />
                         </button>
@@ -457,7 +460,7 @@ const ProductsTable = ({
                         <button
                           type="button"
                           onClick={() => handleEditProduct(product)}
-                          className="rounded-lg bg-yellow-600 px-2 py-1 text-white transition-all hover:bg-yellow-700"
+                          className="rounded-lg bg-yellow-600 px-2 py-1 text-white transition-colors hover:bg-yellow-700"
                         >
                           ویرایش
                         </button>
@@ -472,7 +475,7 @@ const ProductsTable = ({
                               name: product.Type,
                             });
                           }}
-                          className="rounded-lg bg-red-600 px-2 py-1 text-white transition-all hover:bg-red-700"
+                          className="rounded-lg bg-red-600 px-2 py-1 text-white transition-colors hover:bg-red-700"
                           data-testid="delete-product-button"
                         >
                           حذف
@@ -481,7 +484,7 @@ const ProductsTable = ({
                         <Link
                           href={`/products/${product.link}`}
                           target="_blank"
-                          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-2 py-1 text-white transition-all hover:bg-emerald-700"
+                          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-2 py-1 text-white transition-colors hover:bg-emerald-700"
                         >
                           مشاهده
                           <FaExternalLinkAlt size={12} />
@@ -493,13 +496,13 @@ const ProductsTable = ({
           </tbody>
         </table>
         {activeSubCategories && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm">
             <div className="w-11/12 max-w-lg rounded-lg bg-gray-700 p-6 text-white">
               <h3 className="mb-4 text-xl font-semibold">
                 زیر دسته‌بندی‌های محصول: {activeSubCategories.name}
               </h3>
               <ul className="space-y-2">
-                {activeSubCategories.subCategories.map((subCategory, idx) => (
+                {activeSubCategories.subCategories.map((subCategory) => (
                   <li key={subCategory} className="rounded-lg bg-gray-800 p-2 text-white">
                     {subCategory}
                   </li>
@@ -508,7 +511,7 @@ const ProductsTable = ({
               <button
                 type="button"
                 onClick={() => setActiveSubCategories(null)}
-                className="mt-8 rounded-lg bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-800"
+                className="mt-8 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-800"
               >
                 بستن
               </button>

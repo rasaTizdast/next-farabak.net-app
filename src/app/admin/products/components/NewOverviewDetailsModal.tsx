@@ -1,14 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-hot-toast";
 import { FiUpload } from "react-icons/fi";
 import { IoIosClose } from "react-icons/io";
 
 async function submitOverviewDetails(
-  items: any[],
+  items: OverviewDetailItem[],
   setIsSubmitting: (v: boolean) => void,
   onClose: () => void
 ) {
@@ -139,8 +139,8 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[51] flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity">
-      <div className="relative max-h-[90dvh] w-full max-w-6xl animate-fade-in overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg">
+    <div className="bg-opacity-70 fixed inset-0 z-[51] flex items-center justify-center bg-black backdrop-blur-sm transition-opacity">
+      <div className="animate-fade-in relative max-h-[90dvh] w-full max-w-6xl overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg">
         <h1 className="mb-6 text-center text-2xl font-bold">توضیحات محصول جدید</h1>
 
         <form onSubmit={handleSubmit}>
@@ -192,7 +192,7 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
 
         <button
           type="button"
-          className="absolute right-4 top-4 cursor-pointer text-red-400 transition-all hover:text-red-500"
+          className="absolute top-4 right-4 cursor-pointer text-red-400 transition-colors hover:text-red-500"
           onClick={onClose}
           aria-label="بستن"
         >
@@ -204,13 +204,15 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
 };
 
 // Create a separate component for each item form to safely use hooks
+type OverviewDetailItem = {
+  title: string;
+  description: string;
+  image: File | null;
+  preview: string;
+};
+
 type ItemFormProps = {
-  item: {
-    title: string;
-    description: string;
-    image: File | null;
-    preview: string;
-  };
+  item: OverviewDetailItem;
   index: number;
   isSubmitting: boolean;
   handleChange: (index: number, field: string, value: string) => void;
@@ -249,7 +251,7 @@ const ItemForm = ({
           type="button"
           aria-label="حذف آیتم"
           onClick={() => removeItem(index)}
-          className="absolute left-2 top-2 rounded-lg bg-red-500 hover:bg-red-600"
+          className="absolute top-2 left-2 rounded-lg bg-red-500 hover:bg-red-600"
         >
           <IoIosClose size={25} />
         </button>

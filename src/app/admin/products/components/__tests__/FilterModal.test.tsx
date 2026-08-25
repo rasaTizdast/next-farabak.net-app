@@ -1,6 +1,8 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import axios from "axios";
+import React from "react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import FilterModal from "../FilterModal";
 
 vi.mock("axios");
@@ -23,8 +25,6 @@ vi.mock("@/hooks/useApiFetch", () => ({
   },
 }));
 
-import React from "react";
-
 const mockFilterData = {
   categories: [
     {
@@ -38,9 +38,7 @@ const mockFilterData = {
     {
       CategoryID: "2",
       Name: "Clothing",
-      subCategories: [
-        { CategoryContentID: "20", Name: "Shirts" },
-      ],
+      subCategories: [{ CategoryContentID: "20", Name: "Shirts" }],
     },
   ],
 };

@@ -17,7 +17,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <Sidebar />
 
         {/* Main Content */}
-        <main className="mr-[64px] max-w-full overflow-auto p-6 transition-all">{children}</main>
+        <main className="mr-[64px] max-w-full overflow-auto p-6 transition-colors">{children}</main>
       </div>
     </AdminThemeProvider>
   );

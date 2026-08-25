@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
 
+import { adminColors } from "@/constants/adminColors";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
@@ -50,6 +51,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
   useEffect(() => {
     if (faqsData && !initializedRef.current) {
       initializedRef.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable faqs state from fetched data once, guarded by ref.
       setFaqs(faqsData.faqs);
     }
   }, [faqsData]);
@@ -126,6 +128,9 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
       toast.success(editingFaq ? "سوال با موفقیت بروزرسانی شد" : "سوال جدید با موفقیت ایجاد شد");
       setModalVisible(false);
       const fetchRes = await fetch("/api/admin/faqs");
+      if (!fetchRes.ok) {
+        throw new Error(`HTTP ${fetchRes.status}`);
+      }
       const data = await fetchRes.json();
       setFaqs(data.faqs);
     } else {
@@ -164,7 +169,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
       title: "عملیات",
       key: "action",
       width: 150,
-      render: (_: any, record: FAQ) => (
+      render: (_: unknown, record: FAQ) => (
         <Space size="middle">
           <Button
             type="text"
@@ -186,7 +191,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4">
+    <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black p-4">
       <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-gray-700 bg-gray-800 shadow-xl">
         <div className="flex items-center justify-between border-b border-gray-700 bg-gray-900 p-4">
           <div>
@@ -206,7 +211,11 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-semibold text-gray-200">لیست سوالات متداول</h3>
-              <Badge count={totalFaqsCount} showZero style={{ backgroundColor: "#1668dc" }} />
+              <Badge
+                count={totalFaqsCount}
+                showZero
+                style={{ backgroundColor: adminColors.info }}
+              />
             </div>
             <Button
               type="primary"
@@ -241,14 +250,14 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
         onCancel={() => setModalVisible(false)}
         footer={null}
         width={600}
-        className="dark-modal [&_.ant-btn-primary]:!border-blue-600 [&_.ant-btn-primary]:!bg-blue-600 hover:[&_.ant-btn-primary]:!border-blue-700 hover:[&_.ant-btn-primary]:!bg-blue-700 [&_.ant-btn]:!border-gray-600 [&_.ant-btn]:!bg-gray-700 [&_.ant-btn]:!text-gray-200 hover:[&_.ant-btn]:!border-gray-500 hover:[&_.ant-btn]:!bg-gray-600 [&_.ant-input-affix-wrapper-focused]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-input-affix-wrapper:focus]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-input-affix-wrapper:hover]:!border-gray-500 [&_.ant-input-focused]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-input-number-input::placeholder]:!text-gray-400 [&_.ant-input-textarea-show-count::after]:!text-gray-200 [&_.ant-input::placeholder]:!text-gray-400 [&_.ant-input:focus]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-input:hover]:!border-gray-500 [&_.ant-modal-body]:!p-0 [&_.ant-modal-content]:!bg-transparent [&_.ant-modal-content]:!shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] [&_.ant-select-selector:hover]:!border-gray-500"
+        className="dark-modal [&_.ant-btn]:!border-gray-600 [&_.ant-btn]:!bg-gray-700 [&_.ant-btn]:!text-gray-200 hover:[&_.ant-btn]:!border-gray-500 hover:[&_.ant-btn]:!bg-gray-600 [&_.ant-btn-primary]:!border-blue-600 [&_.ant-btn-primary]:!bg-blue-600 hover:[&_.ant-btn-primary]:!border-blue-700 hover:[&_.ant-btn-primary]:!bg-blue-700 [&_.ant-input-affix-wrapper-focused]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-input-affix-wrapper:focus]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-input-affix-wrapper:hover]:!border-gray-500 [&_.ant-input-focused]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-input-number-input::placeholder]:!text-gray-400 [&_.ant-input-textarea-show-count::after]:!text-gray-200 [&_.ant-input::placeholder]:!text-gray-400 [&_.ant-input:focus]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-input:hover]:!border-gray-500 [&_.ant-modal-body]:!p-0 [&_.ant-modal-content]:!bg-transparent [&_.ant-modal-content]:!shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] [&_.ant-select-selector:hover]:!border-gray-500"
         closeIcon={null}
         centered
         styles={{
           content: {
-            backgroundColor: "#111827", // bg-gray-900
+            backgroundColor: adminColors.panelDeep, // bg-gray-900
             borderRadius: "0.75rem",
-            border: "1px solid #374151", // border-gray-700
+            border: `1px solid ${adminColors.border}`, // border-gray-700
             padding: 0,
             overflow: "hidden",
           },
@@ -280,9 +289,9 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
                 aria-label="سوال"
                 className="border-gray-600 bg-gray-700 text-gray-200 placeholder-gray-400"
                 style={{
-                  backgroundColor: "#1F2937",
-                  borderColor: "#4B5563",
-                  color: "#E5E7EB",
+                  backgroundColor: adminColors.panel,
+                  borderColor: adminColors.borderLight,
+                  color: adminColors.textLight,
                 }}
               />
             </div>
@@ -303,9 +312,9 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
                 aria-label="پاسخ"
                 className="resize-none border-gray-600 bg-gray-700 text-gray-200 placeholder-gray-400"
                 style={{
-                  backgroundColor: "#1F2937",
-                  borderColor: "#4B5563",
-                  color: "#E5E7EB",
+                  backgroundColor: adminColors.panel,
+                  borderColor: adminColors.borderLight,
+                  color: adminColors.textLight,
                 }}
               />
             </div>

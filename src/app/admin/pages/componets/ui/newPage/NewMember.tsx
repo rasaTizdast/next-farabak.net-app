@@ -64,21 +64,22 @@ const NewMemberModal: React.FC<NewMemberModalProps> = ({ onClose }) => {
     }
 
     setLoading(true);
+    try {
+      const res = await createMemberMutate("/api/members/create", formDataToSend);
 
-    const res = await createMemberMutate("/api/members/create", formDataToSend);
-
-    if (res) {
-      toast.success("کاربر جدید با موفقیت ساحته شد");
-      onClose();
-    } else {
-      console.error("Error creating member");
+      if (res) {
+        toast.success("کاربر جدید با موفقیت ساحته شد");
+        onClose();
+      } else {
+        console.error("Error creating member");
+      }
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+    <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black backdrop-blur-sm">
       <div
         className="max-h-[95dvh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg"
         dir="rtl"
@@ -192,7 +193,7 @@ const NewMemberModal: React.FC<NewMemberModalProps> = ({ onClose }) => {
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg bg-red-600 px-4 py-2 transition-all hover:bg-red-700"
+              className="rounded-lg bg-red-600 px-4 py-2 transition-colors hover:bg-red-700"
             >
               بستن
             </button>
@@ -201,7 +202,7 @@ const NewMemberModal: React.FC<NewMemberModalProps> = ({ onClose }) => {
               disabled={loading}
               className={`px-4 py-2 ${
                 loading ? "cursor-not-allowed bg-green-700" : "bg-green-600 hover:bg-green-700"
-              } rounded-lg text-gray-100 transition-all`}
+              } rounded-lg text-gray-100 transition-colors`}
             >
               {loading ? "در حال ایجاد..." : "ایجاد عضو"}
             </button>

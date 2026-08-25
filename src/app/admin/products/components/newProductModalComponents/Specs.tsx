@@ -10,10 +10,16 @@ type State = {
   specs: { title: string; description: string }[];
 };
 
+type SpecsAction = { type: "SET_SPECS"; specs: { title: string; description: string }[] };
+
 type SpecsProps = {
   state: State;
-  dispatch: (action: any) => void;
-  setErrors: (errors: any) => void;
+  dispatch: (action: SpecsAction) => void;
+  setErrors: (
+    errors:
+      | { [key: string]: string }
+      | ((prev: { [key: string]: string }) => { [key: string]: string })
+  ) => void;
   hasSubmitted?: boolean; // Add a prop to know if form was submitted
 };
 
@@ -47,7 +53,7 @@ const Specs: React.FC<SpecsProps> = ({ state, dispatch, setErrors, hasSubmitted 
     });
 
     // Send errors directly to parent - FORCE update
-    setErrors((prevErrors: any) => {
+    setErrors((prevErrors: { [key: string]: string }) => {
       const newErrors = { ...prevErrors };
 
       // Remove all existing specs errors first
@@ -90,6 +96,7 @@ const Specs: React.FC<SpecsProps> = ({ state, dispatch, setErrors, hasSubmitted 
         }
       });
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local validation state from specs prop once, guarded by ref.
       setLocalErrors(initialErrors);
     }
   }, [state.specs]);

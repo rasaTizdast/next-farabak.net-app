@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("antd", () => ({
-  Modal: ({ open, title, children, onCancel }: any) =>
+  Modal: ({ open, title, children }: any) =>
     open ? (
       <div data-testid="modal">
         <div data-testid="modal-title">{title}</div>
@@ -10,7 +10,7 @@ vi.mock("antd", () => ({
       </div>
     ) : null,
   Form: Object.assign(
-    ({ children, form, onFinish, className }: any) => (
+    ({ children, onFinish, className }: any) => (
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -21,14 +21,25 @@ vi.mock("antd", () => ({
         {children}
       </form>
     ),
-    { Item: ({ children, label }: any) => <div><label>{label}</label>{children}</div> }
+    {
+      Item: ({ children, label }: any) => (
+        <div>
+          <label>{label}</label>
+          {children}
+        </div>
+      ),
+    }
   ),
-  Input: ({ placeholder, className }: any) => <input placeholder={placeholder} className={className} />,
+  Input: ({ placeholder, className }: any) => (
+    <input placeholder={placeholder} className={className} />
+  ),
   Select: ({ placeholder, options, onChange, className }: any) => (
     <select className={className} onChange={(e) => onChange?.(e.target.value)}>
       <option>{placeholder}</option>
       {options?.map((opt: any) => (
-        <option key={opt.value} value={opt.value}>{opt.label}</option>
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
       ))}
     </select>
   ),
@@ -55,7 +66,13 @@ describe("EditBranchModal", () => {
     UserID: 1,
   };
   const mockUsers = [
-    { UserID: 1, Username: "user1", FirstName: "Ali", LastName: "Rezaei", PhoneNumber: "09121234567" },
+    {
+      UserID: 1,
+      Username: "user1",
+      FirstName: "Ali",
+      LastName: "Rezaei",
+      PhoneNumber: "09121234567",
+    },
   ];
 
   beforeEach(() => {
@@ -69,7 +86,14 @@ describe("EditBranchModal", () => {
 
   it("renders modal when visible", () => {
     render(
-      <EditBranchModal visible={true} onClose={mockOnClose} onFinish={mockOnFinish} form={form} branch={mockBranch} users={mockUsers} />
+      <EditBranchModal
+        visible={true}
+        onClose={mockOnClose}
+        onFinish={mockOnFinish}
+        form={form}
+        branch={mockBranch}
+        users={mockUsers}
+      />
     );
     expect(screen.getByTestId("modal")).toBeInTheDocument();
     expect(screen.getByTestId("modal-title")).toHaveTextContent("ویرایش شعبه");
@@ -77,14 +101,28 @@ describe("EditBranchModal", () => {
 
   it("does not render modal when not visible", () => {
     render(
-      <EditBranchModal visible={false} onClose={mockOnClose} onFinish={mockOnFinish} form={form} branch={mockBranch} users={mockUsers} />
+      <EditBranchModal
+        visible={false}
+        onClose={mockOnClose}
+        onFinish={mockOnFinish}
+        form={form}
+        branch={mockBranch}
+        users={mockUsers}
+      />
     );
     expect(screen.queryByTestId("modal")).not.toBeInTheDocument();
   });
 
   it("sets branch values in form when visible", () => {
     render(
-      <EditBranchModal visible={true} onClose={mockOnClose} onFinish={mockOnFinish} form={form} branch={mockBranch} users={mockUsers} />
+      <EditBranchModal
+        visible={true}
+        onClose={mockOnClose}
+        onFinish={mockOnFinish}
+        form={form}
+        branch={mockBranch}
+        users={mockUsers}
+      />
     );
     expect(form.setFieldsValue).toHaveBeenCalledWith({
       name: "Test Branch",
@@ -94,21 +132,42 @@ describe("EditBranchModal", () => {
 
   it("renders update submit button text", () => {
     render(
-      <EditBranchModal visible={true} onClose={mockOnClose} onFinish={mockOnFinish} form={form} branch={mockBranch} users={mockUsers} />
+      <EditBranchModal
+        visible={true}
+        onClose={mockOnClose}
+        onFinish={mockOnFinish}
+        form={form}
+        branch={mockBranch}
+        users={mockUsers}
+      />
     );
     expect(screen.getByText("بروزرسانی شعبه")).toBeInTheDocument();
   });
 
   it("does not render user selector in edit mode", () => {
     render(
-      <EditBranchModal visible={true} onClose={mockOnClose} onFinish={mockOnFinish} form={form} branch={mockBranch} users={mockUsers} />
+      <EditBranchModal
+        visible={true}
+        onClose={mockOnClose}
+        onFinish={mockOnFinish}
+        form={form}
+        branch={mockBranch}
+        users={mockUsers}
+      />
     );
     expect(screen.queryByLabelText("انتخاب کاربر")).not.toBeInTheDocument();
   });
 
   it("calls onClose and resets form when cancel is clicked", () => {
     render(
-      <EditBranchModal visible={true} onClose={mockOnClose} onFinish={mockOnFinish} form={form} branch={mockBranch} users={mockUsers} />
+      <EditBranchModal
+        visible={true}
+        onClose={mockOnClose}
+        onFinish={mockOnFinish}
+        form={form}
+        branch={mockBranch}
+        users={mockUsers}
+      />
     );
     fireEvent.click(screen.getByText("انصراف"));
     expect(form.resetFields).toHaveBeenCalled();

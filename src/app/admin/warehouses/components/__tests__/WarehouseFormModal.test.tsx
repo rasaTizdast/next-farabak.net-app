@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("../ui", () => ({
-  ModalBase: ({ open, onClose, title, children, footer }: any) =>
+vi.mock("@/components/ui/antd/Modal", () => ({
+  Modal: ({ open, title, children, footer }: any) =>
     open ? (
       <div data-testid="modal">
         <div data-testid="modal-title">{title}</div>
@@ -10,12 +10,18 @@ vi.mock("../ui", () => ({
         <div data-testid="modal-footer">{footer}</div>
       </div>
     ) : null,
-  ButtonBase: ({ children, onClick, disabled, variant, className }: any) => (
+}));
+
+vi.mock("@/components/ui/antd/Button", () => ({
+  Button: ({ children, onClick, disabled, variant, className }: any) => (
     <button onClick={onClick} disabled={disabled} className={className} data-variant={variant}>
       {children}
     </button>
   ),
-  InputBase: ({ value, onChange, placeholder, required, className, id, type, min }: any) => (
+}));
+
+vi.mock("@/components/ui/antd/Input", () => ({
+  Input: ({ value, onChange, placeholder, required, className, id, type, min }: any) => (
     <input
       value={value}
       onChange={onChange}
@@ -94,7 +100,9 @@ describe("WarehouseFormModal", () => {
   });
 
   it("calls onSubmit when submit button is clicked", () => {
-    render(<WarehouseFormModal {...defaultProps} formName="Warehouse 1" formLocation="Location 1" />);
+    render(
+      <WarehouseFormModal {...defaultProps} formName="Warehouse 1" formLocation="Location 1" />
+    );
     fireEvent.click(screen.getByText("ایجاد"));
     expect(defaultProps.onSubmit).toHaveBeenCalled();
   });
@@ -106,7 +114,9 @@ describe("WarehouseFormModal", () => {
   });
 
   it("enables submit when form is valid", () => {
-    render(<WarehouseFormModal {...defaultProps} formName="Warehouse 1" formLocation="Location 1" />);
+    render(
+      <WarehouseFormModal {...defaultProps} formName="Warehouse 1" formLocation="Location 1" />
+    );
     const submitBtn = screen.getByText("ایجاد");
     expect(submitBtn).not.toBeDisabled();
   });
@@ -120,7 +130,9 @@ describe("WarehouseFormModal", () => {
         existingWarehouses={[{ warehouseid: 1, name: "Warehouse A" }]}
       />
     );
-    expect(screen.getAllByText("نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید.").length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText("نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید.").length
+    ).toBeGreaterThanOrEqual(1);
   });
 
   it("allows same name when editing that warehouse", () => {
@@ -134,7 +146,9 @@ describe("WarehouseFormModal", () => {
         existingWarehouses={[{ warehouseid: 1, name: "Warehouse A" }]}
       />
     );
-    expect(screen.queryByText("نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید.")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("نام انبار تکراری است. لطفاً نام دیگری انتخاب کنید.")
+    ).not.toBeInTheDocument();
   });
 
   it("calls setFormName when name input changes", () => {

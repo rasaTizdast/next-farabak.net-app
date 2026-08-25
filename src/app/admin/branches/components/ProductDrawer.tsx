@@ -1,10 +1,17 @@
-import { Drawer } from "antd";
+import { Drawer, FormInstance } from "antd";
 import React from "react";
+
+import { adminColors } from "@/constants/adminColors";
 
 import ProductForm from "./ProductForm";
 import ProductSummary from "./ProductSummary";
 import ProductTable from "./ProductTable";
 import { Product, Branch } from "./types";
+
+interface ProductFormValues {
+  productId: number;
+  quantity: number;
+}
 
 interface ProductDrawerProps {
   visible: boolean;
@@ -13,7 +20,7 @@ interface ProductDrawerProps {
   products: Product[];
   allProducts: Product[];
   loading: boolean;
-  productForm: any;
+  productForm: FormInstance<ProductFormValues>;
   selectedProduct: number | null;
   onSelectProduct: (productId: number | null) => void;
   onQuantityChange: (value: number | null) => void;
@@ -47,23 +54,23 @@ const ProductDrawer: React.FC<ProductDrawerProps> = ({
       className="rtl-drawer dark-drawer"
       styles={{
         header: {
-          background: "#1f2937",
-          color: "#f3f4f6",
-          borderBottom: "1px solid #374151",
+          background: adminColors.panel,
+          color: adminColors.textBright,
+          borderBottom: `1px solid ${adminColors.border}`,
           padding: "16px 24px",
           fontFamily: "inherit",
         },
         body: {
-          background: "#111827",
+          background: adminColors.panelDeep,
           padding: "16px",
           fontFamily: "inherit",
         },
         mask: { background: "rgba(0, 0, 0, 0.7)" },
         wrapper: { boxShadow: "0 0 15px rgba(0, 0, 0, 0.5)" },
-        content: { backgroundColor: "#111827" },
+        content: { backgroundColor: adminColors.panelDeep },
         footer: {
-          borderTop: "1px solid #374151",
-          backgroundColor: "#1f2937",
+          borderTop: `1px solid ${adminColors.border}`,
+          backgroundColor: adminColors.panel,
         },
       }}
     >

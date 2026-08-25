@@ -1,16 +1,19 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("../ui", () => ({
-  ButtonBase: ({ children, onClick, variant, className, loading }: any) => (
+vi.mock("@/components/ui/antd/Button", () => ({
+  Button: ({ children, onClick, variant, className, loading }: any) => (
     <button onClick={onClick} className={className} data-variant={variant} disabled={loading}>
       {loading ? "loading..." : children}
     </button>
   ),
-  TableBase: ({ data, rowKey, columns, loading, pagination }: any) => (
+}));
+
+vi.mock("@/components/ui/antd/DataTable", () => ({
+  DataTable: ({ dataSource, rowKey, columns, loading, pagination }: any) => (
     <div data-testid="table-base">
       {loading && <div data-testid="loading">loading</div>}
-      {data?.map((item: any) => (
+      {dataSource?.map((item: any) => (
         <div key={rowKey(item)}>
           {columns?.map((col: any) => (
             <div key={col.key || col.title}>
@@ -19,9 +22,7 @@ vi.mock("../ui", () => ({
           ))}
         </div>
       ))}
-      {pagination?.total > 0 && (
-        <button onClick={() => pagination.onChange?.(2)}>next page</button>
-      )}
+      {pagination?.total > 0 && <button onClick={() => pagination.onChange?.(2)}>next page</button>}
     </div>
   ),
 }));

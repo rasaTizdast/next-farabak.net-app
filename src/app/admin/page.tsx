@@ -80,7 +80,7 @@ const AdminPage = () => {
       {/* Bento Grid */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {/* USD to Rial Exchange Rate */}
-        <div className="glass-card flex transform flex-col justify-between rounded-lg p-6 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg">
+        <div className="glass-card flex transform flex-col justify-between rounded-lg p-6 shadow-md transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">نرخ دلار به تومان</h3>
             <FiDollarSign className="text-3xl text-green-300" />
@@ -91,7 +91,7 @@ const AdminPage = () => {
         </div>
 
         {/* Invoice Count */}
-        <div className="glass-card flex transform flex-col justify-between rounded-lg bg-blue-700/90 p-6 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg">
+        <div className="glass-card flex transform flex-col justify-between rounded-lg bg-blue-700/90 p-6 shadow-md transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">تعداد فاکتورها</h3>
             <FiFileText className="text-3xl text-blue-200" />
@@ -102,7 +102,7 @@ const AdminPage = () => {
         </div>
 
         {/* Invoice Status */}
-        <div className="glass-card flex transform flex-col justify-between rounded-lg bg-blue-600/90 p-6 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg">
+        <div className="glass-card flex transform flex-col justify-between rounded-lg bg-blue-600/90 p-6 shadow-md transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">وضعیت فاکتورها</h3>
             <FiFileText className="text-3xl text-blue-200" />
@@ -127,7 +127,7 @@ const AdminPage = () => {
         </div>
 
         {/* Product Availability */}
-        <div className="glass-card flex transform flex-col justify-between rounded-lg bg-blue-500/90 p-6 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg">
+        <div className="glass-card flex transform flex-col justify-between rounded-lg bg-blue-500/90 p-6 shadow-md transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">محصولات</h3>
             <FiBox className="text-3xl text-blue-200" />
@@ -153,7 +153,7 @@ const AdminPage = () => {
         {/* Navigate to Products */}
         <Link
           href="/admin/products"
-          className="glass-card flex transform flex-col justify-between rounded-lg bg-blue-400/90 p-6 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg"
+          className="glass-card flex transform flex-col justify-between rounded-lg bg-blue-400/90 p-6 shadow-md transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg"
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">میخواهید محصولات را ببینید؟</h3>
@@ -165,7 +165,7 @@ const AdminPage = () => {
         {/* Navigate to Invoices */}
         <Link
           href="/admin/invoices"
-          className="glass-card flex transform flex-col justify-between rounded-lg bg-blue-300/90 p-6 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg"
+          className="glass-card flex transform flex-col justify-between rounded-lg bg-blue-300/90 p-6 shadow-md transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg"
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">میخواهید فاکتورها را ببینید؟</h3>

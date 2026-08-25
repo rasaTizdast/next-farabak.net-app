@@ -11,6 +11,7 @@ import { Branch, Invoice } from "../types";
 import CustomerInfoStep from "./steps/CustomerInfoStep";
 import ProductSelectionStep from "./steps/ProductSelectionStep";
 import ReviewStep from "./steps/ReviewStep";
+import { SelectedProduct, ProductWithWarranty } from "./steps/types";
 import WarrantyStep from "./steps/WarrantyStep";
 
 interface InvoiceModalProps {
@@ -22,10 +23,10 @@ interface InvoiceModalProps {
 
 async function submitInvoice(
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  productsWithWarranty: any[],
+  productsWithWarranty: ProductWithWarranty[],
   invoice: Partial<Invoice>,
   branch: Branch,
-  createInvoiceMutate: any,
+  createInvoiceMutate: (url: string, data: unknown) => Promise<unknown>,
   onSuccess?: () => void,
   handleClose?: () => void
 ) {
@@ -82,8 +83,8 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
     Checked: true,
     Date: moment().locale("fa").format("YYYY-MM-DDTHH:mm:ss"),
   });
-  const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
-  const [productsWithWarranty, setProductsWithWarranty] = useState<any[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
+  const [productsWithWarranty, setProductsWithWarranty] = useState<ProductWithWarranty[]>([]);
 
   const getExchangeRate = async () => {
     const rate = await fetchUsdToRialRate();
@@ -207,7 +208,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
       <div className="rounded-lg bg-gray-800 p-4 text-white">
         <Steps
           current={currentStep}
-          className="custom-dark-steps mb-8 [&_.ant-steps-item-active_.ant-steps-item-icon]:!border-blue-500 [&_.ant-steps-item-active_.ant-steps-item-icon]:!bg-blue-600 [&_.ant-steps-item-active_.ant-steps-item-title]:!text-white [&_.ant-steps-item-finish_.ant-steps-item-icon]:!border-blue-500 [&_.ant-steps-item-finish_.ant-steps-item-icon]:!bg-[#0035c5] [&_.ant-steps-item-finish_.ant-steps-item-title]:!text-blue-400 [&_.ant-steps-item-icon]:!border-gray-600 [&_.ant-steps-item-icon]:!bg-gray-700 [&_.ant-steps-item-title::after]:!bg-[#465266] [&_.ant-steps-item-title]:!text-gray-400"
+          className="custom-dark-steps mb-8 [&_.ant-steps-item-active_.ant-steps-item-icon]:!border-blue-500 [&_.ant-steps-item-active_.ant-steps-item-icon]:!bg-blue-600 [&_.ant-steps-item-active_.ant-steps-item-title]:!text-white [&_.ant-steps-item-finish_.ant-steps-item-icon]:!border-blue-500 [&_.ant-steps-item-finish_.ant-steps-item-icon]:!bg-[#0035c5] [&_.ant-steps-item-finish_.ant-steps-item-title]:!text-blue-400 [&_.ant-steps-item-icon]:!border-gray-600 [&_.ant-steps-item-icon]:!bg-gray-700 [&_.ant-steps-item-title]:!text-gray-400 [&_.ant-steps-item-title::after]:!bg-[#465266]"
         >
           {steps.map((step) => (
             <Steps.Step key={step.title} title={step.title} />

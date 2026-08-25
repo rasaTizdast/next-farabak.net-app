@@ -56,7 +56,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
     emails: Array<{ id: number; title: string; address: string }>;
     phone_numbers: Array<{ id: number; number: string }>;
   }>("/api/contact-us");
-  const { mutate: saveContact, loading: saving } = useApiMutation<Record<string, unknown>>("put");
+  const { mutate: saveContact } = useApiMutation<Record<string, unknown>>("put");
   const initializedRef = useRef(false);
 
   const loading = !contactData;
@@ -65,6 +65,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
     if (contactData && !initializedRef.current) {
       initializedRef.current = true;
       const { address: a, emails: e, phone_numbers: p } = contactData;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable contact state from fetched data once, guarded by ref.
       setAddress(a ?? { id: 0, address: "", postal_code: 0, alt_text: "" });
       setEmails(e);
       setPhoneNumbers(p);
@@ -122,7 +123,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 shadow-lg backdrop-blur-sm">
+    <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black shadow-lg backdrop-blur-sm">
       <div
         className="max-h-[95dvh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg"
         dir="rtl"
@@ -135,7 +136,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
           <>
             <div className="mb-6 rounded-lg bg-gray-600 p-3">
               <h3 className="text-lg font-semibold">آدرس</h3>
-              <hr className="mb-4 mt-2" />
+              <hr className="mt-2 mb-4" />
               <label htmlFor="contact-address" className="mb-2 block">
                 آدرس:
                 <input
@@ -173,7 +174,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
 
             <div className="mb-6 rounded-lg bg-gray-600 p-3">
               <h3 className="text-lg font-semibold">ایمیل‌ها</h3>
-              <hr className="mb-4 mt-2" />
+              <hr className="mt-2 mb-4" />
               {emails.map((email, index) => (
                 <div key={email.id} className="mb-4 rounded bg-gray-700 p-3">
                   <div className="mb-3 flex items-center">
@@ -187,7 +188,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
                         type="button"
                         onClick={() => moveEmailUp(index)}
                         disabled={index === 0}
-                        className="rounded bg-blue-600 p-2 text-white transition-all duration-200 hover:bg-blue-700 disabled:opacity-50"
+                        className="rounded bg-blue-600 p-2 text-white transition-colors duration-200 hover:bg-blue-700 disabled:opacity-50"
                         title="انتقال به بالا"
                         aria-label="انتقال ایمیل به بالا"
                       >
@@ -205,7 +206,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
                         type="button"
                         onClick={() => moveEmailDown(index)}
                         disabled={index === emails.length - 1}
-                        className="rounded bg-blue-600 p-2 text-white transition-all duration-200 hover:bg-blue-700 disabled:opacity-50"
+                        className="rounded bg-blue-600 p-2 text-white transition-colors duration-200 hover:bg-blue-700 disabled:opacity-50"
                         title="انتقال به پایین"
                         aria-label="انتقال ایمیل به پایین"
                       >
@@ -257,7 +258,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
 
             <div className="mb-6 rounded-lg bg-gray-600 p-3">
               <h3 className="text-lg font-semibold">شماره تلفن‌ها</h3>
-              <hr className="mb-4 mt-2" />
+              <hr className="mt-2 mb-4" />
               {phoneNumbers.map((phone, index) => (
                 <div key={phone.id} className="mb-4 rounded bg-gray-700 p-3">
                   <div className="mb-3 flex items-center">
@@ -271,7 +272,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
                         type="button"
                         onClick={() => movePhoneUp(index)}
                         disabled={index === 0}
-                        className="rounded bg-blue-600 p-2 text-white transition-all duration-200 hover:bg-blue-700 disabled:opacity-50"
+                        className="rounded bg-blue-600 p-2 text-white transition-colors duration-200 hover:bg-blue-700 disabled:opacity-50"
                         title="انتقال به بالا"
                         aria-label="انتقال شماره به بالا"
                       >
@@ -289,7 +290,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
                         type="button"
                         onClick={() => movePhoneDown(index)}
                         disabled={index === phoneNumbers.length - 1}
-                        className="rounded bg-blue-600 p-2 text-white transition-all duration-200 hover:bg-blue-700 disabled:opacity-50"
+                        className="rounded bg-blue-600 p-2 text-white transition-colors duration-200 hover:bg-blue-700 disabled:opacity-50"
                         title="انتقال به پایین"
                         aria-label="انتقال شماره به پایین"
                       >

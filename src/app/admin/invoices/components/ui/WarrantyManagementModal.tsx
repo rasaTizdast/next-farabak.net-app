@@ -38,6 +38,9 @@ type WarrantyManagementModalProps = {
   onSuccess: () => void;
 };
 
+type GenerateWarrantyResponse = { warrantyCode: string };
+type GenerateWarrantyBody = { branchCode: string; yearMonth: string };
+
 async function generateWarrantyCodeForInvoice(
   branches: Branch[],
   item: ExpandedInvoiceItem,
@@ -59,7 +62,10 @@ async function generateWarrantyCodeForInvoice(
       hasWarranty: boolean;
     }>
   >,
-  generateWarrantyMutate: any
+  generateWarrantyMutate: (
+    url: string,
+    data?: GenerateWarrantyBody
+  ) => Promise<GenerateWarrantyResponse | null>
 ) {
   try {
     const selectedBranch = branches.find(
@@ -156,9 +162,10 @@ const WarrantyManagementModal = ({
 
   const isUpdate = !!item.individualWarranty;
 
-  const { mutate: generateWarrantyMutate, loading: generatingCode } = useApiMutation<{
-    warrantyCode: string;
-  }>("post");
+  const { mutate: generateWarrantyMutate, loading: generatingCode } = useApiMutation<
+    GenerateWarrantyBody,
+    GenerateWarrantyResponse
+  >("post");
   const { mutate: createUpdateWarrantyMutate, loading: submittingCreate } = useApiMutation("post");
   const { mutate: deleteWarrantyMutate, loading: submittingDelete } = useApiMutation("post");
 
@@ -173,6 +180,7 @@ const WarrantyManagementModal = ({
       !branchAutoSelectedRef.current
     ) {
       branchAutoSelectedRef.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Auto-select first branch once when branches load; guarded by ref.
       setWarrantyData((prev) => ({
         ...prev,
         branchId: branchesData[0].branchid,
@@ -236,6 +244,7 @@ const WarrantyManagementModal = ({
       const expectedStatus = expiryDate < currentDate ? "Expired" : "Active";
       if (warrantyData.status !== expectedStatus && statusRef.current !== expectedStatus) {
         statusRef.current = expectedStatus;
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Derive status from expiry date inside effect since expiry changes only via user input.
         setWarrantyData((prev) => ({ ...prev, status: expectedStatus }));
       }
     }
@@ -251,17 +260,19 @@ const WarrantyManagementModal = ({
     );
   };
 
-  const handleStartDateChange = (date: any) => {
-    const formattedDate = date && date.value ? formatDateToISOString(new Date(date.value)) : null;
+  const handleStartDateChange = (payload: { value: Date }) => {
+    const formattedDate =
+      payload && payload.value ? formatDateToISOString(new Date(payload.value)) : null;
     setWarrantyData({
       ...warrantyData,
       startdate: formattedDate || new Date().toISOString().split("T")[0],
     });
   };
 
-  const handleEndDateChange = (date: any) => {
+  const handleEndDateChange = (payload: { value: Date }) => {
     // Convert the date object provided by zaman DatePicker
-    const formattedDate = date && date.value ? formatDateToISOString(new Date(date.value)) : null;
+    const formattedDate =
+      payload && payload.value ? formatDateToISOString(new Date(payload.value)) : null;
     setWarrantyData({
       ...warrantyData,
       expirydate:

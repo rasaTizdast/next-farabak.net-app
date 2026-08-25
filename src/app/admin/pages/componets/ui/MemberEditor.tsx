@@ -42,6 +42,7 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
   useEffect(() => {
     if (memberData && !initializedRef.current) {
       initializedRef.current = true;
+
       setMember(memberData);
       setFormData({
         name: memberData.Name,
@@ -102,32 +103,34 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
     }
 
     setSaving(true);
+    try {
+      const res = await updateMemberMutate("/api/members/update", formDataToSend);
 
-    const res = await updateMemberMutate("/api/members/update", formDataToSend);
-
-    if (res) {
-      toast.success("عضو با موفقیت آپدیت شد");
-      onClose();
-    } else {
-      toast.error("خطا در به‌روزرسانی عضو، مجددا تلاش کنید");
-      setError("خطا در به‌روزرسانی عضو، مجددا تلاش کنید");
+      if (res) {
+        toast.success("عضو با موفقیت آپدیت شد");
+        onClose();
+      } else {
+        toast.error("خطا در به‌روزرسانی عضو، مجددا تلاش کنید");
+        setError("خطا در به‌روزرسانی عضو، مجددا تلاش کنید");
+      }
+    } finally {
+      setSaving(false);
     }
-
-    setSaving(false);
   };
 
   if (loading && id) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+      <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black backdrop-blur-sm">
         <div
           className="max-h-[95dvh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg"
           dir="rtl"
           role="status"
           aria-label="در حال بارگذاری"
         >
-          <h2 className="mb-4 text-2xl font-bold">
+          <h2 className="mb-4 text-2xl font-bold" aria-hidden="true">
             <div className="h-8 w-1/3 animate-pulse rounded bg-gray-600"></div>
           </h2>
+          <span className="sr-only">در حال بارگذاری اطلاعات عضو</span>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {[...Array(2)].map((_, index) => (
               <div key={index}>
@@ -155,7 +158,7 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
 
   if (error) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+      <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black backdrop-blur-sm">
         <div className="rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg">
           <p>{error}</p>
           <button type="button" onClick={onClose} className="mt-4 rounded-lg bg-red-600 px-4 py-2">
@@ -168,7 +171,7 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
 
   if (!member) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+      <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black backdrop-blur-sm">
         <div className="rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg">
           <p>عضو یافت نشد.</p>
           <button type="button" onClick={onClose} className="mt-4 rounded-lg bg-red-600 px-4 py-2">
@@ -180,7 +183,7 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+    <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black backdrop-blur-sm">
       <div
         className="max-h-[95dvh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg"
         dir="rtl"
@@ -308,7 +311,7 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg bg-red-600 px-4 py-2 transition-all hover:bg-red-700"
+              className="rounded-lg bg-red-600 px-4 py-2 transition-colors hover:bg-red-700"
             >
               بستن
             </button>
@@ -317,7 +320,7 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
               disabled={saving}
               className={`px-4 py-2 ${
                 saving ? "cursor-not-allowed bg-green-700" : "bg-green-600 hover:bg-green-700"
-              } rounded-lg text-gray-100 transition-all`}
+              } rounded-lg text-gray-100 transition-colors`}
             >
               {saving ? "در حال ذخیره کردن" : "ذخیره تغییرات"}
             </button>

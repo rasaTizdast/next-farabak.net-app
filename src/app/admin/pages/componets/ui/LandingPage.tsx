@@ -6,10 +6,8 @@ import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 import { ImagePreview, ConfirmationDialog, SkeletonLoader } from "./LandingPageShared";
-import { SliderSection } from "./LandingPageSliders";
-import type { Slider } from "./LandingPageSliders";
-import type { ShowcaseProduct } from "./LandingPageShowcase";
-import { ShowcaseProductSection } from "./LandingPageShowcase";
+import { ShowcaseProductSection, type ShowcaseProduct } from "./LandingPageShowcase";
+import { SliderSection, type Slider } from "./LandingPageSliders";
 
 type ActivityEditModalProps = {
   onClose: () => void;
@@ -38,7 +36,9 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
 
   // Fetch sliders and showcase products on component mount
   const { data: slidersData } = useApiFetch<Slider[]>("/api/landingPage/sliders");
-  const { data: productsData } = useApiFetch<ShowcaseProduct[]>("/api/landingPage/showcase_products");
+  const { data: productsData } = useApiFetch<ShowcaseProduct[]>(
+    "/api/landingPage/showcase_products"
+  );
   const { mutate: deleteSliderMutate } = useApiMutation("delete");
   const { mutate: deleteProductMutate } = useApiMutation("delete");
   const { mutate: updateOrderMutate } = useApiMutation("patch");
@@ -48,6 +48,7 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   useEffect(() => {
     if (slidersData && !slidersInitializedRef.current) {
       slidersInitializedRef.current = true;
+
       setSliders(slidersData);
     }
   }, [slidersData]);
@@ -55,6 +56,7 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   useEffect(() => {
     if (productsData && !productsInitializedRef.current) {
       productsInitializedRef.current = true;
+
       setShowcaseProducts(productsData);
     }
   }, [productsData]);
@@ -66,27 +68,29 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
     }
 
     setIsUploadingSlider(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", sliderFile);
+      formData.append("image_alt", newSlider.image_alt || "");
+      formData.append("link", newSlider.link || "");
 
-    const formData = new FormData();
-    formData.append("file", sliderFile);
-    formData.append("image_alt", newSlider.image_alt || "");
-    formData.append("link", newSlider.link || "");
+      const res = await fetch("/api/landingPage/sliders", {
+        method: "POST",
+        body: formData,
+      });
 
-    const res = await fetch("/api/landingPage/sliders", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      setSliders([...sliders, data]);
-      setNewSlider({});
-      setSliderFile(null);
-      toast.success("اسلایدر با موفقیت اضافه شد.");
-    } else {
-      toast.error("خطا در اضافه کردن اسلایدر.");
+      if (res.ok) {
+        const data = await res.json();
+        setSliders([...sliders, data]);
+        setNewSlider({});
+        setSliderFile(null);
+        toast.success("اسلایدر با موفقیت اضافه شد.");
+      } else {
+        toast.error("خطا در اضافه کردن اسلایدر.");
+      }
+    } finally {
+      setIsUploadingSlider(false);
     }
-    setIsUploadingSlider(false);
   };
 
   const handleAddShowcaseProduct = async () => {
@@ -96,32 +100,34 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
     }
 
     setIsUploadingProduct(true);
+    try {
+      const nextOrder =
+        showcaseProducts.length > 0 ? Math.max(...showcaseProducts.map((p) => p.order)) + 1 : 1;
 
-    const nextOrder =
-      showcaseProducts.length > 0 ? Math.max(...showcaseProducts.map((p) => p.order)) + 1 : 1;
+      const formData = new FormData();
+      formData.append("file", productFile);
+      formData.append("title", newShowcaseProduct.title || "");
+      formData.append("description", newShowcaseProduct.description || "");
+      formData.append("order", nextOrder.toString());
+      formData.append("link", newShowcaseProduct.link || "");
 
-    const formData = new FormData();
-    formData.append("file", productFile);
-    formData.append("title", newShowcaseProduct.title || "");
-    formData.append("description", newShowcaseProduct.description || "");
-    formData.append("order", nextOrder.toString());
-    formData.append("link", newShowcaseProduct.link || "");
+      const res = await fetch("/api/landingPage/showcase_products", {
+        method: "POST",
+        body: formData,
+      });
 
-    const res = await fetch("/api/landingPage/showcase_products", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      setShowcaseProducts([...showcaseProducts, data]);
-      setNewShowcaseProduct({});
-      setProductFile(null);
-      toast.success("محصول نمایشی با موفقیت اضافه شد.");
-    } else {
-      toast.error("خطا در اضافه کردن محصول نمایشی.");
+      if (res.ok) {
+        const data = await res.json();
+        setShowcaseProducts([...showcaseProducts, data]);
+        setNewShowcaseProduct({});
+        setProductFile(null);
+        toast.success("محصول نمایشی با موفقیت اضافه شد.");
+      } else {
+        toast.error("خطا در اضافه کردن محصول نمایشی.");
+      }
+    } finally {
+      setIsUploadingProduct(false);
     }
-    setIsUploadingProduct(false);
   };
 
   const handleDeleteSlider = async (id: number) => {
@@ -246,7 +252,7 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm">
+    <div className="bg-opacity-75 fixed inset-0 z-40 flex items-center justify-center bg-black backdrop-blur-sm">
       {/* Image Preview */}
       {selectedImage && (
         <ImagePreview imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
@@ -276,7 +282,7 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
             className="rounded-lg p-2 transition-colors hover:bg-gray-800"
             aria-label="بستن"
           >
-            <FiX className="h-6 w-6 text-red-400 transition-all hover:text-red-500" />
+            <FiX className="h-6 w-6 text-red-400 transition-colors hover:text-red-500" />
           </button>
         </div>
 

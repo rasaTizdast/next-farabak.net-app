@@ -3,14 +3,16 @@
 import { PlusOutlined } from "@ant-design/icons";
 import { Card, Empty, Spin, Button, Table } from "antd";
 
+import { adminColors } from "@/constants/adminColors";
+
 import BranchProductSearch from "./BranchProductSearch";
-import { Product } from "../../components/types";
+import { Product, ProductColumn } from "../../components/types";
 
 interface ProductTabProps {
   products: Product[];
   productsLoading: boolean;
   productPagination: { current: number; pageSize: number; total: number };
-  productColumns: any[];
+  productColumns: ProductColumn[];
   branch: { branchid: number } | null;
   onAddProduct: () => void;
   onPageChange: (page: number, pageSize: number) => void;
@@ -21,7 +23,6 @@ export default function ProductTab({
   productsLoading,
   productPagination,
   productColumns,
-  branch,
   onAddProduct,
   onPageChange,
 }: ProductTabProps) {
@@ -44,14 +45,14 @@ export default function ProductTab({
         }
         className="overflow-hidden rounded-lg border-0 bg-gray-800 text-white"
         headStyle={{
-          backgroundColor: "#19202b",
-          borderBottom: "1px solid #374151",
-          color: "#f3f4f6",
+          backgroundColor: adminColors.panelAlt,
+          borderBottom: `1px solid ${adminColors.border}`,
+          color: adminColors.textBright,
           padding: "16px 20px",
           fontFamily: "inherit",
         }}
         bodyStyle={{
-          backgroundColor: "#19202b",
+          backgroundColor: adminColors.panelAlt,
           padding: "16px 20px",
           fontFamily: "inherit",
         }}

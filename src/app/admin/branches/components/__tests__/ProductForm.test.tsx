@@ -1,9 +1,9 @@
+import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
 
 vi.mock("antd", () => ({
   Form: Object.assign(
-    ({ children, form, onFinish, layout, className }: any) => (
+    ({ children, onFinish, className }: any) => (
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -15,7 +15,7 @@ vi.mock("antd", () => ({
       </form>
     ),
     {
-      Item: ({ children, name, label, rules, className }: any) => (
+      Item: ({ children, label, className }: any) => (
         <div className={className}>
           {label && <label>{label}</label>}
           {children}
@@ -23,20 +23,28 @@ vi.mock("antd", () => ({
       ),
     }
   ),
-  Select: ({ placeholder, options, onChange, showSearch, className }: any) => (
+  Select: ({ placeholder, options, onChange, className }: any) => (
     <select className={className} onChange={(e) => onChange?.(Number(e.target.value))}>
       <option>{placeholder}</option>
       {options?.map((opt: any) => (
-        <option key={opt.value} value={opt.value}>{opt.label}</option>
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
       ))}
     </select>
   ),
-  InputNumber: ({ min, onChange, className, style }: any) => (
-    <input type="number" min={min} onChange={(e) => onChange?.(Number(e.target.value))} className={className} />
+  InputNumber: ({ min, onChange, className }: any) => (
+    <input
+      type="number"
+      min={min}
+      onChange={(e) => onChange?.(Number(e.target.value))}
+      className={className}
+    />
   ),
   Button: ({ children, onClick, htmlType, icon, className, type }: any) => (
     <button type={htmlType} onClick={onClick} className={className} data-type={type}>
-      {icon}{children}
+      {icon}
+      {children}
     </button>
   ),
 }));
@@ -53,7 +61,14 @@ describe("ProductForm", () => {
   const mockOnSelectProduct = vi.fn();
   const mockOnQuantityChange = vi.fn();
   const mockProducts = [
-    { ProductId: 1, Type: "Laptop", Name: "Test Laptop", Price: "500", Discount: "50", quantity: 10 },
+    {
+      ProductId: 1,
+      Type: "Laptop",
+      Name: "Test Laptop",
+      Price: "500",
+      Discount: "50",
+      quantity: 10,
+    },
     { ProductId: 2, Type: "Phone", Name: "Test Phone", Price: "300", Discount: "30", quantity: 20 },
   ];
 

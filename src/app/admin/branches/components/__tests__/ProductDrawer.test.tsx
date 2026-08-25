@@ -1,19 +1,21 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("antd", () => ({
   Drawer: ({ open, title, children, onClose }: any) =>
     open ? (
       <div data-testid="drawer">
         <div data-testid="drawer-title">{title}</div>
-        <button data-testid="drawer-close" onClick={onClose}>close</button>
+        <button data-testid="drawer-close" onClick={onClose}>
+          close
+        </button>
         {children}
       </div>
     ) : null,
 }));
 
 vi.mock("../ProductForm", () => ({
-  default: (props: any) => <div data-testid="product-form">ProductForm</div>,
+  default: () => <div data-testid="product-form">ProductForm</div>,
 }));
 
 vi.mock("../ProductSummary", () => ({
@@ -23,7 +25,7 @@ vi.mock("../ProductSummary", () => ({
 }));
 
 vi.mock("../ProductTable", () => ({
-  default: ({ products, loading, onUpdateQuantity, showRemoveButton }: any) => (
+  default: ({ products, loading, showRemoveButton }: any) => (
     <div data-testid="product-table">
       ProductTable: {products?.length || 0} items
       {loading && <span data-testid="loading">loading</span>}
@@ -56,7 +58,7 @@ describe("ProductDrawer", () => {
     products: mockProducts,
     allProducts: mockProducts,
     loading: false,
-    productForm: {},
+    productForm: {} as any,
     selectedProduct: null,
     onSelectProduct: vi.fn(),
     onQuantityChange: vi.fn(),

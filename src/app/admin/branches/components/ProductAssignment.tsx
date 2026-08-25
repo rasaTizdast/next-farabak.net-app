@@ -1,10 +1,16 @@
 "use client";
 
+import { FormInstance } from "antd";
 import React from "react";
 
 import InvoiceModal from "./invoice/InvoiceModal";
 import ProductDrawer from "./ProductDrawer";
 import { Branch, Product } from "./types";
+
+interface ProductFormValues {
+  productId: number;
+  quantity: number;
+}
 
 interface ProductAssignmentProps {
   currentBranch: Branch | null;
@@ -13,7 +19,7 @@ interface ProductAssignmentProps {
   products: Product[];
   allProducts: Product[];
   productsLoading: boolean;
-  productForm: any;
+  productForm: FormInstance<ProductFormValues>;
   selectedProduct: number | null;
   productQuantityRef: React.MutableRefObject<number>;
   onCloseDrawer: () => void;
@@ -34,7 +40,6 @@ const ProductAssignment: React.FC<ProductAssignmentProps> = ({
   productsLoading,
   productForm,
   selectedProduct,
-  productQuantityRef,
   onCloseDrawer,
   onCloseInvoice,
   onAddProduct,
@@ -63,11 +68,7 @@ const ProductAssignment: React.FC<ProductAssignmentProps> = ({
         onQuantityChange={onQuantityChange}
       />
 
-      <InvoiceModal
-        visible={invoiceVisible}
-        onClose={onCloseInvoice}
-        branch={currentBranch}
-      />
+      <InvoiceModal visible={invoiceVisible} onClose={onCloseInvoice} branch={currentBranch} />
     </>
   );
 };

@@ -72,6 +72,7 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
   useEffect(() => {
     if (!overviewInitGuard.current) {
       overviewInitGuard.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable features state from parent prop once, guarded by ref.
       setLocalFeatures(state.features);
 
       const initialErrors: Record<string, string> = {};
@@ -155,7 +156,7 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
               data-testid={`remove-feature-${index}`}
               onClick={() => handleFeatureRemove(index)}
               aria-label="حذف ویژگی"
-              className="text-red-500 transition-all hover:text-red-600"
+              className="text-red-500 transition-colors hover:text-red-600"
             >
               <FaTrashAlt size={20} />
             </button>

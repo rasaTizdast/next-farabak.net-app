@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useRef, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
@@ -174,7 +174,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                 alt="Farabak Logo"
                 width={130}
                 height={130}
-                className="logo print-only mx-auto mb-5 mt-4 hidden print:inline-block"
+                className="logo print-only mx-auto mt-4 mb-5 hidden print:inline-block"
               />
               <h2 className="text-center text-xl font-bold sm:text-2xl">
                 جزئیات فاکتور
@@ -215,7 +215,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
               {/* Products Table */}
               <div className="overflow-x-auto rounded-lg bg-slate-800">
                 <div className="invoice-table-container max-h-[500px] overflow-auto">
-                  <table className="w-full whitespace-nowrap text-xs sm:text-sm">
+                  <table className="w-full text-xs whitespace-nowrap sm:text-sm">
                     <thead className="sticky top-0 z-10 bg-slate-700">
                       <tr>
                         <th className="p-2 text-right font-medium text-gray-300 sm:p-4">
@@ -232,7 +232,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                     </thead>
                     <tbody className="divide-y divide-slate-700">
                       {expandedItems.length > 0 ? (
-                        expandedItems.map((item, index) => {
+                        expandedItems.map((item) => {
                           // Find all items with the same product ID
                           const sameProductItems = expandedItems.filter(
                             (i) => i.ProductId === item.ProductId

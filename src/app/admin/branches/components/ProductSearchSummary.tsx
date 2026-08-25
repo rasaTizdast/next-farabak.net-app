@@ -1,6 +1,8 @@
 import { SearchOutlined, ProjectOutlined, EnvironmentOutlined } from "@ant-design/icons";
 import { Card, Tag, Typography, Alert } from "antd";
 
+import { adminColors } from "@/constants/adminColors";
+
 import { Branch } from "./types";
 
 const { Title, Text } = Typography;
@@ -37,9 +39,9 @@ const ProductSearchSummary: React.FC<ProductSearchSummaryProps> = ({
     <Card
       className="mb-6 overflow-hidden rounded-lg border-0 bg-gray-800 shadow-lg"
       bodyStyle={{
-        backgroundColor: "#19202b",
+        backgroundColor: adminColors.panelAlt,
         padding: "16px 20px",
-        borderTop: "1px solid #334155",
+        borderTop: `1px solid ${adminColors.borderSubtle}`,
         direction: "rtl",
       }}
     >
@@ -67,7 +69,7 @@ const ProductSearchSummary: React.FC<ProductSearchSummaryProps> = ({
             <Text strong className="ml-2 !text-white">
               {productName}
             </Text>
-            <Tag className="ml-2 mr-0 border-blue-800 bg-blue-900/50 text-blue-300">
+            <Tag className="mr-0 ml-2 border-blue-800 bg-blue-900/50 text-blue-300">
               کد: {productId}
             </Tag>
           </div>
@@ -107,7 +109,7 @@ const ProductSearchSummary: React.FC<ProductSearchSummaryProps> = ({
 
           {branches.length > 0 && branchesWithProduct > 0 && (
             <div className="flex items-start">
-              <EnvironmentOutlined className="ml-2 mt-1 text-green-400" />
+              <EnvironmentOutlined className="mt-1 ml-2 text-green-400" />
               <div className="flex-1">
                 <div className="mb-2 font-medium text-gray-200">
                   محصول در شعبه‌های زیر موجود است:

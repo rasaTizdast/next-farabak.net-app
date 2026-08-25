@@ -1,3 +1,5 @@
+import { Product } from "../types";
+
 export type FAQItem = {
   question: string;
   answer: string;
@@ -79,7 +81,7 @@ export const validationRules: Record<string, ValidationRule> = {
   },
 };
 
-export function validateField(fieldName: string, value: any): string | null {
+export function validateField(fieldName: string, value: unknown): string | null {
   const rule = validationRules[fieldName];
   if (!rule) return null;
 
@@ -101,6 +103,51 @@ export function validateField(fieldName: string, value: any): string | null {
     if (rule.regex && !rule.regex.test(stringValue)) {
       return rule.errorMsg.regex || null;
     }
+  }
+
+  return null;
+}
+
+export function deriveFaqErrors(faqs: FAQItem[]): { [key: string]: string } {
+  if (faqs.length === 0) return {};
+  const errors: { [key: string]: string } = {};
+  faqs.forEach((faq, index) => {
+    if (!faq.question.trim()) {
+      errors[`question-${index}`] = "سوال نمی‌تواند خالی باشد.";
+    } else if (faq.question.length > 1000) {
+      errors[`question-${index}`] = "سوال نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
+    }
+    if (!faq.answer.trim()) {
+      errors[`answer-${index}`] = "پاسخ نمی‌تواند خالی باشد.";
+    } else if (faq.answer.length > 3000) {
+      errors[`answer-${index}`] = "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
+    }
+  });
+  return errors;
+}
+
+export function validateProductForm(formState: Product | null): string | null {
+  if (!formState) return "فرم خالی است";
+
+  for (const [fieldName] of Object.entries(validationRules)) {
+    const value = formState[fieldName as keyof Product];
+    const error = validateField(fieldName, value);
+    if (error) return error;
+  }
+
+  if (+formState.Price < +formState.Discount) {
+    return "مقدار تخفیف نباید بیشتر از قیمت محصول باشد.";
+  }
+
+  if (formState.CategoryContentIds.length === 0) {
+    return "محصول باید حداقل یک زیر دسته‌بندی داشته باشد.";
+  }
+
+  const isValidSubcategories = formState.CategoryContentIds.every(
+    (subcategory) => subcategory.CategoryContentId !== 0
+  );
+  if (!isValidSubcategories) {
+    return "یک یا چند زیر دسته‌بندی معتبر انتخاب نشده است.";
   }
 
   return null;

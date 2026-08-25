@@ -116,10 +116,10 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity"
+      className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm transition-opacity"
       dir="rtl"
     >
-      <div className="relative max-h-[90dvh] w-full max-w-2xl animate-fade-in overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg">
+      <div className="animate-fade-in relative max-h-[90dvh] w-full max-w-2xl overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg">
         <button
           type="button"
           aria-label="بستن"
@@ -127,7 +127,7 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
             onClose(false);
             resetState();
           }}
-          className="absolute right-4 top-4 text-red-400 transition-all hover:text-red-500"
+          className="absolute top-4 right-4 text-red-400 transition-colors hover:text-red-500"
         >
           <IoIosClose size={50} />
         </button>
@@ -234,7 +234,7 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
       </div>
 
       {showConfirmModal && (
-        <div className="z-60 fixed inset-0 flex items-center justify-center backdrop-blur-sm">
+        <div className="fixed inset-0 z-60 flex items-center justify-center backdrop-blur-sm">
           <div className="w-full max-w-md rounded-xl bg-gray-700 p-6 text-gray-200 shadow-lg md:max-w-lg">
             <h2 className="mb-4 text-center text-lg font-bold 2xl:mb-7 2xl:text-2xl">
               هشدار: ایجاد لینک یکتا

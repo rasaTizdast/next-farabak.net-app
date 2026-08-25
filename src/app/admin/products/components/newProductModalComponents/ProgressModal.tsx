@@ -1,17 +1,17 @@
-const ProgressModal = ({ progress, currentStep }: { progress: number; currentStep: number }) => {
-  const steps = [
-    "ساخت محصول",
-    "آپلود تصاویر محصول",
-    "ارسال ویژگی‌ها",
-    "ارسال جزئیات بررسی",
-    "ارسال مشخصات",
-    "ارسال سوالات متداول",
-    "تکمیل فرآیند",
-  ];
+const steps = [
+  "ساخت محصول",
+  "آپلود تصاویر محصول",
+  "ارسال ویژگی‌ها",
+  "ارسال جزئیات بررسی",
+  "ارسال مشخصات",
+  "ارسال سوالات متداول",
+  "تکمیل فرآیند",
+];
 
+const ProgressModal = ({ progress, currentStep }: { progress: number; currentStep: number }) => {
   return (
-    <div className="fixed inset-0 z-[55] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm">
-      <div className="w-full max-w-md animate-fade-in rounded-xl bg-gray-800 p-8 text-white shadow-2xl">
+    <div className="bg-opacity-60 fixed inset-0 z-[55] flex items-center justify-center bg-black backdrop-blur-sm">
+      <div className="animate-fade-in w-full max-w-md rounded-xl bg-gray-800 p-8 text-white shadow-2xl">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-bold">در حال ایجاد محصول</h2>
           <span className="text-sm font-medium">
@@ -22,7 +22,7 @@ const ProgressModal = ({ progress, currentStep }: { progress: number; currentSte
         {/* Progress Bar */}
         <div className="relative mb-6 h-2 w-full overflow-hidden rounded-full bg-gray-700">
           <div
-            className={`h-2 bg-blue-500 transition-all duration-700 ease-in-out`}
+            className={`h-2 bg-blue-500 transition-[width] duration-700 ease-in-out`}
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -41,7 +41,7 @@ const ProgressModal = ({ progress, currentStep }: { progress: number; currentSte
                 }`}
               >
                 <span
-                  className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold transition-all duration-300 ${
+                  className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold transition-colors duration-300 ${
                     index + 1 <= currentStep
                       ? "bg-blue-500 text-white"
                       : "bg-gray-300 text-gray-700"

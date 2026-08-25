@@ -42,6 +42,7 @@ const ChangeStatusModal = ({ invoice, onClose, onStatusChange }: ChangeStatusMod
             >
               <input
                 type="radio"
+                name="invoice-status"
                 value="true"
                 checked={status === true}
                 onChange={() => setStatus(true)}
@@ -63,6 +64,7 @@ const ChangeStatusModal = ({ invoice, onClose, onStatusChange }: ChangeStatusMod
             >
               <input
                 type="radio"
+                name="invoice-status"
                 value="false"
                 checked={status === false}
                 onChange={() => setStatus(false)}

@@ -141,24 +141,27 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
       cancelText: "لغو",
       onOk: async () => {
         setLoading(true);
-        const res = await fetch("/api/admin/warranty/requests", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            warrantyId,
-            action: "resolve",
-          }),
-        });
+        try {
+          const res = await fetch("/api/admin/warranty/requests", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              warrantyId,
+              action: "resolve",
+            }),
+          });
 
-        if (!res.ok) {
-          console.error("[Client] Error resolving warranty request:", res.statusText);
+          if (!res.ok) {
+            console.error("[Client] Error resolving warranty request:", res.statusText);
+            return;
+          }
+
+          await fetchRequests(pagination.current, pagination.pageSize, true);
+        } finally {
           setLoading(false);
-          return;
         }
-
-        await fetchRequests(pagination.current, pagination.pageSize, true);
       },
     });
   };
@@ -317,7 +320,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
               dataSource={requests}
               pagination={false}
               rowKey="warrantyid"
-              className="warranty-requests-table [&_.ant-table-tbody>tr.ant-table-row:hover>td]:!bg-gray-700 [&_.ant-table-tbody>tr>td]:!border-gray-700 [&_.ant-table-tbody>tr>td]:transition-colors [&_.ant-table-thead>tr>th]:!bg-[#263244] [&_.ant-table-thead>tr>th]:!text-center [&_.ant-table-thead>tr>th]:!font-semibold [&_.ant-table-thead>tr>th]:!text-white [&_.ant-table]:!bg-gray-800 [&_.ant-table]:!text-white"
+              className="warranty-requests-table [&_.ant-table]:!bg-gray-800 [&_.ant-table]:!text-white [&_.ant-table-tbody>tr.ant-table-row:hover>td]:!bg-gray-700 [&_.ant-table-tbody>tr>td]:!border-gray-700 [&_.ant-table-tbody>tr>td]:transition-colors [&_.ant-table-thead>tr>th]:!bg-[#263244] [&_.ant-table-thead>tr>th]:!text-center [&_.ant-table-thead>tr>th]:!font-semibold [&_.ant-table-thead>tr>th]:!text-white"
               rowClassName={() => "odd:!bg-gray-800 even:!bg-[#263144]"}
             />
           </div>
@@ -329,7 +332,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
                 pageSize={pagination.pageSize}
                 total={pagination.total}
                 onChange={handlePaginationChange}
-                className="custom-pagination [&_.ant-pagination-item-active>a]:!text-white [&_.ant-pagination-item-active]:!border-blue-600 [&_.ant-pagination-item-active]:!bg-blue-600"
+                className="custom-pagination [&_.ant-pagination-item-active]:!border-blue-600 [&_.ant-pagination-item-active]:!bg-blue-600 [&_.ant-pagination-item-active>a]:!text-white"
                 showSizeChanger
                 showQuickJumper
                 pageSizeOptions={["10", "20", "50"]}

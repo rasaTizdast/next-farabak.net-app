@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 
@@ -145,10 +145,10 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
       <div className="mt-10 flex flex-col items-center p-4">
         <div className="w-full max-w-[1800px] overflow-auto rounded-lg">
           <table
-            className="w-full table-auto border-collapse border-spacing-0 overflow-hidden whitespace-nowrap rounded-xl text-center text-xs text-gray-100 lg:text-sm"
+            className="w-full table-auto border-collapse border-spacing-0 overflow-hidden rounded-xl text-center text-xs whitespace-nowrap text-gray-100 lg:text-sm"
             aria-busy={isLoading}
           >
-            <thead className="bg-slate-900 uppercase text-gray-100">
+            <thead className="bg-slate-900 text-gray-100 uppercase">
               <tr>
                 <SortableHeader sortKey="Name" sortConfig={sortConfig} onSort={handleSort}>
                   دسته بندی

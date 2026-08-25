@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@ant-design/icons", () => ({
   LoadingOutlined: () => <span data-testid="loading-icon">loading</span>,
   CheckCircleOutlined: () => <span>check</span>,
   CloseCircleOutlined: () => <span>close</span>,
-  SyncOutlined: ({ spin }: any) => <span data-testid="sync-icon">sync</span>,
+  SyncOutlined: () => <span data-testid="sync-icon">sync</span>,
   TeamOutlined: () => <span>team</span>,
   ReloadOutlined: () => <span>reload</span>,
 }));
@@ -18,7 +18,7 @@ vi.mock("antd", () => ({
     </div>
   ),
   Spin: ({ indicator }: any) => <div data-testid="spin">{indicator}</div>,
-  Alert: ({ message, description, type, showIcon }: any) => (
+  Alert: ({ message, description, type }: any) => (
     <div data-testid={`alert-${type}`}>
       <span>{message}</span>
       <div>{description}</div>
@@ -39,7 +39,10 @@ vi.mock("antd", () => ({
   },
   Empty: ({ description }: any) => <div data-testid="empty">{description}</div>,
   Button: ({ children, onClick, icon, loading }: any) => (
-    <button onClick={onClick} data-loading={loading}>{icon}{children}</button>
+    <button onClick={onClick} data-loading={loading}>
+      {icon}
+      {children}
+    </button>
   ),
 }));
 
@@ -48,8 +51,20 @@ const mockRefetch = vi.fn();
 let mockUseApiFetchResult: any = {
   data: {
     allBranches: [
-      { branchid: 1, branch_name: "Branch A", active_count: 5, expired_count: 2, requested_count: 3 },
-      { branchid: 2, branch_name: "Branch B", active_count: 10, expired_count: 1, requested_count: 0 },
+      {
+        branchid: 1,
+        branch_name: "Branch A",
+        active_count: 5,
+        expired_count: 2,
+        requested_count: 3,
+      },
+      {
+        branchid: 2,
+        branch_name: "Branch B",
+        active_count: 10,
+        expired_count: 1,
+        requested_count: 0,
+      },
     ],
   },
   loading: false,
@@ -69,8 +84,20 @@ describe("WarrantyStats", () => {
     mockUseApiFetchResult = {
       data: {
         allBranches: [
-          { branchid: 1, branch_name: "Branch A", active_count: 5, expired_count: 2, requested_count: 3 },
-          { branchid: 2, branch_name: "Branch B", active_count: 10, expired_count: 1, requested_count: 0 },
+          {
+            branchid: 1,
+            branch_name: "Branch A",
+            active_count: 5,
+            expired_count: 2,
+            requested_count: 3,
+          },
+          {
+            branchid: 2,
+            branch_name: "Branch B",
+            active_count: 10,
+            expired_count: 1,
+            requested_count: 0,
+          },
         ],
       },
       loading: false,

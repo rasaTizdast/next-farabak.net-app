@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import BranchForm from "../BranchForm";
 
 vi.mock("antd", () => ({
   Form: Object.assign(
-    ({ children, form, onFinish, className }: any) => (
+    ({ children, onFinish, className }: any) => (
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -15,14 +16,25 @@ vi.mock("antd", () => ({
         {children}
       </form>
     ),
-    { Item: ({ children, label, name, rules }: any) => <div data-testid={`form-item-${name}`}><label>{label}</label>{children}</div> }
+    {
+      Item: ({ children, label, name }: any) => (
+        <div data-testid={`form-item-${name}`}>
+          <label>{label}</label>
+          {children}
+        </div>
+      ),
+    }
   ),
-  Input: ({ placeholder, className, maxLength }: any) => <input placeholder={placeholder} className={className} maxLength={maxLength} />,
-  Select: ({ placeholder, options, onChange, className, showSearch }: any) => (
+  Input: ({ placeholder, className, maxLength }: any) => (
+    <input placeholder={placeholder} className={className} maxLength={maxLength} />
+  ),
+  Select: ({ placeholder, options, onChange, className }: any) => (
     <select className={className} onChange={(e) => onChange?.(e.target.value)}>
       <option>{placeholder}</option>
       {options?.map((opt: any) => (
-        <option key={opt.value} value={opt.value}>{opt.label}</option>
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
       ))}
     </select>
   ),
@@ -44,8 +56,20 @@ describe("BranchForm", () => {
     validateFields: vi.fn().mockResolvedValue({}),
   };
   const mockUsers = [
-    { UserID: 1, Username: "user1", FirstName: "Ali", LastName: "Rezaei", PhoneNumber: "09121234567" },
-    { UserID: 2, Username: "user2", FirstName: "Sara", LastName: "Ahmadi", PhoneNumber: "09351234567" },
+    {
+      UserID: 1,
+      Username: "user1",
+      FirstName: "Ali",
+      LastName: "Rezaei",
+      PhoneNumber: "09121234567",
+    },
+    {
+      UserID: 2,
+      Username: "user2",
+      FirstName: "Sara",
+      LastName: "Ahmadi",
+      PhoneNumber: "09351234567",
+    },
   ];
 
   beforeEach(() => {

@@ -3,13 +3,16 @@
 import { Card, Descriptions, Table, Divider, Alert } from "antd";
 import React from "react";
 
+import { adminColors } from "@/constants/adminColors";
+
+import { ProductWithWarranty } from "./types";
 import { Invoice } from "../../types";
 
 const faNumberFormatter = new Intl.NumberFormat("fa-IR");
 
 interface ReviewStepProps {
   invoice: Invoice;
-  productsWithWarranty: any[];
+  productsWithWarranty: ProductWithWarranty[];
 }
 
 const ReviewStep: React.FC<ReviewStepProps> = ({ invoice, productsWithWarranty }) => {
@@ -23,7 +26,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ invoice, productsWithWarranty }
       title: "نام محصول",
       dataIndex: "Name",
       key: "name",
-      render: (text: string, record: { ProductId: number; singleItemId: number }) => {
+      render: (text: string, record: ProductWithWarranty) => {
         // Find all items with the same product ID
         const sameProductItems = productsWithWarranty.filter(
           (item) => item.ProductId === record.ProductId
@@ -52,12 +55,12 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ invoice, productsWithWarranty }
     {
       title: "قیمت واحد (تومان)",
       key: "price",
-      render: (text: unknown, record: any) => faNumberFormatter.format(record.price),
+      render: (_: unknown, record: ProductWithWarranty) => faNumberFormatter.format(record.price),
     },
     {
       title: "گارانتی",
       key: "warranty",
-      render: (text: unknown, record: any) => {
+      render: (_: unknown, record: ProductWithWarranty) => {
         if (!record.warranty || record.warranty.hasWarranty === false) {
           return "بدون گارانتی";
         }
@@ -116,8 +119,8 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ invoice, productsWithWarranty }
         bordered
         column={1}
         className="custom-dark-descriptions mb-4 [&_.ant-descriptions-header]:!text-white [&_.ant-descriptions-title]:!text-white [&_.ant-descriptions-view]:!border-gray-700 [&_td.ant-descriptions-item-content]:!border-gray-700 [&_th.ant-descriptions-item-label]:!border-gray-700"
-        labelStyle={{ color: "#d1d5db", backgroundColor: "#1f2937" }}
-        contentStyle={{ color: "white", backgroundColor: "#111827" }}
+        labelStyle={{ color: adminColors.textMuted, backgroundColor: adminColors.panel }}
+        contentStyle={{ color: "white", backgroundColor: adminColors.panelDeep }}
       >
         <Descriptions.Item label="نام و نام خانوادگی">{invoice.Fullname}</Descriptions.Item>
         <Descriptions.Item label="شماره تماس">{invoice.Phonenumber}</Descriptions.Item>
@@ -132,7 +135,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ invoice, productsWithWarranty }
           columns={columns}
           rowKey="singleItemId"
           pagination={false}
-          className="custom-dark-table [&_.ant-table-container]:overflow-hidden [&_.ant-table-container]:!rounded-t-lg [&_.ant-table-container]:!border [&_.ant-table-container]:!border-gray-700 [&_.ant-table-footer]:!bg-gray-800 [&_.ant-table-footer]:!text-white [&_.ant-table-tbody>tr:hover>td]:!bg-[#2d3748] [&_.ant-table-tbody>tr>td]:!border-b-gray-700 [&_.ant-table-tbody>tr>td]:!text-white [&_.ant-table-thead>tr>th]:sticky [&_.ant-table-thead>tr>th]:top-0 [&_.ant-table-thead>tr>th]:z-[2] [&_.ant-table-thead>tr>th]:!border-b-gray-700 [&_.ant-table-thead>tr>th]:!bg-gray-800 [&_.ant-table-thead>tr>th]:!text-white [&_.ant-table]:!bg-gray-900 [&_.ant-table]:!text-white"
+          className="custom-dark-table [&_.ant-table]:!bg-gray-900 [&_.ant-table]:!text-white [&_.ant-table-container]:overflow-hidden [&_.ant-table-container]:!rounded-t-lg [&_.ant-table-container]:!border [&_.ant-table-container]:!border-gray-700 [&_.ant-table-footer]:!bg-gray-800 [&_.ant-table-footer]:!text-white [&_.ant-table-tbody>tr:hover>td]:!bg-[#2d3748] [&_.ant-table-tbody>tr>td]:!border-b-gray-700 [&_.ant-table-tbody>tr>td]:!text-white [&_.ant-table-thead>tr>th]:sticky [&_.ant-table-thead>tr>th]:top-0 [&_.ant-table-thead>tr>th]:z-[2] [&_.ant-table-thead>tr>th]:!border-b-gray-700 [&_.ant-table-thead>tr>th]:!bg-gray-800 [&_.ant-table-thead>tr>th]:!text-white"
           scroll={{ x: "max-content" }}
           rowClassName={(record) => {
             // Find all items with same product ID

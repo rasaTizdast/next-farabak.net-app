@@ -1,3 +1,5 @@
+import { ColumnType } from "antd/es/table";
+
 export interface Branch {
   branchid: number;
   name: string;
@@ -25,6 +27,8 @@ export interface Product {
   Discount?: string;
   quantity: number;
 }
+
+export type ProductColumn = ColumnType<Product>;
 
 export interface Invoice {
   Invoiceid: number;

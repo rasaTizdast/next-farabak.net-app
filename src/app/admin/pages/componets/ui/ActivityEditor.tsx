@@ -45,13 +45,14 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
 
   const initializedRef = useRef(false);
   const { data: activitiesData } = useApiFetch<Activity[]>("/api/activities");
-  const { mutate: saveActivities, loading: isSaving } = useApiMutation("put");
+  const { mutate: saveActivities } = useApiMutation("put");
 
   const isFetching = !activitiesData;
 
   useEffect(() => {
     if (activitiesData && !initializedRef.current) {
       initializedRef.current = true;
+
       setActivities(activitiesData);
       setExpandedSections(new Set<number>(activitiesData.map((_: Activity, i: number) => i)));
     }
@@ -114,27 +115,30 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    const updatedActivities = activities.map((activity) => ({
-      id: activity.id,
-      title: activity.title,
-      details: activity.Details_activity.map((detail) => ({
-        id: detail.id || undefined,
-        description: detail.description,
-      })),
-    }));
+    try {
+      const updatedActivities = activities.map((activity) => ({
+        id: activity.id,
+        title: activity.title,
+        details: activity.Details_activity.map((detail) => ({
+          id: detail.id || undefined,
+          description: detail.description,
+        })),
+      }));
 
-    const res = await saveActivities("/api/activities", updatedActivities);
-    if (res) {
-      toast.success("فعالیت با موفقیت آپدیت شد!");
-    } else {
-      toast.error("آپدیت فعالیت به مشکل خورد!");
+      const res = await saveActivities("/api/activities", updatedActivities);
+      if (res) {
+        toast.success("فعالیت با موفقیت آپدیت شد!");
+      } else {
+        toast.error("آپدیت فعالیت به مشکل خورد!");
+      }
+    } finally {
+      setIsLoading(false);
+      onClose();
     }
-    setIsLoading(false);
-    onClose();
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 shadow-lg backdrop-blur-sm">
+    <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black shadow-lg backdrop-blur-sm">
       <div
         className="relative max-h-[95dvh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg"
         dir="rtl"
@@ -143,7 +147,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
         <button
           type="button"
           onClick={onClose}
-          className="absolute left-4 top-4 rounded-full p-2 text-red-500 hover:text-red-600"
+          className="absolute top-4 left-4 rounded-full p-2 text-red-500 hover:text-red-600"
           aria-label="بستن"
         >
           <IoIosCloseCircle size={40} />
@@ -167,7 +171,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                       value={activity.title}
                       onChange={(e) => handleUpdateActivity(activityIndex, "title", e.target.value)}
                       placeholder="عنوان فعالیت"
-                      className="mb-2 w-full rounded-lg bg-gray-600 p-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="mb-2 w-full rounded-lg bg-gray-600 p-2 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     />
                   </label>
                   {/* Expand/Collapse Button */}
@@ -187,7 +191,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                 <button
                   type="button"
                   onClick={() => handleDeleteSection(activityIndex)}
-                  className="mb-3 mt-1 rounded-lg bg-red-500 p-2 text-gray-100 hover:bg-red-600"
+                  className="mt-1 mb-3 rounded-lg bg-red-500 p-2 text-gray-100 hover:bg-red-600"
                 >
                   حذف فعالیت
                 </button>
@@ -208,7 +212,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                               handleUpdateDetail(activityIndex, detailIndex, e.target.value)
                             }
                             placeholder="توضیحات فعالیت"
-                            className="w-full rounded-lg bg-gray-600 p-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full rounded-lg bg-gray-600 p-2 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                           />
                         </label>
                         <button
@@ -250,7 +254,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                 disabled={isLoading}
                 className={`${
                   isLoading ? "bg-gray-500" : "bg-green-600 hover:bg-green-700"
-                } mt-4 rounded-lg px-4 py-2 text-white transition-all`}
+                } mt-4 rounded-lg px-4 py-2 text-white transition-colors`}
               >
                 {isLoading ? "در حال ارسال..." : "ثبت تغییرات"}
               </button>

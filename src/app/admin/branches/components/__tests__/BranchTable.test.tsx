@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("antd", () => ({
   Button: ({ children, onClick, icon, danger, className }: any) => (
@@ -11,10 +11,14 @@ vi.mock("antd", () => ({
   Popconfirm: ({ children, onConfirm }: any) => (
     <div>
       {children}
-      <button data-testid="popconfirm-confirm" onClick={onConfirm}>confirm</button>
+      <button data-testid="popconfirm-confirm" onClick={onConfirm}>
+        confirm
+      </button>
     </div>
   ),
-  Empty: Object.assign(({ description }: any) => <div>{description}</div>, { PRESENTED_IMAGE_SIMPLE: null }),
+  Empty: Object.assign(({ description }: any) => <div>{description}</div>, {
+    PRESENTED_IMAGE_SIMPLE: null,
+  }),
   Tooltip: ({ children, title }: any) => <div title={title}>{children}</div>,
   Tag: ({ children, color }: any) => <span data-color={color}>{children}</span>,
   Space: ({ children }: any) => <div>{children}</div>,
@@ -40,7 +44,9 @@ vi.mock("../PersianTable", () => ({
 
 vi.mock("../StatusBadge", () => ({
   default: ({ productCount, totalQuantity }: any) => (
-    <span data-testid="status-badge">{productCount} products, {totalQuantity} total</span>
+    <span data-testid="status-badge">
+      {productCount} products, {totalQuantity} total
+    </span>
   ),
 }));
 

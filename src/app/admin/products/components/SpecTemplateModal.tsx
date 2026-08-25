@@ -41,6 +41,7 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
   useEffect(() => {
     if (templateToEdit && !templateInitGuard.current) {
       templateInitGuard.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable template name state from the template to edit once, guarded by ref.
       setTemplateName(templateToEdit.Name);
       setItems(
         templateToEdit.Items && templateToEdit.Items.length > 0
@@ -109,11 +110,11 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity"
+      className="bg-opacity-70 fixed inset-0 z-[60] flex items-center justify-center bg-black backdrop-blur-sm transition-opacity"
       onClick={(e) => e.stopPropagation()}
     >
       <div
-        className="relative max-h-[90vh] w-full max-w-2xl animate-fade-in overflow-y-auto rounded-xl bg-gray-800 p-6 text-white shadow-lg"
+        className="animate-fade-in relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-gray-800 p-6 text-white shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="mb-6 text-center text-xl font-bold">
@@ -211,7 +212,7 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
         <button
           type="button"
           aria-label="بستن"
-          className="absolute right-2 top-2 text-gray-400 hover:text-white"
+          className="absolute top-2 right-2 text-gray-400 hover:text-white"
           onClick={(e) => {
             e.stopPropagation();
             onClose();

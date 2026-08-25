@@ -9,8 +9,8 @@ import {
   ReloadOutlined,
 } from "@ant-design/icons";
 import { Card, Spin, Alert, Statistic, Row, Col, Typography, Empty, Button } from "antd";
-import { useEffect } from "react";
 
+import { adminColors } from "@/constants/adminColors";
 import { useApiFetch } from "@/hooks/useApiFetch";
 
 const { Title, Text } = Typography;
@@ -106,7 +106,7 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
           {/* Total Statistics Summary - Row Layout */}
           <Card
             className="mb-6 overflow-hidden border-0 shadow-lg"
-            style={{ backgroundColor: "#121f3b", borderColor: "#374151" }}
+            style={{ backgroundColor: adminColors.panelDarker, borderColor: adminColors.border }}
             title={
               <Title level={4} className="!text-white">
                 آمار کلی گارانتی‌ها
@@ -117,12 +117,12 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
               <Col xs={24} md={8}>
                 <Card
                   className="h-full overflow-hidden border-0 text-center"
-                  style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
+                  style={{ backgroundColor: adminColors.panel, borderColor: adminColors.border }}
                 >
                   <Statistic
                     title={<Text className="text-gray-300">گارانتی‌های فعال</Text>}
                     value={totalStats.active}
-                    valueStyle={{ color: "#10B981", fontWeight: "bold" }}
+                    valueStyle={{ color: adminColors.success, fontWeight: "bold" }}
                     prefix={<CheckCircleOutlined />}
                   />
                 </Card>
@@ -130,12 +130,12 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
               <Col xs={24} md={8}>
                 <Card
                   className="h-full overflow-hidden border-0 text-center"
-                  style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
+                  style={{ backgroundColor: adminColors.panel, borderColor: adminColors.border }}
                 >
                   <Statistic
                     title={<Text className="text-gray-300">گارانتی‌های منقضی شده</Text>}
                     value={totalStats.expired}
-                    valueStyle={{ color: "#EF4444", fontWeight: "bold" }}
+                    valueStyle={{ color: adminColors.danger, fontWeight: "bold" }}
                     prefix={<CloseCircleOutlined />}
                   />
                 </Card>
@@ -143,12 +143,12 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
               <Col xs={24} md={8}>
                 <Card
                   className="h-full overflow-hidden border-0 text-center"
-                  style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
+                  style={{ backgroundColor: adminColors.panel, borderColor: adminColors.border }}
                 >
                   <Statistic
                     title={<Text className="text-gray-300">درخواست‌های بررسی</Text>}
                     value={totalStats.requested}
-                    valueStyle={{ color: "#F59E0B", fontWeight: "bold" }}
+                    valueStyle={{ color: adminColors.warning, fontWeight: "bold" }}
                     prefix={<SyncOutlined spin />}
                   />
                 </Card>
@@ -170,8 +170,8 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
                   </div>
                 }
                 className="overflow-hidden border-0 shadow-md"
-                style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
-                headStyle={{ borderBottom: "1px solid #374151" }}
+                style={{ backgroundColor: adminColors.panel, borderColor: adminColors.border }}
+                headStyle={{ borderBottom: `1px solid ${adminColors.border}` }}
               >
                 <div className="grid grid-cols-3 gap-2">
                   <div className="text-center">

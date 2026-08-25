@@ -48,6 +48,24 @@ async function withRetry401<T>(
   throw lastError as Error;
 }
 
+// Regex patterns
+const regexPatterns = {
+  Name: /^[a-zA-Z0-9-\u0600-\u06FF\s_-\u200C]{0,1000}$/, // Persian, English, numbers, up to 1000 characters
+  Slug: /^[a-z0-9-]{0,200}$/, // Lowercase English, numbers, and dashes only, up to 200 characters
+  SEO_Title: /^.{0,60}$/, // Any character, up to 50 characters
+  SEO_Description: /^.{0,160}$/, // Any character, up to 4000 characters
+  SEO_Keywords: /^.{0,4000}$/, // Any character, up to 4000 characters (no commas restriction)
+};
+
+// Persian error messages
+const errorMessages = {
+  Name: "نام باید حروف فارسی یا انگلیسی و حداکثر ۱۰۰۰ کاراکتر باشد.",
+  Slug: "شناسه فقط باید حروف انگلیسی کوچک، اعداد و خط تیره باشد و حداکثر ۲۰۰ کاراکتر باشد.",
+  SEO_Title: "عنوان سئو باید حداکثر ۵۰ کاراکتر باشد.",
+  SEO_Description: "توضیحات سئو باید حداکثر ۴۰۰۰ کاراکتر باشد.",
+  SEO_Keywords: "کلمه کلیدی نمی‌تواند شامل کاما باشد و حداکثر ۴۰۰۰ کاراکتر باشد.",
+};
+
 const EditModal: React.FC<EditModalProps> = ({
   isOpen,
   item,
@@ -61,7 +79,6 @@ const EditModal: React.FC<EditModalProps> = ({
   const [keywordInput, setKeywordInput] = useState("");
   const [seoKeywords, setSeoKeywords] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const initializedRef = useRef(false);
   const [topBlog, setTopBlog] = useState<string>("");
   const [bottomBlog, setBottomBlog] = useState<string>("");
   const bannerFileRef = useRef<File | null>(null);
@@ -83,6 +100,7 @@ const EditModal: React.FC<EditModalProps> = ({
         else if (typeof sd.SEO_Keywords === "string") {
           k = parseSeoKeywords(sd.SEO_Keywords);
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable SEO keywords state from the selected item once, guarded by ref.
         setSeoKeywords(k);
       }
       setTopBlog((item as any).TopBlog || "");
@@ -93,6 +111,7 @@ const EditModal: React.FC<EditModalProps> = ({
   }, [item, itemKey]);
 
   // Banner drop handlers MUST be declared before any conditional return to avoid hook order changes
+  // onDrop uses component state (bannerFileRef, setBannerPreview) so it cannot be moved to module scope
   const onDrop = useCallback((accepted: File[]) => {
     if (accepted.length > 0) {
       const f = accepted[0];
@@ -108,6 +127,13 @@ const EditModal: React.FC<EditModalProps> = ({
     multiple: false,
   });
 
+  // useEffect uses component state (bannerPreview) so it cannot be moved to module scope
+  useEffect(() => {
+    return () => {
+      if (bannerPreview) URL.revokeObjectURL(bannerPreview);
+    };
+  }, [bannerPreview]);
+
   if (!isOpen || !item) return null;
 
   const seoDetails = item.SEO_Details || {
@@ -116,26 +142,8 @@ const EditModal: React.FC<EditModalProps> = ({
     SEO_Keywords: [],
   };
 
-  // Regex patterns
-  const regexPatterns = {
-    Name: /^[a-zA-Z0-9-\u0600-\u06FF\s_-\u200C]{0,1000}$/, // Persian, English, numbers, up to 1000 characters
-    Slug: /^[a-z0-9-]{0,200}$/, // Lowercase English, numbers, and dashes only, up to 200 characters
-    SEO_Title: /^.{0,60}$/, // Any character, up to 50 characters
-    SEO_Description: /^.{0,160}$/, // Any character, up to 4000 characters
-    SEO_Keywords: /^.{0,4000}$/, // Any character, up to 4000 characters (no commas restriction)
-  };
-
-  // Persian error messages
-  const errorMessages = {
-    Name: "نام باید حروف فارسی یا انگلیسی و حداکثر ۱۰۰۰ کاراکتر باشد.",
-    Slug: "شناسه فقط باید حروف انگلیسی کوچک، اعداد و خط تیره باشد و حداکثر ۲۰۰ کاراکتر باشد.",
-    SEO_Title: "عنوان سئو باید حداکثر ۵۰ کاراکتر باشد.",
-    SEO_Description: "توضیحات سئو باید حداکثر ۴۰۰۰ کاراکتر باشد.",
-    SEO_Keywords: "کلمه کلیدی نمی‌تواند شامل کاما باشد و حداکثر ۴۰۰۰ کاراکتر باشد.",
-  };
-
   // Generic input change handler
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: unknown) => {
     // Clear input and errors if value is empty
     if (value === "") {
       setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -152,17 +160,18 @@ const EditModal: React.FC<EditModalProps> = ({
 
     // Handle Available field separately
     if (field === "Available") {
-      value = value === "true"; // Convert the string to a boolean
+      return typeof value === "string" ? value === "true" : false;
     }
 
     // Slug auto-correction: replace spaces with dashes and lowercase
-    if (field === "Slug") {
-      value = value.replace(/\s+/g, "-").toLowerCase();
+    let processedValue: string | boolean | unknown = value;
+    if (field === "Slug" && typeof value === "string") {
+      processedValue = value.replace(/\s+/g, "-").toLowerCase();
     }
 
     // Validate input using regex patterns
     const pattern = regexPatterns[field as keyof typeof regexPatterns];
-    if (pattern && !pattern.test(value)) {
+    if (pattern && typeof processedValue === "string" && !pattern.test(processedValue)) {
       setErrors((prev) => ({
         ...prev,
         [field]: errorMessages[field as keyof typeof errorMessages] || "خطای نامشخص",
@@ -174,10 +183,10 @@ const EditModal: React.FC<EditModalProps> = ({
     // Update fields, handling SEO fields separately
     if (["SEO_Title", "SEO_Description"].includes(field)) {
       onChange({
-        SEO_Details: { ...seoDetails, [field]: value },
+        SEO_Details: { ...seoDetails, [field]: processedValue },
       });
     } else {
-      onChange({ [field]: value });
+      onChange({ [field]: processedValue });
     }
   };
   // Handle adding a new keyword
@@ -330,7 +339,7 @@ const EditModal: React.FC<EditModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+    <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black backdrop-blur-sm">
       <div className="max-h-[95dvh] w-[60dvw] overflow-y-scroll rounded-lg bg-gray-800 p-6 pr-8 text-white shadow-lg">
         <h3 className="mb-4 text-center text-xl">ویرایش</h3>
         {/* Name Field */}
@@ -346,7 +355,7 @@ const EditModal: React.FC<EditModalProps> = ({
             onChange={(e) => handleInputChange("Name", e.target.value)}
             className={`w-full border bg-gray-700 p-2 ${
               errors.Name ? "border-red-500" : "border-gray-900"
-            } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none`}
             placeholder="نام را وارد کنید"
           />
           {errors.Name && <p className="text-sm text-red-500">{errors.Name}</p>}
@@ -427,7 +436,7 @@ const EditModal: React.FC<EditModalProps> = ({
             onChange={(e) => handleInputChange("Slug", e.target.value)}
             className={`w-full border bg-gray-700 p-2 ${
               errors.Slug ? "border-red-500" : "border-gray-900"
-            } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none`}
           />
           {errors.Slug && <p className="text-sm text-red-500">{errors.Slug}</p>}
         </div>
@@ -444,7 +453,7 @@ const EditModal: React.FC<EditModalProps> = ({
             onChange={(e) => handleInputChange("Available", e.target.value)}
             className={`w-full border bg-gray-700 p-2 ${
               errors.Slug ? "border-red-500" : "border-gray-900"
-            } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none`}
           >
             <option value="true">بله</option>
             <option value="false">خیر</option>
@@ -465,7 +474,7 @@ const EditModal: React.FC<EditModalProps> = ({
             onChange={(e) => handleInputChange("SEO_Title", e.target.value)}
             className={`w-full border bg-gray-700 p-2 ${
               errors.SEO_Title ? "border-red-500" : "border-gray-900"
-            } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none`}
             placeholder="عنوان سئو را وارد کنید"
           />
           {errors.SEO_Title && <p className="text-sm text-red-500">{errors.SEO_Title}</p>}
@@ -483,7 +492,7 @@ const EditModal: React.FC<EditModalProps> = ({
             onChange={(e) => handleInputChange("SEO_Description", e.target.value)}
             className={`w-full border bg-gray-700 p-3 ${
               errors.SEO_Description ? "border-red-500" : "border-gray-900"
-            } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none`}
             rows={3}
             placeholder="توضیحات سئو را وارد کنید"
           />
@@ -507,17 +516,17 @@ const EditModal: React.FC<EditModalProps> = ({
             placeholder="کلمه کلیدی را وارد کنید و Enter بزنید"
             className={`w-full border bg-gray-700 p-2 ${
               errors.SEO_Keywords ? "border-red-500" : "border-gray-900"
-            } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none`}
           />
 
           {errors.SEO_Keywords && <p className="text-sm text-red-500">{errors.SEO_Keywords}</p>}
 
-          <div className="mb-10 mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 mb-10 flex flex-wrap gap-2">
             {seoKeywords.map((keyword: string) => (
               <button
                 type="button"
                 key={keyword}
-                className="flex animate-fade-in items-center gap-2 rounded-lg bg-green-700 px-4 py-1 transition-all hover:bg-red-700 hover:text-white"
+                className="animate-fade-in flex items-center gap-2 rounded-lg bg-green-700 px-4 py-1 transition-colors hover:bg-red-700 hover:text-white"
                 onClick={() => removeKeyword(keyword)}
               >
                 {keyword}

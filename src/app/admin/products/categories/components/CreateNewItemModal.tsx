@@ -5,6 +5,31 @@ import { toast } from "react-hot-toast";
 
 import { useApiMutation } from "@/hooks/useApiMutation";
 
+type CreateCategoryBody = {
+  type: string;
+  data: {
+    name: string;
+    slug: string;
+    available: boolean;
+    parentCategoryId: number | null;
+    seoTitle: string;
+    seoDescription: string;
+    seoKeywords: string[];
+    topBlog: string;
+    bottomBlog: string;
+    banner: string | undefined;
+  };
+};
+
+type CreateCategoryResponse = {
+  success: boolean;
+};
+
+type CreateMutateFn = (
+  url: string,
+  data: CreateCategoryBody
+) => Promise<CreateCategoryResponse | null>;
+
 import CategoryBlogEditor from "./CategoryBlogEditor";
 import { Category } from "../types/types";
 import CategoryFields from "./newItemModalComponents/CategoryFields";
@@ -44,7 +69,7 @@ async function doCreateItem(
     fn: () => Promise<T>,
     opts?: { retries?: number; baseDelayMs?: number }
   ) => Promise<T>,
-  createMutate: any,
+  createMutate: CreateMutateFn,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
   setError: React.Dispatch<React.SetStateAction<string | null>>,
   setName: React.Dispatch<React.SetStateAction<string>>,
@@ -65,13 +90,13 @@ async function doCreateItem(
 ) {
   setLoading(true);
   try {
-    const result: any = {
+    const result: CreateCategoryBody = {
       type: activeTab,
       data: {
         name,
         slug,
         available,
-        parentCategoryId: activeTab === "Subcategory" ? parentCategoryId : null,
+        parentCategoryId: activeTab === "Subcategory" ? (parentCategoryId ?? null) : null,
         seoTitle,
         seoDescription,
         seoKeywords,
@@ -92,7 +117,10 @@ async function doCreateItem(
               subcategorySlug: slug,
             };
 
-      const presignRes = (await withRetry401(() => axios.post("/api/s3/upload", payload))) as any;
+      type PresignResponse = { uploadUrl: string; key: string };
+      const presignRes = await withRetry401(() =>
+        axios.post<PresignResponse>("/api/s3/upload", payload)
+      );
       const presign = presignRes.data;
       await axios.put(presign.uploadUrl, bannerFile, {
         headers: { "Content-Type": bannerFile.type },
@@ -154,9 +182,10 @@ async function withRetry401<T>(
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
       return await requestFn();
-    } catch (error: any) {
+    } catch (error: unknown) {
       lastError = error;
-      if (error?.response?.status === 401 && attempt < retries - 1) {
+      const axiosError = error as { response?: { status?: number } };
+      if (axiosError.response?.status === 401 && attempt < retries - 1) {
         await new Promise((r) => setTimeout(r, baseDelayMs * (attempt + 1)));
         continue;
       }
@@ -209,7 +238,9 @@ const CreateNewItemModal = ({
 }) => {
   const [activeTab, setActiveTab] = useState("Category");
   const [loading, setLoading] = useState(false);
-  const { mutate: createMutate } = useApiMutation("post");
+  const { mutate: createMutate } = useApiMutation<CreateCategoryBody, CreateCategoryResponse>(
+    "post"
+  );
   const bannerFileRef = useRef<File | null>(null);
   const bannerClearedRef = useRef<boolean>(false);
 
@@ -263,6 +294,7 @@ const CreateNewItemModal = ({
     }
     if (resetGuard.current) return;
     resetGuard.current = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Reset the form when the modal opens, guarded by ref.
     resetForm();
     bannerFileRef.current = null;
     bannerClearedRef.current = false;
@@ -352,13 +384,16 @@ const CreateNewItemModal = ({
   };
 
   // Dropzone for banner upload
-  const onDrop = useCallback((accepted: File[]) => {
-    if (accepted.length > 0) {
-      const file = accepted[0];
-      bannerFileRef.current = file;
-      setBannerPreview(URL.createObjectURL(file));
-    }
-  }, [setBannerPreview]);
+  const onDrop = useCallback(
+    (accepted: File[]) => {
+      if (accepted.length > 0) {
+        const file = accepted[0];
+        bannerFileRef.current = file;
+        setBannerPreview(URL.createObjectURL(file));
+      }
+    },
+    [setBannerPreview]
+  );
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
     onDrop,
@@ -367,19 +402,25 @@ const CreateNewItemModal = ({
     multiple: false,
   });
 
+  useEffect(() => {
+    return () => {
+      if (bannerPreview) URL.revokeObjectURL(bannerPreview);
+    };
+  }, [bannerPreview]);
+
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-lg ${
+      className={`bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-lg ${
         !isOpen ? "hidden" : ""
       }`}
     >
-      <div className="w-full max-w-3xl animate-fade-in">
+      <div className="animate-fade-in w-full max-w-3xl">
         <div className="rtl flex justify-center gap-6">
           <button
             type="button"
             data-testid="newCategoryButton"
             onClick={() => setActiveTab("Category")}
-            className={`rounded-t-xl px-6 py-3 font-medium transition-all ${
+            className={`rounded-t-xl px-6 py-3 font-medium transition-colors ${
               activeTab === "Category"
                 ? "bg-gray-800 text-gray-200"
                 : "bg-blue-800 text-white hover:animate-pulse"
@@ -391,7 +432,7 @@ const CreateNewItemModal = ({
             type="button"
             data-testid="newSubCategoryButton"
             onClick={() => setActiveTab("Subcategory")}
-            className={`rounded-t-xl px-6 py-3 font-medium transition-all ${
+            className={`rounded-t-xl px-6 py-3 font-medium transition-colors ${
               activeTab === "Subcategory"
                 ? "bg-gray-800 text-gray-200"
                 : "bg-blue-800 text-white hover:animate-pulse"
@@ -423,7 +464,7 @@ const CreateNewItemModal = ({
                   aria-label="دسته‌بندی اصلی"
                   value={parentCategoryId ?? ""}
                   onChange={(e) => setParentCategoryId(Number(e.target.value))}
-                  className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 >
                   <option value="" disabled>
                     انتخاب دسته‌بندی

@@ -1,5 +1,7 @@
 import { Card, Skeleton } from "antd";
 
+import { adminColors } from "@/constants/adminColors";
+
 export default function SkeletonLoading() {
   return (
     <div className="p-6">
@@ -8,12 +10,12 @@ export default function SkeletonLoading() {
         title={<Skeleton.Input active size="small" style={{ width: 150 }} />}
         className="mb-6 overflow-hidden rounded-lg bg-gray-800 text-white shadow-md"
         headStyle={{
-          backgroundColor: "#1f2937",
-          borderBottom: "1px solid #374151",
-          color: "#f3f4f6",
+          backgroundColor: adminColors.panel,
+          borderBottom: `1px solid ${adminColors.border}`,
+          color: adminColors.textBright,
           padding: "12px 16px",
         }}
-        bodyStyle={{ backgroundColor: "#1f2937", padding: "16px" }}
+        bodyStyle={{ backgroundColor: adminColors.panel, padding: "16px" }}
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {[1, 2, 3, 4].map((i) => (
@@ -37,13 +39,13 @@ export default function SkeletonLoading() {
           <Card
             className="overflow-hidden rounded-lg border-0 bg-gray-800 text-white"
             headStyle={{
-              backgroundColor: "#19202b",
-              borderBottom: "1px solid #374151",
-              color: "#f3f4f6",
+              backgroundColor: adminColors.panelAlt,
+              borderBottom: `1px solid ${adminColors.border}`,
+              color: adminColors.textBright,
               padding: "16px 20px",
             }}
             bodyStyle={{
-              backgroundColor: "#19202b",
+              backgroundColor: adminColors.panelAlt,
               padding: "16px 20px",
             }}
           >

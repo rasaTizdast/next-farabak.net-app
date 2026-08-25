@@ -79,7 +79,7 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
   const isValidRate = usdRate && !isNaN(usdRate) && usdRate > 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-50 p-4">
+    <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black p-4">
       <div className="min-w-[450px] rounded-lg bg-slate-800 p-6 text-white shadow-xl">
         <div className="mb-6 flex items-center justify-between">
           <h3 className="text-2xl font-bold">مدیریت گرید‌های محصول</h3>
@@ -158,7 +158,7 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
                 value={formData.grade}
                 onChange={handleInputChange}
                 maxLength={1}
-                className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-[border-color,box-shadow] focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 placeholder="مثال: A"
               />
             </div>
@@ -176,7 +176,7 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
                 onChange={handleInputChange}
                 min="0"
                 step="0.01"
-                className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-[border-color,box-shadow] focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
               {isValidRate && formData.price > 0 && (
                 <span className="mt-2 block text-sm text-gray-400">
@@ -198,7 +198,7 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
                 onChange={handleInputChange}
                 min="0"
                 step="0.01"
-                className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-[border-color,box-shadow] focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
               {isValidRate && formData.discount > 0 && (
                 <span className="mt-2 block text-sm text-gray-400">
@@ -211,7 +211,7 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-md bg-blue-600 p-3 font-medium text-white transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-md bg-blue-600 p-3 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? "در حال ثبت..." : "افزودن گرید"}
           </button>

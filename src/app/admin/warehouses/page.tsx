@@ -1,15 +1,16 @@
 "use client";
 
-// Custom lightweight UI replacing antd components
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 
+import { AutoComplete } from "@/components/ui/antd/AutoComplete";
+import { Button } from "@/components/ui/antd/Button";
+import { Input } from "@/components/ui/antd/Input";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 import ProductsModal from "./components/ProductsModal";
-import { AutoCompleteBase, ButtonBase, InputBase } from "./components/ui";
 import WarehouseFormModal from "./components/WarehouseFormModal";
 import WarehousesTable from "./components/WarehousesTable";
 
@@ -29,18 +30,34 @@ type Product = {
   Type: string | null;
 };
 
+type WarehouseApiItem = {
+  warehouseid: number;
+  name: string;
+  location: string | null;
+  createdat: string | null;
+  productCount: number;
+  totalQuantity: number;
+  specificProductQuantity?: number;
+  specific_product_quantity?: number;
+  productSpecificQuantity?: number;
+  product_specific_quantity?: number;
+  productQuantity?: number;
+  product_quantity?: number;
+  quantity?: number | string;
+};
+
 async function doFetchWarehouses(
   searchProductId: string | undefined,
   page: number,
   q: string,
   setLoading: (v: boolean) => void,
-  setItems: (items: any[]) => void,
+  setItems: (items: Warehouse[]) => void,
   setTotal: (total: number) => void,
   notify: (type: "success" | "error" | "warning", text: string) => void
 ) {
   setLoading(true);
   try {
-    const params: Record<string, any> = {
+    const params: Record<string, unknown> = {
       page: searchProductId ? 1 : page,
       limit: searchProductId ? 100 : 20,
       q: q || undefined,
@@ -50,9 +67,13 @@ async function doFetchWarehouses(
       params.productId = searchProductId;
     }
 
-    const res = await axios.get("/api/admin/warehouses", { params });
+    const res = await axios.get<{
+      items?: WarehouseApiItem[];
+      data?: WarehouseApiItem[];
+      total: number;
+    }>("/api/admin/warehouses", { params });
     const rawItems = res.data.items || res.data.data || [];
-    const normalized = (Array.isArray(rawItems) ? rawItems : []).map((it: any) => {
+    const normalized = (Array.isArray(rawItems) ? rawItems : []).map((it: WarehouseApiItem) => {
       const possible =
         it?.specificProductQuantity ??
         it?.specific_product_quantity ??
@@ -61,10 +82,10 @@ async function doFetchWarehouses(
         it?.productQuantity ??
         it?.product_quantity ??
         it?.quantity;
-      const qty = typeof possible === "string" ? parseInt(possible) : possible;
+      const qty = (typeof possible === "string" ? parseInt(possible) : possible) ?? 0;
       return {
         ...it,
-        specificProductQuantity: Number.isFinite(qty) && qty >= 0 ? qty : undefined,
+        specificProductQuantity: Number.isFinite(qty) && qty >= 0 ? qty : 0,
       } as Warehouse;
     });
     setItems(normalized);
@@ -257,17 +278,17 @@ function WarehousesPageContent() {
         </div>
         <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-center">
           <div className="flex items-center gap-2">
-            <InputBase
+            <Input
               placeholder="جستجو نام انبار"
               aria-label="جستجوی انبار"
               value={q}
-              onChange={(e) => setQ((e.target as HTMLInputElement).value)}
+              onChange={(e) => setQ(e.target.value)}
               className="w-64"
             />
             <button
               type="button"
               onClick={openCreate}
-              className="inline-flex items-center gap-2 whitespace-nowrap rounded bg-emerald-600 px-4 py-1 text-white transition-all hover:bg-emerald-700"
+              className="inline-flex items-center gap-2 rounded bg-emerald-600 px-4 py-1 whitespace-nowrap text-white transition-colors hover:bg-emerald-700"
             >
               <span className="text-lg">＋</span>
               ایجاد انبار
@@ -277,11 +298,13 @@ function WarehousesPageContent() {
       </div>
 
       <div className="mb-4">
-        <AutoCompleteBase
+        <AutoComplete
           value={searchQuery}
           onChange={handleProductSearch}
           placeholder="جستجوی محصول در انبارها"
-          options={allProducts.reduce<{ value: string; label: string | undefined; productId: string }[]>((acc, p) => {
+          options={allProducts.reduce<
+            { value: string; label: string | undefined; productId: string }[]
+          >((acc, p) => {
             if (p.Type?.toLowerCase().includes(searchQuery.toLowerCase())) {
               acc.push({ value: p.Type || "", label: p.Type, productId: String(p.ProductId) });
             }
@@ -300,7 +323,8 @@ function WarehousesPageContent() {
         {selectedProduct && (
           <div className="mt-2 rounded bg-blue-900/30 p-2 text-sm text-blue-100">
             جستجو برای محصول: {selectedProduct.Type}
-            <ButtonBase
+            <Button
+              variant="secondary"
               className="mr-2 text-xs"
               onClick={() => {
                 setSearchQuery("");
@@ -310,7 +334,7 @@ function WarehousesPageContent() {
               }}
             >
               پاک کردن
-            </ButtonBase>
+            </Button>
           </div>
         )}
       </div>
@@ -353,7 +377,7 @@ function WarehousesPageContent() {
       />
 
       {/* Toasts */}
-      <div className="pointer-events-none fixed left-1/2 top-4 z-50 flex w-[300px] -translate-x-1/2 flex-col gap-2">
+      <div className="pointer-events-none fixed top-4 left-1/2 z-50 flex w-[300px] -translate-x-1/2 flex-col gap-2">
         {toasts.map((t) => (
           <div
             key={t.id}

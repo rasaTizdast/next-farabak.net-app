@@ -1,11 +1,16 @@
 "use client";
 
 import { Tabs, Badge } from "antd";
+
 import { AdminInvoice } from "@/app/admin/invoices/type";
-import { Product } from "../../components/types";
-import ProductTab from "./ProductTab";
+import { adminColors } from "@/constants/adminColors";
+
 import InvoiceTab from "./InvoiceTab";
+import ProductTab from "./ProductTab";
 import WarrantyTab from "./WarrantyTab";
+import { Product } from "../../components/types";
+import { InvoiceColumn } from "../hooks/invoiceManagement/hooks/useInvoiceColumns";
+import { StandaloneWarranty } from "../hooks/invoiceManagement/invoiceManagementContext";
 
 interface BranchTabsProps {
   activeTab: string;
@@ -13,7 +18,7 @@ interface BranchTabsProps {
   products: Product[];
   productsLoading: boolean;
   productPagination: { current: number; pageSize: number; total: number };
-  productColumns: any[];
+  productColumns: import("@/app/admin/branches/components/types").ProductColumn[];
   branch: { branchid: number } | null;
   onAddProduct: () => void;
   onProductPageChange: (page: number, pageSize: number) => void;
@@ -23,16 +28,16 @@ interface BranchTabsProps {
   searchText: string;
   searchOptions: { value: string; label: React.ReactNode }[];
   filteredInvoices: AdminInvoice[];
-  filteredStandaloneWarranties: any[];
+  filteredStandaloneWarranties: StandaloneWarranty[];
   warrantySummary: { active: number; expired: number };
-  memoizedInvoiceColumns: any[];
+  memoizedInvoiceColumns: InvoiceColumn[];
   branchName?: string;
   onSearchChange: (value: string) => void;
   onRefreshInvoices: () => void;
   onCreateInvoice: () => void;
   onInvoicePageChange: (page: number, pageSize: number) => void;
   onViewInvoice: (invoice: AdminInvoice) => void;
-  onViewWarranty: (warranty: any, branchName?: string) => void;
+  onViewWarranty: (warranty: StandaloneWarranty, branchName?: string) => void;
 }
 
 export default function BranchTabs({
@@ -93,7 +98,7 @@ export default function BranchTabs({
                 <Badge
                   count={warrantySummary.active}
                   style={{
-                    backgroundColor: "#52c41a",
+                    backgroundColor: adminColors.successAnt,
                     marginRight: "8px",
                     fontFamily: "inherit",
                   }}
@@ -125,9 +130,7 @@ export default function BranchTabs({
         {
           key: "warranty-requests",
           label: (
-            <span className="px-3 py-1 text-base font-medium text-white">
-              درخواست‌های گارانتی
-            </span>
+            <span className="px-3 py-1 text-base font-medium text-white">درخواست‌های گارانتی</span>
           ),
           children: <WarrantyTab tabKey="warranty-requests" />,
         },

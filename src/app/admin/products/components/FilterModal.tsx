@@ -56,13 +56,14 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
   const subCategories = getSubCategories(tempFilters.category);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity">
-      <div className="relative w-full max-w-lg animate-fade-in rounded-xl bg-gray-800 p-6 text-white shadow-lg">
+    <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm transition-opacity">
+      <div className="animate-fade-in relative w-full max-w-lg rounded-xl bg-gray-800 p-6 text-white shadow-lg">
         {/* Close Button */}
         <button
           type="button"
           onClick={() => setShowFilterModal(false)}
-          className="absolute right-4 top-4 text-gray-400 transition hover:text-white"
+          aria-label="بستن"
+          className="absolute top-4 right-4 text-gray-400 transition hover:text-white"
         >
           ✕
         </button>
@@ -100,7 +101,7 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
                   });
                 }}
                 aria-label="دسته‌بندی"
-                className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
               >
                 <option value="">انتخاب کنید</option>
                 {categories.map((category) => (
@@ -126,7 +127,7 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
                   })
                 }
                 aria-label="زیر دسته‌بندی"
-                className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 disabled={!tempFilters.category} // Disable if no category is selected
               >
                 <option value="">انتخاب کنید</option>
@@ -154,7 +155,7 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
                   })
                 }
                 aria-label="وضعیت موجودی"
-                className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
               >
                 <option value="">همه</option>
                 <option value="true">موجود</option>

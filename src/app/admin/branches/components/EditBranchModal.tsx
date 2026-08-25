@@ -2,15 +2,21 @@
 
 import { FormInstance, Modal } from "antd";
 import React, { useEffect } from "react";
+import { z } from "zod";
+
+import { adminColors } from "@/constants/adminColors";
+import { updateBranchSchema } from "@/lib/validation";
 
 import BranchForm from "./BranchForm";
 import { Branch, User } from "./types";
 
+type UpdateBranchInput = z.infer<typeof updateBranchSchema>;
+
 interface EditBranchModalProps {
   visible: boolean;
   onClose: () => void;
-  onFinish: (values: Record<string, unknown>) => void;
-  form: FormInstance;
+  onFinish: (values: UpdateBranchInput) => void;
+  form: FormInstance<UpdateBranchInput>;
   branch: Branch;
   users: User[];
 }
@@ -46,14 +52,14 @@ const EditBranchModal: React.FC<EditBranchModalProps> = ({
       className="rtl-modal dark-modal"
       styles={{
         header: {
-          background: "#1f2937",
-          color: "#f3f4f6",
-          borderBottom: "1px solid #374151",
+          background: adminColors.panel,
+          color: adminColors.textBright,
+          borderBottom: `1px solid ${adminColors.border}`,
         },
-        body: { background: "#1f2937", padding: "20px" },
+        body: { background: adminColors.panel, padding: "20px" },
         mask: { background: "rgba(0, 0, 0, 0.7)" },
         content: {
-          background: "#1f2937",
+          background: adminColors.panel,
           boxShadow: "0 8px 30px rgba(0, 0, 0, 0.5)",
         },
       }}

@@ -31,6 +31,7 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
         overviews.Property4,
       ].filter(Boolean);
       if (nonEmptyOverviews.length > 0) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable overview state from parent prop once, guarded by ref.
         setExistingOverviews(nonEmptyOverviews);
       }
     }
