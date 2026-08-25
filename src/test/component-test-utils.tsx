@@ -1,8 +1,9 @@
-import React from "react";
 import { render, type RenderOptions } from "@testing-library/react";
+import React from "react";
 import { vi } from "vitest";
-import { UserProvider } from "@/context/UserContext";
+
 import { InvoiceProvider } from "@/context/InvoiceContext";
+import { UserProvider } from "@/context/UserContext";
 
 vi.mock("next/navigation", () => ({
   useRouter: vi.fn(() => ({
@@ -22,18 +23,15 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("next/image", () => ({
-  default: (props: any) => {
-    const { priority, ...rest } = props;
-    return <img {...rest} alt={rest.alt || ""} />;
+  default: (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
+    return <img {...props} alt={props.alt || ""} />;
   },
 }));
 
 vi.mock("next/link", () => ({
-  default: ({ children, href, ...props }: any) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
+  default: (
+    props: React.AnchorHTMLAttributes<HTMLAnchorElement> & { children?: React.ReactNode }
+  ) => <a {...props}>{props.children}</a>,
 }));
 
 function AllProviders({ children }: { children: React.ReactNode }) {

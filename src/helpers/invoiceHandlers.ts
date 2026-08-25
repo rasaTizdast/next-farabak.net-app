@@ -26,7 +26,9 @@ export const addNewInvoice = async (invoice: Invoice, user: UserType | null) => 
   } catch (error: unknown) {
     // Handle error and check for AxiosError structure
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "Error adding invoice");
+      throw new Error(
+        error.response?.data?.error || error.response?.data?.message || "Error adding invoice"
+      );
     } else if (error instanceof Error) {
       throw new Error(error.message || "Unknown error occurred while adding invoice");
     }
@@ -42,29 +44,33 @@ export const getUserInvoices = async () => {
 
     // Validate Invoice_Details structure in each invoice
     if (Array.isArray(res.data)) {
-      res.data.forEach((invoice: { Invoice_Details?: { Invoice_Details?: unknown }[] }, index: number) => {
-        if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
-          console.warn(`Invoice at index ${index} has invalid Invoice_Details`, invoice);
-        } else {
-          invoice.Invoice_Details.forEach(
-            (detail: { Invoice_Details?: unknown }, detailIndex: number) => {
-              if (!detail.Invoice_Details) {
-                console.warn(
-                  `Detail at index ${detailIndex} in invoice ${index} is missing Invoice_Details ID`,
-                  detail
-                );
+      res.data.forEach(
+        (invoice: { Invoice_Details?: { Invoice_Details?: unknown }[] }, index: number) => {
+          if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
+            console.warn(`Invoice at index ${index} has invalid Invoice_Details`, invoice);
+          } else {
+            invoice.Invoice_Details.forEach(
+              (detail: { Invoice_Details?: unknown }, detailIndex: number) => {
+                if (!detail.Invoice_Details) {
+                  console.warn(
+                    `Detail at index ${detailIndex} in invoice ${index} is missing Invoice_Details ID`,
+                    detail
+                  );
+                }
               }
-            }
-          );
+            );
+          }
         }
-      });
+      );
     }
 
     return res.data;
   } catch (error: unknown) {
     // Handle error and check for AxiosError structure
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "Error fetching invoices");
+      throw new Error(
+        error.response?.data?.error || error.response?.data?.message || "Error fetching invoices"
+      );
     } else if (error instanceof Error) {
       throw new Error(error.message || "Unknown error occurred while fetching invoices");
     }
@@ -82,7 +88,9 @@ export const checkUserInvoice = async (guid: string) => {
   } catch (error: unknown) {
     // Handle error and check for AxiosError structure
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "Error checking invoice");
+      throw new Error(
+        error.response?.data?.error || error.response?.data?.message || "Error checking invoice"
+      );
     } else if (error instanceof Error) {
       throw new Error(error.message || "Unknown error occurred while checking invoice");
     }

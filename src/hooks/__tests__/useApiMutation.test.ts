@@ -1,6 +1,7 @@
-import { renderHook, waitFor, act } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, act } from "@testing-library/react";
 import axios from "axios";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { useApiMutation } from "../useApiMutation";
 
 vi.mock("axios");

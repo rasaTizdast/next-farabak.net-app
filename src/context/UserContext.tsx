@@ -74,7 +74,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isBranch = user?.role.toLowerCase() === "branch";
   const userFullName = `${user?.firstName || ""} ${user?.lastName || ""}`;
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
     updateUserContext();
   }, []);

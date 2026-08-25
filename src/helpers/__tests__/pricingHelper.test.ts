@@ -5,12 +5,11 @@ import {
   formatPriceForSchema,
   getPriceRangeForSchema,
 } from "../pricingHelper";
+import { fetchUsdToRialRate } from "../Usd2RialRate";
 
 vi.mock("../Usd2RialRate", () => ({
   fetchUsdToRialRate: vi.fn(),
 }));
-
-import { fetchUsdToRialRate } from "../Usd2RialRate";
 
 describe("calculateProductPricing", () => {
   beforeEach(() => {

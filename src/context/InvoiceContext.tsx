@@ -181,7 +181,7 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
         clearTimeout(debounceSaveTimerRef.current);
       }
     };
-  }, [invoice, debounceSaveInvoice]);
+  }, [invoice, debounceSaveInvoice, clearInvoiceCookieRef]);
 
   // Listen for changes from other tabs/windows
   useEffect(() => {

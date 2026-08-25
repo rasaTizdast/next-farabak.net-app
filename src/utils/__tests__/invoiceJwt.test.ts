@@ -1,4 +1,6 @@
+import { SignJWT, jwtVerify } from "jose";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { signInvoiceData, verifyInvoiceData, type InvoiceData } from "../invoiceJwt";
 
 vi.mock("jose", () => {
@@ -19,8 +21,6 @@ vi.mock("jose", () => {
     jwtVerify: vi.fn(),
   };
 });
-
-import { SignJWT, jwtVerify } from "jose";
 
 const mockJwtVerify = vi.mocked(jwtVerify);
 

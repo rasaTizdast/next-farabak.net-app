@@ -28,8 +28,15 @@ async function executeApiFetch<T>(
     }
     setData(response.data);
   } catch (e: unknown) {
-    const error = e as { response?: { data?: { message?: string } }; message?: string };
-    const message = error?.response?.data?.message || error?.message || "خطا در دریافت اطلاعات";
+    const error = e as {
+      response?: { data?: { error?: string; message?: string } };
+      message?: string;
+    };
+    const message =
+      error?.response?.data?.error ||
+      error?.response?.data?.message ||
+      error?.message ||
+      "خطا در دریافت اطلاعات";
     setError(message);
     setData(null);
   } finally {
@@ -50,7 +57,6 @@ export function useApiFetch<T = unknown>(
     await executeApiFetch<T>(url, config, setData, setLoading, setError);
   }, [url, config]);
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
     if (fetchOnMount) fetchData();
   }, [fetchData, fetchOnMount]);

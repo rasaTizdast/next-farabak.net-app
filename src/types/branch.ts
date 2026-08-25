@@ -11,4 +11,4 @@ export interface CreateBranchRequest {
   userId: string;
 }
 
-export interface UpdateBranchRequest extends Partial<CreateBranchRequest> {}
+export type UpdateBranchRequest = Partial<CreateBranchRequest>;

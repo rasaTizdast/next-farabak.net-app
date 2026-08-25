@@ -23,8 +23,15 @@ async function executeMutation<TResponse, TData>(
     }
     return response.data as TResponse;
   } catch (e: unknown) {
-    const error = e as { response?: { data?: { message?: string } }; message?: string };
-    const message = error?.response?.data?.message || error?.message || "خطا در عملیات";
+    const error = e as {
+      response?: { data?: { error?: string; message?: string } };
+      message?: string;
+    };
+    const message =
+      error?.response?.data?.error ||
+      error?.response?.data?.message ||
+      error?.message ||
+      "خطا در عملیات";
     setError(message);
     return null;
   } finally {
@@ -32,7 +39,7 @@ async function executeMutation<TResponse, TData>(
   }
 }
 
-type UseApiMutationResult<TBody, TResponse> = {
+export type UseApiMutationResult<TBody, TResponse> = {
   mutate: TBody extends undefined
     ? (url: string) => Promise<TResponse | null>
     : (url: string, data?: TBody) => Promise<TResponse | null>;
@@ -55,5 +62,10 @@ export function useApiMutation<TBody = unknown, TResponse = unknown>(
     return executeMutation<TResponse, TBody>(method, url, data, setLoading, setError);
   };
 
-  return { mutate: mutate as unknown as UseApiMutationResult<TBody, TResponse>["mutate"], loading, error, reset };
+  return {
+    mutate: mutate as unknown as UseApiMutationResult<TBody, TResponse>["mutate"],
+    loading,
+    error,
+    reset,
+  };
 }

@@ -2,6 +2,8 @@ import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { unauthorizedResponse } from "./api-response";
+
 const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
@@ -33,9 +35,7 @@ export async function verifyToken(token: string | undefined): Promise<AuthUser> 
  * Extract and verify a JWT from a raw cookie header string.
  * Use this when you have the full "cookie" header value.
  */
-export async function verifyTokenFromCookieHeader(
-  cookieHeader: string | null
-): Promise<AuthUser> {
+export async function verifyTokenFromCookieHeader(cookieHeader: string | null): Promise<AuthUser> {
   if (!cookieHeader) {
     throw new Error("No cookies provided");
   }
@@ -69,11 +69,11 @@ export async function requireAuth(): Promise<AuthUser | NextResponse> {
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+      return unauthorizedResponse("Unauthorized");
     }
 
     return await verifyToken(token);
   } catch {
-    return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    return unauthorizedResponse("Unauthorized");
   }
 }

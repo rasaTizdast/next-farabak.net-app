@@ -4,10 +4,8 @@ export function persianToEnglishDigits(str: string): string {
   return str.replace(/[۰-۹]/g, (d) => persianDigits.indexOf(d).toString());
 }
 
-export function englishToPersianDigits(str: string): string {
-  return str.replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d)]);
-}
-
+export function formatDateToISOString(date: Date | null): string | null;
+export function formatDateToISOString(date: Date): string;
 export function formatDateToISOString(date: Date | null): string | null {
   if (!date) return null;
   const tehranDate = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Tehran" }));

@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import { formatTitle } from "../formatTitle";
 
 describe("formatTitle", () => {
@@ -12,7 +13,6 @@ describe("formatTitle", () => {
   it("truncates title exceeding max limit and adds ellipsis", () => {
     const longTitle = "A".repeat(100);
     const result = formatTitle(longTitle, 60);
-    const maxContent = 60 - suffix.length;
     expect(result.length).toBe(60);
     expect(result).toContain("...");
     expect(result.endsWith(suffix)).toBe(true);

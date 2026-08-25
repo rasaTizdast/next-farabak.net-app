@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import {
   signUpSchema,
   signInSchema,
@@ -111,7 +112,9 @@ describe("signInSchema", () => {
 
 describe("forgotPasswordSchema", () => {
   it("validates correct email", async () => {
-    await expect(forgotPasswordSchema.validate({ email: "testuser@example.com" })).resolves.toBeDefined();
+    await expect(
+      forgotPasswordSchema.validate({ email: "testuser@example.com" })
+    ).resolves.toBeDefined();
   });
 
   it("rejects invalid email", async () => {

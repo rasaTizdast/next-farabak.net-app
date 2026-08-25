@@ -5,7 +5,6 @@ const INVOICE_SECRET = process.env.JWT_SECRET;
 if (!INVOICE_SECRET) {
   throw new Error("Missing JWT_SECRET environment variable");
 }
-const COOKIE_NAME = "invoiceData";
 
 // Interface for invoice data
 export interface InvoiceData {

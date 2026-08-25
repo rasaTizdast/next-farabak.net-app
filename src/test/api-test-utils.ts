@@ -4,17 +4,17 @@ import { vi } from "vitest";
 export interface ApiTestContext {
   mockCookieStore: Map<string, string>;
   mockJwtVerify: ReturnType<typeof vi.fn>;
-  mockPrisma: Record<string, any>;
-  setupAuth: (role?: string, overrides?: Record<string, any>) => void;
+  mockPrisma: Record<string, unknown>;
+  setupAuth: (role?: string, overrides?: Record<string, unknown>) => void;
   resetAll: () => void;
   mockNextHeaders: () => {
     cookies: ReturnType<typeof vi.fn>;
   };
   mockJose: () => {
-    jwtVerify: (...args: any[]) => ReturnType<typeof vi.fn>;
+    jwtVerify: (...args: unknown[]) => ReturnType<typeof vi.fn>;
   };
   mockPrismaModule: () => {
-    prisma: Record<string, any>;
+    prisma: Record<string, unknown>;
   };
 }
 
@@ -22,9 +22,7 @@ export interface ApiTestContext {
  * Creates a reusable test context for Next.js API route tests.
  * Handles mocking next/headers (cookies), jose (jwtVerify), and @/lib/prisma.
  */
-export function createApiTestContext(
-  prismaModels: Record<string, any> = {}
-): ApiTestContext {
+export function createApiTestContext(prismaModels: Record<string, unknown> = {}): ApiTestContext {
   const mockCookieStore = new Map<string, string>();
   const mockJwtVerify = vi.fn();
   const mockPrisma = prismaModels;
@@ -34,7 +32,7 @@ export function createApiTestContext(
     mockJwtVerify,
     mockPrisma,
 
-    setupAuth(role = "Admin", overrides: Record<string, any> = {}) {
+    setupAuth(role = "Admin", overrides: Record<string, unknown> = {}) {
       mockCookieStore.set("accessToken", "valid-token");
       mockJwtVerify.mockResolvedValue({
         payload: {
@@ -64,13 +62,13 @@ export function createApiTestContext(
 
     mockJose() {
       return {
-        jwtVerify: (...args: any[]) => mockJwtVerify(...args),
+        jwtVerify: (...args: unknown[]) => mockJwtVerify(...args),
       };
     },
 
     mockPrismaModule() {
       return {
-        prisma: mockPrisma,
+        prisma: mockPrisma as Record<string, unknown>,
       };
     },
   };
@@ -82,7 +80,7 @@ export function createApiTestContext(
 export function makeApiRequest(
   method: string,
   url: string,
-  body?: any,
+  body?: unknown,
   headers?: Record<string, string>
 ): NextRequest {
   return new NextRequest(url, {
