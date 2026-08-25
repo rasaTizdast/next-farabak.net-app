@@ -19,7 +19,6 @@ interface TipTapEditorProps {
 export function TipTapEditor({
   content,
   onChange,
-  placeholder = "محتوا را وارد کنید...",
   editable = true,
   showImageUpload = true,
   showVideoEmbed = false,
@@ -65,11 +64,7 @@ export function TipTapEditor({
     if (!editor) return;
     const url = prompt("آدرس ویدیو را وارد کنید:");
     if (url) {
-      editor
-        .chain()
-        .focus()
-        .insertContent(`<video src="${url}" controls></video>`)
-        .run();
+      editor.chain().focus().insertContent(`<video src="${url}" controls></video>`).run();
     }
   }, [editor]);
 
@@ -84,10 +79,7 @@ export function TipTapEditor({
         showImageUpload={showImageUpload}
         showVideoEmbed={showVideoEmbed}
       />
-      <EditorContent
-        editor={editor}
-        className="prose prose-sm max-w-none p-4"
-      />
+      <EditorContent editor={editor} className="prose prose-sm max-w-none p-4" />
     </div>
   );
 }

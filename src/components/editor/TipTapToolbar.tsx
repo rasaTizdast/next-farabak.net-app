@@ -17,12 +17,9 @@ import {
   Redo,
   Code,
   Pilcrow,
-  Heading4,
-  Heading5,
-  Heading6,
-  Table as TableIcon,
   Video,
 } from "lucide-react";
+import type { ReactNode } from "react";
 
 interface TipTapToolbarProps {
   editor: Editor;
@@ -32,24 +29,18 @@ interface TipTapToolbarProps {
   showVideoEmbed?: boolean;
 }
 
-export function TipTapToolbar({
-  editor,
-  onImageUpload,
-  onVideoEmbed,
-  showImageUpload = true,
-  showVideoEmbed = false,
-}: TipTapToolbarProps) {
-  const ToolbarButton = ({
-    onClick,
-    isActive,
-    children,
-    title,
-  }: {
-    onClick: () => void;
-    isActive: boolean;
-    children: React.ReactNode;
-    title: string;
-  }) => (
+function ToolbarButton({
+  onClick,
+  isActive,
+  children,
+  title,
+}: {
+  onClick: () => void;
+  isActive: boolean;
+  children: ReactNode;
+  title: string;
+}) {
+  return (
     <button
       type="button"
       onClick={onClick}
@@ -61,13 +52,29 @@ export function TipTapToolbar({
       {children}
     </button>
   );
+}
 
+export function TipTapToolbar({
+  editor,
+  onImageUpload,
+  onVideoEmbed,
+  showImageUpload = true,
+  showVideoEmbed = false,
+}: TipTapToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-1 border-b border-gray-200 p-2">
-      <ToolbarButton onClick={() => editor.chain().focus().undo().run()} isActive={false} title="Undo">
+      <ToolbarButton
+        onClick={() => editor.chain().focus().undo().run()}
+        isActive={false}
+        title="Undo"
+      >
         <Undo size={18} />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().redo().run()} isActive={false} title="Redo">
+      <ToolbarButton
+        onClick={() => editor.chain().focus().redo().run()}
+        isActive={false}
+        title="Redo"
+      >
         <Redo size={18} />
       </ToolbarButton>
       <div className="mx-1 h-6 w-px bg-gray-300" />
@@ -167,7 +174,13 @@ export function TipTapToolbar({
       </ToolbarButton>
       <div className="mx-1 h-6 w-px bg-gray-300" />
       <ToolbarButton
-        onClick={() => editor.chain().focus().toggleLink({ href: prompt("URL:") || "" }).run()}
+        onClick={() =>
+          editor
+            .chain()
+            .focus()
+            .toggleLink({ href: prompt("URL:") || "" })
+            .run()
+        }
         isActive={editor.isActive("link")}
         title="Link"
       >

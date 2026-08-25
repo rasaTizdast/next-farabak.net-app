@@ -1,5 +1,5 @@
+import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
 vi.mock("react-hot-toast", () => ({
   default: { success: vi.fn(), error: vi.fn() },
@@ -19,9 +19,9 @@ vi.mock("@/utils/jalaliDate", () => ({
   formatJalaliDate: vi.fn(() => "۱۴۰۳/۰۱/۰۱"),
 }));
 
-import FaqManager from "../FaqManager";
 import { useApiFetch } from "@/hooks/useApiFetch";
-import { useApiMutation } from "@/hooks/useApiMutation";
+
+import FaqManager from "../FaqManager";
 
 const mockUseApiFetch = vi.mocked(useApiFetch);
 
@@ -96,9 +96,7 @@ describe("FaqManager", () => {
   it("shows unavailable badge for inactive FAQs", () => {
     mockUseApiFetch.mockReturnValue({
       data: {
-        faqs: [
-          { id: 1, question: "Q1", answer: "A1", order: 0, available: false },
-        ],
+        faqs: [{ id: 1, question: "Q1", answer: "A1", order: 0, available: false }],
       },
       loading: false,
       refetch: vi.fn(),

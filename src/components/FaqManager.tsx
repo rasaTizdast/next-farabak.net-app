@@ -76,7 +76,10 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
     loading: isLoading,
     refetch: fetchFaqs,
   } = useApiFetch<any>(blogId ? `/api/blogs/manage/${blogId}/faqs` : null);
-  const { mutate: createFaq } = useApiMutation<{ question: string; answer: string; order: number; available: boolean }, { faq: FaqItem }>("post");
+  const { mutate: createFaq } = useApiMutation<
+    { question: string; answer: string; order: number; available: boolean },
+    { faq: FaqItem }
+  >("post");
   const { mutate: updateFaq } = useApiMutation<FaqItem, UpdateFaqResponse>("put");
   const { mutate: deleteFaq } = useApiMutation<undefined, { success: boolean }>("delete");
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
@@ -90,6 +93,7 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
   useEffect(() => {
     if (faqsData) {
       const items = faqsData.faqs || [];
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync local editable FAQs state from fetched data.
       setFaqs(items);
     }
   }, [faqsData]);
@@ -281,10 +285,10 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
           ) : (
             faqs
               .toSorted((a, b) => a.order - b.order)
-              .map((faq, index) => (
+              .map((faq) => (
                 <div
                   key={faq.id}
-                  className={`cursor-move rounded-lg bg-gray-700 p-4 transition-all duration-200 ${
+                  className={`cursor-move rounded-lg bg-gray-700 p-4 transition-[background-color,box-shadow,transform,opacity] duration-200 ${
                     draggedItem === faq.id
                       ? "scale-95 opacity-50 shadow-lg"
                       : "hover:bg-gray-600 hover:shadow-md"

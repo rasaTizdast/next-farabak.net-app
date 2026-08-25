@@ -3,7 +3,8 @@
 import { Input } from "antd";
 import { Search } from "lucide-react";
 import { useState } from "react";
-import { Accordion } from "@/components/ui/Accordion";
+
+import { Accordion } from "@/components/ui/ItemsAccordion";
 import "./faq.css";
 
 export interface FaqItem {

@@ -9,23 +9,23 @@
 
 /* Make sure the placeholder text is right-aligned in RTL */
 .faq-search-container .ant-input::placeholder {
-  text-align: right;
+  text-align: start;
 }
 
 /* Ensure RTL input behavior */
 .faq-search-container .ant-input-affix-wrapper input {
   direction: rtl;
-  text-align: right;
+  text-align: start;
 }
 
 /* Fix the prefix icon position */
 .faq-search-container .ant-input-affix-wrapper .ant-input-prefix {
-  margin-right: 0;
-  margin-left: 8px;
+  margin-inline-end: 0;
+  margin-inline-start: 8px;
 }
 
 /* Make sure the clear button appears properly */
 .faq-search-container .ant-input-clear-icon {
-  right: auto;
-  left: 8px;
+  inset-inline-end: auto;
+  inset-inline-start: 8px;
 }

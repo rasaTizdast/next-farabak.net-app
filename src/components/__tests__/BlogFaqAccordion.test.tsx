@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+
 import BlogFaqAccordion from "../BlogFaqAccordion";
 
 const mockFaqs = [
@@ -9,25 +10,19 @@ const mockFaqs = [
 
 describe("BlogFaqAccordion", () => {
   it("renders FAQ questions", () => {
-    render(
-      <BlogFaqAccordion faqs={mockFaqs} blogTitle="Test Blog" blogSlug="test-blog" />
-    );
+    render(<BlogFaqAccordion faqs={mockFaqs} blogTitle="Test Blog" blogSlug="test-blog" />);
     expect(screen.getByText("Blog question 1?")).toBeDefined();
     expect(screen.getByText("Blog question 2?")).toBeDefined();
   });
 
   it("shows answer when clicked", () => {
-    render(
-      <BlogFaqAccordion faqs={mockFaqs} blogTitle="Test Blog" blogSlug="test-blog" />
-    );
+    render(<BlogFaqAccordion faqs={mockFaqs} blogTitle="Test Blog" blogSlug="test-blog" />);
     fireEvent.click(screen.getByText("Blog question 1?"));
     expect(screen.getByText("Blog answer 1.")).toBeDefined();
   });
 
   it("hides answer when clicked again", () => {
-    render(
-      <BlogFaqAccordion faqs={mockFaqs} blogTitle="Test Blog" blogSlug="test-blog" />
-    );
+    render(<BlogFaqAccordion faqs={mockFaqs} blogTitle="Test Blog" blogSlug="test-blog" />);
     fireEvent.click(screen.getByText("Blog question 1?"));
     expect(screen.getByText("Blog answer 1.")).toBeDefined();
     fireEvent.click(screen.getByText("Blog question 1?"));

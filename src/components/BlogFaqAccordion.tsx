@@ -4,7 +4,8 @@ import { Input } from "antd";
 import { Search } from "lucide-react";
 import Script from "next/script";
 import { useState } from "react";
-import { Accordion } from "@/components/ui/Accordion";
+
+import { Accordion } from "@/components/ui/ItemsAccordion";
 
 export interface BlogFaqItem {
   id: number;
@@ -103,9 +104,7 @@ const BlogFaqAccordion = ({
                 </h3>
               ),
               renderContent: (item) => (
-                <p className="text-sm leading-relaxed text-gray-700 md:text-base">
-                  {item.answer}
-                </p>
+                <p className="text-sm leading-relaxed text-gray-700 md:text-base">{item.answer}</p>
               ),
             }))}
           />
