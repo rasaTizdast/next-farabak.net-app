@@ -5,6 +5,7 @@ import localFont from "next/font/local";
 import Script from "next/script";
 import { Suspense } from "react";
 
+import { defaultMetadata } from "@/constants/meta";
 import { InvoiceProvider } from "@/context/InvoiceContext";
 import { UserProvider } from "@/context/UserContext";
 
@@ -21,16 +22,7 @@ const iranYekanFont = localFont({
   fallback: ["system-ui", "arial"], // Fallback fonts
 });
 
-export const metadata: Metadata = {
-  title: "خرید محصولات نظارتی و امنیتی با گارانتی معتبر | فرابک",
-  description:
-    "فرابک ارائه‌دهنده انواع محصولات نظارتی و امنیتی شامل دوربین مداربسته ریولینک با گارانتی معتبر، تضمین اصالت کالا و خدمات پس از فروش حرفه‌ای.",
-  openGraph: {
-    title: "خرید محصولات نظارتی و امنیتی با گارانتی معتبر | فرابک",
-    description:
-      "فرابک ارائه‌دهنده انواع محصولات نظارتی و امنیتی شامل دوربین مداربسته ریولینک با گارانتی معتبر، تضمین اصالت کالا و خدمات پس از فروش حرفه‌ای.",
-  },
-};
+export const metadata: Metadata = defaultMetadata;
 
 export default function RootLayout({
   children,

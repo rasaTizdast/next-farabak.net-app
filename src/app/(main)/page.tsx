@@ -3,6 +3,8 @@ export const dynamic = "force-dynamic";
 import { Metadata } from "next";
 import dynamicImport from "next/dynamic";
 
+import Schema from "@/components/Schema";
+
 // Dynamic imports for better performance
 const ImageSlider = dynamicImport(() => import("../_components/imageSlider/ImageSlider"), {
   loading: () => <div className="h-48 bg-gray-100" />,
@@ -228,19 +230,14 @@ const jsonLd = {
   ],
 };
 
-const jsonLdString = JSON.stringify(jsonLd);
-
 const HomePage = async () => {
   const sliderLinks = await fetchSliderLinks();
 
   return (
     <>
       {/* Server-rendered JSON-LD so AI crawlers see structured data without JavaScript */}
-      <script
-        id="json-ld"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLdString }}
-      />
+      <Schema id="json-ld" data={jsonLd} />
+
       <div>
         <div className="sr-only">
           <h1>خرید محصولات نظارتی و امنیتی با گارانتی معتبر | فرابک</h1>
