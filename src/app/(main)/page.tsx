@@ -2,6 +2,9 @@ import { Metadata } from "next";
 import dynamicImport from "next/dynamic";
 
 import Schema from "@/components/Schema";
+import { prisma } from "@/lib/prisma";
+
+export const revalidate = 60;
 
 /* Skeleton fallbacks sized to match each section's real rendered height
    (slider aspect 1920x900; content sections use py-12 + heading + cards)
@@ -77,13 +80,7 @@ export const generateMetadata = async (): Promise<Metadata> => {
 
 async function fetchSliderLinks() {
   try {
-    const response = await fetch(`${process.env.BASE_URL}/api/landingPage/sliders`, {
-      next: { revalidate: 300 },
-    });
-
-    if (!response.ok) return [];
-
-    const sliders = await response.json();
+    const sliders = await prisma.sliders.findMany();
 
     return sliders.map((slider: slider) => ({
       id: slider.id,

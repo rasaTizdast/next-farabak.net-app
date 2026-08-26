@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { prisma } from "@/lib/prisma";
+
 async function getProjects(): Promise<
   {
     id: number;
@@ -13,15 +15,28 @@ async function getProjects(): Promise<
   }[]
 > {
   try {
-    const response = await fetch(`${process.env.BASE_URL}/api/projects`, {
-      next: { revalidate: 300 },
+    const projects = await prisma.projects.findMany({
+      where: { IsActive: true },
+      select: {
+        ProjectID: true,
+        Title: true,
+        Description: true,
+        Main_img_URL: true,
+        date: true,
+        city: true,
+        Slug: true,
+      },
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch projects");
-    }
-
-    return await response.json();
+    return projects.map((project) => ({
+      id: project.ProjectID,
+      title: project.Title,
+      smallDesc: project.Description,
+      mainImg: project.Main_img_URL,
+      date: project.date,
+      location: project.city,
+      slug: project.Slug,
+    }));
   } catch (error) {
     console.error("Error fetching projects:", error);
     return [];

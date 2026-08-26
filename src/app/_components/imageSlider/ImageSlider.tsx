@@ -79,13 +79,15 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
             key={slide.id}
             className="relative w-full flex-shrink-0"
           >
-            {/* Skeleton Loader */}
-            {!imageLoaded[index] && <div className="absolute inset-0 bg-gray-100"></div>}
+            {/* Skeleton Loader (skip for priority first slide so LCP paints immediately) */}
+            {!imageLoaded[index] && index !== 0 && (
+              <div className="absolute inset-0 bg-gray-100"></div>
+            )}
 
             {/* Image */}
             <Image
               className={`w-full transition-opacity duration-500 ${
-                imageLoaded[index] ? "opacity-100" : "opacity-0"
+                index === 0 || imageLoaded[index] ? "opacity-100" : "opacity-0"
               }`}
               src={slide.img}
               alt={slide.alt}

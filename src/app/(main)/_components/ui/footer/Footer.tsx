@@ -2,17 +2,14 @@ import Link from "next/link";
 import { BsFillSignpostSplitFill } from "react-icons/bs";
 import { FaInstagram, FaPhoneSquare, FaWhatsapp } from "react-icons/fa";
 
+import { prisma } from "@/lib/prisma";
+
 const Footer = async () => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/contact-us`, {
-    next: { revalidate: 3600 },
-  });
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
-  }
-  const { phone_numbers, address } = (await response.json()) as {
-    phone_numbers: { id: string; number: string }[];
-    address: { address: string; postal_code: string } | null;
-  };
+  const [address, phones] = await Promise.all([
+    prisma.address.findFirst(),
+    prisma.phone_numbers.findMany(),
+  ]);
+  const phone_numbers = phones.filter((phone) => phone.number && phone.number.trim() !== "");
 
   return (
     <footer className="flex w-full justify-center bg-[#000814] px-[10rem] py-12 text-[#cecece] md:px-[6rem] md:py-4 lg:px-[4rem] xl:px-[3rem] 2xl:px-[1.5rem]">
