@@ -1,5 +1,3 @@
-import { ConfigProvider } from "antd";
-import faIR from "antd/locale/fa_IR";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Script from "next/script";
@@ -58,44 +56,14 @@ export default function RootLayout({
         </Script>
       </head>
       <body className={`${iranYekanFont.variable}`}>
-        <ConfigProvider
-          locale={faIR}
-          theme={{
-            token: {
-              colorPrimary: "#00bfff",
-              colorLink: "#00bfff",
-              colorLinkHover: "#318ce7",
-              colorSuccess: "#52c41a",
-              colorWarning: "#faad14",
-              colorError: "#ff4d4f",
-              fontFamily: "var(--font-iran-yekan), system-ui, arial",
-              borderRadius: 8,
-            },
-            components: {
-              Table: {
-                headerBg: "#003262",
-                headerColor: "#ffffff",
-                rowHoverBg: "#f0f9ff",
-              },
-              Button: {
-                primaryShadow: "0 2px 0 rgba(0,191,255,0.3)",
-              },
-              Modal: {
-                contentBg: "#ffffff",
-                headerBg: "#ffffff",
-              },
-            },
-          }}
-        >
-          <UserProvider>
-            <InvoiceProvider>
-              {children}
-              <Suspense fallback={null}>
-                <AnalyticsProvider />
-              </Suspense>
-            </InvoiceProvider>
-          </UserProvider>
-        </ConfigProvider>
+        <UserProvider>
+          <InvoiceProvider>
+            {children}
+            <Suspense fallback={null}>
+              <AnalyticsProvider />
+            </Suspense>
+          </InvoiceProvider>
+        </UserProvider>
       </body>
     </html>
   );

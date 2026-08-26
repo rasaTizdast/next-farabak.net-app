@@ -1,7 +1,6 @@
 "use client";
 
-import { Input } from "antd";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useState } from "react";
 
 import { Accordion } from "@/components/ui/ItemsAccordion";
@@ -46,15 +45,26 @@ const FaqAccordion = ({ faqs, className = "" }: FaqAccordionProps) => {
     <div className={`mx-auto w-full max-w-3xl ${className}`}>
       <div className="relative mb-6 md:mb-8">
         <div className="faq-search-container relative">
-          <Input
-            placeholder="جستجو در سوالات متداول..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="faq-search-input rounded-lg border border-gray-200 px-2 py-1.5 text-right text-sm shadow-sm hover:border-gray-300 focus:border-blue-500 md:px-4 md:py-2.5 md:text-base"
-            style={{ fontFamily: "inherit" }}
-            prefix={<Search className="mr-1 h-3.5 w-3.5 text-blue-500 md:h-4 md:w-4" />}
-            allowClear
-          />
+          <div className="relative">
+            <Search className="pointer-events-none absolute top-1/2 right-3 h-3.5 w-3.5 -translate-y-1/2 text-blue-500 md:h-4 md:w-4" />
+            <input
+              type="text"
+              placeholder="جستجو در سوالات متداول..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="faq-search-input w-full rounded-lg border border-gray-200 py-1.5 pr-9 pl-8 text-right text-sm shadow-sm transition-colors hover:border-gray-300 focus:border-blue-500 focus:outline-none md:py-2.5 md:text-base"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                aria-label="پاک کردن جستجو"
+                onClick={() => setSearchQuery("")}
+                className="absolute top-1/2 left-2 -translate-y-1/2 cursor-pointer rounded-full p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
           <div className="absolute -bottom-2 left-1/2 h-0.5 w-12 -translate-x-1/2 transform rounded-full bg-blue-500 md:-bottom-4 md:w-16"></div>
         </div>
       </div>
