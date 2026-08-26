@@ -27,7 +27,16 @@ CLS-free section loading. Targets: LCP < 2.5s, INP < 200ms, CLS < 0.1.
 ### 0. Baseline Measurement
 
 - **Skill**: `core-web-vitals`
-- **Action**: Run Lighthouse (mobile) on `/`, `/products`, one product detail page, one blog post. Record LCP/TBT/CLS/transfer sizes as the baseline in this file.
+- **Action**: Local prod build (`next build && next start`), measured 2026-08-26:
+
+| Route          | Status    | Total time (cold) | HTML size | Cache-Control |
+| -------------- | --------- | ----------------- | --------- | ------------- |
+| `/`            | ƒ dynamic | 2168 ms           | 215 KB    | `no-store`    |
+| `/products`    | ƒ dynamic | 7320 ms           | 404 KB    | `no-store`    |
+| `/support/faq` | ƒ dynamic | 1135 ms           | 142 KB    | `no-store`    |
+
+Route table: every public `(main)` route is dynamic; only admin/auth are static.
+
 - **Deliverable**: Numbers to compare each change against.
 
 ### 1. Remove `force-dynamic` from the homepage
@@ -81,6 +90,20 @@ CLS-free section loading. Targets: LCP < 2.5s, INP < 200ms, CLS < 0.1.
 | Measurement        | Local production build (`next build && next start`)                           |
 | Branch             | Work directly on `Development`, atomic commits                                |
 | PPR                | Struck; separate dormant plan written                                         |
+
+## Results (after items 1–5, measured 2026-08-26)
+
+| Route          | Before                            | After                            | Cache-Control before → after                        |
+| -------------- | --------------------------------- | -------------------------------- | --------------------------------------------------- |
+| `/`            | ƒ dynamic · 2168 ms · 215 KB HTML | ○ ISR (5m) · **387 ms** · 169 KB | `no-store` → `s-maxage=300, stale-while-revalidate` |
+| `/support/faq` | 1135 ms                           | 649 ms                           | unchanged (still dynamic — future item)             |
+| `/products`    | 7320 ms                           | 4967 ms                          | unchanged (still dynamic — future item)             |
+
+- Homepage client bundle: 18 chunks scanned, zero antd/cssinjs markers.
+- `npm run build` green; lint green; tests: 1038/1039 pass (1 pre-existing
+  failure in `agentReadiness.test.ts`, unrelated to this plan).
+- Remaining follow-ups: extend force-dynamic removal to other public routes —
+  blocked on self-fetch architecture → `data-access-refactor-plan.md`.
 
 ## Verification
 
