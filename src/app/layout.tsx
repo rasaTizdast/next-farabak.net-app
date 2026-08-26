@@ -43,15 +43,6 @@ export default function RootLayout({
           </>
         )}
 
-        {/* Preload only essential font; load others via font-face to reduce FCP cost */}
-        <link
-          rel="preload"
-          href="/fonts/IRANYekanXVF.woff"
-          as="font"
-          type="font/woff"
-          crossOrigin="anonymous"
-        />
-
         {/* Google Analytics Script - lazy load to reduce TBT */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${process.env.GOOGLE_ANALYTICS_ID}`}
