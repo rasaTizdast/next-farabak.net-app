@@ -3,24 +3,45 @@ import dynamicImport from "next/dynamic";
 
 import Schema from "@/components/Schema";
 
+/* Skeleton fallbacks sized to match each section's real rendered height
+   (slider aspect 1920x900; content sections use py-12 + heading + cards)
+   so streaming them in causes minimal layout shift. */
+
+const SliderSkeleton = () => <div className="aspect-[1920/900] w-full bg-gray-100" />;
+
+const SectionSkeleton = ({ minHeight }: { minHeight: string }) => (
+  <div className="w-full px-4 py-12 md:px-[6rem] lg:px-[4rem] xl:px-[3rem] 2xl:px-[1.5rem]">
+    <div className="mb-12 flex justify-center">
+      <div className="h-10 w-40 animate-pulse rounded-md bg-gray-200" />
+    </div>
+    <div
+      className="mx-auto flex max-w-[calc(1900px-20rem)] animate-pulse gap-8"
+      style={{ minHeight }}
+    >
+      <div className="flex-1 rounded-lg bg-gray-100" />
+      <div className="hidden flex-1 rounded-lg bg-gray-100 md:block" />
+    </div>
+  </div>
+);
+
 // Dynamic imports for better performance
 const ImageSlider = dynamicImport(() => import("../_components/imageSlider/ImageSlider"), {
-  loading: () => <div className="h-48 bg-gray-100" />,
+  loading: () => <SliderSkeleton />,
 });
 
 const ProductsShowCase = dynamicImport(
   () => import("../_components/LandingPage/ProductsShowCase"),
   {
-    loading: () => <div className="h-48 bg-gray-100" />,
+    loading: () => <SectionSkeleton minHeight="560px" />,
   }
 );
 
 const ProjectsSection = dynamicImport(() => import("../_components/LandingPage/ProjectsSection"), {
-  loading: () => <div className="h-48 bg-gray-100" />,
+  loading: () => <SectionSkeleton minHeight="480px" />,
 });
 
 const SupportSection = dynamicImport(() => import("../_components/LandingPage/SupportSection"), {
-  loading: () => <div className="h-48 bg-gray-100" />,
+  loading: () => <SectionSkeleton minHeight="420px" />,
 });
 
 type slider = {
