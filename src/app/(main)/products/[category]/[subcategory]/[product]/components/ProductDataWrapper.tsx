@@ -252,7 +252,7 @@ export default async function ProductDataWrapper({
           alt={productData.Type}
           width={1340}
           height={780}
-          quality={100}
+          quality={75}
           priority
           className={styles.productImage}
         />

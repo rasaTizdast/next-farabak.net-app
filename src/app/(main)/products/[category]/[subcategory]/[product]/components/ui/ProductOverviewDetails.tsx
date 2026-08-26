@@ -46,7 +46,7 @@ function Overview({
         alt={title || "Product image"}
         width={1920}
         height={1080}
-        quality={100}
+        quality={75}
         loading="lazy"
         className={styles.overviewImage}
       />

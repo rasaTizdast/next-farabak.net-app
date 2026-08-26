@@ -214,7 +214,7 @@ export default async function BlogPage(props: {
             className="mx-auto mb-6 w-full rounded-lg object-cover lg:w-3/5"
             width={1200}
             height={630}
-            quality={100}
+            quality={75}
           />
           <div className="scrollbar-hide mb-4 overflow-x-auto rounded-lg bg-gray-100 p-2">
             <div className="mobile:text-base flex items-center gap-3 text-xs whitespace-nowrap text-gray-600">

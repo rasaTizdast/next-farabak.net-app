@@ -78,7 +78,7 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
                 <Image
                   width={300}
                   height={300}
-                  quality={100}
+                  quality={75}
                   src={`${process.env.LIARA_BUCKET_URL}/productImages/${product.img1}`}
                   alt={product.Type}
                   loading="eager"

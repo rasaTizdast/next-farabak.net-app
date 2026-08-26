@@ -23,7 +23,7 @@ const Card = ({ data: { slug, name, role, img } }: CardProps) => {
           alt={name}
           width={200}
           height={150}
-          quality={100}
+          quality={75}
           loading="lazy"
           className="rounded-lg"
         />

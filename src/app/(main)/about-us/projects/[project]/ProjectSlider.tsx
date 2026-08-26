@@ -59,7 +59,7 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
             alt={slide.alt}
             width={1920}
             height={900}
-            quality={100}
+            quality={75}
           />
         ))}
       </div>

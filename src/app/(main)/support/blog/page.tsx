@@ -95,7 +95,7 @@ const BlogContent = ({
             className="h-96 w-full rounded-lg object-cover"
             width={1920}
             height={1000}
-            quality={100}
+            quality={75}
             priority
           />
           <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black via-transparent to-transparent p-6 text-white">
@@ -146,7 +146,7 @@ const BlogContent = ({
                 className="h-48 w-full object-cover transition-transform hover:scale-110"
                 width={1920}
                 height={1000}
-                quality={100}
+                quality={75}
               />
             </div>
             <div className="p-5">

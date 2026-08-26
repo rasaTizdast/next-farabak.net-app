@@ -135,7 +135,7 @@ const Card = ({ data }: CardProps) => {
         alt={data.title}
         width={1000}
         height={700}
-        quality={100}
+        quality={75}
         className="h-[200px] w-full rounded-lg object-cover"
       />
       <h2 className="mt-4 mb-2 text-[1.1rem]">{data.title}</h2>

@@ -143,7 +143,7 @@ const SearchResults = ({
             <Image
               width={280}
               height={280}
-              quality={100}
+              quality={75}
               src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/productImages/${product.img1}`}
               alt={product.Slug!}
             />

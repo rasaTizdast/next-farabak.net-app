@@ -261,7 +261,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
             <Image
               width={260}
               height={260}
-              quality={100}
+              quality={75}
               src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/productImages/${product.img1 ?? ""}`}
               alt={product.Type}
               loading="lazy"

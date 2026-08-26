@@ -85,7 +85,7 @@ const MemberPage = async (props: Props) => {
               alt={name}
               width={400}
               height={300}
-              quality={100}
+              quality={75}
               className="h-[90%] w-full rounded-lg object-cover"
             />
           ) : (
