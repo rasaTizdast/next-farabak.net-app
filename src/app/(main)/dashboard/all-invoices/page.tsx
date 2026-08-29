@@ -267,7 +267,7 @@ const AllInvoices = () => {
         <div className="flex items-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="ml-2 h-6 w-6 flex-shrink-0"
+            className="ml-2 size-6 shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"

@@ -72,7 +72,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
     <div className="w-full">
       <Suspense
         fallback={
-          <h1 className="mb-8 border-b-2 border-dashed border-[#cecece] pb-6 text-start text-[24px] font-semibold">
+          <h1 className="mb-8 border-b-2 border-dashed border-[#cecece] pb-6 text-start text-2xl font-semibold">
             {title}
           </h1>
         }
@@ -83,7 +83,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
             return <BlogContent text={topBlog} as="h1" />;
           }
           return (
-            <h1 className="mb-8 border-b-2 border-dashed border-[#cecece] pb-6 text-start text-[24px] font-semibold">
+            <h1 className="mb-8 border-b-2 border-dashed border-[#cecece] pb-6 text-start text-2xl font-semibold">
               {title}
             </h1>
           );

@@ -129,7 +129,7 @@ const TableScrollWrapper = ({ htmlContent }: { htmlContent: string }) => {
 
   return (
     <div
-      className="[&_table]:m-0 [&_table_p]:m-0 [&_td]:border [&_td]:border-neutral-800 [&_td]:bg-blue-900/30 [&_td]:!px-0 [&_td]:py-3 [&_td]:text-right [&_td]:whitespace-nowrap [&_td]:text-neutral-300 [&_td_p]:px-2 [&_th]:border [&_th]:border-neutral-800 [&_th]:bg-blue-900/60 [&_th]:px-2 [&_th]:py-3 [&_th]:text-right [&_th]:font-semibold [&_th]:whitespace-nowrap [&_th]:text-neutral-100"
+      className="[&_table]:m-0 [&_table_p]:m-0 [&_td]:border [&_td]:border-neutral-800 [&_td]:bg-blue-900/30 [&_td]:px-0! [&_td]:py-3 [&_td]:text-right [&_td]:whitespace-nowrap [&_td]:text-neutral-300 [&_td_p]:px-2 [&_th]:border [&_th]:border-neutral-800 [&_th]:bg-blue-900/60 [&_th]:px-2 [&_th]:py-3 [&_th]:text-right [&_th]:font-semibold [&_th]:whitespace-nowrap [&_th]:text-neutral-100"
       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(wrappedContent) }}
     />
   );
@@ -153,7 +153,7 @@ const BlogContent = async ({ html, text }: BlogContentProps) => {
     <section className="mx-auto mb-5 w-full rounded-xl border border-gray-900 bg-gray-800 p-3 shadow-sm backdrop-blur sm:p-5 md:p-7">
       <article
         dir="rtl"
-        className="prose prose-neutral prose-invert prose-headings:scroll-mt-24 prose-h1:text-2xl prose-h1:font-extrabold prose-h1:leading-tight prose-h2:mt-6 prose-h2:text-xl prose-h2:leading-tight prose-p:text-sm prose-p:leading-relaxed prose-a:inline-block prose-a:rounded-lg prose-a:border prose-a:border-blue-800/40 prose-a:bg-blue-900/30 prose-a:px-2 prose-a:py-1 prose-a:text-sm prose-a:text-blue-100 prose-a:no-underline prose-img:h-auto prose-img:max-w-full sm:prose-h1:text-3xl sm:prose-h2:mt-8 sm:prose-h2:text-2xl sm:prose-p:text-[15px] sm:prose-a:px-3 md:prose-p:text-base max-w-none overflow-hidden leading-relaxed break-words [word-break:break-word]"
+        className="prose prose-neutral prose-invert prose-headings:scroll-mt-24 prose-h1:text-2xl prose-h1:font-extrabold prose-h1:leading-tight prose-h2:mt-6 prose-h2:text-xl prose-h2:leading-tight prose-p:text-sm prose-p:leading-relaxed prose-a:inline-block prose-a:rounded-lg prose-a:border prose-a:border-blue-800/40 prose-a:bg-blue-900/30 prose-a:px-2 prose-a:py-1 prose-a:text-sm prose-a:text-blue-100 prose-a:no-underline prose-img:h-auto prose-img:max-w-full sm:prose-h1:text-3xl sm:prose-h2:mt-8 sm:prose-h2:text-2xl sm:prose-p:text-[15px] sm:prose-a:px-3 md:prose-p:text-base max-w-none overflow-hidden leading-relaxed wrap-break-word [word-break:break-word]"
       >
         {content}
       </article>

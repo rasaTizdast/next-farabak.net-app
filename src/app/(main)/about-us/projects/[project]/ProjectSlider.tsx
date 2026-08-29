@@ -41,7 +41,7 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
 
   return (
     <div
-      className="group relative m-auto h-auto max-h-[500px] w-full max-w-[calc(1900px-20rem)] overflow-hidden"
+      className="group relative m-auto h-auto max-h-[500px] w-full max-w-[1580px] overflow-hidden"
       onMouseEnter={() => setIsPaused(true)} // Pause autoplay on hover
       onMouseLeave={() => setIsPaused(false)} // Resume autoplay on mouse leave
     >
@@ -54,7 +54,7 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
         {slides.map((slide) => (
           <Image
             key={slide.id}
-            className="w-full flex-shrink-0 object-contain"
+            className="w-full shrink-0 object-contain"
             src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${slide.img}`}
             alt={slide.alt}
             width={1920}
@@ -67,7 +67,7 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
       <button
         type="button"
         onClick={prevSlide}
-        className="absolute top-[45.5%] left-5 hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
+        className="absolute top-[45.5%] left-5 hidden translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
         aria-label="اسلاید قبلی"
       >
         <BsChevronCompactLeft size={30} />
@@ -76,14 +76,14 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
       <button
         type="button"
         onClick={nextSlide}
-        className="absolute top-[45.5%] right-5 hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
+        className="absolute top-[45.5%] right-5 hidden translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
         aria-label="اسلاید بعدی"
       >
         <BsChevronCompactRight size={30} />
       </button>
 
       {/* Slider Pagination */}
-      <div className="absolute left-[50%] flex -translate-x-[50%] -translate-y-10 justify-center gap-1 rounded-tl-2xl rounded-tr-2xl bg-[#f0f0f0] px-2 py-1">
+      <div className="absolute left-[50%] flex translate-x-[-50%] -translate-y-10 justify-center gap-1 rounded-t-2xl bg-[#f0f0f0] px-2 py-1">
         {slides.map((slide, slideIndex) => (
           <button
             type="button"

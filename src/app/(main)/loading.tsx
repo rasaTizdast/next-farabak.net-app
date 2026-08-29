@@ -4,7 +4,7 @@ export default function MainLoading() {
       <div className="h-[400px] w-full rounded-xl bg-gray-200" />
       <div className="flex gap-4 overflow-hidden">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-48 w-64 flex-shrink-0 rounded-xl bg-gray-200" />
+          <div key={i} className="h-48 w-64 shrink-0 rounded-xl bg-gray-200" />
         ))}
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -98,7 +98,7 @@ const BlogContent = ({
             quality={75}
             priority
           />
-          <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black via-transparent to-transparent p-6 text-white">
+          <div className="absolute inset-0 flex flex-col justify-end bg-linear-to-t from-black via-transparent to-transparent p-6 text-white">
             <h2 className="mb-2 text-2xl font-bold md:text-3xl">{blogs.blogs[0].title}</h2>
             <p className="text-sm text-gray-300">
               تاریخ: {new Date(blogs.blogs[0].created_at).toLocaleDateString("fa-IR")}
@@ -117,7 +117,7 @@ const BlogContent = ({
             <Link
               key={category.id}
               href={`/support/blog/${category.slug}`}
-              className="group relative flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-l from-[#0e6aff] to-[#1e90ff] px-10 py-2 text-white shadow-lg transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-xl"
+              className="group relative flex items-center justify-center overflow-hidden rounded-xl bg-linear-to-l from-[#0e6aff] to-[#1e90ff] px-10 py-2 text-white shadow-lg transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-xl"
             >
               <span className="absolute inset-0 rounded-xl bg-white opacity-10 transition duration-300 group-hover:opacity-20"></span>
               <span className="relative z-10 flex items-center gap-2 text-lg font-medium text-white">

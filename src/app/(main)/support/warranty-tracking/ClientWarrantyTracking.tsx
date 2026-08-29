@@ -128,7 +128,7 @@ const StepIndicator = ({
             <div className={`h-0.5 flex-1 ${index <= current ? "bg-[#00bfff]" : "bg-gray-200"}`} />
           )}
           <div
-            className={`mx-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors ${
+            className={`mx-1 flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors ${
               index < current
                 ? "bg-[#00bfff] text-white"
                 : index === current
@@ -137,7 +137,7 @@ const StepIndicator = ({
             }`}
           >
             {index < current ? (
-              <CheckCircle2 className="h-5 w-5" />
+              <CheckCircle2 className="size-5" />
             ) : (
               new Intl.NumberFormat("fa-IR").format(index + 1)
             )}
@@ -273,14 +273,14 @@ const WarrantyTrackingPage = () => {
                       disabled={loading || !warrantyCode}
                       className={primaryButtonClass}
                     >
-                      {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "بررسی"}
+                      {loading ? <Loader2 className="size-5 animate-spin" /> : "بررسی"}
                     </button>
                   </div>
                 </form>
 
                 {error && (
                   <div className="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
-                    <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
+                    <XCircle className="mt-0.5 size-5 shrink-0 text-red-500" />
                     <div>
                       <div className="font-medium text-red-700">خطا در بررسی گارانتی</div>
                       <div className="text-sm text-red-600">{error}</div>
@@ -303,7 +303,7 @@ const WarrantyTrackingPage = () => {
                       {result.data.productType && (
                         <div className="sm:col-span-2">
                           <div className="flex items-center">
-                            <Tag className="ml-2 h-4 w-4 text-indigo-500" />
+                            <Tag className="ml-2 size-4 text-indigo-500" />
                             <div>
                               <div className="text-sm text-gray-500">نام محصول:</div>
                               <div className="font-medium">{result.data.productType}</div>
@@ -314,7 +314,7 @@ const WarrantyTrackingPage = () => {
 
                       <div>
                         <div className="flex items-center">
-                          <Calendar className="ml-2 h-4 w-4 text-blue-500" />
+                          <Calendar className="ml-2 size-4 text-blue-500" />
                           <div>
                             <div className="text-sm text-gray-500">تاریخ شروع:</div>
                             <div className="font-medium">{formatDate(result.data.startDate)}</div>
@@ -324,7 +324,7 @@ const WarrantyTrackingPage = () => {
 
                       <div>
                         <div className="flex items-center">
-                          <Calendar className="ml-2 h-4 w-4 text-purple-500" />
+                          <Calendar className="ml-2 size-4 text-purple-500" />
                           <div>
                             <div className="text-sm text-gray-500">تاریخ انقضا:</div>
                             <div className="font-medium">{formatDate(result.data.expiryDate)}</div>
@@ -342,17 +342,17 @@ const WarrantyTrackingPage = () => {
                         <div className="font-medium">
                           {result.data.status === "Active" && (
                             <span className="flex items-center text-green-600">
-                              <CheckCircle2 className="ml-1 h-4 w-4" /> فعال
+                              <CheckCircle2 className="ml-1 size-4" /> فعال
                             </span>
                           )}
                           {result.data.status === "Expired" && (
                             <span className="flex items-center text-red-500">
-                              <XCircle className="ml-1 h-4 w-4" /> منقضی شده
+                              <XCircle className="ml-1 size-4" /> منقضی شده
                             </span>
                           )}
                           {result.data.status === "Requested" && (
                             <span className="flex items-center text-amber-500">
-                              <Clock className="ml-1 h-4 w-4" /> درخواست بررسی
+                              <Clock className="ml-1 size-4" /> درخواست بررسی
                             </span>
                           )}
                         </div>
@@ -363,7 +363,7 @@ const WarrantyTrackingPage = () => {
 
                 <div className="mt-8 flex justify-between">
                   <button type="button" onClick={handleCancel} className={secondaryButtonClass}>
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="size-4" />
                     بازگشت
                   </button>
 
@@ -374,9 +374,9 @@ const WarrantyTrackingPage = () => {
                     className={`${primaryButtonClass} min-w-[180px]`}
                   >
                     {confirmLoading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <Loader2 className="size-5 animate-spin" />
                     ) : (
-                      <ArrowLeft className="h-4 w-4" />
+                      <ArrowLeft className="size-4" />
                     )}
                     تایید و ثبت درخواست
                   </button>
@@ -388,7 +388,7 @@ const WarrantyTrackingPage = () => {
               <div className="mt-6">
                 {result.status === "success" && (
                   <div className="py-6 text-center">
-                    <CheckCircle2 className="mx-auto mb-4 h-14 w-14 text-green-500" />
+                    <CheckCircle2 className="mx-auto mb-4 size-14 text-green-500" />
                     <h3 className="mb-2 text-xl font-semibold text-gray-900">
                       درخواست بررسی گارانتی با موفقیت ثبت شد
                     </h3>
@@ -400,11 +400,11 @@ const WarrantyTrackingPage = () => {
 
                       <div className="mt-8 flex flex-col items-center justify-center gap-2 rounded-lg bg-blue-100 p-4 md:flex-row md:gap-8">
                         <div className="flex items-center">
-                          <Phone className="ml-2 h-4 w-4 text-blue-500" />
+                          <Phone className="ml-2 size-4 text-blue-500" />
                           <span>در انتظار تماس کارشناسان</span>
                         </div>
                         <div className="flex items-center">
-                          <Clock className="ml-2 h-4 w-4 text-green-500" />
+                          <Clock className="ml-2 size-4 text-green-500" />
                           <span>زمان پاسخگویی: حداکثر 48 ساعت کاری</span>
                         </div>
                       </div>
@@ -414,7 +414,7 @@ const WarrantyTrackingPage = () => {
 
                 {result.status === "expired" && (
                   <div className="py-6 text-center">
-                    <XCircle className="mx-auto mb-4 h-14 w-14 text-red-500" />
+                    <XCircle className="mx-auto mb-4 size-14 text-red-500" />
                     <h3 className="mb-2 text-xl font-semibold text-gray-900">
                       گارانتی منقضی شده است
                     </h3>
@@ -428,7 +428,7 @@ const WarrantyTrackingPage = () => {
 
                 {result.status === "already_requested" && (
                   <div className="py-6 text-center">
-                    <Info className="mx-auto mb-4 h-14 w-14 text-blue-500" />
+                    <Info className="mx-auto mb-4 size-14 text-blue-500" />
                     <h3 className="mb-2 text-xl font-semibold text-gray-900">
                       درخواست قبلاً ثبت شده است
                     </h3>
@@ -440,11 +440,11 @@ const WarrantyTrackingPage = () => {
 
                       <div className="mt-8 flex flex-col items-center justify-center gap-2 rounded-lg bg-blue-100 p-4 md:flex-row md:gap-8">
                         <div className="flex items-center">
-                          <Phone className="ml-2 h-4 w-4 text-blue-500" />
+                          <Phone className="ml-2 size-4 text-blue-500" />
                           <span>در انتظار تماس کارشناسان</span>
                         </div>
                         <div className="flex items-center">
-                          <Clock className="ml-2 h-4 w-4 text-green-500" />
+                          <Clock className="ml-2 size-4 text-green-500" />
                           <span>زمان پاسخگویی: حداکثر 48 ساعت کاری</span>
                         </div>
                       </div>

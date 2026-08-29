@@ -77,7 +77,7 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
             href={slide.link}
             prefetch={false}
             key={slide.id}
-            className="relative w-full flex-shrink-0"
+            className="relative w-full shrink-0"
           >
             {/* Skeleton Loader (skip for priority first slide so LCP paints immediately) */}
             {!imageLoaded[index] && index !== 0 && (
@@ -109,7 +109,7 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
       <button
         type="button"
         onClick={nextSlide}
-        className="absolute top-[45.5%] left-5 hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
+        className="absolute top-[45.5%] left-5 hidden translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
         aria-label="اسلاید بعدی"
       >
         <BsChevronCompactLeft size={30} />
@@ -118,14 +118,14 @@ const ImageSlider = ({ slides, interval }: ImageSliderProps) => {
       <button
         type="button"
         onClick={prevSlide}
-        className="absolute top-[45.5%] right-5 hidden -translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
+        className="absolute top-[45.5%] right-5 hidden translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
         aria-label="اسلاید قبلی"
       >
         <BsChevronCompactRight size={30} />
       </button>
 
       {/* Slider Pagination */}
-      <div className="xl absolute bottom-0 left-[50%] hidden -translate-x-[50%] justify-center gap-1 rounded-tl-2xl rounded-tr-2xl bg-[#f0f0f0] px-2 py-1 sm:flex">
+      <div className="xl absolute bottom-0 left-[50%] hidden translate-x-[-50%] justify-center gap-1 rounded-t-2xl bg-[#f0f0f0] px-2 py-1 sm:flex">
         {slides.map((_, slideIndex) => (
           <button
             type="button"

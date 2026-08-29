@@ -39,7 +39,7 @@ const BackToTop = () => {
   return (
     <button
       type="button"
-      className={`fixed bottom-[4.5rem] left-4 z-50 flex cursor-pointer items-center rounded-full shadow-md transition-[transform,background-color] duration-500 ease-in-out ${showBackToTop ? "translate-x-0" : "-translate-x-[200%]"} ${isHovered && !isMobile ? "bg-blue-600" : "bg-blue-500"} `}
+      className={`fixed bottom-18 left-4 z-50 flex cursor-pointer items-center rounded-full shadow-md transition-[transform,background-color] duration-500 ease-in-out ${showBackToTop ? "translate-x-0" : "translate-x-[-200%]"} ${isHovered && !isMobile ? "bg-blue-600" : "bg-blue-500"} `}
       onClick={scrollToTop}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -53,7 +53,7 @@ const BackToTop = () => {
         بازگشت به بالا
       </span>
       <span className="p-3">
-        <FaArrowUp className="h-5 w-5 text-white" />
+        <FaArrowUp className="size-5 text-white" />
       </span>
     </button>
   );

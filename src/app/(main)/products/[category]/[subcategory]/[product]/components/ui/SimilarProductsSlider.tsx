@@ -206,7 +206,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
       <div className="flex items-center justify-between">
         <h2
           id="similar-products-heading"
-          className="mb-8 border-b-2 border-dashed border-[#cecece] pb-6 text-start text-[24px] font-semibold"
+          className="mb-8 border-b-2 border-dashed border-[#cecece] pb-6 text-start text-2xl font-semibold"
         >
           {title}
         </h2>
@@ -255,7 +255,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
           <Link
             key={product.ProductId}
             href={`/products/${product.link}`}
-            className="flex h-auto shrink-0 snap-start flex-col items-center justify-between rounded-lg border border-[#ddd] bg-white p-4 text-center shadow-[2px_2px_12px_rgba(0,0,0,0.05)] transition-transform duration-300 hover:scale-[1.05]"
+            className="xs:hover:scale-105 flex h-auto shrink-0 snap-start flex-col items-center justify-between rounded-lg border border-[#ddd] bg-white p-4 text-center shadow-[2px_2px_12px_rgba(0,0,0,0.05)] transition-transform duration-300"
             style={{ width: 260 }}
           >
             <Image

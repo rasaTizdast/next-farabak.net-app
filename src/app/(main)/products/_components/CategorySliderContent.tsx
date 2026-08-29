@@ -90,15 +90,10 @@ export default function CategorySliderContent({ items }: CategorySliderContentPr
         type="button"
         onClick={() => scroll("right")}
         disabled={!canScrollRight}
-        className="mobile:flex order-1 hidden h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white shadow-md transition-shadow duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-30"
+        className="mobile:flex order-1 hidden size-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md transition-shadow duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-30"
         aria-label="قبلی"
       >
-        <svg
-          className="h-5 w-5 text-blue-600"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg className="size-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           {/* Arrow pointing right for RTL (previous) */}
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
@@ -148,15 +143,10 @@ export default function CategorySliderContent({ items }: CategorySliderContentPr
         type="button"
         onClick={() => scroll("left")}
         disabled={!canScrollLeft}
-        className="mobile:flex order-3 hidden h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white shadow-md transition-shadow duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-30"
+        className="mobile:flex order-3 hidden size-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md transition-shadow duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-30"
         aria-label="بعدی"
       >
-        <svg
-          className="h-5 w-5 text-blue-600"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg className="size-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           {/* Arrow pointing left for RTL (next) */}
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>

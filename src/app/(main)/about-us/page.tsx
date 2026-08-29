@@ -43,8 +43,8 @@ const AboutUs = () => {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <div className="flex w-full flex-col items-center px-[10rem] py-12 md:px-[6rem] lg:px-[4rem] xl:px-[3rem] 2xl:px-[1.5rem]">
-        <div className="flex w-full max-w-[calc(1900px-20rem)] flex-wrap items-stretch justify-evenly gap-8">
+      <div className="flex w-full flex-col items-center justify-center px-6 py-12 min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40">
+        <div className="flex w-full max-w-[1580px] flex-wrap items-stretch justify-evenly gap-8">
           {aboutUsData.map((item) => (
             <Card
               key={item.id}
@@ -69,12 +69,12 @@ type CardProps = {
 
 const Card = ({ title, desc, link }: CardProps) => {
   return (
-    <div className="flex max-w-[300px] flex-col items-center justify-between gap-4 rounded-lg bg-white p-4 text-center shadow-[0_4px_10px_rgba(0,0,0,0.1)]">
+    <div className="flex max-w-[300px] flex-col items-center justify-between gap-4 rounded-lg bg-white p-4 text-center shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-transform duration-300 hover:scale-[1.05]">
       <h2 className="text-[1.3rem] font-bold">{title}</h2>
       <p>{desc}</p>
       <Link
         href={link}
-        className="relative mt-8 inline-block w-full overflow-hidden rounded-lg bg-[#1e90ff] px-8 py-2 text-[0.9rem] text-white transition-[transform,color,box-shadow] duration-300 duration-400 after:absolute after:start-[100%] after:end-0 after:top-0 after:bottom-0 after:z-[-1] after:bg-[#0e6aff] after:transition-[inset-inline-start,inset-inline-end] after:duration-500 hover:scale-[1.03] hover:text-white hover:shadow-[0_6px_12px_rgba(0,0,0,0.2)] hover:after:start-0 hover:after:end-0"
+        className="bg-third after:bg-fourth relative mt-8 inline-block w-full overflow-hidden rounded-lg px-8 py-2 text-[0.9rem] text-white transition-[transform,color,box-shadow] duration-300 after:absolute after:inset-y-0 after:inset-s-[100%] after:inset-e-0 after:z-[-1] after:transition-[inset-inline-start,inset-inline-end] after:duration-500 hover:scale-[1.03] hover:text-white hover:shadow-[0_6px_12px_rgba(0,0,0,0.2)] hover:after:inset-s-0 hover:after:inset-e-0"
       >
         مشاهده
       </Link>

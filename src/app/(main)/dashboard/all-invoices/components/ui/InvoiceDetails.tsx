@@ -248,7 +248,7 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
   if (!invoice) return null;
 
   return (
-    <div className="fixed inset-0 z-[10] flex items-center justify-center overflow-y-auto bg-black/70 p-4">
+    <div className="fixed inset-0 z-10 flex items-center justify-center overflow-y-auto bg-black/70 p-4">
       <div className="max-h-[90vh] w-[90%] max-w-[850px] overflow-y-auto rounded-xl bg-white p-8 text-start shadow-[0_10px_25px_rgba(0,0,0,0.2)] md:p-8">
         {loading ? (
           <div className="space-y-4 p-8">
@@ -368,13 +368,13 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
             type="button"
             onClick={handleDownload}
             title="دانلود فاکتور"
-            className="cursor-pointer rounded-lg border-none bg-[#003262] px-6 py-3 text-base font-semibold text-white transition-[transform,background-color] duration-200 hover:-translate-y-[2px] hover:bg-[#0e6aff] md:w-auto lg:w-auto xl:w-auto 2xl:w-auto"
+            className="cursor-pointer rounded-lg border-none bg-[#003262] px-6 py-3 text-base font-semibold text-white transition-[transform,background-color] duration-200 hover:translate-y-[-2px] hover:bg-[#0e6aff] md:w-auto lg:w-auto xl:w-auto 2xl:w-auto"
           >
             دانلود فاکتور
           </button>
           <button
             type="button"
-            className="cursor-pointer rounded-lg border-none bg-[#f0f0f0] px-6 py-3 text-base font-semibold text-[#333] transition-[transform,background-color] duration-200 hover:-translate-y-[2px] hover:bg-[#e0e0e0] md:w-auto lg:w-auto xl:w-auto 2xl:w-auto"
+            className="cursor-pointer rounded-lg border-none bg-[#f0f0f0] px-6 py-3 text-base font-semibold text-[#333] transition-[transform,background-color] duration-200 hover:translate-y-[-2px] hover:bg-[#e0e0e0] md:w-auto lg:w-auto xl:w-auto 2xl:w-auto"
             onClick={onClose}
             title="بستن"
           >

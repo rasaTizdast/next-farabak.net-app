@@ -1,7 +1,7 @@
 import CategorySliderLoader from "@/app/_components/ui/SkeletonLoader";
 
 export const BreadcrumbSkeleton = () => (
-  <div className="mb-5 h-12 w-full animate-pulse rounded-lg bg-gradient-to-l from-[#003262] via-[#0e6aff] to-[#1e90ff] p-4 shadow-lg" />
+  <div className="from-dark-blue via-fourth to-third mb-5 h-12 w-full animate-pulse rounded-lg bg-linear-to-l p-4 shadow-lg" />
 );
 
 export const CategorySliderSkeleton = () => <CategorySliderLoader amount={8} />;

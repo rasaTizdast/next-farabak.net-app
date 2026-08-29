@@ -125,7 +125,7 @@ const ProjectPage = async (props: ParamsType) => {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <section className="w-full max-w-[calc(1900px-20rem)]">
+      <section className="w-full max-w-[1580px]">
         <Breadcrumb breadcrumbs={projectBreadcrumbs} />
         <h1 className="mt-8 text-[1.5rem] font-bold">{title}</h1>
         <h3 className="mt-5 mb-2 font-light" aria-label="date of the project">
@@ -134,7 +134,7 @@ const ProjectPage = async (props: ParamsType) => {
         <h4 className="mb-1 font-light">{location}</h4>
         <p className="my-8 text-[1.1rem] leading-[1.7]">{largeDesc}</p>
 
-        <div className="mb-10 max-h-[800px] max-w-[calc(1900px-20rem)] rounded-xl md:max-h-[300px]">
+        <div className="mb-10 max-h-[800px] max-w-[1580px] rounded-xl md:max-h-[300px]">
           <ProjectSlider slides={images} />
         </div>
 

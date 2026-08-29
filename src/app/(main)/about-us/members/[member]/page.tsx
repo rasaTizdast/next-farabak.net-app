@@ -66,7 +66,7 @@ const MemberPage = async (props: Props) => {
   return (
     <>
       <Breadcrumb breadcrumbs={memberBreadcrumbs} />
-      <section className="flex w-full max-w-[calc(1900px-20rem)] flex-wrap items-stretch justify-between gap-8">
+      <section className="flex w-full max-w-[1580px] flex-wrap items-stretch justify-between gap-8">
         <div className="w-[60%] max-w-[1000px] rounded-lg bg-white p-8 text-justify text-base leading-[2.2rem] shadow-[0_3px_8px_rgba(0,0,0,0.1)]">
           <h1 className="mb-2 text-[1.4rem] font-extrabold">{name}</h1>
           <h3 className="mb-8 font-normal">{role}</h3>
@@ -96,14 +96,14 @@ const MemberPage = async (props: Props) => {
           <div className="flex w-full flex-col gap-6 md:flex-row md:flex-wrap md:items-center md:justify-center md:gap-6">
             <Link
               href={`https://wa.me/${phone}`}
-              className="relative z-[1] flex w-full items-center justify-between overflow-hidden rounded-lg bg-[#7bdeff33] p-4 text-inherit no-underline shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[color,box-shadow] duration-300 after:absolute after:start-[100%] after:end-0 after:top-0 after:bottom-0 after:z-[-1] after:bg-[#318ce7] after:transition-[inset-inline-start,inset-inline-end] after:duration-500 hover:text-white hover:shadow-[0_6px_12px_rgba(0,0,0,0.2)] hover:after:start-0 hover:after:end-0"
+              className="relative z-1 flex w-full items-center justify-between overflow-hidden rounded-lg bg-[#7bdeff33] p-4 text-inherit no-underline shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[color,box-shadow] duration-300 after:absolute after:inset-y-0 after:inset-s-[100%] after:inset-e-0 after:z-[-1] after:bg-[#318ce7] after:transition-[inset-inline-start,inset-inline-end] after:duration-500 hover:text-white hover:shadow-[0_6px_12px_rgba(0,0,0,0.2)] hover:after:inset-s-0 hover:after:inset-e-0"
             >
               <div>واتس‌آپ</div>
               <FaWhatsapp size={20} />
             </Link>
             <Link
               href={`tel:${phone}`}
-              className="relative z-[1] flex w-full items-center justify-between overflow-hidden rounded-lg bg-[#7bdeff33] p-4 text-inherit no-underline shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[color,box-shadow] duration-300 after:absolute after:start-[100%] after:end-0 after:top-0 after:bottom-0 after:z-[-1] after:bg-[#318ce7] after:transition-[inset-inline-start,inset-inline-end] after:duration-500 hover:text-white hover:shadow-[0_6px_12px_rgba(0,0,0,0.2)] hover:after:start-0 hover:after:end-0"
+              className="relative z-1 flex w-full items-center justify-between overflow-hidden rounded-lg bg-[#7bdeff33] p-4 text-inherit no-underline shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[color,box-shadow] duration-300 after:absolute after:inset-y-0 after:inset-s-[100%] after:inset-e-0 after:z-[-1] after:bg-[#318ce7] after:transition-[inset-inline-start,inset-inline-end] after:duration-500 hover:text-white hover:shadow-[0_6px_12px_rgba(0,0,0,0.2)] hover:after:inset-s-0 hover:after:inset-e-0"
             >
               <div>شماره تماس</div>
               <FaPhoneAlt size={20} />

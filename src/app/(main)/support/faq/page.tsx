@@ -42,18 +42,18 @@ const FaqPage = async () => {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       {/* Hero section */}
-      <section className="relative w-full overflow-hidden rounded-lg bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400 py-6 shadow-lg md:rounded-xl md:py-10 lg:py-14">
+      <section className="relative w-full overflow-hidden rounded-lg bg-linear-to-br from-blue-600 via-blue-500 to-blue-400 py-6 shadow-lg md:rounded-xl md:py-10 lg:py-14">
         {/* Decorative elements - hidden on mobile for better performance */}
-        <div className="absolute top-0 left-0 hidden h-full w-full overflow-hidden opacity-10 md:block">
-          <div className="absolute top-10 left-10 h-20 w-20 rounded-full bg-white"></div>
-          <div className="absolute right-10 bottom-10 h-32 w-32 rounded-full bg-white"></div>
-          <div className="absolute top-1/3 right-1/4 h-16 w-16 rounded-full bg-white"></div>
+        <div className="absolute top-0 left-0 hidden size-full overflow-hidden opacity-10 md:block">
+          <div className="absolute top-10 left-10 size-20 rounded-full bg-white"></div>
+          <div className="absolute right-10 bottom-10 size-32 rounded-full bg-white"></div>
+          <div className="absolute top-1/3 right-1/4 size-16 rounded-full bg-white"></div>
         </div>
 
         <div className="relative mx-auto max-w-2xl px-4 text-center">
           <div className="mb-3 flex justify-center md:mb-4">
             <div className="rounded-full bg-white/20 p-2 shadow-md backdrop-blur-sm md:p-3">
-              <HelpCircle className="h-5 w-5 text-white md:h-6 md:w-6" />
+              <HelpCircle className="size-5 text-white md:size-6" />
             </div>
           </div>
           <h1 className="mb-2 text-xl font-bold text-white drop-shadow-md md:mb-3 md:text-3xl lg:text-4xl">
@@ -74,13 +74,13 @@ const FaqPage = async () => {
 
         {faqs.length > 0 && (
           <div className="px-4 text-center md:px-0">
-            <div className="relative mx-auto w-full overflow-hidden rounded-lg border border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 p-4 shadow-md md:max-w-2xl md:p-6">
+            <div className="relative mx-auto w-full overflow-hidden rounded-lg border border-gray-200 bg-linear-to-br from-gray-50 to-gray-100 p-4 shadow-md md:max-w-2xl md:p-6">
               {/* Decorative element - hidden on mobile */}
-              <div className="absolute top-0 right-0 -mt-8 -mr-8 hidden h-20 w-20 rounded-full bg-blue-100 opacity-40 md:block"></div>
+              <div className="absolute top-0 right-0 -mt-8 -mr-8 hidden size-20 rounded-full bg-blue-100 opacity-40 md:block"></div>
 
               <div className="mb-2 flex justify-center md:mb-3">
                 <div className="rounded-full bg-blue-100 p-2">
-                  <MessageCircle className="h-4 w-4 text-blue-600 md:h-5 md:w-5" />
+                  <MessageCircle className="size-4 text-blue-600 md:size-5" />
                 </div>
               </div>
 

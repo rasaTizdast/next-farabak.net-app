@@ -104,7 +104,7 @@ const ProjectsPage = async () => {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <div className="w-full max-w-[calc(1900px-20rem)]">
+      <div className="w-full max-w-[1580px]">
         <Breadcrumb breadcrumbs={projectsBreadCrumbs} />
         <main className="flex flex-wrap items-center justify-center gap-8">
           {projects.length > 0 ? (
@@ -144,7 +144,7 @@ const Card = ({ data }: CardProps) => {
       <p className="mt-2">{truncatedDescription}</p>
       <Link
         href={`projects/${data.slug}`}
-        className="relative mt-6 inline-block w-full overflow-hidden rounded-lg bg-[#1e90ff] px-8 py-2 text-center text-[0.9rem] text-white transition-[transform,color,box-shadow] duration-300 after:absolute after:start-[100%] after:end-0 after:top-0 after:bottom-0 after:z-[-1] after:bg-[#0e6aff] after:transition-[inset-inline-start,inset-inline-end] after:duration-500 hover:scale-[1.03] hover:text-white hover:shadow-[0_6px_12px_rgba(0,0,0,0.2)] hover:after:start-0 hover:after:end-0"
+        className="relative mt-6 inline-block w-full overflow-hidden rounded-lg bg-[#1e90ff] px-8 py-2 text-center text-[0.9rem] text-white transition-[transform,color,box-shadow] duration-300 after:absolute after:inset-y-0 after:inset-s-[100%] after:inset-e-0 after:z-[-1] after:bg-[#0e6aff] after:transition-[inset-inline-start,inset-inline-end] after:duration-500 hover:scale-[1.03] hover:text-white hover:shadow-[0_6px_12px_rgba(0,0,0,0.2)] hover:after:inset-s-0 hover:after:inset-e-0"
       >
         مشاهده
       </Link>

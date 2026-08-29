@@ -76,7 +76,7 @@ export function ProductMainSkeleton() {
   return (
     <div className="animate-pulse space-y-8" role="status" aria-label="در حال بارگذاری محصول">
       <div className="flex flex-col gap-8 max-[950px]:flex-col lg:flex-row">
-        <div className="aspect-[1340/780] w-full rounded-[6px] bg-gray-200 shadow-md max-[950px]:w-full lg:w-[60%]" />
+        <div className="aspect-1340/780 w-full rounded-[6px] bg-gray-200 shadow-md max-[950px]:w-full lg:w-[60%]" />
         <div className="flex w-full flex-col gap-4 rounded-[8px] bg-[#fafafa] p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)] lg:max-w-[385px]">
           <div className="h-5 w-1/3 rounded bg-gray-200" />
           <div className="h-7 w-3/4 rounded bg-gray-200" />

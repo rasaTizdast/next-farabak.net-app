@@ -32,10 +32,10 @@ const FaqAccordion: React.FC<FaqAccordionProps> = ({ faqs }) => {
               aria-expanded={expandedId === faq.FAQsId}
               aria-controls={`faq-content-${faq.FAQsId}`}
             >
-              <span className="w-[97%] text-right font-medium break-words break-all text-gray-800">
+              <span className="w-[97%] text-right font-medium wrap-break-word break-all text-gray-800">
                 {faq.Title}
               </span>
-              <span className="ml-2 flex-shrink-0">
+              <span className="ml-2 shrink-0">
                 {expandedId === faq.FAQsId ? (
                   <FiChevronUp className="text-blue-500" aria-hidden="true" />
                 ) : (
@@ -51,7 +51,7 @@ const FaqAccordion: React.FC<FaqAccordionProps> = ({ faqs }) => {
             }`}
             aria-hidden={expandedId !== faq.FAQsId}
           >
-            <p className="break-words whitespace-pre-wrap text-gray-700">{faq.Description}</p>
+            <p className="wrap-break-word whitespace-pre-wrap text-gray-700">{faq.Description}</p>
           </div>
         </div>
       ))}

@@ -48,7 +48,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = async ({ breadcrumbs }) => {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <nav className="scrollbar-hide mb-5 w-full [scrollbar-width:none] overflow-x-auto rounded-lg bg-gradient-to-l from-[#003262] via-[#0e6aff] to-[#1e90ff] p-4 text-sm text-white shadow-lg [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      <nav className="scrollbar-hide mb-5 w-full scrollbar-none overflow-x-auto rounded-lg bg-linear-to-l from-[#003262] via-[#0e6aff] to-[#1e90ff] p-4 text-sm text-white shadow-lg [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         <div className="flex min-w-max items-center space-x-2">
           {breadcrumbs.map((crumb, idx) => (
             <div key={crumb} className="flex items-center whitespace-nowrap">

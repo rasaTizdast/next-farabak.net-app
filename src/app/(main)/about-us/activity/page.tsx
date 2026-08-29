@@ -31,7 +31,7 @@ const Card = ({ data: { title, items } }: CardProps) => {
         {items.map((item, index) => (
           <li
             key={index}
-            className="text-justify leading-[2] font-medium hyphens-auto text-[#003262] md:text-[calc(0.8rem+0.5vw)] lg:text-[calc(0.8rem+0.5vw)] xl:text-[calc(0.7rem+0.5vw)]"
+            className="text-justify leading-loose font-medium hyphens-auto text-[#003262] md:text-[calc(0.8rem+0.5vw)] lg:text-[calc(0.8rem+0.5vw)] xl:text-[calc(0.7rem+0.5vw)]"
           >
             {item}
           </li>
@@ -103,7 +103,7 @@ const ActivityPage = async () => {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <div className="mb-4 flex w-full max-w-[calc(1900px-20rem)] flex-col gap-8">
+      <div className="mb-4 flex w-full max-w-[1580px] flex-col gap-8">
         {activities.map((activity: MasterActivity) => (
           <Card
             key={activity.id}

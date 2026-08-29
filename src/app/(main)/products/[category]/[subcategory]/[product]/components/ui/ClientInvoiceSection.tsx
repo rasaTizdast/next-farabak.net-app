@@ -179,9 +179,9 @@ const ClientInvoiceSection = ({
 
   // Enhanced limits info with better design
   const limitsInfo = hasLimits && currentQuantity === 0 && (
-    <div className="mb-4 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 shadow-sm">
+    <div className="mb-4 rounded-lg border border-blue-200 bg-linear-to-r from-blue-50 to-indigo-50 p-4 shadow-sm">
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex-shrink-0">
+        <div className="mt-0.5 shrink-0">
           <FaInfoCircle className="text-lg text-blue-600" />
         </div>
         <div className="flex-1">
@@ -189,7 +189,7 @@ const ClientInvoiceSection = ({
           <div className="flex flex-col gap-2">
             {hasMinimum && (
               <div className="flex items-center gap-2 text-xs">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100">
+                <div className="flex size-6 items-center justify-center rounded-full bg-green-100">
                   <FaArrowDown className="text-xs text-green-600" />
                 </div>
                 <span className="text-slate-700">
@@ -202,7 +202,7 @@ const ClientInvoiceSection = ({
             )}
             {hasMaximum && (
               <div className="flex items-center gap-2 text-xs">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-100">
+                <div className="flex size-6 items-center justify-center rounded-full bg-orange-100">
                   <FaArrowUp className="text-xs text-orange-600" />
                 </div>
                 <span className="text-slate-700">
@@ -247,10 +247,10 @@ const ClientInvoiceSection = ({
           <div
             className={`h-full rounded-full transition-[width,background-color] duration-500 ${
               isAtMaximum
-                ? "bg-gradient-to-r from-orange-500 to-red-500"
+                ? "bg-linear-to-r from-orange-500 to-red-500"
                 : progressPercentage > 75
-                  ? "bg-gradient-to-r from-yellow-400 to-orange-500"
-                  : "bg-gradient-to-r from-green-400 to-blue-500"
+                  ? "bg-linear-to-r from-yellow-400 to-orange-500"
+                  : "bg-linear-to-r from-green-400 to-blue-500"
             }`}
             style={{ width: `${progressPercentage}%` }}
           />

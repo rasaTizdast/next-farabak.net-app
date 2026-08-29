@@ -188,7 +188,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
   const hasValue = !!value;
 
   return (
-    <div className="flex w-full flex-col gap-[0.5rem]">
+    <div className="flex w-full flex-col gap-2">
       <label htmlFor={name} className="text-base">
         {label}
       </label>
@@ -203,7 +203,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
             id={name}
             placeholder={placeholder}
             value={value ?? ""}
-            className={`w-full rounded-lg border border-[#c7c7c7] px-[14px] py-[14px] text-start text-base font-medium transition-colors duration-300 outline-none ${
+            className={`w-full rounded-lg border border-[#c7c7c7] p-[14px] text-start text-base font-medium transition-colors duration-300 outline-none ${
               hasError
                 ? "border-2 border-[#e74c3c] text-[#e74c3c] placeholder:font-light placeholder:text-[#e74c3c]"
                 : hasValue
@@ -213,9 +213,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
           />
         )}
       />
-      {hasError && (
-        <p className="mt-[0.25rem] text-[0.875rem] text-[#e74c3c]">{errors[name]?.message}</p>
-      )}
+      {hasError && <p className="mt-1 text-[0.875rem] text-[#e74c3c]">{errors[name]?.message}</p>}
     </div>
   );
 };

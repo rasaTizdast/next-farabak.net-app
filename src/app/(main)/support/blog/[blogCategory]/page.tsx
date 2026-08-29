@@ -121,7 +121,7 @@ const BlogContent = ({ blogs, categorySlug }: { blogs: Blogs; categorySlug: stri
             quality={75}
             priority
           />
-          <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black via-transparent to-transparent p-6 text-white">
+          <div className="absolute inset-0 flex flex-col justify-end bg-linear-to-t from-black via-transparent to-transparent p-6 text-white">
             <h2 className="mb-2 text-2xl font-bold md:text-3xl">{blogs.blogs[0].title}</h2>
             <p className="text-sm text-gray-300">
               تاریخ: {new Date(blogs.blogs[0].created_at).toLocaleDateString("fa-IR")}
