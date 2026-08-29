@@ -98,7 +98,7 @@ const BlogSEOPart: React.FC<BlogSEOPartProps> = ({
                   className={
                     mode === "edit"
                       ? "h-36 rounded-lg border-2 border-gray-600 object-cover"
-                      : "h-32 w-32 rounded-lg border-2 border-gray-600 object-cover"
+                      : "size-32 rounded-lg border-2 border-gray-600 object-cover"
                   }
                 />
                 <button

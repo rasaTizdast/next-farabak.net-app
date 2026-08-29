@@ -12,7 +12,7 @@ const UserStatusIcon = () => {
   const { isLoggedIn } = useUser();
 
   return (
-    <div className="self-start">
+    <div className="hidden self-start lg:block">
       {isLoggedIn ? (
         <UserDropDown />
       ) : (

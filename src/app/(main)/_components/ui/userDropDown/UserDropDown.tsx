@@ -78,7 +78,7 @@ const UserDropDown = () => {
           className="cursor-pointer text-[2.3rem] text-[#ddd] md:text-[1.9rem] 2xl:text-[2.7rem]"
         />
         {invoice.products.length > 0 && (
-          <div className="absolute -end-[5px] top-[-5px] flex h-[18px] w-[18px] cursor-pointer items-center justify-center rounded-full bg-[#0e6aff] text-[0.7rem] text-white md:h-[16px] md:w-[16px] md:text-[0.65rem]">
+          <div className="absolute inset-e-[-5px] top-[-5px] flex size-[18px] cursor-pointer items-center justify-center rounded-full bg-[#0e6aff] text-[0.7rem] text-white md:size-[16px] md:text-[0.65rem]">
             {faNumberFormatter.format(totalQuantity)}
           </div>
         )}
@@ -86,7 +86,7 @@ const UserDropDown = () => {
 
       {isVis && (
         <ul
-          className="absolute -start-[151%] top-[150%] z-[100] max-w-[300px] min-w-[280px] cursor-pointer overflow-visible rounded-lg bg-[#f8f8f8] p-0 shadow-[0_4px_12px_1px_rgba(0,0,0,0.3)] md:max-w-[220px] md:min-w-[220px]"
+          className="absolute inset-e-[-151%] top-[150%] z-100 max-w-[300px] min-w-[280px] cursor-pointer overflow-visible rounded-lg bg-[#f8f8f8] p-0 shadow-[0_4px_12px_1px_rgba(0,0,0,0.3)] md:max-w-[220px] md:min-w-[220px]"
           ref={dropdownRef}
           role="none"
           onClick={(e) => {
@@ -217,10 +217,10 @@ const UserDropDown = () => {
                                     حذف
                                   </button>
 
-                                  <div className="ltr flex items-center rounded-[6px] bg-[#ececec] px-[0.2rem] py-[0.2rem]">
+                                  <div className="ltr flex items-center rounded-[6px] bg-[#ececec] p-[0.2rem]">
                                     <button
                                       type="button"
-                                      className={`flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[4px] border-none bg-[#f8f8f8] text-base font-bold transition-colors duration-200 hover:bg-white ${!canIncrease ? "cursor-not-allowed opacity-50" : ""}`}
+                                      className={`flex size-[28px] cursor-pointer items-center justify-center rounded-[4px] border-none bg-[#f8f8f8] text-base font-bold transition-colors duration-200 hover:bg-white ${!canIncrease ? "cursor-not-allowed opacity-50" : ""}`}
                                       onClick={() =>
                                         canIncrease &&
                                         handleQuantityChange(product.ProductId, current + 1)
@@ -240,7 +240,7 @@ const UserDropDown = () => {
 
                                     <button
                                       type="button"
-                                      className={`flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[4px] border-none bg-[#f8f8f8] text-base font-bold transition-colors duration-200 hover:bg-white ${current <= min ? "cursor-not-allowed opacity-50" : ""}`}
+                                      className={`flex size-[28px] cursor-pointer items-center justify-center rounded-[4px] border-none bg-[#f8f8f8] text-base font-bold transition-colors duration-200 hover:bg-white ${current <= min ? "cursor-not-allowed opacity-50" : ""}`}
                                       onClick={() =>
                                         current > min &&
                                         handleQuantityChange(product.ProductId, current - 1)
@@ -266,7 +266,7 @@ const UserDropDown = () => {
                           </div>
                           <button
                             type="button"
-                            className="w-full cursor-pointer rounded-[6px] border-none bg-[#318ce7] px-[0.7rem] py-[0.7rem] text-base font-medium text-white transition-colors duration-200 hover:bg-[#0e6aff]"
+                            className="w-full cursor-pointer rounded-[6px] border-none bg-[#318ce7] p-[0.7rem] text-base font-medium text-white transition-colors duration-200 hover:bg-[#0e6aff]"
                             onClick={(e) => {
                               e.preventDefault();
                               setIsVis(false);

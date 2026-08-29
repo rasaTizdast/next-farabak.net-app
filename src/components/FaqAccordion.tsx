@@ -29,7 +29,7 @@ const FaqAccordion = ({ faqs, className = "" }: FaqAccordionProps) => {
   if (!faqs || faqs.length === 0) {
     return (
       <div className="px-4 py-6 text-center md:py-10">
-        <div className="mx-auto max-w-lg rounded-xl border border-blue-100 bg-gradient-to-br from-blue-100 to-blue-50 p-4 shadow-md md:p-6">
+        <div className="mx-auto max-w-lg rounded-xl border border-blue-100 bg-linear-to-br from-blue-100 to-blue-50 p-4 shadow-md md:p-6">
           <h3 className="mb-2 text-lg font-bold text-blue-900 md:text-xl">
             متأسفانه در حال حاضر پرسش و پاسخی موجود نیست.
           </h3>
@@ -46,7 +46,7 @@ const FaqAccordion = ({ faqs, className = "" }: FaqAccordionProps) => {
       <div className="relative mb-6 md:mb-8">
         <div className="faq-search-container relative">
           <div className="relative">
-            <Search className="pointer-events-none absolute top-1/2 right-3 h-3.5 w-3.5 -translate-y-1/2 text-blue-500 md:h-4 md:w-4" />
+            <Search className="pointer-events-none absolute top-1/2 right-3 size-3.5 -translate-y-1/2 text-blue-500 md:size-4" />
             <input
               type="text"
               placeholder="جستجو در سوالات متداول..."
@@ -61,7 +61,7 @@ const FaqAccordion = ({ faqs, className = "" }: FaqAccordionProps) => {
                 onClick={() => setSearchQuery("")}
                 className="absolute top-1/2 left-2 -translate-y-1/2 cursor-pointer rounded-full p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="size-3.5" />
               </button>
             )}
           </div>
@@ -71,7 +71,7 @@ const FaqAccordion = ({ faqs, className = "" }: FaqAccordionProps) => {
 
       {filteredFaqs.length === 0 ? (
         <div className="rounded-lg bg-gray-50 py-6 text-center shadow-inner md:py-8">
-          <Search className="mx-auto mb-2 h-6 w-6 text-gray-400 opacity-50 md:h-8 md:w-8" />
+          <Search className="mx-auto mb-2 size-6 text-gray-400 opacity-50 md:size-8" />
           <p className="text-sm text-gray-600 md:text-base">
             هیچ نتیجه‌ای برای جستجوی شما یافت نشد.
           </p>

@@ -56,7 +56,7 @@ const WhatsAppContactButton = ({
         پیام به پشتیبانی
       </div>
       <div className="p-3">
-        <FaWhatsapp className="h-5 w-5 text-white" />
+        <FaWhatsapp className="size-5 text-white" />
       </div>
     </button>
   );

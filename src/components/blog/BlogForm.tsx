@@ -271,7 +271,7 @@ export function BlogForm({ mode, id = null, onClose }: BlogFormProps) {
         >
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xl font-bold">در حال بارگذاری وبلاگ...</h2>
-            <div className="h-8 w-8 animate-pulse rounded-lg bg-gray-700" />
+            <div className="size-8 animate-pulse rounded-lg bg-gray-700" />
           </div>
 
           <div className="grid animate-pulse grid-cols-1 gap-4 md:grid-cols-2">
@@ -286,7 +286,7 @@ export function BlogForm({ mode, id = null, onClose }: BlogFormProps) {
               <div className="h-4 w-1/4 rounded bg-gray-700" />
               <div className="flex items-center gap-4">
                 <div className="h-10 w-32 rounded-lg bg-gray-700" />
-                <div className="h-32 w-32 rounded-lg bg-gray-700" />
+                <div className="size-32 rounded-lg bg-gray-700" />
               </div>
               <div className="h-10 rounded-lg bg-gray-700" />
             </div>
@@ -397,7 +397,7 @@ export function BlogForm({ mode, id = null, onClose }: BlogFormProps) {
                     {isSubmitting && (
                       <span className="absolute top-2.5 left-3">
                         <svg
-                          className="h-5 w-5 animate-spin text-white"
+                          className="size-5 animate-spin text-white"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"

@@ -197,7 +197,7 @@ const BlogCategoryManager: React.FC<BlogCategoryManagerProps> = ({
                 <button
                   type="button"
                   onClick={() => handleAddCategory(category)}
-                  className="flex-grow text-right"
+                  className="grow text-right"
                 >
                   {category.name}
                 </button>

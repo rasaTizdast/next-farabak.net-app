@@ -50,13 +50,15 @@ describe("UserContext", () => {
   it("starts loading and fetches profile on mount", async () => {
     mockAxiosGet.mockResolvedValue({
       data: {
-        userId: "123",
-        username: "admin",
-        role: "admin",
-        firstName: "John",
-        lastName: "Doe",
-        email: "john@test.com",
-        phoneNumber: "09120000000",
+        user: {
+          userId: "123",
+          username: "admin",
+          role: "admin",
+          firstName: "John",
+          lastName: "Doe",
+          email: "john@test.com",
+          phoneNumber: "09120000000",
+        },
       },
     });
 
@@ -72,6 +74,22 @@ describe("UserContext", () => {
 
     expect(screen.getByTestId("isLoggedIn").textContent).toBe("true");
     expect(screen.getByTestId("user-fullname").textContent).toBe("John Doe");
+  });
+
+  it("handles logged-out response (user null) gracefully", async () => {
+    mockAxiosGet.mockResolvedValue({ data: { user: null } });
+
+    render(
+      <UserProvider>
+        <TestConsumer />
+      </UserProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("loading").textContent).toBe("false");
+    });
+
+    expect(screen.getByTestId("isLoggedIn").textContent).toBe("false");
   });
 
   it("handles 401 error gracefully", async () => {

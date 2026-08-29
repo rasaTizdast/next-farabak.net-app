@@ -72,7 +72,7 @@ const BlogFaqAccordion = ({
         <div className="relative mb-6 md:mb-8">
           <div className="faq-search-container relative">
             <div className="relative">
-              <Search className="pointer-events-none absolute top-1/2 right-3 h-3.5 w-3.5 -translate-y-1/2 text-blue-500 md:h-4 md:w-4" />
+              <Search className="pointer-events-none absolute top-1/2 right-3 size-3.5 -translate-y-1/2 text-blue-500 md:size-4" />
               <input
                 type="text"
                 placeholder="جستجو در سوالات متداول..."
@@ -87,7 +87,7 @@ const BlogFaqAccordion = ({
                   onClick={() => setSearchQuery("")}
                   className="absolute top-1/2 left-2 -translate-y-1/2 cursor-pointer rounded-full p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X className="size-3.5" />
                 </button>
               )}
             </div>
@@ -97,7 +97,7 @@ const BlogFaqAccordion = ({
 
         {filteredFaqs.length === 0 ? (
           <div className="rounded-lg bg-gray-50 py-6 text-center shadow-inner md:py-8">
-            <Search className="mx-auto mb-2 h-6 w-6 text-gray-400 opacity-50 md:h-8 md:w-8" />
+            <Search className="mx-auto mb-2 size-6 text-gray-400 opacity-50 md:size-8" />
             <p className="text-sm text-gray-600 md:text-base">
               هیچ نتیجه‌ای برای جستجوی شما یافت نشد.
             </p>

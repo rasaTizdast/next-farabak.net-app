@@ -94,7 +94,7 @@ const SearchInput = ({
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
 }) => (
-  <div className="flex w-full max-w-[calc(1900px-20rem)]">
+  <div className="w-full max-w-[1580px]">
     <input
       type="text"
       placeholder="جستجو"
@@ -103,13 +103,13 @@ const SearchInput = ({
       value={searchValue}
       ref={inputRef}
       onKeyDown={onKeyDown}
-      className="h-full w-full rounded-tr-lg rounded-br-lg border-none bg-white px-4 py-4 text-base focus:outline-none"
+      className="h-[60px] w-full rounded-r-lg border-none bg-white ps-8 pe-4 text-sm focus:outline-none sm:text-base"
     />
     <button
       type="button"
       onClick={onSearchClick}
       aria-label="جستجو"
-      className="flex cursor-pointer items-center justify-center rounded-tl-lg rounded-bl-lg border-none bg-white px-4 py-4 text-[1.2rem]"
+      className="flex h-[60px] cursor-pointer items-center justify-center rounded-l-lg border-none bg-white px-5 text-[1.2rem]"
     >
       <CgSearch />
     </button>
@@ -129,13 +129,13 @@ const SearchResults = ({
   exchangeRate: number | null;
 }) => {
   return (
-    <div className="mt-8 flex h-full w-full max-w-[1580px] flex-wrap justify-start gap-[1.2rem] text-center font-normal">
+    <div className="mt-8 flex size-full max-w-[1580px] flex-wrap justify-start gap-[1.2rem] text-center font-normal max-md:justify-evenly">
       {searchResults.length > 0 ? (
         searchResults.map((product) => (
           <Link
             key={product.productId}
             href={`/products/${product.link}`}
-            className="flex min-h-[150px] w-[25%] max-w-[300px] flex-col items-center gap-4 rounded-[6px] bg-white p-4"
+            className="flex min-h-[150px] w-full max-w-[300px] min-w-[180px] flex-col items-center gap-4 rounded-[6px] bg-white p-4 sm:w-[calc(50%-0.6rem)] lg:w-1/4"
             onClick={() => {
               closeSearchBox();
             }}
@@ -177,10 +177,7 @@ const SearchResults = ({
 
 // Component for rendering loading skeletons
 const LoadingSkeletons = () => (
-  <div
-    className="mt-8 grid w-full grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-    style={{ maxWidth: "calc(1900px - 20rem)" }}
-  >
+  <div className="mt-8 grid w-full max-w-[1580px] grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
     {Array.from({ length: 12 }).map((_, index) => (
       <div
         key={index}
@@ -310,15 +307,15 @@ const SearchBox = () => {
   }, []);
 
   return (
-    <div className="me-6" ref={searchBoxRef}>
+    <div className="md:ms-6" ref={searchBoxRef}>
       <button type="button" onClick={(event) => toggleSearchBox(event)} aria-label="جستجو">
         <CgSearch
-          className="relative mb-2 inline-block h-full cursor-pointer self-start border-none text-[2rem] text-[#ddd] md:text-[2.5rem] lg:text-[1.6rem] xl:text-[1.8rem] 2xl:text-[2.5rem]"
+          className="relative mb-2 inline-block h-full cursor-pointer self-start border-none text-[2rem] text-[#ddd] max-lg:mb-0 max-lg:self-center md:text-[2.5rem] lg:text-[1.6rem] xl:text-[1.8rem] 2xl:text-[2.5rem]"
           strokeWidth={1}
         />
       </button>
       {searchVis && (
-        <div className="absolute start-0 top-full max-h-[75vh] w-screen overflow-y-auto bg-gradient-to-r from-[#003e9b] via-[#0047b3] to-[#0056d8] ps-[10rem] pe-[10rem] pt-4 pb-12 shadow-[0_4px_20px_rgba(0,0,0,0.3)] md:ps-[6rem] md:pe-[6rem] lg:ps-[4rem] lg:pe-[4rem] xl:ps-[3rem] xl:pe-[3rem] 2xl:ps-[1.5rem] 2xl:pe-[1.5rem]">
+        <div className="absolute inset-s-0 top-full flex max-h-[75vh] w-screen flex-col items-center overflow-y-auto bg-linear-to-r from-[#003e9b] via-[#0047b3] to-[#0056d8] px-6 pt-4 pb-12 shadow-[0_4px_20px_rgba(0,0,0,0.3)] min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40">
           <SearchInput
             inputChangeHandler={inputChangeHandler}
             searchValue={searchValue}

@@ -46,15 +46,18 @@ const headerSubMenuData: MenuItem[] = [
 
 const NavBar = () => {
   return (
-    <ul className="mobile:hidden m-0 mx-auto flex w-[60%] list-none items-start justify-evenly self-end text-base font-bold md:text-[0.9rem] lg:text-[1.4vw] xl:text-base 2xl:text-[1.2rem]">
+    <ul className="relative m-0 mx-auto hidden w-[60%] list-none items-start justify-evenly self-end text-base font-bold md:text-[0.9rem] lg:flex lg:text-[1.4vw] xl:text-base 2xl:text-[1.2rem]">
       <ProductsMegaMenu />
 
       {headerSubMenuData.map((item) => (
         <HeaderSubMenu data={item} key={item.id} />
       ))}
 
-      <li>
-        <Link href="/contact-us" className="block">
+      <li className="relative">
+        <Link
+          href="/contact-us"
+          className="inline-block rounded-t-lg px-4 py-3 text-[#ddd] transition-colors duration-300 hover:bg-[#6363634d] hover:px-8"
+        >
           تماس با ما
         </Link>
       </li>

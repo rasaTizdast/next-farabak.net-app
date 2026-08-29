@@ -275,7 +275,7 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
           </div>
           {isLoading ? (
             <div className="py-8 text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
+              <div className="inline-block size-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
               <p className="mt-2 text-gray-400">در حال بارگذاری...</p>
             </div>
           ) : faqs.length === 0 ? (

@@ -77,6 +77,11 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
   // Flag to prevent infinite loops when updating
   const isUpdatingRef = useRef<boolean>(false);
 
+  // Tracks whether the invoice ever had products in this session,
+  // so we only clear the cookie on a real transition to empty
+  // (not on the initial mount with an empty invoice)
+  const hasHadProductsRef = useRef<boolean>(false);
+
   // Stable refs for cookie functions to keep effects stable
   const clearInvoiceCookieRef = useRef(clearInvoiceCookie);
   const getInvoiceFromCookieRef = useRef(getInvoiceFromCookie);
@@ -163,9 +168,12 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
 
     // Only attempt to save if the invoice has been loaded/modified
     if (invoice.products.length > 0) {
+      hasHadProductsRef.current = true;
       debounceSaveInvoice(invoice);
-    } else if (invoice.products.length === 0 && invoice.TotalAmount === 0) {
-      // If invoice is empty, ensure cookie is cleared
+    } else if (hasHadProductsRef.current && invoice.TotalAmount === 0) {
+      // Only clear the cookie when transitioning from having products to empty.
+      // An empty invoice on initial mount means there is nothing to clear.
+      hasHadProductsRef.current = false;
       clearInvoiceCookieRef.current();
 
       // Set cleared flag for other tabs
@@ -302,6 +310,8 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
     });
     // If removing this product results in an empty invoice, clear the cookie immediately
     if (updatedProducts.length === 0) {
+      // Prevent the invoice effect from clearing again on this transition
+      hasHadProductsRef.current = false;
       setTimeout(() => {
         clearInvoiceCookieRef.current();
         if (typeof window !== "undefined") {
@@ -354,6 +364,9 @@ export const InvoiceProvider: React.FC<InvoiceProviderProps> = ({ children }) =>
   };
 
   const clearInvoice = async () => {
+    // Prevent the invoice effect from clearing again on this transition
+    hasHadProductsRef.current = false;
+
     setInvoice({
       products: [],
       TotalAmount: 0,
