@@ -61,7 +61,7 @@ const CitySelector = <T extends FieldValues = FieldValues>({
       : "border-2 border-[#e74c3c] text-[#e74c3c]";
 
   return (
-    <div className="z-[1] flex w-full flex-col gap-[0.5rem]">
+    <div className="z-1 flex w-full flex-col gap-2">
       <label htmlFor={name} className="text-base font-bold">
         {label}
       </label>
@@ -74,11 +74,11 @@ const CitySelector = <T extends FieldValues = FieldValues>({
           onFocus={() => setIsOpen(true)}
           onBlur={handleBlur}
           placeholder={placeholder}
-          className={`w-full rounded-lg border border-[#ccc] px-[8px] py-[8px] transition-[border-radius] duration-100 focus:rounded-br-none focus:rounded-bl-none ${inputClass}`}
+          className={`w-full rounded-lg border border-[#ccc] p-[8px] transition-[border-radius] duration-100 focus:rounded-b-none ${inputClass}`}
           autoComplete="off"
         />
         {isOpen && (
-          <ul className="ltr absolute start-0 top-full max-h-[250px] w-full list-none overflow-y-auto rounded-br-[4px] rounded-bl-[4px] border border-t-0 border-[#ccc] bg-white p-0 text-start shadow-[0_2px_4px_rgba(0,0,0,0.1)] transition-colors duration-300">
+          <ul className="ltr absolute inset-s-0 top-full max-h-[250px] w-full list-none overflow-y-auto rounded-b-[4px] border border-t-0 border-[#ccc] bg-white p-0 text-start shadow-[0_2px_4px_rgba(0,0,0,0.1)] transition-colors duration-300">
             {filteredCities.map((city) => (
               <li
                 key={city}
@@ -92,7 +92,7 @@ const CitySelector = <T extends FieldValues = FieldValues>({
         )}
       </div>
       {errors[name]?.message && (
-        <span className="mt-[0.25rem] text-[0.875rem] text-[#e74c3c]">
+        <span className="mt-1 text-[0.875rem] text-[#e74c3c]">
           {typeof errors[name]?.message === "string"
             ? errors[name]?.message
             : "Invalid error message"}

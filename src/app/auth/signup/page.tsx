@@ -109,12 +109,12 @@ const SignUp = () => {
 
   return (
     <FormProvider {...methods}>
-      <div className="m-[3rem] flex min-h-[600px] max-w-[1250px] items-center rounded-[20px] bg-white/40 shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur-[5px] md:m-[2rem] md:min-h-[550px] lg:m-[1.5rem]">
+      <div className="m-12 flex min-h-[600px] max-w-[1250px] items-center rounded-[20px] bg-white/40 shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur-[5px] md:m-8 md:min-h-[550px] lg:m-6">
         <form
-          className="flex h-full min-h-[600px] w-[60%] max-w-[550px] flex-col justify-between gap-[3rem] rounded-tr-[20px] rounded-br-[20px] bg-white/30 p-[1.5rem] pt-[1rem] shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur-[5px] md:p-[1.3rem]"
+          className="flex h-full min-h-[600px] w-[60%] max-w-[550px] flex-col justify-between gap-12 rounded-r-[20px] bg-white/30 p-6 pt-4 shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur-[5px] md:p-[1.3rem]"
           onSubmit={handleSubmit(onSubmit)}
         >
-          <div className="flex w-full items-center justify-center gap-[0.5rem]">
+          <div className="flex w-full items-center justify-center gap-2">
             <Link href="/">
               <Image
                 width={2066}
@@ -134,7 +134,7 @@ const SignUp = () => {
           </div>
 
           {step === 1 && (
-            <div className="flex flex-col gap-[1.5rem]">
+            <div className="flex flex-col gap-6">
               <TextInput
                 name="f_name"
                 label="نام"
@@ -161,7 +161,7 @@ const SignUp = () => {
           )}
 
           {step === 2 && (
-            <div className="flex flex-col gap-[1.5rem]">
+            <div className="flex flex-col gap-6">
               <TextInput
                 name="job"
                 label="شغل"
@@ -188,7 +188,7 @@ const SignUp = () => {
           )}
 
           {step === 3 && (
-            <div className="flex flex-col gap-[1.5rem]">
+            <div className="flex flex-col gap-6">
               <TextInput
                 name="username"
                 label="نام کاربری"
@@ -220,17 +220,17 @@ const SignUp = () => {
             value={isSubmitting ? "در حال ورود..." : "ورود به حساب کاربری"}
             disabled={isSubmitting || step !== 3}
             readOnly
-            className={`mt-[1rem] mb-[-1rem] w-full cursor-pointer rounded-lg border-none bg-[#03a9f4] px-0 py-[0.8rem] text-base font-medium text-white transition-[background-color,box-shadow] duration-300 hover:bg-[#036bf4] hover:shadow-[rgba(0,0,0,0.25)_0_8px_15px] ${step !== 3 ? "hidden" : ""}`}
+            className={`mt-4 -mb-4 w-full cursor-pointer rounded-lg border-none bg-[#03a9f4] px-0 py-[0.8rem] text-base font-medium text-white transition-[background-color,box-shadow] duration-300 hover:bg-[#036bf4] hover:shadow-[rgba(0,0,0,0.25)_0_8px_15px] ${step !== 3 ? "hidden" : ""}`}
           />
 
           {errorMessage && (
             <p className="text-[0.9rem] font-medium text-[#e74c3c]">{errorMessage}</p>
           )}
 
-          <div className="mb-[1rem] flex w-full items-center justify-between">
+          <div className="mb-4 flex w-full items-center justify-between">
             <button
               type="button"
-              className="box-border inline-block min-h-[20px] min-w-0 cursor-pointer appearance-none rounded-[15px] border-2 border-[#03a9f4] bg-transparent px-[36px] py-[12px] text-center text-[16px] font-semibold text-black transition-[transform,background-color,color,box-shadow] duration-300 outline-none hover:-translate-y-[2px] hover:bg-[#03a9f4] hover:text-white hover:shadow-[rgba(0,0,0,0.25)_0_8px_15px] disabled:cursor-not-allowed disabled:border-[#a0a0a0] disabled:bg-[#f3f3f3] disabled:text-black disabled:hover:translate-y-0 disabled:hover:bg-[#f3f3f3] disabled:hover:shadow-none lg:rounded-[10px] lg:py-[10px] lg:text-[14px]"
+              className="box-border inline-block min-h-[20px] min-w-0 cursor-pointer appearance-none rounded-[15px] border-2 border-[#03a9f4] bg-transparent px-[36px] py-[12px] text-center text-[16px] font-semibold text-black transition-[transform,background-color,color,box-shadow] duration-300 outline-none hover:translate-y-[-2px] hover:bg-[#03a9f4] hover:text-white hover:shadow-[rgba(0,0,0,0.25)_0_8px_15px] disabled:cursor-not-allowed disabled:border-[#a0a0a0] disabled:bg-[#f3f3f3] disabled:text-black disabled:hover:translate-y-0 disabled:hover:bg-[#f3f3f3] disabled:hover:shadow-none lg:rounded-[10px] lg:py-[10px] lg:text-[14px]"
               id="prev"
               onClick={prevStep}
               disabled={step === 1}
@@ -239,7 +239,7 @@ const SignUp = () => {
             </button>
             <button
               type="button"
-              className="box-border inline-block min-h-[20px] min-w-0 cursor-pointer appearance-none rounded-[15px] border-2 border-[#03a9f4] bg-transparent px-[36px] py-[12px] text-center text-[16px] font-semibold text-black transition-[transform,background-color,color,box-shadow] duration-300 outline-none hover:-translate-y-[2px] hover:bg-[#03a9f4] hover:text-white hover:shadow-[rgba(0,0,0,0.25)_0_8px_15px] disabled:cursor-not-allowed disabled:border-[#a0a0a0] disabled:bg-[#f3f3f3] disabled:text-black disabled:hover:translate-y-0 disabled:hover:bg-[#f3f3f3] disabled:hover:shadow-none lg:rounded-[10px] lg:py-[10px] lg:text-[14px]"
+              className="box-border inline-block min-h-[20px] min-w-0 cursor-pointer appearance-none rounded-[15px] border-2 border-[#03a9f4] bg-transparent px-[36px] py-[12px] text-center text-[16px] font-semibold text-black transition-[transform,background-color,color,box-shadow] duration-300 outline-none hover:translate-y-[-2px] hover:bg-[#03a9f4] hover:text-white hover:shadow-[rgba(0,0,0,0.25)_0_8px_15px] disabled:cursor-not-allowed disabled:border-[#a0a0a0] disabled:bg-[#f3f3f3] disabled:text-black disabled:hover:translate-y-0 disabled:hover:bg-[#f3f3f3] disabled:hover:shadow-none lg:rounded-[10px] lg:py-[10px] lg:text-[14px]"
               id="next"
               onClick={nextStep}
               disabled={step === 3}
@@ -247,13 +247,13 @@ const SignUp = () => {
               بعدی
             </button>
           </div>
-          <div className="flex flex-col gap-[1rem] self-end">
-            <div className="relative mb-[1rem] flex w-full items-center justify-center">
-              <div className="absolute start-0 top-1/2 h-[2px] w-[47%] -translate-y-1/2 rounded-lg bg-white"></div>
-              <div className="absolute end-0 top-1/2 h-[2px] w-[47%] -translate-y-1/2 rounded-lg bg-white"></div>
+          <div className="flex flex-col gap-4 self-end">
+            <div className="relative mb-4 flex w-full items-center justify-center">
+              <div className="absolute inset-s-0 top-1/2 h-[2px] w-[47%] -translate-y-1/2 rounded-lg bg-white"></div>
+              <div className="absolute inset-e-0 top-1/2 h-[2px] w-[47%] -translate-y-1/2 rounded-lg bg-white"></div>
               <div className="relative z-10">یا</div>
             </div>
-            <div className="flex w-full justify-center gap-[0.5rem]">
+            <div className="flex w-full justify-center gap-2">
               حساب کاربری دارید؟
               <Link href="/auth/login" className="cursor-pointer text-[#0116cb]">
                 ورود به حساب کاربری
@@ -261,7 +261,7 @@ const SignUp = () => {
             </div>
           </div>
         </form>
-        <div className="mx-[1.5rem] hidden w-[60%] flex-col items-center justify-center gap-[2rem] text-center lg:flex">
+        <div className="mx-6 hidden w-[60%] flex-col items-center justify-center gap-8 text-center lg:flex">
           <Image
             src="/signUp_image.svg"
             alt="farabak-signUp-Image"

@@ -21,7 +21,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         src="https://cloud.umami.is/script.js"
         data-website-id={process.env.UMAMI_WEBSITE_ID}
       ></Script>
-      <div className="animate-gradient flex min-h-screen items-center justify-center bg-gradient-to-r from-[#00bfff] via-[#1e90ff] via-[#318ce7] to-[#0e6aff] bg-[length:400%]">
+      <div className="animate-gradient flex min-h-screen items-center justify-center bg-linear-to-r from-[#00bfff] via-[#1e90ff] to-[#0e6aff] bg-size-[400%]">
         {children}
       </div>
     </>

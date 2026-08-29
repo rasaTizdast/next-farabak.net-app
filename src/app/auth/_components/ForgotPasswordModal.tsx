@@ -139,11 +139,11 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClo
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 p-5">
+    <div className="fixed inset-0 z-1000 flex items-center justify-center bg-black/50 p-5">
       <div className="rtl relative w-full max-w-[450px] rounded-lg bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.15)] md:p-8">
         <button
           type="button"
-          className="absolute start-[10px] top-[10px] flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-full border-none bg-none text-[24px] text-[#666] hover:bg-[#f5f5f5] hover:text-[#333]"
+          className="absolute inset-s-[10px] top-[10px] flex size-[30px] cursor-pointer items-center justify-center rounded-full border-none bg-none text-[24px] text-[#666] hover:bg-[#f5f5f5] hover:text-[#333]"
           onClick={handleClose}
           aria-label="بستن"
         >

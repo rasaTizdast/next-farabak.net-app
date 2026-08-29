@@ -46,7 +46,7 @@ const TextInput = <T extends FieldValues>({
   const hasValue = !!value;
 
   return (
-    <div className="flex w-full flex-col gap-[0.5rem]">
+    <div className="flex w-full flex-col gap-2">
       <label htmlFor={String(name)} className="text-base font-bold">
         {label}
       </label>
@@ -63,7 +63,7 @@ const TextInput = <T extends FieldValues>({
               id={String(name)}
               placeholder={placeholder}
               value={value ?? ""}
-              className={`w-full rounded-lg border border-[#c7c7c7] px-[14px] py-[14px] text-start text-base font-medium transition-colors duration-300 outline-none ${
+              className={`w-full rounded-lg border border-[#c7c7c7] p-[14px] text-start text-base font-medium transition-colors duration-300 outline-none ${
                 hasError
                   ? "border-2 border-[#e74c3c] text-[#e74c3c] placeholder:font-light placeholder:text-[#e74c3c]"
                   : hasValue
@@ -77,7 +77,7 @@ const TextInput = <T extends FieldValues>({
         {type === "password" && (
           <button
             type="button"
-            className="absolute start-[15px] top-1/2 -translate-y-1/2 cursor-pointer text-[1.2rem] text-gray-500"
+            className="absolute inset-s-[15px] top-1/2 -translate-y-1/2 cursor-pointer text-[1.2rem] text-gray-500"
             onClick={handleTogglePassword}
             aria-label={showPassword ? "مخفی کردن رمز" : "نمایش رمز"}
           >
@@ -86,9 +86,7 @@ const TextInput = <T extends FieldValues>({
         )}
       </div>
       {hasError && (
-        <p className="mt-[0.25rem] text-[0.875rem] text-[#e74c3c]">
-          {errors[name]?.message as string}
-        </p>
+        <p className="mt-1 text-[0.875rem] text-[#e74c3c]">{errors[name]?.message as string}</p>
       )}
     </div>
   );
