@@ -36,23 +36,26 @@ describe("GET /api/auth/profile", () => {
     mockCookieStore.clear();
   });
 
-  it("returns 401 when no token is provided", async () => {
+  it("returns 200 with user null when no token is provided", async () => {
     const res = await GET();
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(200);
 
     const json = await res.json();
-    expect(json.error).toContain("توکن");
+    expect(json.user).toBeNull();
   });
 
-  it("returns 500 when token verification fails", async () => {
+  it("returns 200 with user null when token verification fails", async () => {
     mockCookieStore.set("accessToken", "invalid-token");
     mockJwtVerify.mockRejectedValue(new Error("Invalid token"));
 
     const res = await GET();
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(200);
+
+    const json = await res.json();
+    expect(json.user).toBeNull();
   });
 
-  it("returns 404 when user is not found", async () => {
+  it("returns 200 with user null when user is not found", async () => {
     mockCookieStore.set("accessToken", "valid-token");
     mockJwtVerify.mockResolvedValue({
       payload: { userId: 999, username: "ghost", role: "Public" },
@@ -60,7 +63,10 @@ describe("GET /api/auth/profile", () => {
     mockPrisma.client.findUnique.mockResolvedValue(null);
 
     const res = await GET();
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(200);
+
+    const json = await res.json();
+    expect(json.user).toBeNull();
   });
 
   it("returns user profile for Admin role", async () => {
@@ -82,9 +88,9 @@ describe("GET /api/auth/profile", () => {
     expect(res.status).toBe(200);
 
     const json = await res.json();
-    expect(json.role).toBe("Admin");
-    expect(json.firstName).toBe("Admin");
-    expect(json.username).toBe("admin");
+    expect(json.user.role).toBe("Admin");
+    expect(json.user.firstName).toBe("Admin");
+    expect(json.user.username).toBe("admin");
   });
 
   it("returns user profile for Branch role", async () => {
@@ -106,7 +112,7 @@ describe("GET /api/auth/profile", () => {
     expect(res.status).toBe(200);
 
     const json = await res.json();
-    expect(json.role).toBe("Branch");
+    expect(json.user.role).toBe("Branch");
   });
 });
 

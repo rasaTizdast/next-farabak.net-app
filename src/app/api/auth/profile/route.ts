@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { notFoundResponse, serverErrorResponse, unauthorizedResponse } from "@/lib/api-response";
+import { serverErrorResponse, unauthorizedResponse } from "@/lib/api-response";
 import { verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { profileUpdateSchema, validateBody } from "@/lib/validation";
@@ -14,26 +14,27 @@ import { profileUpdateSchema, validateBody } from "@/lib/validation";
  *     tags: [auth]
  *     responses:
  *       200:
- *         description: Successfully retrieved user profile.
+ *         description: Successfully retrieved user profile, or null if unauthenticated.
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 userId:
- *                   type: string
- *                 firstName:
- *                   type: string
- *                 lastName:
- *                   type: string
- *                 email:
- *                   type: string
- *                 phoneNumber:
- *                   type: string
- *       401:
- *         description: Unauthorized access.
- *       500:
- *         description: Internal server error.
+ *                 user:
+ *                   oneOf:
+ *                     - type: object
+ *                       properties:
+ *                         userId:
+ *                           type: string
+ *                         firstName:
+ *                           type: string
+ *                         lastName:
+ *                           type: string
+ *                         email:
+ *                           type: string
+ *                         phoneNumber:
+ *                           type: string
+ *                     - type: "null"
  *
  *   patch:
  *     summary: Update the authenticated user's profile.
@@ -79,11 +80,17 @@ export async function GET(): Promise<Response> {
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return unauthorizedResponse("توکن احراز هویت الزامی است");
+      return NextResponse.json({ user: null });
     }
 
     // Verify the token
-    const decoded = await verifyToken(token);
+    let decoded;
+    try {
+      decoded = await verifyToken(token);
+    } catch {
+      // Invalid or expired token means the visitor is simply logged out
+      return NextResponse.json({ user: null });
+    }
 
     const user = await prisma.client.findUnique({
       where: { UserID: parseInt(decoded.userId, 10) },
@@ -99,17 +106,19 @@ export async function GET(): Promise<Response> {
     });
 
     if (!user) {
-      return notFoundResponse("کاربر یافت نشد");
+      return NextResponse.json({ user: null });
     }
 
     return NextResponse.json({
-      userId: user.UserID,
-      username: user.Username,
-      firstName: user.FirstName,
-      lastName: user.LastName,
-      email: user.Email,
-      phoneNumber: user.PhoneNumber,
-      role: user.Role,
+      user: {
+        userId: user.UserID,
+        username: user.Username,
+        firstName: user.FirstName,
+        lastName: user.LastName,
+        email: user.Email,
+        phoneNumber: user.PhoneNumber,
+        role: user.Role,
+      },
     });
   } catch (error) {
     console.error(error);

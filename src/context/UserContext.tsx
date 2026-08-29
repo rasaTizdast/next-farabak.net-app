@@ -35,7 +35,7 @@ async function fetchUserContext(
   try {
     setLoading(true);
     const response = await axios.get("/api/auth/profile");
-    setUser(response.data);
+    setUser(response.data?.user ?? null);
   } catch (error) {
     if (
       error instanceof AxiosError &&
