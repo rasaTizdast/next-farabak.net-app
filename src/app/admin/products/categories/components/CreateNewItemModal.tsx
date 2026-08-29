@@ -544,11 +544,7 @@ const CreateNewItemModal = ({
                   className="relative mt-4 w-full overflow-hidden rounded-md bg-gray-700"
                   style={{ aspectRatio: "16/5" }}
                 >
-                  <img
-                    src={bannerPreview}
-                    alt="پیش‌نمایش بنر"
-                    className="h-full w-full object-cover"
-                  />
+                  <img src={bannerPreview} alt="پیش‌نمایش بنر" className="size-full object-cover" />
                 </div>
               )}
               {bannerPreview && (

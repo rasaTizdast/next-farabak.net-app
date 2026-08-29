@@ -204,7 +204,7 @@ const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Prop
                   !imageLoaded ? "opacity-100" : "opacity-0"
                 } transition-opacity duration-300`}
               >
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+                <div className="size-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
               </div>
               <Image
                 height={1920}
@@ -212,7 +212,7 @@ const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Prop
                 quality={100}
                 src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/overview-details-images${selectedDetail.Img}`}
                 alt={selectedDetail.Title}
-                className={`h-full w-full object-cover transition-opacity duration-300 ${
+                className={`size-full object-cover transition-opacity duration-300 ${
                   imageLoaded ? "opacity-100" : "opacity-0"
                 }`}
                 onLoad={() => setImageLoaded(true)}

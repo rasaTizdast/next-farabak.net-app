@@ -271,7 +271,7 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
               checked={formData.isActive}
               onChange={handleCheckboxChange}
               aria-label="پروژه فعال باشد"
-              className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-600"
+              className="size-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-600"
             />
           </div>
 

@@ -234,7 +234,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
             loading={loading}
             pagination={false} // No pagination
             scroll={{ x: "max-content", y: "calc(100vh - 300px)" }}
-            className="dark-table [&_.ant-table-cell-scrollbar]:!shadow-none"
+            className="dark-table [&_.ant-table-cell-scrollbar]:shadow-none!"
             locale={{
               emptyText: <span className="text-gray-400">سوالی موجود نیست</span>,
             }}
@@ -250,7 +250,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
         onCancel={() => setModalVisible(false)}
         footer={null}
         width={600}
-        className="dark-modal [&_.ant-btn]:!border-gray-600 [&_.ant-btn]:!bg-gray-700 [&_.ant-btn]:!text-gray-200 hover:[&_.ant-btn]:!border-gray-500 hover:[&_.ant-btn]:!bg-gray-600 [&_.ant-btn-primary]:!border-blue-600 [&_.ant-btn-primary]:!bg-blue-600 hover:[&_.ant-btn-primary]:!border-blue-700 hover:[&_.ant-btn-primary]:!bg-blue-700 [&_.ant-input-affix-wrapper-focused]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-input-affix-wrapper:focus]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-input-affix-wrapper:hover]:!border-gray-500 [&_.ant-input-focused]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-input-number-input::placeholder]:!text-gray-400 [&_.ant-input-textarea-show-count::after]:!text-gray-200 [&_.ant-input::placeholder]:!text-gray-400 [&_.ant-input:focus]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-input:hover]:!border-gray-500 [&_.ant-modal-body]:!p-0 [&_.ant-modal-content]:!bg-transparent [&_.ant-modal-content]:!shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] [&_.ant-select-selector:hover]:!border-gray-500"
+        className="dark-modal [&_.ant-btn]:border-gray-600! [&_.ant-btn]:bg-gray-700! [&_.ant-btn]:text-gray-200! hover:[&_.ant-btn]:border-gray-500! hover:[&_.ant-btn]:bg-gray-600! [&_.ant-btn-primary]:border-blue-600! [&_.ant-btn-primary]:bg-blue-600! hover:[&_.ant-btn-primary]:border-blue-700! hover:[&_.ant-btn-primary]:bg-blue-700! [&_.ant-input-affix-wrapper-focused]:shadow-[0_0_0_2px_rgba(59,130,246,0.2)]! [&_.ant-input-affix-wrapper:focus]:shadow-[0_0_0_2px_rgba(59,130,246,0.2)]! [&_.ant-input-affix-wrapper:hover]:border-gray-500! [&_.ant-input-focused]:shadow-[0_0_0_2px_rgba(59,130,246,0.2)]! [&_.ant-input-number-input::placeholder]:text-gray-400! [&_.ant-input-textarea-show-count::after]:text-gray-200! [&_.ant-input::placeholder]:text-gray-400! [&_.ant-input:focus]:shadow-[0_0_0_2px_rgba(59,130,246,0.2)]! [&_.ant-input:hover]:border-gray-500! [&_.ant-modal-body]:p-0! [&_.ant-modal-content]:bg-transparent! [&_.ant-modal-content]:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]! [&_.ant-select-selector:hover]:border-gray-500!"
         closeIcon={null}
         centered
         styles={{

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <AdminThemeProvider>
-      <div className="relative min-h-screen bg-gradient-to-l from-blue-800 to-blue-900">
+      <div className="relative min-h-screen bg-linear-to-l from-blue-800 to-blue-900">
         {/* Sidebar */}
         <Sidebar />
 

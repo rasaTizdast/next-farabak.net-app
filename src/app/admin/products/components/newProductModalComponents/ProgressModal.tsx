@@ -10,7 +10,7 @@ const steps = [
 
 const ProgressModal = ({ progress, currentStep }: { progress: number; currentStep: number }) => {
   return (
-    <div className="bg-opacity-60 fixed inset-0 z-[55] flex items-center justify-center bg-black backdrop-blur-sm">
+    <div className="bg-opacity-60 fixed inset-0 z-55 flex items-center justify-center bg-black backdrop-blur-sm">
       <div className="animate-fade-in w-full max-w-md rounded-xl bg-gray-800 p-8 text-white shadow-2xl">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-bold">در حال ایجاد محصول</h2>
@@ -41,7 +41,7 @@ const ProgressModal = ({ progress, currentStep }: { progress: number; currentSte
                 }`}
               >
                 <span
-                  className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold transition-colors duration-300 ${
+                  className={`flex size-6 items-center justify-center rounded-full text-xs font-semibold transition-colors duration-300 ${
                     index + 1 <= currentStep
                       ? "bg-blue-500 text-white"
                       : "bg-gray-300 text-gray-700"

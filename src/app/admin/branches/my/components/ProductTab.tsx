@@ -80,7 +80,7 @@ export default function ProductTab({
                 position: ["bottomCenter"],
                 className: "pagination-dark [&_.ant-pagination-options-quick-jumper]:!hidden",
               }}
-              className="dark-table enhanced-table rtl-table [&_.ant-pagination-next]:rotate-180 [&_.ant-pagination-prev]:rotate-180 [&_.ant-table-pagination]:!my-4"
+              className="dark-table enhanced-table rtl-table [&_.ant-pagination-next]:rotate-180 [&_.ant-pagination-prev]:rotate-180 [&_.ant-table-pagination]:my-4!"
               locale={{
                 emptyText: (
                   <Empty

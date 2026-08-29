@@ -282,7 +282,7 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
             className="rounded-lg p-2 transition-colors hover:bg-gray-800"
             aria-label="بستن"
           >
-            <FiX className="h-6 w-6 text-red-400 transition-colors hover:text-red-500" />
+            <FiX className="size-6 text-red-400 transition-colors hover:text-red-500" />
           </button>
         </div>
 

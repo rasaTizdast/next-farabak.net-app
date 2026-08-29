@@ -72,7 +72,7 @@ const ShowcaseProductItem = ({
             isFirst ? "text-gray-500" : "text-gray-400 hover:bg-gray-700 hover:text-white"
           }`}
         >
-          <FiArrowUp className="h-4 w-4" />
+          <FiArrowUp className="size-4" />
         </button>
         <button
           type="button"
@@ -83,7 +83,7 @@ const ShowcaseProductItem = ({
             isLast ? "text-gray-500" : "text-gray-400 hover:bg-gray-700 hover:text-white"
           }`}
         >
-          <FiArrowDown className="h-4 w-4" />
+          <FiArrowDown className="size-4" />
         </button>
       </div>
 
@@ -97,7 +97,7 @@ const ShowcaseProductItem = ({
         {isDeleting ? (
           <span className="loading-dots">حذف</span>
         ) : (
-          <FiTrash2 className="h-5 w-5 text-red-500" />
+          <FiTrash2 className="size-5 text-red-500" />
         )}
       </button>
     </div>
@@ -187,7 +187,7 @@ const NewShowcaseProductForm = ({
         <span className="loading-dots">در حال آپلود</span>
       ) : (
         <>
-          <FiPlus className="h-5 w-5" />
+          <FiPlus className="size-5" />
           افزودن محصول نمایشی
         </>
       )}

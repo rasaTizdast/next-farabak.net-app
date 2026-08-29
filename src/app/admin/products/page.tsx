@@ -262,7 +262,7 @@ const AdminProductsPage = () => {
           </button>
         </div>
 
-        <div className="my-8 h-[1px] w-full max-w-[1800px] bg-gray-200" />
+        <div className="my-8 h-px w-full max-w-[1800px] bg-gray-200" />
 
         {/* Table */}
         <ProductsTable

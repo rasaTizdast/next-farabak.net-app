@@ -292,7 +292,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
             {/* Header Skeleton */}
             <div className="mb-6 flex items-center justify-between">
               <div className="h-8 w-48 rounded bg-gray-700" />
-              <div className="h-8 w-8 rounded-full bg-gray-700" />
+              <div className="size-8 rounded-full bg-gray-700" />
             </div>
 
             {/* Text Inputs Skeleton */}
@@ -308,7 +308,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
             {/* Active Toggle Skeleton */}
             <div className="flex items-center gap-2">
               <div className="h-4 w-32 rounded bg-gray-700" />
-              <div className="h-4 w-4 rounded bg-gray-700" />
+              <div className="size-4 rounded bg-gray-700" />
             </div>
 
             {/* Main Image Skeleton */}
@@ -443,7 +443,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
                   checked={formData.isActive}
                   onChange={handleCheckboxChange}
                   aria-label="پروژه فعال باشد"
-                  className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-600"
+                  className="size-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-600"
                 />
               </div>
 

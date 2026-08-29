@@ -8,8 +8,8 @@ const GradeCardSkeleton = () => {
       <div className="flex items-center justify-between border-b border-slate-600 p-3">
         <div className="h-7 w-24 animate-pulse rounded-md bg-slate-600" />
         <div className="flex gap-2">
-          <div className="h-8 w-8 animate-pulse rounded-md bg-slate-600" />
-          <div className="h-8 w-8 animate-pulse rounded-md bg-slate-600" />
+          <div className="size-8 animate-pulse rounded-md bg-slate-600" />
+          <div className="size-8 animate-pulse rounded-md bg-slate-600" />
         </div>
       </div>
       <div className="space-y-3 p-3">

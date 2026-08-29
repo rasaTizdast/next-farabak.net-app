@@ -35,16 +35,16 @@ function renderSkeleton() {
             <div className="p-3 sm:p-4 lg:p-6">
               <div className="flex items-center justify-between gap-2 sm:gap-4">
                 <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 lg:gap-4">
-                  <div className="h-10 w-10 flex-shrink-0 animate-pulse rounded-lg bg-gray-700 sm:h-12 sm:w-12 lg:h-14 lg:w-14" />
+                  <div className="size-10 shrink-0 animate-pulse rounded-lg bg-gray-700 sm:size-12 lg:size-14" />
                   <div className="min-w-0 flex-1">
                     <div className="mb-1.5 h-4 w-32 animate-pulse rounded bg-gray-700 sm:mb-2 sm:h-5 sm:w-48" />
                     <div className="h-3 w-24 animate-pulse rounded bg-gray-700 sm:w-32" />
                   </div>
                 </div>
-                <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
-                  <div className="h-9 w-9 animate-pulse rounded-lg bg-gray-700 sm:h-10 sm:w-20 lg:w-24" />
-                  <div className="h-9 w-9 animate-pulse rounded-lg bg-gray-700 sm:h-10 sm:w-20 lg:w-24" />
-                  <div className="h-9 w-9 animate-pulse rounded-lg bg-gray-700 sm:h-10" />
+                <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                  <div className="size-9 animate-pulse rounded-lg bg-gray-700 sm:h-10 sm:w-20 lg:w-24" />
+                  <div className="size-9 animate-pulse rounded-lg bg-gray-700 sm:h-10 sm:w-20 lg:w-24" />
+                  <div className="size-9 animate-pulse rounded-lg bg-gray-700 sm:h-10" />
                 </div>
               </div>
             </div>
@@ -60,9 +60,9 @@ function renderSkeleton() {
                     >
                       <div className="h-3.5 w-28 animate-pulse rounded bg-gray-600 sm:h-4 sm:w-40" />
                       <div className="flex gap-1.5 sm:gap-2">
-                        <div className="h-8 w-8 animate-pulse rounded bg-gray-600 sm:h-9 sm:w-9" />
-                        <div className="h-8 w-8 animate-pulse rounded bg-gray-600 sm:h-9 sm:w-9" />
-                        <div className="h-8 w-8 animate-pulse rounded bg-gray-600 sm:h-9 sm:w-9" />
+                        <div className="size-8 animate-pulse rounded bg-gray-600 sm:size-9" />
+                        <div className="size-8 animate-pulse rounded bg-gray-600 sm:size-9" />
+                        <div className="size-8 animate-pulse rounded bg-gray-600 sm:size-9" />
                       </div>
                     </div>
                   ))}
@@ -267,8 +267,8 @@ const AdminPageManager: React.FC = () => {
           {/* Empty State */}
           {rowNames.length === 0 && (
             <div className="py-12 text-center sm:py-16">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-800 sm:h-20 sm:w-20">
-                <FileText className="h-8 w-8 text-gray-600 sm:h-10 sm:w-10" />
+              <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-gray-800 sm:size-20">
+                <FileText className="size-8 text-gray-600 sm:size-10" />
               </div>
               <h3 className="mb-2 text-lg font-semibold text-gray-300 sm:text-xl">
                 هیچ صفحه‌ای یافت نشد
@@ -292,8 +292,8 @@ const AdminPageManager: React.FC = () => {
                     {/* Left Section - Info */}
                     <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 lg:gap-4">
                       {/* Icon */}
-                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-sky-800 shadow-md sm:h-12 sm:w-12 lg:h-14 lg:w-14">
-                        <FileText className="h-5 w-5 text-white sm:h-6 sm:w-6 lg:h-7 lg:w-7" />
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-blue-500 to-sky-800 shadow-md sm:size-12 lg:size-14">
+                        <FileText className="size-5 text-white sm:size-6 lg:size-7" />
                       </div>
 
                       {/* Page Info */}
@@ -303,7 +303,7 @@ const AdminPageManager: React.FC = () => {
                         </h2>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 sm:gap-3 sm:text-sm">
                           <span className="flex items-center gap-1 whitespace-nowrap">
-                            <span className="h-1.5 w-1.5 rounded-full bg-blue-500 sm:h-2 sm:w-2" />
+                            <span className="size-1.5 rounded-full bg-blue-500 sm:size-2" />
                             {row.pages} صفحه
                           </span>
                           <span className="xs:inline hidden text-gray-600">•</span>
@@ -315,14 +315,14 @@ const AdminPageManager: React.FC = () => {
                     </div>
 
                     {/* Right Section - Actions */}
-                    <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
+                    <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
                       {/* View Button */}
                       <Link
                         href={row.link}
                         target="_blank"
                         className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-gray-700 px-2.5 py-2 text-xs font-medium text-gray-200 shadow-sm transition-[background-color,box-shadow] hover:bg-gray-600 hover:shadow-md active:bg-gray-500 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
                       >
-                        <Eye className="h-4 w-4 flex-shrink-0 sm:h-4.5 sm:w-4.5 lg:h-5 lg:w-5" />
+                        <Eye className="size-4 shrink-0 sm:size-4.5 lg:size-5" />
                         <span className="hidden md:inline">مشاهده</span>
                       </Link>
 
@@ -333,7 +333,7 @@ const AdminPageManager: React.FC = () => {
                           className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-[background-color,box-shadow] hover:bg-blue-700 hover:shadow-md active:bg-blue-800 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
                           onClick={() => openEditor(row.editorType)}
                         >
-                          <FaEdit className="h-4 w-4 flex-shrink-0 sm:h-4.5 sm:w-4.5 lg:h-5 lg:w-5" />
+                          <FaEdit className="size-4 shrink-0 sm:size-4.5 lg:size-5" />
                           <span className="hidden md:inline">ویرایش</span>
                         </button>
                       )}
@@ -345,7 +345,7 @@ const AdminPageManager: React.FC = () => {
                           className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-green-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-[background-color,box-shadow] hover:bg-green-700 hover:shadow-md active:bg-green-800 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
                           onClick={() => openNewPageBuilder(row.newType)}
                         >
-                          <Plus className="h-4 w-4 flex-shrink-0 sm:h-4.5 sm:w-4.5 lg:h-5 lg:w-5" />
+                          <Plus className="size-4 shrink-0 sm:size-4.5 lg:size-5" />
                           <span className="hidden md:inline">افزودن</span>
                         </button>
                       )}
@@ -363,9 +363,9 @@ const AdminPageManager: React.FC = () => {
                           aria-label={expanded === row.link ? "بستن" : "باز کردن"}
                         >
                           {expanded === row.link ? (
-                            <ChevronUp className="h-4.5 w-4.5 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
+                            <ChevronUp className="size-4.5 sm:size-5 lg:size-6" />
                           ) : (
-                            <ChevronDown className="h-4.5 w-4.5 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
+                            <ChevronDown className="size-4.5 sm:size-5 lg:size-6" />
                           )}
                         </button>
                       )}
@@ -375,7 +375,7 @@ const AdminPageManager: React.FC = () => {
 
                 {/* Expanded SubPages */}
                 {row.multiPage && expanded === row.link && (
-                  <div className="animate-in slide-in-from-top-2 border-t border-gray-700 bg-gray-800/50 transition-opacity transition-transform duration-200">
+                  <div className="animate-in slide-in-from-top-2 border-t border-gray-700 bg-gray-800/50 transition-[opacity,transform] duration-200">
                     <div className="space-y-1.5 p-2 sm:space-y-2 sm:p-3 lg:p-4">
                       {subPages[row.link]?.length === 0 ? (
                         <div className="py-6 text-center sm:py-8">
@@ -389,14 +389,14 @@ const AdminPageManager: React.FC = () => {
                           >
                             {/* SubPage Name */}
                             <div className="flex min-w-0 flex-1 items-center gap-2 pr-2 sm:gap-3">
-                              <div className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-blue-400 sm:h-2 sm:w-2" />
+                              <div className="size-1.5 shrink-0 rounded-full bg-blue-400 sm:size-2" />
                               <h3 className="truncate text-sm font-medium text-gray-200 sm:text-base">
                                 {subPage.name}
                               </h3>
                             </div>
 
                             {/* SubPage Actions */}
-                            <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
+                            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
                               {/* View */}
                               <Link
                                 href={subPage.link}
@@ -405,7 +405,7 @@ const AdminPageManager: React.FC = () => {
                                 title="مشاهده"
                                 aria-label="مشاهده صفحه"
                               >
-                                <Eye className="h-4 w-4 sm:h-4.5 sm:w-4.5 lg:h-5 lg:w-5" />
+                                <Eye className="size-4 sm:size-4.5 lg:size-5" />
                               </Link>
 
                               {/* Edit */}
@@ -416,7 +416,7 @@ const AdminPageManager: React.FC = () => {
                                 title="ویرایش"
                                 aria-label="ویرایش صفحه"
                               >
-                                <FaEdit className="h-4 w-4 sm:h-4.5 sm:w-4.5 lg:h-5 lg:w-5" />
+                                <FaEdit className="size-4 sm:size-4.5 lg:size-5" />
                               </button>
 
                               {/* Delete */}
@@ -427,7 +427,7 @@ const AdminPageManager: React.FC = () => {
                                 title="حذف"
                                 aria-label="حذف صفحه"
                               >
-                                <MdDeleteForever className="h-4.5 w-4.5 sm:h-5 sm:w-5 lg:h-5.5 lg:w-5.5" />
+                                <MdDeleteForever className="size-4.5 sm:size-5 lg:size-5.5" />
                               </button>
 
                               {/* QR Code (Blog only) */}
@@ -450,7 +450,7 @@ const AdminPageManager: React.FC = () => {
                                   title="QR Code"
                                   aria-label="مدیریت QR Code"
                                 >
-                                  <IoQrCode className="h-4.5 w-4.5 sm:h-5 sm:w-5 lg:h-5.5 lg:w-5.5" />
+                                  <IoQrCode className="size-4.5 sm:size-5 lg:size-5.5" />
                                 </button>
                               )}
                             </div>

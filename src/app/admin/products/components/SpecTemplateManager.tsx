@@ -88,7 +88,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
       )}
 
       <div
-        className="bg-opacity-70 fixed inset-0 z-[55] flex items-center justify-center bg-black backdrop-blur-sm transition-opacity"
+        className="bg-opacity-70 fixed inset-0 z-55 flex items-center justify-center bg-black backdrop-blur-sm transition-opacity"
         onClick={(e) => e.stopPropagation()}
       >
         <div
@@ -126,7 +126,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
                   key={template.SpecTemplateId}
                   className="flex items-center justify-between rounded-lg bg-gray-700 p-4"
                 >
-                  <div className="flex-grow">
+                  <div className="grow">
                     <h3 className="text-lg font-bold">{template.Name}</h3>
                     <p className="text-sm text-gray-400">
                       {template.Items && template.Items.length ? template.Items.length : 0} مورد

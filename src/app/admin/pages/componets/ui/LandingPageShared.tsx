@@ -14,7 +14,7 @@ export const ImagePreview = ({ imageUrl, onClose }: { imageUrl: string; onClose:
         className="absolute top-4 left-4 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/80"
         aria-label="بستن پیش‌نمایش"
       >
-        <FiX className="h-6 w-6" />
+        <FiX className="size-6" />
       </button>
     </div>
   </div>
@@ -31,7 +31,7 @@ export const ConfirmationDialog = ({
     <div className="animate-fadeIn w-full max-w-md rounded-lg border border-gray-700 bg-gray-800 p-8 text-gray-200 shadow-xl">
       <div className="mb-6 flex flex-col items-center text-center">
         <div className="mb-4 rounded-full bg-red-500/20 p-3">
-          <FiAlertTriangle className="h-8 w-8 text-red-500" />
+          <FiAlertTriangle className="size-8 text-red-500" />
         </div>
         <h3 className="mb-2 text-xl font-bold">آیا مطمئن هستید؟</h3>
         <p className="text-sm text-gray-400">
@@ -51,7 +51,7 @@ export const ConfirmationDialog = ({
           onClick={onConfirm}
           className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 px-5 py-2.5 font-medium text-white transition-colors hover:bg-red-700"
         >
-          <FiTrash2 className="h-4 w-4" />
+          <FiTrash2 className="size-4" />
           تأیید حذف
         </button>
       </div>
@@ -77,7 +77,7 @@ export const SkeletonLoader = () => (
                   <div className="h-3 w-1/2 rounded bg-gray-600" />
                 </div>
               </div>
-              <div className="h-10 w-10 rounded-lg bg-gray-600" />
+              <div className="size-10 rounded-lg bg-gray-600" />
             </div>
           ))}
         </div>

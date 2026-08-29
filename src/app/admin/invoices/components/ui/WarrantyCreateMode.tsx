@@ -118,7 +118,7 @@ export default function WarrantyCreateMode({
                   <div>
                     <Select
                       id="branch-select"
-                      className="warranty-select w-full text-right [&_.ant-select-arrow]:!text-slate-400 [&_.ant-select-arrow_.anticon-loading]:!text-blue-500 [&_.ant-select-clear]:!bg-slate-800 [&_.ant-select-clear]:!text-slate-400 [&_.ant-select-focused_.ant-select-selector]:!border-blue-500 [&_.ant-select-focused_.ant-select-selector]:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)] [&_.ant-select-selection-item]:!pr-3 [&_.ant-select-selection-item]:!text-right [&_.ant-select-selection-item]:!text-white [&_.ant-select-selection-placeholder]:!text-slate-400 [&_.ant-select-selector]:!flex [&_.ant-select-selector]:!h-10 [&_.ant-select-selector]:!items-center [&_.ant-select-selector]:!rounded-lg [&_.ant-select-selector]:!border-slate-700 [&_.ant-select-selector]:!bg-slate-800 [&_.ant-select-selector]:!text-right [&_.ant-select-selector]:!text-white hover:[&_.ant-select-selector]:!border-gray-600 hover:[&_.ant-select-selector]:!shadow-[0_0_0_2px_rgba(59,130,246,0.1)] [&.ant-select-disabled_.ant-select-selector]:!bg-slate-900 [&.ant-select-disabled_.ant-select-selector]:!opacity-70"
+                      className="warranty-select w-full text-right [&_.ant-select-arrow]:text-slate-400! [&_.ant-select-arrow_.anticon-loading]:text-blue-500! [&_.ant-select-clear]:bg-slate-800! [&_.ant-select-clear]:text-slate-400! [&_.ant-select-focused_.ant-select-selector]:border-blue-500! [&_.ant-select-focused_.ant-select-selector]:shadow-[0_0_0_2px_rgba(59,130,246,0.2)]! [&_.ant-select-selection-item]:pr-3! [&_.ant-select-selection-item]:text-right! [&_.ant-select-selection-item]:text-white! [&_.ant-select-selection-placeholder]:text-slate-400! [&_.ant-select-selector]:flex! [&_.ant-select-selector]:h-10! [&_.ant-select-selector]:items-center! [&_.ant-select-selector]:rounded-lg! [&_.ant-select-selector]:border-slate-700! [&_.ant-select-selector]:bg-slate-800! [&_.ant-select-selector]:text-right! [&_.ant-select-selector]:text-white! hover:[&_.ant-select-selector]:border-gray-600! hover:[&_.ant-select-selector]:shadow-[0_0_0_2px_rgba(59,130,246,0.1)]! [&.ant-select-disabled_.ant-select-selector]:bg-slate-900! [&.ant-select-disabled_.ant-select-selector]:opacity-70!"
                       placeholder="انتخاب شعبه"
                       value={warrantyData.branchId || undefined}
                       onChange={handleBranchChange}
@@ -194,7 +194,7 @@ export default function WarrantyCreateMode({
                   round="x2"
                   accentColor="#226bff"
                   inputClass="w-full p-2 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-white text-right"
-                  className="z-[1000]"
+                  className="z-1000"
                   direction="rtl"
                   onChange={handleStartDateChange}
                 />
@@ -210,7 +210,7 @@ export default function WarrantyCreateMode({
                   round="x2"
                   accentColor="#226bff"
                   inputClass="w-full p-2 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-white text-right"
-                  className="z-[1000]"
+                  className="z-1000"
                   direction="rtl"
                   onChange={handleEndDateChange}
                 />

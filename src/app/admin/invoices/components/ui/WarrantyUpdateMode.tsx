@@ -129,7 +129,7 @@ export default function WarrantyUpdateMode({
                   round="x2"
                   accentColor="#226bff"
                   inputClass="w-full p-2 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-white text-right"
-                  className="z-[1000]"
+                  className="z-1000"
                   direction="rtl"
                   onChange={handleStartDateChange}
                 />
@@ -145,7 +145,7 @@ export default function WarrantyUpdateMode({
                   round="x2"
                   accentColor="#226bff"
                   inputClass="w-full p-2 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-white text-right"
-                  className="z-[1000]"
+                  className="z-1000"
                   direction="rtl"
                   onChange={handleEndDateChange}
                 />

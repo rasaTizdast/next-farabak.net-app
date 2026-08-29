@@ -118,7 +118,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ invoice, productsWithWarranty }
         title={<span className="text-white">اطلاعات خریدار</span>}
         bordered
         column={1}
-        className="custom-dark-descriptions mb-4 [&_.ant-descriptions-header]:!text-white [&_.ant-descriptions-title]:!text-white [&_.ant-descriptions-view]:!border-gray-700 [&_td.ant-descriptions-item-content]:!border-gray-700 [&_th.ant-descriptions-item-label]:!border-gray-700"
+        className="custom-dark-descriptions mb-4 [&_.ant-descriptions-header]:text-white! [&_.ant-descriptions-title]:text-white! [&_.ant-descriptions-view]:border-gray-700! [&_td.ant-descriptions-item-content]:border-gray-700! [&_th.ant-descriptions-item-label]:border-gray-700!"
         labelStyle={{ color: adminColors.textMuted, backgroundColor: adminColors.panel }}
         contentStyle={{ color: "white", backgroundColor: adminColors.panelDeep }}
       >
@@ -135,7 +135,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ invoice, productsWithWarranty }
           columns={columns}
           rowKey="singleItemId"
           pagination={false}
-          className="custom-dark-table [&_.ant-table]:!bg-gray-900 [&_.ant-table]:!text-white [&_.ant-table-container]:overflow-hidden [&_.ant-table-container]:!rounded-t-lg [&_.ant-table-container]:!border [&_.ant-table-container]:!border-gray-700 [&_.ant-table-footer]:!bg-gray-800 [&_.ant-table-footer]:!text-white [&_.ant-table-tbody>tr:hover>td]:!bg-[#2d3748] [&_.ant-table-tbody>tr>td]:!border-b-gray-700 [&_.ant-table-tbody>tr>td]:!text-white [&_.ant-table-thead>tr>th]:sticky [&_.ant-table-thead>tr>th]:top-0 [&_.ant-table-thead>tr>th]:z-[2] [&_.ant-table-thead>tr>th]:!border-b-gray-700 [&_.ant-table-thead>tr>th]:!bg-gray-800 [&_.ant-table-thead>tr>th]:!text-white"
+          className="custom-dark-table [&_.ant-table]:bg-gray-900! [&_.ant-table]:text-white! [&_.ant-table-container]:overflow-hidden [&_.ant-table-container]:rounded-t-lg! [&_.ant-table-container]:border! [&_.ant-table-container]:border-gray-700! [&_.ant-table-footer]:bg-gray-800! [&_.ant-table-footer]:text-white! [&_.ant-table-tbody>tr:hover>td]:bg-[#2d3748]! [&_.ant-table-tbody>tr>td]:border-b-gray-700! [&_.ant-table-tbody>tr>td]:text-white! [&_.ant-table-thead>tr>th]:sticky [&_.ant-table-thead>tr>th]:top-0 [&_.ant-table-thead>tr>th]:z-2 [&_.ant-table-thead>tr>th]:border-b-gray-700! [&_.ant-table-thead>tr>th]:bg-gray-800! [&_.ant-table-thead>tr>th]:text-white!"
           scroll={{ x: "max-content" }}
           rowClassName={(record) => {
             // Find all items with same product ID

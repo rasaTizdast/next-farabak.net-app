@@ -33,7 +33,7 @@ const cards = [
     title: "بینش‌های بازدیدکنندگان",
     description:
       "شما می‌توانید تعداد بازدیدکنندگان منحصر به فرد، بازدیدهای صفحه و الگوهای رفتاری کاربران را پیگیری کنید.",
-    icon: <FaUsers className="mb-6 h-10 w-10" />,
+    icon: <FaUsers className="mb-6 size-10" />,
     color: "blue" as CardColor,
   },
   {
@@ -41,7 +41,7 @@ const cards = [
     title: "معیارهای عملکرد وبسایت",
     description:
       "در این قسمت می‌توانید نرخ پرش، مدت زمان هر بازدید و اهداف تبدیل کاربران را نظارت کنید.",
-    icon: <MdBarChart className="mb-6 h-10 w-10" />,
+    icon: <MdBarChart className="mb-6 size-10" />,
     color: "green" as CardColor,
   },
   {
@@ -49,7 +49,7 @@ const cards = [
     title: "گزارش‌های سفارشی و دقیق",
     description:
       "با این ابزار می‌توانید گزارش‌های دقیق و خروجی داده‌ها برای تحلیل‌های بیشتر ایجاد کنید.",
-    icon: <FaChartArea className="mb-6 h-10 w-10" />,
+    icon: <FaChartArea className="mb-6 size-10" />,
     color: "purple" as CardColor,
   },
 ];
@@ -58,7 +58,7 @@ const AnalyticsOverview = () => {
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
   return (
-    <div className="rounded-lg bg-gradient-to-tr from-gray-800 to-gray-900 p-4 sm:p-8">
+    <div className="rounded-lg bg-linear-to-tr from-gray-800 to-gray-900 p-4 sm:p-8">
       <div className="mx-auto max-w-6xl space-y-12">
         {/* Header with subtle animation */}
         <div className="space-y-4 text-center">
@@ -83,7 +83,7 @@ const AnalyticsOverview = () => {
               onMouseLeave={() => setHoveredCard(null)}
             >
               <div
-                className={`absolute top-0 right-0 -mt-8 -mr-8 h-24 w-24 rounded-full ${
+                className={`absolute top-0 right-0 -mt-8 -mr-8 size-24 rounded-full ${
                   colorMap[card.color].bg
                 } opacity-80 transition-transform duration-300 ${hoveredCard === card.id ? "scale-[1.8]" : "scale-100"}`}
               ></div>
@@ -104,7 +104,7 @@ const AnalyticsOverview = () => {
 
         {/* Enhanced Call to Action */}
         <div className="relative space-y-4 overflow-hidden rounded-xl bg-gray-950 p-8 text-center shadow-lg">
-          <div className="absolute top-0 left-0 h-2 w-full bg-gradient-to-r from-blue-500 via-purple-500 to-green-500"></div>
+          <div className="absolute top-0 left-0 h-2 w-full bg-linear-to-r from-blue-500 via-purple-500 to-green-500"></div>
           <h2 className="mt-0 text-2xl font-bold text-gray-100 transition-colors duration-300 hover:text-blue-600 lg:text-3xl">
             آماده‌اید برای مشاهده دقیق‌تر تحلیل‌های وبسایت شما؟
           </h2>

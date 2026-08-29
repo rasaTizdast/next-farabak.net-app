@@ -166,7 +166,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
                 <Button
                   icon={<DeleteOutlined />}
                   danger
-                  className="text-red-400 hover:!border-red-700 hover:!bg-red-600 hover:!text-white"
+                  className="text-red-400 hover:border-red-700! hover:bg-red-600! hover:text-white!"
                   style={{
                     transition:
                       "background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease",
@@ -202,7 +202,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
             className: "pagination-dark [&_.ant-pagination-options-quick-jumper]:!hidden",
           }}
           scroll={{ x: "max-content" }}
-          className="branch-table dark-table rtl-table [&_.ant-pagination-next]:rotate-180 [&_.ant-pagination-prev]:rotate-180 [&_.ant-table-pagination]:!my-4"
+          className="branch-table dark-table rtl-table [&_.ant-pagination-next]:rotate-180 [&_.ant-pagination-prev]:rotate-180 [&_.ant-table-pagination]:my-4!"
           locale={{
             emptyText: (
               <Empty

@@ -97,7 +97,7 @@ function FileInputField({
       />
       {hasFile && preview && (
         <div className="mt-2 flex items-center gap-2">
-          <img src={preview} alt="Preview" className="h-16 w-16 rounded object-cover" />
+          <img src={preview} alt="Preview" className="size-16 rounded object-cover" />
           <button
             type="button"
             onClick={onClear}

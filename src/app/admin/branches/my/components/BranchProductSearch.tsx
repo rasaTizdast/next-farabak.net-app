@@ -193,7 +193,7 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
 
         {/* Results section */}
         {searchPerformed && (
-          <div className="mt-2 flex-grow overflow-auto">
+          <div className="mt-2 grow overflow-auto">
             <div className="mb-3 border-t border-gray-600 pt-4">
               <div className="mb-3 flex items-center">
                 <ShopOutlined className="ml-2 text-blue-400" />
@@ -217,7 +217,7 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
                   columns={columns}
                   rowKey="branchid"
                   pagination={{ pageSize: 5, size: "small" }}
-                  className="branch-result-table enhanced-table rtl-table [&_.ant-pagination-next]:rotate-180 [&_.ant-pagination-prev]:rotate-180 [&_.ant-table-pagination]:!my-4"
+                  className="branch-result-table enhanced-table rtl-table [&_.ant-pagination-next]:rotate-180 [&_.ant-pagination-prev]:rotate-180 [&_.ant-table-pagination]:my-4!"
                   size="small"
                   scroll={{ x: 500 }}
                 />

@@ -181,7 +181,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-white"></div>
+        <div className="size-10 animate-spin rounded-full border-b-2 border-white"></div>
       </div>
     );
   }
@@ -241,7 +241,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
       {!effectiveRate ? (
         isBranch ? (
           <div className="mb-4 flex items-center rounded-md border border-red-800/30 bg-red-900/20 p-4 text-red-100">
-            <svg className="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="mr-2 size-5" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-1 9a1 1 0 100-2 1 1 0 000 2z"
@@ -252,7 +252,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
           </div>
         ) : (
           <div className="mb-4 flex items-center rounded-md border border-red-800/30 bg-red-900/20 p-4 text-red-100">
-            <svg className="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="mr-2 size-5" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-1 9a1 1 0 100-2 1 1 0 000 2z"
@@ -307,7 +307,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                   <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                       <svg
-                        className="h-4 w-4 text-gray-400"
+                        className="size-4 text-gray-400"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -412,7 +412,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                                     >
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        className="h-3 w-3"
+                                        className="size-3"
                                         fill="none"
                                         viewBox="0 0 24 24"
                                         stroke="currentColor"
@@ -463,7 +463,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                                     >
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        className="h-3 w-3"
+                                        className="size-3"
                                         fill="none"
                                         viewBox="0 0 24 24"
                                         stroke="currentColor"
@@ -491,7 +491,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                 ) : (
                   <div className="flex flex-col items-center justify-center rounded-md border border-gray-700 bg-gray-800/50 p-6 text-gray-400">
                     <svg
-                      className="mb-3 h-12 w-12"
+                      className="mb-3 size-12"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -550,7 +550,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                 ) : (
                   <div className="flex flex-col items-center justify-center rounded-md border border-gray-700 bg-gray-800/50 p-6 text-gray-400">
                     <svg
-                      className="mb-3 h-12 w-12"
+                      className="mb-3 size-12"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"

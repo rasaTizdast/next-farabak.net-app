@@ -49,11 +49,11 @@ const ChangeStatusModal = ({ invoice, onClose, onStatusChange }: ChangeStatusMod
                 className="hidden"
               />
               <div
-                className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
+                className={`flex size-5 items-center justify-center rounded-full border-2 ${
                   status === true ? "border-green-500" : "border-gray-500"
                 }`}
               >
-                {status === true && <div className="h-3 w-3 rounded-full bg-green-500"></div>}
+                {status === true && <div className="size-3 rounded-full bg-green-500"></div>}
               </div>
               <span className="font-medium text-gray-100">بررسی شده</span>
             </label>
@@ -71,11 +71,11 @@ const ChangeStatusModal = ({ invoice, onClose, onStatusChange }: ChangeStatusMod
                 className="hidden"
               />
               <div
-                className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
+                className={`flex size-5 items-center justify-center rounded-full border-2 ${
                   status === false ? "border-red-500" : "border-gray-500"
                 }`}
               >
-                {status === false && <div className="h-3 w-3 rounded-full bg-red-500"></div>}
+                {status === false && <div className="size-3 rounded-full bg-red-500"></div>}
               </div>
               <span className="font-medium text-gray-100">در انتظار بررسی</span>
             </label>

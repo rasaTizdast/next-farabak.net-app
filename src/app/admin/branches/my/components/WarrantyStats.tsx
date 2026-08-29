@@ -76,7 +76,7 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
   }
 
   return (
-    <div className="warranty-stats-wrapper space-y-6 rounded-lg border border-gray-800 bg-gray-900 p-6 shadow-xl [&_.ant-card-head]:!bg-gray-800/90">
+    <div className="warranty-stats-wrapper space-y-6 rounded-lg border border-gray-800 bg-gray-900 p-6 shadow-xl [&_.ant-card-head]:bg-gray-800/90!">
       {/* Total Statistics Summary - Row Layout */}
 
       {/* Detailed breakdown for each period */}
@@ -86,7 +86,7 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
           style={{ backgroundColor: adminColors.panel, borderColor: adminColors.border }}
           title={
             <div className="flex items-center justify-between">
-              <Title level={5} className="!text-white">
+              <Title level={5} className="text-white!">
                 جزئیات آماری شعبه {statistics[0].branch_name}
               </Title>
               <button

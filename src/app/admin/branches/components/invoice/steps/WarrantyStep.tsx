@@ -536,7 +536,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
           columns={columns}
           rowKey="singleItemId"
           pagination={false}
-          className="custom-dark-table [&_.ant-table]:!bg-gray-900 [&_.ant-table]:!text-white [&_.ant-table-tbody>tr:hover>td]:!bg-[#2d3748] [&_.ant-table-tbody>tr>td]:!border-b-gray-700 [&_.ant-table-tbody>tr>td]:!text-white [&_.ant-table-thead>tr>th]:sticky [&_.ant-table-thead>tr>th]:top-0 [&_.ant-table-thead>tr>th]:z-[2] [&_.ant-table-thead>tr>th]:!border-b-gray-700 [&_.ant-table-thead>tr>th]:!bg-gray-800 [&_.ant-table-thead>tr>th]:!text-white"
+          className="custom-dark-table [&_.ant-table]:bg-gray-900! [&_.ant-table]:text-white! [&_.ant-table-tbody>tr:hover>td]:bg-[#2d3748]! [&_.ant-table-tbody>tr>td]:border-b-gray-700! [&_.ant-table-tbody>tr>td]:text-white! [&_.ant-table-thead>tr>th]:sticky [&_.ant-table-thead>tr>th]:top-0 [&_.ant-table-thead>tr>th]:z-2 [&_.ant-table-thead>tr>th]:border-b-gray-700! [&_.ant-table-thead>tr>th]:bg-gray-800! [&_.ant-table-thead>tr>th]:text-white!"
           rowClassName={(record) => {
             // Find all items with same product ID
             const sameProductItems = productsWithWarranty.filter(
@@ -580,7 +580,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
         onOk={handleSaveWarranty}
         okText="ذخیره"
         cancelText="انصراف"
-        className="warranty-modal [&_.ant-modal-header]:!mb-5 [&_.ant-modal-header]:!pb-2.5"
+        className="warranty-modal [&_.ant-modal-header]:mb-5! [&_.ant-modal-header]:pb-2.5!"
         zIndex={1000}
       >
         {isDatePickerLoading ? (
@@ -601,7 +601,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
                 handleWarrantyToggle(changedValues.hasWarranty);
               }
             }}
-            className="warranty-form [&_.ant-form-item]:!mb-6 [&_.ant-form-item-label>label]:!text-gray-200"
+            className="warranty-form [&_.ant-form-item]:mb-6! [&_.ant-form-item-label>label]:text-gray-200!"
           >
             <Form.Item
               name="hasWarranty"
@@ -626,7 +626,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
                       label={<span className="text-white">کد گارانتی</span>}
                     >
                       <Input
-                        className="w-full rounded-lg bg-gray-700 p-2 !text-gray-300 outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-lg bg-gray-700 p-2 text-gray-300! outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="کد گارانتی"
                         readOnly
                         disabled
@@ -641,7 +641,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
                           {isBranch && (
                             <span className="mr-2 inline-flex items-center rounded-full border border-blue-700 bg-blue-900 px-2 py-0.5 text-xs text-blue-200">
                               <svg
-                                className="ml-1 h-3 w-3"
+                                className="ml-1 size-3"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                                 xmlns="http://www.w3.org/2000/svg"
@@ -680,7 +680,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
                           inputClass={`w-full p-2 ${
                             isBranch ? "bg-gray-800 opacity-70" : "bg-gray-700"
                           } rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-white`}
-                          className="z-[1000]"
+                          className="z-1000"
                           direction="rtl"
                           position="left"
                           onChange={(value) => {
@@ -723,7 +723,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
                         round="x3"
                         accentColor="#226bff"
                         inputClass="w-full p-2 bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-white"
-                        className="z-[1000]"
+                        className="z-1000"
                         direction="rtl"
                         position="left"
                         onChange={(value) => {
@@ -739,7 +739,7 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
 
             {durationText && (
               <div
-                className={`mt-4 mb-4 rounded p-2 text-center ${
+                className={`my-4 rounded p-2 text-center ${
                   durationText.includes("باید") || durationText.includes("خطا")
                     ? "bg-red-900 text-red-200"
                     : "bg-blue-900 text-blue-200"

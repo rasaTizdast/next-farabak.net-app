@@ -26,7 +26,7 @@ const PersianPagination: React.FC<PaginationProps> = (props) => {
     <>
       <Pagination
         {...modifiedProps}
-        className={`persian-pagination !my-4 [&_.ant-pagination-item]:!border-gray-600 [&_.ant-pagination-item_a]:!text-gray-200 [&_.ant-pagination-item-active_a]:!text-white [&_.ant-pagination-next_button]:!border-gray-600 [&_.ant-pagination-next_button]:!bg-gray-800 [&_.ant-pagination-next_button]:!text-gray-200 [&_.ant-pagination-options-size-changer_.ant-select-selection-item]:!text-[0] [&_.ant-pagination-options-size-changer_.ant-select-selection-item::before]:!text-[14px] [&_.ant-pagination-options-size-changer_.ant-select-selection-item::before]:!content-[attr(title)] [&_.ant-pagination-prev_button]:!border-gray-600 [&_.ant-pagination-prev_button]:!bg-gray-800 [&_.ant-pagination-prev_button]:!text-gray-200 ${props.className || ""}`}
+        className={`persian-pagination my-4! [&_.ant-pagination-item]:border-gray-600! [&_.ant-pagination-item_a]:text-gray-200! [&_.ant-pagination-item-active_a]:text-white! [&_.ant-pagination-next_button]:border-gray-600! [&_.ant-pagination-next_button]:bg-gray-800! [&_.ant-pagination-next_button]:text-gray-200! [&_.ant-pagination-options-size-changer_.ant-select-selection-item]:text-[0]! [&_.ant-pagination-options-size-changer_.ant-select-selection-item::before]:text-[14px]! [&_.ant-pagination-options-size-changer_.ant-select-selection-item::before]:content-[attr(title)]! [&_.ant-pagination-prev_button]:border-gray-600! [&_.ant-pagination-prev_button]:bg-gray-800! [&_.ant-pagination-prev_button]:text-gray-200! ${props.className || ""}`}
         locale={persianLocale}
       />
     </>

@@ -49,7 +49,7 @@ const ProductSearchSummary: React.FC<ProductSearchSummaryProps> = ({
         <div className="flex flex-col justify-between sm:flex-row sm:items-center">
           <div className="mb-2 flex items-center sm:mb-0">
             <SearchOutlined className="ml-2 text-xl text-blue-400" />
-            <Title level={4} className="!m-0 !font-bold !text-white">
+            <Title level={4} className="m-0! font-bold! text-white!">
               نتایج جستجو
             </Title>
           </div>
@@ -65,8 +65,8 @@ const ProductSearchSummary: React.FC<ProductSearchSummaryProps> = ({
         <div className="space-y-4 rounded-lg border border-gray-700 bg-gray-900/50 p-4">
           <div className="flex flex-wrap items-center">
             <ProjectOutlined className="ml-2 text-blue-400" />
-            <Text className="ml-1 !text-gray-300">محصول:</Text>
-            <Text strong className="ml-2 !text-white">
+            <Text className="ml-1 text-gray-300!">محصول:</Text>
+            <Text strong className="ml-2 text-white!">
               {productName}
             </Text>
             <Tag className="mr-0 ml-2 border-blue-800 bg-blue-900/50 text-blue-300">

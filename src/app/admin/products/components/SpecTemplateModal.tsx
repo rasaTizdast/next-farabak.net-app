@@ -110,7 +110,7 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
 
   return (
     <div
-      className="bg-opacity-70 fixed inset-0 z-[60] flex items-center justify-center bg-black backdrop-blur-sm transition-opacity"
+      className="bg-opacity-70 fixed inset-0 z-60 flex items-center justify-center bg-black backdrop-blur-sm transition-opacity"
       onClick={(e) => e.stopPropagation()}
     >
       <div
@@ -159,7 +159,7 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
                     aria-label="عنوان مشخصات"
                     value={item.Title}
                     onChange={(e) => handleItemChange(index, e.target.value)}
-                    className="flex-grow rounded-md border border-gray-600 bg-gray-700 p-2 text-white"
+                    className="grow rounded-md border border-gray-600 bg-gray-700 p-2 text-white"
                     placeholder="عنوان مشخصات را وارد کنید"
                     disabled={isLoading}
                   />

@@ -139,7 +139,7 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
   };
 
   return (
-    <div className="bg-opacity-70 fixed inset-0 z-[51] flex items-center justify-center bg-black backdrop-blur-sm transition-opacity">
+    <div className="bg-opacity-70 fixed inset-0 z-51 flex items-center justify-center bg-black backdrop-blur-sm transition-opacity">
       <div className="animate-fade-in relative max-h-[90dvh] w-full max-w-6xl overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg">
         <h1 className="mb-6 text-center text-2xl font-bold">توضیحات محصول جدید</h1>
 
@@ -333,7 +333,7 @@ const ItemForm = ({
               width={250}
               src={item.preview}
               alt="پیش‌نمایش"
-              className="h-full w-full object-contain"
+              className="size-full object-contain"
             />
           </div>
         )}

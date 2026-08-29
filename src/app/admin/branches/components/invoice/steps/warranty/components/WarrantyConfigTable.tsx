@@ -192,7 +192,7 @@ export function WarrantyConfigTable({ contextValue }: WarrantyConfigTableProps) 
       columns={columns}
       rowKey="singleItemId"
       pagination={false}
-      className="custom-dark-table [&_.ant-table]:!bg-gray-900 [&_.ant-table]:!text-white [&_.ant-table-tbody>tr:hover>td]:!bg-[#2d3748] [&_.ant-table-tbody>tr>td]:!border-b-gray-700 [&_.ant-table-tbody>tr>td]:!text-white [&_.ant-table-thead>tr>th]:sticky [&_.ant-table-thead>tr>th]:top-0 [&_.ant-table-thead>tr>th]:z-[2] [&_.ant-table-thead>tr>th]:!border-b-gray-700 [&_.ant-table-thead>tr>th]:!bg-gray-800 [&_.ant-table-thead>tr>th]:!text-white"
+      className="custom-dark-table [&_.ant-table]:bg-gray-900! [&_.ant-table]:text-white! [&_.ant-table-tbody>tr:hover>td]:bg-[#2d3748]! [&_.ant-table-tbody>tr>td]:border-b-gray-700! [&_.ant-table-tbody>tr>td]:text-white! [&_.ant-table-thead>tr>th]:sticky [&_.ant-table-thead>tr>th]:top-0 [&_.ant-table-thead>tr>th]:z-2 [&_.ant-table-thead>tr>th]:border-b-gray-700! [&_.ant-table-thead>tr>th]:bg-gray-800! [&_.ant-table-thead>tr>th]:text-white!"
       rowClassName={(record) => {
         const sameProductItems = state.productsWithWarranty.filter(
           (item) => item.ProductId === record.ProductId

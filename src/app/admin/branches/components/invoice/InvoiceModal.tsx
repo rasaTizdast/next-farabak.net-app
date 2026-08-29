@@ -202,13 +202,13 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
       destroyOnClose={true}
       afterOpenChange={handleAfterOpenChange}
       style={{ direction: "rtl" }}
-      className="invoice-modal [&_.ant-modal-header]:!mb-5 [&_.ant-modal-header]:!pb-2.5"
+      className="invoice-modal [&_.ant-modal-header]:mb-5! [&_.ant-modal-header]:pb-2.5!"
       modalRender={(modal) => <div className="overflow-hidden rounded-lg bg-gray-900">{modal}</div>}
     >
       <div className="rounded-lg bg-gray-800 p-4 text-white">
         <Steps
           current={currentStep}
-          className="custom-dark-steps mb-8 [&_.ant-steps-item-active_.ant-steps-item-icon]:!border-blue-500 [&_.ant-steps-item-active_.ant-steps-item-icon]:!bg-blue-600 [&_.ant-steps-item-active_.ant-steps-item-title]:!text-white [&_.ant-steps-item-finish_.ant-steps-item-icon]:!border-blue-500 [&_.ant-steps-item-finish_.ant-steps-item-icon]:!bg-[#0035c5] [&_.ant-steps-item-finish_.ant-steps-item-title]:!text-blue-400 [&_.ant-steps-item-icon]:!border-gray-600 [&_.ant-steps-item-icon]:!bg-gray-700 [&_.ant-steps-item-title]:!text-gray-400 [&_.ant-steps-item-title::after]:!bg-[#465266]"
+          className="custom-dark-steps mb-8 [&_.ant-steps-item-active_.ant-steps-item-icon]:border-blue-500! [&_.ant-steps-item-active_.ant-steps-item-icon]:bg-blue-600! [&_.ant-steps-item-active_.ant-steps-item-title]:text-white! [&_.ant-steps-item-finish_.ant-steps-item-icon]:border-blue-500! [&_.ant-steps-item-finish_.ant-steps-item-icon]:bg-[#0035c5]! [&_.ant-steps-item-finish_.ant-steps-item-title]:text-blue-400! [&_.ant-steps-item-icon]:border-gray-600! [&_.ant-steps-item-icon]:bg-gray-700! [&_.ant-steps-item-title]:text-gray-400! [&_.ant-steps-item-title::after]:bg-[#465266]!"
         >
           {steps.map((step) => (
             <Steps.Step key={step.title} title={step.title} />
@@ -228,7 +228,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
               قبلی
             </Button>
           )}
-          <div className="flex-grow"></div>
+          <div className="grow"></div>
           {currentStep < steps.length - 1 ? (
             <Button
               htmlType="button"

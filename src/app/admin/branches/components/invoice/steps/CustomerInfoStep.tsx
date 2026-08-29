@@ -52,7 +52,7 @@ const CustomerInfoStep: React.FC<CustomerInfoStepProps> = ({ invoice, onUpdate }
         >
           <Input
             placeholder="نام و نام خانوادگی خریدار"
-            className="dark-input !placeholder-gray-400"
+            className="dark-input placeholder-gray-400!"
             style={{
               backgroundColor: adminColors.border,
               borderColor: adminColors.borderLight,
@@ -74,7 +74,7 @@ const CustomerInfoStep: React.FC<CustomerInfoStepProps> = ({ invoice, onUpdate }
         >
           <Input
             placeholder="مثال: 09123456789"
-            className="dark-input !placeholder-gray-400"
+            className="dark-input placeholder-gray-400!"
             style={{
               backgroundColor: adminColors.border,
               borderColor: adminColors.borderLight,

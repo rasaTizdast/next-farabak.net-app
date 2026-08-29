@@ -178,7 +178,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
               {emails.map((email, index) => (
                 <div key={email.id} className="mb-4 rounded bg-gray-700 p-3">
                   <div className="mb-3 flex items-center">
-                    <div className="flex-grow">
+                    <div className="grow">
                       <span className="rounded-md bg-gray-800 px-2 py-1 text-sm text-gray-300">
                         #{index + 1}
                       </span>
@@ -262,7 +262,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
               {phoneNumbers.map((phone, index) => (
                 <div key={phone.id} className="mb-4 rounded bg-gray-700 p-3">
                   <div className="mb-3 flex items-center">
-                    <div className="flex-grow">
+                    <div className="grow">
                       <span className="rounded-md bg-gray-800 px-2 py-1 text-sm text-gray-300">
                         #{index + 1}
                       </span>

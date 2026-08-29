@@ -109,7 +109,7 @@ const BranchList: React.FC<BranchListProps> = ({
                 width: "100%",
                 direction: "rtl",
               }}
-              className="custom-autocomplete w-full [&_.ant-select-selection-search]:!right-0 [&_.ant-select-selection-search]:!left-auto [&_.ant-select-selection-search]:!w-full [&_.ant-select-selector]:!h-8 [&_.ant-select-selector]:!border-0 [&_.ant-select-selector]:!bg-transparent [&_.ant-select-selector]:!p-0 [&_input]:rounded-md [&_input]:text-[15px] [&_input]:!text-white [&_input]:!placeholder-slate-300 [&_input:focus]:!border-blue-500 [&_input:hover]:!border-blue-500"
+              className="custom-autocomplete w-full [&_.ant-select-selection-search]:right-0! [&_.ant-select-selection-search]:left-auto! [&_.ant-select-selection-search]:w-full! [&_.ant-select-selector]:h-8! [&_.ant-select-selector]:border-0! [&_.ant-select-selector]:bg-transparent! [&_.ant-select-selector]:p-0! [&_input]:rounded-md [&_input]:text-[15px] [&_input]:text-white! [&_input]:placeholder-slate-300! [&_input:focus]:border-blue-500! [&_input:hover]:border-blue-500!"
               popupMatchSelectWidth={false}
               popupClassName="enhanced-dropdown !bg-gray-800 !border !border-gray-600 !rounded-lg !shadow-[0_8px_16px_rgba(0,0,0,0.5)] !overflow-hidden !py-1.5 [&_.ant-select-item]:!my-0.5 [&_.ant-select-item]:!mx-1.5 [&_.ant-select-item]:!rounded [&_.ant-empty-description]:!text-gray-200"
               listHeight={400}
@@ -118,7 +118,7 @@ const BranchList: React.FC<BranchListProps> = ({
               filterOption={false}
             >
               <Input
-                className="search-input border-[#384152] bg-[#1e293b] pl-12 text-white hover:!border-[#4b5563] focus:!border-blue-500 focus:!bg-[#1e293b] focus:!shadow-[0_0_0_2px_rgba(59,130,246,0.2)]"
+                className="search-input border-[#384152] bg-[#1e293b] pl-12 text-white hover:border-[#4b5563]! focus:border-blue-500! focus:bg-[#1e293b]! focus:shadow-[0_0_0_2px_rgba(59,130,246,0.2)]!"
                 style={{
                   height: "32px",
                   direction: "rtl",

@@ -92,7 +92,7 @@ export function StepNavigation() {
             aria-current={isActive ? "step" : undefined}
           >
             <span
-              className={`flex h-5 w-5 items-center justify-center rounded-full text-xs ${
+              className={`flex size-5 items-center justify-center rounded-full text-xs ${
                 isActive
                   ? "bg-white text-blue-600"
                   : hasError
@@ -101,7 +101,7 @@ export function StepNavigation() {
               }`}
             >
               {hasError ? (
-                <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

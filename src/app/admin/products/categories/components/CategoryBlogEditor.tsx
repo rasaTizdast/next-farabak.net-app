@@ -84,7 +84,7 @@ export default function CategoryBlogEditor({
           onClick={() => editor.chain().focus().setParagraph().run()}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
-          <Pilcrow className="inline h-4 w-4" />
+          <Pilcrow className="inline size-4" />
         </button>
         <button
           type="button"
@@ -92,7 +92,7 @@ export default function CategoryBlogEditor({
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
-          <Heading1 className="inline h-4 w-4" />
+          <Heading1 className="inline size-4" />
         </button>
         <button
           type="button"
@@ -100,7 +100,7 @@ export default function CategoryBlogEditor({
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
-          <Heading2 className="inline h-4 w-4" />
+          <Heading2 className="inline size-4" />
         </button>
         <button
           type="button"
@@ -108,7 +108,7 @@ export default function CategoryBlogEditor({
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
-          <Heading3 className="inline h-4 w-4" />
+          <Heading3 className="inline size-4" />
         </button>
         <button
           type="button"
@@ -116,7 +116,7 @@ export default function CategoryBlogEditor({
           onClick={() => editor.chain().focus().toggleBold().run()}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
-          <Bold className="inline h-4 w-4" />
+          <Bold className="inline size-4" />
         </button>
         <button
           type="button"
@@ -124,7 +124,7 @@ export default function CategoryBlogEditor({
           onClick={() => editor.chain().focus().toggleItalic().run()}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
-          <Italic className="inline h-4 w-4" />
+          <Italic className="inline size-4" />
         </button>
         <button
           type="button"
@@ -132,7 +132,7 @@ export default function CategoryBlogEditor({
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
-          <List className="inline h-4 w-4" />
+          <List className="inline size-4" />
         </button>
         <button
           type="button"
@@ -140,7 +140,7 @@ export default function CategoryBlogEditor({
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
-          <ListOrdered className="inline h-4 w-4" />
+          <ListOrdered className="inline size-4" />
         </button>
         <button
           type="button"
@@ -148,7 +148,7 @@ export default function CategoryBlogEditor({
           onClick={promptLink}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
-          <Link2 className="inline h-4 w-4" />
+          <Link2 className="inline size-4" />
         </button>
         <button
           type="button"
@@ -156,10 +156,10 @@ export default function CategoryBlogEditor({
           onClick={() => setIsTableModalOpen(true)}
           className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
         >
-          <TableIcon className="inline h-4 w-4" />
+          <TableIcon className="inline size-4" />
         </button>
       </div>
-      <div className="tiptap-editor [&_.ProseMirror_table]:w-full [&_.ProseMirror_table]:border-collapse [&_.ProseMirror_td]:!border [&_.ProseMirror_td]:!border-gray-700 [&_.ProseMirror_td]:!p-2 [&_.ProseMirror_th]:!border [&_.ProseMirror_th]:!border-gray-700 [&_.ProseMirror_th]:!bg-gray-800 [&_.ProseMirror_th]:!p-2">
+      <div className="tiptap-editor [&_.ProseMirror_table]:w-full [&_.ProseMirror_table]:border-collapse [&_.ProseMirror_td]:border! [&_.ProseMirror_td]:border-gray-700! [&_.ProseMirror_td]:p-2! [&_.ProseMirror_th]:border! [&_.ProseMirror_th]:border-gray-700! [&_.ProseMirror_th]:bg-gray-800! [&_.ProseMirror_th]:p-2!">
         <EditorContent editor={editor} />
       </div>
       {placeholder && !value && <p className="mt-1 text-xs text-gray-400">{placeholder}</p>}
@@ -177,7 +177,7 @@ export default function CategoryBlogEditor({
                     type="button"
                     aria-label="کاهش تعداد سطرها"
                     onClick={() => setTableRows(Math.max(1, tableRows - 1))}
-                    className="rounded-r border border-gray-600 bg-gray-700 px-2 py-1"
+                    className="rounded-r-lg border border-gray-600 bg-gray-700 px-2 py-1"
                   >
                     -
                   </button>
@@ -189,13 +189,13 @@ export default function CategoryBlogEditor({
                     value={tableRows}
                     aria-label="تعداد سطرها"
                     onChange={(e) => setTableRows(parseInt(e.target.value) || 3)}
-                    className="w-14 border-t border-b border-gray-600 bg-gray-900 px-2 py-1 text-center"
+                    className="w-14 border-y border-gray-600 bg-gray-900 px-2 py-1 text-center"
                   />
                   <button
                     type="button"
                     aria-label="افزایش تعداد سطرها"
                     onClick={() => setTableRows(Math.min(20, tableRows + 1))}
-                    className="rounded-l border border-gray-600 bg-gray-700 px-2 py-1"
+                    className="rounded-l-lg border border-gray-600 bg-gray-700 px-2 py-1"
                   >
                     +
                   </button>
@@ -210,7 +210,7 @@ export default function CategoryBlogEditor({
                     type="button"
                     aria-label="کاهش تعداد ستون‌ها"
                     onClick={() => setTableCols(Math.max(1, tableCols - 1))}
-                    className="rounded-r border border-gray-600 bg-gray-700 px-2 py-1"
+                    className="rounded-r-lg border border-gray-600 bg-gray-700 px-2 py-1"
                   >
                     -
                   </button>
@@ -222,13 +222,13 @@ export default function CategoryBlogEditor({
                     value={tableCols}
                     aria-label="تعداد ستون‌ها"
                     onChange={(e) => setTableCols(parseInt(e.target.value) || 3)}
-                    className="w-14 border-t border-b border-gray-600 bg-gray-900 px-2 py-1 text-center"
+                    className="w-14 border-y border-gray-600 bg-gray-900 px-2 py-1 text-center"
                   />
                   <button
                     type="button"
                     aria-label="افزایش تعداد ستون‌ها"
                     onClick={() => setTableCols(Math.min(10, tableCols + 1))}
-                    className="rounded-l border border-gray-600 bg-gray-700 px-2 py-1"
+                    className="rounded-l-lg border border-gray-600 bg-gray-700 px-2 py-1"
                   >
                     +
                   </button>

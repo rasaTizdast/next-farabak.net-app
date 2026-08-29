@@ -35,7 +35,7 @@ const ImageInput: React.FC<ImageInputProps> = ({ label, imageUrl, onChange }) =>
           quality={100}
           src={preview}
           alt="آپلود تصویر"
-          className="h-full w-full rounded-lg bg-gray-900 object-contain transition-colors"
+          className="size-full rounded-lg bg-gray-900 object-contain transition-colors"
         />
 
         {/* Hover overlay */}

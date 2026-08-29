@@ -81,7 +81,7 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
   }
 
   return (
-    <div className="warranty-stats-wrapper space-y-6 rounded-lg border border-gray-800 bg-gray-900 p-6 shadow-xl [&_.ant-card-head]:!bg-gray-800/90 [&_.ant-statistic-content-value-int]:!text-[2rem]">
+    <div className="warranty-stats-wrapper space-y-6 rounded-lg border border-gray-800 bg-gray-900 p-6 shadow-xl [&_.ant-card-head]:bg-gray-800/90! [&_.ant-statistic-content-value-int]:text-[2rem]!">
       {/* Refresh Button */}
       <div className="mb-2 flex justify-end">
         <Button
@@ -108,7 +108,7 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
             className="mb-6 overflow-hidden border-0 shadow-lg"
             style={{ backgroundColor: adminColors.panelDarker, borderColor: adminColors.border }}
             title={
-              <Title level={4} className="!text-white">
+              <Title level={4} className="text-white!">
                 آمار کلی گارانتی‌ها
               </Title>
             }

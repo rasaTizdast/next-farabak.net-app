@@ -434,7 +434,7 @@ export default function ProductsModal({
                     </select>
                     {isLoading && (
                       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-blue-400 border-t-transparent"></span>
+                        <span className="size-4 animate-spin rounded-full border-2 border-blue-400 border-t-transparent"></span>
                       </div>
                     )}
                   </div>

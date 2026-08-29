@@ -50,7 +50,7 @@ const SliderItem = ({
       {isDeleting ? (
         <span className="loading-dots">حذف</span>
       ) : (
-        <FiTrash2 className="h-5 w-5 text-red-500" />
+        <FiTrash2 className="size-5 text-red-500" />
       )}
     </button>
   </div>
@@ -114,7 +114,7 @@ const NewSliderForm = ({
         <span className="loading-dots">در حال آپلود</span>
       ) : (
         <>
-          <FiPlus className="h-5 w-5" />
+          <FiPlus className="size-5" />
           افزودن اسلایدر
         </>
       )}

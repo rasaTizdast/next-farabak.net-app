@@ -315,7 +315,7 @@ const ProductsTable = ({
                 <input
                   type="checkbox"
                   aria-label="انتخاب همه محصولات"
-                  className="h-4 w-4 text-indigo-600 transition-colors duration-150 ease-in-out"
+                  className="size-4 text-indigo-600 transition-colors duration-150 ease-in-out"
                   checked={selectedProducts.length === sortedProducts.length}
                   onChange={handleSelectAll}
                   disabled={isLoading}
@@ -359,7 +359,7 @@ const ProductsTable = ({
                       <input
                         type="checkbox"
                         aria-label={`انتخاب ${product.Type}`}
-                        className="h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
+                        className="size-4 text-indigo-600 transition duration-150 ease-in-out"
                         checked={selectedProductsSet.has(product.ProductId)}
                         onChange={() => handleSelectProduct(product.ProductId)}
                       />

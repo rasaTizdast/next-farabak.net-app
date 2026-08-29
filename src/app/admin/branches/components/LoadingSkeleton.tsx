@@ -78,7 +78,7 @@ const LoadingSkeleton: React.FC = () => {
         <div className="flex justify-end border-t border-gray-700 bg-gray-800 p-4">
           <div className="flex space-x-1 rtl:space-x-reverse">
             {[1, 2, 3].map((item) => (
-              <div key={item} className="mx-1 h-8 w-8 animate-pulse rounded-md bg-gray-700"></div>
+              <div key={item} className="mx-1 size-8 animate-pulse rounded-md bg-gray-700"></div>
             ))}
           </div>
         </div>

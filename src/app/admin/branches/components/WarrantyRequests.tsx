@@ -238,7 +238,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
       dataIndex: "status",
       className: "font-medium text-center",
       render: () => (
-        <Tag color="gold" className="!m-0 px-3 py-1 !text-center">
+        <Tag color="gold" className="m-0! px-3 py-1 text-center!">
           درخواست بررسی
         </Tag>
       ),
@@ -320,7 +320,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
               dataSource={requests}
               pagination={false}
               rowKey="warrantyid"
-              className="warranty-requests-table [&_.ant-table]:!bg-gray-800 [&_.ant-table]:!text-white [&_.ant-table-tbody>tr.ant-table-row:hover>td]:!bg-gray-700 [&_.ant-table-tbody>tr>td]:!border-gray-700 [&_.ant-table-tbody>tr>td]:transition-colors [&_.ant-table-thead>tr>th]:!bg-[#263244] [&_.ant-table-thead>tr>th]:!text-center [&_.ant-table-thead>tr>th]:!font-semibold [&_.ant-table-thead>tr>th]:!text-white"
+              className="warranty-requests-table [&_.ant-table]:bg-gray-800! [&_.ant-table]:text-white! [&_.ant-table-tbody>tr.ant-table-row:hover>td]:bg-gray-700! [&_.ant-table-tbody>tr>td]:border-gray-700! [&_.ant-table-tbody>tr>td]:transition-colors [&_.ant-table-thead>tr>th]:bg-[#263244]! [&_.ant-table-thead>tr>th]:text-center! [&_.ant-table-thead>tr>th]:font-semibold! [&_.ant-table-thead>tr>th]:text-white!"
               rowClassName={() => "odd:!bg-gray-800 even:!bg-[#263144]"}
             />
           </div>
@@ -332,7 +332,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
                 pageSize={pagination.pageSize}
                 total={pagination.total}
                 onChange={handlePaginationChange}
-                className="custom-pagination [&_.ant-pagination-item-active]:!border-blue-600 [&_.ant-pagination-item-active]:!bg-blue-600 [&_.ant-pagination-item-active>a]:!text-white"
+                className="custom-pagination [&_.ant-pagination-item-active]:border-blue-600! [&_.ant-pagination-item-active]:bg-blue-600! [&_.ant-pagination-item-active>a]:text-white!"
                 showSizeChanger
                 showQuickJumper
                 pageSizeOptions={["10", "20", "50"]}

@@ -131,12 +131,12 @@ function BranchesPageContent() {
 
       <Tabs
         activeKey={warranty.activeTab}
-        className="branches-tabs mt-4 [&_.ant-tabs-content]:!bg-transparent [&_.ant-tabs-content]:!p-0 [&_.ant-tabs-nav-list]:gap-2 [&_.ant-tabs-nav::before]:!border-b-gray-600 [&_.ant-tabs-tab]:relative [&_.ant-tabs-tab]:z-[1] [&_.ant-tabs-tab]:!m-0 [&_.ant-tabs-tab]:!-mb-px [&_.ant-tabs-tab]:!rounded-t-md [&_.ant-tabs-tab]:!px-4 [&_.ant-tabs-tab]:!py-2 [&_.ant-tabs-tab.ant-tabs-tab-active]:!border-[#1f73f1] [&_.ant-tabs-tab.ant-tabs-tab-active]:!bg-[#1f73f1] [&_.ant-tabs-tab.ant-tabs-tab-active_.tab-label]:!font-semibold [&_.ant-tabs-tab.ant-tabs-tab-active_.tab-label]:!text-white [&_.ant-tabs-tab:not(.ant-tabs-tab-active)]:!border-gray-600 [&_.ant-tabs-tab:not(.ant-tabs-tab-active)]:!bg-gray-700 [&_.ant-tabs-tab:not(.ant-tabs-tab-active):hover]:!bg-gray-600"
+        className="branches-tabs mt-4 [&_.ant-tabs-content]:bg-transparent! [&_.ant-tabs-content]:p-0! [&_.ant-tabs-nav-list]:gap-2 [&_.ant-tabs-nav::before]:border-b-gray-600! [&_.ant-tabs-tab]:relative [&_.ant-tabs-tab]:z-1 [&_.ant-tabs-tab]:m-0! [&_.ant-tabs-tab]:-mb-px! [&_.ant-tabs-tab]:rounded-t-md! [&_.ant-tabs-tab]:px-4! [&_.ant-tabs-tab]:py-2! [&_.ant-tabs-tab.ant-tabs-tab-active]:border-[#1f73f1]! [&_.ant-tabs-tab.ant-tabs-tab-active]:bg-[#1f73f1]! [&_.ant-tabs-tab.ant-tabs-tab-active_.tab-label]:font-semibold! [&_.ant-tabs-tab.ant-tabs-tab-active_.tab-label]:text-white! [&_.ant-tabs-tab:not(.ant-tabs-tab-active)]:border-gray-600! [&_.ant-tabs-tab:not(.ant-tabs-tab-active)]:bg-gray-700! [&_.ant-tabs-tab:not(.ant-tabs-tab-active):hover]:bg-gray-600!"
         onChange={warranty.handleTabChange}
       >
         <TabPane
           tab={
-            <span className="tab-label !flex !items-center !gap-2 !px-2 !text-[15px] !font-medium !text-gray-200 [text-shadow:0_1px_2px_rgba(0,0,0,0.2)]">
+            <span className="tab-label flex! items-center! gap-2! px-2! text-[15px]! font-medium! text-gray-200! [text-shadow:0_1px_2px_rgba(0,0,0,0.2)]">
               شعبه‌ها
             </span>
           }
@@ -144,7 +144,7 @@ function BranchesPageContent() {
         />
         <TabPane
           tab={
-            <span className="tab-label !flex !items-center !gap-2 !px-2 !text-[15px] !font-medium !text-gray-200 [text-shadow:0_1px_2px_rgba(0,0,0,0.2)]">
+            <span className="tab-label flex! items-center! gap-2! px-2! text-[15px]! font-medium! text-gray-200! [text-shadow:0_1px_2px_rgba(0,0,0,0.2)]">
               آمار گارانتی
             </span>
           }
@@ -167,7 +167,7 @@ function BranchesPageContent() {
         </TabPane>
         <TabPane
           tab={
-            <span className="tab-label !flex !items-center !gap-2 !px-2 !text-[15px] !font-medium !text-gray-200 [text-shadow:0_1px_2px_rgba(0,0,0,0.2)]">
+            <span className="tab-label flex! items-center! gap-2! px-2! text-[15px]! font-medium! text-gray-200! [text-shadow:0_1px_2px_rgba(0,0,0,0.2)]">
               درخواست‌های بررسی
             </span>
           }

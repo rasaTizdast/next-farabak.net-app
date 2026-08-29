@@ -57,7 +57,7 @@ const DeleteInvoiceModal = ({ invoice, onClose, onDelete }: DeleteInvoiceModalPr
       <div className="border-b border-slate-700 p-5">
         <h2
           id="delete-invoice-modal"
-          className="bg-gradient-to-r from-red-400 to-orange-500 bg-clip-text text-center text-2xl font-bold text-transparent"
+          className="bg-linear-to-r from-red-400 to-orange-500 bg-clip-text text-center text-2xl font-bold text-transparent"
         >
           حذف فاکتور
         </h2>
@@ -74,7 +74,7 @@ const DeleteInvoiceModal = ({ invoice, onClose, onDelete }: DeleteInvoiceModalPr
               type="checkbox"
               checked={termsAccepted}
               onChange={(e) => setTermsAccepted(e.target.checked)}
-              className="form-checkbox h-5 w-5 border-gray-600 text-blue-500 focus:ring-2 focus:ring-blue-400"
+              className="form-checkbox size-5 border-gray-600 text-blue-500 focus:ring-2 focus:ring-blue-400"
               aria-label="Accept terms and conditions"
             />
             <span className="text-sm text-gray-200 sm:text-base">

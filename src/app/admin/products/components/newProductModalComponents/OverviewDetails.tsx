@@ -152,7 +152,7 @@ const OverviewDetails = ({ dispatch }: Props) => {
 
             {/* Gradient Fade Effect */}
             {!showAll && (
-              <div className="pointer-events-none absolute bottom-0 left-0 h-24 w-full bg-gradient-to-t from-gray-900 to-transparent"></div>
+              <div className="pointer-events-none absolute bottom-0 left-0 h-24 w-full bg-linear-to-t from-gray-900 to-transparent"></div>
             )}
           </div>
 
@@ -194,7 +194,7 @@ const OverviewDetails = ({ dispatch }: Props) => {
                   !imageLoaded ? "opacity-100" : "opacity-0"
                 } transition-opacity duration-300`}
               >
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+                <div className="size-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
               </div>
               <Image
                 height={1920}
@@ -202,7 +202,7 @@ const OverviewDetails = ({ dispatch }: Props) => {
                 quality={100}
                 src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/overview-details-images${selectedDetail.Img}`}
                 alt={selectedDetail.Title}
-                className={`h-full w-full object-cover transition-opacity duration-300 ${
+                className={`size-full object-cover transition-opacity duration-300 ${
                   imageLoaded ? "opacity-100" : "opacity-0"
                 }`}
                 onLoad={() => setImageLoaded(true)} // Update loading state when the image is loaded

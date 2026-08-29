@@ -52,7 +52,7 @@ export function ProductsTable({
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700 [&>tr:nth-child(even)]:!bg-slate-900 [&>tr:nth-child(odd)]:!bg-slate-800">
+          <tbody className="divide-y divide-slate-700 [&>tr:nth-child(even)]:bg-slate-900! [&>tr:nth-child(odd)]:bg-slate-800!">
             {expandedItems.length > 0 ? (
               expandedItems.map((item) => {
                 const sameProductItems = expandedItems.filter(
