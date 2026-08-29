@@ -10,17 +10,14 @@ export const revalidate = 60;
    (slider aspect 1920x900; content sections use py-12 + heading + cards)
    so streaming them in causes minimal layout shift. */
 
-const SliderSkeleton = () => <div className="aspect-[1920/900] w-full bg-gray-100" />;
+const SliderSkeleton = () => <div className="aspect-1920/900 w-full bg-gray-100" />;
 
 const SectionSkeleton = ({ minHeight }: { minHeight: string }) => (
-  <div className="w-full px-4 py-12 md:px-[6rem] lg:px-[4rem] xl:px-[3rem] 2xl:px-[1.5rem]">
+  <div className="w-full px-4 py-12 min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40">
     <div className="mb-12 flex justify-center">
       <div className="h-10 w-40 animate-pulse rounded-md bg-gray-200" />
     </div>
-    <div
-      className="mx-auto flex max-w-[calc(1900px-20rem)] animate-pulse gap-8"
-      style={{ minHeight }}
-    >
+    <div className="mx-auto flex max-w-[1580px] animate-pulse gap-8" style={{ minHeight }}>
       <div className="flex-1 rounded-lg bg-gray-100" />
       <div className="hidden flex-1 rounded-lg bg-gray-100 md:block" />
     </div>
@@ -39,9 +36,9 @@ const ProductsShowCase = dynamicImport(
   }
 );
 
-const ProjectsSection = dynamicImport(() => import("../_components/LandingPage/ProjectsSection"), {
-  loading: () => <SectionSkeleton minHeight="480px" />,
-});
+// const ProjectsSection = dynamicImport(() => import("../_components/LandingPage/ProjectsSection"), {
+//   loading: () => <SectionSkeleton minHeight="480px" />,
+// });
 
 const SupportSection = dynamicImport(() => import("../_components/LandingPage/SupportSection"), {
   loading: () => <SectionSkeleton minHeight="420px" />,
@@ -269,9 +266,9 @@ const HomePage = async () => {
         <div style={{ contentVisibility: "auto", containIntrinsicSize: "800px 600px" }}>
           <ProductsShowCase />
         </div>
-        <div style={{ contentVisibility: "auto", containIntrinsicSize: "800px 600px" }}>
+        {/* <div style={{ contentVisibility: "auto", containIntrinsicSize: "800px 600px" }}>
           <ProjectsSection />
-        </div>
+        </div> */}
         <div style={{ contentVisibility: "auto", containIntrinsicSize: "800px 600px" }}>
           <SupportSection />
         </div>
