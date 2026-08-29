@@ -8,15 +8,23 @@ import { FlatCompat } from "@eslint/eslintrc";
 import typescriptPlugin from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
 import prettierPlugin from "eslint-plugin-prettier";
+import tailwindcssPlugin from "eslint-plugin-tailwindcss";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const compat = new FlatCompat({ baseDirectory: __dirname });
 
 const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, ...compat.extends("prettier"), {
+  ...tailwindcssPlugin.configs.recommended,
+  settings: {
+    tailwindcss: {
+      cssConfigPath: "src/app/globals.css",
+    },
+  },
   plugins: {
     "@typescript-eslint": typescriptPlugin,
     prettier: prettierPlugin,
+    tailwindcss: tailwindcssPlugin,
   },
   files: ["**/*.{js,jsx,ts,tsx}"],
   languageOptions: {
@@ -66,6 +74,11 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, ...compat.extends
         alphabetize: { order: "asc", caseInsensitive: true },
       },
     ],
+
+    // Tailwind CSS rules
+    "tailwindcss/enforces-canonical-classname": "error",
+    "tailwindcss/enforces-shorthand": "error",
+    "tailwindcss/no-contradicting-classname": "error",
   },
 }, {
   ignores: [
