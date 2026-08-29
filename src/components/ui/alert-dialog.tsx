@@ -38,7 +38,7 @@ const AlertDialogContent = React.forwardRef<
       className={cn("fixed inset-0 z-50 flex items-center justify-center p-4", className)}
       {...props}
     >
-      <div className="bg-background text-card-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 relative w-full max-w-lg rounded-lg border p-6 shadow-lg transition-opacity transition-transform duration-200 sm:max-w-[425px]">
+      <div className="bg-background text-card-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 relative w-full max-w-lg rounded-lg border p-6 shadow-lg transition-[opacity,transform] duration-200 sm:max-w-[425px]">
         {children}
       </div>
     </AlertDialogPrimitive.Content>

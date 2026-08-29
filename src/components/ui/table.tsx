@@ -45,7 +45,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
       className={cn(
-        "text-muted-foreground h-10 px-2 text-start align-middle font-medium [&:has([role=checkbox])]:pe-0",
+        "text-muted-foreground h-10 px-2 text-start align-middle font-medium has-[[role=checkbox]]:pe-0",
         className
       )}
       {...props}
@@ -54,9 +54,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
 }
 
 function TableCell({ className, ...props }: React.ComponentProps<"td">) {
-  return (
-    <td className={cn("p-2 align-middle [&:has([role=checkbox])]:pe-0", className)} {...props} />
-  );
+  return <td className={cn("p-2 align-middle has-[[role=checkbox]]:pe-0", className)} {...props} />;
 }
 
 function TableCaption({ className, ...props }: React.ComponentProps<"caption">) {

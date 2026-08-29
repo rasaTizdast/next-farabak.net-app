@@ -23,7 +23,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {endIcon ? (
-          <span className="text-muted-foreground pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3">
+          <span className="text-muted-foreground pointer-events-none absolute inset-y-0 inset-e-0 flex items-center pe-3">
             {endIcon}
           </span>
         ) : null}

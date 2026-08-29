@@ -40,11 +40,11 @@ const DialogContent = React.forwardRef<
       className={cn("fixed inset-0 z-50 flex items-center justify-center p-4", className)}
       {...props}
     >
-      <div className="bg-card text-card-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 relative w-full max-w-lg rounded-lg border shadow-lg transition-opacity transition-transform duration-200">
+      <div className="bg-card text-card-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 relative w-full max-w-lg rounded-lg border shadow-lg transition-[opacity,transform] duration-200">
         {children}
         <DialogPrimitive.Close
           aria-label="بستن"
-          className="ring-offset-background focus:ring-ring absolute end-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none"
+          className="ring-offset-background focus:ring-ring absolute inset-e-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none"
         >
           <X className="size-4" />
         </DialogPrimitive.Close>
