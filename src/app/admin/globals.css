@@ -22,3 +22,159 @@
 .ant-picker-dropdown {
   z-index: 3000 !important;
 }
+
+.ant-modal-title,
+.rtl-modal .ant-modal-header,
+.ant-alert-message,
+.ant-form-item-label > label {
+  text-align: right;
+}
+
+.rtl-modal .ant-modal-header {
+  margin-bottom: 10px;
+}
+
+.ant-modal-close {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  color: #e5e7eb !important;
+  background-color: #4b5563 !important;
+  border-radius: 12px !important;
+}
+
+.ant-modal-close:hover {
+  color: #ffffff !important;
+  background-color: #6b7280 !important;
+}
+
+.rtl-drawer .ant-drawer-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 16px 24px !important;
+}
+
+.rtl-drawer .ant-drawer-header-title {
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
+
+.rtl-drawer .ant-drawer-title {
+  text-align: right;
+}
+
+.rtl-drawer .ant-drawer-close {
+  margin-right: 0;
+  margin-left: 12px;
+}
+
+.ant-table-thead > tr > th,
+.ant-table-tbody > tr > td {
+  text-align: right;
+}
+
+.rtl-table .ant-table-container table {
+  direction: rtl;
+}
+
+.rtl-table .ant-table-pagination {
+  direction: ltr;
+}
+
+.enhanced-table .ant-table-thead > tr > th {
+  padding: 16px 12px !important;
+  font-weight: 600 !important;
+  border-color: #374151 !important;
+}
+
+.enhanced-table .ant-table-tbody > tr > td {
+  padding: 12px !important;
+  border-color: #374151 !important;
+  transition: background 0.2s ease;
+}
+
+.enhanced-table .ant-table-tbody > tr:nth-child(odd) {
+  background-color: #1f2937 !important;
+}
+
+.enhanced-table .ant-table-tbody > tr:nth-child(even) {
+  background-color: #1a2234 !important;
+}
+
+.enhanced-table .ant-table-tbody > tr.ant-table-row:hover > td {
+  background-color: #2d3748 !important;
+}
+
+.unread-invoice-row > td {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+}
+
+.unread-invoice-row:hover > td {
+  background-color: rgba(245, 158, 11, 0.25) !important;
+}
+
+.invoice-warranty-tabs .ant-tabs-tab {
+  padding: 10px 16px !important;
+  background-color: #1e293b !important;
+  border: 1px solid #374151 !important;
+  border-radius: 8px 8px 0 0 !important;
+  margin-inline-end: 15px !important;
+  transition: all 0.2s ease;
+}
+
+.invoice-warranty-tabs .ant-tabs-tab:hover {
+  background-color: #2b5194 !important;
+}
+
+.invoice-warranty-tabs .ant-tabs-tab-active {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+.invoice-warranty-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: white !important;
+  font-weight: 500;
+}
+
+.invoice-warranty-tabs .ant-tabs-content {
+  padding: 20px;
+  background-color: #1f2937;
+  border-radius: 0 0 8px 8px;
+}
+
+.invoice-warranty-tabs .ant-empty-description {
+  color: #e5e7eb !important;
+}
+
+.dark-button-secondary {
+  color: #e5e7eb !important;
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+}
+
+.dark-button-secondary:hover,
+.dark-button-secondary:focus {
+  color: #f9fafb !important;
+  background-color: #4b5563 !important;
+  border-color: #6b7280 !important;
+}
+
+.dark-input::placeholder,
+.dark-input-number input::placeholder,
+.dark-modal .ant-input::placeholder,
+.dark-modal .ant-input-affix-wrapper input::placeholder,
+.dark-modal .ant-input-number-input::placeholder {
+  color: #9ca3af !important;
+}
+
+.ant-select-dropdown {
+  direction: rtl;
+  text-align: right;
+}
+
+.ant-form-item-explain-error {
+  color: #ef4444 !important;
+}
