@@ -1,4 +1,5 @@
 "use client";
+import { cn } from "@/lib/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Image from "next/image";
 import Link from "next/link";
@@ -109,12 +110,18 @@ const SignUp = () => {
 
   return (
     <FormProvider {...methods}>
-      <div className="m-12 flex min-h-[600px] max-w-[1250px] items-center rounded-[20px] bg-white/40 shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur-[5px] md:m-8 md:min-h-[550px] lg:m-6">
+      <div
+        className={cn(
+          "rtl m-12 flex min-h-[600px] max-w-[1250px] items-center rounded-lg bg-white/40 shadow-[0_4px_10px_rgba(0,0,0,0.1)] backdrop-blur-[5px] md:m-8 md:min-h-[550px] lg:m-6"
+        )}
+      >
         <form
-          className="flex h-full min-h-[600px] w-[60%] max-w-[550px] flex-col justify-between gap-12 rounded-r-[20px] bg-white/30 p-6 pt-4 shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur-[5px] md:p-[1.3rem]"
+          className={cn(
+            "rtl flex h-full min-h-[600px] w-[60%] max-w-[550px] flex-col justify-between gap-12 rounded-lg bg-white/30 p-6 pt-4 shadow-[0_4px_10px_rgba(0,0,0,0.1)] backdrop-blur-[5px] md:p-[1.3rem]"
+          )}
           onSubmit={handleSubmit(onSubmit)}
         >
-          <div className="flex w-full items-center justify-center gap-2">
+          <div className={cn("flex w-full items-center justify-center gap-2")}>
             <Link href="/">
               <Image
                 width={2066}
@@ -124,17 +131,23 @@ const SignUp = () => {
                 alt="farabak logo"
               />
             </Link>
-            <div className="h-[60px] w-[2px] bg-white md:h-[60px] md:w-[2px] lg:h-[2px] lg:w-full"></div>
-            <div className="flex flex-col">
-              <h3 className="text-[1.1rem] font-medium md:text-[1rem] lg:text-[1.1rem]">
+            <div
+              className={cn(
+                "h-[60px] w-[2px] bg-white md:h-[60px] md:w-[2px] lg:h-[2px] lg:w-full"
+              )}
+            ></div>
+            <div className={cn("flex flex-col")}>
+              <h3 className={cn("text-[1.1rem] font-medium md:text-[1rem] lg:text-[1.1rem]")}>
                 ساخت حساب کاربری
               </h3>
-              <div className="text-base font-light md:text-[0.9rem] lg:text-base">شرکت فرابک</div>
+              <div className={cn("text-base font-light md:text-[0.9rem] lg:text-base")}>
+                شرکت فرابک
+              </div>
             </div>
           </div>
 
           {step === 1 && (
-            <div className="flex flex-col gap-6">
+            <div className={cn("flex flex-col gap-6")}>
               <TextInput
                 name="f_name"
                 label="نام"
@@ -161,7 +174,7 @@ const SignUp = () => {
           )}
 
           {step === 2 && (
-            <div className="flex flex-col gap-6">
+            <div className={cn("flex flex-col gap-6")}>
               <TextInput
                 name="job"
                 label="شغل"
@@ -188,7 +201,7 @@ const SignUp = () => {
           )}
 
           {step === 3 && (
-            <div className="flex flex-col gap-6">
+            <div className={cn("flex flex-col gap-6")}>
               <TextInput
                 name="username"
                 label="نام کاربری"
@@ -217,20 +230,24 @@ const SignUp = () => {
 
           <input
             type="submit"
-            value={isSubmitting ? "در حال ورود..." : "ورود به حساب کاربری"}
+            value={isSubmitting ? "در حال ورود..." : "ورود به-account کاربری"}
             disabled={isSubmitting || step !== 3}
             readOnly
-            className={`mt-4 -mb-4 w-full cursor-pointer rounded-lg border-none bg-[#03a9f4] px-0 py-[0.8rem] text-base font-medium text-white transition-[background-color,box-shadow] duration-300 hover:bg-[#036bf4] hover:shadow-[rgba(0,0,0,0.25)_0_8px_15px] ${step !== 3 ? "hidden" : ""}`}
+            className={cn(
+              "mt-4 -mb-4 w-full cursor-pointer rounded-lg border-none bg-[var(--primary)] px-0 py-[0.8rem] text-base font-medium text-white transition-[background-color,box-shadow] duration-300 hover:bg-[var(--primary)] hover:shadow-[rgba(0,0,0,0.25)_0_8px_15px] disabled:cursor-not-allowed"
+            )}
           />
 
           {errorMessage && (
-            <p className="text-[0.9rem] font-medium text-[#e74c3c]">{errorMessage}</p>
+            <p className={cn("text-[0.9rem] font-medium text-[var(--primary)]")}>{errorMessage}</p>
           )}
 
           <div className="mb-4 flex w-full items-center justify-between">
             <button
               type="button"
-              className="box-border inline-block min-h-[20px] min-w-0 cursor-pointer appearance-none rounded-[15px] border-2 border-[#03a9f4] bg-transparent px-[36px] py-[12px] text-center text-[16px] font-semibold text-black transition-[transform,background-color,color,box-shadow] duration-300 outline-none hover:translate-y-[-2px] hover:bg-[#03a9f4] hover:text-white hover:shadow-[rgba(0,0,0,0.25)_0_8px_15px] disabled:cursor-not-allowed disabled:border-[#a0a0a0] disabled:bg-[#f3f3f3] disabled:text-black disabled:hover:translate-y-0 disabled:hover:bg-[#f3f3f3] disabled:hover:shadow-none lg:rounded-[10px] lg:py-[10px] lg:text-[14px]"
+              className={cn(
+                "box-border inline-block min-h-[20px] min-w-0 cursor-pointer appearance-none rounded-[15px] border-2 border-[#03a9f4] bg-transparent px-[36px] py-[12px] text-center text-[16px] font-semibold text-black transition-[transform,background-color,color,box-shadow] duration-300 outline-none hover:translate-y-[-2px] hover:bg-[#03a9f4] hover:text-white hover:shadow-[rgba(0,0,0,0.25)_0_8px_15px] disabled:cursor-not-allowed disabled:border-[#a0a0a0] disabled:bg-[#f3f3f3] disabled:text-black disabled:hover:translate-y-0 disabled:hover:shadow-none lg:rounded-[10px] lg:py-[10px] lg:text-[14px]"
+              )}
               id="prev"
               onClick={prevStep}
               disabled={step === 1}
@@ -239,7 +256,9 @@ const SignUp = () => {
             </button>
             <button
               type="button"
-              className="box-border inline-block min-h-[20px] min-w-0 cursor-pointer appearance-none rounded-[15px] border-2 border-[#03a9f4] bg-transparent px-[36px] py-[12px] text-center text-[16px] font-semibold text-black transition-[transform,background-color,color,box-shadow] duration-300 outline-none hover:translate-y-[-2px] hover:bg-[#03a9f4] hover:text-white hover:shadow-[rgba(0,0,0,0.25)_0_8px_15px] disabled:cursor-not-allowed disabled:border-[#a0a0a0] disabled:bg-[#f3f3f3] disabled:text-black disabled:hover:translate-y-0 disabled:hover:bg-[#f3f3f3] disabled:hover:shadow-none lg:rounded-[10px] lg:py-[10px] lg:text-[14px]"
+              className={cn(
+                "box-border inline-block min-h-[20px] min-w-0 cursor-pointer appearance-none rounded-[15px] border-2 border-[#03a9f4] bg-transparent px-[36px] py-[12px] text-center text-[16px] font-semibold text-black transition-[transform,background-color,color,box-shadow] duration-300 outline-none hover:translate-y-[-2px] hover:bg-[#03a9f4] hover:text-white hover:shadow-[rgba(0,0,0,0.25)_0_8px_15px] disabled:cursor-not-allowed disabled:border-[#a0a0a0] disabled:bg-[#f3f3f3] disabled:text-black disabled:hover:translate-y-0 disabled:hover:shadow-none lg:rounded-[10px] lg:py-[10px] lg:text-[14px]"
+              )}
               id="next"
               onClick={nextStep}
               disabled={step === 3}
@@ -247,15 +266,23 @@ const SignUp = () => {
               بعدی
             </button>
           </div>
-          <div className="flex flex-col gap-4 self-end">
-            <div className="relative mb-4 flex w-full items-center justify-center">
-              <div className="absolute inset-s-0 top-1/2 h-[2px] w-[47%] -translate-y-1/2 rounded-lg bg-white"></div>
-              <div className="absolute inset-e-0 top-1/2 h-[2px] w-[47%] -translate-y-1/2 rounded-lg bg-white"></div>
+          <div className={cn("flex flex-col gap-4 self-end")}>
+            <div className={cn("relative mb-4 flex w-full items-center justify-center")}>
+              <div
+                className={cn(
+                  "absolute inset-s-0 top-1/2 h-[2px] w-[47%] -translate-y-1/2 rounded-lg bg-white"
+                )}
+              ></div>
+              <div
+                className={cn(
+                  "absolute inset-e-0 top-1/2 h-[2px] w-[47%] -translate-y-1/2 rounded-lg bg-white"
+                )}
+              ></div>
               <div className="relative z-10">یا</div>
             </div>
             <div className="flex w-full justify-center gap-2">
               حساب کاربری دارید؟
-              <Link href="/auth/login" className="cursor-pointer text-[#0116cb]">
+              <Link href="/auth/login" className="cursor-pointer text-[var(--dark-blue)]">
                 ورود به حساب کاربری
               </Link>
             </div>
