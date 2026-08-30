@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { Metadata } from "next";
+import cn from "@/lib/utils";
 import Script from "next/script";
 
 export const metadata: Metadata = {
@@ -56,7 +57,11 @@ const privacySections = [
 
 const PrivacyPage = () => {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40">
+    <div
+      className={cn(
+        "mx-auto max-w-3xl px-4 py-10 min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40"
+      )}
+    >
       <Script
         id="privacy-jsonld"
         type="application/ld+json"

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import cn from "@/lib/utils";
 
 import LoadingSpinner from "@/app/_components/ui/LoadingSpinner";
 import { useUser } from "@/context/UserContext";
@@ -16,7 +17,7 @@ const MainDashboardPage = () => {
     <>
       <h3 className="font-extrabold">کاربر گرامی، {userFullName} خوش‌آمدید</h3>
 
-      <div className="mt-8 flex w-full flex-wrap justify-start gap-8">
+      <div className={cn("mt-8 flex w-full flex-wrap justify-start gap-8")}>
         <Card
           title="ثبت فاکتور جدید"
           desc="ثبت یک فاکتور جدید با محصولاتی که نشان شده‌اند یا میخواهید انتخاب کنید."

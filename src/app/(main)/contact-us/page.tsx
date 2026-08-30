@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import { cn } from "@/lib/utils";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -73,8 +74,8 @@ const ContactUsPage = async () => {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <main className="my-4 flex w-full flex-row flex-wrap items-stretch gap-8 px-6 py-8 min-[992px]:px-16 min-[1200px]:px-24 md:my-8 md:px-12 2xl:px-40">
-        <div className="flex flex-1 flex-col gap-4 rounded-lg bg-white p-8 shadow-[0px_8px_20px_rgba(0,0,0,0.1)] md:w-full md:flex-[30%_1_1] md:p-[2rem_3rem]">
+      <main className={cn("my-4 flex w-full flex-row flex-wrap items-stretch gap-8 px-6 py-8 min-[992px]:px-16 min-[1200px]:px-24 md:my-8 md:px-12 2xl:px-40")}>
+        <div className={cn("flex flex-1 flex-col gap-4 rounded-lg bg-white p-8 shadow-[0px_8px_20px_rgba(0,0,0,0.1)] md:w-full md:flex-[30%_1_1] md:p-[2rem_3rem]")}>
           <h1 className="text-third mb-0 self-center text-[calc(0.7rem+0.5vw)] font-extrabold md:text-[calc(1rem+0.5vw)]">
             آدرس
           </h1>
@@ -88,7 +89,7 @@ const ContactUsPage = async () => {
           </div>
           <p>{address?.alt_text}</p>
         </div>
-        <div className="flex flex-1 flex-col gap-4 rounded-lg bg-white p-8 shadow-[0px_8px_20px_rgba(0,0,0,0.1)] md:w-full md:flex-[30%_1_1] md:p-[2rem_3rem]">
+        <div className={cn("flex flex-1 flex-col gap-4 rounded-lg bg-white p-8 shadow-[0px_8px_20px_rgba(0,0,0,0.1)] md:w-full md:flex-[30%_1_1] md:p-[2rem_3rem]")}>
           <h1 className="text-third mb-0 self-center text-[calc(0.7rem+0.5vw)] font-extrabold md:self-start md:text-[calc(1rem+0.5vw)]">
             شماره‌های تماس
           </h1>
@@ -97,7 +98,7 @@ const ContactUsPage = async () => {
               <li key={phone.id}>
                 <a
                   href={`tel:${phone.number}`}
-                  className="flex justify-between gap-4 text-[#003262]"
+                  className={cn("flex justify-between gap-4 text-[var(--color-dark-blue])")
                 >
                   {phone.number}
                 </a>
@@ -105,7 +106,7 @@ const ContactUsPage = async () => {
             ))}
           </ul>
         </div>
-        <div className="flex flex-1 flex-col gap-4 rounded-lg bg-white p-8 shadow-[0px_8px_20px_rgba(0,0,0,0.1)] md:w-full md:flex-[30%_1_1] md:p-[2rem_3rem]">
+        <div className={cn("flex flex-1 flex-col gap-4 rounded-lg bg-white p-8 shadow-[0px_8px_20px_rgba(0,0,0,0.1)] md:w-full md:flex-[30%_1_1] md:p-[2rem_3rem]")}>
           <h1 className="text-third mb-0 self-center text-[calc(0.7rem+0.5vw)] font-extrabold md:self-start md:text-[calc(1rem+0.5vw)]">
             آدرس‌های ایمیل
           </h1>
@@ -114,7 +115,7 @@ const ContactUsPage = async () => {
               <li key={email.id}>
                 <a
                   href={`mailto:${email.address}`}
-                  className="flex justify-between gap-4 text-[#003262]"
+                  className={cn("flex justify-between gap-4 text-[var(--color-dark-blue])")
                 >
                   <div className="inline font-extrabold">{email.title}:</div>
                   <span>{email.address}</span>
