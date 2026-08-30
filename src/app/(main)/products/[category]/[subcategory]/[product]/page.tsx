@@ -1,4 +1,5 @@
 // Components
+import { cn } from "@/lib/utils";
 import { Metadata } from "next";
 import { Suspense } from "react";
 
@@ -124,8 +125,13 @@ export default async function ProductPage(props: ProductPageProps) {
   const searchParams = await props.searchParams;
 
   return (
-    <Suspense fallback={<ProductMainSkeleton />}>
-      <ProductDataWrapper params={params} searchParams={searchParams} />
-    </Suspense>
+    <div
+      dir="rtl"
+      className={cn("rounded-lg bg-[var(--dark-blue)] shadow-[0_4px_10px_rgba(0,0,0,0.1)]")}
+    >
+      <Suspense fallback={<ProductMainSkeleton />}>
+        <ProductDataWrapper params={params} searchParams={searchParams} />
+      </Suspense>
+    </div>
   );
 }

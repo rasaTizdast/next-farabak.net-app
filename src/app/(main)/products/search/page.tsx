@@ -1,8 +1,8 @@
 export const dynamic = "force-dynamic";
 
+import { cn } from "@/lib/utils";
 import { Metadata } from "next";
 import { Suspense } from "react";
-
 import BreadcrumbWrapper from "../_components/BreadcrumbWrapper";
 import ProductGridWrapper from "../_components/ProductGridWrapper";
 import { BreadcrumbSkeleton, ProductGridSkeleton } from "../_components/ProductListSkeletons";
@@ -35,7 +35,10 @@ export default async function SearchPage(props: SearchPageProps) {
   const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/search?q=${encodeURIComponent(query)}&page=${currentPage}&limit=${limit}`;
 
   return (
-    <>
+    <div
+      dir="rtl"
+      className={cn("rounded-lg bg-[var(--dark-blue)] shadow-[0_4px_10px_rgba(0,0,0,0.1)]")}
+    >
       <Suspense fallback={<BreadcrumbSkeleton />}>
         <BreadcrumbWrapper breadcrumbs={searchBreadcrumbs} />
       </Suspense>
@@ -46,6 +49,6 @@ export default async function SearchPage(props: SearchPageProps) {
           currentPage={currentPage}
         />
       </Suspense>
-    </>
+    </div>
   );
 }

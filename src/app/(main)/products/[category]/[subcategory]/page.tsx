@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { Metadata } from "next";
 import { Suspense } from "react";
 
@@ -83,7 +84,10 @@ export default async function SubcategoryPage(props: SubcategoryPageProps) {
   ];
 
   return (
-    <>
+    <div
+      dir="rtl"
+      className={cn("rounded-lg bg-[var(--dark-blue)] shadow-[0_4px_10px_rgba(0,0,0,0.1)]")}
+    >
       <Suspense fallback={<BreadcrumbSkeleton />}>
         <BreadcrumbWrapper breadcrumbs={breadcrumbs} />
       </Suspense>
@@ -96,6 +100,6 @@ export default async function SubcategoryPage(props: SubcategoryPageProps) {
           canonicalUrl={canonicalUrl}
         />
       </Suspense>
-    </>
+    </div>
   );
 }
