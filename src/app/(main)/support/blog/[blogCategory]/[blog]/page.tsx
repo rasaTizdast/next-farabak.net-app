@@ -3,6 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import Script from "next/script";
 
+import { cn } from "@/lib/utils";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import BlogFaqAccordion from "@/components/BlogFaqAccordion";
 
@@ -205,19 +206,25 @@ export default async function BlogPage(props: {
     <>
       <Breadcrumb breadcrumbs={["/", "/support", "/support/blog"]} />
 
-      <article className="mx-auto mt-5 w-full max-w-[1580px] rounded-lg bg-gray-200 p-5 sm:p-10">
-        <header className="mb-8">
-          <h1 className="mb-8 text-2xl font-bold sm:text-4xl">{blog.title}</h1>
+      <article
+        className={cn("bg-background mx-auto mt-5 w-full max-w-[1580px] rounded-lg p-5 sm:p-10")}
+      >
+        <header className={cn("mb-8")}>
+          <h1 className={cn("mb-8 text-2xl font-bold sm:text-4xl")}>{blog.title}</h1>
           <Image
             src={`${process.env.LIARA_BUCKET_URL}/${blog.image_URL}`}
             alt={blog.image_alt}
-            className="mx-auto mb-6 w-full rounded-lg object-cover lg:w-3/5"
+            className={cn("mx-auto mb-6 w-full rounded-lg object-cover lg:w-3/5")}
             width={1200}
             height={630}
             quality={75}
           />
-          <div className="scrollbar-hide mb-4 overflow-x-auto rounded-lg bg-gray-100 p-2">
-            <div className="mobile:text-base flex items-center gap-3 text-xs whitespace-nowrap text-gray-600">
+          <div className={cn("scrollbar-hide bg-background mb-4 overflow-x-auto rounded-lg p-2")}>
+            <div
+              className={cn(
+                "mobile:text-base text-muted-foreground flex items-center gap-3 text-xs whitespace-nowrap"
+              )}
+            >
               <span>{blog.author}</span>
               <span>•</span>
               <time>{new Date(blog.created_at).toLocaleDateString("fa")}</time>
@@ -228,7 +235,9 @@ export default async function BlogPage(props: {
         </header>
 
         <div
-          className="prose-view max-w-none [&_.w-1\/2]:mx-auto [&_.w-1\/2]:w-1/2 [&_.w-1\/3]:mx-auto [&_.w-1\/3]:w-1/3 [&_.w-full]:w-full [&_img]:h-auto [&_img]:max-w-full"
+          className={cn(
+            "prose-view max-w-none [&_.w-1\/2]:mx-auto [&_.w-1\/2]:w-1/2 [&_.w-1\/3]:mx-auto [&_.w-1\/3]:w-1/3 [&_.w-full]:w-full [&_img]:h-auto [&_img]:max-w-full"
+          )}
           dangerouslySetInnerHTML={{
             __html: DOMPurify.sanitize(processContentWithImageUrls(blog.content), {
               ADD_TAGS: ["Image", "video", "source"],
@@ -240,7 +249,11 @@ export default async function BlogPage(props: {
 
       {/* FAQ Section */}
       {faqs && faqs.length > 0 && (
-        <section className="mx-auto mt-8 w-full max-w-[1580px] rounded-lg bg-white p-5 shadow-sm sm:p-10">
+        <section
+          className={cn(
+            "bg-background mx-auto mt-8 w-full max-w-[1580px] rounded-lg p-5 shadow-sm sm:p-10"
+          )}
+        >
           <BlogFaqAccordion
             faqs={faqs}
             blogTitle={blog.title}

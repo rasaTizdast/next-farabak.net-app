@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import { cn } from "@/lib/utils";
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -79,15 +80,17 @@ const BlogContent = ({
   }[];
 }) => {
   return (
-    <div className="w-full">
+    <div className={cn("w-full")}>
       {/* Latest Blog */}
-      <div className="mt-5 mb-10">
-        <h1 className="mb-5 text-right text-3xl font-extrabold text-gray-800 md:text-4xl">
+      <div className={cn("mt-5 mb-10")}>
+        <h1 className={cn("text-foreground mb-5 text-right text-3xl font-extrabold md:text-4xl")}>
           جدیدترین بلاگ
         </h1>
         <Link
           href={`/support/blog/${blogs.blogs[0].categories[0].slug}/${blogs.blogs[0].slug}`}
-          className="relative block overflow-hidden rounded-lg shadow-lg transition-transform hover:scale-[1.02]"
+          className={cn(
+            "relative block overflow-hidden rounded-lg shadow-lg transition-transform hover:scale-[1.02]"
+          )}
         >
           <Image
             src={`${process.env.LIARA_BUCKET_URL}/${blogs.blogs[0].image}`}
@@ -109,7 +112,7 @@ const BlogContent = ({
 
       {/* Categories Section */}
       <div className="my-16">
-        <h2 className="mb-5 text-right text-3xl font-extrabold text-gray-800 md:text-4xl">
+        <h2 className="text-foreground mb-5 text-right text-3xl font-extrabold md:text-4xl">
           دسته‌بندی‌ها
         </h2>
         <div className="flex flex-wrap justify-start gap-7">
@@ -117,7 +120,9 @@ const BlogContent = ({
             <Link
               key={category.id}
               href={`/support/blog/${category.slug}`}
-              className="group relative flex items-center justify-center overflow-hidden rounded-xl bg-linear-to-l from-[#0e6aff] to-[#1e90ff] px-10 py-2 text-white shadow-lg transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-xl"
+              className={cn(
+                "group from-primary to-secondary relative flex items-center justify-center overflow-hidden rounded-xl bg-linear-to-l px-10 py-2 text-white shadow-lg transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-xl"
+              )}
             >
               <span className="absolute inset-0 rounded-xl bg-white opacity-10 transition duration-300 group-hover:opacity-20"></span>
               <span className="relative z-10 flex items-center gap-2 text-lg font-medium text-white">
@@ -129,15 +134,17 @@ const BlogContent = ({
       </div>
 
       {/* Other Blogs */}
-      <h2 className="mb-5 text-right text-3xl font-extrabold text-gray-800 md:text-4xl">
+      <h2 className={cn("text-foreground mb-5 text-right text-3xl font-extrabold md:text-4xl")}>
         سایر بلاگ‌ها
       </h2>
-      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <div className={cn("grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3")}>
         {blogs.blogs.map((blog) => (
           <Link
             key={blog.id}
             href={`/support/blog/${blog.categories[0].slug}/${blog.slug}`}
-            className="block rounded-lg border border-gray-200 bg-white shadow-lg transition-[transform,box-shadow] hover:scale-[1.02] hover:shadow-2xl"
+            className={cn(
+              "border-border bg-background block rounded-lg border shadow-lg transition-[transform,box-shadow] hover:scale-[1.02] hover:shadow-2xl"
+            )}
           >
             <div className="overflow-hidden rounded-t-lg">
               <Image
@@ -150,7 +157,7 @@ const BlogContent = ({
               />
             </div>
             <div className="p-5">
-              <h3 className="mb-2 text-lg font-semibold text-gray-800">{blog.title}</h3>
+              <h3 className="text-foreground mb-2 text-lg font-semibold">{blog.title}</h3>
               <p className="text-sm text-gray-500">
                 تاریخ: {new Date(blog.created_at).toLocaleDateString("fa")}
               </p>

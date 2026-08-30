@@ -107,11 +107,11 @@ async function confirmWarrantyRequest(
   }
 }
 
-const primaryButtonClass =
-  "inline-flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#00bfff] px-6 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-[#318ce7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00bfff]/50 disabled:cursor-not-allowed disabled:opacity-50";
-
 const secondaryButtonClass =
-  "inline-flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 px-6 py-3 text-base font-medium text-gray-700 transition-colors hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300";
+  cn("inline-flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 px-6 py-3 text-base font-medium text-gray-700 transition-colors hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300");
+
+const primaryButtonClass =
+  cn("inline-flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#00bfff] px-6 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-[#318ce7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00bfff]/50 disabled:cursor-not-allowed disabled:opacity-50");
 
 const StepIndicator = ({
   steps,
@@ -209,39 +209,39 @@ const WarrantyTrackingPage = () => {
   const stepsConfig = getStepsConfig();
 
   return (
-    <div dir="rtl" className="warranty-page w-full">
+    <div dir="rtl" className={cn("warranty-page w-full")}>
       {loading ? (
         // Loading skeleton
-        <div className="mx-auto max-w-4xl">
+        <div className={cn("mx-auto max-w-4xl")}>
           <div className="mb-8 flex justify-center">
             <div className="w-full md:w-2/3 lg:w-1/2 xl:w-2/5">
               <div className="mx-auto mb-2 h-8 w-3/4 animate-pulse rounded-md bg-gray-200"></div>
               <div className="mx-auto mb-10 h-4 w-4/5 animate-pulse rounded-md bg-gray-100"></div>
 
               <div className="mb-8 flex justify-between">
-                <div className="h-16 w-1/3 animate-pulse rounded-full bg-blue-100"></div>
-                <div className="h-16 w-1/3 animate-pulse rounded-full bg-gray-100"></div>
-                <div className="h-16 w-1/3 animate-pulse rounded-full bg-gray-100"></div>
+                <div className={cn("h-16 w-1/3 animate-pulse rounded-full bg-blue-100")}></div>
+                <div className={cn("h-16 w-1/3 animate-pulse rounded-full bg-gray-100")}></div>
+                <div className={cn("h-16 w-1/3 animate-pulse rounded-full bg-gray-100")}></div>
               </div>
             </div>
           </div>
 
-          <div className="animate-pulse overflow-hidden rounded-lg border-0 bg-white shadow-lg">
-            <div className="p-8">
-              <div className="mb-4 h-6 w-1/3 rounded-md bg-gray-200"></div>
-              <div className="mb-6 h-4 w-2/3 rounded-md bg-gray-100"></div>
+          <div className={cn("animate-pulse overflow-hidden rounded-lg border-0 bg-white shadow-lg")}>
+            <div className={cn("p-8")}>
+              <div className={cn("mb-4 h-6 w-1/3 rounded-md bg-gray-200")}></div>
+              <div className={cn("mb-6 h-4 w-2/3 rounded-md bg-gray-100")}></div>
 
-              <div className="mb-6 flex gap-3">
-                <div className="h-12 w-full rounded-md bg-gray-100"></div>
-                <div className="h-12 w-24 rounded-md bg-blue-100"></div>
+              <div className={cn("mb-6 flex gap-3")}>
+                <div className={cn("h-12 w-full rounded-md bg-gray-100")}></div>
+                <div className={cn("h-12 w-24 rounded-md bg-blue-100")}></div>
               </div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="mx-auto max-w-4xl">
+        <div className={cn("mx-auto max-w-4xl")}>
           <div className="mx-auto mb-8 max-w-xl md:max-w-2xl lg:max-w-3xl">
-            <h2 className="mb-2 text-center text-2xl font-bold text-gray-900 md:text-3xl">
+            <h2 className={cn("mb-2 text-center text-2xl font-bold text-gray-900 md:text-3xl")}>
               سامانه استعلام گارانتی محصولات
             </h2>
             <p className="mb-10 text-center text-gray-500">
@@ -251,13 +251,13 @@ const WarrantyTrackingPage = () => {
             <StepIndicator steps={stepsConfig} current={currentStep} />
           </div>
 
-          <div className="overflow-hidden rounded-lg bg-white p-6 shadow-lg md:p-8">
+          <div className={cn("overflow-hidden rounded-lg bg-white p-6 shadow-lg md:p-8")}>
             {currentStep === 0 && (
               <div className="mb-8">
                 <h4 className="mb-4 text-lg font-semibold text-gray-900">بررسی وضعیت گارانتی</h4>
                 <p className="text-gray-500">لطفا کد گارانتی محصول خود را در کادر زیر وارد کنید</p>
 
-                <form onSubmit={handleSearchWarranty} className="mb-6">
+                <form onSubmit={handleSearchWarranty} className={cn("mb-6")}>
                   <div className="flex gap-3">
                     <input
                       type="text"
@@ -266,12 +266,12 @@ const WarrantyTrackingPage = () => {
                       onChange={(e) => setWarrantyCode(e.target.value)}
                       dir="ltr"
                       disabled={loading}
-                      className="min-w-0 flex-1 rounded-lg border border-gray-300 px-4 py-3 text-left text-base transition-colors focus:border-[#00bfff] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00bfff]/30 disabled:bg-gray-50"
+                      className={cn("min-w-0 flex-1 rounded-lg border border-gray-300 px-4 py-3 text-left text-base transition-colors focus:border-[#00bfff] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00bfff]/30 disabled:bg-gray-50")}
                     />
                     <button
                       type="submit"
                       disabled={loading || !warrantyCode}
-                      className={primaryButtonClass}
+                      className={cn("inline-flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#00bfff] px-6 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-[#318ce7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00bfff]/50 disabled:cursor-not-allowed disabled:opacity-50")]
                     >
                       {loading ? <Loader2 className="size-5 animate-spin" /> : "بررسی"}
                     </button>
@@ -371,7 +371,7 @@ const WarrantyTrackingPage = () => {
                     type="button"
                     onClick={handleConfirmRequest}
                     disabled={confirmLoading}
-                    className={`${primaryButtonClass} min-w-[180px]`}
+                    className={cn(primaryButtonClass, "min-w-[180px]")}
                   >
                     {confirmLoading ? (
                       <Loader2 className="size-5 animate-spin" />

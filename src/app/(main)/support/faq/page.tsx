@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic"; // To ensure this page isn't statically generated
 
+import { cn } from "@/lib/utils";
 import { HelpCircle, MessageCircle } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
@@ -42,7 +43,11 @@ const FaqPage = async () => {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       {/* Hero section */}
-      <section className="relative w-full overflow-hidden rounded-lg bg-linear-to-br from-blue-600 via-blue-500 to-blue-400 py-6 shadow-lg md:rounded-xl md:py-10 lg:py-14">
+      <section
+        className={cn(
+          "from-primary via-secondary to-dark-blue relative w-full overflow-hidden rounded-lg bg-linear-to-br py-6 shadow-lg md:rounded-xl md:py-10 lg:py-14"
+        )}
+      >
         {/* Decorative elements - hidden on mobile for better performance */}
         <div className="absolute top-0 left-0 hidden size-full overflow-hidden opacity-10 md:block">
           <div className="absolute top-10 left-10 size-20 rounded-full bg-white"></div>
@@ -50,7 +55,7 @@ const FaqPage = async () => {
           <div className="absolute top-1/3 right-1/4 size-16 rounded-full bg-white"></div>
         </div>
 
-        <div className="relative mx-auto max-w-2xl px-4 text-center">
+        <div className={cn("relative mx-auto max-w-2xl px-4 text-center")}>
           <div className="mb-3 flex justify-center md:mb-4">
             <div className="rounded-full bg-white/20 p-2 shadow-md backdrop-blur-sm md:p-3">
               <HelpCircle className="size-5 text-white md:size-6" />
@@ -68,7 +73,11 @@ const FaqPage = async () => {
 
       {/* FAQ content section */}
       <section className="w-full">
-        <div className="my-6 rounded-lg border border-gray-100 bg-white p-3 shadow-md md:my-8 md:p-5 lg:my-12">
+        <div
+          className={cn(
+            "border-border bg-background my-6 rounded-lg border p-3 shadow-md md:my-8 md:p-5 lg:my-12"
+          )}
+        >
           <FaqAccordion faqs={faqs} />
         </div>
 
@@ -76,11 +85,15 @@ const FaqPage = async () => {
           <div className="px-4 text-center md:px-0">
             <div className="relative mx-auto w-full overflow-hidden rounded-lg border border-gray-200 bg-linear-to-br from-gray-50 to-gray-100 p-4 shadow-md md:max-w-2xl md:p-6">
               {/* Decorative element - hidden on mobile */}
-              <div className="absolute top-0 right-0 -mt-8 -mr-8 hidden size-20 rounded-full bg-blue-100 opacity-40 md:block"></div>
+              <div
+                className={cn(
+                  "absolute top-0 right-0 -mt-8 -mr-8 hidden size-20 rounded-full bg-gray-50 opacity-40 md:block"
+                )}
+              ></div>
 
               <div className="mb-2 flex justify-center md:mb-3">
-                <div className="rounded-full bg-blue-100 p-2">
-                  <MessageCircle className="size-4 text-blue-600 md:size-5" />
+                <div className="rounded-full bg-gray-100 p-2">
+                  <HelpCircle className="size-5 text-white md:size-6" />
                 </div>
               </div>
 
@@ -92,7 +105,9 @@ const FaqPage = async () => {
               </p>
               <Link
                 href="/contact-us"
-                className="inline-flex transform items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-md transition-[transform,background-color,box-shadow] duration-300 hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-lg md:px-5 md:py-2.5"
+                className={cn(
+                  "bg-primary hover:bg-secondary inline-flex transform items-center rounded-lg px-4 py-2 text-sm font-medium text-white shadow-md transition-[transform,background-color,box-shadow] duration-300 hover:-translate-y-0.5 md:px-5 md:py-2.5"
+                )}
               >
                 تماس با ما
               </Link>

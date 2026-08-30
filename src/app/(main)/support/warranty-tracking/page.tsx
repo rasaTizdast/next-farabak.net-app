@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { Metadata } from "next";
 
 import WarrantyTrackingPage from "./ClientWarrantyTracking";
@@ -15,5 +16,9 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <WarrantyTrackingPage />;
+  return (
+    <div className={cn("w-full")}>
+      <WarrantyTrackingPage />
+    </div>
+  );
 }
