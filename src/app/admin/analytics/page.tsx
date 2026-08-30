@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 import React, { useState } from "react";
 import { BiLinkExternal } from "react-icons/bi";
 import { FaChartArea, FaUsers } from "react-icons/fa";
@@ -11,19 +12,19 @@ type CardColor = "blue" | "green" | "purple";
 
 const colorMap: Record<CardColor, { bg: string; border: string; text: string }> = {
   blue: {
-    bg: "bg-blue-100",
-    border: "border-blue-500",
-    text: "text-blue-500",
+    bg: "bg-gray-950",
+    border: "border-[var(--primary)]",
+    text: "text-[var(--primary)]",
   },
   green: {
-    bg: "bg-green-100",
-    border: "border-green-500",
-    text: "text-green-500",
+    bg: "bg-gray-950",
+    border: "border-[var(--secondary)]",
+    text: "text-[var(--secondary)]",
   },
   purple: {
-    bg: "bg-purple-100",
-    border: "border-purple-500",
-    text: "text-purple-500",
+    bg: "bg-gray-950",
+    border: "border-[var(--dark-blue)]",
+    text: "text-[var(--dark-blue)]",
   },
 };
 
@@ -58,27 +59,29 @@ const AnalyticsOverview = () => {
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
   return (
-    <div className="rounded-lg bg-linear-to-tr from-gray-800 to-gray-900 p-4 sm:p-8">
-      <div className="mx-auto max-w-6xl space-y-12">
+    <div className={cn("rounded-lg bg-linear-to-tr from-gray-800 to-gray-900 p-4 sm:p-8")}>
+      <div className={cn("mx-auto max-w-6xl space-y-12")}>
         {/* Header with subtle animation */}
-        <div className="space-y-4 text-center">
+        <div className={cn("space-y-4 text-center")}>
           <h1 className="text-2xl font-bold text-gray-200 transition-colors duration-300 hover:text-blue-200 md:text-3xl lg:text-5xl">
             تحلیل وبسایت شما
           </h1>
           <p className="mx-auto max-w-3xl text-base text-gray-400 md:text-lg lg:text-xl">
             عملکرد وبسایت خود را با استفاده از تحلیل‌های دقیق و معیارهای کاربردی پیگیری کنید
           </p>
-          <div className="mx-auto mt-6 h-1 w-24 rounded-full bg-blue-500"></div>
+          <div className={cn("mx-auto mt-6 h-1 w-24 rounded-full bg-blue-500")}></div>
         </div>
 
         {/* Enhanced Analytics Preview Cards */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className={cn("grid grid-cols-1 gap-8 lg:grid-cols-3")}>
           {cards.map((card) => (
             <div
               key={card.id}
-              className={`relative transform overflow-hidden rounded-xl bg-gray-950 p-4 shadow-sm transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-8 ${
-                hoveredCard === card.id ? colorMap[card.color].border : "border-transparent"
-              } border-2`}
+              className={cn(
+                `relative transform overflow-hidden rounded-xl border-2 bg-gray-950 p-4 shadow-sm transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-8 ${
+                  hoveredCard === card.id ? colorMap[card.color].border : "border-transparent"
+                }`
+              )}
               onMouseEnter={() => setHoveredCard(card.id)}
               onMouseLeave={() => setHoveredCard(null)}
             >
@@ -103,19 +106,33 @@ const AnalyticsOverview = () => {
         </div>
 
         {/* Enhanced Call to Action */}
-        <div className="relative space-y-4 overflow-hidden rounded-xl bg-gray-950 p-8 text-center shadow-lg">
-          <div className="absolute top-0 left-0 h-2 w-full bg-linear-to-r from-blue-500 via-purple-500 to-green-500"></div>
-          <h2 className="mt-0 text-2xl font-bold text-gray-100 transition-colors duration-300 hover:text-blue-600 lg:text-3xl">
+        <div
+          className={cn(
+            "relative space-y-4 overflow-hidden rounded-xl bg-gray-950 p-8 text-center shadow-lg"
+          )}
+        >
+          <div
+            className={cn(
+              "absolute top-0 left-0 h-2 w-full bg-linear-to-r from-blue-500 via-purple-500 to-green-500"
+            )}
+          ></div>
+          <h2
+            className={cn(
+              "mt-0 text-2xl font-bold text-gray-100 transition-colors duration-300 hover:text-blue-600 lg:text-3xl"
+            )}
+          >
             آماده‌اید برای مشاهده دقیق‌تر تحلیل‌های وبسایت شما؟
           </h2>
-          <p className="mx-auto max-w-2xl text-base leading-relaxed text-gray-400">
+          <p className={cn("mx-auto max-w-2xl text-base leading-relaxed text-gray-400")}>
             با دسترسی به پنل تحلیلی، آمار جامع و گزارش‌های دقیق عملکرد وبسایت خود را مشاهده کنید.
           </p>
           <Link
             href={process.env.NEXT_PUBLIC_UMAMI_ANALYTICS_PAGE as string}
             passHref
             target="_blank"
-            className="inline-flex transform items-center gap-3 rounded-xl bg-blue-600 px-8 py-4 text-xs font-medium text-white transition-[transform,background-color,box-shadow] duration-300 hover:-translate-y-1 hover:bg-blue-700 hover:shadow-lg sm:text-base"
+            className={cn(
+              "inline-flex transform items-center gap-3 rounded-xl bg-[var(--primary)] px-8 py-4 text-xs font-medium text-white transition-[transform,background-color,box-shadow] duration-300 hover:-translate-y-1 hover:bg-[var(--secondary)] hover:shadow-lg sm:text-base"
+            )}
           >
             مشاهده تحلیل‌های دقیق‌تر
             <BiLinkExternal className="animate-pulse" size={20} />

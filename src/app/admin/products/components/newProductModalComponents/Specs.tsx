@@ -17,8 +17,7 @@ type SpecsProps = {
   dispatch: (action: SpecsAction) => void;
   setErrors: (
     errors:
-      | { [key: string]: string }
-      | ((prev: { [key: string]: string }) => { [key: string]: string })
+      { [key: string]: string } | ((prev: { [key: string]: string }) => { [key: string]: string })
   ) => void;
   hasSubmitted?: boolean; // Add a prop to know if form was submitted
 };

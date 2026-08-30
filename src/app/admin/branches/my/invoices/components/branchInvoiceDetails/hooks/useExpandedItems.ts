@@ -26,8 +26,7 @@ export function useExpandedItems() {
 
       const quantity = product.quantity || 1;
       let warrantyCodes: (
-        | string
-        | { code: string; startdate?: string; expirydate?: string; status?: string }
+        string | { code: string; startdate?: string; expirydate?: string; status?: string }
       )[] = [];
 
       if (product.warranty) {

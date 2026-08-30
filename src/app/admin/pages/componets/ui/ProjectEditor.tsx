@@ -97,8 +97,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const allMediaFiles = [...(mainImage ? [mainImage] : []), ...detailImages, ...videos] as (
-    | File
-    | string
+    File | string
   )[];
   const getPreviewUrl = usePreviewUrls(allMediaFiles);
 

@@ -1,6 +1,7 @@
 "use client";
 
 import axios from "axios";
+import { cn } from "@/lib/utils";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { toast, Toaster } from "react-hot-toast";
 
@@ -214,11 +215,15 @@ const AdminProductsPage = () => {
   return (
     <>
       <Toaster position="bottom-center" />
-      <div className="flex flex-col items-center p-4">
+      <div className={cn("flex flex-col items-center p-4")}>
         {/* Top Bar */}
-        <div className="flex w-full max-w-[1800px] flex-col items-center justify-between space-y-4 lg:flex-row lg:space-y-0">
+        <div
+          className={cn(
+            "flex w-full max-w-[1800px] flex-col items-center justify-between space-y-4 lg:flex-row lg:space-y-0"
+          )}
+        >
           {/* Search and Filter */}
-          <div className="flex w-full flex-col gap-5 lg:w-auto lg:flex-row">
+          <div className={cn("flex w-full flex-col gap-5 lg:w-auto lg:flex-row")}>
             <div className="relative w-full lg:w-auto">
               <input
                 ref={inputRef}
@@ -245,7 +250,9 @@ const AdminProductsPage = () => {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="w-full rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 lg:w-auto"
+                className={cn(
+                  "w-full rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 lg:w-auto"
+                )}
               >
                 حذف فیلترها
               </button>
@@ -255,7 +262,9 @@ const AdminProductsPage = () => {
           <button
             type="button"
             data-testid="new-product-button"
-            className="mt-4 w-full rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700 lg:mt-0 lg:w-auto"
+            className={cn(
+              "mt-4 w-full rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700 lg:mt-0 lg:w-auto"
+            )}
             onClick={() => setShowNewProductModal(true)}
           >
             محصول جدید
