@@ -6,7 +6,6 @@ import { Suspense } from "react";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import { getPriceValidUntil } from "@/utils/priceValidUntil";
 
-import styles from "../ProductPage.module.css";
 import ClientInvoiceSection from "./ui/ClientInvoiceSection";
 import ProductBlog from "./ui/ProductBlog";
 import ProductFaq from "./ui/ProductFaq";
@@ -141,7 +140,6 @@ export default async function ProductDataWrapper({
                   returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
                   merchantReturnDays: 7,
                   returnMethod: "https://schema.org/ReturnByMail",
-                  returnFees: "https://schema.org/FreeReturn",
                 },
                 shippingDetails: [
                   {
@@ -172,70 +170,12 @@ export default async function ProductDataWrapper({
                     },
                   },
                 ],
-                availability: productData.Available
-                  ? "https://schema.org/InStock"
-                  : "https://schema.org/OutOfStock",
-                seller: {
-                  "@id": "https://farabak.net",
-                },
               },
             }
           : {}),
-        mainEntityOfPage: {
-          "@type": "WebPage",
-          "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
-        },
-      },
-      {
+      mainEntityOfPage: {
         "@type": "WebPage",
         "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
-        url: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
-        name: productData.SEO_Title || productData.Type,
-        description: productData.SEO_Description || productData.Description,
-        isPartOf: {
-          "@type": "WebSite",
-          "@id": "https://farabak.net",
-        },
-        about: {
-          "@type": "Product",
-          "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
-        },
-        breadcrumb: {
-          "@type": "BreadcrumbList",
-          itemListElement: [
-            {
-              "@type": "ListItem",
-              position: 1,
-              name: "خانه",
-              item: "https://farabak.net",
-            },
-            {
-              "@type": "ListItem",
-              position: 2,
-              name: "محصولات",
-              item: "https://farabak.net/products",
-            },
-            {
-              "@type": "ListItem",
-              position: 3,
-              name: productData.categorySlug,
-              item: `https://farabak.net/products/${productData.categorySlug}`,
-            },
-            {
-              "@type": "ListItem",
-              position: 4,
-              name: productData.subCategorySlug,
-              item: `https://farabak.net/products/${productData.categorySlug}/${productData.subCategorySlug}`,
-            },
-            {
-              "@type": "ListItem",
-              position: 5,
-              name: productData.Type,
-              item: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
-            },
-          ],
-        },
-        inLanguage: "fa-IR",
       },
     ],
   };
@@ -246,7 +186,7 @@ export default async function ProductDataWrapper({
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <Breadcrumb breadcrumbs={breadCrumbs} />
-      <section className={styles.head}>
+      <section className="flex flex-col items-center justify-between gap-6">
         <Image
           src={`${process.env.LIARA_BUCKET_URL}/productImages/${productData.img2}`}
           alt={productData.Type}
@@ -254,52 +194,41 @@ export default async function ProductDataWrapper({
           height={780}
           quality={75}
           priority
-          className={styles.productImage}
+          className="flex shrink-0 w-64 max-w-[1300px] h-auto max-h-[400px] object-cover rounded-md shadow-md"
         />
 
-        <div className={styles.desc}>
-          <div className={styles.descDetails}>
-            <div className={styles.details}>
-              <div>{productData.Type}</div>
-              <h1>{productData.Name}</h1>
-            </div>
-
-            <Suspense fallback={<SkeletonFeatures />}>
-              <ProductFeatures productId={productData.ProductId} />
-            </Suspense>
+        <div className="bg-white p-4 rounded shadow-md w-full flex-1 flex-col items-start justify-between">
+          <div className="text-[1.1rem] font-light mb-2 break-words max-w-full">
+            <div>{productData.Type}</div>
+            <h1 className="text-[1.2rem] font-bold text-justify mb-2">{productData.Name}</h1>
           </div>
 
-          <ClientInvoiceSection
-            productPrice={productData.Price}
-            productDiscount={productData.Discount}
-            ProductId={productData.ProductId}
-            ProductName={productData.Type}
-            minimumAmount={productData.Minimum_Amount}
-            maximumAmount={productData.Maximum_Amount}
-          />
+          <Suspense fallback={<SkeletonFeatures />}>
+            <ProductFeatures productId={productData.ProductId} />
+          </Suspense>
         </div>
       </section>
       <ProductTabs />
-      <section id="overview" className={styles.section}>
-        <Suspense fallback={<SkeletonOverview />}>
+      <section id="overview" className="rounded-lg bg-white p-8 shadow-md">
+        <Suspense fallback={<> <SkeletonOverview /> </>}>
           <ProductOverview productId={productData.ProductId} />
         </Suspense>
       </section>
 
-      <section id="blog" className={styles.section}>
-        <Suspense fallback={<SkeletonBlog />}>
+      <section id="blog" className="rounded-lg bg-white p-8 shadow-md">
+        <Suspense fallback={<> <SkeletonBlog /> </>}>
           <ProductBlog productBlog={productData.productBlog} />
         </Suspense>
       </section>
 
-      <section id="specs" className={`${styles.section} mt-8`}>
-        <Suspense fallback={<SkeletonSpecs />}>
+      <section id="specs" className="rounded-lg bg-white p-8 shadow-md mt-8">
+        <Suspense fallback={<> <SkeletonSpecs /> </>}>
           <ProductSpecs productId={productData.ProductId} />
         </Suspense>
       </section>
 
-      <section id="faq" className={`${styles.section} mt-8`}>
-        <Suspense fallback={<SkeletonFaq />}>
+      <section id="faq" className="rounded-lg bg-white p-8 shadow-md mt-8">
+        <Suspense fallback={<> <SkeletonFaq /> </>}>
           <ProductFaq productId={productData.ProductId} />
         </Suspense>
       </section>

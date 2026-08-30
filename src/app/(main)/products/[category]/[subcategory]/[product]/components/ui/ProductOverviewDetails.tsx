@@ -2,7 +2,6 @@
 import axios from "axios";
 
 import ImageWithFallback from "./ImageWithFallback";
-import styles from "./ProductOverviewDetails.module.css";
 
 interface OverviewDetail {
   ProductOverviewDetailsId: number;
@@ -36,10 +35,10 @@ function Overview({
   img: string | null;
 }) {
   return (
-    <div className={styles.overview}>
-      <div className={styles.details}>
-        {title && <h3>{title}</h3>}
-        {description && <p>{description}</p>}
+    <div className="bg-[#141414] rounded-lg p-6">
+      <div className="flex flex-col items-center gap-4">
+        {title && <h3 className="text-[1.7rem] font-bold text-center"> {title}</h3>}
+        {description && <p className="text-[1rem] font-light text-center text-justify"> {description}</p>}
       </div>
       <ImageWithFallback
         src={img ? `${process.env.LIARA_BUCKET_URL}/overview-details-images${img}` : null}
@@ -48,7 +47,7 @@ function Overview({
         height={1080}
         quality={75}
         loading="lazy"
-        className={styles.overviewImage}
+        className="rounded-lg shadow-[0_4px_10px_rgba(0,0,0,0.1)]"
       />
     </div>
   );
@@ -58,13 +57,13 @@ export default async function ProductOverviewDetails({ productId }: { productId:
   const productDetails = await getProductOverviewDetails(productId);
 
   if (productDetails.length === 0) {
-    return <p className={styles.overviewNotFound}>اطلاعاتی یافت نشد / این محصول توضیحات ندارد</p>;
+    return <p className="bg-[#141414] rounded-lg p-6 text-white text-center">اطلاعاتی یافت نشد / این محصول توضیحات ندارد</p>;
   }
 
   return (
-    <div className={styles.overviews}>
+    <div className="flex flex-col items-center gap-4">
       {productDetails.map((detail: OverviewDetail) => (
-        <div className={styles.overview} key={detail.ProductOverviewDetailsId}>
+        <div key={detail.ProductOverviewDetailsId} className="bg-[#141414] rounded-lg p-6 max-w-2xl">
           <Overview title={detail.Title} description={detail.Description} img={detail.Img} />
         </div>
       ))}

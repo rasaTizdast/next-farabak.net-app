@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "../../ProductPage.module.css";
+
 
 // Scroll function with offset
 function scrollToSection(id: string) {
@@ -20,12 +20,12 @@ function scrollToSection(id: string) {
 
 const ProductTabs = () => {
   return (
-    <nav className={styles.productTabs}>
+    <nav className="flex items-center justify-center w-full mt-4 rounded bg-[2774c0] shadow-[0_4px_10px_4px_rgba(0,0,0,0.2)] z-5 sticky top-20">
       <ul>
         <li>
           <button
             type="button"
-            className={styles.navButton}
+            className="text-[clamp(0.8rem,1.7vw,1rem)] py-2 px-5 transition-colors cursor-pointer"
             onClick={() => scrollToSection("overview")}
           >
             توضیحات
@@ -34,7 +34,7 @@ const ProductTabs = () => {
         <li>
           <button
             type="button"
-            className={styles.navButton}
+            className="text-[clamp(0.8rem,1.7vw,1rem)] py-2 px-5 transition-colors cursor-pointer"
             onClick={() => scrollToSection("blog")}
           >
             توضیحات تکمیلی
@@ -43,14 +43,14 @@ const ProductTabs = () => {
         <li>
           <button
             type="button"
-            className={styles.navButton}
+            className="text-[clamp(0.8rem,1.7vw,1rem)] py-2 px-5 transition-colors cursor-pointer"
             onClick={() => scrollToSection("specs")}
           >
             مشخصات
           </button>
         </li>
         <li>
-          <button type="button" className={styles.navButton} onClick={() => scrollToSection("faq")}>
+          <button type="button" className="text-[clamp(0.8rem,1.7vw,1rem)] py-2 px-5 transition-colors cursor-pointer" onClick={() => scrollToSection("faq")}>
             سوالات
           </button>
         </li>

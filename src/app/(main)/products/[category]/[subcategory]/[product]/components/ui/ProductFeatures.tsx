@@ -1,7 +1,7 @@
 // app/products/[category]/[product]/components/ProductFeatures.tsx
 import axios from "axios";
 
-import styles from "../../ProductPage.module.css";
+
 
 async function getProductFeatures(productId: number) {
   try {
@@ -37,7 +37,7 @@ export default async function ProductFeatures({ productId }: { productId: number
   }
 
   return (
-    <ul className={styles.productFeatures}>
+    <ul className="font-light mr-2 list-disc mb-2 text-[1rem]">
       {properties.map((property) => (
         <li key={property}>{property}</li>
       ))}

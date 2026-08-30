@@ -8,8 +8,6 @@ import { useInvoice } from "@/context/InvoiceContext";
 import { useUser } from "@/context/UserContext";
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 
-import styles from "../../ProductPage.module.css";
-
 // Convert English digits to Persian digits
 const e2p = (s: string): string => s.replace(/\d/g, (d: string) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d)]);
 
@@ -141,20 +139,16 @@ const ClientInvoiceSection = ({
 
   // Price display block - now with conditional rendering based on discount
   const priceBlock = (
-    <div
-      className={`flex ${styles.priceParent} animate-fade-in my-6 max-w-full flex-col gap-3 rounded-lg bg-blue-100 p-3`}
-    >
+    <div className="flex flex-col items-center justify-between gap-3 rounded-lg bg-blue-100 p-3 animate-fade-in my-6 max-w-full">
       {hasDiscount ? (
         // Show before/after prices with discount badge
         <>
           <div className="flex content-center items-center gap-2">
             قیمت قبلی:{" "}
-            <span className={`${styles.beforePrice} font-extralight text-gray-500 line-through`}>
+            <span className="font-extralight text-gray-500 line-through">
               {e2p(priceInRial?.toLocaleString() || "0")} تومان
             </span>
-            <span
-              className={`${styles.discount} bg-dark-blue rounded-lg px-2 py-1 text-xs font-semibold text-white lg:rounded-xl`}
-            >
+            <span className="bg-dark-blue rounded-lg px-2 py-1 text-xs font-semibold text-white">
               {e2p(discountPercentage?.toLocaleString() || "0")}%
             </span>
           </div>
@@ -245,13 +239,7 @@ const ClientInvoiceSection = ({
       {hasMaximum && (
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
           <div
-            className={`h-full rounded-full transition-[width,background-color] duration-500 ${
-              isAtMaximum
-                ? "bg-linear-to-r from-orange-500 to-red-500"
-                : progressPercentage > 75
-                  ? "bg-linear-to-r from-yellow-400 to-orange-500"
-                  : "bg-linear-to-r from-green-400 to-blue-500"
-            }`}
+            className="h-full rounded-full transition-[width,background-color] duration-500"
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
@@ -274,9 +262,9 @@ const ClientInvoiceSection = ({
   // Render for admin or branch users
   if (isAdmin || isBranch) {
     return (
-      <div className={styles.invoiceParent}>
+      <div className="w-full">
         {priceBlock}
-        <div className="my-6 flex w-full flex-col items-center justify-center gap-3 rounded-lg bg-blue-100 p-3 text-center">
+        <div className="my-6 flex flex-col items-center justify-center gap-3 rounded-lg bg-blue-100 p-3 text-center">
           <p className="text-lg font-bold text-blue-950">
             برای ثبت این محصول داخل فاکتور وارد پنل خود شوید و از آنجا انتخاب کنید
           </p>
@@ -304,7 +292,7 @@ const ClientInvoiceSection = ({
 
   // Render for regular users (and guests)
   return (
-    <div className={styles.invoiceParent}>
+    <div className="w-full">
       {priceBlock}
 
       {!user ? (
@@ -318,18 +306,14 @@ const ClientInvoiceSection = ({
         <>
           {limitsInfo}
           {activeLimitsInfo}
-          {currentQuantity > 0 && <p className={styles.invoiceText}>تعداد این محصول در فاکتور</p>}
-          <div className={styles.addToInvoice}>
+          {currentQuantity > 0 && <p className="text-[1.4rem] font-semibold">تعداد این محصول در فاکتور</p>}
+          <div className="w-full flex items-center justify-between">
             {currentQuantity > 0 ? (
-              <div className={styles.actions}>
+              <div className="flex gap-2">
                 {/* + button */}
                 <button
                   type="button"
-                  className={`${styles.action} origin-right transition-[background-color,filter,opacity] ${
-                    !canIncrease
-                      ? "cursor-not-allowed bg-gray-300 opacity-50"
-                      : "hover:bg-green-600 hover:brightness-110"
-                  }`}
+                  className="text-[1.2rem] h-10 w-5 origin-right transition-[background-color,filter,opacity] "
                   onClick={() => handleQuantityChange(1)}
                   disabled={!canIncrease}
                   title={
@@ -339,7 +323,7 @@ const ClientInvoiceSection = ({
                   +
                 </button>
 
-                <div className={`${styles.invoiceAmount} text-lg font-bold`}>
+                <div className="text-[1.4rem] font-bold">
                   {e2p(currentQuantity.toString())}
                 </div>
 
@@ -348,7 +332,7 @@ const ClientInvoiceSection = ({
                   <button
                     type="button"
                     onClick={() => removeProductFromInvoice(ProductId)}
-                    className={`${styles.action} origin-left transition-[background-color,filter] hover:bg-red-600 hover:brightness-110`}
+                    className="text-[1.2rem] h-5 w-5 origin-left transition-[background-color,filter] hover:bg-red-600 hover:brightness-110"
                     aria-label="حذف کامل از فاکتور"
                   >
                     <FaRegTrashAlt />
@@ -356,7 +340,7 @@ const ClientInvoiceSection = ({
                 ) : (
                   <button
                     type="button"
-                    className={`${styles.action} origin-left transition-[background-color,filter] hover:bg-yellow-600 hover:brightness-110`}
+                    className="text-[1.2rem] h-5 w-5 origin-left transition-[background-color,filter] hover:bg-yellow-600 hover:brightness-110"
                     onClick={() => handleQuantityChange(-1)}
                     title="کاهش تعداد"
                   >
@@ -381,7 +365,7 @@ const ClientInvoiceSection = ({
           </div>
 
           {!!currentQuantity && (
-            <p className={styles.invoiceText2}>
+            <p className="text-[1.4rem] font-semibold">
               این محصول به
               <Link href="/dashboard/new-invoice"> فاکتور جدید </Link>
               شما اضافه شد

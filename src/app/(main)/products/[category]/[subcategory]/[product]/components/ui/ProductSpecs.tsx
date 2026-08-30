@@ -1,8 +1,6 @@
 // app/products/[category]/[product]/components/ProductSpecs.tsx
 import axios from "axios";
 
-import styles from "./ProductSpecs.module.css";
-
 interface Spec {
   productSpecsId: number;
   Title: string;
@@ -35,16 +33,17 @@ export default async function ProductSpecs({ productId }: { productId: number })
   }
 
   return (
-    <div className={styles.specsParent}>
-      <h3>مشخصات محصول</h3>
-      <div className={styles.specs}>
+    <div className="bg-white p-4 rounded-lg shadow-[0_4px_10px_rgba(0,0,0,0.1)]">
+      <h3 className="mb-4 text-center font-bold text-lg">مشخصات محصول</h3>
+      <div className="space-y-2">
         {specsData.map((item: Spec, index: number) => (
           <div
-            className={`${index % 2 ? styles.oddSpec : styles.evenSpec} ${styles.spec}`}
             key={`spec-${item.productSpecsId}-${item.Title}-${item.Description}`}
+            className="flex justify-between items-center py-2 px-4 rounded border"
+            style={{ borderColor: index % 2 === 0 ? "#efefef" : "#e2e2e2" }}
           >
-            <div className={styles.key}>{item.Title}</div>
-            <div className={styles.value}>{item.Description}</div>
+            <div className="font-medium text">{item.Title}</div>
+            <div className="flex-1 text-start text-sm">{item.Description}</div>
           </div>
         ))}
       </div>
