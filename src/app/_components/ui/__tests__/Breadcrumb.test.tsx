@@ -1,4 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import Breadcrumb from "../Breadcrumb";
+
+const { mockGetBreadcrumbNames } = vi.hoisted(() => ({
+  mockGetBreadcrumbNames: vi.fn(),
+}));
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: any) => (
@@ -8,39 +15,47 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-const mockFetch = vi.fn();
-vi.stubGlobal("fetch", mockFetch);
+vi.mock("@/lib/data/breadcrumbs", () => ({
+  getBreadcrumbNames: mockGetBreadcrumbNames,
+}));
 
 process.env.NEXT_PUBLIC_BASE_URL = "https://farabak.net";
 
 describe("Breadcrumb", () => {
+  afterEach(() => cleanup());
+
   beforeEach(() => vi.clearAllMocks());
 
-  it("renders breadcrumb links with fetched names", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        "/": "صفحه اصلی",
-        "/products": "محصولات",
-      }),
+  it("renders breadcrumb links with resolved names", async () => {
+    mockGetBreadcrumbNames.mockResolvedValue({
+      "/": "صفحه اصلی",
+      "/products": "محصولات",
+      "/products/cctv": "دوربین مداربسته",
     });
 
-    const { default: Breadcrumb } = await import("../Breadcrumb");
-    const { render, screen } = await import("@testing-library/react");
-    render(await Breadcrumb({ breadcrumbs: ["/", "/products"] }));
+    render(await Breadcrumb({ breadcrumbs: ["/", "/products", "/products/cctv"] }));
 
     expect(screen.getByText("صفحه اصلی")).toBeDefined();
     expect(screen.getByText("محصولات")).toBeDefined();
+    expect(screen.getByText("دوربین مداربسته")).toBeDefined();
+  });
+
+  it("looks up names for category and subcategory paths via the data layer", async () => {
+    mockGetBreadcrumbNames.mockResolvedValue({
+      "/products/cctv": "دوربین مداربسته",
+      "/products/cctv/ptz": "دوربین چرخشی",
+    });
+
+    render(await Breadcrumb({ breadcrumbs: ["/products/cctv", "/products/cctv/ptz"] }));
+
+    expect(mockGetBreadcrumbNames).toHaveBeenCalledWith(["/products/cctv", "/products/cctv/ptz"]);
+    expect(screen.getByText("دوربین مداربسته")).toBeDefined();
+    expect(screen.getByText("دوربین چرخشی")).toBeDefined();
   });
 
   it("renders structured data script tag", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ "/": "صفحه اصلی" }),
-    });
+    mockGetBreadcrumbNames.mockResolvedValue({ "/": "صفحه اصلی" });
 
-    const { default: Breadcrumb } = await import("../Breadcrumb");
-    const { render } = await import("@testing-library/react");
     const { container } = render(await Breadcrumb({ breadcrumbs: ["/"] }));
 
     const script = container.querySelector('script[type="application/ld+json"]');
@@ -51,46 +66,17 @@ describe("Breadcrumb", () => {
     expect(data.itemListElement[0].item.name).toBe("صفحه اصلی");
   });
 
-  it("calls fetch with correct paths", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ "/about-us": "درباره ما" }),
-    });
-
-    const { default: Breadcrumb } = await import("../Breadcrumb");
-    const { render } = await import("@testing-library/react");
-    render(await Breadcrumb({ breadcrumbs: ["/about-us"] }));
-
-    expect(mockFetch).toHaveBeenCalledWith(
-      "https://farabak.net/api/breadcrumbs",
-      expect.objectContaining({
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      })
-    );
-  });
-
   it("renders fallback name for unknown crumbs", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ "/unknown": undefined }),
-    });
+    mockGetBreadcrumbNames.mockResolvedValue({});
 
-    const { default: Breadcrumb } = await import("../Breadcrumb");
-    const { render, screen } = await import("@testing-library/react");
     render(await Breadcrumb({ breadcrumbs: ["/unknown"] }));
 
     expect(screen.getByText("نامشخص")).toBeDefined();
   });
 
   it("renders arrows between breadcrumb items", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ "/a": "A", "/b": "B" }),
-    });
+    mockGetBreadcrumbNames.mockResolvedValue({ "/a": "A", "/b": "B" });
 
-    const { default: Breadcrumb } = await import("../Breadcrumb");
-    const { render, screen } = await import("@testing-library/react");
     render(await Breadcrumb({ breadcrumbs: ["/a", "/b"] }));
 
     expect(screen.getByText("A")).toBeDefined();
