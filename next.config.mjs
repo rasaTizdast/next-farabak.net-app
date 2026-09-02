@@ -12,6 +12,7 @@ const nextConfig = {
       fullUrl: true,
     },
   },
+  cacheComponents: true,
   // output: "standalone",
   // reactStrictMode: false, // Disable React Strict Mode
   images: {
