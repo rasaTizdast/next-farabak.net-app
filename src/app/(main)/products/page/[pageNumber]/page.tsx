@@ -1,3 +1,5 @@
+export const revalidate = 60;
+
 import { Metadata } from "next";
 import { Suspense } from "react";
 

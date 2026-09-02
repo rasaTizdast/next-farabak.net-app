@@ -1,34 +1,15 @@
 import { Suspense } from "react";
 
 import SkeletonLoader from "@/app/_components/ui/SkeletonLoader";
+import { getAllCategories } from "@/lib/data/categories";
 
 import CategorySliderContent from "./CategorySliderContent";
 
-interface Subcategory {
+interface CategorySliderItem {
   Name: string;
   Slug: string;
-  Link?: string;
-  Banner?: string;
-  Available?: boolean;
-  SEO_Details?: {
-    SEO_Title: string | null;
-    SEO_Description: string | null;
-    SEO_Keywords: string[] | null;
-  };
-}
-
-interface Category {
-  Slug: string;
-  Name: string;
-  Available?: boolean;
-  Subcategories?: Subcategory[];
   Banner?: string;
   Link?: string;
-  SEO_Details?: {
-    SEO_Title: string | null;
-    SEO_Description: string | null;
-    SEO_Keywords: string[] | null;
-  };
 }
 
 interface CategorySliderProps {
@@ -36,24 +17,34 @@ interface CategorySliderProps {
   categorySlug?: string;
 }
 
-async function fetchCategoriesData(type: "categories" | "subcategories", categorySlug?: string) {
+async function fetchCategoriesData(
+  type: "categories" | "subcategories",
+  categorySlug?: string
+): Promise<CategorySliderItem[]> {
   try {
-    const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/getAll`;
-    const res = await fetch(apiUrl, { next: { revalidate: 60 } });
-
-    if (!res.ok) {
-      return [];
-    }
-
-    const allCategories = await res.json();
+    const allCategories = await getAllCategories();
 
     // Filter categories/subcategories based on type
     if (type === "categories") {
-      return allCategories.filter((cat: Category) => cat.Available !== false);
+      return allCategories
+        .filter((cat) => cat.Available !== false)
+        .map((cat) => ({
+          Name: cat.Name || "",
+          Slug: cat.Slug || "",
+          Banner: cat.Banner ?? undefined,
+          Link: cat.Link,
+        }));
     } else if (type === "subcategories" && categorySlug) {
-      const category = allCategories.find((cat: Category) => cat.Slug === categorySlug);
+      const category = allCategories.find((cat) => cat.Slug === categorySlug);
       if (category && category.Subcategories) {
-        return category.Subcategories.filter((subcat: Subcategory) => subcat.Available !== false);
+        return category.Subcategories.filter((subcat) => subcat.Available !== false).map(
+          (subcat) => ({
+            Name: subcat.Name || "",
+            Slug: subcat.Slug || "",
+            Banner: subcat.Banner ?? undefined,
+            Link: subcat.Link,
+          })
+        );
       }
     }
 

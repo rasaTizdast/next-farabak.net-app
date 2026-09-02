@@ -1,13 +1,14 @@
-import axios from "axios";
+import { notFound } from "next/navigation";
 import Script from "next/script";
 import { Suspense } from "react";
 
 import { calculateProductPricing, formatPriceForSchema } from "@/helpers/pricingHelper";
+import { getProductsBySubcategory, getSubCategoryName } from "@/lib/data/products";
+import { getUsdToRialRate } from "@/lib/data/usd2rial";
 import { getPriceValidUntil } from "@/utils/priceValidUntil";
 
 import ProductGridWrapper from "./ProductGridWrapper";
 import { ProductGridSkeleton } from "./ProductListSkeletons";
-import { fetchProducts } from "../_utils/fetchProducts";
 
 interface Product {
   ProductId: number;
@@ -28,17 +29,36 @@ interface SubcategoryPageWrapperProps {
 
 async function fetchSubcategoryData(subcategoryName: string) {
   try {
-    const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getSubCategoryName/${subcategoryName}`
-    );
-    return res.data.subCategoryName;
+    const result = await getSubCategoryName(subcategoryName);
+    if (result === null) {
+      return subcategoryName;
+    }
+    return result.subCategoryName ?? subcategoryName;
   } catch {
     return subcategoryName;
   }
 }
 
-async function fetchProductsAndPricing(apiUrl: string) {
-  const { data: products } = await fetchProducts(apiUrl);
+async function fetchProductsAndPricing(
+  subcategoryName: string,
+  currentPage: number,
+  limit: number,
+  usdRate: number | null
+) {
+  let result: Awaited<ReturnType<typeof getProductsBySubcategory>> = null;
+
+  try {
+    result = await getProductsBySubcategory(subcategoryName, { page: currentPage, limit });
+  } catch (error) {
+    console.error(error);
+    notFound();
+  }
+
+  if (result === null) {
+    notFound();
+  }
+
+  const products = result.data as Product[];
   const availableProducts = products.filter((product: Product) => product.Available);
 
   let minPrice = "0";
@@ -47,7 +67,7 @@ async function fetchProductsAndPricing(apiUrl: string) {
 
   if (availableProducts.length > 0) {
     const pricingPromises = availableProducts.map(async (product: Product) => {
-      return await calculateProductPricing(product.Price, product.Discount);
+      return await calculateProductPricing(product.Price, product.Discount, usdRate);
     });
 
     const pricingResults = await Promise.all(pricingPromises);
@@ -79,7 +99,14 @@ export default async function SubcategoryPageWrapper({
 
   const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsBySubcategory/${subcategoryName}?page=${currentPage}&limit=${limit}`;
 
-  const { minPrice, maxPrice, hasValidPricing } = await fetchProductsAndPricing(apiUrl);
+  const { rate } = await getUsdToRialRate();
+
+  const { minPrice, maxPrice, hasValidPricing } = await fetchProductsAndPricing(
+    subcategoryName,
+    currentPage,
+    limit,
+    rate
+  );
 
   const priceValidUntil = getPriceValidUntil();
 

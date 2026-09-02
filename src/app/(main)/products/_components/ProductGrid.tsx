@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 
+import { getProductsBlogContent } from "@/lib/data/products";
+
 import BannerImage from "./BannerImage";
 import BlogContent from "./BlogContent";
 import { GridContentServer } from "./GridContentServer";
@@ -41,22 +43,11 @@ const ProductGrid: React.FC<ProductGridProps> = ({
 }) => {
   async function fetchBlogs() {
     try {
-      const url = new URL("/api/products/blogs", process.env.NEXT_PUBLIC_BASE_URL);
-      if (categorySlug) url.searchParams.set("categorySlug", categorySlug);
-      if (subcategorySlug) url.searchParams.set("subcategorySlug", subcategorySlug);
-      url.searchParams.set("page", String(currentPage));
-      const res = await fetch(url.toString(), { next: { revalidate: 60 } });
-      if (!res.ok)
-        return { topBlog: null, bottomBlog: null, banner: null } as {
-          topBlog: string | null;
-          bottomBlog: string | null;
-          banner: string | null;
-        };
-      return (await res.json()) as {
-        topBlog: string | null;
-        bottomBlog: string | null;
-        banner: string | null;
-      };
+      return await getProductsBlogContent({
+        categorySlug: categorySlug ?? null,
+        subcategorySlug: subcategorySlug ?? null,
+        page: currentPage,
+      });
     } catch {
       return { topBlog: null, bottomBlog: null, banner: null } as {
         topBlog: string | null;

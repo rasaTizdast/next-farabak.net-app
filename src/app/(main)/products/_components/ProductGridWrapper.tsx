@@ -1,10 +1,17 @@
+import { notFound } from "next/navigation";
 import Script from "next/script";
 
 import { calculateProductPricing, formatPriceForSchema } from "@/helpers/pricingHelper";
+import {
+  getAllProducts,
+  getProductsByCategory,
+  getProductsBySubcategory,
+  searchProducts,
+} from "@/lib/data/products";
+import { getUsdToRialRate } from "@/lib/data/usd2rial";
 import { getPriceValidUntil } from "@/utils/priceValidUntil";
 
 import ProductGrid from "./ProductGrid";
-import { fetchProducts } from "../_utils/fetchProducts";
 
 interface Product {
   ProductId: number;
@@ -13,6 +20,17 @@ interface Product {
   Price: string | null;
   Discount: string | null;
   Available: boolean | null;
+}
+
+interface ProductFeed {
+  data: Product[];
+  pagination: {
+    totalCount: number;
+    currentPage: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
 }
 
 interface ProductGridWrapperProps {
@@ -24,8 +42,46 @@ interface ProductGridWrapperProps {
   canonicalUrl?: string;
 }
 
-async function fetchProductsAndPricing(apiUrl: string) {
-  const { data: products } = await fetchProducts(apiUrl);
+async function loadProductFeed(apiUrl: string): Promise<ProductFeed> {
+  let feed: ProductFeed | null = null;
+
+  try {
+    const url = new URL(apiUrl);
+    const page = Number(url.searchParams.get("page") || "1");
+    const limit = Number(url.searchParams.get("limit") || "30");
+    const pathname = url.pathname;
+
+    if (pathname.includes("/getAllProducts")) {
+      feed = (await getAllProducts({ page, limit })) as ProductFeed | null;
+    } else if (pathname.includes("/getProductsByCategory/")) {
+      const slug = pathname.split("/getProductsByCategory/")[1] || "";
+      feed = (await getProductsByCategory(slug, { page, limit })) as ProductFeed | null;
+    } else if (pathname.includes("/getProductsBySubcategory/")) {
+      const slug = pathname.split("/getProductsBySubcategory/")[1] || "";
+      feed = (await getProductsBySubcategory(slug, { page, limit })) as ProductFeed | null;
+    } else if (pathname.includes("/api/products/search")) {
+      feed = (await searchProducts(url.searchParams.get("q") || "", {
+        page,
+        limit,
+      })) as ProductFeed;
+    } else {
+      throw new Error(`Unsupported product feed URL: ${apiUrl}`);
+    }
+  } catch (error) {
+    console.error(error);
+    notFound();
+  }
+
+  if (feed === null) {
+    notFound();
+  }
+
+  return feed;
+}
+
+async function fetchProductsAndPricing(apiUrl: string, usdRate: number | null) {
+  const { data } = await loadProductFeed(apiUrl);
+  const products = data;
   const availableProducts = products.filter((product: Product) => product.Available);
 
   let minPrice = "0";
@@ -34,7 +90,7 @@ async function fetchProductsAndPricing(apiUrl: string) {
 
   if (availableProducts.length > 0) {
     const pricingPromises = availableProducts.map(async (product: Product) => {
-      return await calculateProductPricing(product.Price, product.Discount);
+      return await calculateProductPricing(product.Price, product.Discount, usdRate);
     });
 
     const pricingResults = await Promise.all(pricingPromises);
@@ -63,7 +119,12 @@ export default async function ProductGridWrapper({
   subcategorySlug,
   canonicalUrl,
 }: ProductGridWrapperProps) {
-  const { products, minPrice, maxPrice, hasValidPricing } = await fetchProductsAndPricing(apiUrl);
+  const { rate } = await getUsdToRialRate();
+
+  const { products, minPrice, maxPrice, hasValidPricing } = await fetchProductsAndPricing(
+    apiUrl,
+    rate
+  );
 
   const priceValidUntil = getPriceValidUntil();
 

@@ -1,6 +1,8 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
 
+import { getProductsBySubcategory } from "@/lib/data/products";
+
 import BreadcrumbWrapper from "../../../../_components/BreadcrumbWrapper";
 import {
   BreadcrumbSkeleton,
@@ -21,24 +23,9 @@ export const generateMetadata = async (props: SubcategoryPageProps): Promise<Met
   const { subcategory } = params;
 
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsBySubcategory/${subcategory}?page=1&limit=1`,
-      { next: { revalidate: 60 } }
-    );
+    const data = await getProductsBySubcategory(subcategory, { page: 1, limit: 1 });
 
-    if (!res || !res.ok) {
-      return {
-        title: "زیر دسته بندی یافت نشد!",
-        description: "زیر دسته بندی مورد نظر یافت نشد!",
-        robots: {
-          index: false,
-          follow: true,
-        },
-      };
-    }
-
-    const data = await res.json();
-    if (!data.seoDetails) {
+    if (!data || !data.seoDetails) {
       return {
         title: "زیر دسته بندی یافت نشد!",
         description: "زیر دسته بندی مورد نظر یافت نشد!",

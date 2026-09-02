@@ -10,7 +10,8 @@ export interface ProductPricing {
 
 export async function calculateProductPricing(
   usdPrice: string | number | null,
-  discount: string | number | null
+  discount: string | number | null,
+  usdRate?: number | null
 ): Promise<ProductPricing> {
   // Handle null/undefined prices
   if (!usdPrice || usdPrice === null || usdPrice === undefined || +usdPrice === 0) {
@@ -23,9 +24,10 @@ export async function calculateProductPricing(
     };
   }
 
-  // Get USD to IRR exchange rate
-  const usdRate = await fetchUsdToRialRate();
-  const isValidRate = usdRate && !isNaN(usdRate) && usdRate > 0;
+  // Get USD to IRR exchange rate — when a rate is provided by the caller
+  // (server data layer) use it and skip the internal HTTP hop.
+  const rate = usdRate !== undefined ? usdRate : await fetchUsdToRialRate();
+  const isValidRate = rate && !isNaN(rate) && rate > 0;
 
   const price = +usdPrice;
   const discountAmount = discount ? +discount : 0;
@@ -40,9 +42,9 @@ export async function calculateProductPricing(
     };
   }
 
-  const originalPrice = Math.round(price * usdRate);
+  const originalPrice = Math.round(price * rate);
   const hasDiscount = discountAmount > 0;
-  const discountedPrice = hasDiscount ? Math.round((price - discountAmount) * usdRate) : null;
+  const discountedPrice = hasDiscount ? Math.round((price - discountAmount) * rate) : null;
 
   return {
     originalPrice,

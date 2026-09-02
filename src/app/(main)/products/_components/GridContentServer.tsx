@@ -1,10 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import Pagination from "@/app/_components/ui/Pagination";
-import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
-
-import { fetchProducts } from "../_utils/fetchProducts";
+import {
+  getAllProducts,
+  getProductsByCategory,
+  getProductsBySubcategory,
+  searchProducts,
+} from "@/lib/data/products";
+import { getUsdToRialRate } from "@/lib/data/usd2rial";
 
 function getDiscountPercentage(price: string, discount: string): number {
   if (!discount || +discount === 0) return 0;
@@ -23,11 +28,59 @@ interface Product {
   Discount: string;
 }
 
+interface ProductFeed {
+  data: Product[];
+  pagination: {
+    totalCount: number;
+    currentPage: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
 interface GridContentServerProps {
   apiUrl: string;
   currentPage: number;
   categorySlug?: string;
   subcategorySlug?: string;
+}
+
+async function loadProductFeed(apiUrl: string): Promise<ProductFeed> {
+  let feed: ProductFeed | null = null;
+
+  try {
+    const url = new URL(apiUrl);
+    const page = Number(url.searchParams.get("page") || "1");
+    const limit = Number(url.searchParams.get("limit") || "30");
+    const pathname = url.pathname;
+
+    if (pathname.includes("/getAllProducts")) {
+      feed = (await getAllProducts({ page, limit })) as ProductFeed | null;
+    } else if (pathname.includes("/getProductsByCategory/")) {
+      const slug = pathname.split("/getProductsByCategory/")[1] || "";
+      feed = (await getProductsByCategory(slug, { page, limit })) as ProductFeed | null;
+    } else if (pathname.includes("/getProductsBySubcategory/")) {
+      const slug = pathname.split("/getProductsBySubcategory/")[1] || "";
+      feed = (await getProductsBySubcategory(slug, { page, limit })) as ProductFeed | null;
+    } else if (pathname.includes("/api/products/search")) {
+      feed = (await searchProducts(url.searchParams.get("q") || "", {
+        page,
+        limit,
+      })) as ProductFeed;
+    } else {
+      throw new Error(`Unsupported product feed URL: ${apiUrl}`);
+    }
+  } catch (error) {
+    console.error(error);
+    notFound();
+  }
+
+  if (feed === null) {
+    notFound();
+  }
+
+  return feed;
 }
 
 export const GridContentServer: React.FC<GridContentServerProps> = async ({
@@ -36,11 +89,12 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
   categorySlug,
   subcategorySlug,
 }) => {
-  const { data: products, pagination } = await fetchProducts(apiUrl);
+  const { data: products, pagination } = await loadProductFeed(apiUrl);
   const totalPages = pagination.totalPages;
 
   // Get the USD to Rial rate once for all products
-  const usdRate = await fetchUsdToRialRate();
+  const { rate } = await getUsdToRialRate();
+  const usdRate = rate ?? 0;
   const isValidRate = usdRate && !isNaN(usdRate) && usdRate > 0;
 
   // Filter the products to only include those that are available

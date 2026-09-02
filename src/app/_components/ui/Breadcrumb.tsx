@@ -1,32 +1,17 @@
 import Link from "next/link";
 import { IoIosArrowBack } from "react-icons/io";
 
+import { getBreadcrumbNames } from "@/lib/data/breadcrumbs";
+
 type BreadcrumbItem = string;
 
 interface BreadcrumbProps {
   breadcrumbs: BreadcrumbItem[];
 }
 
-async function fetchBreadcrumbNames(paths: string[]): Promise<Record<string, string>> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/breadcrumbs`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ paths }),
-    // Force server-side fetch in App Router
-    next: { revalidate: 0 }, // Prevent caching for dynamic data
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch breadcrumb names");
-  }
-
-  return response.json();
-}
-
 const Breadcrumb: React.FC<BreadcrumbProps> = async ({ breadcrumbs }) => {
-  const names = await fetchBreadcrumbNames(breadcrumbs);
+  // getBreadcrumbNames throws on DB error — keep the prior throw-on-error behavior.
+  const names = await getBreadcrumbNames(breadcrumbs);
 
   // Prepare structured data for Schema.org
   const structuredData = {

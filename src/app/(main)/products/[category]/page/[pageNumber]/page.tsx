@@ -1,6 +1,8 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
 
+import { getProductsByCategory } from "@/lib/data/products";
+
 import BreadcrumbWrapper from "../../../_components/BreadcrumbWrapper";
 import CategoryPageWrapper from "../../../_components/CategoryPageWrapper";
 import {
@@ -17,24 +19,9 @@ export const generateMetadata = async (props: CategoryPageProps): Promise<Metada
   const categoryName = params.category;
 
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsByCategory/${categoryName}?page=1&limit=1`,
-      { next: { revalidate: 60 } }
-    );
+    const data = await getProductsByCategory(categoryName, { page: 1, limit: 1 });
 
-    if (!res || !res.ok) {
-      return {
-        title: "دسته بندی یافت نشد!",
-        description: "دسته بندی مورد نظر یافت نشد!",
-        robots: {
-          index: false,
-          follow: true,
-        },
-      };
-    }
-
-    const data = await res.json();
-    if (!data.seoDetails) {
+    if (!data || !data.seoDetails) {
       return {
         title: "دسته بندی یافت نشد!",
         description: "دسته بندی مورد نظر یافت نشد!",

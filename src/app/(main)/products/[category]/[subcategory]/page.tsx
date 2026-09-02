@@ -1,6 +1,7 @@
-import { cn } from "@/lib/utils";
 import { Metadata } from "next";
 import { Suspense } from "react";
+
+import { getProductsBySubcategory } from "@/lib/data/products";
 
 import BreadcrumbWrapper from "../../_components/BreadcrumbWrapper";
 import { BreadcrumbSkeleton, ProductGridSkeleton } from "../../_components/ProductListSkeletons";
@@ -15,24 +16,9 @@ export const generateMetadata = async (props: SubcategoryPageProps): Promise<Met
   const { category, subcategory } = params;
 
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsBySubcategory/${subcategory}?page=1&limit=1`,
-      { next: { revalidate: 60 } }
-    );
+    const data = await getProductsBySubcategory(subcategory, { page: 1, limit: 1 });
 
-    if (!res || !res.ok) {
-      return {
-        title: subcategory,
-        description: "دسته بندی مورد نظر یافت نشد!",
-        robots: {
-          index: false,
-          follow: true,
-        },
-      };
-    }
-
-    const data = await res.json();
-    if (!data.seoDetails) {
+    if (!data || !data.seoDetails) {
       return {
         title: subcategory,
         description: "دسته بندی مورد نظر یافت نشد!",
@@ -84,10 +70,7 @@ export default async function SubcategoryPage(props: SubcategoryPageProps) {
   ];
 
   return (
-    <div
-      dir="rtl"
-      className={cn("rounded-lg bg-[var(--dark-blue)] shadow-[0_4px_10px_rgba(0,0,0,0.1)]")}
-    >
+    <div dir="rtl">
       <Suspense fallback={<BreadcrumbSkeleton />}>
         <BreadcrumbWrapper breadcrumbs={breadcrumbs} />
       </Suspense>

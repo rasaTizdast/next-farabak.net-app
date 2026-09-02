@@ -1,31 +1,21 @@
-import axios from "axios";
+import { notFound } from "next/navigation";
 import Script from "next/script";
 import { Suspense } from "react";
 
 import { calculateProductPricing, formatPriceForSchema } from "@/helpers/pricingHelper";
+import { getAllCategories } from "@/lib/data/categories";
+import { getCategoryName, getProductsByCategory } from "@/lib/data/products";
+import { getUsdToRialRate } from "@/lib/data/usd2rial";
 import { getPriceValidUntil } from "@/utils/priceValidUntil";
 
 import CategorySliderWrapper from "./CategorySliderWrapper";
 import ProductGridWrapper from "./ProductGridWrapper";
 import { CategorySliderSkeleton, ProductGridSkeleton } from "./ProductListSkeletons";
-import { fetchProducts } from "../_utils/fetchProducts";
 
 interface Subcategory {
   Name: string;
   Slug: string;
   Link?: string;
-  Available?: boolean;
-  SEO_Details?: {
-    SEO_Title: string | null;
-    SEO_Description: string | null;
-    SEO_Keywords: string[] | null;
-  };
-}
-
-interface Category {
-  Slug: string;
-  Subcategories?: Subcategory[];
-  Available?: boolean;
 }
 
 interface CategoryPageWrapperProps {
@@ -46,10 +36,11 @@ interface Product {
 
 async function fetchCategoryData(categoryName: string) {
   try {
-    const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getCategoryName/${categoryName}`
-    );
-    return res.data.categoryName;
+    const result = await getCategoryName(categoryName);
+    if (result === null) {
+      return categoryName;
+    }
+    return result.categoryName ?? categoryName;
   } catch {
     return categoryName;
   }
@@ -57,14 +48,16 @@ async function fetchCategoryData(categoryName: string) {
 
 async function fetchCategorySubcategories(categoryName: string) {
   try {
-    const categoriesRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/getAll`, {
-      next: { revalidate: 60 },
-    });
-    if (!categoriesRes.ok) return [];
-    const allCategories = await categoriesRes.json();
-    const categoryData = allCategories.find((cat: Category) => cat.Slug === categoryName);
+    const allCategories = await getAllCategories();
+    const categoryData = allCategories.find((cat) => cat.Slug === categoryName);
     if (categoryData && categoryData.Subcategories) {
-      return categoryData.Subcategories.filter((subcat: Subcategory) => subcat.Available !== false);
+      return categoryData.Subcategories.filter((subcat) => subcat.Available !== false).map(
+        (subcat) => ({
+          Name: subcat.Name || "",
+          Slug: subcat.Slug || "",
+          Link: subcat.Link,
+        })
+      );
     }
   } catch (error) {
     console.error("Error fetching category data for schema:", error);
@@ -72,8 +65,26 @@ async function fetchCategorySubcategories(categoryName: string) {
   return [];
 }
 
-async function fetchProductsAndPricing(apiUrl: string) {
-  const { data: products } = await fetchProducts(apiUrl);
+async function fetchProductsAndPricing(
+  categoryName: string,
+  currentPage: number,
+  limit: number,
+  usdRate: number | null
+) {
+  let result: Awaited<ReturnType<typeof getProductsByCategory>> = null;
+
+  try {
+    result = await getProductsByCategory(categoryName, { page: currentPage, limit });
+  } catch (error) {
+    console.error(error);
+    notFound();
+  }
+
+  if (result === null) {
+    notFound();
+  }
+
+  const products = result.data as Product[];
   const availableProducts = products.filter((product: Product) => product.Available);
 
   let minPrice = "0";
@@ -82,7 +93,7 @@ async function fetchProductsAndPricing(apiUrl: string) {
 
   if (availableProducts.length > 0) {
     const pricingPromises = availableProducts.map(async (product: Product) => {
-      return await calculateProductPricing(product.Price, product.Discount);
+      return await calculateProductPricing(product.Price, product.Discount, usdRate);
     });
 
     const pricingResults = await Promise.all(pricingPromises);
@@ -116,7 +127,14 @@ export default async function CategoryPageWrapper({
 
   const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsByCategory/${categoryName}?page=${currentPage}&limit=${limit}`;
 
-  const { minPrice, maxPrice, hasValidPricing } = await fetchProductsAndPricing(apiUrl);
+  const { rate } = await getUsdToRialRate();
+
+  const { minPrice, maxPrice, hasValidPricing } = await fetchProductsAndPricing(
+    categoryName,
+    currentPage,
+    limit,
+    rate
+  );
 
   const priceValidUntil = getPriceValidUntil();
 

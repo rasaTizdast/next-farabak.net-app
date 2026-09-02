@@ -1,6 +1,7 @@
-import { cn } from "@/lib/utils";
 import { Metadata } from "next";
 import { Suspense } from "react";
+
+import { getProductsByCategory } from "@/lib/data/products";
 
 import BreadcrumbWrapper from "../_components/BreadcrumbWrapper";
 import CategoryPageWrapper from "../_components/CategoryPageWrapper";
@@ -15,24 +16,9 @@ export const generateMetadata = async (props: CategoryPageProps): Promise<Metada
   const categoryName = params.category;
 
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsByCategory/${categoryName}?page=1&limit=1`,
-      { next: { revalidate: 60 } }
-    );
+    const data = await getProductsByCategory(categoryName, { page: 1, limit: 1 });
 
-    if (!res || !res.ok) {
-      return {
-        title: categoryName,
-        description: `محصولات دسته‌بندی ${categoryName}`,
-        robots: {
-          index: true,
-          follow: true,
-        },
-      };
-    }
-
-    const data = await res.json();
-    if (!data.seoDetails) {
+    if (!data || !data.seoDetails) {
       return {
         title: categoryName,
         description: `محصولات دسته‌بندی ${categoryName}`,
@@ -79,10 +65,7 @@ export default async function CategoryPage(props: CategoryPageProps) {
   const breadcrumbs = ["/", "/products", `/products/${categoryName}`];
 
   return (
-    <div
-      dir="rtl"
-      className={cn("rounded-lg bg-[var(--dark-blue)] shadow-[0_4px_10px_rgba(0,0,0,0.1)]")}
-    >
+    <div dir="rtl">
       <Suspense fallback={<BreadcrumbSkeleton />}>
         <BreadcrumbWrapper breadcrumbs={breadcrumbs} />
       </Suspense>
