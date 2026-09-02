@@ -1,5 +1,6 @@
-import Faq, { type FaqItem } from "@/components/Faq";
 import { getProductFaqs } from "@/lib/data/faqs";
+
+import FaqAccordion from "./FaqAccordion";
 
 type FAQItem = {
   FAQsId: number;
@@ -28,21 +29,15 @@ const ProductFaq = async ({ productId }: ProductFaqProps) => {
     );
   }
 
-  const items: FaqItem[] = faqs.map((faq) => ({
-    id: faq.FAQsId,
-    question: faq.Title,
-    answer: faq.Description,
-  }));
-
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: items.map((item) => ({
+    mainEntity: faqs.map((faq) => ({
       "@type": "Question",
-      name: item.question,
+      name: faq.Title,
       acceptedAnswer: {
         "@type": "Answer",
-        text: item.answer,
+        text: faq.Description,
       },
     })),
   };
@@ -53,8 +48,12 @@ const ProductFaq = async ({ productId }: ProductFaqProps) => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-
-      <Faq title="سوالات متداول محصول" items={items} />
+      <div className="flex w-full max-w-[calc(1900px-20rem)] flex-col rounded-lg bg-white p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] max-[576px]:px-2 max-[576px]:py-4">
+        <h3 className="mb-8 text-center text-[1.3rem] font-extrabold max-[576px]:mb-4">
+          سوالات متداول
+        </h3>
+        <FaqAccordion faqs={faqs} />
+      </div>
     </>
   );
 };
