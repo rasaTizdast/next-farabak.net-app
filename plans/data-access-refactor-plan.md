@@ -1,5 +1,24 @@
 # Data Access Refactor Plan (Root Cause of `force-dynamic` Sprawl)
 
+## Status (audited 2026-09-02)
+
+**OVERALL: COMPLETE (audited 2026-09-02)** — all 5 items executed and committed; public pages render via ISR from the data layer with zero HTTP self-fetches.
+
+| #   | Item                             | Status                                                                                                                                                                                                                                                                                   |
+| --- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Inventory & classify fetch sites | ✅ COMPLETE — self-fetching server components inventoried and migrated one route at a time                                                                                                                                                                                               |
+| 2   | Server-side data layer           | ✅ COMPLETE — typed `src/lib/data/*` modules (products, faqs, blogs, blogCategories, projects, members, activities, categories, productSpecs, productOverview, breadcrumbs, sitemap, usd2rial) over Prisma via a shared `cachedQuery` wrap with `revalidate` TTLs + `revalidateTag` tags |
+| 3   | Migrate public pages             | ✅ COMPLETE — homepage, products/**, about-us/**, support/**, contact-us, privacy render from the data layer; self-fetch + `force-dynamic` removed                                                                                                                                       |
+| 4   | Revalidate on mutation           | ✅ COMPLETE — `revalidateTag(...)` wired into mutation route handlers (`src/app/api/**`) so ISR content refreshes on write                                                                                                                                                               |
+| 5   | Cleanup                          | ✅ COMPLETE — dead `BASE_URL` self-fetch helpers removed; grep gate audited clean (no `${BASE_URL}/api`/`/api` HTTP fetch remains in any server component/module)                                                                                                                        |
+
+### Result (root-cause blocker resolved)
+
+- Data layer `src/lib/data/` ships typed Prisma functions + cache wraps (`cachedQuery` + tags). ✅
+- `(main)/products/**`, `about-us/**`, `support/**`, `contact-us`, `privacy` and helpers (`Breadcrumb.tsx`, `sitemap.ts`, product grid chain) migrate off self-fetch; `force-dynamic` dropped. ✅
+- `revalidateTag` added to mutation API handlers (`src/app/api/**`). ✅
+- Grep gate: no `${BASE_URL}/api` fetch inside server components — clean, audited 2026-09-02. ✅
+
 > Created 2026-08-26 from grilling session on `performance-plan.md`.
 > **Problem**: Server Components fetch their own Next.js API routes via
 > `${process.env.BASE_URL}/api/...` (e.g., `src/app/(main)/page.tsx:61`).
