@@ -1,60 +1,20 @@
 import { NextResponse } from "next/server";
 
-// Cache object to store the exchange rate and timestamp
-const cache = {
-  rate: null as number | null,
-  timestamp: 0,
-};
+import { getUsdToRialRate } from "@/lib/data/usd2rial";
 
 /**
- * Fetch the USD to Rial exchange rate from the external API
- */
-async function fetchExchangeRateFromApi() {
-  try {
-    const response = await fetch(
-      `https://api.brsapi.ir/Market/Gold_Currency.php?key=${process.env.CURRENCY_API_KEY}`
-    );
-
-    if (!response.ok) {
-      throw new Error(`خطا در دریافت اطلاعات: ${response.statusText}`);
-    }
-
-    const data = (await response.json()) as {
-      currency: { symbol: string; price: string | number }[];
-    };
-    const usdRate = data.currency.find((item) => item.symbol === "USD")?.price;
-
-    if (!usdRate) {
-      throw new Error("نرخ دلار در پاسخ دریافتی یافت نشد");
-    }
-
-    return Number(usdRate);
-  } catch (error) {
-    console.error("خطا در دریافت نرخ ارز:", error);
-    throw error;
-  }
-}
-
-/**
- * GET handler for the exchange rate API
+ * GET handler for the exchange rate API.
+ * Delegates to the cached `getUsdToRialRate` data function (cacheLife
+ * stale:60 / revalidate:60 / expire:3600, tag `TAGS.exchangeRate`) so the
+ * route does not perform an uncached fetch during prerendering.
  */
 export async function GET() {
   try {
-    // Check if we have cached data that's less than 1 hour old
-    const now = Date.now();
-    const cacheDuration = 3600 * 1000; // 1 hour in milliseconds
+    const { rate } = await getUsdToRialRate();
 
-    if (cache.rate && now - cache.timestamp < cacheDuration) {
-      // Return cached data if it's still valid
-      return NextResponse.json({ rate: cache.rate });
+    if (rate === null) {
+      return NextResponse.json({ error: "خطا در دریافت نرخ ارز" }, { status: 500 });
     }
-
-    // Fetch fresh data if cache is expired or empty
-    const rate = await fetchExchangeRateFromApi();
-
-    // Update cache
-    cache.rate = rate;
-    cache.timestamp = now;
 
     return NextResponse.json({ rate });
   } catch (error) {
