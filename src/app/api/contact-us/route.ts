@@ -1,5 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -86,6 +88,7 @@ export async function PUT(req: NextRequest) {
       }
     });
 
+    revalidateTag(TAGS.contactUs, "max");
     return NextResponse.json({ message: "اطلاعات با موفقیت به‌روزرسانی شد." });
   } catch (error) {
     console.error("Error updating contact us data:", error);

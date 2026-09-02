@@ -1,7 +1,9 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
 import { serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 import {
   validateParams,
@@ -37,6 +39,8 @@ export async function PATCH(
       },
     });
 
+    revalidateTag(TAGS.products, "max");
+    revalidateTag(TAGS.categories, "max");
     return NextResponse.json({
       message: "تغییرات با موفقیت ذخیره شد",
       product: updatedProduct,

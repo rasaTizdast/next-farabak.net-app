@@ -1,5 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 interface SpecTemplate {
@@ -110,6 +112,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       Items: items,
     };
 
+    revalidateTag(TAGS.productSpecs, "max");
     return NextResponse.json(updatedTemplate);
   } catch (error) {
     console.error("Error updating spec template:", error);
@@ -133,6 +136,7 @@ export async function DELETE(request: NextRequest, props: { params: Promise<{ id
       WHERE "SpecTemplateId" = ${id}
     `;
 
+    revalidateTag(TAGS.productSpecs, "max");
     return NextResponse.json({ message: "Template deleted successfully" });
   } catch (error) {
     console.error("Error deleting spec template:", error);

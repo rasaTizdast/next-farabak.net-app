@@ -1,5 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 // Generate or Update QR Code
@@ -20,6 +22,7 @@ export async function POST(request: Request) {
       },
     });
 
+    revalidateTag(TAGS.blogs, "max");
     return NextResponse.json(updatedBlog, { status: 200 });
   } catch (error) {
     console.error("خطا در ایجاد کد QR:", error);
@@ -45,6 +48,7 @@ export async function DELETE(request: Request) {
       },
     });
 
+    revalidateTag(TAGS.blogs, "max");
     return NextResponse.json(updatedBlog, { status: 200 });
   } catch (error) {
     console.error("خطا در حذف کد QR:", error);

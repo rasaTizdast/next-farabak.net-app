@@ -1,6 +1,8 @@
 import { S3 } from "aws-sdk";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 const s3 = new S3({
@@ -77,6 +79,7 @@ export async function PUT(request: Request) {
       },
     });
 
+    revalidateTag(TAGS.members, "max");
     return NextResponse.json(updatedMember);
   } catch (error) {
     console.error("Error updating member:", error);

@@ -1,7 +1,9 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { errorResponse, unauthorizedResponse, serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 import { validateBody, createProductSchema } from "@/lib/validation";
 
@@ -188,6 +190,9 @@ export async function POST(request: Request) {
       },
     });
 
+    revalidateTag(TAGS.products, "max");
+    revalidateTag(TAGS.categories, "max");
+    revalidateTag(TAGS.sitemap, "max");
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {
     console.error(error);

@@ -1,6 +1,8 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
 import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 // GET: Fetch a specific FAQ by ID
@@ -61,6 +63,7 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
       },
     });
 
+    revalidateTag(TAGS.faqs, "max");
     return NextResponse.json({ faq: updatedFaq }, { status: 200 });
   } catch (error) {
     console.error("Error updating FAQ:", error);
@@ -92,6 +95,7 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
       where: { FaqDetailsid: id },
     });
 
+    revalidateTag(TAGS.faqs, "max");
     return NextResponse.json({ message: "FAQ deleted successfully" }, { status: 200 });
   } catch (error) {
     console.error("Error deleting FAQ:", error);

@@ -1,7 +1,9 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { unauthorizedResponse, serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 import {
   validateParams,
@@ -121,6 +123,8 @@ export async function PATCH(request: Request, props: { params: Promise<{ product
       data: updateData,
     });
 
+    revalidateTag(TAGS.products, "max");
+    revalidateTag(TAGS.categories, "max");
     return NextResponse.json({
       message: "Product images updated successfully.",
       product: updatedProduct,

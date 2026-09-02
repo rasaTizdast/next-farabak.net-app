@@ -1,7 +1,9 @@
 // app/api/projects/[id]/route.ts
 import { S3 } from "aws-sdk";
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
 
 const s3 = new S3({
@@ -157,6 +159,8 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       ],
     });
 
+    revalidateTag(TAGS.projects, "max");
+    revalidateTag(TAGS.sitemap, "max");
     return NextResponse.json(updatedProject, { status: 200 });
   } catch (error) {
     console.error("Error updating project:", error);
@@ -254,6 +258,8 @@ export async function DELETE(request: NextRequest, props: { params: Promise<{ id
       where: { ProjectID: projectId },
     });
 
+    revalidateTag(TAGS.projects, "max");
+    revalidateTag(TAGS.sitemap, "max");
     return NextResponse.json(
       { message: "پروژه و تمام فایل های مرتبط با موفقیت حذف شدند" },
       { status: 200 }

@@ -1,5 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 import { getCurrentJalaliDate } from "@/utils/jalaliDate";
 
@@ -74,6 +76,7 @@ export async function PUT(req: Request, props: { params: Promise<{ faqId: string
       },
     });
 
+    revalidateTag(TAGS.blogs, "max");
     return NextResponse.json({ faq });
   } catch (error) {
     console.error("Error updating FAQ:", error);
@@ -97,6 +100,7 @@ export async function DELETE(req: Request, props: { params: Promise<{ faqId: str
       where: { id: faqId },
     });
 
+    revalidateTag(TAGS.blogs, "max");
     return NextResponse.json({ message: "FAQ با موفقیت حذف شد" });
   } catch (error) {
     console.error("Error deleting FAQ:", error);

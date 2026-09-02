@@ -1,5 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -121,6 +123,7 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    revalidateTag(TAGS.activities, "max");
     return NextResponse.json({ message: "Updated successfully" }, { status: 200 });
   } catch (error) {
     console.error(error);

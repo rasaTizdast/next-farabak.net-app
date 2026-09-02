@@ -1,6 +1,8 @@
 import { S3 } from "aws-sdk";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 // Initialize S3 client
@@ -62,6 +64,7 @@ export async function DELETE(req: Request, props: { params: Promise<{ id: string
       }
     }
 
+    revalidateTag(TAGS.productOverview, "max");
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting overview detail:", error);

@@ -1,6 +1,9 @@
 // app/api/manageBlog/delete/route.ts
 import { S3 } from "aws-sdk";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
+
+import { TAGS } from "@/lib/data/tags";
 
 const s3 = new S3({
   accessKeyId: process.env.LIARA_ACCESS_KEY,
@@ -19,6 +22,7 @@ export async function DELETE(request: Request) {
       })
       .promise();
 
+    revalidateTag(TAGS.blogs, "max");
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Delete error:", error);

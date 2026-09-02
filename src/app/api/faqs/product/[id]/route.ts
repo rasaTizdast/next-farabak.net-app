@@ -1,5 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -127,6 +129,8 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
       })),
     });
 
+    revalidateTag(TAGS.faqs, "max");
+    revalidateTag(TAGS.products, "max");
     return NextResponse.json({ message: "FAQs updated successfully" });
   } catch (error) {
     console.error("Error updating product FAQs:", error);

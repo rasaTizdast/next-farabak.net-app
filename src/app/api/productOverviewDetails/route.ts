@@ -1,5 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -73,6 +75,7 @@ export async function POST(req: NextRequest) {
       skipDuplicates: true, // Prevent duplicate inserts
     });
 
+    revalidateTag(TAGS.productOverview, "max");
     return NextResponse.json({
       message: "Details created successfully!",
       createdRecords: createdRecords.count,

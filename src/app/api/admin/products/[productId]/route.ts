@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import {
@@ -7,6 +8,7 @@ import {
   serverErrorResponse,
 } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 import {
   validateParams,
@@ -88,6 +90,12 @@ export async function DELETE(
         }),
       ]);
 
+      revalidateTag(TAGS.products, "max");
+      revalidateTag(TAGS.categories, "max");
+      revalidateTag(TAGS.productOverview, "max");
+      revalidateTag(TAGS.productSpecs, "max");
+      revalidateTag(TAGS.faqs, "max");
+      revalidateTag(TAGS.sitemap, "max");
       return NextResponse.json(
         { message: "Product and related data removed successfully." },
         { status: 200 }
@@ -278,6 +286,9 @@ export async function PATCH(request: Request, props: { params: Promise<{ product
       data: data as Record<string, unknown>,
     });
 
+    revalidateTag(TAGS.products, "max");
+    revalidateTag(TAGS.categories, "max");
+    revalidateTag(TAGS.sitemap, "max");
     return NextResponse.json(updatedProduct);
   } catch (error) {
     console.error(error);

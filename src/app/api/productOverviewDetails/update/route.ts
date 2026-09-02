@@ -1,5 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma"; // Adjust path to your Prisma instance
 
 /**
@@ -130,6 +132,7 @@ export async function PUT(req: Request) {
 
     await Promise.all([...addPromises, ...removePromises]);
 
+    revalidateTag(TAGS.productOverview, "max");
     return NextResponse.json({
       message: "Product overview details updated successfully",
     });

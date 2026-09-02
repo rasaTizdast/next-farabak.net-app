@@ -1,6 +1,8 @@
 // app/api/blogs/categories/route.ts
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
@@ -26,6 +28,8 @@ export async function POST(request: Request) {
       data: { name, slug },
     });
 
+    revalidateTag(TAGS.blogs, "max");
+    revalidateTag(TAGS.sitemap, "max");
     return NextResponse.json(newCategory);
   } catch (error) {
     console.error("Error creating category:", error);
@@ -83,6 +87,8 @@ export async function DELETE(request: Request) {
         });
       });
 
+      revalidateTag(TAGS.blogs, "max");
+      revalidateTag(TAGS.sitemap, "max");
       return NextResponse.json({
         message: "دسته‌بندی و مقالات مرتبط با آن حذف شدند",
         deletedBlogs: blogsWithCategory.length,
@@ -94,6 +100,8 @@ export async function DELETE(request: Request) {
       where: { id: Number(id) },
     });
 
+    revalidateTag(TAGS.blogs, "max");
+    revalidateTag(TAGS.sitemap, "max");
     return NextResponse.json(deletedCategory);
   } catch (error) {
     console.error("[API] Delete category error:", error);

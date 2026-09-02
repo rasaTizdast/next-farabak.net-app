@@ -1,5 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma"; // Ensure your Prisma client is set up correctly
 
 /**
@@ -108,6 +110,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    revalidateTag(TAGS.productSpecs, "max");
     return NextResponse.json({ message: "Specs updated successfully" });
   } catch (error) {
     console.error("Error updating product specs:", error);

@@ -1,6 +1,8 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -109,6 +111,9 @@ export async function PATCH(req: Request) {
         include: { SEO_Category: true },
       });
 
+      revalidateTag(TAGS.categories, "max");
+      revalidateTag(TAGS.products, "max");
+      revalidateTag(TAGS.sitemap, "max");
       return NextResponse.json({
         message: "Category updated successfully",
         data: updatedCategory,
@@ -155,6 +160,9 @@ export async function PATCH(req: Request) {
         include: { SEO_CategoryContent: true },
       });
 
+      revalidateTag(TAGS.categories, "max");
+      revalidateTag(TAGS.products, "max");
+      revalidateTag(TAGS.sitemap, "max");
       return NextResponse.json({
         message: "Subcategory updated successfully",
         data: updatedSubcategory,

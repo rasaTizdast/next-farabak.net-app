@@ -1,5 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -96,6 +98,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    revalidateTag(TAGS.productOverview, "max");
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
     console.error(error);

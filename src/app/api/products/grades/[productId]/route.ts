@@ -1,5 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 // PUT /api/products/grades/[gradeId] - Update a grade
@@ -50,6 +52,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ produ
       },
     });
 
+    revalidateTag(TAGS.products, "max");
     return NextResponse.json(updatedGrade);
   } catch (error) {
     console.error("Error updating product grade:", error);
@@ -70,6 +73,7 @@ export async function DELETE(
       where: { ProductGradeId: gradeId },
     });
 
+    revalidateTag(TAGS.products, "max");
     return NextResponse.json({ message: "Grade deleted successfully" });
   } catch (error) {
     console.error("Error deleting product grade:", error);

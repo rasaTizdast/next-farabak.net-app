@@ -1,5 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 import { getCurrentJalaliDate } from "@/utils/jalaliDate";
 
@@ -101,6 +103,7 @@ export async function POST(req: Request, props: { params: Promise<{ blogId: stri
       },
     });
 
+    revalidateTag(TAGS.blogs, "max");
     return NextResponse.json({ faq }, { status: 201 });
   } catch (error) {
     console.error("Error creating FAQ:", error);

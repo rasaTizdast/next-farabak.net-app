@@ -1,6 +1,8 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -196,6 +198,13 @@ export async function DELETE(request: Request) {
       );
     }
 
+    revalidateTag(TAGS.categories, "max");
+    revalidateTag(TAGS.products, "max");
+    revalidateTag(TAGS.productOverview, "max");
+    revalidateTag(TAGS.productSpecs, "max");
+    revalidateTag(TAGS.faqs, "max");
+    revalidateTag(TAGS.breadcrumbs, "max");
+    revalidateTag(TAGS.sitemap, "max");
     return NextResponse.json({ message: "Deletion successful." });
   } catch (error: unknown) {
     if (error instanceof Error) {

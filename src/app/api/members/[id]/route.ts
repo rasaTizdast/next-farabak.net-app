@@ -1,6 +1,8 @@
 import { S3 } from "aws-sdk";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -101,6 +103,7 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
       where: { Membersid: memberId },
     });
 
+    revalidateTag(TAGS.members, "max");
     return NextResponse.json({
       success: true,
       message: "Member deleted successfully",

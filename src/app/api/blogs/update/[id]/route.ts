@@ -1,6 +1,8 @@
 // app/api/blogs/update/[id]/route.ts
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
@@ -17,6 +19,8 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
       },
     });
 
+    revalidateTag(TAGS.blogs, "max");
+    revalidateTag(TAGS.sitemap, "max");
     return NextResponse.json(blog);
   } catch (error) {
     console.error("خطا در بروزرسانی محتوای وبلاگ:", error);
@@ -58,6 +62,8 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
       });
     }
 
+    revalidateTag(TAGS.blogs, "max");
+    revalidateTag(TAGS.sitemap, "max");
     return NextResponse.json(updatedBlog);
   } catch (error) {
     console.error("خطا در بروزرسانی اطلاعات وبلاگ:", error);

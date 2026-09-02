@@ -1,5 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 interface SpecTemplate {
@@ -94,6 +96,7 @@ export async function POST(request: NextRequest) {
       Items: items,
     };
 
+    revalidateTag(TAGS.productSpecs, "max");
     return NextResponse.json(completeTemplate);
   } catch (error) {
     console.error("Error creating spec template:", error);

@@ -49,9 +49,11 @@
  */
 
 import { S3 } from "aws-sdk";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 // Ensure S3 bucket name is always a string
@@ -156,6 +158,7 @@ export async function POST(req: Request) {
       })
     );
 
+    revalidateTag(TAGS.productOverview, "max");
     return NextResponse.json(
       {
         message: "Overview details uploaded successfully",

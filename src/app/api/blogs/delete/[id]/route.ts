@@ -1,7 +1,9 @@
 // app/api/blogs/delete/[id]/route.ts
 import { S3 } from "aws-sdk";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 const s3 = new S3({
@@ -59,6 +61,8 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
       imageDeletionSuccess = false;
     }
 
+    revalidateTag(TAGS.blogs, "max");
+    revalidateTag(TAGS.sitemap, "max");
     return NextResponse.json({
       message:
         "وبلاگ با موفقیت حذف شد" +

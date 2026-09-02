@@ -1,7 +1,9 @@
 // app/api/projects/route.ts
 import { S3 } from "aws-sdk";
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
 
 const s3 = new S3({
@@ -140,6 +142,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    revalidateTag(TAGS.projects, "max");
+    revalidateTag(TAGS.sitemap, "max");
     return NextResponse.json(project, { status: 201 });
   } catch (error) {
     console.error("Error creating project:", error);

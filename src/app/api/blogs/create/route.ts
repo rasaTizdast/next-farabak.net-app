@@ -1,6 +1,8 @@
 // app/api/blogs/create/route.ts
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
@@ -34,6 +36,8 @@ export async function POST(request: Request) {
       });
     }
 
+    revalidateTag(TAGS.blogs, "max");
+    revalidateTag(TAGS.sitemap, "max");
     return NextResponse.json(blog);
   } catch (error) {
     console.error("خطا در ایجاد بلاگ:", error);
