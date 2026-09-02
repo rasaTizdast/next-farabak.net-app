@@ -1,9 +1,8 @@
-import { cn } from "@/lib/utils";
 import { Metadata } from "next";
 
-import WarrantyTrackingPage from "./ClientWarrantyTracking";
+import { cn } from "@/lib/utils";
 
-export const dynamic = "force-dynamic";
+import WarrantyTrackingPage from "./ClientWarrantyTracking";
 
 export const metadata: Metadata = {
   title: "پیگیری گارانتی محصولات فرابک",

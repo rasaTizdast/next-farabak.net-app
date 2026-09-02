@@ -1,8 +1,8 @@
-export const dynamic = "force-dynamic";
-
 import { Metadata } from "next";
-import cn from "@/lib/utils";
 import Script from "next/script";
+
+import AiSummary from "@/components/AiSummary";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "حریم خصوصی | فرابک",
@@ -68,6 +68,7 @@ const PrivacyPage = () => {
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
+      <AiSummary pageKey="privacy" />
       <h1 className="text-dark-blue mb-6 text-3xl font-bold">حریم خصوصی</h1>
       <div className="flex flex-col gap-8">
         {privacySections.map((section) => (

@@ -1,10 +1,10 @@
-import { cn } from "@/lib/utils";
-export const dynamic = "force-dynamic";
-
 import { Metadata } from "next";
 import Link from "next/link";
 
+import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import AiSummary from "@/components/AiSummary";
 import aboutUsData from "@/constants/aboutUs.json";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "درباره ما | تاریخچه و فعالیت‌های فرابک",
@@ -50,17 +50,19 @@ const AboutUs = () => {
         )}
         dir="rtl"
       >
-        <div
-          className={cn("flex w-full max-w-[1580px] flex-wrap items-stretch justify-evenly gap-8")}
-        >
-          {aboutUsData.map((item) => (
-            <Card
-              key={item.id}
-              title={item.title}
-              desc={item.desc}
-              link={`/about-us/${item.link}`}
-            />
-          ))}
+        <div className="w-full max-w-[1580px]">
+          <Breadcrumb breadcrumbs={["/", "/about-us"]} />
+          <AiSummary pageKey="about" />
+          <div className={cn("flex w-full flex-wrap items-stretch justify-evenly gap-8")}>
+            {aboutUsData.map((item) => (
+              <Card
+                key={item.id}
+                title={item.title}
+                desc={item.desc}
+                link={`/about-us/${item.link}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </>
@@ -79,7 +81,7 @@ const Card = ({ title, desc, link }: CardProps) => {
   return (
     <div
       className={cn(
-        "bg-secondary flex max-w-[300px] flex-col items-center justify-between gap-4 rounded-lg p-4 text-center shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-transform duration-300 hover:scale-[1.05]"
+        "flex max-w-[300px] flex-col items-center justify-between gap-4 rounded-lg bg-white p-4 text-center shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-transform duration-300 hover:scale-[1.05]"
       )}
     >
       <h2 className="text-[1.3rem] font-bold">{title}</h2>
@@ -87,7 +89,7 @@ const Card = ({ title, desc, link }: CardProps) => {
       <Link
         href={link}
         className={cn(
-          "bg-primary after:bg-fourth relative mt-8 inline-block w-full overflow-hidden rounded-lg px-8 py-2 text-[0.9rem] text-white transition-[transform,color,box-shadow] duration-300 after:absolute after:inset-y-0 after:inset-s-[100%] after:inset-e-0 after:z-[-1] after:transition-[inset-inline-start,inset-inline-end] after:duration-500 hover:scale-[1.03] hover:text-white hover:shadow-[0_6px_12px_rgba(0,0,0,0.2)] hover:after:inset-s-0 hover:after:inset-e-0"
+          "bg-third after:bg-fourth relative mt-8 inline-block w-full overflow-hidden rounded-lg px-8 py-2 text-[0.9rem] text-white transition-[transform,color,box-shadow] duration-300 after:absolute after:inset-y-0 after:inset-s-[100%] after:inset-e-0 after:z-[-1] after:transition-[inset-inline-start,inset-inline-end] after:duration-500 hover:scale-[1.03] hover:text-white hover:shadow-[0_6px_12px_rgba(0,0,0,0.2)] hover:after:inset-s-0 hover:after:inset-e-0"
         )}
       >
         مشاهده

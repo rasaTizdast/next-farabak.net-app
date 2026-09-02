@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import VideoPlayer from "@/app/_components/ui/VideoPlayer";
+import { getProjectData as getProjectDataFromDataLayer } from "@/lib/data/projects";
 
 import ProjectSlider from "./ProjectSlider";
 
@@ -22,15 +23,7 @@ type ProjectProps = {
 
 async function getProjectData(slug: string) {
   try {
-    const response = await fetch(`${process.env.BASE_URL}/api/projects/getProjectData/${slug}`, {
-      next: { revalidate: 3600 },
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch project data");
-    }
-
-    return await response.json();
+    return await getProjectDataFromDataLayer(slug);
   } catch (error) {
     console.error("Error fetching project data:", error);
     return null;
@@ -66,59 +59,90 @@ const ProjectPage = async (props: ParamsType) => {
 
   const { title, date, images, largeDesc, location, video }: ProjectProps = projectData;
 
+  const pageUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/projects/${params.project}`;
+
   const structuredData = {
     "@context": "https://schema.org",
-    "@type": "Article",
-    headline: title,
-    description: largeDesc,
-    image: images.map((img) => `${process.env.LIARA_BUCKET_URL}/${img.img}`),
-    datePublished: date,
-    url: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/projects/${params.project}`,
-    publisher: {
-      "@type": "Organization",
-      name: "فرابک",
-      url: process.env.NEXT_PUBLIC_BASE_URL,
-    },
-    locationCreated: {
-      "@type": "Place",
-      name: location,
-    },
-    video: video
-      ? {
-          "@type": "VideoObject",
-          url: video,
-          name: `ویدیو پروژه ${title}`,
-        }
-      : undefined,
-    breadcrumb: {
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "صفحه اصلی",
-          item: process.env.NEXT_PUBLIC_BASE_URL,
+    "@graph": [
+      {
+        "@type": ["Article", "CreativeWork"],
+        "@id": `${pageUrl}#article`,
+        headline: title,
+        description: largeDesc,
+        keywords: [
+          title,
+          location,
+          "دوربین مداربسته",
+          "نظارت تصویری",
+          "پروژه",
+          "سیستم امنیتی",
+        ].filter(Boolean),
+        image: images.map((img) => `${process.env.LIARA_BUCKET_URL}/${img.img}`),
+        datePublished: date,
+        dateModified: date,
+        inLanguage: "fa-IR",
+        mainEntityOfPage: {
+          "@type": "WebPage",
+          "@id": pageUrl,
         },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: "درباره ما",
-          item: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us`,
+        url: pageUrl,
+        author: {
+          "@id": "https://farabak.net",
         },
-        {
-          "@type": "ListItem",
-          position: 3,
-          name: "گالری تصاویر پروژه ها",
-          item: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/projects`,
+        publisher: {
+          "@id": "https://farabak.net",
         },
-        {
-          "@type": "ListItem",
-          position: 4,
-          name: title,
-          item: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/projects/${params.project}`,
+        about: {
+          "@id": "https://farabak.net",
         },
-      ],
-    },
+        locationCreated: {
+          "@type": "Place",
+          name: location,
+        },
+        video: video
+          ? {
+              "@type": "VideoObject",
+              url: video,
+              name: `ویدیو پروژه ${title}`,
+            }
+          : undefined,
+        breadcrumb: {
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "صفحه اصلی",
+              item: process.env.NEXT_PUBLIC_BASE_URL,
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "درباره ما",
+              item: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us`,
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: "گالری تصاویر پروژه ها",
+              item: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/projects`,
+            },
+            {
+              "@type": "ListItem",
+              position: 4,
+              name: title,
+              item: pageUrl,
+            },
+          ],
+        },
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://farabak.net",
+        name: "فرابک",
+        url: process.env.NEXT_PUBLIC_BASE_URL,
+      },
+    ],
   };
   const jsonLd = JSON.stringify(structuredData);
 
@@ -134,7 +158,7 @@ const ProjectPage = async (props: ParamsType) => {
         <h4 className="mb-1 font-light">{location}</h4>
         <p className="my-8 text-[1.1rem] leading-[1.7]">{largeDesc}</p>
 
-        <div className="mb-10 max-h-[800px] max-w-[1580px] rounded-xl md:max-h-[300px]">
+        <div className="mx-auto mb-10 max-h-[300px] w-full max-w-[1580px] overflow-hidden rounded-xl md:max-h-[800px]">
           <ProjectSlider slides={images} />
         </div>
 

@@ -1,10 +1,11 @@
-export const dynamic = "force-dynamic";
-
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import SourcesList from "@/components/SourcesList";
+import { buildSourcesFor } from "@/helpers/sources";
+import { getProjects as getProjectsFromData } from "@/lib/data/projects";
 
 export const metadata: Metadata = {
   title: "گالری تصاویر پروژه ها | فرابک",
@@ -27,15 +28,7 @@ type ProjectData = {
 
 async function getProjects(): Promise<ProjectData[]> {
   try {
-    const response = await fetch(`${process.env.BASE_URL}/api/projects`, {
-      next: { revalidate: 3600 },
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch projects");
-    }
-
-    return await response.json();
+    return await getProjectsFromData();
   } catch (error) {
     console.error("Error fetching projects:", error);
     return [];
@@ -99,6 +92,10 @@ const ProjectsPage = async () => {
     },
   };
 
+  const projectsSourceText = projects
+    .map((project) => `${project.title} ${project.smallDesc} ${project.location}`)
+    .join(" ");
+
   const jsonLd = JSON.stringify(structuredData);
 
   return (
@@ -115,6 +112,13 @@ const ProjectsPage = async () => {
             </div>
           )}
         </main>
+        <SourcesList sources={buildSourcesFor(projectsSourceText)} className="mt-10">
+          <p className="mb-4 text-xs leading-6 text-gray-500">
+            پروژه‌های نمایش‌داده‌شده با تجهیزات رسمی تولیدکنندگان معتبر جهانی مانند Reolink، Smiths
+            Detection و CEIA اجرا شده‌اند. برای آشنایی بیشتر با این تجهیزات می‌توانید به وب‌سایت
+            رسمی تولیدکنندگان و همچنین صفحات پشتیبانی و گارانتی فرابک مراجعه کنید.
+          </p>
+        </SourcesList>
       </div>
     </>
   );

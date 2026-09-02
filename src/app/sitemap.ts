@@ -1,20 +1,13 @@
-export const dynamic = "force-dynamic";
-
 import { MetadataRoute } from "next";
+
+import { getSitemapUrls } from "@/lib/data/sitemap";
+
+export const revalidate = 3600; // Revalidate every 1 hour (3600 seconds)
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
-    // Fetch all URLs from our enhanced API endpoint
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/sitemap`,
-      { next: { revalidate: 3600 } } // Revalidate every 1 hour (3600 seconds)
-    );
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch sitemap data: ${response.status}`);
-    }
-
-    const { urls } = await response.json();
+    // Fetch all URLs from the data layer (same enhanced list as /api/sitemap)
+    const { urls } = await getSitemapUrls();
 
     // Map all URLs to the sitemap format
     const sitemapEntries: MetadataRoute.Sitemap = urls.map((url: string) => ({
