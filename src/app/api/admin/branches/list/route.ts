@@ -4,8 +4,6 @@ import { errorResponse, serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
-
 /**
  * GET handler for fetching all branches for dropdowns
  * This is a simplified endpoint without pagination for use in UI components like selects

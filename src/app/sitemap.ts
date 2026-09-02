@@ -2,8 +2,6 @@ import { MetadataRoute } from "next";
 
 import { getSitemapUrls } from "@/lib/data/sitemap";
 
-export const revalidate = 3600; // Revalidate every 1 hour (3600 seconds)
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     // Fetch all URLs from the data layer (same enhanced list as /api/sitemap)

@@ -4,8 +4,6 @@ import { requireAuth } from "@/lib/auth";
 import { formatBigIntResults } from "@/lib/formatBigInt";
 import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
-
 /**
  * Get warranty statistics for branches
  */

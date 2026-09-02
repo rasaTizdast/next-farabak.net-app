@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { Card, Tabs } from "antd";
 import { Suspense, useEffect, useRef } from "react";
 

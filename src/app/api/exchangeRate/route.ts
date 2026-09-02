@@ -1,11 +1,5 @@
 import { NextResponse } from "next/server";
 
-// Enable static rendering for better caching
-export const dynamic = "force-static";
-
-// Set revalidation time to 1 hour (3600 seconds)
-export const revalidate = 60;
-
 // Cache object to store the exchange rate and timestamp
 const cache = {
   rate: null as number | null,

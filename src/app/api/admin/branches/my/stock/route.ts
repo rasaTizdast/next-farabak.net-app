@@ -5,8 +5,6 @@ import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { branchProductQuerySchema, validateParams } from "@/lib/validation";
 
-export const dynamic = "force-dynamic";
-
 /**
  * GET handler for checking if the current branch has stock of a specific product
  * Used for warranty assignment within a branch

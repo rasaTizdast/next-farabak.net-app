@@ -4,8 +4,6 @@ import { serverErrorResponse } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
-
 /**
  * @swagger
  * /api/admin/products/filterData:

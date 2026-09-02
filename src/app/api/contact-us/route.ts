@@ -4,8 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
-
 // GET handler to fetch contact us data
 export async function GET() {
   try {

@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect, useState } from "react";
 import {

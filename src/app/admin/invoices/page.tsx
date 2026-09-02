@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { SearchOutlined } from "@ant-design/icons";
 import { Input, Button, Select } from "antd";
 import jalaali from "jalali-moment";
@@ -227,7 +225,7 @@ const AdminInvoicesPage = () => {
   useEffect(() => {
     if (invoicesData && prevInvoicesData.current !== invoicesData) {
       prevInvoicesData.current = invoicesData;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync fetched invoices into editable local state once, guarded by ref.
+
       setInvoices(invoicesData);
     }
   }, [invoicesData]);

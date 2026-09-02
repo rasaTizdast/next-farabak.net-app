@@ -10,8 +10,6 @@ import {
   validateParams,
 } from "@/lib/validation";
 
-export const dynamic = "force-dynamic";
-
 /**
  * @swagger
  * /api/admin/branches/{branchId}:

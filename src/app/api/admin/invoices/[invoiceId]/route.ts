@@ -5,8 +5,6 @@ import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { invoiceIdParamSchema, validateParams } from "@/lib/validation";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(request: Request, props: { params: Promise<{ invoiceId: string }> }) {
   const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;

@@ -4,8 +4,6 @@ import { NextResponse } from "next/server";
 import { serverErrorResponse } from "@/lib/api-response";
 import { forgotPasswordSchema, validateBody } from "@/lib/validation";
 
-export const dynamic = "force-dynamic";
-
 // Generate a random 6-digit code
 function generateVerificationCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();

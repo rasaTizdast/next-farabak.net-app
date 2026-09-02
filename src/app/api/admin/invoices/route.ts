@@ -13,8 +13,6 @@ import {
   validateParams,
 } from "@/lib/validation";
 
-export const dynamic = "force-dynamic";
-
 interface InvoiceRaw {
   Invoiceid: number;
   Checked: boolean;

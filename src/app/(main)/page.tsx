@@ -4,8 +4,6 @@ import dynamicImport from "next/dynamic";
 import Schema from "@/components/Schema";
 import { prisma } from "@/lib/prisma";
 
-export const revalidate = 60;
-
 /* Skeleton fallbacks sized to match each section's real rendered height
    (slider aspect 1920x900; content sections use py-12 + heading + cards)
    so streaming them in causes minimal layout shift. */

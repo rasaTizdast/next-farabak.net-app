@@ -5,8 +5,6 @@ import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { checkProductQuerySchema, validateParams } from "@/lib/validation";
 
-export const dynamic = "force-dynamic";
-
 /**
  * @swagger
  * /api/admin/branches/check-product:

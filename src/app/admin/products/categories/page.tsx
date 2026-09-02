@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { Toaster } from "react-hot-toast";
 
 import { useApiFetch } from "@/hooks/useApiFetch";

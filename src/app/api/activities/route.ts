@@ -31,8 +31,6 @@ import { prisma } from "@/lib/prisma";
  *         description: Master activity updated
  */
 
-export const dynamic = "force-dynamic";
-
 type DetailsActivity = {
   id: number;
   activityID: number;

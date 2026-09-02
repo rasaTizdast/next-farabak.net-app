@@ -16,8 +16,6 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 60; // Revalidate every 1 minute
-
 const FaqPage = async () => {
   let faqs: FaqItem[] = [];
 

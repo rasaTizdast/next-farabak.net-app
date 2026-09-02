@@ -5,8 +5,6 @@ import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { validateParams, productIdParamSchema } from "@/lib/validation";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(request: Request, props: { params: Promise<{ productId: string }> }) {
   const params = await props.params;
   try {

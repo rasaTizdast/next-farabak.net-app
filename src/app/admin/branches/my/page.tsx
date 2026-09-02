@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { Card, Empty, Spin, Button, Alert } from "antd";
 import { useSearchParams, useRouter } from "next/navigation";

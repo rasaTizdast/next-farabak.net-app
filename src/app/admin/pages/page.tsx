@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { ChevronDown, ChevronUp, Plus, Eye, FileText } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";

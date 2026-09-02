@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma"; // Adjust based on your Prisma client location
 
-export const dynamic = "force-dynamic";
-
 /**
  * @swagger
  * /api/blogs:

@@ -1,13 +1,11 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { FiFileText, FiBox, FiArrowRightCircle, FiDollarSign } from "react-icons/fi";
 
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+import { cn } from "@/lib/utils";
 
 type ReportData = {
   invoiceCount: number;
@@ -23,7 +21,7 @@ type ReportData = {
 
 // Skeleton loader component
 const SkeletonCard = () => (
-  <div className="glass-card animate-pulse rounded-lg bg-[var(--dark-blue)] p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)]">
+  <div className="glass-card animate-pulse rounded-lg bg-(--dark-blue) p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)]">
     <div className="h-6 w-3/4 rounded-md bg-blue-200/50"></div>
     <div className="mt-4 h-8 w-1/2 rounded-md bg-blue-200/50"></div>
     <div className="mt-2 h-4 w-full rounded-md bg-blue-200/50"></div>
@@ -88,9 +86,9 @@ const AdminPage = () => {
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">نرخ دلار به تومان</h3>
-            <FiDollarSign className="text-3xl text-[var(--secondary)]" />
+            <FiDollarSign className="text-3xl text-(--secondary)" />
           </div>
-          <span className="mt-4 text-4xl font-extrabold text-[var(--secondary)]">
+          <span className="mt-4 text-4xl font-extrabold text-(--secondary)">
             {usdToRialRate ? `${usdToRialRate.toLocaleString()} تومان` : "در حال دریافت..."}
           </span>
         </div>
@@ -98,14 +96,14 @@ const AdminPage = () => {
         {/* Invoice Count */}
         <div
           className={cn(
-            "glass-card flex transform flex-col justify-between rounded-lg bg-[var(--dark-blue)]/90 p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg"
+            "glass-card flex transform flex-col justify-between rounded-lg bg-(--dark-blue)/90 p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg"
           )}
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">تعداد فاکتورها</h3>
-            <FiFileText className="text-3xl text-[var(--primary)]" />
+            <FiFileText className="text-3xl text-(--primary)" />
           </div>
-          <span className="mt-4 text-5xl font-extrabold text-[var(--primary)]">
+          <span className="mt-4 text-5xl font-extrabold text-(--primary)">
             {reportData.invoiceCount}
           </span>
         </div>
@@ -113,16 +111,16 @@ const AdminPage = () => {
         {/* Invoice Status */}
         <div
           className={cn(
-            "glass-card flex transform flex-col justify-between rounded-lg bg-[var(--dark-blue)]/90 p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg"
+            "glass-card flex transform flex-col justify-between rounded-lg bg-(--dark-blue)/90 p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg"
           )}
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">وضعیت فاکتورها</h3>
-            <FiFileText className="text-3xl text-[var(--primary)]" />
+            <FiFileText className="text-3xl text-(--primary)" />
           </div>
           <div className="mt-4 h-4 w-full overflow-hidden rounded-full bg-green-500">
             <div
-              className="h-4 rounded-full bg-[var(--primary)]"
+              className="h-4 rounded-full bg-(--primary)"
               style={{
                 width: `${
                   (reportData.invoiceStatusCount.checked /
@@ -133,7 +131,7 @@ const AdminPage = () => {
               }}
             />
           </div>
-          <div className="mt-2 flex w-full justify-between text-sm text-[var(--primary)]">
+          <div className="mt-2 flex w-full justify-between text-sm text-(--primary)">
             <span>تایید شده: {reportData.invoiceStatusCount.checked}</span>
             <span>تایید نشده: {reportData.invoiceStatusCount.unchecked}</span>
           </div>
@@ -142,16 +140,16 @@ const AdminPage = () => {
         {/* Product Availability */}
         <div
           className={cn(
-            "glass-card flex transform flex-col justify-between rounded-lg bg-[var(--dark-blue)]/90 p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg"
+            "glass-card flex transform flex-col justify-between rounded-lg bg-(--dark-blue)/90 p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg"
           )}
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">محصولات</h3>
-            <FiBox className="text-3xl text-[var(--primary)]" />
+            <FiBox className="text-3xl text-(--primary)" />
           </div>
-          <div className="mt-4 h-4 w-full overflow-hidden rounded-full bg-[var(--primary)]">
+          <div className="mt-4 h-4 w-full overflow-hidden rounded-full bg-(--primary)">
             <div
-              className="h-4 rounded-full bg-[var(--secondary)]"
+              className="h-4 rounded-full bg-(--secondary)"
               style={{
                 width: `${
                   (reportData.productCount.available /
@@ -161,7 +159,7 @@ const AdminPage = () => {
               }}
             />
           </div>
-          <div className="mt-2 flex w-full justify-between text-sm text-[var(--primary)]">
+          <div className="mt-2 flex w-full justify-between text-sm text-(--primary)">
             <span>موجود: {reportData.productCount.available}</span>
             <span>ناموجود: {reportData.productCount.unavailable}</span>
           </div>

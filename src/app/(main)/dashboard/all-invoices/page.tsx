@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import jalaali from "jalali-moment";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";

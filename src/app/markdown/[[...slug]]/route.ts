@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { buildNotFoundMarkdown, markdownPages } from "@/lib/markdownContent";
 
-export const revalidate = 3600;
-
 const MARKDOWN_CONTENT_TYPE = "text/markdown; charset=utf-8";
 
 export async function GET(

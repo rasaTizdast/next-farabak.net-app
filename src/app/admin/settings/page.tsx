@@ -7,8 +7,6 @@ import { useUser } from "@/context/UserContext";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
-export const dynamic = "force-dynamic";
-
 type Client = {
   UserID: number;
   FirstName: string;

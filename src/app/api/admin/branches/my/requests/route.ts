@@ -7,8 +7,6 @@ import { formatBigIntResults } from "@/lib/formatBigInt";
 import { prisma } from "@/lib/prisma";
 import { validateParams } from "@/lib/validation";
 
-export const dynamic = "force-dynamic";
-
 const requestsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
