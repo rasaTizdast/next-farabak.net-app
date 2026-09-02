@@ -1,4 +1,3 @@
-import { cn } from "@/lib/utils";
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -6,6 +5,8 @@ import { notFound } from "next/navigation";
 import React from "react";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import { getBlogsByCategory } from "@/lib/data/blogs";
+import { cn } from "@/lib/utils";
 
 export async function generateMetadata(props: {
   params: Promise<{ blogCategory: string }>;
@@ -13,25 +14,7 @@ export async function generateMetadata(props: {
   const params = await props.params;
 
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/category/${params.blogCategory}`,
-      {
-        next: { revalidate: 60 },
-      }
-    );
-
-    if (!response.ok || !response) {
-      return {
-        title: "صفحه یافت نشد | فرابک",
-        description: "صفحه مورد نظر یافت نشد",
-        robots: {
-          index: false,
-          follow: true,
-        },
-      };
-    }
-
-    const data = await response.json();
+    const data = (await getBlogsByCategory(params.blogCategory)) as Blogs | null;
 
     if (!data || data.blogs.length === 0) {
       return {
@@ -81,22 +64,6 @@ type Blogs = {
     comments: number;
     likes: number;
   }[];
-};
-
-// Server-side fetch function
-const fetchBlogs = async (categorySlug: string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/category/${categorySlug}`,
-    {
-      next: { revalidate: 60 }, // Optional: revalidate every 60 seconds for ISR
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch blogs");
-  }
-
-  return response.json();
 };
 
 const BlogContent = ({ blogs, categorySlug }: { blogs: Blogs; categorySlug: string }) => {
@@ -177,7 +144,7 @@ const BlogLandingPage = async (props: { params: Promise<{ blogCategory: string }
 
   let blogData: Blogs | null = null;
   try {
-    blogData = await fetchBlogs(blogCategory);
+    blogData = (await getBlogsByCategory(blogCategory)) as Blogs;
   } catch {
     notFound();
   }
@@ -186,12 +153,88 @@ const BlogLandingPage = async (props: { params: Promise<{ blogCategory: string }
     notFound();
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
+  const bucketUrl = process.env.LIARA_BUCKET_URL || "";
+  const blogIndexUrl = `${siteUrl}/support/blog`;
+  const categoryUrl = `${blogIndexUrl}/${params.blogCategory}`;
+  const categoryName = params.blogCategory.replace(/-/g, " ");
+
+  const categoryItemList = blogData.blogs
+    .flatMap((blog) => {
+      const blogCategorySlug = blog.categories?.[0]?.slug;
+      if (!blogCategorySlug) return [];
+      const postUrl = `${blogIndexUrl}/${blogCategorySlug}/${blog.slug}`;
+      return [
+        {
+          "@type": "ListItem",
+          url: postUrl,
+          item: {
+            "@type": "BlogPosting",
+            "@id": `${postUrl}#blogPosting`,
+            headline: blog.title,
+            url: postUrl,
+            datePublished: blog.created_at,
+            image: blog.image ? `${bucketUrl}/${blog.image}` : undefined,
+            author: { "@type": "Person", name: blog.author },
+          },
+        },
+      ];
+    })
+    .map((listItem, index) => ({ ...listItem, position: index + 1 }));
+
+  const categoryStructuredData = serializeJsonLd({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": ["WebPage", "CollectionPage"],
+        "@id": `${categoryUrl}#collection`,
+        url: categoryUrl,
+        name: `مقالات دسته‌بندی ${categoryName} | فرابک`,
+        description: `جدیدترین مقالات، آموزش‌ها و راهنمای‌های بلاگ فرابک درباره ${categoryName}.`,
+        inLanguage: "fa-IR",
+        isPartOf: { "@id": `${blogIndexUrl}#blog` },
+        mainEntity: { "@id": `${categoryUrl}#itemlist` },
+      },
+      {
+        "@type": "Blog",
+        "@id": `${blogIndexUrl}#blog`,
+        name: "وبلاگ فرابک",
+        url: blogIndexUrl,
+        description:
+          "مقالات تخصصی درباره خرید دوربین مداربسته، نصب محصولات بلک مجیک و نکات نگهداری سیستم‌های امنیتی. محتوای مفید و به‌روز از کارشناسان فرابک.",
+        inLanguage: "fa-IR",
+        publisher: {
+          "@type": "Organization",
+          name: "فرابک",
+          url: siteUrl || undefined,
+          logo: {
+            "@type": "ImageObject",
+            url: `${siteUrl}/Farabak_Logo.webp`,
+          },
+        },
+      },
+      {
+        "@type": "ItemList",
+        "@id": `${categoryUrl}#itemlist`,
+        itemListElement: categoryItemList,
+      },
+    ],
+  });
+
   return (
-    <div className="max-w-[1580px]">
+    <div className="w-full max-w-[1580px]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: categoryStructuredData }}
+      />
       <Breadcrumb breadcrumbs={blogCategoryBreadCrumbs} />
       <BlogContent blogs={blogData || { blogs: [] }} categorySlug={params.blogCategory} />
     </div>
   );
 };
+
+function serializeJsonLd(data: unknown): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}
 
 export default BlogLandingPage;

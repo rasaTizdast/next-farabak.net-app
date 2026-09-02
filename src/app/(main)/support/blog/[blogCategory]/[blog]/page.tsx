@@ -1,11 +1,11 @@
 import DOMPurify from "isomorphic-dompurify";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import Script from "next/script";
 
-import { cn } from "@/lib/utils";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import BlogFaqAccordion from "@/components/BlogFaqAccordion";
+import { getBlogBySlug } from "@/lib/data/blogs";
+import { cn } from "@/lib/utils";
 
 function processContentWithImageUrls(content: string) {
   const baseUrl = process.env.LIARA_BUCKET_URL || "";
@@ -107,15 +107,16 @@ const getBlog = async (
   searchParams: { key?: string },
   isAdmin: boolean = false
 ): Promise<BlogResponse | null> => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/${slug}`, {
-    next: { revalidate: 60 },
-  });
+  let blogResponse: BlogResponse | null = null;
 
-  if (!res.ok) {
+  try {
+    const data = await getBlogBySlug(slug);
+    if (!data) return null;
+    blogResponse = data as unknown as BlogResponse;
+  } catch (error) {
+    console.error("Error fetching blog:", error);
     return null;
   }
-
-  const blogResponse = (await res.json()) as BlogResponse;
 
   if (isAdmin) {
     return blogResponse;
@@ -189,26 +190,71 @@ export default async function BlogPage(props: {
   const { blog, faqs } = blogResponse;
 
   const readingTime = calculateReadingTime(blog.content);
+  const wordCount = countWords(blog.content);
 
-  const blogJsonLd = JSON.stringify({
+  const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
+  const bucketUrl = process.env.LIARA_BUCKET_URL || "";
+  const blogCategories = blogResponse.categories || [];
+  const categorySlug = blogCategories[0]?.slug;
+  const postUrl = categorySlug ? `${siteUrl}/support/blog/${categorySlug}/${params.blog}` : "";
+
+  const blogJsonLd = serializeJsonLd({
     "@context": "https://schema.org",
     "@type": "BlogPosting",
+    "@id": postUrl ? `${postUrl}#blogPosting` : undefined,
+    url: postUrl || undefined,
     headline: blog.title,
-    author: { "@type": "Person", name: blog.author },
-    datePublished: blog.created_at,
-    publisher: { "@type": "Organization", name: "Farabak" },
     description: blog.description,
-    image: blog.image_URL,
-    articleBody: processContentWithImageUrls(blog.content),
+    inLanguage: "fa-IR",
+    datePublished: blog.created_at,
+    dateModified: blog.created_at,
+    wordCount,
+    author: { "@type": "Person", name: blog.author },
+    image: blog.image_URL ? `${bucketUrl}/${blog.image_URL}` : undefined,
+    articleSection: blogCategories[0]?.name,
+    keywords:
+      blogCategories.length > 0 ? blogCategories.map((category) => category.name) : undefined,
+    mainEntityOfPage: postUrl ? { "@type": "WebPage", "@id": postUrl } : undefined,
+    publisher: {
+      "@type": "Organization",
+      name: "فرابک",
+      url: siteUrl || undefined,
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/Farabak_Logo.webp`,
+      },
+    },
+    isPartOf: postUrl
+      ? {
+          "@type": "Blog",
+          "@id": `${siteUrl}/support/blog`,
+          name: "وبلاگ فرابک",
+          url: `${siteUrl}/support/blog`,
+        }
+      : undefined,
   });
 
+  const faqJsonLd =
+    faqs && faqs.length > 0
+      ? serializeJsonLd({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((faq) => ({
+            "@type": "Question",
+            name: faq.question,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: faq.answer,
+            },
+          })),
+        })
+      : null;
+
   return (
-    <>
+    <div className="w-full max-w-[1580px]">
       <Breadcrumb breadcrumbs={["/", "/support", "/support/blog"]} />
 
-      <article
-        className={cn("bg-background mx-auto mt-5 w-full max-w-[1580px] rounded-lg p-5 sm:p-10")}
-      >
+      <article className={cn("bg-background mt-5 w-full rounded-lg p-5 sm:p-10")}>
         <header className={cn("mb-8")}>
           <h1 className={cn("mb-8 text-2xl font-bold sm:text-4xl")}>{blog.title}</h1>
           <Image
@@ -249,11 +295,7 @@ export default async function BlogPage(props: {
 
       {/* FAQ Section */}
       {faqs && faqs.length > 0 && (
-        <section
-          className={cn(
-            "bg-background mx-auto mt-8 w-full max-w-[1580px] rounded-lg p-5 shadow-sm sm:p-10"
-          )}
-        >
+        <section className={cn("bg-background mt-8 w-full rounded-lg p-5 shadow-sm sm:p-10")}>
           <BlogFaqAccordion
             faqs={faqs}
             blogTitle={blog.title}
@@ -263,26 +305,28 @@ export default async function BlogPage(props: {
         </section>
       )}
 
-      <Script
-        id="blogContent"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: blogJsonLd,
-        }}
-      />
-    </>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: blogJsonLd }} />
+      {faqJsonLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: faqJsonLd }} />
+      )}
+    </div>
   );
 }
 
-function calculateReadingTime(content: string): number {
+function countWords(content: string): number {
   const text = content.replace(/<[^>]*>/g, " ");
   const cleanText = text
     .replace(/[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF0-9\s]/g, " ")
     .replace(/[\u200B-\u200D\uFEFF]/g, "")
     .replace(/\s+/g, " ")
     .trim();
-  const words = cleanText.split(/\s+/).filter((word) => word.length > 0).length;
-  const wordsPerMinute = 250;
-  const readingTime = Math.max(1, Math.ceil(words / wordsPerMinute));
-  return readingTime;
+  return cleanText.split(/\s+/).filter((word) => word.length > 0).length;
+}
+
+function calculateReadingTime(content: string): number {
+  return Math.max(1, Math.ceil(countWords(content) / 250));
+}
+
+function serializeJsonLd(data: unknown): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
 }
