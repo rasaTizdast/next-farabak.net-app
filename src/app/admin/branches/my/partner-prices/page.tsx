@@ -26,7 +26,7 @@ function calcOriginal(p: ProductRow) {
 }
 
 async function doFetchUsdRate(
-  fetchUsdToRialRate: () => Promise<number>,
+  fetchUsdToRialRate: () => Promise<number | null>,
   setUsdRate: (rate: number) => void
 ) {
   try {
