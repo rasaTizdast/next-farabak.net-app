@@ -1,6 +1,7 @@
+import { cacheLife, cacheTag } from "next/cache";
+
 import { prisma } from "@/lib/prisma";
 
-import { cachedQuery } from "./cache";
 import { TAGS } from "./tags";
 
 // /api/activities
@@ -12,7 +13,10 @@ async function queryActivities() {
   return activities;
 }
 
-export const getActivities = cachedQuery("getActivities", queryActivities, {
-  revalidate: 3600,
-  tags: [TAGS.activities],
-});
+export async function getActivities() {
+  "use cache";
+  cacheTag(TAGS.activities);
+  cacheLife("hours");
+
+  return queryActivities();
+}

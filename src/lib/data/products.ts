@@ -1,8 +1,8 @@
 import { Prisma, type CategoryContent } from "@prisma/client";
+import { cacheLife, cacheTag } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 
-import { cachedQuery } from "./cache";
 import { TAGS } from "./tags";
 
 // ---------------------------------------------------------------------------
@@ -228,10 +228,16 @@ async function queryAllProducts(
   };
 }
 
-export const getAllProducts = cachedQuery("getAllProducts", queryAllProducts, {
-  revalidate: 60,
-  tags: [TAGS.products, TAGS.categories],
-});
+export async function getAllProducts(
+  params: ProductsQueryParams
+): Promise<PaginatedProductResult | null> {
+  "use cache";
+  cacheTag(TAGS.products);
+  cacheTag(TAGS.categories);
+  cacheLife("minutes");
+
+  return queryAllProducts(params);
+}
 
 // ---------------------------------------------------------------------------
 // /api/products/getProductsByCategory/:categoryName
@@ -369,10 +375,17 @@ async function queryProductsByCategory(
   };
 }
 
-export const getProductsByCategory = cachedQuery("getProductsByCategory", queryProductsByCategory, {
-  revalidate: 60,
-  tags: [TAGS.products, TAGS.categories],
-});
+export async function getProductsByCategory(
+  categoryName: string,
+  params: ProductsQueryParams
+): Promise<CategoryProductsResult | null> {
+  "use cache";
+  cacheTag(TAGS.products);
+  cacheTag(TAGS.categories);
+  cacheLife("minutes");
+
+  return queryProductsByCategory(categoryName, params);
+}
 
 // ---------------------------------------------------------------------------
 // /api/products/getProductsBySubcategory/:subCategoryName
@@ -491,14 +504,17 @@ async function queryProductsBySubcategory(
   };
 }
 
-export const getProductsBySubcategory = cachedQuery(
-  "getProductsBySubcategory",
-  queryProductsBySubcategory,
-  {
-    revalidate: 60,
-    tags: [TAGS.products, TAGS.categories],
-  }
-);
+export async function getProductsBySubcategory(
+  subCategoryName: string,
+  params: ProductsQueryParams
+): Promise<CategoryProductsResult | null> {
+  "use cache";
+  cacheTag(TAGS.products);
+  cacheTag(TAGS.categories);
+  cacheLife("minutes");
+
+  return queryProductsBySubcategory(subCategoryName, params);
+}
 
 // ---------------------------------------------------------------------------
 // /api/products/search
@@ -784,10 +800,17 @@ async function querySearchProducts(
   };
 }
 
-export const searchProducts = cachedQuery("searchProducts", querySearchProducts, {
-  revalidate: 60,
-  tags: [TAGS.products, TAGS.categories],
-});
+export async function searchProducts(
+  query: string,
+  params: ProductsQueryParams
+): Promise<SearchProductsResult> {
+  "use cache";
+  cacheTag(TAGS.products);
+  cacheTag(TAGS.categories);
+  cacheLife("minutes");
+
+  return querySearchProducts(query, params);
+}
 
 // ---------------------------------------------------------------------------
 // /api/products/getProductBySlug/:productSlug
@@ -881,10 +904,14 @@ async function queryProductBySlug(productSlug: string): Promise<ProductBySlugDat
   };
 }
 
-export const getProductBySlug = cachedQuery("getProductBySlug", queryProductBySlug, {
-  revalidate: 60,
-  tags: [TAGS.products, TAGS.categories],
-});
+export async function getProductBySlug(productSlug: string): Promise<ProductBySlugData | null> {
+  "use cache";
+  cacheTag(TAGS.products);
+  cacheTag(TAGS.categories);
+  cacheLife("minutes");
+
+  return queryProductBySlug(productSlug);
+}
 
 // ---------------------------------------------------------------------------
 // /api/products/getCategoryName/:categoryName & getSubCategoryName/:subCategoryName
@@ -905,10 +932,15 @@ async function queryCategoryName(
   return { categoryName: category.Name };
 }
 
-export const getCategoryName = cachedQuery("getCategoryName", queryCategoryName, {
-  revalidate: 60,
-  tags: [TAGS.categories],
-});
+export async function getCategoryName(
+  categoryName: string
+): Promise<{ categoryName: string | null } | null> {
+  "use cache";
+  cacheTag(TAGS.categories);
+  cacheLife("hours");
+
+  return queryCategoryName(categoryName);
+}
 
 async function querySubCategoryName(
   subCategoryName: string
@@ -929,10 +961,15 @@ async function querySubCategoryName(
   return { subCategoryName: categoryContent.Name };
 }
 
-export const getSubCategoryName = cachedQuery("getSubCategoryName", querySubCategoryName, {
-  revalidate: 60,
-  tags: [TAGS.categories],
-});
+export async function getSubCategoryName(
+  subCategoryName: string
+): Promise<{ subCategoryName: string | null } | null> {
+  "use cache";
+  cacheTag(TAGS.categories);
+  cacheLife("hours");
+
+  return querySubCategoryName(subCategoryName);
+}
 
 // ---------------------------------------------------------------------------
 // /api/products/blogs (category/subcategory TopBlog/BottomBlog/Banner)
@@ -990,11 +1027,13 @@ async function queryProductsBlogContent(
   return EMPTY_PRODUCTS_BLOG;
 }
 
-export const getProductsBlogContent = cachedQuery(
-  "getProductsBlogContent",
-  queryProductsBlogContent,
-  {
-    revalidate: 60,
-    tags: [TAGS.products, TAGS.categories],
-  }
-);
+export async function getProductsBlogContent(
+  params: ProductsBlogQueryParams
+): Promise<ProductsBlogContent> {
+  "use cache";
+  cacheTag(TAGS.products);
+  cacheTag(TAGS.categories);
+  cacheLife("minutes");
+
+  return queryProductsBlogContent(params);
+}

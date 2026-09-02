@@ -1,8 +1,8 @@
 import type { address, emails, phone_numbers } from "@prisma/client";
+import { cacheLife, cacheTag } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 
-import { cachedQuery } from "./cache";
 import { TAGS } from "./tags";
 
 export interface ContactInfoResult {
@@ -31,7 +31,10 @@ async function queryContactInfo(): Promise<ContactInfoResult> {
   };
 }
 
-export const getContactInfo = cachedQuery("getContactInfo", queryContactInfo, {
-  revalidate: 3600,
-  tags: [TAGS.contactUs],
-});
+export async function getContactInfo(): Promise<ContactInfoResult> {
+  "use cache";
+  cacheTag(TAGS.contactUs);
+  cacheLife("hours");
+
+  return queryContactInfo();
+}

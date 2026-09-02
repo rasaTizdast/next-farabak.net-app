@@ -1,6 +1,7 @@
+import { cacheLife, cacheTag } from "next/cache";
+
 import { prisma } from "@/lib/prisma";
 
-import { cachedQuery } from "./cache";
 import { TAGS } from "./tags";
 
 const staticRoutes: Record<string, string> = {
@@ -59,7 +60,11 @@ async function queryBreadcrumbNames(paths: string[]): Promise<Record<string, str
   return results;
 }
 
-export const getBreadcrumbNames = cachedQuery("getBreadcrumbNames", queryBreadcrumbNames, {
-  revalidate: 60,
-  tags: [TAGS.breadcrumbs, TAGS.categories],
-});
+export async function getBreadcrumbNames(paths: string[]): Promise<Record<string, string>> {
+  "use cache";
+  cacheTag(TAGS.breadcrumbs);
+  cacheTag(TAGS.categories);
+  cacheLife("hours");
+
+  return queryBreadcrumbNames(paths);
+}

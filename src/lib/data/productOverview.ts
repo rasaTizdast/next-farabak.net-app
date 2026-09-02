@@ -1,8 +1,8 @@
 import type { ProductOverview } from "@prisma/client";
+import { cacheLife, cacheTag } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 
-import { cachedQuery } from "./cache";
 import { TAGS } from "./tags";
 
 // ---------------------------------------------------------------------------
@@ -17,10 +17,13 @@ async function queryProductOverview(productId: number): Promise<ProductOverview 
   return result;
 }
 
-export const getProductOverview = cachedQuery("getProductOverview", queryProductOverview, {
-  revalidate: 60,
-  tags: [TAGS.productOverview],
-});
+export async function getProductOverview(productId: number): Promise<ProductOverview | null> {
+  "use cache";
+  cacheTag(TAGS.productOverview);
+  cacheLife("hours");
+
+  return queryProductOverview(productId);
+}
 
 // ---------------------------------------------------------------------------
 // /api/productOverviewDetails/getProductOverviewDetails/:productId
@@ -59,11 +62,12 @@ async function queryProductOverviewDetails(
   });
 }
 
-export const getProductOverviewDetails = cachedQuery(
-  "getProductOverviewDetails",
-  queryProductOverviewDetails,
-  {
-    revalidate: 60,
-    tags: [TAGS.productOverview],
-  }
-);
+export async function getProductOverviewDetails(
+  productId: number
+): Promise<ProductOverviewDetailItem[]> {
+  "use cache";
+  cacheTag(TAGS.productOverview);
+  cacheLife("hours");
+
+  return queryProductOverviewDetails(productId);
+}

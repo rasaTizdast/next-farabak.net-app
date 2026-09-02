@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
+import { cacheLife, cacheTag } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 
-import { cachedQuery } from "./cache";
 import { TAGS } from "./tags";
 
 const categoryInclude = {
@@ -72,7 +72,10 @@ async function queryAllCategories(): Promise<CategoryTreeCategory[]> {
  * All categories with their SEO details and (enriched) subcategories.
  * Mirrors `GET /api/categories/getAll`. Consumers filter `Available` themselves.
  */
-export const getAllCategories = cachedQuery("getAllCategories", queryAllCategories, {
-  revalidate: 60,
-  tags: [TAGS.categories],
-});
+export async function getAllCategories(): Promise<CategoryTreeCategory[]> {
+  "use cache";
+  cacheTag(TAGS.categories);
+  cacheLife("hours");
+
+  return queryAllCategories();
+}

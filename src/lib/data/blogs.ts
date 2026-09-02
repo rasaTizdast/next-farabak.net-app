@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
+import { cacheLife, cacheTag } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 
-import { cachedQuery } from "./cache";
 import { TAGS } from "./tags";
 
 const BLOG_LIST_INCLUDE = {
@@ -86,10 +86,13 @@ async function queryBlogs(): Promise<BlogsResult> {
   return { blogs: blogs.map(formatBlogListItem) };
 }
 
-export const getBlogs = cachedQuery("getBlogs", queryBlogs, {
-  revalidate: 60,
-  tags: [TAGS.blogs],
-});
+export async function getBlogs(): Promise<BlogsResult> {
+  "use cache";
+  cacheTag(TAGS.blogs);
+  cacheLife("minutes");
+
+  return queryBlogs();
+}
 
 // ---------------------------------------------------------------------------
 // /api/blogs/category/:categorySlug
@@ -117,10 +120,13 @@ async function queryBlogsByCategory(categorySlug: string): Promise<BlogsResult> 
   return { blogs: blogs.map(formatBlogListItem) };
 }
 
-export const getBlogsByCategory = cachedQuery("getBlogsByCategory", queryBlogsByCategory, {
-  revalidate: 60,
-  tags: [TAGS.blogs],
-});
+export async function getBlogsByCategory(categorySlug: string): Promise<BlogsResult> {
+  "use cache";
+  cacheTag(TAGS.blogs);
+  cacheLife("minutes");
+
+  return queryBlogsByCategory(categorySlug);
+}
 
 // ---------------------------------------------------------------------------
 // /api/blogs/:slug
@@ -223,7 +229,10 @@ async function queryBlogBySlug(slug: string): Promise<BlogDetailData | null> {
   };
 }
 
-export const getBlogBySlug = cachedQuery("getBlogBySlug", queryBlogBySlug, {
-  revalidate: 60,
-  tags: [TAGS.blogs],
-});
+export async function getBlogBySlug(slug: string): Promise<BlogDetailData | null> {
+  "use cache";
+  cacheTag(TAGS.blogs);
+  cacheLife("minutes");
+
+  return queryBlogBySlug(slug);
+}

@@ -1,8 +1,8 @@
 import type { FaqDetails, FAQs } from "@prisma/client";
+import { cacheLife, cacheTag } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 
-import { cachedQuery } from "./cache";
 import { TAGS } from "./tags";
 
 export type GeneralFaqItem = Pick<FaqDetails, "FaqDetailsid" | "Q" | "A">;
@@ -29,10 +29,13 @@ async function queryGeneralFaqs(): Promise<GeneralFaqsResult> {
   return { faqs };
 }
 
-export const getGeneralFaqs = cachedQuery("getGeneralFaqs", queryGeneralFaqs, {
-  revalidate: 300,
-  tags: [TAGS.faqs],
-});
+export async function getGeneralFaqs(): Promise<GeneralFaqsResult> {
+  "use cache";
+  cacheTag(TAGS.faqs);
+  cacheLife("minutes");
+
+  return queryGeneralFaqs();
+}
 
 export type ProductFaqItem = Pick<FAQs, "FAQsId" | "Title" | "Description">;
 
@@ -53,7 +56,11 @@ async function queryProductFaqs(productId: number): Promise<ProductFaqItem[]> {
   return faqs;
 }
 
-export const getProductFaqs = cachedQuery("getProductFaqs", queryProductFaqs, {
-  revalidate: 60,
-  tags: [TAGS.faqs, TAGS.products],
-});
+export async function getProductFaqs(productId: number): Promise<ProductFaqItem[]> {
+  "use cache";
+  cacheTag(TAGS.faqs);
+  cacheTag(TAGS.products);
+  cacheLife("minutes");
+
+  return queryProductFaqs(productId);
+}

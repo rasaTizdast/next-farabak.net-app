@@ -1,4 +1,5 @@
-import { cachedQuery } from "./cache";
+import { cacheLife, cacheTag } from "next/cache";
+
 import { TAGS } from "./tags";
 
 const EXCHANGE_RATE_API_URL = "https://api.brsapi.ir/Market/Gold_Currency.php";
@@ -37,11 +38,14 @@ async function fetchExchangeRateFromApi(): Promise<UsdRateResult> {
 /**
  * Server-side USD → IRR exchange rate.
  * Replaces the internal `/api/exchangeRate` hop for Server Components: a direct
- * external fetch, cached ~1h (`revalidate: 3600`, tag `TAGS.exchangeRate`).
+ * external fetch, cached ~1h (`expire: 3600`, tag `TAGS.exchangeRate`).
  * On any failure it returns `{ rate: null }`, which mirrors the `null` fallback
  * callers of `fetchUsdToRialRate`/`calculateProductPricing` already tolerate.
  */
-export const getUsdToRialRate = cachedQuery("getUsdToRialRate", fetchExchangeRateFromApi, {
-  revalidate: 3600,
-  tags: [TAGS.exchangeRate],
-});
+export async function getUsdToRialRate(): Promise<UsdRateResult> {
+  "use cache";
+  cacheTag(TAGS.exchangeRate);
+  cacheLife({ stale: 60, revalidate: 60, expire: 3600 });
+
+  return fetchExchangeRateFromApi();
+}

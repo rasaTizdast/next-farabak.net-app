@@ -1,8 +1,8 @@
 import type { ProductSpecs } from "@prisma/client";
+import { cacheLife, cacheTag } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 
-import { cachedQuery } from "./cache";
 import { TAGS } from "./tags";
 
 export interface ProductSpecsResult {
@@ -18,11 +18,10 @@ async function queryProductSpecsByProductId(productId: number): Promise<ProductS
   return { data: specs };
 }
 
-export const getProductSpecsByProductId = cachedQuery(
-  "getProductSpecsByProductId",
-  queryProductSpecsByProductId,
-  {
-    revalidate: 60,
-    tags: [TAGS.productSpecs],
-  }
-);
+export async function getProductSpecsByProductId(productId: number): Promise<ProductSpecsResult> {
+  "use cache";
+  cacheTag(TAGS.productSpecs);
+  cacheLife("minutes");
+
+  return queryProductSpecsByProductId(productId);
+}

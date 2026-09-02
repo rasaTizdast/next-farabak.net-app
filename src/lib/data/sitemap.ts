@@ -1,6 +1,7 @@
+import { cacheLife, cacheTag } from "next/cache";
+
 import { prisma } from "@/lib/prisma";
 
-import { cachedQuery } from "./cache";
 import { TAGS } from "./tags";
 
 const staticUrls = [
@@ -139,7 +140,10 @@ async function querySitemapUrls(): Promise<SitemapResult> {
   };
 }
 
-export const getSitemapUrls = cachedQuery("getSitemapUrls", querySitemapUrls, {
-  revalidate: 3600,
-  tags: [TAGS.sitemap],
-});
+export async function getSitemapUrls(): Promise<SitemapResult> {
+  "use cache";
+  cacheTag(TAGS.sitemap);
+  cacheLife("hours");
+
+  return querySitemapUrls();
+}

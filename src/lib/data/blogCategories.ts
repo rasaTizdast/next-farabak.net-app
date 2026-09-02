@@ -1,8 +1,8 @@
 import type { Categories } from "@prisma/client";
+import { cacheLife, cacheTag } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 
-import { cachedQuery } from "./cache";
 import { TAGS } from "./tags";
 
 // /api/blogs/getCategories
@@ -12,7 +12,10 @@ async function queryBlogCategories(): Promise<Categories[]> {
   return categories;
 }
 
-export const getBlogCategories = cachedQuery("getBlogCategories", queryBlogCategories, {
-  revalidate: 60,
-  tags: [TAGS.blogs],
-});
+export async function getBlogCategories(): Promise<Categories[]> {
+  "use cache";
+  cacheTag(TAGS.blogs);
+  cacheLife("minutes");
+
+  return queryBlogCategories();
+}

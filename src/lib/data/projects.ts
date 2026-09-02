@@ -1,6 +1,7 @@
+import { cacheLife, cacheTag } from "next/cache";
+
 import { prisma } from "@/lib/prisma";
 
-import { cachedQuery } from "./cache";
 import { TAGS } from "./tags";
 
 export interface ProjectListItem {
@@ -41,10 +42,13 @@ async function queryProjects(): Promise<ProjectListItem[]> {
   }));
 }
 
-export const getProjects = cachedQuery("getProjects", queryProjects, {
-  revalidate: 3600,
-  tags: [TAGS.projects],
-});
+export async function getProjects(): Promise<ProjectListItem[]> {
+  "use cache";
+  cacheTag(TAGS.projects);
+  cacheLife("hours");
+
+  return queryProjects();
+}
 
 // ---------------------------------------------------------------------------
 // /api/projects/getProjectData/:slug
@@ -100,7 +104,10 @@ async function queryProjectData(slug: string): Promise<ProjectDetailData | null>
   };
 }
 
-export const getProjectData = cachedQuery("getProjectData", queryProjectData, {
-  revalidate: 3600,
-  tags: [TAGS.projects],
-});
+export async function getProjectData(slug: string): Promise<ProjectDetailData | null> {
+  "use cache";
+  cacheTag(TAGS.projects);
+  cacheLife("hours");
+
+  return queryProjectData(slug);
+}
