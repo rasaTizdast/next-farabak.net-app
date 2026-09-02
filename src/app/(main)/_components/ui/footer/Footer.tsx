@@ -1,15 +1,19 @@
+import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { BsFillSignpostSplitFill } from "react-icons/bs";
 import { FaInstagram, FaPhoneSquare, FaWhatsapp } from "react-icons/fa";
 
-import { prisma } from "@/lib/prisma";
+import { getContactInfo } from "@/lib/data/contactUs";
+
+async function getCopyrightYear(): Promise<string> {
+  "use cache";
+  cacheLife("hours");
+  return new Date().getFullYear().toString();
+}
 
 const Footer = async () => {
-  const [address, phones] = await Promise.all([
-    prisma.address.findFirst(),
-    prisma.phone_numbers.findMany(),
-  ]);
-  const phone_numbers = phones.filter((phone) => phone.number && phone.number.trim() !== "");
+  const { address, phone_numbers } = await getContactInfo();
+  const currentYear = await getCopyrightYear();
 
   return (
     <footer className="flex w-full justify-center bg-[#000814] px-6 py-12 pb-8 text-[#cecece] min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40">
@@ -188,8 +192,7 @@ const Footer = async () => {
 
         <div className="mt-8 w-full border-t border-[#2a2a2a] pt-6">
           <p className="text-center text-[0.8rem] leading-5 text-[#888]">
-            کلیه حقوق مادی و معنوی این سایت متعلق به شرکت فرابک می‌باشد &copy;{" "}
-            {new Date().getFullYear()}
+            کلیه حقوق مادی و معنوی این سایت متعلق به شرکت فرابک می‌باشد &copy; {currentYear}
           </p>
         </div>
       </div>
