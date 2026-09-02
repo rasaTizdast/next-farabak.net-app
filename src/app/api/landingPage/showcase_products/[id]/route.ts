@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma"; // Adjust the import based on your Prisma setup
@@ -11,6 +12,8 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
     await prisma.showcase_products.delete({
       where: { id: parseInt(id) },
     });
+
+    revalidatePath("/");
 
     return NextResponse.json({ message: "محصول نمایشی با موفقیت حذف شد." });
   } catch (error) {
@@ -33,6 +36,8 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
         // Can add other updatable fields here if needed
       },
     });
+
+    revalidatePath("/");
 
     return NextResponse.json(updatedProduct);
   } catch (error) {
