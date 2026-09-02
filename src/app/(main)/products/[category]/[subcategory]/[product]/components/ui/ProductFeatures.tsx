@@ -1,17 +1,9 @@
 // app/products/[category]/[product]/components/ProductFeatures.tsx
-import axios from "axios";
-
-
+import { getProductOverview } from "@/lib/data/productOverview";
 
 async function getProductFeatures(productId: number) {
   try {
-    const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/productOverview/getProductOverview/${productId}`
-    );
-
-    if (!res) throw new Error("Failed to fetch features");
-
-    return res.data;
+    return await getProductOverview(productId);
   } catch (error) {
     console.error(error);
     return null;
@@ -37,9 +29,14 @@ export default async function ProductFeatures({ productId }: { productId: number
   }
 
   return (
-    <ul className="font-light mr-2 list-disc mb-2 text-[1rem]">
+    <ul className="my-4 me-8 list-[circle] self-stretch text-[1rem] font-light max-[950px]:w-1/2 max-[640px]:me-6 max-[640px]:gap-x-8 max-[640px]:gap-y-4 max-[640px]:text-[0.9rem] max-[576px]:my-0 max-[576px]:w-full max-[550px]:me-4">
       {properties.map((property) => (
-        <li key={property}>{property}</li>
+        <li
+          key={property}
+          className="max-w-full py-1 wrap-break-word [hyphens:auto] max-[950px]:w-fit"
+        >
+          {property}
+        </li>
       ))}
     </ul>
   );

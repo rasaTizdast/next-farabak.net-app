@@ -1,5 +1,5 @@
 // app/products/[category]/[product]/components/ProductSpecs.tsx
-import axios from "axios";
+import { getProductSpecsByProductId } from "@/lib/data/productSpecs";
 
 interface Spec {
   productSpecsId: number;
@@ -9,12 +9,8 @@ interface Spec {
 
 async function getProductSpecs(productId: number) {
   try {
-    const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductSpecsByProductId?productId=${productId}`
-    );
-
-    if (!res) throw new Error("Failed to fetch specs");
-    return res.data.data;
+    const { data } = await getProductSpecsByProductId(productId);
+    return data as unknown as Spec[];
   } catch (error) {
     console.error(error);
     return [];
@@ -33,17 +29,20 @@ export default async function ProductSpecs({ productId }: { productId: number })
   }
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-[0_4px_10px_rgba(0,0,0,0.1)]">
-      <h3 className="mb-4 text-center font-bold text-lg">مشخصات محصول</h3>
-      <div className="space-y-2">
+    <div className="flex w-full max-w-[calc(1900px-20rem)] flex-col rounded-lg bg-white p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] max-[576px]:px-2 max-[576px]:py-4">
+      <h3 className="mb-8 text-center text-[1.3rem] font-extrabold max-[576px]:mb-4">
+        مشخصات محصول
+      </h3>
+      <div className="overflow-x-hidden rounded-lg">
         {specsData.map((item: Spec, index: number) => (
           <div
             key={`spec-${item.productSpecsId}-${item.Title}-${item.Description}`}
-            className="flex justify-between items-center py-2 px-4 rounded border"
-            style={{ borderColor: index % 2 === 0 ? "#efefef" : "#e2e2e2" }}
+            className={`${index % 2 ? "bg-[#efefef]" : "bg-[#e2e2e2]"} flex w-full justify-between gap-10 px-[1.2rem] py-4 text-start max-[576px]:px-4 max-[576px]:py-[0.9rem]`}
           >
-            <div className="font-medium text">{item.Title}</div>
-            <div className="flex-1 text-start text-sm">{item.Description}</div>
+            <div className="font-medium max-[576px]:text-[0.9rem]">{item.Title}</div>
+            <div className="w-full max-w-[450px] text-start font-light max-[576px]:text-[0.8rem]">
+              {item.Description}
+            </div>
           </div>
         ))}
       </div>

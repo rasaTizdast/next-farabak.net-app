@@ -1,7 +1,5 @@
-import axios from "axios";
-import React from "react";
-
-import FaqAccordion from "./FaqAccordion";
+import Faq, { type FaqItem } from "@/components/Faq";
+import { getProductFaqs } from "@/lib/data/faqs";
 
 type FAQItem = {
   FAQsId: number;
@@ -13,16 +11,11 @@ type ProductFaqProps = {
   productId: number;
 };
 
-// Server component for SEO benefits
 const ProductFaq = async ({ productId }: ProductFaqProps) => {
-  // Fetch FAQs server-side
   let faqs: FAQItem[] = [];
 
   try {
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/faqs/product/${productId}`
-    );
-    faqs = response.data;
+    faqs = (await getProductFaqs(productId)) as FAQItem[];
   } catch (error) {
     console.error("Error fetching FAQs:", error);
   }
@@ -35,35 +28,33 @@ const ProductFaq = async ({ productId }: ProductFaqProps) => {
     );
   }
 
-  // Generate FAQ schema for structured data
+  const items: FaqItem[] = faqs.map((faq) => ({
+    id: faq.FAQsId,
+    question: faq.Title,
+    answer: faq.Description,
+  }));
+
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: faqs.map((faq) => ({
+    mainEntity: items.map((item) => ({
       "@type": "Question",
-      name: faq.Title,
+      name: item.question,
       acceptedAnswer: {
         "@type": "Answer",
-        text: faq.Description,
+        text: item.answer,
       },
     })),
   };
 
   return (
     <>
-      {/* Add structured data for SEO */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
-      <div className="overflow-hidden rounded-lg bg-white shadow-md">
-        <h2 className="bg-blue-500 p-4 text-center text-xl font-bold text-white">سوالات متداول</h2>
-        <div className="space-y-2 p-4">
-          {/* Client-side interactive component */}
-          <FaqAccordion faqs={faqs} />
-        </div>
-      </div>
+      <Faq title="سوالات متداول محصول" items={items} />
     </>
   );
 };

@@ -1,9 +1,9 @@
 // Components
-import { cn } from "@/lib/utils";
 import { Metadata } from "next";
 import { Suspense } from "react";
 
 import { formatTitle } from "@/helpers/formatTitle";
+import { getProductBySlug } from "@/lib/data/products";
 
 import ProductDataWrapper from "./components/ProductDataWrapper";
 import { ProductMainSkeleton } from "./components/ui/Skeletons";
@@ -20,23 +20,8 @@ export async function generateMetadata(props: ProductPageProps): Promise<Metadat
   const params = await props.params;
   const productSlug = params.product;
 
-  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductBySlug/${productSlug}`;
-
   try {
-    const res = await fetch(apiUrl, { next: { revalidate: 60 } });
-
-    if (!res || !res.ok) {
-      return {
-        title: "محصولی یافت نشد | فرابک",
-        description: "محصول مورد نظر یافت نشد.",
-        robots: {
-          index: false,
-          follow: true,
-        },
-      };
-    }
-
-    const data = await res.json();
+    const data = (await getProductBySlug(productSlug)) as any;
 
     if (!data) {
       return {
@@ -125,10 +110,7 @@ export default async function ProductPage(props: ProductPageProps) {
   const searchParams = await props.searchParams;
 
   return (
-    <div
-      dir="rtl"
-      className={cn("rounded-lg bg-[var(--dark-blue)] shadow-[0_4px_10px_rgba(0,0,0,0.1)]")}
-    >
+    <div dir="rtl">
       <Suspense fallback={<ProductMainSkeleton />}>
         <ProductDataWrapper params={params} searchParams={searchParams} />
       </Suspense>
