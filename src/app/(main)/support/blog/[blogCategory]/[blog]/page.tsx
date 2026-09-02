@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import BlogFaqAccordion from "@/components/BlogFaqAccordion";
-import { getBlogBySlug } from "@/lib/data/blogs";
+import { getBlogBySlug, type BlogDetailData } from "@/lib/data/blogs";
 import { cn } from "@/lib/utils";
 
 function processContentWithImageUrls(content: string) {
@@ -85,9 +85,9 @@ interface BlogResponse {
   blog: {
     title: string;
     content: string;
-    author: string;
-    created_at: string;
-    description: string;
+    author: string | null;
+    created_at: string | null;
+    description?: string;
     image_URL: string;
     image_alt: string;
     SEO_Title: string;
@@ -95,11 +95,44 @@ interface BlogResponse {
     QrCode_key?: string;
     QrCode_expiryDays?: Date;
   };
-  categories: { name: string; slug: string }[];
-  comments: { content: string; created_at: string }[];
+  categories: { name: string | null; slug: string | null }[];
+  comments: { content: string; created_at: string | null }[];
   likes: number;
-  media: { media_URL: string; media_alt: string }[];
+  media: { media_URL: string; media_alt: string | null }[];
   faqs: { id: number; question: string; answer: string; order: number }[];
+}
+
+function mapBlogResponse(data: BlogDetailData): BlogResponse {
+  return {
+    blog: {
+      title: data.blog.title,
+      content: data.blog.content,
+      author: data.blog.author,
+      created_at: data.blog.created_at,
+      image_URL: data.blog.image_URL,
+      image_alt: data.blog.image_alt,
+      SEO_Title: data.blog.SEO_Title,
+      SEO_description: data.blog.SEO_description,
+      QrCode_key: data.blog.QrCode_key ?? undefined,
+      QrCode_expiryDays: data.blog.QrCode_expiryDays
+        ? new Date(data.blog.QrCode_expiryDays)
+        : undefined,
+    },
+    categories: data.categories.map((category) => ({
+      name: category.name,
+      slug: category.slug,
+    })),
+    comments: data.comments.map((comment) => ({
+      content: comment.content,
+      created_at: comment.created_at,
+    })),
+    likes: data.likes,
+    media: data.media.map((item) => ({
+      media_URL: item.media_URL,
+      media_alt: item.media_alt,
+    })),
+    faqs: data.faqs,
+  };
 }
 
 const getBlog = async (
@@ -112,7 +145,7 @@ const getBlog = async (
   try {
     const data = await getBlogBySlug(slug);
     if (!data) return null;
-    blogResponse = data as unknown as BlogResponse;
+    blogResponse = mapBlogResponse(data);
   } catch (error) {
     console.error("Error fetching blog:", error);
     return null;
@@ -273,7 +306,9 @@ export default async function BlogPage(props: {
             >
               <span>{blog.author}</span>
               <span>•</span>
-              <time>{new Date(blog.created_at).toLocaleDateString("fa")}</time>
+              <time>
+                {blog.created_at ? new Date(blog.created_at).toLocaleDateString("fa") : ""}
+              </time>
               <span>•</span>
               <span>{readingTime} دقیقه مطالعه</span>
             </div>
