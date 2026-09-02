@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import dynamicImport from "next/dynamic";
 
 import Schema from "@/components/Schema";
-import { prisma } from "@/lib/prisma";
+import { getSliders } from "@/lib/data/sliders";
 
 /* Skeleton fallbacks sized to match each section's real rendered height
    (slider aspect 1920x900; content sections use py-12 + heading + cards)
@@ -42,13 +42,6 @@ const SupportSection = dynamicImport(() => import("../_components/LandingPage/Su
   loading: () => <SectionSkeleton minHeight="420px" />,
 });
 
-type slider = {
-  id: number;
-  image_URL: string;
-  link: string;
-  image_alt: string | null;
-};
-
 export const generateMetadata = async (): Promise<Metadata> => {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net";
   return {
@@ -72,22 +65,6 @@ export const generateMetadata = async (): Promise<Metadata> => {
     },
   };
 };
-
-async function fetchSliderLinks() {
-  try {
-    const sliders = await prisma.sliders.findMany();
-
-    return sliders.map((slider: slider) => ({
-      id: slider.id,
-      img: `${process.env.LIARA_BUCKET_URL}/slider-imgs/${slider.image_URL}`,
-      link: slider.link,
-      alt: slider.image_alt || "فرابک محصولات امنیتی و نظارت تصویری",
-    }));
-  } catch (error) {
-    console.error("Slider fetch error:", error);
-    return [];
-  }
-}
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -242,7 +219,7 @@ const jsonLd = {
 };
 
 const HomePage = async () => {
-  const sliderLinks = await fetchSliderLinks();
+  const sliderLinks = await getSliders();
 
   return (
     <>
