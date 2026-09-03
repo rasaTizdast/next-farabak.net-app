@@ -1,22 +1,13 @@
 import { BreadcrumbSkeleton, ImageSkeleton } from "@/app/_components/ui/PageSkeletons";
 
-export default function BlogLoading() {
+export default function BlogCategoryLoading() {
   return (
     <div className="w-full max-w-[1580px] animate-pulse" role="status" aria-label="در حال بارگذاری">
       <BreadcrumbSkeleton />
 
       <div className="mb-10">
-        <div className="mb-5 h-9 w-48 rounded-md bg-gray-200" />
+        <div className="mb-5 h-9 w-64 rounded-md bg-gray-200" />
         <ImageSkeleton className="relative block h-96 w-full overflow-hidden rounded-lg bg-gray-200" />
-      </div>
-
-      <div className="my-8">
-        <div className="mb-5 h-9 w-48 rounded-md bg-gray-200" />
-        <div className="flex w-full flex-nowrap gap-7 overflow-hidden">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-11 w-36 shrink-0 rounded-xl bg-gray-200" />
-          ))}
-        </div>
       </div>
 
       <div className="mb-5 h-9 w-48 rounded-md bg-gray-200" />
