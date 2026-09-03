@@ -100,15 +100,15 @@ const ProductsMegaMenuContent = ({
 
   return (
     <li ref={rootRef} className="relative">
-      <button
-        type="button"
+      <Link
+        href="/products"
         aria-expanded={open}
         aria-controls={panelId}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => setOpen(false)}
         onMouseEnter={openMenu}
         onMouseLeave={scheduleClose}
         onFocus={openMenu}
-        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-t-lg px-8 py-2.5 text-[#ddd] transition-colors duration-300 hover:bg-white/10 ${
+        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-t-lg px-8 py-3 text-[#ddd] transition-colors duration-300 hover:bg-white/10 ${
           open ? "text-primary bg-white/10" : ""
         }`}
       >
@@ -117,16 +117,20 @@ const ProductsMegaMenuContent = ({
           className={`text-sm transition-transform duration-300 ${open ? "rotate-180" : ""}`}
           aria-hidden="true"
         />
-      </button>
+      </Link>
 
-      <div className="absolute top-full left-1/2 -translate-x-1/2">
+      <div
+        className={`absolute top-full left-1/2 -translate-x-1/2 ${
+          open ? "pointer-events-auto" : "pointer-events-none"
+        }`}
+      >
         <div
           id={panelId}
           role="region"
           aria-label="دسته‌بندی محصولات"
           onMouseEnter={cancelClose}
           onMouseLeave={scheduleClose}
-          className={`max-h-[80dvh] w-[94vw] max-w-[1050px] overflow-hidden rounded-2xl border border-white/10 bg-[#000814]/95 shadow-[0_24px_48px_rgba(0,0,0,0.45)] backdrop-blur-md transition-[opacity,transform] duration-300 ${
+          className={`max-h-[80dvh] w-[94vw] max-w-[1050px] overflow-hidden rounded-2xl border border-white/10 bg-[#0b172a]/95 shadow-[0_24px_48px_rgba(0,0,0,0.45)] backdrop-blur-md transition-[opacity,translate] duration-300 ${
             open
               ? "pointer-events-auto visible translate-y-0 opacity-100"
               : "pointer-events-none invisible -translate-y-2 opacity-0"
@@ -143,7 +147,7 @@ const ProductsMegaMenuContent = ({
               </Link>
             </div>
           ) : (
-            <div className="flex h-104 max-h-[70dvh]">
+            <div className="flex h-109 max-h-[70dvh]">
               {/* Master: category list */}
               <ul className="m-0 w-56 shrink-0 list-none overflow-y-auto border-s border-white/10 p-3 lg:w-64">
                 {entries.map((entry) => {

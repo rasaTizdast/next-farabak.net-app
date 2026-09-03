@@ -24,6 +24,7 @@ const Header = async () => {
             height={40}
             loading="lazy"
             fetchPriority="low"
+            sizes="180px"
           />
         </Link>
         <NavBar />

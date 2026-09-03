@@ -46,7 +46,7 @@ const headerSubMenuData: MenuItem[] = [
 
 const NavBar = () => {
   return (
-    <ul className="relative m-0 mx-auto hidden w-[60%] list-none items-start justify-evenly self-end text-base font-bold md:text-[0.9rem] lg:flex lg:text-[1.4vw] xl:text-base 2xl:text-[1.2rem]">
+    <ul className="relative m-0 mx-auto hidden w-[60%] list-none items-center justify-evenly text-[1.1rem] font-bold lg:flex">
       <ProductsMegaMenu />
 
       {headerSubMenuData.map((item) => (
@@ -56,7 +56,7 @@ const NavBar = () => {
       <li className="relative">
         <Link
           href="/contact-us"
-          className="inline-block rounded-t-lg px-4 py-3 text-[#ddd] transition-colors duration-300 hover:bg-[#6363634d] hover:px-8"
+          className="inline-block rounded-lg px-8 py-3 text-[#ddd] transition-colors duration-300 hover:bg-[#6363634d]"
         >
           تماس با ما
         </Link>

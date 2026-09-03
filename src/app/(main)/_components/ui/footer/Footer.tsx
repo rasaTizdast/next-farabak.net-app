@@ -17,7 +17,7 @@ const Footer = async () => {
 
   return (
     <footer className="flex w-full justify-center bg-[#000814] px-6 py-12 pb-8 text-[#cecece] min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40">
-      <div className="mx-auto flex w-full max-w-[1580px] flex-col items-center justify-between gap-6 min-[576px]:gap-8">
+      <div className="mx-auto flex w-full max-w-395 flex-col items-center justify-between gap-6 min-[576px]:gap-8">
         <div className="w-full grid-cols-1 gap-10 border-b border-amber-50 pb-5 md:grid md:grid-cols-2 md:gap-8 lg:grid-cols-4 lg:gap-8 2xl:gap-6">
           <nav aria-label="صفحات اصلی" className="flex flex-col items-center text-center">
             <h4 className="mb-3 text-sm font-bold text-white max-[768px]:text-sm max-[576px]:text-xs md:text-base lg:text-base 2xl:text-[1.2rem]">
@@ -186,7 +186,7 @@ const Footer = async () => {
             allowFullScreen
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            className="h-[350px] w-full rounded-lg max-[768px]:h-[250px] max-[576px]:h-[200px] md:h-[300px]"
+            className="h-87.5 w-full rounded-lg max-[768px]:h-62.5 max-[576px]:h-50 md:h-75"
           />
         </div>
 

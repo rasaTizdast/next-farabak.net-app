@@ -122,7 +122,7 @@ const HamburgerMenu = ({ categories }: HamburgerMenuProps) => {
               aria-label="دسته‌بندی محصولات"
               className="mt-1 max-h-[55vh] w-full scrollbar-none overflow-y-auto rounded-xl border border-white/10 bg-[#000814]/95 p-3 shadow-[0_8px_24px_rgba(0,0,0,0.3)] backdrop-blur-sm [&::-webkit-scrollbar]:hidden"
             >
-              <ul className="m-0 list-none space-y-1 pb-2">
+              <ul className="m-0 list-none space-y-1 divide-y divide-white/10 pb-2">
                 <li>
                   <Link
                     href="/products"

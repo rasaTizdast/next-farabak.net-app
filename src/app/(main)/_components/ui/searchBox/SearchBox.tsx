@@ -94,7 +94,7 @@ const SearchInput = ({
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
 }) => (
-  <div className="w-full max-w-[1580px]">
+  <div className="flex w-full max-w-[1580px] items-center">
     <input
       type="text"
       placeholder="جستجو"
@@ -103,13 +103,13 @@ const SearchInput = ({
       value={searchValue}
       ref={inputRef}
       onKeyDown={onKeyDown}
-      className="h-[60px] w-full rounded-r-lg border-none bg-white ps-8 pe-4 text-sm focus:outline-none sm:text-base"
+      className="h-[60px] flex-1 rounded-s-lg border-none bg-white ps-8 pe-4 text-sm focus:outline-none sm:text-base"
     />
     <button
       type="button"
       onClick={onSearchClick}
       aria-label="جستجو"
-      className="flex h-[60px] cursor-pointer items-center justify-center rounded-l-lg border-none bg-white px-5 text-[1.2rem]"
+      className="flex h-[60px] cursor-pointer items-center justify-center rounded-e-lg border-none bg-white px-8 py-4 text-[1.2rem]"
     >
       <CgSearch />
     </button>
@@ -310,12 +310,12 @@ const SearchBox = () => {
     <div className="md:ms-6" ref={searchBoxRef}>
       <button type="button" onClick={(event) => toggleSearchBox(event)} aria-label="جستجو">
         <CgSearch
-          className="relative mb-2 inline-block h-full cursor-pointer self-start border-none text-[2rem] text-[#ddd] max-lg:mb-0 max-lg:self-center md:text-[2.5rem] lg:text-[1.6rem] xl:text-[1.8rem] 2xl:text-[2.5rem]"
+          className="relative inline-block cursor-pointer border-none text-[2rem] text-[#ddd] md:text-[2.5rem] lg:text-[1.6rem] xl:text-[1.8rem] 2xl:text-[2.5rem]"
           strokeWidth={1}
         />
       </button>
       {searchVis && (
-        <div className="absolute inset-s-0 top-full flex max-h-[75vh] w-screen flex-col items-center overflow-y-auto bg-linear-to-r from-[#003e9b] via-[#0047b3] to-[#0056d8] px-6 pt-4 pb-12 shadow-[0_4px_20px_rgba(0,0,0,0.3)] min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40">
+        <div className="absolute inset-x-0 top-full flex max-h-[75vh] w-full flex-col items-center overflow-y-auto bg-linear-to-r from-[#003e9b] via-[#0047b3] to-[#0056d8] px-6 pt-4 pb-12 shadow-[0_4px_20px_rgba(0,0,0,0.3)] min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40">
           <SearchInput
             inputChangeHandler={inputChangeHandler}
             searchValue={searchValue}
