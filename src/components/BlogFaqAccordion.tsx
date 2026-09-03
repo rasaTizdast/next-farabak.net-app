@@ -1,10 +1,7 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import Script from "next/script";
 import { useState } from "react";
-
-import { Accordion } from "@/components/ui/ItemsAccordion";
 
 export interface BlogFaqItem {
   id: number;
@@ -24,11 +21,15 @@ interface BlogFaqAccordionProps {
 const BlogFaqAccordion = ({
   faqs,
   blogTitle,
-  blogSlug,
   description,
   className = "",
 }: BlogFaqAccordionProps) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [openFaqId, setOpenFaqId] = useState<string | null>(null);
+
+  if (!faqs || faqs.length === 0) {
+    return null;
+  }
 
   const filteredFaqs = faqs.filter(
     (faq) =>
@@ -36,25 +37,8 @@ const BlogFaqAccordion = ({
       faq.answer?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (!faqs || faqs.length === 0) {
-    return null;
-  }
-
-  const generateFaqJsonString = () => {
-    const faqJsonLd = {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: filteredFaqs.map((faq) => ({
-        "@type": "Question",
-        name: faq.question,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: faq.answer,
-        },
-      })),
-    };
-
-    return JSON.stringify(faqJsonLd);
+  const toggleFaq = (faqId: string) => {
+    setOpenFaqId((current) => (current === faqId ? null : faqId));
   };
 
   return (
@@ -103,31 +87,48 @@ const BlogFaqAccordion = ({
             </p>
           </div>
         ) : (
-          <Accordion<BlogFaqItem>
-            allowMultiple={false}
-            items={filteredFaqs.map((faq) => ({
-              id: String(faq.id),
-              data: faq,
-              renderHeader: (item) => (
-                <h3 className="pr-2 text-right text-sm font-semibold text-gray-900 md:pr-3 md:text-base">
-                  {item.question}
-                </h3>
-              ),
-              renderContent: (item) => (
-                <p className="text-sm leading-relaxed text-gray-700 md:text-base">{item.answer}</p>
-              ),
-            }))}
-          />
+          <dl className="divide-y divide-gray-200 rounded-lg border border-gray-200">
+            {filteredFaqs.map((faq) => {
+              const faqId = String(faq.id);
+              const isOpen = openFaqId === faqId;
+              return (
+                <div key={faqId}>
+                  <dt>
+                    <button
+                      type="button"
+                      onClick={() => toggleFaq(faqId)}
+                      aria-expanded={isOpen}
+                      aria-controls={`faq-answer-${faq.id}`}
+                      className="flex w-full items-center justify-between gap-2 px-4 py-3 text-right hover:bg-gray-50"
+                    >
+                      <span className="pr-2 text-right text-sm font-semibold text-gray-900 md:pr-3 md:text-base">
+                        {faq.question}
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className={`flex shrink-0 transform transition-transform ${
+                          isOpen ? "rotate-180" : ""
+                        }`}
+                      >
+                        ▼
+                      </span>
+                    </button>
+                  </dt>
+                  <dd
+                    id={`faq-answer-${faq.id}`}
+                    hidden={!isOpen}
+                    className="border-t border-gray-100 px-4 py-3"
+                  >
+                    <p className="text-sm leading-relaxed text-gray-700 md:text-base">
+                      {faq.answer}
+                    </p>
+                  </dd>
+                </div>
+              );
+            })}
+          </dl>
         )}
       </div>
-
-      <Script
-        id={`faq-jsonld-${blogSlug}`}
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: generateFaqJsonString(),
-        }}
-      />
     </>
   );
 };

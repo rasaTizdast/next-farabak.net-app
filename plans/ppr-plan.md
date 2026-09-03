@@ -1,5 +1,16 @@
 # PPR Plan (`cacheComponents`) — DORMANT
 
+## Status (audited 2026-09-02)
+
+**OVERALL: NOT STARTED** — dormant as intended; gate NOT met.
+
+- `next.config.mjs` `experimental` contains only `optimizePackageImports` — no `cacheComponents`/`ppr`.
+- Zero `use cache` / `cacheLife` / `cacheTag` directives anywhere in `src/`.
+- Prerequisite server data layer (`src/lib/data/`) from `data-access-refactor-plan.md` does not exist.
+- Gate condition ("LCP ≥ 2.5s or homepage still dynamic-per-request") did not fire — homepage is now ISR (`revalidate = 60`, ~387 ms claimed).
+
+→ Keep dormant. Revisit only if LCP/TTFB regress after the data-access refactor lands.
+
 > Created 2026-08-26 from grilling session on `performance-plan.md`.
 > **Gate**: do NOT run this until items 0–3 of `performance-plan.md` are done
 > and measured — only proceed if LCP/TTFB still miss targets (LCP ≥ 2.5s or

@@ -276,11 +276,11 @@
   }
 
   .prose-view .w-1\/2 {
-    @apply mx-auto max-w-[500px];
+    @apply mx-auto max-w-125;
     width: 50%;
   }
   .prose-view .w-1\/3 {
-    @apply mx-auto max-w-[333px];
+    @apply mx-auto max-w-83.25;
     width: 33.333333%;
   }
 

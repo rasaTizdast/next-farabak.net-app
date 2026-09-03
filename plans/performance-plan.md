@@ -17,6 +17,24 @@
 | Ant Design              | ⚠️ `ConfigProvider` wraps the **entire app at root layout** → antd runtime CSS-in-JS ships to public pages that never render an antd component.                                   |
 | PPR / `cacheComponents` | ❌ Not enabled (Next 16.2 supports it).                                                                                                                                           |
 
+## Status (audited 2026-09-02)
+
+**OVERALL: DONE** — items 1–5 verified complete against current code; item 6 struck from plan. Timing/route-table numbers in "Results" were not re-run; one discrepancy noted below.
+
+| #   | Item                                     | Status                                                                                                                                                                      |
+| --- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Remove `force-dynamic` from homepage     | ✅ DONE — `src/app/(main)/page.tsx:7` → `export const revalidate = 60`; slider fetches via direct Prisma (⚠️ Results table says 300s/`s-maxage=300` — stale vs actual `60`) |
+| 2   | Fix duplicate font preload               | ✅ DONE — no manual `<link rel="preload">` remains; `localFont` `preload:true`                                                                                              |
+| 3   | Scope Ant Design out of public pages     | ✅ DONE — `ConfigProvider` only in `admin` layout; zero antd imports in `(main)`/`auth`/`_components`                                                                       |
+| 4   | CLS-safe dynamic-import fallbacks        | ✅ DONE — `SliderSkeleton` aspect-ratio + per-section `minHeight` skeletons                                                                                                 |
+| 5   | Image attribute pass on public templates | ✅ DONE — no raw `<img>` on public pages; residual minor `quality={100}` on `GridContentServer.tsx:81`, `InvoiceDetails.tsx:270`                                            |
+| 6   | PPR (`cacheComponents`)                  | ➖ Struck from this plan — see `ppr-plan.md` (still dormant)                                                                                                                |
+
+### Remaining (owned by data-access-refactor-plan.md)
+
+- ~13 public `(main)` routes still `force-dynamic` (products/**, about-us/**, support/**, contact-us, privacy) — blocked on self-fetch architecture.
+- Update Results table `revalidate`/cache-control claim to 60s.
+
 ## Goal
 
 Faster TTFB/LCP on public pages, reduced client JS shipped to visitors,

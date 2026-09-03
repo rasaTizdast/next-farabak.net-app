@@ -48,7 +48,7 @@ const BlogCategoryManager: React.FC<BlogCategoryManagerProps> = ({
   useEffect(() => {
     if (categoriesData && !categoriesInitializedRef.current) {
       categoriesInitializedRef.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable categories state from fetched data once, guarded by ref.
+
       setCategories(categoriesData);
     }
   }, [categoriesData]);
