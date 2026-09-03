@@ -2,7 +2,7 @@
 
 import { Modal, Steps, Button, message } from "antd";
 import moment from "jalali-moment";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -75,6 +75,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
   const [currentStep, setCurrentStep] = useState(0);
   const [usdToRialRate, setUsdToRialRate] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [modalWidth, setModalWidth] = useState(1000);
   const [invoice, setInvoice] = useState<Partial<Invoice>>({
     Fullname: "",
     Phonenumber: "",
@@ -116,6 +117,15 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
   const handleClose = () => {
     onClose();
   };
+
+  useEffect(() => {
+    const updateWidth = () => {
+      setModalWidth(window.innerWidth < 768 ? window.innerWidth - 32 : 1000);
+    };
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
 
   const steps = [
     {
@@ -196,7 +206,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
       title="ایجاد فاکتور جدید"
       open={visible}
       onCancel={handleClose}
-      width={1000}
+      width={modalWidth}
       footer={null}
       maskClosable={true}
       destroyOnClose={true}

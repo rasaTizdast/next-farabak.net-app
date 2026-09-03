@@ -72,7 +72,7 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
   useEffect(() => {
     if (!overviewInitGuard.current) {
       overviewInitGuard.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable features state from parent prop once, guarded by ref.
+
       setLocalFeatures(state.features);
 
       const initialErrors: Record<string, string> = {};

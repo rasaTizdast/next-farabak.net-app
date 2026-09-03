@@ -1,9 +1,10 @@
 "use client";
 
 import axios from "axios";
-import { cn } from "@/lib/utils";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { toast, Toaster } from "react-hot-toast";
+
+import { cn } from "@/lib/utils";
 
 import FilterModal from "./components/FilterModal";
 import NewProductModal from "./components/newProductModal/NewProductWizard";

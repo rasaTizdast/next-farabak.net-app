@@ -180,7 +180,7 @@ const WarrantyManagementModal = ({
       !branchAutoSelectedRef.current
     ) {
       branchAutoSelectedRef.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Auto-select first branch once when branches load; guarded by ref.
+
       setWarrantyData((prev) => ({
         ...prev,
         branchId: branchesData[0].branchid,
@@ -244,7 +244,7 @@ const WarrantyManagementModal = ({
       const expectedStatus = expiryDate < currentDate ? "Expired" : "Active";
       if (warrantyData.status !== expectedStatus && statusRef.current !== expectedStatus) {
         statusRef.current = expectedStatus;
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- Derive status from expiry date inside effect since expiry changes only via user input.
+
         setWarrantyData((prev) => ({ ...prev, status: expectedStatus }));
       }
     }

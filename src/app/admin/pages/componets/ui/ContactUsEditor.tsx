@@ -65,7 +65,7 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
     if (contactData && !initializedRef.current) {
       initializedRef.current = true;
       const { address: a, emails: e, phone_numbers: p } = contactData;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable contact state from fetched data once, guarded by ref.
+
       setAddress(a ?? { id: 0, address: "", postal_code: 0, alt_text: "" });
       setEmails(e);
       setPhoneNumbers(p);

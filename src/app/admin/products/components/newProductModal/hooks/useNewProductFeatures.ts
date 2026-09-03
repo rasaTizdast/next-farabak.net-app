@@ -20,7 +20,7 @@ export function useNewProductFeatures() {
   useEffect(() => {
     if (!featuresInitGuard.current) {
       featuresInitGuard.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable features state from wizard data once, guarded by ref.
+
       setLocalFeatures(state.features);
 
       const initialErrors: Record<string, string> = {};

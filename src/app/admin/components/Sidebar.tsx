@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { BiCategory } from "react-icons/bi";
 import {
   FiHome,
@@ -12,13 +12,14 @@ import {
   FiFile,
   FiBarChart2,
   FiTag,
+  FiMenu,
+  FiX,
 } from "react-icons/fi";
 import { IoReturnDownForward } from "react-icons/io5";
 import { MdOutlineStorefront } from "react-icons/md";
 
 import { useUser } from "@/context/UserContext";
 
-// Define sidebar items for each role
 const adminSidebarItems = [
   { name: "داشبورد", href: "/admin", icon: <FiHome size={20} /> },
   { name: "محصولات", href: "/admin/products", icon: <FiBox size={20} /> },
@@ -62,38 +63,64 @@ const branchSidebarItems = [
 ];
 
 const Sidebar = () => {
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isDesktopHovered, setIsDesktopHovered] = useState(false);
   const { logout, user } = useUser();
 
-  // Select the sidebar items based on user role
   const isBranch = user?.role === "Branch";
   const sidebarItems = isBranch ? branchSidebarItems : adminSidebarItems;
 
+  const isExpanded = isOpen || isDesktopHovered;
+
+  const closeSidebar = useCallback(() => {
+    setIsOpen(false);
+    setIsDesktopHovered(false);
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <>
-      {/* Blur Layer */}
+      {/* Mobile hamburger button */}
       <button
         type="button"
-        className={`fixed inset-0 z-40 bg-black/30 backdrop-blur-md transition-opacity ${
-          isCollapsed ? "pointer-events-none opacity-0" : "opacity-100"
+        className="fixed top-4 right-4 z-50 flex size-10 items-center justify-center rounded-lg bg-[#0074e0] text-white shadow-lg md:hidden"
+        onClick={() => setIsOpen((prev) => !prev)}
+        aria-label={isExpanded ? "بستن منو" : "باز کردن منو"}
+      >
+        {isExpanded ? <FiX size={20} /> : <FiMenu size={20} />}
+      </button>
+
+      {/* Overlay */}
+      <div
+        className={`fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity ${
+          isExpanded ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
-        onClick={() => setIsCollapsed(true)}
-        aria-label="بستن منو"
-      ></button>
+        onClick={closeSidebar}
+        aria-hidden="true"
+      />
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 right-0 z-50 flex h-full flex-col bg-[#0074e0] text-gray-200 transition-[width] ${
-          isCollapsed ? "w-16" : "w-64"
+        className={`fixed top-0 right-0 z-50 flex h-full flex-col bg-[#0074e0] text-gray-200 transition-[width] duration-200 ${
+          isExpanded ? "w-64" : "w-16"
         }`}
-        onMouseEnter={() => setIsCollapsed(false)}
-        onMouseLeave={() => setIsCollapsed(true)}
+        onMouseEnter={() => setIsDesktopHovered(true)}
+        onMouseLeave={() => setIsDesktopHovered(false)}
       >
         {/* Logo */}
         <div className="flex h-16 items-center justify-center">
           <h1
             className={`text-xl font-bold transition-opacity ${
-              isCollapsed ? "opacity-0" : "opacity-100"
+              isExpanded ? "opacity-100" : "opacity-0"
             }`}
           >
             {isBranch ? "پنل شعبه" : "مدیریت"}
@@ -101,18 +128,18 @@ const Sidebar = () => {
         </div>
 
         {/* Navigation Links */}
-        <nav className="mt-4 flex-1">
+        <nav className="mt-4 flex-1 overflow-y-auto">
           {sidebarItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={`flex items-center px-4 py-3 text-white transition-colors hover:bg-[#2797ff] ${
-                isCollapsed ? "justify-center" : "gap-4"
+                isExpanded ? "gap-4" : "justify-center"
               }`}
-              onClick={() => setIsCollapsed(true)}
+              onClick={closeSidebar}
             >
               {item.icon}
-              <span className={`${isCollapsed ? "hidden" : "block"}`}>{item.name}</span>
+              <span className={`${isExpanded ? "block" : "hidden"}`}>{item.name}</span>
             </Link>
           ))}
         </nav>
@@ -120,12 +147,13 @@ const Sidebar = () => {
         {/* Back to Main Website Button */}
         <Link
           href="/"
-          className={`mt-auto flex items-center bg-blue-800 px-4 py-2 text-white transition-colors hover:bg-blue-900 ${
-            isCollapsed ? "justify-center" : "gap-4"
+          className={`flex items-center bg-blue-800 px-4 py-2 text-white transition-colors hover:bg-blue-900 ${
+            isExpanded ? "gap-4" : "justify-center"
           }`}
+          onClick={closeSidebar}
         >
           <IoReturnDownForward size={20} />
-          <span className={`${isCollapsed ? "hidden" : "block"}`}>برگشت به سایت</span>
+          <span className={`${isExpanded ? "block" : "hidden"}`}>برگشت به سایت</span>
         </Link>
 
         {/* Logout Button */}
@@ -133,11 +161,11 @@ const Sidebar = () => {
           type="button"
           onClick={logout}
           className={`flex items-center bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 ${
-            isCollapsed ? "justify-center" : "gap-4"
+            isExpanded ? "gap-4" : "justify-center"
           }`}
         >
           <FiLogOut size={20} />
-          <span className={`${isCollapsed ? "hidden" : "block"}`}>خروج</span>
+          <span className={`${isExpanded ? "block" : "hidden"}`}>خروج</span>
         </button>
       </div>
     </>

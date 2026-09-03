@@ -53,7 +53,7 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
           answer: faq.Description,
         })
       );
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable FAQ state from fetched data once, guarded by ref.
+
       setLocalFaqs(mappedFaqs);
       setFaqs(mappedFaqs);
       const initialErrors: { [key: string]: string } = {};

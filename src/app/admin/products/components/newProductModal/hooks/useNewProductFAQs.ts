@@ -34,7 +34,7 @@ export function useNewProductFAQs() {
         initialErrors[`question-${index}`] = validateField("question", faq.question);
         initialErrors[`answer-${index}`] = validateField("answer", faq.answer);
       });
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local validation state from wizard FAQ data once, guarded by ref.
+
       setLocalErrors(initialErrors);
     }
   }, [state.faqs, validateField]);

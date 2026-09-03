@@ -1,7 +1,7 @@
 "use client";
 
 import { Modal, Form, Switch, Input, Spin } from "antd";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DatePicker } from "zaman";
 
 import { useWarrantyForm } from "../hooks/useWarrantyForm";
@@ -17,6 +17,7 @@ export function WarrantyFormModal() {
     date.setFullYear(date.getFullYear() + 1);
     return date;
   });
+  const [modalWidth, setModalWidth] = useState(500);
 
   const {
     handleEdit,
@@ -38,6 +39,15 @@ export function WarrantyFormModal() {
     }
   }, [state.editingProduct, handleEdit, editingProduct]);
 
+  useEffect(() => {
+    const updateWidth = () => {
+      setModalWidth(window.innerWidth < 640 ? window.innerWidth - 32 : 500);
+    };
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+
   return (
     <Modal
       title="تنظیم گارانتی"
@@ -48,7 +58,7 @@ export function WarrantyFormModal() {
       cancelText="انصراف"
       className="warranty-modal [&_.ant-modal-header]:mb-5! [&_.ant-modal-header]:pb-2.5!"
       zIndex={1000}
-      width={500}
+      width={modalWidth}
     >
       {isDatePickerLoading ? (
         <div className="my-10 flex justify-center">

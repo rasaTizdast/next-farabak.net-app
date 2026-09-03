@@ -68,7 +68,7 @@ const FAQ = ({ state, dispatch, setErrors, hasSubmitted = false }: Props) => {
         initialErrors[`question-${index}`] = validateField("question", faq.question);
         initialErrors[`answer-${index}`] = validateField("answer", faq.answer);
       });
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local validation state from faqs prop once, guarded by ref.
+
       setLocalErrors(initialErrors);
     }
   }, [state.faqs, validateField]);

@@ -181,7 +181,7 @@ const BranchWarrantyManagementModal = ({
   useEffect(() => {
     if (currentBranchData && !branchSyncedRef.current) {
       branchSyncedRef.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync local editable warranty form state from fetched branch data once, guarded by ref.
+
       setWarrantyData((prev) => ({ ...prev, branchId: currentBranchData.branchid }));
     }
   }, [currentBranchData]);
@@ -248,7 +248,7 @@ const BranchWarrantyManagementModal = ({
       const expectedStatus = ed < cd ? "Expired" : "Active";
       if (warrantyData.status !== expectedStatus && statusRef.current !== expectedStatus) {
         statusRef.current = expectedStatus;
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- Derive status from expiry date inside effect since expiry changes only via user input.
+
         setWarrantyData((p) => ({ ...p, status: expectedStatus }));
       }
     }

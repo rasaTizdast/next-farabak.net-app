@@ -51,7 +51,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
   useEffect(() => {
     if (faqsData && !initializedRef.current) {
       initializedRef.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable faqs state from fetched data once, guarded by ref.
+
       setFaqs(faqsData.faqs);
     }
   }, [faqsData]);

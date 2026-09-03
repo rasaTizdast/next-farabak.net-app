@@ -95,7 +95,6 @@ const Specs: React.FC<SpecsProps> = ({ state, dispatch, setErrors, hasSubmitted 
         }
       });
 
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local validation state from specs prop once, guarded by ref.
       setLocalErrors(initialErrors);
     }
   }, [state.specs]);

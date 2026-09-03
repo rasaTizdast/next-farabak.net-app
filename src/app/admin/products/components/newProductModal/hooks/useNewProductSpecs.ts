@@ -35,7 +35,6 @@ export function useNewProductSpecs() {
         if (descError) initialErrors[`description-${index}`] = descError;
       });
 
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local validation state from wizard specs data once, guarded by ref.
       setLocalErrors(initialErrors);
     }
   }, [state.specs]);

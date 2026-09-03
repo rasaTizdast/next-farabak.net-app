@@ -140,6 +140,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
         dataSource={products}
         rowKey="ProductId"
         pagination={false}
+        scroll={{ x: "max-content" }}
         className="dark-table"
         locale={{
           emptyText: (

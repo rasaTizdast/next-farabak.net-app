@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import React, { useState } from "react";
 import { BiLinkExternal } from "react-icons/bi";
 import { FaChartArea, FaUsers } from "react-icons/fa";
 import { MdBarChart } from "react-icons/md";
+
+import { cn } from "@/lib/utils";
 
 // Define the CardColor type
 type CardColor = "blue" | "green" | "purple";
@@ -131,7 +132,7 @@ const AnalyticsOverview = () => {
             passHref
             target="_blank"
             className={cn(
-              "inline-flex transform items-center gap-3 rounded-xl bg-[var(--primary)] px-8 py-4 text-xs font-medium text-white transition-[transform,background-color,box-shadow] duration-300 hover:-translate-y-1 hover:bg-[var(--secondary)] hover:shadow-lg sm:text-base"
+              "inline-flex transform items-center gap-3 rounded-xl bg-(--primary) px-8 py-4 text-xs font-medium text-white transition-[transform,background-color,box-shadow] duration-300 hover:-translate-y-1 hover:bg-(--secondary) hover:shadow-lg sm:text-base"
             )}
           >
             مشاهده تحلیل‌های دقیق‌تر

@@ -75,7 +75,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
   useEffect(() => {
     if (prevSelectedRef.current !== selectedProducts) {
       prevSelectedRef.current = selectedProducts;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync local editable selection state from parent prop, guarded by ref to fire only on prop change.
+
       setLocalSelectedProducts(selectedProducts);
     }
   }, [selectedProducts]);

@@ -1,5 +1,5 @@
 import { Drawer, FormInstance } from "antd";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import { adminColors } from "@/constants/adminColors";
 
@@ -43,6 +43,17 @@ const ProductDrawer: React.FC<ProductDrawerProps> = ({
   onUpdateQuantity,
   onRemoveProduct,
 }) => {
+  const [drawerWidth, setDrawerWidth] = useState(600);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      setDrawerWidth(window.innerWidth < 640 ? window.innerWidth - 32 : 600);
+    };
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+
   return (
     <Drawer
       title={`محصولات شعبه: ${branch?.name || ""}`}
@@ -50,7 +61,7 @@ const ProductDrawer: React.FC<ProductDrawerProps> = ({
       closable={true}
       onClose={onClose}
       open={visible}
-      width={600}
+      width={drawerWidth}
       className="rtl-drawer dark-drawer"
       styles={{
         header: {

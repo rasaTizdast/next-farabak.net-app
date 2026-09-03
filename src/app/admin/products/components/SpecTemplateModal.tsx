@@ -41,7 +41,7 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
   useEffect(() => {
     if (templateToEdit && !templateInitGuard.current) {
       templateInitGuard.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable template name state from the template to edit once, guarded by ref.
+
       setTemplateName(templateToEdit.Name);
       setItems(
         templateToEdit.Items && templateToEdit.Items.length > 0

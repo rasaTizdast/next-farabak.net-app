@@ -294,7 +294,7 @@ const CreateNewItemModal = ({
     }
     if (resetGuard.current) return;
     resetGuard.current = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Reset the form when the modal opens, guarded by ref.
+
     resetForm();
     bannerFileRef.current = null;
     bannerClearedRef.current = false;

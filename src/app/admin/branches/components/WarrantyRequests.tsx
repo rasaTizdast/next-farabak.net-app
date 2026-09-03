@@ -320,6 +320,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
               dataSource={requests}
               pagination={false}
               rowKey="warrantyid"
+              scroll={{ x: "max-content" }}
               className="warranty-requests-table [&_.ant-table]:bg-gray-800! [&_.ant-table]:text-white! [&_.ant-table-tbody>tr.ant-table-row:hover>td]:bg-gray-700! [&_.ant-table-tbody>tr>td]:border-gray-700! [&_.ant-table-tbody>tr>td]:transition-colors [&_.ant-table-thead>tr>th]:bg-[#263244]! [&_.ant-table-thead>tr>th]:text-center! [&_.ant-table-thead>tr>th]:font-semibold! [&_.ant-table-thead>tr>th]:text-white!"
               rowClassName={() => "odd:!bg-gray-800 even:!bg-[#263144]"}
             />
