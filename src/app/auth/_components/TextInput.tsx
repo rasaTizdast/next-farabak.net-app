@@ -63,7 +63,7 @@ const TextInput = <T extends FieldValues>({
               id={String(name)}
               placeholder={placeholder}
               value={value ?? ""}
-              className={`w-full rounded-lg border border-[#c7c7c7] p-[14px] text-start text-base font-medium transition-colors duration-300 outline-none ${
+              className={`w-full rounded-lg border border-[#c7c7c7] p-[14px] text-start text-[14px] font-medium transition-colors duration-300 outline-none ${
                 hasError
                   ? "border-2 border-[#e74c3c] text-[#e74c3c] placeholder:font-light placeholder:text-[#e74c3c]"
                   : hasValue
