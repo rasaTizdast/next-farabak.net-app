@@ -5,4 +5,8 @@ import "@testing-library/jest-dom";
 vi.mock("next/cache", () => ({
   revalidateTag: vi.fn(),
   revalidatePath: vi.fn(),
+  updateTag: vi.fn(),
+  cacheLife: vi.fn(),
+  cacheTag: vi.fn(),
+  unstable_cache: (fn: unknown) => fn,
 }));

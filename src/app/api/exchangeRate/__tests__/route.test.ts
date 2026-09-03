@@ -37,7 +37,7 @@ describe("GET /api/exchangeRate", () => {
     expect(json.rate).toBe(580000);
   });
 
-  it("returns cached rate within 1 hour", async () => {
+  it("returns the current rate on repeated requests", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -54,10 +54,13 @@ describe("GET /api/exchangeRate", () => {
     const json = await res.json();
 
     expect(json.rate).toBe(580000);
-    expect(mockFetch).toHaveBeenCalledTimes(1);
+    // Hour-scoped caching is owned by Next's `use cache` layer (cacheLife
+    // stale:60/revalidate:60/expire:3600 in usd2rial.ts) and does not run
+    // inside Vitest, so every request refetches from the (mocked) upstream.
+    expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 
-  it("refetches after cache expires (1 hour)", async () => {
+  it("returns the latest rate when the upstream value changes", async () => {
     mockFetch
       .mockResolvedValueOnce({
         ok: true,
