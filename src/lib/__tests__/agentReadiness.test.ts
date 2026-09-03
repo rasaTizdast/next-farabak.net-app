@@ -51,10 +51,9 @@ describe("llms.txt", () => {
     expect(llmsTxt).toContain("When to use this site");
   });
 
-  it("lists developer resources by name", () => {
-    expect(llmsTxt).toContain("OpenAPI");
-    expect(llmsTxt).toContain("/api/swagger");
-    expect(llmsTxt).toContain("/swagger");
+  it("does not expose internal API or documentation links", () => {
+    expect(llmsTxt).not.toContain("/api/swagger");
+    expect(llmsTxt).not.toContain("/swagger");
   });
 
   it("links the trust anchor pages", () => {

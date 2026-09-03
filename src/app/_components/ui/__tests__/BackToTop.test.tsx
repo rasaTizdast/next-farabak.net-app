@@ -36,7 +36,7 @@ describe("BackToTop", () => {
   it("button is hidden when not scrolled", () => {
     render(<BackToTop />);
     const button = screen.getByLabelText("بازگشت به بالا");
-    expect(button.className).toContain("-translate-x-[200%]");
+    expect(button.className).toContain("translate-x-[-200%]");
   });
 
   it("shows text on hover on desktop", () => {

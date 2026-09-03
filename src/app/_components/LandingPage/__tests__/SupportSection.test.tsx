@@ -9,14 +9,6 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("../SupportSection.module.css", () => ({
-  default: {
-    main: "main",
-    cards: "cards",
-    card: "card",
-  },
-}));
-
 import SupportSection from "../SupportSection";
 
 describe("SupportSection", () => {

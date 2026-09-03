@@ -17,16 +17,18 @@ describe("BlogFaqAccordion", () => {
 
   it("shows answer when clicked", () => {
     render(<BlogFaqAccordion faqs={mockFaqs} blogTitle="Test Blog" blogSlug="test-blog" />);
+    const answer = screen.getByText("Blog answer 1.");
+    expect(answer).not.toBeVisible();
     fireEvent.click(screen.getByText("Blog question 1?"));
-    expect(screen.getByText("Blog answer 1.")).toBeDefined();
+    expect(screen.getByText("Blog answer 1.")).toBeVisible();
   });
 
   it("hides answer when clicked again", () => {
     render(<BlogFaqAccordion faqs={mockFaqs} blogTitle="Test Blog" blogSlug="test-blog" />);
     fireEvent.click(screen.getByText("Blog question 1?"));
-    expect(screen.getByText("Blog answer 1.")).toBeDefined();
+    expect(screen.getByText("Blog answer 1.")).toBeVisible();
     fireEvent.click(screen.getByText("Blog question 1?"));
-    expect(screen.queryByText("Blog answer 1.")).toBeNull();
+    expect(screen.getByText("Blog answer 1.")).not.toBeVisible();
   });
 
   it("renders nothing when no FAQs", () => {

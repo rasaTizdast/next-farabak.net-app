@@ -19,19 +19,6 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("../ProductsShowCase.module.css", () => ({
-  default: {
-    container: "container",
-    cards: "cards",
-    row: "row",
-    card: "card",
-    oneThird: "oneThird",
-    twoThirds: "twoThirds",
-    half: "half",
-    details: "details",
-  },
-}));
-
 describe("ProductsShowCase", () => {
   beforeEach(() => vi.clearAllMocks());
 

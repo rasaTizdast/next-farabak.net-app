@@ -1,6 +1,14 @@
 import { cleanup } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+const { mockPrisma } = vi.hoisted(() => ({
+  mockPrisma: {
+    projects: { findMany: vi.fn() },
+  },
+}));
+
+vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
+
 vi.mock("next/image", () => ({
   default: (props: any) => <img {...props} alt={props.alt} />,
 }));
@@ -13,20 +21,15 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("../ProjectsSection.module.css", () => ({
-  default: {
-    container: "container",
-    project_parent: "project_parent",
-    projects: "projects",
-    project: "project",
-    details: "details",
-    all_projects: "all_projects",
-    emptyState: "emptyState",
-  },
-}));
-
-const mockFetch = vi.fn();
-vi.stubGlobal("fetch", mockFetch);
+const project = {
+  ProjectID: 1,
+  Title: "Project 1",
+  Description: "Description 1",
+  Main_img_URL: "img1.jpg",
+  date: new Date(),
+  city: "Tehran",
+  Slug: "project-1",
+};
 
 describe("ProjectsSection", () => {
   beforeEach(() => {
@@ -35,10 +38,7 @@ describe("ProjectsSection", () => {
   });
 
   it("renders projects heading", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => [],
-    });
+    mockPrisma.projects.findMany.mockResolvedValue([]);
 
     const { default: ProjectsSection } = await import("../ProjectsSection");
     const { render, screen } = await import("@testing-library/react");
@@ -47,13 +47,8 @@ describe("ProjectsSection", () => {
     expect(screen.getByText("پروژه‌ها")).toBeDefined();
   });
 
-  it("renders projects from API response", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => [
-        { id: 1, title: "Project 1", slug: "project-1", location: "Tehran", mainImg: "img1.jpg" },
-      ],
-    });
+  it("renders projects from database response", async () => {
+    mockPrisma.projects.findMany.mockResolvedValue([project]);
 
     const { default: ProjectsSection } = await import("../ProjectsSection");
     const { render, screen } = await import("@testing-library/react");
@@ -64,10 +59,7 @@ describe("ProjectsSection", () => {
   });
 
   it("shows empty state when no projects", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => [],
-    });
+    mockPrisma.projects.findMany.mockResolvedValue([]);
 
     const { default: ProjectsSection } = await import("../ProjectsSection");
     const { render, screen } = await import("@testing-library/react");
@@ -77,10 +69,7 @@ describe("ProjectsSection", () => {
   });
 
   it("renders all projects link", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => [],
-    });
+    mockPrisma.projects.findMany.mockResolvedValue([]);
 
     const { default: ProjectsSection } = await import("../ProjectsSection");
     const { render, screen } = await import("@testing-library/react");
@@ -90,8 +79,8 @@ describe("ProjectsSection", () => {
     expect(allLink.closest("a")?.getAttribute("href")).toBe("/about-us/projects");
   });
 
-  it("shows empty state on fetch failure", async () => {
-    mockFetch.mockRejectedValue(new Error("Network error"));
+  it("shows empty state when database query fails", async () => {
+    mockPrisma.projects.findMany.mockRejectedValue(new Error("DB error"));
 
     const { default: ProjectsSection } = await import("../ProjectsSection");
     const { render, screen } = await import("@testing-library/react");
