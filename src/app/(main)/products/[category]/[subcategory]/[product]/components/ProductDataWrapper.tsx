@@ -189,33 +189,37 @@ export default async function ProductDataWrapper({
         <Image
           src={`${process.env.LIARA_BUCKET_URL}/productImages/${productData.img2}`}
           alt={productData.Type}
-          width={1920}
-          height={1080}
+          width={1340}
+          height={780}
           quality={75}
           priority
-          className="aspect-video w-[60%] flex-[2.5] self-start rounded-md object-contain shadow-[0_4px_10px_rgba(0,0,0,0.2)] max-[950px]:w-full min-[2000px]:flex-3"
+          className="aspect-1340/780 w-[60%] flex-[2.5] self-start rounded-md object-contain shadow-[0_4px_10px_rgba(0,0,0,0.2)] max-[950px]:w-full min-[2000px]:flex-3"
         />
 
-        <div className="flex w-full flex-[1.2] flex-col items-start justify-between rounded-lg bg-[#fafafa] p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)] min-[1200px]:max-w-[385px]">
-          <div className="mb-2 max-w-full text-[1.1rem] font-light wrap-break-word max-[950px]:flex max-[950px]:w-full max-[950px]:flex-col max-[950px]:items-start max-[950px]:justify-between">
-            <div>{productData.Type}</div>
-            <h1 className="mb-8 text-justify text-[1.2rem] font-bold max-[840px]:mt-4 max-[840px]:mb-2">
-              {productData.Name}
-            </h1>
+        <div className="relative flex-[1.2] max-[950px]:contents min-[1200px]:max-w-[385px]">
+          <div className="flex w-full flex-col items-start rounded-lg bg-[#fafafa] p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)] min-[951px]:absolute min-[951px]:inset-0 min-[951px]:overflow-y-auto">
+            <div className="mb-2 max-w-full text-[1.1rem] font-light wrap-break-word max-[950px]:flex max-[950px]:w-full max-[950px]:flex-col max-[950px]:items-start max-[950px]:justify-between">
+              <div>{productData.Type}</div>
+              <h1 className="mb-8 text-justify text-[1.2rem] font-bold max-[840px]:mt-4 max-[840px]:mb-2">
+                {productData.Name}
+              </h1>
+            </div>
+
+            <Suspense fallback={<SkeletonFeatures />}>
+              <ProductFeatures productId={productData.ProductId} />
+            </Suspense>
+
+            <div className="mt-auto w-full">
+              <ClientInvoiceSection
+                ProductId={productData.ProductId}
+                ProductName={productData.Type}
+                productPrice={productData.Price}
+                productDiscount={productData.Discount}
+                minimumAmount={productData.Minimum_Amount}
+                maximumAmount={productData.Maximum_Amount}
+              />
+            </div>
           </div>
-
-          <Suspense fallback={<SkeletonFeatures />}>
-            <ProductFeatures productId={productData.ProductId} />
-          </Suspense>
-
-          <ClientInvoiceSection
-            ProductId={productData.ProductId}
-            ProductName={productData.Type}
-            productPrice={productData.Price}
-            productDiscount={productData.Discount}
-            minimumAmount={productData.Minimum_Amount}
-            maximumAmount={productData.Maximum_Amount}
-          />
         </div>
       </section>
       <ProductTabs />
@@ -243,7 +247,9 @@ export default async function ProductDataWrapper({
         </Suspense>
       </section>
 
-      <SourcesList sources={buildSourcesFor(productData.Type)} className="mt-8" />
+      <section className="mt-8 flex w-full flex-col items-center">
+        <SourcesList sources={buildSourcesFor(productData.Type)} />
+      </section>
 
       <div className="my-10 h-px w-full bg-gray-200" aria-hidden="true" />
       <SimilarProducts

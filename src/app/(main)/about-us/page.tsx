@@ -2,7 +2,6 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
-import AiSummary from "@/components/AiSummary";
 import aboutUsData from "@/constants/aboutUs.json";
 import { cn } from "@/lib/utils";
 
@@ -52,7 +51,6 @@ const AboutUs = () => {
       >
         <div className="w-full max-w-[1580px]">
           <Breadcrumb breadcrumbs={["/", "/about-us"]} />
-          <AiSummary pageKey="about" />
           <div className={cn("flex w-full flex-wrap items-stretch justify-evenly gap-8")}>
             {aboutUsData.map((item) => (
               <Card

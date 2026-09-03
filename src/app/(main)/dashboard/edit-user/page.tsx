@@ -89,7 +89,7 @@ const EditUser: React.FC = () => {
       <Toaster position="bottom-center" reverseOrder={false} />
       <FormProvider {...methods}>
         <form
-          className="flex flex-col items-center justify-center gap-6 self-center rounded-lg bg-white p-6 md:p-6"
+          className="flex flex-col items-center justify-center gap-6 self-center rounded-[6px] bg-white p-6"
           onSubmit={handleSubmit(onSubmit)}
         >
           <div className="flex w-full flex-wrap justify-evenly gap-8">
@@ -201,7 +201,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
             id={name}
             placeholder={placeholder}
             value={value ?? ""}
-            className={`w-full rounded-lg border border-[#c7c7c7] p-[14px] text-start text-base font-medium transition-colors duration-300 outline-none ${
+            className={`w-full rounded-[8px] border border-[#c7c7c7] p-[14px] text-start text-[14px] font-medium transition-colors duration-300 outline-none ${
               hasError
                 ? "border-2 border-[#e74c3c] text-[#e74c3c] placeholder:font-light placeholder:text-[#e74c3c]"
                 : hasValue

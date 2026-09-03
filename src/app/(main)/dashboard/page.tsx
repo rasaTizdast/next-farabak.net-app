@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import cn from "@/lib/utils";
 
 import LoadingSpinner from "@/app/_components/ui/LoadingSpinner";
 import { useUser } from "@/context/UserContext";
@@ -17,7 +16,7 @@ const MainDashboardPage = () => {
     <>
       <h3 className="font-extrabold">کاربر گرامی، {userFullName} خوش‌آمدید</h3>
 
-      <div className={cn("mt-8 flex w-full flex-wrap justify-start gap-8")}>
+      <div className="mt-4 flex w-full flex-wrap justify-center gap-8 min-[577px]:mt-8 min-[769px]:justify-start">
         <Card
           title="ثبت فاکتور جدید"
           desc="ثبت یک فاکتور جدید با محصولاتی که نشان شده‌اند یا میخواهید انتخاب کنید."
@@ -42,12 +41,16 @@ type CardProps = {
 
 const Card = ({ title, desc, link }: CardProps) => {
   return (
-    <div className="flex w-[30%] max-w-[400px] min-w-[350px] flex-col items-center rounded-lg bg-white px-4 py-6 text-center shadow-[0_4px_10px_rgba(0,0,0,0.1)] md:min-w-[250px] lg:w-full lg:max-w-[450px]">
-      <div className="mb-4 text-[1.1rem] font-bold md:text-[1.2rem] lg:text-[1rem]">{title}</div>
-      <p className="my-2 text-base font-light md:text-[1.1rem] lg:text-[0.8rem]">{desc}</p>
+    <div className="flex w-full max-w-[450px] flex-col items-center rounded-[8px] bg-white px-4 py-6 text-center shadow-[0_4px_10px_rgba(0,0,0,0.1)] min-[769px]:w-[30%] min-[769px]:max-w-[400px] min-[769px]:min-w-[250px] min-[993px]:min-w-[350px]">
+      <div className="mb-4 text-[1rem] font-bold min-[993px]:text-[1.1rem] min-[1201px]:text-[1.2rem]">
+        {title}
+      </div>
+      <p className="mt-2 mb-8 text-[0.8rem] font-light min-[993px]:text-base min-[1201px]:text-[1.1rem]">
+        {desc}
+      </p>
       <Link
         href={link}
-        className="mt-auto inline-block cursor-pointer rounded-[6px] bg-[#003262] px-6 py-2 text-base text-white transition-[transform,background-color,box-shadow] duration-300 hover:scale-[1.05] hover:bg-[#000814] hover:shadow-[0_4px_10px_rgba(0,0,0,0.3)] md:text-base lg:text-[0.8rem]"
+        className="mt-auto inline-block cursor-pointer rounded-[6px] bg-[#003262] px-6 py-2 text-[0.8rem] text-white transition-[transform,background-color,box-shadow] duration-300 hover:scale-[1.05] hover:bg-[#000814] hover:shadow-[0_4px_10px_rgba(0,0,0,0.3)] min-[993px]:text-base"
       >
         رفتن به صفحه
       </Link>

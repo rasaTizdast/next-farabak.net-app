@@ -90,6 +90,7 @@ const BlogContent = ({ blogs, categorySlug }: { blogs: Blogs; categorySlug: stri
             height={1000}
             quality={75}
             priority
+            sizes="(min-width: 1400px) calc(100vw - 20rem), (min-width: 1200px) calc(100vw - 12rem), (min-width: 992px) calc(100vw - 8rem), (min-width: 768px) calc(100vw - 6rem), calc(100vw - 3rem)"
           />
           <div className="absolute inset-0 flex flex-col justify-end bg-linear-to-t from-black via-transparent to-transparent p-6 text-white">
             <h2 className="mb-2 text-2xl font-bold md:text-3xl">{blogs.blogs[0].title}</h2>
@@ -121,6 +122,7 @@ const BlogContent = ({ blogs, categorySlug }: { blogs: Blogs; categorySlug: stri
                 width={1920}
                 height={1000}
                 quality={75}
+                sizes="(min-width: 1400px) calc((100vw - 24rem) / 3), (min-width: 1200px) calc((100vw - 16rem) / 3), (min-width: 1024px) calc((100vw - 12rem) / 3), (min-width: 992px) calc((100vw - 10rem) / 2), (min-width: 768px) calc((100vw - 8rem) / 2), (min-width: 640px) calc((100vw - 5rem) / 2), calc(100vw - 3rem)"
               />
             </div>
             <div className="p-5">

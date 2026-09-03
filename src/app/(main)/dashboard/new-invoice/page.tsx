@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
 import { useInvoice } from "@/context/InvoiceContext";
@@ -20,6 +20,7 @@ const NewInvoicePage = () => {
   const { invoice, removeProductFromInvoice, updateProductQuantity, clearInvoice } = useInvoice();
   const { user } = useUser();
   const [invoiceSuccess, setInvoiceSuccess] = useState(false);
+  const [, startTransition] = useTransition();
   const router = useRouter();
 
   useEffect(() => {
@@ -60,8 +61,10 @@ const NewInvoicePage = () => {
         toast.success("فاکتور جدید با موفقیت ساخته شد، به صفحه فاکتورها منتقل می‌شوید...", {
           duration: 10000,
         });
-        setInvoiceSuccess(true);
-        clearInvoice();
+        startTransition(() => {
+          setInvoiceSuccess(true);
+          clearInvoice();
+        });
       }
     } catch (error) {
       toast.error("خطا در ثبت فاکتور. لطفاً دوباره تلاش کنید.");
@@ -72,7 +75,7 @@ const NewInvoicePage = () => {
   return (
     <>
       <Toaster position="bottom-center" reverseOrder={false} />
-      <div className="mx-auto max-w-[1200px] rounded-lg bg-[#f9f9f9] px-4 py-8 shadow-[0_4px_12px_rgba(0,0,0,0.1)] md:px-8">
+      <div className="mx-auto max-w-[1200px] rounded-[8px] bg-[#f9f9f9] p-8 shadow-[0_4px_12px_rgba(0,0,0,0.1)] max-[576px]:px-4">
         {invoiceSuccess && (
           <div className="animate-fade-in mb-6 rounded-lg border border-[#2e7d32] bg-[#e6f7e6] p-4 text-center font-semibold text-[#2e7d32] shadow-[0_4px_8px_rgba(0,0,0,0.05)]">
             فاکتور جدید با موفقیت ساخته شد، برای دیدن فاکتور به صفحه{" "}

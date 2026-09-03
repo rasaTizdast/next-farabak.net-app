@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 
 type FAQItem = {
@@ -13,48 +13,47 @@ type FaqAccordionProps = {
   faqs: FAQItem[];
 };
 
-const FaqAccordion: React.FC<FaqAccordionProps> = ({ faqs }) => {
+const FaqAccordion = ({ faqs }: FaqAccordionProps) => {
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
   const toggleFaq = (faqId: number) => {
-    setExpandedId(expandedId === faqId ? null : faqId);
+    setExpandedId((current) => (current === faqId ? null : faqId));
   };
 
   return (
-    <div className="space-y-2">
-      {faqs.map((faq) => (
-        <div key={faq.FAQsId} className="overflow-hidden rounded-lg border border-gray-200">
-          <h3>
+    <div className="space-y-2.5">
+      {faqs.map((faq) => {
+        const isOpen = expandedId === faq.FAQsId;
+        return (
+          <div key={faq.FAQsId} className="overflow-hidden rounded-lg border border-gray-200">
             <button
               type="button"
               onClick={() => toggleFaq(faq.FAQsId)}
-              className="flex w-full items-start justify-between bg-gray-50 p-4 text-right transition-colors hover:bg-gray-100"
-              aria-expanded={expandedId === faq.FAQsId}
-              aria-controls={`faq-content-${faq.FAQsId}`}
+              aria-expanded={isOpen}
+              aria-controls={`faq-answer-${faq.FAQsId}`}
+              className="flex w-full items-start justify-between gap-3 bg-gray-50 px-4 py-3.5 text-right transition-colors hover:bg-gray-100 max-[576px]:px-3"
             >
-              <span className="w-[97%] text-right font-medium wrap-break-word break-all text-gray-800">
+              <span className="w-[97%] text-right text-[0.95rem] font-medium wrap-break-word break-all text-gray-800">
                 {faq.Title}
               </span>
-              <span className="ml-2 shrink-0">
-                {expandedId === faq.FAQsId ? (
-                  <FiChevronUp className="text-blue-500" aria-hidden="true" />
-                ) : (
-                  <FiChevronDown className="text-blue-500" aria-hidden="true" />
-                )}
+              <span className="mt-0.5 shrink-0 text-[#1e90ff]" aria-hidden="true">
+                {isOpen ? <FiChevronUp /> : <FiChevronDown />}
               </span>
             </button>
-          </h3>
-          <div
-            id={`faq-content-${faq.FAQsId}`}
-            className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${
-              expandedId === faq.FAQsId ? "p-4" : "max-h-0"
-            }`}
-            aria-hidden={expandedId !== faq.FAQsId}
-          >
-            <p className="wrap-break-word whitespace-pre-wrap text-gray-700">{faq.Description}</p>
+            <div
+              id={`faq-answer-${faq.FAQsId}`}
+              aria-hidden={!isOpen}
+              className={`overflow-hidden transition-[max-height,padding] duration-300 ease-in-out ${
+                isOpen ? "p-4" : "max-h-0"
+              }`}
+            >
+              <p className="text-[0.9rem] leading-7 wrap-break-word whitespace-pre-wrap text-gray-700">
+                {faq.Description}
+              </p>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

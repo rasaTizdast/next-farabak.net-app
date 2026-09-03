@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 
-import AiSummary from "@/components/AiSummary";
 import { getContactInfo } from "@/lib/data/contactUs";
 import { cn } from "@/lib/utils";
 
@@ -70,7 +69,6 @@ const ContactUsPage = async () => {
           "my-4 flex w-full flex-col flex-wrap items-stretch gap-8 px-6 py-8 min-[992px]:px-16 min-[1200px]:px-24 md:my-8 md:flex-row md:px-12 2xl:px-40"
         )}
       >
-        <AiSummary pageKey="contact" />
         <div
           className={cn(
             "flex w-full flex-1 flex-col gap-4 rounded-lg bg-white p-8 shadow-[0px_8px_20px_rgba(0,0,0,0.1)] md:w-auto md:flex-[30%_1_1] md:p-[2rem_3rem]"

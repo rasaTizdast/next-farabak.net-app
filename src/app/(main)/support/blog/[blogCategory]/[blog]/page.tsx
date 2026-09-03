@@ -297,6 +297,7 @@ export default async function BlogPage(props: {
             width={1200}
             height={630}
             quality={75}
+            sizes="(min-width: 1400px) calc(60vw - 15rem), (min-width: 1200px) calc(60vw - 10rem), (min-width: 1024px) calc(60vw - 8rem), (min-width: 768px) calc(100vw - 11rem), (min-width: 640px) calc(100vw - 8rem), calc(100vw - 6rem)"
           />
           <div className={cn("scrollbar-hide bg-background mb-4 overflow-x-auto rounded-lg p-2")}>
             <div

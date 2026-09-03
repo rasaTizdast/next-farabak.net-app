@@ -1,56 +1,87 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 
-
-// Scroll function with offset
-function scrollToSection(id: string) {
-  const element = document.getElementById(id);
-  const navHeight = document.querySelector<HTMLElement>(".productTabs")?.offsetHeight || 140; // Default to 70px if not found
-
-  if (element) {
-    const yOffset = -navHeight - 10; // Offset by nav height + some margin
-    const yPosition = element.getBoundingClientRect().top + window.scrollY + yOffset;
-
-    window.scrollTo({
-      top: yPosition,
-      behavior: "smooth",
-    });
-  }
-}
+const HEADER_GAP = 12;
 
 const ProductTabs = () => {
+  const navRef = useRef<HTMLElement | null>(null);
+  const [stickyTop, setStickyTop] = useState<number | null>(null);
+
+  useEffect(() => {
+    const header = document.querySelector("header");
+
+    if (!header) return;
+
+    const measureHeader = () => {
+      setStickyTop(header.offsetHeight + HEADER_GAP);
+    };
+
+    measureHeader();
+
+    const observer = new ResizeObserver(measureHeader);
+    observer.observe(header);
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Scroll function with offset
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    const headerHeight = document.querySelector("header")?.offsetHeight ?? 0;
+    const navHeight = navRef.current?.offsetHeight ?? 0;
+
+    if (element) {
+      const yOffset = -(headerHeight + HEADER_GAP + navHeight + 8);
+      const yPosition = element.getBoundingClientRect().top + window.scrollY + yOffset;
+
+      window.scrollTo({
+        top: yPosition,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
-    <nav className="flex items-center justify-center w-full mt-4 rounded bg-[2774c0] shadow-[0_4px_10px_4px_rgba(0,0,0,0.2)] z-5 sticky top-20">
-      <ul>
-        <li>
+    <nav
+      ref={navRef}
+      style={stickyTop !== null ? { top: `${stickyTop}px` } : undefined}
+      className="sticky top-[100px] z-5 mx-auto my-8 flex w-full items-center justify-center rounded-[5px] bg-[#2774c0] text-center text-white shadow-[0_4px_10px_4px_rgba(0,0,0,0.2)]"
+    >
+      <ul className="flex w-[80%] list-none items-center justify-evenly max-[576px]:w-full">
+        <li className="cursor-pointer px-2 py-[0.8rem] text-[clamp(0.8rem,1.7vw,1rem)] transition-colors duration-200 max-[400px]:text-[0.7rem]">
           <button
             type="button"
-            className="text-[clamp(0.8rem,1.7vw,1rem)] py-2 px-5 transition-colors cursor-pointer"
+            className="cursor-pointer text-white transition-colors"
             onClick={() => scrollToSection("overview")}
           >
             توضیحات
           </button>
         </li>
-        <li>
+        <li className="cursor-pointer px-2 py-[0.8rem] text-[clamp(0.8rem,1.7vw,1rem)] transition-colors duration-200 max-[400px]:text-[0.7rem]">
           <button
             type="button"
-            className="text-[clamp(0.8rem,1.7vw,1rem)] py-2 px-5 transition-colors cursor-pointer"
+            className="cursor-pointer text-white transition-colors"
             onClick={() => scrollToSection("blog")}
           >
             توضیحات تکمیلی
           </button>
         </li>
-        <li>
+        <li className="cursor-pointer px-2 py-[0.8rem] text-[clamp(0.8rem,1.7vw,1rem)] transition-colors duration-200 max-[400px]:text-[0.7rem]">
           <button
             type="button"
-            className="text-[clamp(0.8rem,1.7vw,1rem)] py-2 px-5 transition-colors cursor-pointer"
+            className="cursor-pointer text-white transition-colors"
             onClick={() => scrollToSection("specs")}
           >
             مشخصات
           </button>
         </li>
-        <li>
-          <button type="button" className="text-[clamp(0.8rem,1.7vw,1rem)] py-2 px-5 transition-colors cursor-pointer" onClick={() => scrollToSection("faq")}>
+        <li className="cursor-pointer px-2 py-[0.8rem] text-[clamp(0.8rem,1.7vw,1rem)] transition-colors duration-200 max-[400px]:text-[0.7rem]">
+          <button
+            type="button"
+            className="cursor-pointer text-white transition-colors"
+            onClick={() => scrollToSection("faq")}
+          >
             سوالات
           </button>
         </li>

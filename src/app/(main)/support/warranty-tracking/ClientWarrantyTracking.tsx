@@ -12,7 +12,9 @@ import {
   Tag,
   XCircle,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useTransition } from "react";
+
+import { cn } from "@/lib/utils";
 
 const faDateFormatter = new Intl.DateTimeFormat("fa-IR");
 
@@ -38,80 +40,13 @@ function formatDate(dateString: string) {
   }
 }
 
-async function searchWarranty(
-  warrantyCode: string,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setError: React.Dispatch<React.SetStateAction<string>>,
-  setResult: React.Dispatch<React.SetStateAction<WarrantyResult | null>>,
-  setCurrentStep: React.Dispatch<React.SetStateAction<number>>,
-  e: React.FormEvent
-) {
-  e.preventDefault();
-  setLoading(true);
-  setError("");
+const secondaryButtonClass = cn(
+  "inline-flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 px-6 py-3 text-base font-medium text-gray-700 transition-colors hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+);
 
-  try {
-    const response = await fetch("/api/public/warranty-check", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ warrantycode: warrantyCode, checkOnly: true }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "خطا در بررسی گارانتی");
-    }
-
-    setResult(data);
-    setCurrentStep(1);
-  } catch {
-    setError("خطا در بررسی گارانتی");
-  } finally {
-    setLoading(false);
-  }
-}
-
-async function confirmWarrantyRequest(
-  warrantyCode: string,
-  setConfirmLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setError: React.Dispatch<React.SetStateAction<string>>,
-  setResult: React.Dispatch<React.SetStateAction<WarrantyResult | null>>,
-  setCurrentStep: React.Dispatch<React.SetStateAction<number>>
-) {
-  setConfirmLoading(true);
-
-  try {
-    const response = await fetch("/api/public/warranty-check", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ warrantycode: warrantyCode, confirm: true }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "خطا در ثبت درخواست گارانتی");
-    }
-
-    setResult(data);
-    setCurrentStep(2);
-  } catch {
-    setError("خطا در ثبت درخواست گارانتی");
-  } finally {
-    setConfirmLoading(false);
-  }
-}
-
-const secondaryButtonClass =
-  cn("inline-flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 px-6 py-3 text-base font-medium text-gray-700 transition-colors hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300");
-
-const primaryButtonClass =
-  cn("inline-flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#00bfff] px-6 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-[#318ce7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00bfff]/50 disabled:cursor-not-allowed disabled:opacity-50");
+const primaryButtonClass = cn(
+  "inline-flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#00bfff] px-6 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-[#318ce7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00bfff]/50 disabled:cursor-not-allowed disabled:opacity-50"
+);
 
 const StepIndicator = ({
   steps,
@@ -161,19 +96,66 @@ const WarrantyTrackingPage = () => {
   const [result, setResult] = useState<WarrantyResult | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [, startTransition] = useTransition();
 
   const handleSearchWarranty = async (e: React.FormEvent) => {
-    await searchWarranty(warrantyCode, setLoading, setError, setResult, setCurrentStep, e);
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/public/warranty-check", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ warrantycode: warrantyCode, checkOnly: true }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "خطا در بررسی گارانتی");
+      }
+
+      startTransition(() => {
+        setResult(data);
+        setCurrentStep(1);
+        setLoading(false);
+      });
+    } catch {
+      setError("خطا در بررسی گارانتی");
+      setLoading(false);
+    }
   };
 
   const handleConfirmRequest = async () => {
-    await confirmWarrantyRequest(
-      warrantyCode,
-      setConfirmLoading,
-      setError,
-      setResult,
-      setCurrentStep
-    );
+    setConfirmLoading(true);
+
+    try {
+      const response = await fetch("/api/public/warranty-check", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ warrantycode: warrantyCode, confirm: true }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "خطا در ثبت درخواست گارانتی");
+      }
+
+      startTransition(() => {
+        setResult(data);
+        setCurrentStep(2);
+        setConfirmLoading(false);
+      });
+    } catch {
+      setError("خطا در ثبت درخواست گارانتی");
+      setConfirmLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -226,7 +208,9 @@ const WarrantyTrackingPage = () => {
             </div>
           </div>
 
-          <div className={cn("animate-pulse overflow-hidden rounded-lg border-0 bg-white shadow-lg")}>
+          <div
+            className={cn("animate-pulse overflow-hidden rounded-lg border-0 bg-white shadow-lg")}
+          >
             <div className={cn("p-8")}>
               <div className={cn("mb-4 h-6 w-1/3 rounded-md bg-gray-200")}></div>
               <div className={cn("mb-6 h-4 w-2/3 rounded-md bg-gray-100")}></div>
@@ -266,12 +250,16 @@ const WarrantyTrackingPage = () => {
                       onChange={(e) => setWarrantyCode(e.target.value)}
                       dir="ltr"
                       disabled={loading}
-                      className={cn("min-w-0 flex-1 rounded-lg border border-gray-300 px-4 py-3 text-left text-base transition-colors focus:border-[#00bfff] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00bfff]/30 disabled:bg-gray-50")}
+                      className={cn(
+                        "min-w-0 flex-1 rounded-lg border border-gray-300 px-4 py-3 text-left text-base transition-colors focus:border-[#00bfff] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00bfff]/30 disabled:bg-gray-50"
+                      )}
                     />
                     <button
                       type="submit"
                       disabled={loading || !warrantyCode}
-                      className={cn("inline-flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#00bfff] px-6 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-[#318ce7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00bfff]/50 disabled:cursor-not-allowed disabled:opacity-50")]
+                      className={cn(
+                        "inline-flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#00bfff] px-6 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-[#318ce7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00bfff]/50 disabled:cursor-not-allowed disabled:opacity-50"
+                      )}
                     >
                       {loading ? <Loader2 className="size-5 animate-spin" /> : "بررسی"}
                     </button>

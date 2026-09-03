@@ -1,6 +1,9 @@
 import Script from "next/script";
 import React from "react";
 
+import SourcesList from "@/components/SourcesList";
+import { BRAND_SOURCES, buildSourcesFor, detectBrand } from "@/helpers/sources";
+
 function processContentWithImageAndVideoUrls(content: string) {
   const baseUrl = process.env.LIARA_BUCKET_URL || "";
 
@@ -62,6 +65,11 @@ const ProductBlog = ({ productBlog }: Props) => {
     );
   }
 
+  const articleHtml = processContentWithImageAndVideoUrls(productBlog);
+  const brandToken = detectBrand(productBlog);
+  const brandOfficialUrls = brandToken ? BRAND_SOURCES[brandToken].map((source) => source.url) : [];
+  const citationUrls = brandOfficialUrls.length > 0 ? brandOfficialUrls : null;
+
   return (
     <div>
       <article className="mx-auto mt-5 w-full max-w-[1580px] rounded-lg bg-gray-300 p-5 shadow-lg">
@@ -75,9 +83,16 @@ const ProductBlog = ({ productBlog }: Props) => {
             hyphens: "auto",
           }}
           dangerouslySetInnerHTML={{
-            __html: processContentWithImageAndVideoUrls(productBlog),
+            __html: articleHtml,
           }}
         />
+        {brandToken ? (
+          <SourcesList
+            sources={buildSourcesFor(productBlog)}
+            title="منابع و مراجع محصول"
+            className="mt-5"
+          />
+        ) : null}
       </article>
 
       <Script
@@ -87,7 +102,13 @@ const ProductBlog = ({ productBlog }: Props) => {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "BlogPosting",
-            articleBody: processContentWithImageAndVideoUrls(productBlog),
+            articleBody: articleHtml,
+            sourceOrganization: {
+              "@type": "Organization",
+              name: "فرابک",
+              url: "https://farabak.net",
+            },
+            ...(citationUrls ? { citation: citationUrls } : {}),
           }),
         }}
       />

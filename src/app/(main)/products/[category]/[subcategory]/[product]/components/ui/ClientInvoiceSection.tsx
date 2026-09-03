@@ -139,7 +139,7 @@ const ClientInvoiceSection = ({
 
   // Price display block - now with conditional rendering based on discount
   const priceBlock = (
-    <div className="flex flex-col items-center justify-between gap-3 rounded-lg bg-blue-100 p-3 animate-fade-in my-6 max-w-full">
+    <div className="animate-fade-in my-6 flex max-w-full flex-col items-center justify-between gap-3 rounded-lg bg-blue-100 p-3">
       {hasDiscount ? (
         // Show before/after prices with discount badge
         <>
@@ -306,14 +306,16 @@ const ClientInvoiceSection = ({
         <>
           {limitsInfo}
           {activeLimitsInfo}
-          {currentQuantity > 0 && <p className="text-[1.4rem] font-semibold">تعداد این محصول در فاکتور</p>}
-          <div className="w-full flex items-center justify-between">
+          {currentQuantity > 0 && (
+            <p className="text-[1.4rem] font-semibold">تعداد این محصول در فاکتور</p>
+          )}
+          <div className="flex w-full items-center justify-between">
             {currentQuantity > 0 ? (
               <div className="flex gap-2">
                 {/* + button */}
                 <button
                   type="button"
-                  className="text-[1.2rem] h-10 w-5 origin-right transition-[background-color,filter,opacity] "
+                  className="h-10 w-5 origin-right text-[1.2rem] transition-[background-color,filter,opacity]"
                   onClick={() => handleQuantityChange(1)}
                   disabled={!canIncrease}
                   title={
@@ -323,16 +325,14 @@ const ClientInvoiceSection = ({
                   +
                 </button>
 
-                <div className="text-[1.4rem] font-bold">
-                  {e2p(currentQuantity.toString())}
-                </div>
+                <div className="text-[1.4rem] font-bold">{e2p(currentQuantity.toString())}</div>
 
                 {/* - button OR trash */}
                 {currentQuantity <= (hasMinimum ? minimumAmount! : 1) ? (
                   <button
                     type="button"
                     onClick={() => removeProductFromInvoice(ProductId)}
-                    className="text-[1.2rem] h-5 w-5 origin-left transition-[background-color,filter] hover:bg-red-600 hover:brightness-110"
+                    className="size-5 origin-left text-[1.2rem] transition-[background-color,filter] hover:bg-red-600 hover:brightness-110"
                     aria-label="حذف کامل از فاکتور"
                   >
                     <FaRegTrashAlt />
@@ -340,7 +340,7 @@ const ClientInvoiceSection = ({
                 ) : (
                   <button
                     type="button"
-                    className="text-[1.2rem] h-5 w-5 origin-left transition-[background-color,filter] hover:bg-yellow-600 hover:brightness-110"
+                    className="size-5 origin-left text-[1.2rem] transition-[background-color,filter] hover:bg-yellow-600 hover:brightness-110"
                     onClick={() => handleQuantityChange(-1)}
                     title="کاهش تعداد"
                   >

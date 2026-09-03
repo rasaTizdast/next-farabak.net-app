@@ -132,10 +132,10 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
                 <Image
                   width={300}
                   height={300}
-                  quality={100}
                   src={`${process.env.LIARA_BUCKET_URL}/productImages/${product.img1}`}
                   alt={product.Type}
                   loading="eager"
+                  sizes="(min-width: 1024px) 240px, (min-width: 768px) 200px, (min-width: 485px) calc(50vw - 4rem), 120px"
                   className="aspect-square w-full object-contain drop-shadow-md"
                 />
               </div>

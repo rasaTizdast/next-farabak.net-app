@@ -2,7 +2,6 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
-import AiSummary from "@/components/AiSummary";
 import supportData from "@/constants/supportData.json";
 
 export const metadata: Metadata = {
@@ -20,7 +19,6 @@ const SupportPage = () => {
     <section className="flex w-full flex-col items-center px-6 py-4 min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40">
       <div className="w-full max-w-[1580px]">
         <Breadcrumb breadcrumbs={["/", "/support"]} />
-        <AiSummary pageKey="support" />
         <div className="flex w-full flex-wrap items-stretch justify-evenly gap-8">
           {supportData.map((item) => (
             <Card key={item.id} title={item.title} desc={item.desc} link={item.link} />

@@ -41,12 +41,12 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
 
   return (
     <div
-      className="group relative m-auto h-auto max-h-[500px] w-full max-w-[1580px] overflow-hidden"
+      className="group relative m-auto h-auto max-h-[300px] w-full max-w-[1580px] overflow-hidden md:max-h-[800px]"
       onMouseEnter={() => setIsPaused(true)} // Pause autoplay on hover
       onMouseLeave={() => setIsPaused(false)} // Resume autoplay on mouse leave
     >
       <div
-        className="flex max-h-[500px] w-full transition-transform duration-700 ease-in-out"
+        className="flex h-auto w-full transition-transform duration-700 ease-in-out"
         style={{
           transform: `translateX(${currentIndex * 100}%)`,
         }}
@@ -54,7 +54,7 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
         {slides.map((slide) => (
           <Image
             key={slide.id}
-            className="w-full shrink-0 object-contain"
+            className="max-h-[300px] w-full shrink-0 object-contain md:max-h-[800px]"
             src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${slide.img}`}
             alt={slide.alt}
             width={1920}

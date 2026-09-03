@@ -60,7 +60,7 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
   }, []);
 
   return (
-    <div className="relative flex gap-8">
+    <div className="relative flex gap-8 max-[576px]:gap-4">
       {overlay && (
         <div className="fixed inset-s-0 top-[80px] z-2 h-screen w-full bg-black/50"></div>
       )}
@@ -102,7 +102,7 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
             <button
               type="button"
               onClick={() => logout()}
-              className="flex w-full cursor-pointer items-center justify-center gap-4 p-4 text-center font-medium text-red-400 transition-colors duration-300 last:mt-auto"
+              className="flex w-full cursor-pointer items-center justify-between gap-4 p-4 text-center font-medium text-red-400 transition-all duration-300 last:mt-auto hover:bg-[#ff4d4d] hover:text-white"
             >
               {textVis ? "خروج از حساب" : <ImExit />}
             </button>
