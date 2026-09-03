@@ -9,6 +9,7 @@ import { UserProvider } from "@/context/UserContext";
 
 import "./globals.css";
 import { AnalyticsProvider } from "./providers/AnalyticsProvider";
+import { WebVitalsProvider } from "./providers/WebVitalsProvider";
 
 // Importing the custom iran yekan font
 const iranYekanFont = localFont({
@@ -61,6 +62,7 @@ export default function RootLayout({
             {children}
             <Suspense fallback={null}>
               <AnalyticsProvider />
+              <WebVitalsProvider />
             </Suspense>
           </InvoiceProvider>
         </UserProvider>
