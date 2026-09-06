@@ -259,7 +259,7 @@ export default function ProductsModal({
       open={open}
       onCancel={onClose}
       title={
-        <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
           <span className="text-lg font-semibold">محصولات انبار {warehouseName}</span>
           <span className="text-sm text-gray-400">
             {products.length > 0 ? `${products.length} محصول` : "بدون محصول"}
@@ -267,6 +267,7 @@ export default function ProductsModal({
         </div>
       }
       width={900}
+      style={{ height: "90dvh" }}
     >
       <div className="mb-6 rounded-lg bg-gray-800 p-4">
         <h4 className="mb-4 text-sm font-medium text-gray-300">افزودن محصول جدید</h4>

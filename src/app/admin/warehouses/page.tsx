@@ -267,7 +267,7 @@ function WarehousesPageContent() {
   return (
     <div
       className="space-y-6 rounded-lg bg-gray-950 p-4 text-white sm:p-6"
-      style={{ direction: "rtl" }}
+      style={{ direction: "rtl", marginTop: "16px" }}
     >
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
@@ -279,10 +279,10 @@ function WarehousesPageContent() {
         <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-center">
           <div className="flex items-center gap-2">
             <Input
-              placeholder="جستجو نام انبار"
-              aria-label="جستجوی انبار"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
+              placeholder="جستجو انبار یا محصول..."
+              autoComplete="off"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-64"
             />
             <button
@@ -301,7 +301,7 @@ function WarehousesPageContent() {
         <AutoComplete
           value={searchQuery}
           onChange={handleProductSearch}
-          placeholder="جستجوی محصول در انبارها"
+          placeholder="جستجو انبار یا محصول..."
           options={allProducts.reduce<
             { value: string; label: string | undefined; productId: string }[]
           >((acc, p) => {
@@ -336,6 +336,9 @@ function WarehousesPageContent() {
               پاک کردن
             </Button>
           </div>
+        )}
+        {(!selectedProduct || searchQuery.trim()) && (
+          <div className="mt-2 text-sm text-gray-400">{total} انبار gefunden</div>
         )}
       </div>
 
