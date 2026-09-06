@@ -53,7 +53,7 @@ export default function CategoryBlogEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-invert max-w-none min-h-[180px] rounded-lg border border-gray-700 bg-gray-800 p-3 outline-none",
+          "prose max-w-none min-h-[300px] rounded-lg border border-gray-600 bg-gray-900 p-3 outline-none rtl:[&_p]:text-right rtl:[&_li]:text-right",
       },
     },
   });
@@ -73,234 +73,236 @@ export default function CategoryBlogEditor({
   };
 
   return (
-    <div className="mb-4">
-      <label htmlFor={`blog-editor-${label}`} className="mb-2 block text-sm">
-        {label}
-      </label>
-      <div className="mb-2 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          aria-label="پاراگراف"
-          onClick={() => editor.chain().focus().setParagraph().run()}
-          className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
-        >
-          <Pilcrow className="inline size-4" />
-        </button>
-        <button
-          type="button"
-          aria-label="عنوان ۱"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
-        >
-          <Heading1 className="inline size-4" />
-        </button>
-        <button
-          type="button"
-          aria-label="عنوان ۲"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
-        >
-          <Heading2 className="inline size-4" />
-        </button>
-        <button
-          type="button"
-          aria-label="عنوان ۳"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
-        >
-          <Heading3 className="inline size-4" />
-        </button>
-        <button
-          type="button"
-          aria-label="بولد"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
-        >
-          <Bold className="inline size-4" />
-        </button>
-        <button
-          type="button"
-          aria-label="ایتالیک"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
-        >
-          <Italic className="inline size-4" />
-        </button>
-        <button
-          type="button"
-          aria-label="لیست غیر مرتب"
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
-        >
-          <List className="inline size-4" />
-        </button>
-        <button
-          type="button"
-          aria-label="لیست مرتب"
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
-        >
-          <ListOrdered className="inline size-4" />
-        </button>
-        <button
-          type="button"
-          aria-label="افزودن لینک"
-          onClick={promptLink}
-          className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
-        >
-          <Link2 className="inline size-4" />
-        </button>
-        <button
-          type="button"
-          aria-label="افزودن جدول"
-          onClick={() => setIsTableModalOpen(true)}
-          className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
-        >
-          <TableIcon className="inline size-4" />
-        </button>
-      </div>
-      <div className="tiptap-editor [&_.ProseMirror_table]:w-full [&_.ProseMirror_table]:border-collapse [&_.ProseMirror_td]:border! [&_.ProseMirror_td]:border-gray-700! [&_.ProseMirror_td]:p-2! [&_.ProseMirror_th]:border! [&_.ProseMirror_th]:border-gray-700! [&_.ProseMirror_th]:bg-gray-800! [&_.ProseMirror_th]:p-2!">
-        <EditorContent editor={editor} />
-      </div>
-      {placeholder && !value && <p className="mt-1 text-xs text-gray-400">{placeholder}</p>}
-      {isTableModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md rounded-lg bg-gray-800 p-4 text-white shadow-lg">
-            <h3 className="mb-3 text-lg">ایجاد جدول</h3>
-            <div className="mb-6 flex gap-4">
-              <div className="flex-1">
-                <label htmlFor="table-rows" className="mb-1 block text-sm">
-                  سطر
-                </label>
-                <div className="flex items-center">
-                  <button
-                    type="button"
-                    aria-label="کاهش تعداد سطرها"
-                    onClick={() => setTableRows(Math.max(1, tableRows - 1))}
-                    className="rounded-r-lg border border-gray-600 bg-gray-700 px-2 py-1"
-                  >
-                    -
-                  </button>
-                  <input
-                    id="table-rows"
-                    type="number"
-                    min={1}
-                    max={20}
-                    value={tableRows}
-                    aria-label="تعداد سطرها"
-                    onChange={(e) => setTableRows(parseInt(e.target.value) || 3)}
-                    className="w-14 border-y border-gray-600 bg-gray-900 px-2 py-1 text-center"
-                  />
-                  <button
-                    type="button"
-                    aria-label="افزایش تعداد سطرها"
-                    onClick={() => setTableRows(Math.min(20, tableRows + 1))}
-                    className="rounded-l-lg border border-gray-600 bg-gray-700 px-2 py-1"
-                  >
-                    +
-                  </button>
+    <div className="mb-4 max-h-125 overflow-y-auto">
+      <div className="sticky top-0 z-10 border-b border-gray-700 bg-gray-900/80 backdrop-blur-sm">
+        <label htmlFor={`blog-editor-${label}`} className="mb-2 block text-sm">
+          {label}
+        </label>
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            aria-label="پاراگراف"
+            onClick={() => editor.chain().focus().setParagraph().run()}
+            className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
+          >
+            <Pilcrow className="inline size-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="عنوان ۱"
+            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
+          >
+            <Heading1 className="inline size-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="عنوان ۲"
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
+          >
+            <Heading2 className="inline size-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="عنوان ۳"
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
+          >
+            <Heading3 className="inline size-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="بولد"
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
+          >
+            <Bold className="inline size-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="ایتالیک"
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
+          >
+            <Italic className="inline size-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="لیست غیر مرتب"
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
+          >
+            <List className="inline size-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="لیست مرتب"
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
+          >
+            <ListOrdered className="inline size-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="افزودن لینک"
+            onClick={promptLink}
+            className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
+          >
+            <Link2 className="inline size-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="افزودن جدول"
+            onClick={() => setIsTableModalOpen(true)}
+            className="rounded bg-gray-600 px-2 py-1 text-sm hover:bg-gray-500"
+          >
+            <TableIcon className="inline size-4" />
+          </button>
+        </div>
+        <div className="tiptap-editor [&_.ProseMirror_table]:w-full [&_.ProseMirror_table]:border-collapse [&_.ProseMirror_td]:border! [&_.ProseMirror_td]:border-gray-700! [&_.ProseMirror_td]:p-2! [&_.ProseMirror_th]:border! [&_.ProseMirror_th]:border-gray-700! [&_.ProseMirror_th]:bg-gray-800! [&_.ProseMirror_th]:p-2!">
+          <EditorContent editor={editor} />
+        </div>
+        {placeholder && !value && <p className="mt-1 text-xs text-gray-400">{placeholder}</p>}
+        {isTableModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="w-full max-w-md rounded-lg bg-gray-800 p-4 text-white shadow-lg">
+              <h3 className="mb-3 text-lg">ایجاد جدول</h3>
+              <div className="mb-6 flex gap-4">
+                <div className="flex-1">
+                  <label htmlFor="table-rows" className="mb-1 block text-sm">
+                    سطر
+                  </label>
+                  <div className="flex items-center">
+                    <button
+                      type="button"
+                      aria-label="کاهش تعداد سطرها"
+                      onClick={() => setTableRows(Math.max(1, tableRows - 1))}
+                      className="rounded-r-lg border border-gray-600 bg-gray-700 px-2 py-1"
+                    >
+                      -
+                    </button>
+                    <input
+                      id="table-rows"
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={tableRows}
+                      aria-label="تعداد سطرها"
+                      onChange={(e) => setTableRows(parseInt(e.target.value) || 3)}
+                      className="w-14 border-y border-gray-600 bg-gray-900 px-2 py-1 text-center"
+                    />
+                    <button
+                      type="button"
+                      aria-label="افزایش تعداد سطرها"
+                      onClick={() => setTableRows(Math.min(20, tableRows + 1))}
+                      className="rounded-l-lg border border-gray-600 bg-gray-700 px-2 py-1"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <label htmlFor="table-cols" className="mb-1 block text-sm">
+                    ستون
+                  </label>
+                  <div className="flex items-center">
+                    <button
+                      type="button"
+                      aria-label="کاهش تعداد ستون‌ها"
+                      onClick={() => setTableCols(Math.max(1, tableCols - 1))}
+                      className="rounded-r-lg border border-gray-600 bg-gray-700 px-2 py-1"
+                    >
+                      -
+                    </button>
+                    <input
+                      id="table-cols"
+                      type="number"
+                      min={1}
+                      max={10}
+                      value={tableCols}
+                      aria-label="تعداد ستون‌ها"
+                      onChange={(e) => setTableCols(parseInt(e.target.value) || 3)}
+                      className="w-14 border-y border-gray-600 bg-gray-900 px-2 py-1 text-center"
+                    />
+                    <button
+                      type="button"
+                      aria-label="افزایش تعداد ستون‌ها"
+                      onClick={() => setTableCols(Math.min(10, tableCols + 1))}
+                      className="rounded-l-lg border border-gray-600 bg-gray-700 px-2 py-1"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div className="flex-1">
-                <label htmlFor="table-cols" className="mb-1 block text-sm">
-                  ستون
-                </label>
-                <div className="flex items-center">
-                  <button
-                    type="button"
-                    aria-label="کاهش تعداد ستون‌ها"
-                    onClick={() => setTableCols(Math.max(1, tableCols - 1))}
-                    className="rounded-r-lg border border-gray-600 bg-gray-700 px-2 py-1"
-                  >
-                    -
-                  </button>
-                  <input
-                    id="table-cols"
-                    type="number"
-                    min={1}
-                    max={10}
-                    value={tableCols}
-                    aria-label="تعداد ستون‌ها"
-                    onChange={(e) => setTableCols(parseInt(e.target.value) || 3)}
-                    className="w-14 border-y border-gray-600 bg-gray-900 px-2 py-1 text-center"
-                  />
-                  <button
-                    type="button"
-                    aria-label="افزایش تعداد ستون‌ها"
-                    onClick={() => setTableCols(Math.min(10, tableCols + 1))}
-                    className="rounded-l-lg border border-gray-600 bg-gray-700 px-2 py-1"
-                  >
-                    +
-                  </button>
-                </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsTableModalOpen(false)}
+                  className="rounded bg-gray-600 px-3 py-1"
+                >
+                  انصراف
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!editor) return;
+                    editor
+                      .chain()
+                      .focus()
+                      .insertTable({ rows: tableRows, cols: tableCols, withHeaderRow: true })
+                      .run();
+                    setIsTableModalOpen(false);
+                  }}
+                  className="rounded bg-blue-600 px-3 py-1"
+                >
+                  ایجاد
+                </button>
               </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setIsTableModalOpen(false)}
-                className="rounded bg-gray-600 px-3 py-1"
-              >
-                انصراف
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!editor) return;
-                  editor
-                    .chain()
-                    .focus()
-                    .insertTable({ rows: tableRows, cols: tableCols, withHeaderRow: true })
-                    .run();
-                  setIsTableModalOpen(false);
-                }}
-                className="rounded bg-blue-600 px-3 py-1"
-              >
-                ایجاد
-              </button>
             </div>
           </div>
-        </div>
-      )}
-      {editor?.isActive("table") && (
-        <div className="mt-2 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().addColumnAfter().run()}
-            className="rounded bg-blue-600 px-2 py-1 text-sm"
-          >
-            ستون +
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().deleteColumn().run()}
-            className="rounded bg-red-600 px-2 py-1 text-sm"
-          >
-            ستون -
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().addRowBefore().run()}
-            className="rounded bg-green-600 px-2 py-1 text-sm"
-          >
-            سطر +
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().deleteRow().run()}
-            className="rounded bg-red-600 px-2 py-1 text-sm"
-          >
-            سطر -
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().deleteTable().run()}
-            className="rounded bg-gray-600 px-2 py-1 text-sm"
-          >
-            حذف جدول
-          </button>
-        </div>
-      )}
+        )}
+        {editor?.isActive("table") && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().addColumnAfter().run()}
+              className="rounded bg-blue-600 px-2 py-1 text-sm"
+            >
+              ستون +
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().deleteColumn().run()}
+              className="rounded bg-red-600 px-2 py-1 text-sm"
+            >
+              ستون -
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().addRowBefore().run()}
+              className="rounded bg-green-600 px-2 py-1 text-sm"
+            >
+              سطر +
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().deleteRow().run()}
+              className="rounded bg-red-600 px-2 py-1 text-sm"
+            >
+              سطر -
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().deleteTable().run()}
+              className="rounded bg-gray-600 px-2 py-1 text-sm"
+            >
+              حذف جدول
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
