@@ -11,21 +11,21 @@ import { cn } from "@/lib/utils";
 // Define the CardColor type
 type CardColor = "blue" | "green" | "purple";
 
-const colorMap: Record<CardColor, { bg: string; border: string; text: string }> = {
+const colorMap: Record<CardColor, { bg: string; border: string; iconBg: string; text?: string }> = {
   blue: {
     bg: "bg-gray-950",
     border: "border-[var(--primary)]",
-    text: "text-[var(--primary)]",
+    iconBg: "bg-blue-500/10",
   },
   green: {
     bg: "bg-gray-950",
     border: "border-[var(--secondary)]",
-    text: "text-[var(--secondary)]",
+    iconBg: "bg-green-500/10",
   },
   purple: {
     bg: "bg-gray-950",
     border: "border-[var(--dark-blue)]",
-    text: "text-[var(--dark-blue)]",
+    iconBg: "bg-purple-500/10",
   },
 };
 
@@ -60,36 +60,32 @@ const AnalyticsOverview = () => {
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
   return (
-    <div className={cn("rounded-lg bg-linear-to-tr from-gray-800 to-gray-900 p-4 sm:p-8")}>
-      <div className={cn("mx-auto max-w-6xl space-y-12")}>
+    <div className="rounded-xl bg-gray-950 p-8 sm:p-10">
+      <div className="mx-auto max-w-6xl space-y-12">
         {/* Header with subtle animation */}
-        <div className={cn("space-y-4 text-center")}>
+        <div className="space-y-4 text-center">
           <h1 className="text-2xl font-bold text-gray-200 transition-colors duration-300 hover:text-blue-200 md:text-3xl lg:text-5xl">
             تحلیل وبسایت شما
           </h1>
           <p className="mx-auto max-w-3xl text-base text-gray-400 md:text-lg lg:text-xl">
-            عملکرد وبسایت خود را با استفاده از تحلیل‌های دقیق و معیارهای کاربردی پیگیری کنید
+            عملکرد وبسایت خود را با استفاده از تحلیل‌های دقیق و معیارهای userable پیگیری کنید
           </p>
-          <div className={cn("mx-auto mt-6 h-1 w-24 rounded-full bg-blue-500")}></div>
+          <div className="mx-auto mt-6 h-1 w-24 rounded-full bg-blue-500"></div>
         </div>
 
         {/* Enhanced Analytics Preview Cards */}
-        <div className={cn("grid grid-cols-1 gap-8 lg:grid-cols-3")}>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {cards.map((card) => (
             <div
               key={card.id}
               className={cn(
-                `relative transform overflow-hidden rounded-xl border-2 bg-gray-950 p-4 shadow-sm transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-8 ${
-                  hoveredCard === card.id ? colorMap[card.color].border : "border-transparent"
-                }`
+                `relative transform overflow-hidden rounded-xl border bg-gray-800 p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${hoveredCard === card.id ? `border-[var(${card.color})]` : "border-transparent"}`
               )}
               onMouseEnter={() => setHoveredCard(card.id)}
               onMouseLeave={() => setHoveredCard(null)}
             >
               <div
-                className={`absolute top-0 right-0 -mt-8 -mr-8 size-24 rounded-full ${
-                  colorMap[card.color].bg
-                } opacity-80 transition-transform duration-300 ${hoveredCard === card.id ? "scale-[1.8]" : "scale-100"}`}
+                className={`absolute top-0 right-0 -mt-8 -mr-8 size-24 rounded-full ${colorMap[card.color].iconBg} opacity-80 transition-transform duration-300 ${hoveredCard === card.id ? "scale-[1.8]" : "scale-100"}`}
               ></div>
               <div className="relative">
                 <div
