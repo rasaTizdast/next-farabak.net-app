@@ -141,154 +141,156 @@ const SettingsPage = () => {
   };
 
   return (
-    <>
+    <div>
       <Toaster position="bottom-center" />
       <div className="flex w-full max-w-[1800px] flex-col items-center overflow-auto rounded-lg bg-gray-800 p-6 text-gray-100">
-        <h1 className="mb-6 text-2xl font-bold">تنظیمات</h1>
+        <div className="w-full">
+          <h1 className="mb-6 text-2xl font-bold">تنظیمات</h1>
 
-        {/* Main Grid Layout */}
-        <div className="grid w-full max-w-4xl grid-cols-1 gap-6 md:grid-cols-2">
-          {/* Password Change Section */}
-          <div className="rounded-lg bg-gray-700 p-6 shadow-md">
-            <h2 className="mb-4 text-lg font-semibold">تغییر رمز عبور</h2>
-            <div className="flex flex-col space-y-4">
-              <input
-                type="password"
-                placeholder="رمز عبور فعلی"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                aria-label="رمز عبور فعلی"
-                className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="password"
-                placeholder="رمز عبور جدید"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                aria-label="رمز عبور جدید"
-                className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="password"
-                placeholder="تکرار رمز عبور جدید"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                aria-label="تکرار رمز عبور جدید"
-                className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                type="button"
-                onClick={handlePasswordChange}
-                disabled={changingPassword}
-                className="rounded-lg bg-green-500 p-2 text-white transition-colors hover:bg-green-600 disabled:bg-green-300"
-              >
-                {changingPassword ? "در حال تغییر رمز عبور..." : "تغییر رمز عبور"}
-              </button>
-            </div>
-          </div>
-
-          {/* Search Section */}
-          <div className="rounded-lg bg-gray-700 p-6 shadow-md">
-            <h2 className="mb-4 text-lg font-semibold">مدیریت کاربران</h2>
-
-            {/* Phone Number Input */}
-            <div className="flex flex-col space-y-4">
-              <input
-                type="text"
-                placeholder="شماره تلفن کاربر را وارد کنید"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                aria-label="شماره تلفن"
-                className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-
-              {/* Search Button */}
-              <button
-                type="button"
-                onClick={handleSearch}
-                disabled={loading}
-                className="rounded-lg bg-blue-500 p-2 text-white transition-colors hover:bg-blue-600 disabled:bg-blue-300"
-              >
-                {loading ? "در حال جستجو..." : "جستجو"}
-              </button>
+          {/* Main Grid Layout */}
+          <div className="w-full grid-cols-1 gap-6 md:grid-cols-2">
+            {/* Password Change Section */}
+            <div className="rounded-lg bg-gray-700 p-6 shadow-md">
+              <h2 className="mb-4 text-lg font-semibold">تغییر رمز عبور</h2>
+              <div className="flex flex-col space-y-4">
+                <input
+                  type="password"
+                  placeholder="رمز عبور فعلی"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  aria-label="رمز عبور فعلی"
+                  className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <input
+                  type="password"
+                  placeholder="رمز عبور جدید"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  aria-label="رمز عبور جدید"
+                  className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <input
+                  type="password"
+                  placeholder="تکرار رمز عبور جدید"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  aria-label="تکرار رمز عبور جدید"
+                  className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={handlePasswordChange}
+                  disabled={changingPassword}
+                  className="rounded-lg bg-green-500 p-2 text-white transition-colors hover:bg-green-600 disabled:bg-green-300"
+                >
+                  {changingPassword ? "در حال تغییر رمز عبور..." : "تغییر رمز عبور"}
+                </button>
+              </div>
             </div>
 
-            {/* Search Results */}
-            {searchResults.length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-md mb-2 font-semibold">نتایج جستجو:</h3>
+            {/* Search Section */}
+            <div className="rounded-lg bg-gray-700 p-6 shadow-md">
+              <h2 className="mb-4 text-lg font-semibold">مدیریت کاربران</h2>
+
+              {/* Phone Number Input */}
+              <div className="flex flex-col space-y-4">
+                <input
+                  type="text"
+                  placeholder="شماره تلفن کاربر را وارد کنید"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  aria-label="شماره تلفن"
+                  className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                />
+
+                {/* Search Button */}
+                <button
+                  type="button"
+                  onClick={handleSearch}
+                  disabled={loading}
+                  className="rounded-lg bg-blue-500 p-2 text-white transition-colors hover:bg-blue-600 disabled:bg-blue-300"
+                >
+                  {loading ? "در حال جستجو..." : "جستجو"}
+                </button>
+              </div>
+
+              {/* Search Results */}
+              {searchResults.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-md mb-2 font-semibold">نتایج جستجو:</h3>
+                  <ul className="space-y-2">
+                    {searchResults.map((user) => (
+                      <li
+                        key={user.UserID}
+                        className="flex items-center justify-between rounded-lg bg-gray-600 p-2"
+                      >
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            name="selectedUser"
+                            value={user.UserID}
+                            onChange={() => setSelectedUser(user)}
+                            className="ml-2"
+                          />
+                          <span>
+                            {user.FirstName} {user.LastName} ({user.PhoneNumber})
+                          </span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Make Admin Button */}
+                  {selectedUser && (
+                    <button
+                      type="button"
+                      onClick={handleMakeAdmin}
+                      disabled={loading}
+                      className="mt-4 w-full rounded-lg bg-green-500 p-2 text-white transition-colors hover:bg-green-600 disabled:bg-green-300"
+                    >
+                      {loading ? "در حال پردازش..." : "تبدیل به ادمین"}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Admins Section */}
+            <div className="rounded-lg bg-gray-700 p-6 shadow-md md:col-span-2">
+              <h2 className="mb-4 text-lg font-semibold">لیست ادمین‌ها</h2>
+
+              {admins.length === 0 ? (
+                <p className="text-right text-gray-400">هیچ ادمینی یافت نشد.</p>
+              ) : (
                 <ul className="space-y-2">
-                  {searchResults.map((user) => (
+                  {admins.map((admin) => (
                     <li
-                      key={user.UserID}
+                      key={admin.UserID}
                       className="flex items-center justify-between rounded-lg bg-gray-600 p-2"
                     >
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          name="selectedUser"
-                          value={user.UserID}
-                          onChange={() => setSelectedUser(user)}
-                          className="ml-2"
-                        />
-                        <span>
-                          {user.FirstName} {user.LastName} ({user.PhoneNumber})
-                        </span>
-                      </label>
+                      <div className="text-right">
+                        <p>
+                          {admin.FirstName} {admin.LastName}
+                        </p>
+                        <p className="text-sm text-gray-400">{admin.PhoneNumber}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDemoteAdmin(admin.UserID)}
+                        disabled={loading}
+                        className="rounded-lg bg-red-500 p-2 text-white transition-colors hover:bg-red-600 disabled:bg-red-300"
+                      >
+                        {loading ? "در حال پردازش..." : "تبدیل به کاربر عادی"}
+                      </button>
                     </li>
                   ))}
                 </ul>
-
-                {/* Make Admin Button */}
-                {selectedUser && (
-                  <button
-                    type="button"
-                    onClick={handleMakeAdmin}
-                    disabled={loading}
-                    className="mt-4 w-full rounded-lg bg-green-500 p-2 text-white transition-colors hover:bg-green-600 disabled:bg-green-300"
-                  >
-                    {loading ? "در حال پردازش..." : "تبدیل به ادمین"}
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Admins Section */}
-          <div className="rounded-lg bg-gray-700 p-6 shadow-md md:col-span-2">
-            <h2 className="mb-4 text-lg font-semibold">لیست ادمین‌ها</h2>
-
-            {admins.length === 0 ? (
-              <p className="text-right text-gray-400">هیچ ادمینی یافت نشد.</p>
-            ) : (
-              <ul className="space-y-2">
-                {admins.map((admin) => (
-                  <li
-                    key={admin.UserID}
-                    className="flex items-center justify-between rounded-lg bg-gray-600 p-2"
-                  >
-                    <div className="text-right">
-                      <p>
-                        {admin.FirstName} {admin.LastName}
-                      </p>
-                      <p className="text-sm text-gray-400">{admin.PhoneNumber}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleDemoteAdmin(admin.UserID)}
-                      disabled={loading}
-                      className="rounded-lg bg-red-500 p-2 text-white transition-colors hover:bg-red-600 disabled:bg-red-300"
-                    >
-                      {loading ? "در حال پردازش..." : "تبدیل به کاربر عادی"}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
