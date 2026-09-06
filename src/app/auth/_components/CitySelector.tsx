@@ -57,8 +57,8 @@ const CitySelector = <T extends FieldValues = FieldValues>({
   const inputClass = !value
     ? ""
     : isValid
-      ? "border-2 border-[#2ecc71] text-[#03af4b]"
-      : "border-2 border-[#e74c3c] text-[#e74c3c]";
+      ? "border-[#2ecc71] text-[#03af4b]"
+      : "border-[#e74c3c] text-[#e74c3c]";
 
   return (
     <div className="z-1 flex w-full flex-col gap-2">
@@ -74,7 +74,7 @@ const CitySelector = <T extends FieldValues = FieldValues>({
           onFocus={() => setIsOpen(true)}
           onBlur={handleBlur}
           placeholder={placeholder}
-          className={`w-full rounded-lg border border-[#ccc] p-[8px] transition-[border-radius] duration-100 focus:rounded-b-none ${inputClass}`}
+          className={`w-full rounded-lg border border-[#c7c7c7] bg-white p-[14px] text-[14px] font-medium transition-[border-radius] duration-100 focus:rounded-b-none ${inputClass}`}
           autoComplete="off"
         />
         {isOpen && (

@@ -63,11 +63,11 @@ const TextInput = <T extends FieldValues>({
               id={String(name)}
               placeholder={placeholder}
               value={value ?? ""}
-              className={`w-full rounded-lg border border-[#c7c7c7] p-[14px] text-start text-[14px] font-medium transition-colors duration-300 outline-none ${
+              className={`w-full rounded-lg border border-[#c7c7c7] bg-white p-[14px] text-start text-[14px] font-medium transition-colors duration-300 outline-none ${
                 hasError
-                  ? "border-2 border-[#e74c3c] text-[#e74c3c] placeholder:font-light placeholder:text-[#e74c3c]"
+                  ? "border-[#e74c3c] text-[#e74c3c] placeholder:font-light placeholder:text-[#e74c3c]"
                   : hasValue
-                    ? "border-2 border-[#2ecc71] text-[#03af4b]"
+                    ? "border-[#2ecc71] text-[#03af4b]"
                     : ""
               }`}
               {...rest}
@@ -77,7 +77,7 @@ const TextInput = <T extends FieldValues>({
         {type === "password" && (
           <button
             type="button"
-            className="absolute inset-s-[15px] top-1/2 -translate-y-1/2 cursor-pointer text-[1.2rem] text-gray-500"
+            className="absolute inset-e-[15px] top-1/2 -translate-y-1/2 cursor-pointer text-[1.2rem] text-gray-500"
             onClick={handleTogglePassword}
             aria-label={showPassword ? "مخفی کردن رمز" : "نمایش رمز"}
           >

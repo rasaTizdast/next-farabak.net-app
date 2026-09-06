@@ -112,7 +112,7 @@ const SignUp = () => {
     <FormProvider {...methods}>
       <div
         className={cn(
-          "rtl m-0 flex h-dvh min-h-[550px] w-full max-w-[400px] min-w-[290px] items-center justify-center rounded-none bg-white/40 shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur-[5px]",
+          "rtl m-0 flex h-dvh min-h-[550px] w-full max-w-[400px] min-w-[290px] items-stretch justify-center rounded-none bg-white/40 shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur-[5px]",
           "min-[401px]:mx-6 min-[401px]:my-12 min-[401px]:h-auto min-[401px]:w-[90%] min-[401px]:max-w-[600px] min-[401px]:min-w-[350px] min-[401px]:rounded-[20px]",
           "min-[701px]:w-auto min-[701px]:max-w-[1250px] min-[701px]:min-w-0",
           "min-[861px]:mx-8 min-[861px]:min-h-[600px]",
@@ -121,7 +121,7 @@ const SignUp = () => {
       >
         <form
           className={cn(
-            "rtl flex size-full min-h-[400px] flex-col justify-between gap-12 rounded-none bg-transparent px-4 py-12 shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur-[5px]",
+            "rtl flex min-h-[400px] flex-col justify-between gap-12 rounded-none bg-transparent px-4 py-12 shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur-[5px]",
             "min-[401px]:rounded-[20px] min-[401px]:px-[1.3rem] min-[401px]:pt-4 min-[401px]:pb-6",
             "min-[701px]:w-[60%] min-[701px]:max-w-[550px] min-[701px]:rounded-l-none min-[701px]:rounded-r-[20px] min-[701px]:bg-white/30",
             "min-[861px]:min-h-[600px] min-[861px]:px-6",
@@ -232,15 +232,17 @@ const SignUp = () => {
             </div>
           )}
 
-          <input
-            type="submit"
-            value={isSubmitting ? "در حال ثبت‌نام..." : "ثبت‌نام در حساب کاربری"}
-            disabled={isSubmitting || step !== 3}
-            readOnly
-            className={cn(
-              "mt-4 -mb-4 w-full cursor-pointer rounded-[8px] border-none bg-(--primary) px-0 py-[0.8rem] text-base font-medium text-white transition-[background-color,box-shadow] duration-300 hover:bg-[#036bf4] hover:shadow-[rgba(0,0,0,0.25)_0_8px_15px] disabled:cursor-not-allowed"
-            )}
-          />
+          {step === 3 && (
+            <input
+              type="submit"
+              value={isSubmitting ? "در حال ثبت‌نام..." : "ثبت‌نام در حساب کاربری"}
+              disabled={isSubmitting}
+              readOnly
+              className={cn(
+                "bg-primary mt-4 -mb-4 w-full cursor-pointer rounded-[8px] border-none px-0 py-[0.8rem] text-base font-medium text-white transition-[background-color,box-shadow] duration-300 hover:bg-[#036bf4] hover:shadow-[rgba(0,0,0,0.25)_0_8px_15px] disabled:cursor-not-allowed"
+              )}
+            />
+          )}
 
           {errorMessage && (
             <p className={cn("text-[0.9rem] font-medium text-[#e74c3c]")}>{errorMessage}</p>
@@ -270,7 +272,7 @@ const SignUp = () => {
               بعدی
             </button>
           </div>
-          <div className={cn("flex flex-col gap-4 self-end")}>
+          <div className={cn("flex flex-col items-center gap-4 self-center")}>
             <div className={cn("relative mb-4 flex w-full items-center justify-center")}>
               <div
                 className={cn(
@@ -284,23 +286,25 @@ const SignUp = () => {
               ></div>
               <div className="relative z-10">یا</div>
             </div>
-            <div className="flex w-full justify-center gap-2">
-              حساب کاربری دارید؟
-              <Link href="/auth/login" className="cursor-pointer text-(--dark-blue)">
+            <div className="flex items-center justify-center gap-2">
+              <span>حساب کاربری دارید؟</span>
+              <Link href="/auth/login" className="text-dark-blue cursor-pointer">
                 ورود به حساب کاربری
               </Link>
             </div>
           </div>
         </form>
         <div className="hidden w-[60%] flex-col items-center justify-center gap-8 text-center min-[701px]:mx-6 min-[701px]:flex">
-          <Image
-            src="/signUp_image.svg"
-            alt="farabak-signUp-Image"
-            width={552}
-            height={412}
-            quality={100}
-            className="min-[701px]:w-[40vw] min-[701px]:min-w-[200px] min-[993px]:w-[45vw] min-[993px]:min-w-[300px] min-[1201px]:w-[30vw] min-[1201px]:min-w-[500px]"
-          />
+          <div className="relative min-[701px]:h-[28vw] min-[701px]:min-h-[140px] min-[701px]:w-[40vw] min-[701px]:min-w-[200px] min-[993px]:h-[31.5vw] min-[993px]:min-h-[210px] min-[993px]:w-[45vw] min-[993px]:min-w-[300px] min-[1201px]:h-[21vw] min-[1201px]:min-h-[350px] min-[1201px]:w-[30vw] min-[1201px]:min-w-[500px]">
+            <Image
+              src="/signUp_image.svg"
+              alt="farabak-signUp-Image"
+              width={552}
+              height={412}
+              quality={100}
+              className="min-[701px]:size-full min-[701px]:object-contain"
+            />
+          </div>
           <h3 className="min-[701px]:w-full min-[701px]:text-[1.1rem] min-[861px]:text-[1.3rem] min-[993px]:w-[70%] min-[1201px]:text-[1.3rem]">
             با ساخت حساب کاربری خود، میتوانید از تمامی امکانات وبسایت استفاده کنید.
           </h3>
