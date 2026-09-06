@@ -68,7 +68,7 @@ function BranchesPageContent() {
       latestFetchBranchesRef.current?.().finally(() => {
         refreshTimeoutIdRef.current = setTimeout(() => crud.setRefreshing(false), 500);
       });
-    }, 30000);
+    }, 60000);
 
     return () => {
       clearInterval(intervalId);

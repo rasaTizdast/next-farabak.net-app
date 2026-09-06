@@ -49,7 +49,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 label: product.Type,
               }))}
               className="dark-select text-right"
-              popupClassName="dark-dropdown"
+              classNames={{ popup: { root: "dark-dropdown" } }}
             />
           </Form.Item>
 

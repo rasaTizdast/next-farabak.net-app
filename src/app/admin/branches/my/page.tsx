@@ -113,7 +113,7 @@ function MyBranchDashboard({ branchData }: { branchData: BranchData }) {
 
     const intervalId = setInterval(() => {
       doAutoRefresh(setRefreshing, setBranch, fetchBranchProductsRef);
-    }, 30000);
+    }, 60000);
 
     return () => clearInterval(intervalId);
   }, [

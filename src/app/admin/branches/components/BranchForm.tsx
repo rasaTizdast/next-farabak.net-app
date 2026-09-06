@@ -51,7 +51,7 @@ const BranchForm: React.FC<BranchFormProps> = ({
               })`,
             }))}
             className="dark-select w-full text-right"
-            popupClassName="dark-dropdown"
+            classNames={{ popup: { root: "dark-dropdown" } }}
           />
         </Form.Item>
       )}

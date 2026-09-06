@@ -196,7 +196,11 @@ export default function InvoiceTab({
             listItemHeight={38}
             showSearch
             filterOption={false}
-            popupClassName="enhanced-dropdown !bg-gray-800 !border !border-gray-600 !rounded-lg !shadow-[0_8px_16px_rgba(0,0,0,0.5)] !overflow-hidden !py-1.5 [&_.ant-select-item]:!my-0.5 [&_.ant-select-item]:!mx-1.5 [&_.ant-select-item]:!rounded [&_.ant-empty-description]:!text-gray-200"
+            classNames={{
+              popup: {
+                root: "enhanced-dropdown !bg-gray-800 !border !border-gray-600 !rounded-lg !shadow-[0_8px_16px_rgba(0,0,0,0.5)] !overflow-hidden !py-1.5 [&_.ant-select-item]:!my-0.5 [&_.ant-select-item]:!mx-1.5 [&_.ant-select-item]:!rounded [&_.ant-empty-description]:!text-gray-200",
+              },
+            }}
           >
             <Input
               suffix={<SearchOutlined className="text-blue-400" />}
