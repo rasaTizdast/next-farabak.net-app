@@ -343,7 +343,11 @@ const AdminInvoicesPage = () => {
                   setSearchMode(value);
                 }}
                 className="search-select [&_.ant-select-selector]:rounded-l-none! [&_.ant-select-selector]:rounded-r-md! [&_.ant-select-selector]:border-[#384152]! [&_.ant-select-selector]:bg-slate-800! [&_.ant-select-selector]:text-white! [&.ant-select-focused_.ant-select-selector]:border-blue-500! [&.ant-select-focused_.ant-select-selector]:shadow-none! [&.ant-select:hover_.ant-select-selector]:border-gray-600!"
-                popupClassName="!bg-gray-800 !text-white !border !border-gray-600 [&_.ant-select-item]:!text-white"
+                classNames={{
+                  popup: {
+                    root: "!bg-gray-800 !text-white !border !border-gray-600 [&_.ant-select-item]:!text-white",
+                  },
+                }}
                 style={{
                   width: "105px",
                   color: "white",
@@ -360,6 +364,7 @@ const AdminInvoicesPage = () => {
 
               {/* Search Input - Middle */}
               <Input
+                autoComplete="off"
                 placeholder={
                   searchMode === "warranty"
                     ? "جستجو در کدهای گارانتی..."
@@ -369,7 +374,7 @@ const AdminInvoicesPage = () => {
                 onChange={(e) => {
                   setSearchText(e.target.value);
                 }}
-                className="search-input focus:z-2 [&.ant-input]:text-white! [&.ant-input::placeholder]:text-slate-300! [&.ant-input::placeholder]:opacity-100! [&.ant-input:focus]:border-blue-500! [&.ant-input:focus]:bg-slate-800! [&.ant-input:focus]:shadow-none! [&.ant-input:hover]:border-gray-600! [&.ant-input:hover]:bg-slate-800!"
+                className="search-input focus:z-2 [&_.ant-select-selector]:rounded-l-none! [&_.ant-select-selector]:rounded-r-md! [&_.ant-select-selector]:border-[#384152]! [&_.ant-select-selector]:bg-slate-800! [&_.ant-select-selector]:text-white! [&.ant-select-focused_.ant-select-selector]:border-blue-500! [&.ant-select-focused_.ant-select-selector]:shadow-none! [&.ant-select:hover_.ant-select-selector]:border-gray-600!"
                 style={{
                   backgroundColor: adminColors.panelInner,
                   color: "white",

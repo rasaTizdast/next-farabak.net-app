@@ -124,7 +124,11 @@ export default function WarrantyCreateMode({
                       onChange={handleBranchChange}
                       loading={loadingBranches}
                       disabled={loadingBranches}
-                      popupClassName="warranty-select-dropdown !bg-slate-800 !border !border-slate-700 !rounded-lg [&_.ant-select-item]:!pr-3 [&_.ant-select-item]:!text-right [&_.ant-select-item]:!text-white [&_.ant-select-item-option-active:not(.ant-select-item-option-disabled)]:!bg-[#2d3748] [&_.ant-select-item-option-selected:not(.ant-select-item-option-disabled)]:!bg-blue-500 [&_.ant-empty-description]:!text-red-400 [&_.ant-select-item-empty]:!py-3 [&_.ant-select-item-empty]:!text-center [&_.ant-select-item-empty]:!text-red-400"
+                      classNames={{
+                        popup: {
+                          root: "warranty-select-dropdown !bg-slate-800 !border !border-slate-700 !rounded-lg [&_.ant-select-item]:!pr-3 [&_.ant-select-item]:!text-right [&_.ant-select-item]:!text-white [&_.ant-select-item-option-active:not(.ant-select-item-option-disabled)]:!bg-[#2d3748] [&_.ant-select-item-option-selected:not(.ant-select-item-option-disabled)]:!bg-blue-500 [&_.ant-empty-description]:!text-red-400 [&_.ant-select-item-empty]:!py-3 [&_.ant-select-item-empty]:!text-center [&_.ant-select-item-empty]:!text-red-400",
+                        },
+                      }}
                       notFoundContent={
                         <div className="py-3 text-center text-red-400">
                           هیچ شعبه‌ای با موجودی این محصول یافت نشد
