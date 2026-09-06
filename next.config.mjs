@@ -2,7 +2,7 @@
 
 const allowedHostnames = [
   process.env.NODE_ENV === "development" && "localhost",
-  "farabaks3.storage.c2.liara.site",
+  "s3.farabak.net",
   // Add other production domains here
 ].filter(Boolean);
 
