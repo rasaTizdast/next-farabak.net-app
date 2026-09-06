@@ -284,8 +284,14 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
   });
 
   return (
-    <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black backdrop-blur-sm">
-      <div className="max-h-[95vh] w-full max-w-4xl overflow-auto rounded-xl bg-gray-800 p-6 text-gray-100 shadow-2xl">
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="max-h-[95vh] w-full max-w-4xl overflow-auto rounded-xl bg-gray-800 p-6 text-gray-100 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         {isLoading ? (
           <div className="animate-pulse space-y-6" role="status" aria-label="در حال بارگذاری">
             {/* Header Skeleton */}

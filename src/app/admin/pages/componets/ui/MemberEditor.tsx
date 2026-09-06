@@ -120,12 +120,16 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
 
   if (loading && id) {
     return (
-      <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black backdrop-blur-sm">
+      <div
+        className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      >
         <div
           className="max-h-[95dvh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg"
           dir="rtl"
           role="status"
           aria-label="در حال بارگذاری"
+          onClick={(e) => e.stopPropagation()}
         >
           <h2 className="mb-4 text-2xl font-bold" aria-hidden="true">
             <div className="h-8 w-1/3 animate-pulse rounded bg-gray-600"></div>
@@ -158,8 +162,14 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
 
   if (error) {
     return (
-      <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black backdrop-blur-sm">
-        <div className="rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg">
+      <div
+        className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      >
+        <div
+          className="rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg"
+          onClick={(e) => e.stopPropagation()}
+        >
           <p>{error}</p>
           <button type="button" onClick={onClose} className="mt-4 rounded-lg bg-red-600 px-4 py-2">
             بستن
@@ -171,8 +181,14 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
 
   if (!member) {
     return (
-      <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black backdrop-blur-sm">
-        <div className="rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg">
+      <div
+        className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      >
+        <div
+          className="rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg"
+          onClick={(e) => e.stopPropagation()}
+        >
           <p>عضو یافت نشد.</p>
           <button type="button" onClick={onClose} className="mt-4 rounded-lg bg-red-600 px-4 py-2">
             بستن
@@ -183,10 +199,14 @@ const MemberEditor: React.FC<MemberEditModalProps> = ({ id, onClose }) => {
   }
 
   return (
-    <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black backdrop-blur-sm">
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
       <div
         className="max-h-[95dvh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg"
         dir="rtl"
+        onClick={(e) => e.stopPropagation()}
       >
         <h2 className="mb-4 text-2xl font-bold">ویرایش عضو {member.Name}</h2>
         <form onSubmit={handleSubmit}>

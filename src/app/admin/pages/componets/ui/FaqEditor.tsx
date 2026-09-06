@@ -191,8 +191,14 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
   ];
 
   return (
-    <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black p-4">
-      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-gray-700 bg-gray-800 shadow-xl">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-gray-700 bg-gray-800 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between border-b border-gray-700 bg-gray-900 p-4">
           <div>
             <h2 className="text-xl font-bold text-gray-100">مدیریت سوالات متداول</h2>

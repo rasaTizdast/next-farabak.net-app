@@ -138,10 +138,14 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black shadow-lg backdrop-blur-sm">
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
       <div
         className="relative max-h-[95dvh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg"
         dir="rtl"
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Updated Close Button */}
         <button

@@ -252,7 +252,10 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="bg-opacity-75 fixed inset-0 z-40 flex items-center justify-center bg-black backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
       {/* Image Preview */}
       {selectedImage && (
         <ImagePreview imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
@@ -273,7 +276,10 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
         />
       )}
 
-      <div className="relative max-h-[95vh] w-full max-w-4xl overflow-auto rounded-lg bg-gray-900 p-6 text-gray-200 shadow-xl">
+      <div
+        className="relative max-h-[95vh] w-full max-w-4xl overflow-auto rounded-lg bg-gray-900 p-6 text-gray-200 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="mb-6 flex items-center justify-between bg-gray-900 py-2">
           <h2 className="text-2xl font-bold">ویرایش صفحه اصلی</h2>
           <button
