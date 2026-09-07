@@ -88,9 +88,11 @@ const BlogSEOPart: React.FC<BlogSEOPartProps> = ({
               <div className="group relative">
                 <Image
                   src={
-                    previewImage.startsWith("blob:")
+                    previewImage.startsWith("blob:") || previewImage.startsWith("http")
                       ? previewImage
-                      : `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${previewImage}`
+                      : process.env.NEXT_PUBLIC_LIARA_BUCKET_URL
+                        ? `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${previewImage}`
+                        : previewImage
                   }
                   height={mode === "edit" ? 144 : 128}
                   width={mode === "edit" ? 250 : 128}

@@ -52,6 +52,7 @@ export function BlogForm({ mode, id = null, onClose }: BlogFormProps) {
   const [showFaqManager, setShowFaqManager] = useState(false);
   const [editorContent, setEditorContent] = useState("");
   const [blogContent, setBlogContent] = useState("");
+  const editorContentRef = useRef(""); // Track to avoid setState in effect
 
   useEffect(() => {
     return () => {
@@ -87,8 +88,11 @@ export function BlogForm({ mode, id = null, onClose }: BlogFormProps) {
     "post"
   );
 
+  const editorContentRef = useRef(editorContent);
+  editorContentRef.current = editorContent;
+
   useEffect(() => {
-    if (blogContent) {
+    if (blogContent && !editorContentRef.current) {
       setEditorContent(blogContent);
     }
   }, [blogContent]);
@@ -107,7 +111,21 @@ export function BlogForm({ mode, id = null, onClose }: BlogFormProps) {
         image_alt: blogData.blog.image_alt,
         categories: blogData.categories.map((c: Category) => c.id),
       });
-      setPreviewImage(blogData.blog.image_URL ?? null);
+
+      const rawImage = blogData.blog.image_URL;
+      // Resolve image URL: prepend bucket URL if available
+      // If blob, use as-is; otherwise prepend bucket URL
+      let previewSrc: string | null = null;
+      if (rawImage) {
+        const bucketUrl = process.env.NEXT_PUBLIC_LIARA_BUCKET_URL;
+        if (rawImage.startsWith("blob:")) {
+          previewSrc = rawImage;
+        } else {
+          previewSrc = bucketUrl ? `${bucketUrl}/${rawImage}` : rawImage;
+        }
+      }
+      setPreviewImage(previewSrc ?? null);
+
       setBlogContent(blogData.blog.content ?? "");
     }
   }, [blogData]);
