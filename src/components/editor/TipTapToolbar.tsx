@@ -46,7 +46,7 @@ function ToolbarButton({
       onClick={onClick}
       title={title}
       className={`rounded p-1 transition-colors ${
-        isActive ? "bg-primary text-white" : "text-gray-600 hover:bg-gray-100"
+        isActive ? "bg-primary text-white" : "text-gray-400 hover:bg-gray-700"
       }`}
     >
       {children}
@@ -62,7 +62,7 @@ export function TipTapToolbar({
   showVideoEmbed = false,
 }: TipTapToolbarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-1 border-b border-gray-200 p-2">
+    <div className="flex flex-wrap items-center gap-1 border-b border-gray-700 bg-gray-800/80 p-2 backdrop-blur-sm">
       <ToolbarButton
         onClick={() => editor.chain().focus().undo().run()}
         isActive={false}
@@ -77,7 +77,7 @@ export function TipTapToolbar({
       >
         <Redo size={18} />
       </ToolbarButton>
-      <div className="mx-1 h-6 w-px bg-gray-300" />
+      <div className="mx-1 h-6 w-px bg-gray-600" />
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBold().run()}
         isActive={editor.isActive("bold")}
@@ -99,7 +99,7 @@ export function TipTapToolbar({
       >
         <Code size={18} />
       </ToolbarButton>
-      <div className="mx-1 h-6 w-px bg-gray-300" />
+      <div className="mx-1 h-6 w-px bg-gray-600" />
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
         isActive={editor.isActive("heading", { level: 1 })}
@@ -128,7 +128,7 @@ export function TipTapToolbar({
       >
         <Pilcrow size={18} />
       </ToolbarButton>
-      <div className="mx-1 h-6 w-px bg-gray-300" />
+      <div className="mx-1 h-6 w-px bg-gray-600" />
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBulletList().run()}
         isActive={editor.isActive("bulletList")}
@@ -150,7 +150,7 @@ export function TipTapToolbar({
       >
         <Quote size={18} />
       </ToolbarButton>
-      <div className="mx-1 h-6 w-px bg-gray-300" />
+      <div className="mx-1 h-6 w-px bg-gray-600" />
       <ToolbarButton
         onClick={() => editor.chain().focus().setTextAlign("left").run()}
         isActive={editor.isActive({ textAlign: "left" })}
@@ -172,7 +172,7 @@ export function TipTapToolbar({
       >
         <AlignRight size={18} />
       </ToolbarButton>
-      <div className="mx-1 h-6 w-px bg-gray-300" />
+      <div className="mx-1 h-6 w-px bg-gray-600" />
       <ToolbarButton
         onClick={() =>
           editor

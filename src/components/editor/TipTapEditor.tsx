@@ -30,6 +30,7 @@ export function TipTapEditor({
     extensions: sharedExtensions,
     content,
     editable,
+    immediatelyRender: false,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
@@ -71,15 +72,20 @@ export function TipTapEditor({
   if (!editor) return null;
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white" dir="ltr">
-      <TipTapToolbar
+    <div className="rounded-lg border border-gray-700 bg-gray-900" dir="rtl">
+      <div className="sticky -top-6 z-10">
+        <TipTapToolbar
+          editor={editor}
+          onImageUpload={handleImageUpload}
+          onVideoEmbed={handleVideoEmbed}
+          showImageUpload={showImageUpload}
+          showVideoEmbed={showVideoEmbed}
+        />
+      </div>
+      <EditorContent
         editor={editor}
-        onImageUpload={handleImageUpload}
-        onVideoEmbed={handleVideoEmbed}
-        showImageUpload={showImageUpload}
-        showVideoEmbed={showVideoEmbed}
+        className="prose prose-invert prose-sm max-w-none p-4 [&_h1]:text-right [&_h2]:text-right [&_h3]:text-right [&_li]:text-right [&_p]:text-right"
       />
-      <EditorContent editor={editor} className="prose prose-sm max-w-none p-4" />
     </div>
   );
 }
