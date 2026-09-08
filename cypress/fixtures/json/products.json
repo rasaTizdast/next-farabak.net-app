@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "name": "Example Product",
+    "slug": "example-product",
+    "price": 1000,
+    "discount": 10,
+    "stock": 50,
+    "isActive": true,
+    "categoryId": 1,
+    "branchId": 1,
+    "warehouseId": 1
+  }
+]

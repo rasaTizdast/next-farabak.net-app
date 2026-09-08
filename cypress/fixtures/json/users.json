@@ -1,0 +1,16 @@
+﻿[
+  {
+    "id": 1,
+    "username": "admin",
+    "email": "admin@example.com",
+    "role": "admin",
+    "isActive": true
+  },
+  {
+    "id": 2,
+    "username": "user",
+    "email": "user@example.com",
+    "role": "user",
+    "isActive": true
+  }
+]
