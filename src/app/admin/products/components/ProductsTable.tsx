@@ -102,12 +102,12 @@ const SortableHeader = ({
       {children}
       {sortConfig.key === sortKey ? (
         sortConfig.direction === "ascending" ? (
-          <FaSortUp aria-label="Sort ascending" />
+          <FaSortUp aria-label="رتبة صعودي" />
         ) : (
-          <FaSortDown aria-label="Sort descending" />
+          <FaSortDown aria-label="رتبة نزولي" />
         )
       ) : (
-        <FaSort className="text-gray-400" aria-label="Sort" />
+        <FaSort className="text-gray-400" aria-label="رتبة" />
       )}
     </div>
   </th>

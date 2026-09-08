@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
 import { BiCategory } from "react-icons/bi";
 import {
@@ -72,6 +73,8 @@ const Sidebar = () => {
 
   const isExpanded = isOpen || isDesktopHovered;
 
+  const pathname = usePathname();
+
   const closeSidebar = useCallback(() => {
     setIsOpen(false);
     setIsDesktopHovered(false);
@@ -128,20 +131,24 @@ const Sidebar = () => {
         </div>
 
         {/* Navigation Links */}
-        <nav className="mt-4 flex-1 overflow-y-auto">
-          {sidebarItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center px-4 py-3 text-white transition-colors hover:bg-[#2797ff] ${
-                isExpanded ? "gap-4" : "justify-center"
-              }`}
-              onClick={closeSidebar}
-            >
-              {item.icon}
-              <span className={`${isExpanded ? "block" : "hidden"}`}>{item.name}</span>
-            </Link>
-          ))}
+        <nav className="mt-4 flex-1 overflow-y-auto" aria-label="منوی اصلی">
+          {sidebarItems.map((item) => {
+            const isCurrent = pathname === item.href || pathname.startsWith(item.href + "/");
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center px-4 py-3 text-white transition-colors hover:bg-[#2797ff] ${
+                  isExpanded ? "gap-4" : "justify-center"
+                }`}
+                onClick={closeSidebar}
+                aria-current={isCurrent ? "page" : undefined}
+              >
+                {item.icon}
+                <span className={`${isExpanded ? "block" : "hidden"}`}>{item.name}</span>
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Back to Main Website Button */}
