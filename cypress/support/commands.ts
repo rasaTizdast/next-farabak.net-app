@@ -14,7 +14,7 @@ Cypress.Commands.add("loginStubbed", () => {
   cy.url({ timeout: 60000 }).should("include", "/admin");
 });
 
-Cypress.Commands.add("login", (role = "admin") => {
+Cypress.Commands.add("login", (role: "admin" | "user" = "admin") => {
   const username =
     role === "admin"
       ? Cypress.env("adminUsername") || "FarabakAdmin"
@@ -38,8 +38,10 @@ Cypress.Commands.add("login", (role = "admin") => {
 declare global {
   namespace Cypress {
     interface Chainable {
-      login(role?: "admin" | "user"): Chainable<void>;
-      loginStubbed(): Chainable<void>;
+      login(role?: "admin" | "user"): Chainable;
+      loginStubbed(): Chainable;
     }
   }
 }
+
+export {};
