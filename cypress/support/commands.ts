@@ -1,14 +1,12 @@
 ﻿/// <reference types="cypress" />
 
 Cypress.Commands.add("loginStubbed", () => {
-  // Stub the login API call instead of using real credentials
   cy.intercept("POST", "/api/auth/login", (req) => {
-    req.reply(() => {
-      return import("../fixtures/json/users.json");
+    req.reply({
+      fixture: "json/users.json",
     });
   }).as("stubLogin");
 
-  // Visit login page and submit stubbed credentials
   cy.visit("/auth/login");
   cy.get('[data-testid="username-input"]').type("admin");
   cy.get('[data-testid="password-input"]').type("admin123");
@@ -17,16 +15,18 @@ Cypress.Commands.add("loginStubbed", () => {
 });
 
 Cypress.Commands.add("login", (role = "admin") => {
-  const baseUrl = "http://localhost:3000";
   const username =
     role === "admin"
       ? Cypress.env("adminUsername") || "FarabakAdmin"
       : Cypress.env("userUsername") || "rasarasa";
-  const password =
-    role === "admin"
-      ? Cypress.env("adminPassword") || "F@rabak@dmin1007066"
-      : Cypress.env("userPassword") || "rasa1234";
+  const password = role === "admin" ? Cypress.env("adminPassword") : Cypress.env("userPassword");
   const expectedRedirect = role === "admin" ? "/admin" : "/dashboard";
+
+  if (!password) {
+    throw new Error(
+      `Missing Cypress env var for ${role} password. Set CYPRESS_${role.toUpperCase()}_PASSWORD.`
+    );
+  }
 
   cy.visit("/auth/login");
   cy.get('[data-testid="username-input"]').type(username);

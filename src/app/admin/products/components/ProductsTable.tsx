@@ -2,7 +2,7 @@
 
 import axios from "axios";
 import Link from "next/link";
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { FaExternalLinkAlt, FaSort, FaSortUp, FaSortDown, FaTimes } from "react-icons/fa";
 import { IoQrCode } from "react-icons/io5";
 
