@@ -55,7 +55,7 @@ const ProductsShowCase = async () => {
                   quality={75}
                   sizes="(max-width: 576px) 100vw, (max-width: 768px) 50vw, (max-width: 992px) 50vw, (max-width: 1199px) 33vw, 25vw"
                   placeholder="blur"
-                  className="h-auto max-h-[300px] w-full object-cover max-[768px]:h-auto max-[768px]:max-h-none"
+                  className="h-auto max-h-75 w-full object-cover max-[768px]:h-auto max-[768px]:max-h-none"
                   blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
                 />
                 <div className="absolute bottom-0 flex w-full flex-col justify-center bg-black/70 p-2 text-center text-white">
