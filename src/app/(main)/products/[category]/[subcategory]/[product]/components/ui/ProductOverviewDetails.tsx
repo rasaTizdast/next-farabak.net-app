@@ -1,10 +1,9 @@
 // app/products/[category]/[product]/components/ProductOverview.tsx
+import SmartImage from "@/components/ui/SmartImage";
 import {
   getProductOverviewDetails,
   type ProductOverviewDetailItem,
 } from "@/lib/data/productOverview";
-
-import ImageWithFallback from "./ImageWithFallback";
 
 function Overview({
   title,
@@ -29,15 +28,17 @@ function Overview({
           </p>
         )}
       </div>
-      <ImageWithFallback
-        src={img ? `${process.env.LIARA_BUCKET_URL}/overview-details-images${img}` : null}
-        alt={title || "Product image"}
-        width={1920}
-        height={1080}
-        quality={75}
-        loading="lazy"
-        className="h-auto w-[80%] max-w-[900px] min-w-[550px] rounded-lg shadow-[0_4px_10px_5px_rgba(255,255,255,0.1)] max-[768px]:min-w-[300px] max-[400px]:min-w-[200px]"
-      />
+      {img && (
+        <SmartImage
+          src={`${process.env.LIARA_BUCKET_URL}/overview-details-images${img}`}
+          alt={title || "Product image"}
+          width={1920}
+          height={1080}
+          quality={75}
+          loading="lazy"
+          className="h-auto w-[80%] max-w-[900px] min-w-[550px] rounded-lg shadow-[0_4px_10px_5px_rgba(255,255,255,0.1)] max-[768px]:min-w-[300px] max-[400px]:min-w-[200px]"
+        />
+      )}
     </div>
   );
 }

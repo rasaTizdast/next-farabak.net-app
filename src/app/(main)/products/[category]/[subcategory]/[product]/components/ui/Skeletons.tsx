@@ -75,22 +75,26 @@ export function SkeletonFaq() {
 export function ProductMainSkeleton() {
   return (
     <div className="animate-pulse space-y-8" role="status" aria-label="در حال بارگذاری محصول">
-      <div className="flex flex-col gap-8 max-[950px]:flex-col lg:flex-row">
-        <div className="aspect-1340/780 w-full rounded-[6px] bg-gray-200 shadow-md max-[950px]:w-full lg:w-[60%]" />
-        <div className="flex w-full flex-col gap-4 rounded-[8px] bg-[#fafafa] p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)] lg:max-w-[385px]">
-          <div className="h-5 w-1/3 rounded bg-gray-200" />
-          <div className="h-7 w-3/4 rounded bg-gray-200" />
-          <div className="h-5 w-1/2 rounded bg-gray-200" />
-          <div className="mt-2 space-y-3">
-            <div className="h-4 w-full rounded bg-gray-200" />
-            <div className="h-4 w-4/5 rounded bg-gray-200" />
-            <div className="h-4 w-3/4 rounded bg-gray-200" />
-            <div className="h-4 w-2/3 rounded bg-gray-200" />
-          </div>
-          <div className="mt-auto space-y-3">
-            <div className="h-6 w-1/3 rounded-lg bg-gray-200" />
-            <div className="h-10 w-full rounded-lg bg-gray-200" />
-            <div className="h-12 w-full rounded-lg bg-gray-200" />
+      <div className="flex flex-[3_1] justify-between gap-8 max-[950px]:flex-col">
+        <div className="aspect-1340/780 w-[60%] self-start rounded-md bg-gray-200 shadow-[0_4px_10px_rgba(0,0,0,0.2)] max-[950px]:w-full min-[2000px]:flex-3" />
+        <div className="relative flex-[1.2] max-[950px]:contents min-[1200px]:max-w-[385px]">
+          <div className="flex w-full flex-col items-start rounded-lg bg-[#fafafa] p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)] min-[951px]:absolute min-[951px]:inset-0 min-[951px]:overflow-y-auto">
+            <div className="mb-2 max-w-full">
+              <div className="h-5 w-1/3 rounded bg-gray-200" />
+              <div className="mt-8 h-7 w-3/4 rounded bg-gray-200" />
+            </div>
+
+            <div className="mt-2 space-y-3">
+              <div className="h-4 w-full rounded bg-gray-200" />
+              <div className="h-4 w-full rounded bg-gray-200" />
+              <div className="h-4 w-3/4 rounded bg-gray-200" />
+              <div className="h-4 w-2/3 rounded bg-gray-200" />
+            </div>
+            <div className="mt-auto space-y-3">
+              <div className="h-6 w-1/3 rounded-lg bg-gray-200" />
+              <div className="h-10 w-full rounded-lg bg-gray-200" />
+              <div className="h-12 w-full rounded-lg bg-gray-200" />
+            </div>
           </div>
         </div>
       </div>
