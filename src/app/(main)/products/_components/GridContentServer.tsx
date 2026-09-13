@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import Pagination from "@/app/_components/ui/Pagination";
+import SmartImage from "@/components/ui/SmartImage";
 import {
   getAllProducts,
   getProductsByCategory,
@@ -129,7 +129,7 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
                     {discountPercentage.toLocaleString("fa-IR")}% تخفیف
                   </div>
                 )}
-                <Image
+                <SmartImage
                   width={300}
                   height={300}
                   src={`${process.env.LIARA_BUCKET_URL}/productImages/${product.img1}`}

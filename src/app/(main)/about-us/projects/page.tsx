@@ -1,9 +1,9 @@
 import { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import SourcesList from "@/components/SourcesList";
+import SmartImage from "@/components/ui/SmartImage";
 import { buildSourcesFor } from "@/helpers/sources";
 import { getProjects as getProjectsFromData } from "@/lib/data/projects";
 
@@ -134,7 +134,7 @@ const Card = ({ data }: CardProps) => {
 
   return (
     <div className="relative flex max-w-[300px] flex-col justify-between rounded-lg bg-white p-4 text-start shadow-[0_4px_10px_rgba(0,0,0,0.1)]">
-      <Image
+      <SmartImage
         src={`${process.env.LIARA_BUCKET_URL}/${data.mainImg}`}
         alt={data.title}
         width={1000}

@@ -1,10 +1,10 @@
 import { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import React from "react";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import SmartImage from "@/components/ui/SmartImage";
 import { getBlogsByCategory } from "@/lib/data/blogs";
 import { cn } from "@/lib/utils";
 
@@ -82,7 +82,7 @@ const BlogContent = ({ blogs, categorySlug }: { blogs: Blogs; categorySlug: stri
             "relative block overflow-hidden rounded-lg shadow-lg transition-transform hover:scale-[1.02]"
           )}
         >
-          <Image
+          <SmartImage
             src={`${process.env.LIARA_BUCKET_URL}/${blogs.blogs[0].image}`}
             alt={blogs.blogs[0].image_alt}
             className="h-96 w-full rounded-lg object-cover"
@@ -115,7 +115,7 @@ const BlogContent = ({ blogs, categorySlug }: { blogs: Blogs; categorySlug: stri
             )}
           >
             <div className="overflow-hidden rounded-t-lg">
-              <Image
+              <SmartImage
                 src={`${process.env.LIARA_BUCKET_URL}/${blog.image}`}
                 alt={blog.image_alt}
                 className="h-48 w-full object-cover transition-transform hover:scale-110"

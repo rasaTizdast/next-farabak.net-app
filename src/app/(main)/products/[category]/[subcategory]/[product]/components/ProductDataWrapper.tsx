@@ -1,9 +1,9 @@
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import SourcesList from "@/components/SourcesList";
+import SmartImage from "@/components/ui/SmartImage";
 import { BRAND_LABELS, buildSourcesFor, detectBrand } from "@/helpers/sources";
 import { getProductBySlug } from "@/lib/data/products";
 import { getPriceValidUntil } from "@/utils/priceValidUntil";
@@ -186,7 +186,7 @@ export default async function ProductDataWrapper({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <Breadcrumb breadcrumbs={breadCrumbs} />
       <section className="flex flex-[3_1] justify-between gap-8 max-[950px]:flex-col">
-        <Image
+        <SmartImage
           src={`${process.env.LIARA_BUCKET_URL}/productImages/${productData.img2}`}
           alt={productData.Type}
           width={1340}

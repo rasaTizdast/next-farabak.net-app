@@ -1,9 +1,9 @@
 import DOMPurify from "isomorphic-dompurify";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import BlogFaqAccordion from "@/components/BlogFaqAccordion";
+import SmartImage from "@/components/ui/SmartImage";
 import { getBlogBySlug, type BlogDetailData } from "@/lib/data/blogs";
 import { cn } from "@/lib/utils";
 
@@ -290,7 +290,7 @@ export default async function BlogPage(props: {
       <article className={cn("bg-background mt-5 w-full rounded-lg p-5 sm:p-10")}>
         <header className={cn("mb-8")}>
           <h1 className={cn("mb-8 text-2xl font-bold sm:text-4xl")}>{blog.title}</h1>
-          <Image
+          <SmartImage
             src={`${process.env.LIARA_BUCKET_URL}/${blog.image_URL}`}
             alt={blog.image_alt}
             className={cn("mx-auto mb-6 w-full rounded-lg object-cover lg:w-3/5")}

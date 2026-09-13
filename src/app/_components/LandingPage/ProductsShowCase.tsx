@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 
+import SmartImage from "@/components/ui/SmartImage";
 import { prisma } from "@/lib/prisma";
 
 function getRowClass(index: number) {
@@ -46,7 +46,7 @@ const ProductsShowCase = async () => {
                 href={product.link}
                 className={`${getRowClass(rowIndex * 2 + cardIndex)} relative flex h-auto flex-col items-center overflow-hidden rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.05)] transition-transform duration-200 hover:scale-[1.02]`}
               >
-                <Image
+                <SmartImage
                   src={`${process.env.LIARA_BUCKET_URL}/${product.image}`}
                   alt={product.title}
                   loading="lazy"
@@ -54,9 +54,7 @@ const ProductsShowCase = async () => {
                   width={1340}
                   quality={75}
                   sizes="(max-width: 576px) 100vw, (max-width: 768px) 50vw, (max-width: 992px) 50vw, (max-width: 1199px) 33vw, 25vw"
-                  placeholder="blur"
                   className="h-auto max-h-75 w-full object-cover max-[768px]:h-auto max-[768px]:max-h-none"
-                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
                 />
                 <div className="absolute bottom-0 flex w-full flex-col justify-center bg-black/70 p-2 text-center text-white">
                   <h3 className="text-base font-medium max-[992px]:text-[0.9rem]">

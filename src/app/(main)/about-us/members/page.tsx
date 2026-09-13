@@ -1,8 +1,8 @@
 import { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import SmartImage from "@/components/ui/SmartImage";
 import { getMembers } from "@/lib/data/members";
 
 type CardProps = {
@@ -18,7 +18,7 @@ type CardProps = {
 const Card = ({ data: { slug, name, role, img } }: CardProps) => {
   return (
     <div className="relative flex w-[20%] max-w-[300px] min-w-[300px] flex-col justify-between rounded-lg bg-white p-4 text-center shadow-[0_4px_10px_rgba(0,0,0,0.1)] max-[768px]:min-w-[250px]">
-      <Image
+      <SmartImage
         src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/member-images/${img}`}
         alt={name}
         width={200}

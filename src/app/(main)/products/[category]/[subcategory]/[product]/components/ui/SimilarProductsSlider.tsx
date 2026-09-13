@@ -1,8 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState, useEffect, useCallback } from "react";
+
+import SmartImage from "@/components/ui/SmartImage";
 
 type SliderProduct = {
   ProductId: number;
@@ -258,7 +259,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
             className="xs:hover:scale-105 flex h-auto shrink-0 snap-start flex-col items-center justify-between rounded-lg border border-[#ddd] bg-white p-4 text-center shadow-[2px_2px_12px_rgba(0,0,0,0.05)] transition-transform duration-300"
             style={{ width: 260 }}
           >
-            <Image
+            <SmartImage
               width={260}
               height={260}
               quality={75}
