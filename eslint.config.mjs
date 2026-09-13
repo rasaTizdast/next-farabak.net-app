@@ -91,6 +91,9 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, ...compat.extends
     ".agents/**",
     ".remember/**",
     "cypress/**",
+    ".editorconfig",
+    ".prettierrc",
+    ".prettierignore",
   ],
 }];
 

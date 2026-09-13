@@ -32,5 +32,12 @@
     "src/app/sitemap.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "cypress"]
+  "exclude": [
+    "node_modules",
+    "cypress",
+    ".agents/**",
+    ".editorconfig",
+    ".prettierrc",
+    ".prettierignore"
+  ]
 }
