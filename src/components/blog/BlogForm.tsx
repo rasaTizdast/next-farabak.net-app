@@ -88,7 +88,6 @@ export function BlogForm({ mode, id = null, onClose }: BlogFormProps) {
     "post"
   );
 
-  const editorContentRef = useRef(editorContent);
   editorContentRef.current = editorContent;
 
   useEffect(() => {
