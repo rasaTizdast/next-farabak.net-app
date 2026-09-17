@@ -7,9 +7,9 @@ type SmartImageProps = Omit<ImageProps, "onLoadingComplete" | "placeholder" | "b
   alt: string;
 };
 
-// 1x1 gray pixel base64 - visible blur placeholder
+// 1x1 gray pixel (#cccccc) base64 - visible blur placeholder
 const BLUR_DATA_URL =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGM4c+YMAATMAmU5mmUsAAAAAElFTkSuQmCC";
 
 export default function SmartImage({
   className,
