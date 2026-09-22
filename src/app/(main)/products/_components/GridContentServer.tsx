@@ -159,16 +159,16 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
                     <div className="flex flex-col gap-1">
                       {/* Original Price */}
                       <span className="text-xs font-light text-gray-400 line-through sm:text-sm">
-                        {originalPrice.toLocaleString("fa-IR")} تومان
+                        {Math.floor(originalPrice).toLocaleString("fa-IR")} تومان
                       </span>
                       {/* Discounted Price */}
                       <span className="text-base font-bold text-gray-900 sm:text-lg">
-                        {finalPrice.toLocaleString("fa-IR")} تومان
+                        {Math.floor(finalPrice).toLocaleString("fa-IR")} تومان
                       </span>
                     </div>
                   ) : (
                     <span className="text-base font-bold text-gray-900 sm:text-lg">
-                      {finalPrice.toLocaleString("fa-IR")} تومان
+                      {Math.floor(finalPrice).toLocaleString("fa-IR")} تومان
                     </span>
                   )}
                 </div>
