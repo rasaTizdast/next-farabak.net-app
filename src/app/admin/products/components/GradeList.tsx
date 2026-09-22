@@ -183,7 +183,7 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                         <div className="mt-2 flex items-center justify-between rounded-md bg-slate-600/50 p-3">
                           <span className="text-sm text-gray-300">معادل:</span>
                           <span className="font-medium text-white">
-                            {(editingGrade.price * usdRate!).toLocaleString("fa-IR")} تومان
+                            {Math.floor(editingGrade.price * usdRate!).toLocaleString("fa-IR")} تومان
                           </span>
                         </div>
                       )}
@@ -212,7 +212,7 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                           <div className="flex items-center justify-between rounded-md bg-slate-600/50 p-3">
                             <span className="text-sm text-gray-300">معادل:</span>
                             <span className="font-medium text-white">
-                              {(editingGrade.discount * usdRate!).toLocaleString("fa-IR")} تومان
+                              {Math.floor(editingGrade.discount * usdRate!).toLocaleString("fa-IR")} تومان
                             </span>
                           </div>
 
@@ -228,7 +228,7 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                               </span>
                               <span className="text-gray-400">/</span>
                               <span className="font-medium text-white">
-                                {(
+                                {Math.floor(
                                   (editingGrade.price - editingGrade.discount) *
                                   usdRate!
                                 ).toLocaleString("fa-IR")}{" "}
@@ -291,9 +291,9 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                         </span>
                         <span className="text-gray-400">/</span>
                         <span className="font-medium text-white">
-                          {isValidRate
-                            ? (grade.Price * usdRate!).toLocaleString("fa-IR") + " تومان"
-                            : "خطا در دریافت نرخ ارز"}
+{isValidRate
+                                ? Math.floor(grade.discount * usdRate!).toLocaleString("fa-IR") + " تومان"
+                                : "خطا در دریافت نرخ ارz"}
                         </span>
                       </div>
                     </div>
@@ -326,9 +326,9 @@ const GradeList = ({ productId, refetchProducts }: Props) => {
                             <span className="text-gray-400">/</span>
                             <span className="font-medium text-white">
                               {isValidRate
-                                ? ((grade.Price - grade.discount) * usdRate!).toLocaleString(
-                                    "fa-IR"
-                                  ) + " تومان"
+                                ? Math.floor(
+                                    (grade.Price - grade.discount) * usdRate!
+                                  ).toLocaleString("fa-IR") + " تومان"
                                 : "خطا در دریافت نرخ ارز"}
                             </span>
                           </div>
