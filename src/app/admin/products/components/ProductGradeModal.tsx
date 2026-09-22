@@ -133,7 +133,7 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
                       </span>
                       <span className="text-gray-400">/</span>
                       <span className="font-medium text-white">
-                        {(Number(product.Discount) * usdRate!).toLocaleString("fa-IR")} تومان
+                        {Math.floor(Number(product.Discount) * usdRate!).toLocaleString("fa-IR")} تومان
                       </span>
                     </div>
                   </div>
