@@ -277,17 +277,17 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
               ) : product.Discount && +product.Discount > 0 ? (
                 <div className="flex flex-col items-center gap-1 text-lg">
                   <span className="font-light text-gray-500 line-through">
-                    {(+product.Price * (usdRate as number)).toLocaleString("fa-IR") + " تومان"}
+                    {Math.floor(+product.Price * (usdRate as number)).toLocaleString("fa-IR") + " تومان"}
                   </span>
                   <span className="font-semibold">
-                    {((+product.Price - +product.Discount) * (usdRate as number)).toLocaleString(
+                    {Math.floor((+product.Price - +product.Discount) * (usdRate as number)).toLocaleString(
                       "fa-IR"
                     ) + " تومان"}
                   </span>
                 </div>
               ) : (
                 <span className="text-lg font-semibold text-white">
-                  {(+product.Price * (usdRate as number)).toLocaleString("fa-IR") + " تومان"}
+                  {Math.floor(+product.Price * (usdRate as number)).toLocaleString("fa-IR") + " Томان"}
                 </span>
               )}
             </div>
