@@ -391,7 +391,7 @@ const ProductsTable = ({
                         قیمت دلار:{" "}
                         {isValidRate ? (
                           <span className="font-normal">
-                            {usdRate?.toLocaleString("fa-IR")} تومان
+                            {Math.floor(usdRate!).toLocaleString("fa-IR")} تومان
                           </span>
                         ) : (
                           <span className="font-normal text-yellow-300">خطا در دریافت نرخ ارز</span>
@@ -406,17 +406,17 @@ const ProductsTable = ({
                       ) : product.Discount && +product.Discount > 0 ? (
                         <div className="flex flex-col items-center">
                           <span className="text-red-400 line-through">
-                            {(+product.Price * usdRate!).toLocaleString("fa-IR") + " تومان"}
+                            {Math.floor(+product.Price * usdRate!).toLocaleString("fa-IR") + " تومان"}
                           </span>
                           <span className="font-semibold text-green-400">
-                            {((+product.Price - +product.Discount) * usdRate!).toLocaleString(
+                            {Math.floor((+product.Price - +product.Discount) * usdRate!).toLocaleString(
                               "fa-IR"
                             ) + " تومان"}
                           </span>
                         </div>
                       ) : (
                         <span className="text-white">
-                          {(+product.Price * usdRate!).toLocaleString("fa-IR") + " تومان"}
+                          {Math.floor(+product.Price * usdRate!).toLocaleString("fa-IR") + " تومان"}
                         </span>
                       )}
                     </td>
