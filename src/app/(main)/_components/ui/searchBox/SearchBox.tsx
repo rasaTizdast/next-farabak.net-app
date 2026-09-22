@@ -30,7 +30,7 @@ const formatPriceWithRate = (price: number, exchangeRate: number | null): string
     return "برای دریافت قیمت تماس بگیرید";
   }
   const updatedPrice = price * exchangeRate;
-  return updatedPrice.toLocaleString("fa-IR") + " تومان";
+  return Math.floor(updatedPrice).toLocaleString("fa-IR") + " تومان";
 };
 
 // Types for the product and the API response
