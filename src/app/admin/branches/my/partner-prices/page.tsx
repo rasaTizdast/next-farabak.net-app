@@ -79,7 +79,7 @@ export default function BranchPartnerPricesPage() {
 
   const formatRial = (usd: number) => {
     if (!usdRate) return "-";
-    return (usd * usdRate).toLocaleString("fa-IR") + " تومان";
+    return Math.floor(usd * usdRate).toLocaleString("fa-IR") + " تومان";
   };
 
   const filtered = (() => {
@@ -224,15 +224,15 @@ export default function BranchPartnerPricesPage() {
                         const discountedUsd = Math.max(price - discount, 0);
                         return (
                           <div className="flex flex-col items-center gap-0.5">
-                            <span className="text-red-300 line-through">
-                              {formatRial(price) === "-"
-                                ? `${price.toLocaleString("fa-IR")} دلار`
-                                : formatRial(price)}
+<span className="text-red-300 line-through">
+                               {formatRial(price) === "-"
+                                 ? `${Math.floor(price * usdRate).toLocaleString("fa-IR")} دلار`
+                                 : formatRial(price)}
                             </span>
-                            <span className="font-semibold text-green-400">
-                              {formatRial(discountedUsd) === "-"
-                                ? `${discountedUsd.toLocaleString("fa-IR")} دلار`
-                                : formatRial(discountedUsd)}
+<span className="font-semibold text-green-400">
+                               {formatRial(discountedUsd) === "-"
+                                 ? `${Math.floor(discountedUsd * usdRate).toLocaleString("fa-IR")} دلار`
+                                 : formatRial(discountedUsd)}
                             </span>
                           </div>
                         );
