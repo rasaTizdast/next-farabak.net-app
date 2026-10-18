@@ -54,7 +54,6 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
 
     if (fetchedSpecs) {
       specsInitGuard.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable specs state from fetched data once, guarded by ref.
       setInternalSpecs({
         isChanged: false,
         data: fetchedSpecs.map((s: SpecApiResponse) => ({
@@ -103,12 +102,12 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
     e.preventDefault();
     e.stopPropagation();
 
-    if (!internalSpecs) return;
+    const base: SpecsInternal = internalSpecs ?? { isChanged: false, data: [] };
 
     const updated: SpecsInternal = {
       isChanged: true,
       data: [
-        ...internalSpecs.data,
+        ...base.data,
         {
           ProductSpecsId: 0,
           Title: "",
@@ -142,7 +141,7 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
 
   // Handle template selection
   const handleTemplateSelect = (templateSpecs: { title: string; description: string }[]) => {
-    if (!internalSpecs) return;
+    const base: SpecsInternal = internalSpecs ?? { isChanged: false, data: [] };
 
     const formattedTemplateSpecs = templateSpecs.map((item) => ({
       ProductSpecsId: 0,
@@ -152,7 +151,7 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
 
     const updated: SpecsInternal = {
       isChanged: true,
-      data: [...internalSpecs.data, ...formattedTemplateSpecs],
+      data: [...base.data, ...formattedTemplateSpecs],
     };
     setInternalSpecs(updated);
     syncToParent(updated);

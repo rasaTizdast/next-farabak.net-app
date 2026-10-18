@@ -77,10 +77,18 @@ const ProductTable: React.FC<ProductTableProps> = ({
             }
           }}
           onBlur={() => {
-            // Update immediately on blur
+            // Update immediately on blur (guarded: only if a value was actually typed)
             if (timersRef.current[record.ProductId]) {
               clearTimeout(timersRef.current[record.ProductId]);
-              onUpdateQuantity(record.ProductId, debouncedValues[record.ProductId]);
+              const pending = debouncedValues[record.ProductId];
+              if (pending !== undefined) {
+                onUpdateQuantity(record.ProductId, pending);
+                setDebouncedValues((prev) => {
+                  const next = { ...prev };
+                  delete next[record.ProductId];
+                  return next;
+                });
+              }
             }
           }}
           className="dark-input-number w-20"

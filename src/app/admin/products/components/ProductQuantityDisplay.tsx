@@ -80,7 +80,7 @@ export default function ProductQuantityDisplay({
           />
         )
       }
-      overlayClassName="product-quantity-tooltip"
+      classNames={{ root: "product-quantity-tooltip" }}
       onOpenChange={(visible) => {
         if (visible && onHover) {
           onHover();

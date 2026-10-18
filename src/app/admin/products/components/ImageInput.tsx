@@ -10,6 +10,11 @@ interface ImageInputProps {
 const ImageInput: React.FC<ImageInputProps> = ({ label, imageUrl, onChange }) => {
   const [preview, setPreview] = useState(() => imageUrl);
 
+  // Show the current image if the product's image changes (e.g. switching products)
+  useEffect(() => {
+    setPreview(imageUrl);
+  }, [imageUrl]);
+
   useEffect(() => {
     return () => {
       if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
@@ -19,6 +24,7 @@ const ImageInput: React.FC<ImageInputProps> = ({ label, imageUrl, onChange }) =>
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if (!file.type.startsWith("image/")) return;
       setPreview(URL.createObjectURL(file)); // Preview the new image
       onChange(file); // Call the onChange callback
     }
