@@ -83,6 +83,48 @@ describe("GET /api/exchangeRate", () => {
     expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 
+  it("falls back to priceto.day when BRS returns zero prices", async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ currency: [{ symbol: "USD", price: 0 }] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, price: 2638000, time: "2026-10-17T11:46:23.000Z" }),
+      });
+
+    vi.setSystemTime(new Date("2026-10-17T12:00:00Z"));
+    const res = await (globalThis as any).__exchangeRateGET();
+    expect(res.status).toBe(200);
+
+    const json = await res.json();
+    // priceto.day prices are in rial and must be converted to toman
+    expect(json.rate).toBe(263800);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("falls back to the last provider when earlier providers fail", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: false, statusText: "Bad Gateway" })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: false }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ rates: { dollar: 263500 } }),
+      });
+
+    vi.setSystemTime(new Date("2026-10-17T12:00:00Z"));
+    const res = await (globalThis as any).__exchangeRateGET();
+    expect(res.status).toBe(200);
+
+    const json = await res.json();
+    expect(json.rate).toBe(263500);
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
+
   it("returns 500 when API response is not ok", async () => {
     mockFetch.mockResolvedValue({
       ok: false,

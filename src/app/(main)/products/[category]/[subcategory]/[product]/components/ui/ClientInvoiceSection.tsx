@@ -1,8 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { FaRegTrashAlt, FaInfoCircle, FaArrowUp, FaArrowDown, FaCheckCircle } from "react-icons/fa";
+import { useCallback, useEffect, useState } from "react";
+import {
+  FaRegTrashAlt,
+  FaInfoCircle,
+  FaArrowUp,
+  FaArrowDown,
+  FaCheckCircle,
+  FaRedo,
+} from "react-icons/fa";
 
 import { useInvoice } from "@/context/InvoiceContext";
 import { useUser } from "@/context/UserContext";
@@ -10,6 +17,9 @@ import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 
 // Convert English digits to Persian digits
 const e2p = (s: string): string => s.replace(/\d/g, (d: string) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d)]);
+
+const MAX_RATE_ATTEMPTS = 3;
+const RATE_RETRY_BASE_DELAY_MS = 1200;
 
 interface Props {
   ProductId: number;
@@ -36,20 +46,28 @@ const ClientInvoiceSection = ({
   } = useInvoice();
   const { user, loading, isAdmin, isBranch } = useUser();
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
-  const [isFetchingRate, setIsFetchingRate] = useState(true);
+  const [rateStatus, setRateStatus] = useState<"loading" | "ready" | "error">("loading");
+
+  const loadExchangeRate = useCallback(async () => {
+    setRateStatus("loading");
+    for (let attempt = 1; attempt <= MAX_RATE_ATTEMPTS; attempt++) {
+      const rate = await fetchUsdToRialRate();
+      if (rate && Number.isFinite(rate) && rate > 0) {
+        setExchangeRate(rate);
+        setRateStatus("ready");
+        return;
+      }
+      if (attempt < MAX_RATE_ATTEMPTS) {
+        await new Promise((resolve) => setTimeout(resolve, RATE_RETRY_BASE_DELAY_MS * attempt));
+      }
+    }
+    setExchangeRate(null);
+    setRateStatus("error");
+  }, []);
 
   useEffect(() => {
-    const getExchangeRate = async () => {
-      setIsFetchingRate(true);
-      try {
-        const rate = await fetchUsdToRialRate();
-        setExchangeRate(rate);
-      } finally {
-        setIsFetchingRate(false);
-      }
-    };
-    getExchangeRate();
-  }, []);
+    loadExchangeRate();
+  }, [loadExchangeRate]);
 
   // Get the current quantity of the product in the invoice
   const currentQuantity = getProductQuantity(ProductId);
@@ -58,9 +76,10 @@ const ClientInvoiceSection = ({
   const priceUsd = productPrice ? parseFloat(productPrice.replace(/,/g, "")) : 0;
   const discountUsd = productDiscount ? parseFloat(productDiscount.replace(/,/g, "")) : 0;
 
-  // Convert USD to Rial
-  const priceInRial = exchangeRate ? priceUsd * exchangeRate : null;
-  const discountInRial = exchangeRate && discountUsd > 0 ? discountUsd * exchangeRate : 0;
+  // Convert USD to Toman — floored so prices never show decimals
+  const priceInRial = exchangeRate ? Math.floor(priceUsd * exchangeRate) : null;
+  const discountInRial =
+    exchangeRate && discountUsd > 0 ? Math.floor(discountUsd * exchangeRate) : 0;
 
   // Calculate final price - if no discount, use original price
   const finalPrice = priceInRial && discountInRial > 0 ? priceInRial - discountInRial : priceInRial;
@@ -109,14 +128,12 @@ const ClientInvoiceSection = ({
     );
   };
 
-  // Handle cases where the product price is not available or fetching the exchange rate fails
-  if (!productPrice || +productPrice === 0 || exchangeRate === null) {
+  // Product has no price — it cannot be invoiced through the site at all
+  if (!productPrice || +productPrice === 0) {
     return (
       <div className="my-6 flex w-full flex-col items-center justify-center gap-5 rounded-lg bg-blue-100 p-3 text-center">
         <p className="text-lg font-bold text-blue-950">
-          {exchangeRate === null
-            ? "درحال دریافت نرخ تبدیل دلار به تومان..."
-            : "این محصول امکان ثبت فاکتور از طریق سایت ندارد، لطفا با بخش فروش تماس بگیرید."}
+          این محصول امکان ثبت فاکتور از طریق سایت ندارد، لطفا با بخش فروش تماس بگیرید.
         </p>
         <Link
           href="tel:02177500008"
@@ -128,8 +145,44 @@ const ClientInvoiceSection = ({
     );
   }
 
-  // Render loading state
-  if (loading || isFetchingRate) {
+  // Exchange rate is still being fetched (after client-side retries)
+  if (rateStatus === "loading") {
+    return (
+      <div className="my-6 flex w-full animate-pulse flex-col items-center justify-center gap-2 rounded-lg bg-blue-100 p-3 text-center">
+        <p className="text-lg font-bold text-blue-950">قیمت‌ها در حال بروزرسانی هستند...</p>
+      </div>
+    );
+  }
+
+  // Exchange rate could not be retrieved after multiple attempts
+  if (rateStatus === "error" || exchangeRate === null) {
+    return (
+      <div className="my-6 flex w-full flex-col items-center justify-center gap-4 rounded-lg bg-amber-50 p-3 text-center">
+        <p className="text-lg font-bold text-amber-900">
+          دریافت قیمت‌ها با مشکل مواجه شد. لطفا دوباره تلاش کنید.
+        </p>
+        <div className="flex flex-col items-center gap-3 sm:flex-row">
+          <button
+            type="button"
+            onClick={loadExchangeRate}
+            className="animate-fade-in flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-base text-white transition-colors hover:bg-blue-700 md:text-lg"
+          >
+            <FaRedo className="text-sm" />
+            <span>تلاش مجدد</span>
+          </button>
+          <Link
+            href="tel:02177500008"
+            className="animate-fade-in rounded-lg bg-blue-600 px-4 py-2 text-base text-white transition-colors hover:bg-blue-700 md:text-lg"
+          >
+            تماس با بخش فروش
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Render user context loading state
+  if (loading) {
     return (
       <div className="mt-6 flex w-full animate-pulse justify-center rounded-lg bg-gray-200 p-2 text-sm text-slate-800 sm:mt-0 md:text-base">
         درحال بارگذاری...
