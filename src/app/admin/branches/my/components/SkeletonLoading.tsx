@@ -2,7 +2,7 @@ import { Skeleton } from "antd";
 
 export default function SkeletonLoading() {
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Branch details skeleton */}
       <div className="mb-6 rounded-lg bg-gray-800 p-4 shadow-md">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

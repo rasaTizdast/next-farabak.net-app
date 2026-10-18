@@ -85,7 +85,7 @@ export default function ProductTab({
               locale={{
                 emptyText: (
                   <Empty
-                    description="هیچ محصولی برای این شعبه یافت نشد"
+                    description="محصولی یافت نشد"
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                     className="text-gray-400"
                   />

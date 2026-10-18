@@ -143,7 +143,7 @@ const SettingsPage = () => {
   return (
     <div>
       <Toaster position="bottom-center" />
-      <div className="flex w-full max-w-[1800px] flex-col items-center overflow-auto rounded-lg bg-gray-800 p-6 text-gray-100">
+      <div className="flex w-full flex-col overflow-auto rounded-lg bg-gray-800 p-4 text-gray-100 sm:p-6">
         <div className="w-full">
           <h1 className="mb-6 text-2xl font-bold">تنظیمات</h1>
 
@@ -181,7 +181,7 @@ const SettingsPage = () => {
                   type="button"
                   onClick={handlePasswordChange}
                   disabled={changingPassword}
-                  className="rounded-lg bg-green-500 p-2 text-white transition-colors hover:bg-green-600 disabled:bg-green-300"
+                  className="rounded-lg bg-green-600 p-2 text-white transition-colors hover:bg-green-700 disabled:bg-green-800 disabled:text-gray-300"
                 >
                   {changingPassword ? "در حال تغییر رمز عبور..." : "تغییر رمز عبور"}
                 </button>
@@ -208,7 +208,7 @@ const SettingsPage = () => {
                   type="button"
                   onClick={handleSearch}
                   disabled={loading}
-                  className="rounded-lg bg-blue-500 p-2 text-white transition-colors hover:bg-blue-600 disabled:bg-blue-300"
+                  className="rounded-lg bg-blue-600 p-2 text-white transition-colors hover:bg-blue-700 disabled:bg-blue-800 disabled:text-gray-300"
                 >
                   {loading ? "در حال جستجو..." : "جستجو"}
                 </button>
@@ -217,7 +217,7 @@ const SettingsPage = () => {
               {/* Search Results */}
               {searchResults.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="text-md mb-2 font-semibold">نتایج جستجو:</h3>
+                  <h3 className="mb-2 text-base font-semibold">نتایج جستجو:</h3>
                   <ul className="space-y-2">
                     {searchResults.map((user) => (
                       <li
@@ -246,7 +246,7 @@ const SettingsPage = () => {
                       type="button"
                       onClick={handleMakeAdmin}
                       disabled={loading}
-                      className="mt-4 w-full rounded-lg bg-green-500 p-2 text-white transition-colors hover:bg-green-600 disabled:bg-green-300"
+                      className="mt-4 w-full rounded-lg bg-green-600 p-2 text-white transition-colors hover:bg-green-700 disabled:bg-green-800 disabled:text-gray-300"
                     >
                       {loading ? "در حال پردازش..." : "تبدیل به ادمین"}
                     </button>
@@ -260,7 +260,7 @@ const SettingsPage = () => {
               <h2 className="mb-4 text-lg font-semibold">لیست ادمین‌ها</h2>
 
               {admins.length === 0 ? (
-                <p className="text-right text-gray-400">هیچ ادمینی یافت نشد.</p>
+                <p className="text-right text-gray-300">هیچ ادمینی یافت نشد.</p>
               ) : (
                 <ul className="space-y-2">
                   {admins.map((admin) => (
@@ -272,13 +272,13 @@ const SettingsPage = () => {
                         <p>
                           {admin.FirstName} {admin.LastName}
                         </p>
-                        <p className="text-sm text-gray-400">{admin.PhoneNumber}</p>
+                        <p className="text-sm text-gray-300">{admin.PhoneNumber}</p>
                       </div>
                       <button
                         type="button"
                         onClick={() => handleDemoteAdmin(admin.UserID)}
                         disabled={loading}
-                        className="rounded-lg bg-red-500 p-2 text-white transition-colors hover:bg-red-600 disabled:bg-red-300"
+                        className="rounded-lg bg-red-600 p-2 text-white transition-colors hover:bg-red-700 disabled:bg-red-800 disabled:text-gray-300"
                       >
                         {loading ? "در حال پردازش..." : "تبدیل به کاربر عادی"}
                       </button>

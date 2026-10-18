@@ -1,5 +1,6 @@
 "use client";
 
+import { message } from "antd";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
@@ -146,7 +147,7 @@ async function doUpdateGrade(
     );
   } catch (e) {
     console.error("Error updating grade:", e);
-    alert((e as any)?.response?.data?.error || "خطا در بروزرسانی گرید محصول");
+    message.error((e as any)?.response?.data?.error || "خطا در بروزرسانی گرید محصول");
   } finally {
     setActionLoading((prev) => ({
       ...prev,
@@ -246,7 +247,7 @@ export default function ProductsModal({
       );
       refreshWarehouses();
     } else {
-      alert("خطا در حذف محصول از انبار");
+      message.error("خطا در حذف محصول از انبار");
     }
     setActionLoading((prev) => ({
       ...prev,
@@ -377,7 +378,7 @@ export default function ProductsModal({
                 setAddGradeId("");
                 refreshWarehouses();
               } else {
-                alert("خطا در افزودن محصول به انبار");
+                message.error("خطا در افزودن محصول به انبار");
               }
             }}
           >
@@ -420,7 +421,7 @@ export default function ProductsModal({
                           );
                         } catch (error: unknown) {
                           const err = error as { response?: { data?: { error?: string } } };
-                          alert(err.response?.data?.error || "خطا در بروزرسانی گرید محصول");
+                          message.error(err.response?.data?.error || "خطا در بروزرسانی گرید محصول");
                         }
                       }}
                       disabled={isLoading || !grades.length}

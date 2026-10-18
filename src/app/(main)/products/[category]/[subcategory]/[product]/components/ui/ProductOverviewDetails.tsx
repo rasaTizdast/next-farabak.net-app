@@ -15,7 +15,7 @@ function Overview({
   img: string | null;
 }) {
   return (
-    <div className="flex w-full max-w-[calc(1900px-20rem)] flex-col items-center rounded-lg bg-[#141414] p-8 shadow-[0_4px_10px_rgba(0,0,0,0.1)] max-[576px]:px-4 max-[400px]:px-2 max-[400px]:py-[0.8rem]">
+    <div className="flex w-full max-w-[calc(1900px-20rem)] flex-col items-center rounded-lg bg-[#141414] p-12 shadow-[0_4px_10px_rgba(0,0,0,0.1)] max-[576px]:p-8 max-[400px]:px-6">
       <div className="mb-10 flex flex-col items-center gap-[1.3rem] text-white">
         {title && (
           <h3 className="mb-4 text-center text-[1.7rem] font-black max-[768px]:text-[1.3rem] max-[400px]:mb-2 max-[400px]:text-[1.1rem]">
@@ -51,7 +51,7 @@ export default async function ProductOverviewDetails({ productId }: { productId:
 
   if (productDetails.length === 0) {
     return (
-      <p className="flex w-full max-w-[calc(1900px-20rem)] flex-col items-center rounded-lg bg-[#141414] p-8 text-center text-white shadow-[0_4px_10px_rgba(0,0,0,0.1)] max-[576px]:px-4 max-[400px]:px-2 max-[400px]:py-[0.8rem]">
+      <p className="flex w-full max-w-[calc(1900px-20rem)] flex-col items-center rounded-lg bg-[#141414] p-12 text-center text-white shadow-[0_4px_10px_rgba(0,0,0,0.1)] max-[576px]:p-8 max-[400px]:px-6">
         اطلاعاتی یافت نشد / این محصول توضیحات ندارد
       </p>
     );
@@ -60,12 +60,12 @@ export default async function ProductOverviewDetails({ productId }: { productId:
   return (
     <div className="flex flex-col items-center gap-8">
       {productDetails.map((detail: ProductOverviewDetailItem) => (
-        <div
+        <Overview
           key={detail.ProductOverviewDetailsId}
-          className="flex w-full max-w-[calc(1900px-20rem)] flex-col items-center rounded-lg bg-[#141414] p-8 shadow-[0_4px_10px_rgba(0,0,0,0.1)] max-[576px]:px-4 max-[400px]:px-2 max-[400px]:py-[0.8rem]"
-        >
-          <Overview title={detail.Title} description={detail.Description} img={detail.Img} />
-        </div>
+          title={detail.Title}
+          description={detail.Description}
+          img={detail.Img}
+        />
       ))}
     </div>
   );

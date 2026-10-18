@@ -29,7 +29,7 @@ export default async function ProductFeatures({ productId }: { productId: number
   }
 
   return (
-    <ul className="my-4 me-8 list-[circle] self-stretch text-[1rem] font-light max-[950px]:w-1/2 max-[640px]:me-6 max-[640px]:gap-x-8 max-[640px]:gap-y-4 max-[640px]:text-[0.9rem] max-[576px]:my-0 max-[576px]:w-full max-[550px]:me-4">
+    <ul className="my-4 ms-3 me-8 list-[circle] self-stretch text-[1rem] font-light max-[950px]:w-1/2 max-[640px]:me-6 max-[640px]:gap-x-8 max-[640px]:gap-y-4 max-[640px]:text-[0.9rem] max-[576px]:my-0 max-[576px]:w-full max-[550px]:me-4">
       {properties.map((property) => (
         <li
           key={property}

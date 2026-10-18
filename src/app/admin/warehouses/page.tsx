@@ -338,7 +338,7 @@ function WarehousesPageContent() {
           </div>
         )}
         {(!selectedProduct || searchQuery.trim()) && (
-          <div className="mt-2 text-sm text-gray-400">{total} انبار gefunden</div>
+          <div className="mt-2 text-sm text-gray-400">{total} انبار یافت شد</div>
         )}
       </div>
 
