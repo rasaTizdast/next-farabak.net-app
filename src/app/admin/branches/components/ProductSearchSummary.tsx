@@ -12,7 +12,6 @@ interface ProductSearchSummaryProps {
   productId: number;
   branches: Branch[];
   clearSearch: () => void;
-  totalBranchCount?: number;
 }
 
 const ProductSearchSummary: React.FC<ProductSearchSummaryProps> = ({
@@ -20,20 +19,23 @@ const ProductSearchSummary: React.FC<ProductSearchSummaryProps> = ({
   productId,
   branches,
   clearSearch,
-  totalBranchCount = 0,
 }) => {
-  // Calculate total quantity across all branches
+  // NOTE: `branches` only holds the current page, so these numbers describe the
+  // visible page — not the whole system. Labels say so explicitly; global
+  // aggregates must come from the server if they are ever needed.
+  // Calculate total quantity on the visible page
   const totalQuantity = branches.reduce((sum, branch) => {
     return sum + (branch.specificProductQuantity || 0);
   }, 0);
 
-  // Count branches with this product
+  // Count branches with this product on the visible page
   const branchesWithProduct = branches.filter(
     (branch) => (branch.specificProductQuantity || 0) > 0
   ).length;
 
-  // Calculate branches without this product
-  const branchesWithoutProduct = totalBranchCount - branchesWithProduct;
+  // Branches without this product cannot be derived reliably here (page-scoped
+  // data vs. the global total), so this card is intentionally omitted to avoid
+  // showing a wrong number.
 
   return (
     <Card
@@ -74,26 +76,21 @@ const ProductSearchSummary: React.FC<ProductSearchSummaryProps> = ({
             </Tag>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="rounded-lg border border-blue-900/50 bg-blue-900/20 p-3">
               <div className="mb-1 text-center text-xl font-bold text-blue-400">
                 {totalQuantity}
               </div>
-              <div className="text-center text-sm text-gray-300">تعداد کل موجود در همه شعبه‌ها</div>
+              <div className="text-center text-sm text-gray-300">تعداد موجود در این صفحه</div>
             </div>
 
             <div className="rounded-lg border border-indigo-900/50 bg-indigo-900/20 p-3">
               <div className="mb-1 text-center text-xl font-bold text-indigo-400">
                 {branchesWithProduct}
               </div>
-              <div className="text-center text-sm text-gray-300">شعبه‌های دارای این محصول</div>
-            </div>
-
-            <div className="rounded-lg border border-purple-900/50 bg-purple-900/20 p-3">
-              <div className="mb-1 text-center text-xl font-bold text-purple-400">
-                {branchesWithoutProduct}
+              <div className="text-center text-sm text-gray-300">
+                شعبه‌های دارای این محصول (در این صفحه)
               </div>
-              <div className="text-center text-sm text-gray-300">شعبه‌های بدون این محصول</div>
             </div>
           </div>
 
@@ -112,7 +109,7 @@ const ProductSearchSummary: React.FC<ProductSearchSummaryProps> = ({
               <EnvironmentOutlined className="mt-1 ml-2 text-green-400" />
               <div className="flex-1">
                 <div className="mb-2 font-medium text-gray-200">
-                  محصول در شعبه‌های زیر موجود است:
+                  محصول در شعبه‌های زیر (در این صفحه) موجود است:
                 </div>
                 <div className="mt-1 flex flex-wrap gap-2">
                   {branches

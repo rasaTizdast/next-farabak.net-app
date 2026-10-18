@@ -15,7 +15,6 @@ interface BranchListProps {
   pagination: TablePaginationConfig;
   searchValue: string;
   searchProductId: number | null;
-  totalBranchCount: number;
   allProducts: Product[];
   onSearchValueChange: (value: string) => void;
   onSearch: (value: string) => void;
@@ -71,7 +70,6 @@ const BranchList: React.FC<BranchListProps> = ({
   pagination,
   searchValue,
   searchProductId,
-  totalBranchCount,
   allProducts,
   onSearchValueChange,
   onSearch,
@@ -165,7 +163,6 @@ const BranchList: React.FC<BranchListProps> = ({
           productId={searchProductId}
           branches={branches}
           clearSearch={onClearSearch}
-          totalBranchCount={totalBranchCount}
         />
       )}
 

@@ -115,7 +115,6 @@ function BranchesPageContent() {
         }}
         searchValue={crud.searchValue}
         searchProductId={crud.searchProductId}
-        totalBranchCount={crud.totalBranchCount}
         allProducts={assignment.allProducts}
         onSearchValueChange={crud.setSearchValue}
         onSearch={handleSearch}
