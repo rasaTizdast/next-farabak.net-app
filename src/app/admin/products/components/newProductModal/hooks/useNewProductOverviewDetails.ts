@@ -50,7 +50,6 @@ export function useNewProductOverviewDetails() {
           selected: false,
         })
       );
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable overview details state from fetched data.
       setOverviewDetails(data);
       actions.setOverviewDetails(data);
     }

@@ -1,3 +1,4 @@
+// Vitest config - uses bundler-compatible config loader
 import path from "path";
 
 import { defineConfig } from "vitest/config";

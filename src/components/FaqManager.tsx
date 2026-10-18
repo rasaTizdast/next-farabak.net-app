@@ -93,7 +93,6 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
   useEffect(() => {
     if (faqsData) {
       const items = faqsData.faqs || [];
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync local editable FAQs state from fetched data.
       setFaqs(items);
     }
   }, [faqsData]);

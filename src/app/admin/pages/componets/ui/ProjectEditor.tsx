@@ -43,7 +43,6 @@ function usePreviewUrls(files: (File | string)[]) {
   const [urls, setUrls] = useState<Map<File, string>>(new Map());
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- object-URL create/revoke lifecycle must stay in sync with the files array
     setUrls((prevUrls) => {
       const newUrls = new Map<File, string>();
       for (const file of files) {

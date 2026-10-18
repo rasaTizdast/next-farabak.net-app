@@ -532,7 +532,6 @@ async function checkMonitoringScripts() {
     );
   }
 
-  const ok = (hasGenerateLlms && generateLlmsExists && hasAiAudit && auditExists) || false;
   const allFilesPresent = generateLlmsExists && auditExists;
   const status = hasGenerateLlms && hasAiAudit && allFilesPresent ? "PASS" : "WARN";
   return {
