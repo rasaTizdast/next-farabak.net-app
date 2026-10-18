@@ -100,7 +100,6 @@ const EditModal: React.FC<EditModalProps> = ({
         else if (typeof sd.SEO_Keywords === "string") {
           k = parseSeoKeywords(sd.SEO_Keywords);
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize local editable SEO keywords state from the selected item once, guarded by ref.
         setSeoKeywords(k);
       }
       setTopBlog((item as any).TopBlog || "");
@@ -339,9 +338,9 @@ const EditModal: React.FC<EditModalProps> = ({
   };
 
   return (
-    <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black backdrop-blur-sm">
-      <div className="max-h-[95dvh] w-[60dvw] overflow-y-scroll rounded-lg bg-gray-800 p-6 pr-8 text-white shadow-lg">
-        <h3 className="mb-4 text-center text-xl">ویرایش</h3>
+    <EditModalPanel isOpen={isOpen} onClose={handleClose} title="ویرایش">
+      <div className="max-h-[95dvh] w-full max-w-[60dvw] overflow-y-scroll rounded-lg bg-gray-800 p-6 pr-8 text-white shadow-lg max-md:max-w-[calc(100vw-2rem)]">
+        <h2 className="mb-4 text-center text-xl">ویرایش</h2>
         {/* Name Field */}
         <div className="mb-4">
           <label htmlFor="edit-category-name" className="mb-2 block text-sm">
@@ -566,8 +565,53 @@ const EditModal: React.FC<EditModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </EditModalPanel>
   );
 };
+
+function EditModalPanel({
+  isOpen,
+  onClose,
+  title,
+  children,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+}) {
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    panelRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        tabIndex={-1}
+        className="flex w-full items-center justify-center px-4 focus:outline-none sm:px-0"
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export default EditModal;

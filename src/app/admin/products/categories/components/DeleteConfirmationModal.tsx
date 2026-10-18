@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useId, useRef } from "react";
 
 import { Category, Subcategory } from "../types/types";
 
@@ -22,13 +22,63 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   if (!isOpen || !item) return null;
 
   return (
+    <DeleteConfirmationPanel
+      item={item}
+      onDeleteConfirm={onDeleteConfirm}
+      onClose={onClose}
+      confirmationText={confirmationText}
+      setConfirmationText={setConfirmationText}
+    />
+  );
+};
+
+const DeleteConfirmationPanel: React.FC<Omit<DeleteConfirmationModalProps, "isOpen">> = ({
+  item,
+  onDeleteConfirm,
+  onClose,
+  confirmationText,
+  setConfirmationText,
+}) => {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  const inputId = useId();
+
+  useEffect(() => {
+    panelRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  if (!item) return null;
+
+  return (
     <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black backdrop-blur-sm">
-      <div className="w-96 rounded-xl bg-gray-800 p-6 text-white">
-        <h2 className="text-center text-lg font-semibold">حذف {item.Name} را تأیید کنید</h2>
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="w-[calc(100%-2rem)] max-w-96 rounded-xl bg-gray-800 p-6 text-white focus:outline-none"
+      >
+        <h2 id={titleId} className="text-center text-lg font-semibold">
+          حذف {item.Name} را تأیید کنید
+        </h2>
         <p className="mt-4 text-center">
           برای حذف {item.Name} و تمام محصولات مرتبط، لطفاً نام آن را وارد کنید:
         </p>
+        <label htmlFor={inputId} className="sr-only">
+          نام {item.Name} را برای تأیید حذف وارد کنید
+        </label>
         <input
+          id={inputId}
           type="text"
           value={confirmationText}
           onChange={(e) => setConfirmationText(e.target.value)}

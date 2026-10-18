@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 import { Overview, OverviewDetail, Product, Specs } from "../types";
 import NewOverviewDetailsModal from "./NewOverviewDetailsModal";
@@ -48,6 +49,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const [overviewDetails, setOverviewDetails] = useState<OverviewDetail[] | null>(null);
   const [specs, setSpecs] = useState<Specs | null>(null);
   const [faqs, setFaqs] = useState<FAQItem[]>([]);
+
+  const panelRef = useModalA11y<HTMLDivElement>({ onClose });
 
   const { data: categoriesData, error: categoriesError } =
     useApiFetch<Category[]>("/api/categories/getAll");
@@ -222,9 +225,23 @@ const ProductForm: React.FC<ProductFormProps> = ({
       {showNewOverviewDetailsModal && (
         <NewOverviewDetailsModal onClose={() => setShowNewOverviewDetailsModal(false)} />
       )}
-      <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black shadow-lg backdrop-blur-sm">
-        <div className="max-h-[95dvh] w-full max-w-6xl overflow-auto rounded-lg bg-gray-800 p-6 text-white shadow-lg">
-          <h2 className="mb-10 text-center text-xl font-bold">ویرایش محصول</h2>
+      <div
+        className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black shadow-lg backdrop-blur-sm"
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="edit-product-title"
+          tabIndex={-1}
+          className="max-h-[95dvh] w-full max-w-6xl overflow-auto rounded-lg bg-gray-800 p-6 text-white shadow-lg focus:outline-none"
+        >
+          <h2 id="edit-product-title" className="mb-10 text-center text-xl font-bold">
+            ویرایش محصول
+          </h2>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <ProductBasicsSection formState={formState} onChange={handleInputChange} />
             <ProductCategorySection

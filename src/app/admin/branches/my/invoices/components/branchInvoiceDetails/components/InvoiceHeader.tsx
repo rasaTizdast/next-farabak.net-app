@@ -19,7 +19,10 @@ export function InvoiceHeader() {
         height={130}
         className="logo mx-auto mt-4 mb-5 hidden items-center justify-center print:flex"
       />
-      <h2 className="text-center text-xl font-bold text-white sm:text-2xl">
+      <h2
+        id="branch-invoice-details-title"
+        className="text-center text-xl font-bold text-white sm:text-2xl"
+      >
         جزئیات فاکتور
         <br />
         {invoice.FactorGuid}

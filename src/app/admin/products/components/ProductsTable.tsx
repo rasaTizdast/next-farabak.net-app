@@ -2,7 +2,7 @@
 
 import axios from "axios";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect, useId } from "react";
 import { FaExternalLinkAlt, FaSort, FaSortUp, FaSortDown, FaTimes } from "react-icons/fa";
 import { IoQrCode } from "react-icons/io5";
 
@@ -88,30 +88,96 @@ const SortableHeader = ({
   sortKey: SortKey;
   sortConfig: SortConfig;
   onSort: (key: SortKey) => void;
-}) => (
-  <th
-    scope="col"
-    className="cursor-pointer px-6 py-3 select-none"
-    onClick={() => onSort(sortKey)}
-    onKeyDown={(e) => {
-      if (e.key === "Enter" || e.key === " ") onSort(sortKey);
-    }}
-    tabIndex={0}
-  >
-    <div className="flex items-center justify-center gap-2">
-      {children}
-      {sortConfig.key === sortKey ? (
-        sortConfig.direction === "ascending" ? (
-          <FaSortUp aria-label="رتبة صعودي" />
+}) => {
+  const sortDirection =
+    sortConfig.key === sortKey
+      ? sortConfig.direction === "ascending"
+        ? "ascending"
+        : "descending"
+      : "none";
+
+  return (
+    <th
+      scope="col"
+      aria-sort={sortDirection}
+      className="cursor-pointer px-6 py-3 select-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+      onClick={() => onSort(sortKey)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") onSort(sortKey);
+      }}
+      tabIndex={0}
+    >
+      <div className="flex items-center justify-center gap-2">
+        {children}
+        {sortConfig.key === sortKey ? (
+          sortConfig.direction === "ascending" ? (
+            <FaSortUp aria-hidden="true" />
+          ) : (
+            <FaSortDown aria-hidden="true" />
+          )
         ) : (
-          <FaSortDown aria-label="رتبة نزولي" />
-        )
-      ) : (
-        <FaSort className="text-gray-400" aria-label="رتبة" />
-      )}
+          <FaSort aria-hidden="true" className="text-gray-400" />
+        )}
+      </div>
+    </th>
+  );
+};
+
+const SubCategoriesPanel = ({
+  onClose,
+  name,
+  subCategories,
+}: {
+  onClose: () => void;
+  name: string;
+  subCategories: string[];
+}) => {
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    panelRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  const labelledById = useId();
+
+  return (
+    <div
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={labelledById}
+      tabIndex={-1}
+      className="w-11/12 max-w-lg rounded-lg bg-gray-700 p-6 text-white focus:outline-none"
+    >
+      <h3 id={labelledById} className="mb-4 text-xl font-semibold">
+        زیر دسته‌بندی‌های محصول: {name}
+      </h3>
+      <ul className="space-y-2">
+        {subCategories.map((subCategory) => (
+          <li key={subCategory} className="rounded-lg bg-gray-800 p-2 text-white">
+            {subCategory}
+          </li>
+        ))}
+      </ul>
+      <button
+        type="button"
+        onClick={onClose}
+        className="mt-8 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-800"
+      >
+        بستن
+      </button>
     </div>
-  </th>
-);
+  );
+};
 
 const ProductsTable = ({
   isLoading,
@@ -276,7 +342,7 @@ const ProductsTable = ({
 
   return (
     <>
-      <div className="w-full max-w-[1800px] overflow-x-auto rounded-xl">
+      <div className="w-full overflow-x-auto rounded-xl">
         {/* Sort reset bar */}
         {sortConfig.key !== null && (
           <div className="flex justify-end rounded-t-xl bg-blue-600 p-2">
@@ -316,7 +382,16 @@ const ProductsTable = ({
                   type="checkbox"
                   aria-label="انتخاب همه محصولات"
                   className="size-4 text-indigo-600 transition-colors duration-150 ease-in-out"
-                  checked={selectedProducts.length === sortedProducts.length}
+                  checked={
+                    sortedProducts.length > 0 && selectedProducts.length === sortedProducts.length
+                  }
+                  ref={(el) => {
+                    if (el) {
+                      el.indeterminate =
+                        selectedProducts.length > 0 &&
+                        selectedProducts.length < sortedProducts.length;
+                    }
+                  }}
                   onChange={handleSelectAll}
                   disabled={isLoading}
                 />
@@ -381,7 +456,7 @@ const ProductsTable = ({
                           مشاهده
                         </button>
                       ) : (
-                        <span>{product.CategoryContentIds?.[0]?.Name || "No Subcategories"}</span>
+                        <span>{product.CategoryContentIds?.[0]?.Name || "بدون زیردسته‌بندی"}</span>
                       )}
                     </td>
 
@@ -406,12 +481,13 @@ const ProductsTable = ({
                       ) : product.Discount && +product.Discount > 0 ? (
                         <div className="flex flex-col items-center">
                           <span className="text-red-400 line-through">
-                            {Math.floor(+product.Price * usdRate!).toLocaleString("fa-IR") + " تومان"}
+                            {Math.floor(+product.Price * usdRate!).toLocaleString("fa-IR") +
+                              " تومان"}
                           </span>
                           <span className="font-semibold text-green-400">
-                            {Math.floor((+product.Price - +product.Discount) * usdRate!).toLocaleString(
-                              "fa-IR"
-                            ) + " تومان"}
+                            {Math.floor(
+                              (+product.Price - +product.Discount) * usdRate!
+                            ).toLocaleString("fa-IR") + " تومان"}
                           </span>
                         </div>
                       ) : (
@@ -497,25 +573,11 @@ const ProductsTable = ({
         </table>
         {activeSubCategories && (
           <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm">
-            <div className="w-11/12 max-w-lg rounded-lg bg-gray-700 p-6 text-white">
-              <h3 className="mb-4 text-xl font-semibold">
-                زیر دسته‌بندی‌های محصول: {activeSubCategories.name}
-              </h3>
-              <ul className="space-y-2">
-                {activeSubCategories.subCategories.map((subCategory) => (
-                  <li key={subCategory} className="rounded-lg bg-gray-800 p-2 text-white">
-                    {subCategory}
-                  </li>
-                ))}
-              </ul>
-              <button
-                type="button"
-                onClick={() => setActiveSubCategories(null)}
-                className="mt-8 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-800"
-              >
-                بستن
-              </button>
-            </div>
+            <SubCategoriesPanel
+              onClose={() => setActiveSubCategories(null)}
+              name={activeSubCategories.name}
+              subCategories={activeSubCategories.subCategories}
+            />
           </div>
         )}
       </div>

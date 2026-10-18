@@ -311,15 +311,11 @@ const AdminInvoicesPage = () => {
   };
 
   return (
-    <div
-      className="space-y-6 rounded-lg bg-gray-950 p-4 text-white sm:p-6"
-      role="status"
-      aria-label="در حال بارگذاری"
-    >
+    <div className="space-y-6 rounded-lg bg-gray-950 p-4 text-white sm:p-6">
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-xl font-bold sm:text-2xl">مدیریت فاکتورها</h1>
-          <p className="text-sm text-gray-400">از اینجا می‌توانید فاکتورهای فروش را مدیریت کنید</p>
+          <p className="text-sm text-gray-300">از اینجا می‌توانید فاکتورهای فروش را مدیریت کنید</p>
         </div>
 
         {/* Search and Warranty Check Controls */}
@@ -342,16 +338,11 @@ const AdminInvoicesPage = () => {
                 onChange={(value) => {
                   setSearchMode(value);
                 }}
-                className="search-select [&_.ant-select-selector]:rounded-l-none! [&_.ant-select-selector]:rounded-r-md! [&_.ant-select-selector]:border-[#384152]! [&_.ant-select-selector]:bg-slate-800! [&_.ant-select-selector]:text-white! [&.ant-select-focused_.ant-select-selector]:border-blue-500! [&.ant-select-focused_.ant-select-selector]:shadow-none! [&.ant-select:hover_.ant-select-selector]:border-gray-600!"
+                className="search-select h-8 w-[105px] [&_.ant-select-selector]:rounded-l-none! [&_.ant-select-selector]:rounded-r-md! [&_.ant-select-selector]:border-[#384152]! [&_.ant-select-selector]:bg-slate-800! [&_.ant-select-selector]:text-white! [&.ant-select-focused_.ant-select-selector]:border-blue-500! [&.ant-select-focused_.ant-select-selector]:shadow-none! [&.ant-select:hover_.ant-select-selector]:border-gray-600!"
                 classNames={{
                   popup: {
                     root: "!bg-gray-800 !text-white !border !border-gray-600 [&_.ant-select-item]:!text-white",
                   },
-                }}
-                style={{
-                  width: "105px",
-                  color: "white",
-                  height: "32px",
                 }}
               >
                 <Option value="basic" className="bg-gray-800 text-white">
@@ -374,15 +365,10 @@ const AdminInvoicesPage = () => {
                 onChange={(e) => {
                   setSearchText(e.target.value);
                 }}
-                className="search-input focus:z-2 [&_.ant-select-selector]:rounded-l-none! [&_.ant-select-selector]:rounded-r-md! [&_.ant-select-selector]:border-[#384152]! [&_.ant-select-selector]:bg-slate-800! [&_.ant-select-selector]:text-white! [&.ant-select-focused_.ant-select-selector]:border-blue-500! [&.ant-select-focused_.ant-select-selector]:shadow-none! [&.ant-select:hover_.ant-select-selector]:border-gray-600!"
+                className="search-input h-8! flex-1! rounded-none! border-[#384152]! text-white! focus:z-2 [&_.ant-select-selector]:rounded-l-none! [&_.ant-select-selector]:rounded-r-md! [&_.ant-select-selector]:border-[#384152]! [&_.ant-select-selector]:bg-slate-800! [&_.ant-select-selector]:text-white! [&.ant-select-focused_.ant-select-selector]:border-blue-500! [&.ant-select-focused_.ant-select-selector]:shadow-none! [&.ant-select:hover_.ant-select-selector]:border-gray-600!"
                 style={{
                   backgroundColor: adminColors.panelInner,
-                  color: "white",
-                  borderColor: "#384152",
-                  height: "32px",
                   direction: "rtl",
-                  borderRadius: "0",
-                  flex: 1,
                 }}
               />
 
@@ -390,6 +376,7 @@ const AdminInvoicesPage = () => {
               <Button
                 icon={<SearchOutlined style={{ fontSize: "14px" }} />}
                 type="primary"
+                aria-label="جستجو"
                 onClick={() => {
                   // Search is handled by the useMemo filter
                 }}
@@ -401,8 +388,7 @@ const AdminInvoicesPage = () => {
               htmlType="button"
               onClick={checkWarrantyStatus}
               loading={isCheckingWarranties}
-              className="w-full border-blue-800 bg-blue-700 px-3 text-white hover:bg-blue-600 sm:w-auto"
-              style={{ height: "32px" }}
+              className="h-8 w-full border-blue-800 bg-blue-700 px-3 text-white hover:bg-blue-600 sm:w-auto"
             >
               بررسی گارانتی‌ها
             </Button>

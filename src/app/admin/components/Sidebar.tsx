@@ -98,8 +98,14 @@ const Sidebar = () => {
         className="fixed top-4 right-4 z-50 flex size-10 items-center justify-center rounded-lg bg-[#0074e0] text-white shadow-lg md:hidden"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label={isExpanded ? "بستن منو" : "باز کردن منو"}
+        aria-expanded={isExpanded}
+        aria-controls="admin-sidebar"
       >
-        {isExpanded ? <FiX size={20} /> : <FiMenu size={20} />}
+        {isExpanded ? (
+          <FiX size={20} aria-hidden="true" />
+        ) : (
+          <FiMenu size={20} aria-hidden="true" />
+        )}
       </button>
 
       {/* Overlay */}
@@ -113,6 +119,7 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <div
+        id="admin-sidebar"
         className={`fixed top-0 right-0 z-50 flex h-full flex-col bg-[#0074e0] text-gray-200 transition-[width] duration-200 ${
           isExpanded ? "w-64" : "w-16"
         }`}
@@ -121,13 +128,13 @@ const Sidebar = () => {
       >
         {/* Logo */}
         <div className="flex h-16 items-center justify-center">
-          <h1
+          <span
             className={`text-xl font-bold transition-opacity ${
               isExpanded ? "opacity-100" : "opacity-0"
             }`}
           >
             {isBranch ? "پنل شعبه" : "مدیریت"}
-          </h1>
+          </span>
         </div>
 
         {/* Navigation Links */}
@@ -144,8 +151,10 @@ const Sidebar = () => {
                 onClick={closeSidebar}
                 aria-current={isCurrent ? "page" : undefined}
               >
-                {item.icon}
-                <span className={`${isExpanded ? "block" : "hidden"}`}>{item.name}</span>
+                <span aria-hidden="true" className="flex shrink-0 items-center justify-center">
+                  {item.icon}
+                </span>
+                <span className={`${isExpanded ? "block" : "sr-only"}`}>{item.name}</span>
               </Link>
             );
           })}
@@ -159,8 +168,8 @@ const Sidebar = () => {
           }`}
           onClick={closeSidebar}
         >
-          <IoReturnDownForward size={20} />
-          <span className={`${isExpanded ? "block" : "hidden"}`}>برگشت به سایت</span>
+          <IoReturnDownForward size={20} aria-hidden="true" />
+          <span className={`${isExpanded ? "block" : "sr-only"}`}>برگشت به سایت</span>
         </Link>
 
         {/* Logout Button */}
@@ -171,8 +180,8 @@ const Sidebar = () => {
             isExpanded ? "gap-4" : "justify-center"
           }`}
         >
-          <FiLogOut size={20} />
-          <span className={`${isExpanded ? "block" : "hidden"}`}>خروج</span>
+          <FiLogOut size={20} aria-hidden="true" />
+          <span className={`${isExpanded ? "block" : "sr-only"}`}>خروج</span>
         </button>
       </div>
     </>

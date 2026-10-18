@@ -127,13 +127,14 @@ export function useInvoiceColumns({
                 بررسی شده
               </span>
             ) : (
-              <span
+              <button
+                type="button"
                 className="flex min-w-[120px] cursor-pointer items-center justify-center rounded bg-yellow-500/20 px-4 py-1.5 text-yellow-400"
                 onClick={() => updateInvoiceStatus(invoice, true)}
                 style={{ fontFamily: "inherit", fontWeight: 500 }}
               >
                 در انتظار بررسی
-              </span>
+              </button>
             )}
           </div>
         ),

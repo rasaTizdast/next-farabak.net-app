@@ -9,7 +9,11 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       <Sidebar />
 
       {/* Main Content */}
-      <main className="max-w-full overflow-auto p-4 pt-16 transition-all duration-200 md:mr-[64px] md:p-6 md:pt-0">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="max-w-full overflow-auto p-4 pt-16 transition-all duration-200 md:mr-[64px] md:p-6 md:pt-0"
+      >
         {children}
       </main>
     </div>

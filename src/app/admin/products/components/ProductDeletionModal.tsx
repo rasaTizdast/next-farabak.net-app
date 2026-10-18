@@ -1,3 +1,5 @@
+import { useEffect, useId, useRef } from "react";
+
 type Props = {
   currentAction: {
     id: number | number[];
@@ -9,6 +11,22 @@ type Props = {
 };
 
 const ProductDeletionModal = ({ currentAction, handleModalConfirm, setIsModalOpen }: Props) => {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+
+  useEffect(() => {
+    panelRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        setIsModalOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [setIsModalOpen]);
+
   const productNames = Array.isArray(currentAction.name)
     ? currentAction.name
     : [currentAction.name];
@@ -45,7 +63,12 @@ const ProductDeletionModal = ({ currentAction, handleModalConfirm, setIsModalOpe
       data-testid="delete-confirmation-modal"
     >
       <div
-        className={`animate-fade-in relative w-full max-w-md rounded-lg p-8 shadow-lg ${modalStyles}`}
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className={`animate-fade-in relative w-full max-w-md rounded-lg p-8 shadow-lg focus:outline-none ${modalStyles}`}
       >
         {/* Close Button */}
         <button
@@ -58,7 +81,9 @@ const ProductDeletionModal = ({ currentAction, handleModalConfirm, setIsModalOpe
         </button>
 
         {/* Modal Header */}
-        <p className="mb-4 text-center text-lg font-medium text-gray-700">{modalMessage()}</p>
+        <h2 id={titleId} className="mb-4 text-center text-lg font-medium text-gray-700">
+          {modalMessage()}
+        </h2>
 
         {/* Product List */}
         <div className="max-h-56 overflow-y-auto rounded-lg border bg-gray-50 p-4">

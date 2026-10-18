@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
 
@@ -55,9 +55,31 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
   // Get the current subcategories for the selected category
   const subCategories = getSubCategories(tempFilters.category);
 
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    panelRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        setShowFilterModal(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [setShowFilterModal]);
+
   return (
     <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm transition-opacity">
-      <div className="animate-fade-in relative w-full max-w-lg rounded-xl bg-gray-800 p-6 text-white shadow-lg">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="اعمال فیلترها"
+        tabIndex={-1}
+        className="animate-fade-in relative w-full max-w-lg rounded-xl bg-gray-800 p-6 text-white shadow-lg focus:outline-none"
+      >
         {/* Close Button */}
         <button
           type="button"

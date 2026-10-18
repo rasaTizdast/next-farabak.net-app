@@ -58,16 +58,17 @@ const cards = [
 
 const AnalyticsOverview = () => {
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+  const analyticsUrl = process.env.NEXT_PUBLIC_UMAMI_ANALYTICS_PAGE;
 
   return (
     <div className="rounded-xl bg-gray-950 p-8 sm:p-10">
-      <div className="mx-auto max-w-6xl space-y-12">
+      <div className="space-y-12">
         {/* Header with subtle animation */}
         <div className="space-y-4 text-center">
           <h1 className="text-2xl font-bold text-gray-200 transition-colors duration-300 hover:text-blue-200 md:text-3xl lg:text-5xl">
             تحلیل وبسایت شما
           </h1>
-          <p className="mx-auto max-w-3xl text-base text-gray-400 md:text-lg lg:text-xl">
+          <p className="mx-auto max-w-3xl text-base text-gray-300 md:text-lg lg:text-xl">
             عملکرد وبسایت خود را با استفاده از تحلیل‌های دقیق و معیارهای userable پیگیری کنید
           </p>
           <div className="mx-auto mt-6 h-1 w-24 rounded-full bg-blue-500"></div>
@@ -79,7 +80,7 @@ const AnalyticsOverview = () => {
             <div
               key={card.id}
               className={cn(
-                `relative transform overflow-hidden rounded-xl border bg-gray-800 p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${hoveredCard === card.id ? `border-[var(${card.color})]` : "border-transparent"}`
+                `relative transform overflow-hidden rounded-xl border bg-gray-800 p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${hoveredCard === card.id ? "border-gray-600" : "border-transparent"}`
               )}
               onMouseEnter={() => setHoveredCard(card.id)}
               onMouseLeave={() => setHoveredCard(null)}
@@ -89,14 +90,13 @@ const AnalyticsOverview = () => {
               ></div>
               <div className="relative">
                 <div
-                  className={`${
-                    colorMap[card.color].text
-                  } transition-transform duration-300 ${hoveredCard === card.id ? "scale-110" : "scale-100"}`}
+                  aria-hidden="true"
+                  className={`${colorMap[card.color].text} transition-transform duration-300 ${hoveredCard === card.id ? "scale-110" : "scale-100"}`}
                 >
                   {card.icon}
                 </div>
-                <h3 className="mb-4 text-xl font-bold text-gray-100">{card.title}</h3>
-                <p className="leading-relaxed text-gray-400">{card.description}</p>
+                <h2 className="mb-4 text-xl font-bold text-gray-100">{card.title}</h2>
+                <p className="leading-relaxed text-gray-300">{card.description}</p>
               </div>
             </div>
           ))}
@@ -120,20 +120,24 @@ const AnalyticsOverview = () => {
           >
             آماده‌اید برای مشاهده دقیق‌تر تحلیل‌های وبسایت شما؟
           </h2>
-          <p className={cn("mx-auto max-w-2xl text-base leading-relaxed text-gray-400")}>
+          <p className={cn("mx-auto max-w-2xl text-base leading-relaxed text-gray-300")}>
             با دسترسی به پنل تحلیلی، آمار جامع و گزارش‌های دقیق عملکرد وبسایت خود را مشاهده کنید.
           </p>
-          <Link
-            href={process.env.NEXT_PUBLIC_UMAMI_ANALYTICS_PAGE as string}
-            passHref
-            target="_blank"
-            className={cn(
-              "inline-flex transform items-center gap-3 rounded-xl bg-(--primary) px-8 py-4 text-xs font-medium text-white transition-[transform,background-color,box-shadow] duration-300 hover:-translate-y-1 hover:bg-(--secondary) hover:shadow-lg sm:text-base"
-            )}
-          >
-            مشاهده تحلیل‌های دقیق‌تر
-            <BiLinkExternal className="animate-pulse" size={20} />
-          </Link>
+          {analyticsUrl ? (
+            <Link
+              href={analyticsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                "bg-primary hover:bg-secondary inline-flex transform items-center gap-3 rounded-xl px-8 py-4 text-xs font-medium text-white transition-[transform,background-color,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lg sm:text-base"
+              )}
+            >
+              مشاهده تحلیل‌های دقیق‌تر
+              <BiLinkExternal aria-hidden="true" className="animate-pulse" size={20} />
+            </Link>
+          ) : (
+            <p className="text-sm text-gray-400">پیوند پنل تحلیلی تنظیم نشده است.</p>
+          )}
         </div>
       </div>
     </div>

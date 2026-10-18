@@ -19,17 +19,25 @@ const ProductCategories = () => {
   return (
     <>
       <Toaster position="bottom-center" />
-      <CreateNewItem
-        refetchCategories={fetchCategories}
-        isLoading={isLoading}
-        categories={categories}
-      />
+      <header className="mb-6">
+        <h1 className="text-xl font-bold text-white sm:text-2xl">مدیریت دسته‌بندی‌ها</h1>
+        <p className="text-sm text-gray-300">
+          از اینجا می‌توانید دسته‌بندی‌ها و زیردسته‌ها را مدیریت کنید
+        </p>
+      </header>
+      <div className="flex w-full flex-col gap-6">
+        <CreateNewItem
+          refetchCategories={fetchCategories}
+          isLoading={isLoading}
+          categories={categories}
+        />
 
-      <CategoryTable
-        categories={categories}
-        isLoading={isLoading}
-        refetchCategories={fetchCategories} // Pass refetch function
-      />
+        <CategoryTable
+          categories={categories}
+          isLoading={isLoading}
+          refetchCategories={fetchCategories} // Pass refetch function
+        />
+      </div>
     </>
   );
 };

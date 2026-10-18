@@ -20,28 +20,38 @@ const SortableHeader = ({
   sortKey: SortKey;
   sortConfig: { key: SortKey; direction: "ascending" | "descending" };
   onSort: (key: SortKey) => void;
-}) => (
-  <th
-    className="px-6 py-3 text-gray-300 transition-colors hover:text-gray-100"
-    onClick={() => onSort(sortKey)}
-    onKeyDown={(e) => {
-      if (e.key === "Enter" || e.key === " ") onSort(sortKey);
-    }}
-    role="columnheader"
-    tabIndex={0}
-  >
-    <div className="flex items-center justify-center gap-2">
-      {children}
-      {sortConfig.key === sortKey &&
-        (sortConfig.direction === "ascending" ? (
-          <FaSortUp aria-label="Sort ascending" />
-        ) : (
-          <FaSortDown aria-label="Sort descending" />
-        ))}
-      {sortConfig.key !== sortKey && <FaSort className="text-gray-400" />}
-    </div>
-  </th>
-);
+}) => {
+  const sortDirection =
+    sortConfig.key === sortKey
+      ? sortConfig.direction === "ascending"
+        ? "ascending"
+        : "descending"
+      : "none";
+
+  return (
+    <th
+      className="px-6 py-3 text-gray-300 transition-colors hover:text-gray-100"
+      onClick={() => onSort(sortKey)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") onSort(sortKey);
+      }}
+      tabIndex={0}
+      scope="col"
+      aria-sort={sortDirection}
+    >
+      <div className="flex items-center justify-center gap-2">
+        {children}
+        {sortConfig.key === sortKey &&
+          (sortConfig.direction === "ascending" ? (
+            <FaSortUp aria-hidden="true" />
+          ) : (
+            <FaSortDown aria-hidden="true" />
+          ))}
+        {sortConfig.key !== sortKey && <FaSort aria-hidden="true" className="text-gray-400" />}
+      </div>
+    </th>
+  );
+};
 
 const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTableProps) => {
   const [sortConfig, setSortConfig] = useState<{
@@ -142,88 +152,84 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
 
   return (
     <>
-      <div className="mt-10 flex flex-col items-center p-4">
-        <div className="w-full max-w-[1800px] overflow-auto rounded-lg">
-          <table
-            className="w-full table-auto border-collapse border-spacing-0 overflow-hidden rounded-xl text-center text-xs whitespace-nowrap text-gray-100 lg:text-sm"
-            aria-busy={isLoading}
-          >
-            <thead className="bg-slate-900 text-gray-100 uppercase">
-              <tr>
-                <SortableHeader sortKey="Name" sortConfig={sortConfig} onSort={handleSort}>
-                  دسته بندی
-                </SortableHeader>
-                <SortableHeader sortKey="Slug" sortConfig={sortConfig} onSort={handleSort}>
-                  شناسه
-                </SortableHeader>
-                <SortableHeader sortKey="Available" sortConfig={sortConfig} onSort={handleSort}>
-                  وضعیت
-                </SortableHeader>
-                <th scope="col" className="px-6 py-3">
-                  عملیات
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading
-                ? [...Array(20)].map((_, index) => (
-                    <tr key={index} className="animate-pulse">
-                      <td className="bg-slate-700 px-6 py-4"></td>
-                      <td className="bg-slate-700 px-6 py-4"></td>
-                      <td className="bg-slate-700 px-6 py-4"></td>
-                      <td className="bg-slate-700 px-6 py-4"></td>
-                    </tr>
-                  ))
-                : sortedCategories.map((category, index) => (
-                    <React.Fragment key={category.CategoryID}>
-                      <CategoryRow
-                        key={category.CategoryID}
-                        category={category}
-                        onDeleteClick={handleDeleteClick}
-                        onEditClick={handleEditClick}
-                        onToggleExpand={handleToggleExpand}
-                        expandedCategories={expandedCategories}
-                        index={index}
-                      />
-                      {expandedCategories.has(category.CategoryID) &&
-                        category.Subcategories.map((subcategory, subIndex) => (
-                          <SubcategoryRow
-                            key={subcategory.CategoryContentId}
-                            subcategory={subcategory}
-                            onDeleteClick={handleDeleteClick}
-                            onEditClick={handleEditClick}
-                            subIndex={subIndex}
-                          />
-                        ))}
-                    </React.Fragment>
-                  ))}
-            </tbody>
-          </table>
+      <div className="w-full overflow-auto rounded-lg">
+        <table
+          className="w-full table-auto border-collapse border-spacing-0 overflow-hidden rounded-xl text-center text-xs whitespace-nowrap text-gray-100 lg:text-sm"
+          aria-busy={isLoading}
+        >
+          <thead className="bg-slate-900 text-gray-100 uppercase">
+            <tr>
+              <SortableHeader sortKey="Name" sortConfig={sortConfig} onSort={handleSort}>
+                دسته بندی
+              </SortableHeader>
+              <SortableHeader sortKey="Slug" sortConfig={sortConfig} onSort={handleSort}>
+                شناسه
+              </SortableHeader>
+              <SortableHeader sortKey="Available" sortConfig={sortConfig} onSort={handleSort}>
+                وضعیت
+              </SortableHeader>
+              <th scope="col" className="px-6 py-3">
+                عملیات
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading
+              ? [...Array(20)].map((_, index) => (
+                  <tr key={index} className="animate-pulse">
+                    <td className="bg-slate-700 px-6 py-4"></td>
+                    <td className="bg-slate-700 px-6 py-4"></td>
+                    <td className="bg-slate-700 px-6 py-4"></td>
+                    <td className="bg-slate-700 px-6 py-4"></td>
+                  </tr>
+                ))
+              : sortedCategories.map((category, index) => (
+                  <React.Fragment key={category.CategoryID}>
+                    <CategoryRow
+                      key={category.CategoryID}
+                      category={category}
+                      onDeleteClick={handleDeleteClick}
+                      onEditClick={handleEditClick}
+                      onToggleExpand={handleToggleExpand}
+                      expandedCategories={expandedCategories}
+                      index={index}
+                    />
+                    {expandedCategories.has(category.CategoryID) &&
+                      category.Subcategories.map((subcategory, subIndex) => (
+                        <SubcategoryRow
+                          key={subcategory.CategoryContentId}
+                          subcategory={subcategory}
+                          onDeleteClick={handleDeleteClick}
+                          onEditClick={handleEditClick}
+                          subIndex={subIndex}
+                        />
+                      ))}
+                  </React.Fragment>
+                ))}
+          </tbody>
+        </table>
 
-          {/* Edit Modal */}
-          <EditModal
-            isOpen={isEditModalOpen}
-            item={editCategory}
-            onClose={handleModalClose}
-            // onSave={handleItemUpdate}
-            onChange={(updatedFields) =>
-              setEditCategory((prev) => ({ ...prev!, ...updatedFields }))
-            }
-            refetchCategories={refetchCategories}
-            setIsEditModalOpen={setIsEditModalOpen}
-            setEditCategory={setEditCategory}
-          />
+        {/* Edit Modal */}
+        <EditModal
+          isOpen={isEditModalOpen}
+          item={editCategory}
+          onClose={handleModalClose}
+          // onSave={handleItemUpdate}
+          onChange={(updatedFields) => setEditCategory((prev) => ({ ...prev!, ...updatedFields }))}
+          refetchCategories={refetchCategories}
+          setIsEditModalOpen={setIsEditModalOpen}
+          setEditCategory={setEditCategory}
+        />
 
-          {/* Delete Modal */}
-          <DeleteConfirmationModal
-            isOpen={isDeleteModalOpen}
-            item={deleteItem}
-            onDeleteConfirm={handleDeleteConfirm}
-            onClose={handleModalClose}
-            confirmationText={confirmationText}
-            setConfirmationText={setConfirmationText}
-          />
-        </div>
+        {/* Delete Modal */}
+        <DeleteConfirmationModal
+          isOpen={isDeleteModalOpen}
+          item={deleteItem}
+          onDeleteConfirm={handleDeleteConfirm}
+          onClose={handleModalClose}
+          confirmationText={confirmationText}
+          setConfirmationText={setConfirmationText}
+        />
       </div>
     </>
   );

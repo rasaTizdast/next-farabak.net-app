@@ -145,7 +145,7 @@ export default function InvoiceTab({
   return (
     <>
       <Card
-        className="mb-4 border-0 bg-gray-800 shadow-md"
+        className="mb-6 border-0 bg-gray-800 shadow-md"
         headStyle={{
           backgroundColor: adminColors.panel,
           borderBottom: `1px solid ${adminColors.border}`,
@@ -203,6 +203,7 @@ export default function InvoiceTab({
             }}
           >
             <Input
+              aria-label="جستجوی فاکتور"
               suffix={<SearchOutlined className="text-blue-400" />}
               style={{
                 backgroundColor: adminColors.textPlaceholder,
@@ -218,7 +219,7 @@ export default function InvoiceTab({
         </div>
       </Card>
 
-      <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Card
           className="border-0 bg-gray-800 shadow-md transition-shadow hover:shadow-lg"
           bodyStyle={{
@@ -284,7 +285,7 @@ export default function InvoiceTab({
           </div>
         ) : filteredInvoices.length === 0 ? (
           <Empty
-            description="هیچ فاکتوری یافت نشد"
+            description="فاکتوری وجود ندارد"
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             className="p-8 text-gray-300"
           />

@@ -23,10 +23,27 @@ import { useInvoicePrint } from "./hooks/useInvoicePrint";
  * Owns the print refs which are attached to the printable markup below.
  */
 function BranchInvoiceDetailsInner({ invoice }: { invoice: AdminInvoice }) {
-  const { state, actions } = useBranchInvoiceDetails();
+  const { state, actions, meta } = useBranchInvoiceDetails();
   const { componentRef, tableContainerRef, handleInvoicePrint } = useInvoicePrint(
     invoice.FactorGuid
   );
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  const hasNestedModal = Boolean(state.addWarrantyItem || state.selectedItem);
+
+  React.useEffect(() => {
+    if (hasNestedModal) return;
+
+    panelRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        meta.onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [meta.onClose, hasNestedModal]);
 
   const handleWarrantyUpdated = async () => {
     actions.setAddWarrantyItem(null);
@@ -48,7 +65,14 @@ function BranchInvoiceDetailsInner({ invoice }: { invoice: AdminInvoice }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 backdrop-blur-sm sm:p-4">
-      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-slate-900">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="branch-invoice-details-title"
+        tabIndex={-1}
+        className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-slate-900 focus:outline-none"
+      >
         <div ref={componentRef} className="p-3 sm:p-6">
           <div className="text-gray-100">
             <InvoiceHeader />

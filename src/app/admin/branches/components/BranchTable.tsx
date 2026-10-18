@@ -112,6 +112,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
                 onClick={() => onEdit(branch)}
                 type="primary"
                 size="middle"
+                aria-label={`ویرایش شعبه ${branch.name}`}
                 className="border-blue-700 bg-blue-600 hover:bg-blue-700"
               >
                 ویرایش
@@ -124,6 +125,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
                 onClick={() => onViewProducts(branch)}
                 type="default"
                 size="middle"
+                aria-label={`مدیریت محصولات شعبه ${branch.name}`}
                 className={
                   isSearching &&
                   branch.specificProductQuantity &&
@@ -142,6 +144,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
                 onClick={() => onCreateInvoice(branch)}
                 type="default"
                 size="middle"
+                aria-label={`ایجاد فاکتور جدید برای شعبه ${branch.name}`}
                 className="border-green-600 bg-green-700 text-gray-100 hover:bg-green-600"
               >
                 فاکتور

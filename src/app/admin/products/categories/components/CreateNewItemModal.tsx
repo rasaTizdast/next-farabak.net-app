@@ -409,15 +409,223 @@ const CreateNewItemModal = ({
   }, [bannerPreview]);
 
   return (
-    <div
-      className={`bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-lg ${
-        !isOpen ? "hidden" : ""
-      }`}
+    <CreateNewItemModalPanel
+      isOpen={isOpen}
+      onClose={onClose}
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
     >
-      <div className="animate-fade-in w-full max-w-3xl">
-        <div className="rtl flex justify-center gap-6">
+      <div className="max-h-[90dvh] overflow-y-scroll rounded-2xl bg-gray-800 p-6 pr-9 text-white shadow-xl">
+        {activeTab === "Category" ? (
+          <CategoryFields
+            name={name}
+            slug={slug}
+            available={available}
+            setName={setName}
+            setSlug={setSlug}
+            setAvailable={setAvailable}
+            editable={true}
+            headingLevel="h2"
+          />
+        ) : (
+          <div>
+            <div className="mb-4">
+              <label htmlFor="parent-category" className="block text-sm font-medium">
+                دسته‌بندی اصلی
+              </label>
+              <select
+                id="parent-category"
+                aria-label="دسته‌بندی اصلی"
+                value={parentCategoryId ?? ""}
+                onChange={(e) => setParentCategoryId(Number(e.target.value))}
+                className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              >
+                <option value="" disabled>
+                  انتخاب دسته‌بندی
+                </option>
+                {categories.map((category) => (
+                  <option key={category.CategoryID} value={category.CategoryID}>
+                    {category.Name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <CategoryFields
+              name={name}
+              slug={slug}
+              available={available}
+              setName={setName}
+              setSlug={setSlug}
+              setAvailable={setAvailable}
+              editable={parentCategoryId !== undefined}
+              headingLevel="h2"
+            />
+          </div>
+        )}
+
+        <SeoFields
+          seoTitle={seoTitle}
+          seoDescription={seoDescription}
+          seoKeywords={seoKeywords}
+          setSeoTitle={setSeoTitle}
+          setSeoDescription={setSeoDescription}
+          keywordInput={keywordInput}
+          setKeywordInput={setKeywordInput}
+          addKeyword={addKeyword}
+          removeKeyword={removeKeyword}
+          editable={activeTab === "Category" || parentCategoryId !== undefined}
+        />
+
+        <div className="mt-6 rounded-md bg-gray-900 p-4">
+          <div className="mb-6">
+            <label htmlFor="category-banner" className="mb-2 block text-sm font-medium">
+              تصویر بنر
+            </label>
+            <div
+              {...getRootProps()}
+              className={`cursor-pointer rounded-md border-2 border-dashed p-4 text-center transition-colors ${
+                isDragActive
+                  ? "border-blue-400 bg-blue-900/20"
+                  : isDragReject
+                    ? "border-red-400 bg-red-900/20"
+                    : "border-gray-600 hover:border-blue-400 hover:bg-blue-900/10"
+              } ${bannerPreview ? "border-green-500" : ""}`}
+            >
+              <input {...getInputProps()} />
+              {bannerPreview ? (
+                <div className="space-y-2">
+                  <p className="text-green-400">تصویر انتخاب شد</p>
+                  <p className="text-xs text-gray-400">
+                    اندازه پیشنهادی: 1920x600 (16:5) | حداکثر 2MB
+                  </p>
+                </div>
+              ) : isDragActive ? (
+                <p>فایل را اینجا رها کنید ...</p>
+              ) : isDragReject ? (
+                <p className="text-red-400">فقط فایل تصویر مجاز است!</p>
+              ) : (
+                <div className="space-y-2">
+                  <p>برای انتخاب تصویر کلیک کنید یا تصویر را به اینجا بکشید</p>
+                  <p className="text-xs text-gray-400">
+                    اندازه پیشنهادی: 1920x600 (16:5) | حداکثر 2MB
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {bannerPreview && (
+              <div
+                className="relative mt-4 w-full overflow-hidden rounded-md bg-gray-700"
+                style={{ aspectRatio: "16/5" }}
+              >
+                <img src={bannerPreview} alt="پیش‌نمایش بنر" className="size-full object-cover" />
+              </div>
+            )}
+            {bannerPreview && (
+              <div className="mt-3 flex justify-end">
+                <button
+                  type="button"
+                  className="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
+                  onClick={() => {
+                    bannerFileRef.current = null;
+                    setBannerPreview("");
+                    bannerClearedRef.current = true;
+                  }}
+                >
+                  حذف بنر
+                </button>
+              </div>
+            )}
+          </div>
+
+          <CategoryBlogEditor
+            label="متن بالای صفحه"
+            value={topBlog}
+            onChange={setTopBlog}
+            placeholder="متن یا جدول دلخواه برای بالای صفحه دسته/زیردسته"
+          />
+          <CategoryBlogEditor
+            label="متن پایین صفحه"
+            value={bottomBlog}
+            onChange={setBottomBlog}
+            placeholder="متن یا جدول دلخواه برای پایین صفحه دسته/زیردسته"
+          />
+        </div>
+
+        {error && <div className="mt-4 text-sm text-red-500">{error}</div>}
+        <div className="mt-5 flex items-center justify-between">
           <button
             type="button"
+            onClick={onClose}
+            className="rounded-xl bg-white px-6 py-3 font-medium text-gray-700"
+          >
+            انصراف
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isSubmitDisabled() || loading} // Disable the button if loading
+            className={`rounded-xl px-6 py-3 font-medium text-white disabled:cursor-not-allowed disabled:bg-gray-400 ${
+              loading ? "cursor-not-allowed bg-blue-400" : "bg-blue-500"
+            }`}
+          >
+            {loading
+              ? "در حال ثبت" // Add a loading spinner or any other indicator
+              : "ثبت"}
+          </button>
+        </div>
+      </div>
+    </CreateNewItemModalPanel>
+  );
+};
+
+function CreateNewItemModalPanel({
+  isOpen,
+  onClose,
+  activeTab,
+  setActiveTab,
+  children,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  children: React.ReactNode;
+}) {
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    panelRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-lg">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={activeTab === "Category" ? "دسته‌بندی جدید" : "زیردسته‌بندی جدید"}
+        tabIndex={-1}
+        className="animate-fade-in w-full max-w-3xl px-4 focus:outline-none sm:px-0"
+      >
+        <div className="rtl flex justify-center gap-6" role="tablist" aria-label="نوع آیتم جدید">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "Category"}
             data-testid="newCategoryButton"
             onClick={() => setActiveTab("Category")}
             className={`rounded-t-xl px-6 py-3 font-medium transition-colors ${
@@ -430,6 +638,8 @@ const CreateNewItemModal = ({
           </button>
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === "Subcategory"}
             data-testid="newSubCategoryButton"
             onClick={() => setActiveTab("Subcategory")}
             className={`rounded-t-xl px-6 py-3 font-medium transition-colors ${
@@ -442,168 +652,10 @@ const CreateNewItemModal = ({
           </button>
         </div>
 
-        <div className="max-h-[90dvh] overflow-y-scroll rounded-2xl bg-gray-800 p-6 pr-9 text-white shadow-xl">
-          {activeTab === "Category" ? (
-            <CategoryFields
-              name={name}
-              slug={slug}
-              available={available}
-              setName={setName}
-              setSlug={setSlug}
-              setAvailable={setAvailable}
-              editable={true}
-            />
-          ) : (
-            <div>
-              <div className="mb-4">
-                <label htmlFor="parent-category" className="block text-sm font-medium">
-                  دسته‌بندی اصلی
-                </label>
-                <select
-                  id="parent-category"
-                  aria-label="دسته‌بندی اصلی"
-                  value={parentCategoryId ?? ""}
-                  onChange={(e) => setParentCategoryId(Number(e.target.value))}
-                  className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                >
-                  <option value="" disabled>
-                    انتخاب دسته‌بندی
-                  </option>
-                  {categories.map((category) => (
-                    <option key={category.CategoryID} value={category.CategoryID}>
-                      {category.Name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <CategoryFields
-                name={name}
-                slug={slug}
-                available={available}
-                setName={setName}
-                setSlug={setSlug}
-                setAvailable={setAvailable}
-                editable={parentCategoryId !== undefined}
-              />
-            </div>
-          )}
-
-          <SeoFields
-            seoTitle={seoTitle}
-            seoDescription={seoDescription}
-            seoKeywords={seoKeywords}
-            setSeoTitle={setSeoTitle}
-            setSeoDescription={setSeoDescription}
-            keywordInput={keywordInput}
-            setKeywordInput={setKeywordInput}
-            addKeyword={addKeyword}
-            removeKeyword={removeKeyword}
-            editable={activeTab === "Category" || parentCategoryId !== undefined}
-          />
-
-          <div className="mt-6 rounded-md bg-gray-900 p-4">
-            <div className="mb-6">
-              <label htmlFor="category-banner" className="mb-2 block text-sm font-medium">
-                تصویر بنر
-              </label>
-              <div
-                {...getRootProps()}
-                className={`cursor-pointer rounded-md border-2 border-dashed p-4 text-center transition-colors ${
-                  isDragActive
-                    ? "border-blue-400 bg-blue-900/20"
-                    : isDragReject
-                      ? "border-red-400 bg-red-900/20"
-                      : "border-gray-600 hover:border-blue-400 hover:bg-blue-900/10"
-                } ${bannerPreview ? "border-green-500" : ""}`}
-              >
-                <input {...getInputProps()} />
-                {bannerPreview ? (
-                  <div className="space-y-2">
-                    <p className="text-green-400">تصویر انتخاب شد</p>
-                    <p className="text-xs text-gray-400">
-                      اندازه پیشنهادی: 1920x600 (16:5) | حداکثر 2MB
-                    </p>
-                  </div>
-                ) : isDragActive ? (
-                  <p>فایل را اینجا رها کنید ...</p>
-                ) : isDragReject ? (
-                  <p className="text-red-400">فقط فایل تصویر مجاز است!</p>
-                ) : (
-                  <div className="space-y-2">
-                    <p>برای انتخاب تصویر کلیک کنید یا تصویر را به اینجا بکشید</p>
-                    <p className="text-xs text-gray-400">
-                      اندازه پیشنهادی: 1920x600 (16:5) | حداکثر 2MB
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {bannerPreview && (
-                <div
-                  className="relative mt-4 w-full overflow-hidden rounded-md bg-gray-700"
-                  style={{ aspectRatio: "16/5" }}
-                >
-                  <img src={bannerPreview} alt="پیش‌نمایش بنر" className="size-full object-cover" />
-                </div>
-              )}
-              {bannerPreview && (
-                <div className="mt-3 flex justify-end">
-                  <button
-                    type="button"
-                    className="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
-                    onClick={() => {
-                      bannerFileRef.current = null;
-                      setBannerPreview("");
-                      bannerClearedRef.current = true;
-                    }}
-                  >
-                    حذف بنر
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <CategoryBlogEditor
-              label="متن بالای صفحه"
-              value={topBlog}
-              onChange={setTopBlog}
-              placeholder="متن یا جدول دلخواه برای بالای صفحه دسته/زیردسته"
-            />
-            <CategoryBlogEditor
-              label="متن پایین صفحه"
-              value={bottomBlog}
-              onChange={setBottomBlog}
-              placeholder="متن یا جدول دلخواه برای پایین صفحه دسته/زیردسته"
-            />
-          </div>
-
-          {error && <div className="mt-4 text-sm text-red-500">{error}</div>}
-          <div className="mt-5 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl bg-white px-6 py-3 font-medium text-gray-700"
-            >
-              انصراف
-            </button>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={isSubmitDisabled() || loading} // Disable the button if loading
-              className={`rounded-xl bg-blue-500 px-6 py-3 font-medium text-white disabled:cursor-not-allowed disabled:bg-gray-400 ${
-                loading ? "cursor-not-allowed" : ""
-              }`}
-            >
-              {loading
-                ? "در حال ثبت" // Add a loading spinner or any other indicator
-                : "ثبت"}
-            </button>
-          </div>
-        </div>
+        {children}
       </div>
     </div>
   );
-};
+}
 
 export default CreateNewItemModal;

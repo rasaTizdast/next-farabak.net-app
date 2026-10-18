@@ -19,6 +19,7 @@ const CategoryFields = ({
   setSlug,
   setAvailable,
   editable = true,
+  headingLevel = "h2",
 }: {
   name: string;
   slug: string;
@@ -27,6 +28,7 @@ const CategoryFields = ({
   setSlug: React.Dispatch<React.SetStateAction<string>>;
   setAvailable: React.Dispatch<React.SetStateAction<boolean>>;
   editable?: boolean;
+  headingLevel?: "h2" | "h3";
 }) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -57,7 +59,12 @@ const CategoryFields = ({
   };
 
   return (
-    <div>
+    <section aria-label="مشخصات دسته‌بندی">
+      {headingLevel === "h3" ? (
+        <h3 className="mb-4 text-base font-semibold text-gray-200">مشخصات دسته‌بندی</h3>
+      ) : (
+        <h2 className="mb-4 text-base font-semibold text-gray-200">مشخصات دسته‌بندی</h2>
+      )}
       {/* Category Name */}
       <div className="mb-4">
         <label htmlFor="category-name" className="block text-sm font-medium">
@@ -111,7 +118,7 @@ const CategoryFields = ({
           <option value="false">خیر</option>
         </select>
       </div>
-    </div>
+    </section>
   );
 };
 

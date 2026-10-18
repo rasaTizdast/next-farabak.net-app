@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-hot-toast";
 import { FiUpload } from "react-icons/fi";
@@ -138,10 +138,35 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
     await submitOverviewDetails(items, setIsSubmitting, onClose);
   };
 
+  const panelRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+
+  useEffect(() => {
+    panelRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   return (
     <div className="bg-opacity-70 fixed inset-0 z-51 flex items-center justify-center bg-black backdrop-blur-sm transition-opacity">
-      <div className="animate-fade-in relative max-h-[90dvh] w-full max-w-6xl overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg">
-        <h1 className="mb-6 text-center text-2xl font-bold">توضیحات محصول جدید</h1>
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="animate-fade-in relative max-h-[90dvh] w-full max-w-6xl overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg focus:outline-none"
+      >
+        <h2 id={titleId} className="mb-6 text-center text-2xl font-bold">
+          توضیحات محصول جدید
+        </h2>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-6">

@@ -1,6 +1,6 @@
 import { Spin } from "antd";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
@@ -24,6 +24,20 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
   const { componentRef, handlePrint } = usePrint();
   const [showPrintView, setShowPrintView] = useState<boolean>(false);
   const [nowTimestamp] = useState(() => Date.now());
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    panelRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   // Determine branch ID from warranty
   const branchId =
@@ -156,9 +170,19 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="w-full max-w-md rounded-lg bg-slate-900" onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="branch-warranty-view-title"
+        tabIndex={-1}
+        className="w-full max-w-md rounded-lg bg-slate-900 focus:outline-none"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="border-b border-slate-700 p-6">
-          <h2 className="text-center text-xl font-bold text-white">مشاهده گارانتی</h2>
+          <h2 id="branch-warranty-view-title" className="text-center text-xl font-bold text-white">
+            مشاهده گارانتی
+          </h2>
         </div>
 
         {/* Main form view - only visible when not printing */}
@@ -314,7 +338,7 @@ const BranchWarrantyViewModal: React.FC<BranchWarrantyViewModalProps> = ({ item,
             <button
               type="button"
               onClick={onClose}
-              className="ml-auto rounded-lg bg-gray-700 px-4 py-2 text-white hover:bg-gray-600"
+              className="me-auto rounded-lg bg-gray-700 px-4 py-2 text-white hover:bg-gray-600"
             >
               بستن
             </button>
