@@ -9,6 +9,7 @@ type Props = {
   setIsLoading: (isLoading: boolean) => void;
   setProducts: (products: Product[]) => void;
   setNotFound: (arg0: boolean) => void;
+  setFetchError: (error: boolean) => void;
   setPagination: (updater: { totalPages: number; currentPage: number }) => void;
   available?: "all" | "true" | "false";
   searchQuery?: string;
@@ -26,12 +27,14 @@ const fetchProducts = async ({
   setProducts,
   setPagination,
   setNotFound,
+  setFetchError,
   searchQuery = "",
   filters,
 }: Props) => {
   try {
     setIsLoading(true);
     setNotFound(false);
+    setFetchError(false);
 
     // Base URL for the API
     let url = `/api/admin/products?page=${page}&limit=30`;
@@ -61,7 +64,7 @@ const fetchProducts = async ({
   } catch (error) {
     console.error(error);
     toast.error("خطا در بارگذاری محصولات.");
-    setNotFound(true);
+    setFetchError(true);
   } finally {
     setIsLoading(false);
   }

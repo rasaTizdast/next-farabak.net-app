@@ -34,6 +34,8 @@ const AdminProductsPage = () => {
 
   const [notFound, setNotFound] = useState<boolean>(false);
 
+  const [fetchError, setFetchError] = useState<boolean>(false);
+
   const [filters, setFilters] = useState<{
     category: string;
     subCategory: string;
@@ -70,6 +72,7 @@ const AdminProductsPage = () => {
       setProducts,
       setPagination,
       setNotFound,
+      setFetchError,
       filters,
       searchQuery,
     };
@@ -216,11 +219,15 @@ const AdminProductsPage = () => {
   return (
     <>
       <Toaster position="bottom-center" />
-      <div className={cn("flex flex-col items-center p-4")}>
+      <header className="mb-6 w-full">
+        <h1 className="text-xl font-bold text-white sm:text-2xl">مدیریت محصولات</h1>
+        <p className="text-sm text-gray-300">از اینجا می‌توانید محصولات را مدیریت کنید</p>
+      </header>
+      <div className={cn("flex w-full flex-col gap-6")}>
         {/* Top Bar */}
         <div
           className={cn(
-            "flex w-full max-w-[1800px] flex-col items-center justify-between space-y-4 lg:flex-row lg:space-y-0"
+            "flex w-full flex-col items-center justify-between space-y-4 lg:flex-row lg:space-y-0"
           )}
         >
           {/* Search and Filter */}
@@ -272,17 +279,31 @@ const AdminProductsPage = () => {
           </button>
         </div>
 
-        <div className="my-8 h-px w-full max-w-[1800px] bg-gray-200" />
-
         {/* Table */}
-        <ProductsTable
-          products={products}
-          isLoading={isLoading}
-          notFound={notFound}
-          setCurrentAction={setCurrentAction}
-          setIsModalOpen={setIsModalOpen}
-          refetchProducts={refetchProducts}
-        />
+        {fetchError && !isLoading ? (
+          <div
+            role="alert"
+            className="flex w-full flex-col items-center gap-4 rounded-lg bg-red-600/20 p-5 text-center text-white shadow-lg"
+          >
+            <p>خطا در دریافت اطلاعات</p>
+            <button
+              type="button"
+              onClick={() => refetchProducts()}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+            >
+              تلاش مجدد
+            </button>
+          </div>
+        ) : (
+          <ProductsTable
+            products={products}
+            isLoading={isLoading}
+            notFound={notFound}
+            setCurrentAction={setCurrentAction}
+            setIsModalOpen={setIsModalOpen}
+            refetchProducts={refetchProducts}
+          />
+        )}
 
         {/* Modal */}
         {isModalOpen && (
@@ -313,8 +334,10 @@ const AdminProductsPage = () => {
       </div>
 
       {/* Pagination */}
-      {!isLoading && !notFound && (
-        <Pagination pagination={pagination} setPagination={setPagination} />
+      {!isLoading && !notFound && !fetchError && (
+        <div className="w-full" role="status" aria-live="polite">
+          <Pagination pagination={pagination} setPagination={setPagination} />
+        </div>
       )}
     </>
   );

@@ -136,7 +136,7 @@ function MyBranchDashboard({ branchData }: { branchData: BranchData }) {
 
   if (error) {
     return (
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <Card className="overflow-hidden rounded-lg bg-gray-800 text-white shadow-md">
           <div className="flex flex-col items-center justify-center py-8">
             <ExclamationCircleOutlined className="mb-4 text-5xl text-red-500" />
@@ -160,6 +160,25 @@ function MyBranchDashboard({ branchData }: { branchData: BranchData }) {
                 برای تعریف شعبه جدید، لطفاً با مدیر سیستم در تماس باشید.
               </p>
             )}
+            <div className="mt-4 text-center">
+              <Button
+                htmlType="button"
+                onClick={() =>
+                  loadInitialBranchData(
+                    setLoading,
+                    setError,
+                    setAuthError,
+                    setBranch,
+                    fetchBranchProducts,
+                    fetchInvoices,
+                    fetchAllProducts
+                  )
+                }
+                className="bg-blue-500 hover:bg-blue-600"
+              >
+                تلاش مجدد
+              </Button>
+            </div>
           </div>
         </Card>
       </div>
@@ -168,7 +187,7 @@ function MyBranchDashboard({ branchData }: { branchData: BranchData }) {
 
   if (!branch) {
     return (
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <Card className="overflow-hidden rounded-lg bg-gray-800 text-white shadow-md">
           <Empty
             description="اطلاعات شعبه در دسترس نیست"
@@ -202,7 +221,7 @@ function MyBranchDashboard({ branchData }: { branchData: BranchData }) {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {isUnauthorized && (
         <Alert
           message="دسترسی محدود"
@@ -218,7 +237,7 @@ function MyBranchDashboard({ branchData }: { branchData: BranchData }) {
         <h1 className="text-2xl font-bold text-gray-100">مدیریت شعبه من</h1>
         <div className="flex items-center gap-3">
           {refreshing && (
-            <div className="flex items-center text-blue-400">
+            <div className="flex items-center text-[#00bfff]">
               <Spin size="small" className="ml-2" />
               <span>در حال بروزرسانی...</span>
             </div>

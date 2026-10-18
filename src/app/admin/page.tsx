@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FiFileText, FiBox, FiArrowRightCircle, FiDollarSign } from "react-icons/fi";
 
+import { ErrorPage } from "@/components/ui/ErrorPage";
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 import { cn } from "@/lib/utils";
 
@@ -19,9 +20,9 @@ type ReportData = {
   };
 };
 
-// Skeleton loader component
+// Skeleton loader component (mirrors the real card layout: same grid + 5 cards)
 const SkeletonCard = () => (
-  <div className="glass-card animate-pulse rounded-lg bg-(--dark-blue) p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)]">
+  <div className="glass-card animate-pulse rounded-lg p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)]">
     <div className="h-6 w-3/4 rounded-md bg-blue-200/50"></div>
     <div className="mt-4 h-8 w-1/2 rounded-md bg-blue-200/50"></div>
     <div className="mt-2 h-4 w-full rounded-md bg-blue-200/50"></div>
@@ -31,15 +32,20 @@ const SkeletonCard = () => (
 const AdminPage = () => {
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [usdToRialRate, setUsdToRialRate] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchReportData = async () => {
-      const response = await fetch("/api/admin/report/landingReport");
-      if (response.ok) {
-        const data = await response.json();
-        setReportData(data);
-      } else {
-        throw new Error("Failed to fetch report data");
+      try {
+        const response = await fetch("/api/admin/report/landingReport");
+        if (response.ok) {
+          const data = await response.json();
+          setReportData(data);
+        } else {
+          setError("خطا در دریافت اطلاعات");
+        }
+      } catch {
+        setError("خطا در دریافت اطلاعات");
       }
     };
 
@@ -58,11 +64,40 @@ const AdminPage = () => {
     fetchExchangeRate();
   }, []);
 
+  const handleRetry = () => {
+    setError(null);
+    setReportData(null);
+    fetch("/api/admin/report/landingReport")
+      .then(async (response) => {
+        if (response.ok) {
+          setReportData(await response.json());
+        } else {
+          setError("خطا در دریافت اطلاعات");
+        }
+      })
+      .catch(() => setError("خطا در دریافت اطلاعات"));
+  };
+
+  if (error) {
+    return (
+      <div className={cn("space-y-6")}>
+        <header className="mb-6">
+          <h1 className="text-xl font-bold text-white sm:text-2xl">داشبورد مدیریت</h1>
+        </header>
+        <ErrorPage
+          title="خطا در دریافت اطلاعات"
+          message="لطفاً اتصال اینترنت خود را بررسی کنید و دوباره تلاش کنید."
+          onRetry={handleRetry}
+        />
+      </div>
+    );
+  }
+
   if (!reportData) {
     return (
-      <div className={cn("sm:space-y-3 sm:p-3 md:space-y-6 md:p-6")}>
-        <div className={cn("grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4")}>
-          <SkeletonCard />
+      <div className={cn("space-y-6")} role="status" aria-live="polite">
+        <span className="sr-only">در حال بارگذاری اطلاعات</span>
+        <div className={cn("grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3")}>
           <SkeletonCard />
           <SkeletonCard />
           <SkeletonCard />
@@ -75,7 +110,11 @@ const AdminPage = () => {
   }
 
   return (
-    <div className={cn("sm:space-y-3 sm:p-3 md:space-y-6 md:p-6")}>
+    <div className={cn("space-y-6")}>
+      <header className="mb-6">
+        <h1 className="text-xl font-bold text-white sm:text-2xl">داشبورد مدیریت</h1>
+        <p className="text-sm text-gray-300">نمای کلی عملکرد فروشگاه</p>
+      </header>
       {/* Bento Grid */}
       <div className={cn("grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3")}>
         {/* USD to Rial Exchange Rate */}
@@ -86,24 +125,26 @@ const AdminPage = () => {
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">نرخ دلار به تومان</h3>
-            <FiDollarSign className="text-3xl text-(--secondary)" />
+            <FiDollarSign className="text-secondary text-3xl" />
           </div>
-          <span className="mt-4 text-4xl font-extrabold text-(--secondary)">
-            {usdToRialRate ? `${usdToRialRate.toLocaleString()} تومان` : "در حال دریافت..."}
+          <span className="text-secondary mt-4 text-4xl font-extrabold">
+            {usdToRialRate
+              ? `${Math.floor(usdToRialRate).toLocaleString()} تومان`
+              : "در حال دریافت..."}
           </span>
         </div>
 
         {/* Invoice Count */}
         <div
           className={cn(
-            "glass-card flex transform flex-col justify-between rounded-lg bg-(--dark-blue)/90 p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg"
+            "glass-card bg-dark-blue/90 flex transform flex-col justify-between rounded-lg p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg"
           )}
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">تعداد فاکتورها</h3>
-            <FiFileText className="text-3xl text-(--primary)" />
+            <FiFileText className="text-primary text-3xl" />
           </div>
-          <span className="mt-4 text-5xl font-extrabold text-(--primary)">
+          <span className="text-primary mt-4 text-5xl font-extrabold">
             {reportData.invoiceCount}
           </span>
         </div>
@@ -111,16 +152,16 @@ const AdminPage = () => {
         {/* Invoice Status */}
         <div
           className={cn(
-            "glass-card flex transform flex-col justify-between rounded-lg bg-(--dark-blue)/90 p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg"
+            "glass-card bg-dark-blue/90 flex transform flex-col justify-between rounded-lg p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg"
           )}
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">وضعیت فاکتورها</h3>
-            <FiFileText className="text-3xl text-(--primary)" />
+            <FiFileText className="text-primary text-3xl" />
           </div>
           <div className="mt-4 h-4 w-full overflow-hidden rounded-full bg-green-500">
             <div
-              className="h-4 rounded-full bg-(--primary)"
+              className="bg-primary h-4 rounded-full"
               style={{
                 width: `${
                   (reportData.invoiceStatusCount.checked /
@@ -131,7 +172,7 @@ const AdminPage = () => {
               }}
             />
           </div>
-          <div className="mt-2 flex w-full justify-between text-sm text-(--primary)">
+          <div className="text-primary mt-2 flex w-full justify-between text-sm">
             <span>تایید شده: {reportData.invoiceStatusCount.checked}</span>
             <span>تایید نشده: {reportData.invoiceStatusCount.unchecked}</span>
           </div>
@@ -140,16 +181,16 @@ const AdminPage = () => {
         {/* Product Availability */}
         <div
           className={cn(
-            "glass-card flex transform flex-col justify-between rounded-lg bg-(--dark-blue)/90 p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg"
+            "glass-card bg-dark-blue/90 flex transform flex-col justify-between rounded-lg p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[transform,box-shadow] duration-300 hover:scale-105 hover:shadow-lg"
           )}
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">محصولات</h3>
-            <FiBox className="text-3xl text-(--primary)" />
+            <FiBox className="text-primary text-3xl" />
           </div>
-          <div className="mt-4 h-4 w-full overflow-hidden rounded-full bg-(--primary)">
+          <div className="bg-primary mt-4 h-4 w-full overflow-hidden rounded-full">
             <div
-              className="h-4 rounded-full bg-(--secondary)"
+              className="bg-secondary h-4 rounded-full"
               style={{
                 width: `${
                   (reportData.productCount.available /
@@ -159,7 +200,7 @@ const AdminPage = () => {
               }}
             />
           </div>
-          <div className="mt-2 flex w-full justify-between text-sm text-(--primary)">
+          <div className="text-primary mt-2 flex w-full justify-between text-sm">
             <span>موجود: {reportData.productCount.available}</span>
             <span>ناموجود: {reportData.productCount.unavailable}</span>
           </div>
