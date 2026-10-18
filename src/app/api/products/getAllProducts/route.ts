@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { NextResponse } from "next/server";
+import { connection, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 
@@ -134,6 +134,7 @@ function parseCategoryContentIds(product: ProductType): number[] {
 }
 
 export async function GET(request: Request) {
+  await connection();
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1", 10);

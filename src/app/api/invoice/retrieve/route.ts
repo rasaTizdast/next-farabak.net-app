@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { connection, NextRequest, NextResponse } from "next/server";
 
 import { verifyInvoiceData } from "@/utils/invoiceJwt";
 
@@ -19,6 +19,7 @@ const COOKIE_NAME = "invoiceData";
  *         description: Invalid or expired invoice data
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
+  await connection();
   try {
     // Get cookie from request
     const token = request.cookies.get(COOKIE_NAME)?.value;

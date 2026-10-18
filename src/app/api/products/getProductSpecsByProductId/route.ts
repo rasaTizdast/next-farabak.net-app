@@ -1,6 +1,6 @@
 // app/api/products/getProductSpecsByProductId/route.ts
 
-import { NextResponse } from "next/server";
+import { connection, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 
@@ -51,6 +51,7 @@ import { prisma } from "@/lib/prisma";
  *         description: Internal server error
  */
 export async function GET(request: Request) {
+  await connection();
   try {
     // Extract the ProductId from the query parameters
     const { searchParams } = new URL(request.url);
