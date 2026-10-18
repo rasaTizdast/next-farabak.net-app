@@ -1,38 +1,11 @@
 "use client";
 
 import React from "react";
-import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 
+import { CollapsibleSection } from "../components/CollapsibleSection";
 import { useNewProductForm } from "../hooks/useNewProductForm";
 import { useNewProductImages } from "../hooks/useNewProductImages";
 import { useNewProductWizard } from "../NewProductWizardContext";
-
-type SectionProps = {
-  isOpen: boolean;
-  onToggle: () => void;
-  title: string;
-};
-
-function CollapsibleSection({
-  isOpen,
-  onToggle,
-  title,
-  children,
-}: SectionProps & { children: React.ReactNode }) {
-  return (
-    <div className="mb-4 overflow-hidden rounded-md bg-gray-900">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="flex w-full cursor-pointer items-center justify-between p-4 transition-colors hover:bg-gray-950"
-      >
-        <span className="text-lg font-semibold">{title}</span>
-        {isOpen ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
-      </button>
-      <div className={isOpen ? "block" : "hidden"}>{children}</div>
-    </div>
-  );
-}
 
 function FieldError({ error }: { error: string }) {
   return error ? <p className="mt-1 text-red-500">{error}</p> : null;
@@ -73,6 +46,7 @@ function FileInputField({
   onChange,
   onClear,
   id,
+  testId,
 }: {
   label: string;
   error?: string;
@@ -81,14 +55,24 @@ function FileInputField({
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onClear: () => void;
   id?: string;
+  testId?: string;
 }) {
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleClear = () => {
+    onClear();
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
   return (
     <div className="mb-4">
       <label htmlFor={id} className="mb-2 block">
         {label}
       </label>
       <input
+        ref={inputRef}
         id={id}
+        data-testid={testId}
         type="file"
         accept="image/*"
         onChange={onChange}
@@ -100,7 +84,7 @@ function FileInputField({
           <img src={preview} alt="Preview" className="size-16 rounded object-cover" />
           <button
             type="button"
-            onClick={onClear}
+            onClick={handleClear}
             className="text-sm text-red-400 hover:text-red-300"
           >
             حذف
@@ -120,6 +104,7 @@ function CategorySelect({
   disabled,
   placeholder,
   id,
+  testId,
 }: {
   label: string;
   value: number | null;
@@ -128,6 +113,7 @@ function CategorySelect({
   disabled?: boolean;
   placeholder: string;
   id?: string;
+  testId?: string;
 }) {
   return (
     <div className="mb-4">
@@ -136,6 +122,7 @@ function CategorySelect({
       </label>
       <select
         id={id}
+        data-testid={testId}
         value={value ?? ""}
         onChange={(e) => onChange(Number(e.target.value) || null)}
         disabled={disabled}
@@ -174,6 +161,7 @@ function SubCategoryGrid({
             <button
               key={sub.CategoryContentId}
               type="button"
+              data-testid={`subcategory-button-${sub.CategoryContentId}`}
               onClick={() => onToggle(sub.CategoryContentId)}
               className={`rounded border px-3 py-1 text-center ${
                 isSelected
@@ -213,10 +201,10 @@ function KeywordsInput({
     }
   };
 
-  const removeKeyword = (keywordToRemove: string) => {
+  const removeKeyword = (indexToRemove: number) => {
     const updatedKeywords = value
       .split(" ")
-      .filter((k) => k !== keywordToRemove)
+      .filter((_, index) => index !== indexToRemove)
       .join(" ");
     onChange(updatedKeywords);
   };
@@ -228,6 +216,7 @@ function KeywordsInput({
       </label>
       <input
         id="product-keywords"
+        data-testid="product-keywords"
         type="text"
         onKeyDown={handleKeyDown}
         className={`w-full rounded bg-gray-700 p-2 text-white ${error ? "border border-red-500" : ""}`}
@@ -236,12 +225,12 @@ function KeywordsInput({
       />
       <div className="mt-2 flex flex-wrap gap-2">
         {value.split(" ").map(
-          (keyword) =>
+          (keyword, index) =>
             keyword && (
               <button
-                key={keyword}
+                key={`${index}-${keyword}`}
                 type="button"
-                onClick={() => removeKeyword(keyword)}
+                onClick={() => removeKeyword(index)}
                 className="animate-fade-in flex items-center gap-2 rounded-lg bg-green-700 px-4 py-1 transition-colors hover:bg-red-700 hover:text-white"
               >
                 {keyword}
@@ -256,9 +245,17 @@ function KeywordsInput({
 }
 
 export function BaseDetailsStep() {
-  const { state, handleChange, getFieldError, getFieldProps, getSelectProps } = useNewProductForm();
-  const { hasBannerImage, hasTransparentImage, bannerImagePreview, transparentImagePreview } =
-    useNewProductImages();
+  const { state, handleChange, getFieldError, getFieldProps } = useNewProductForm();
+  const {
+    hasBannerImage,
+    hasTransparentImage,
+    bannerImagePreview,
+    transparentImagePreview,
+    handleBannerImageChange,
+    handleTransparentImageChange,
+    clearBannerImage,
+    clearTransparentImage,
+  } = useNewProductImages();
   const { openSections, actions, meta } = useNewProductWizard();
 
   const selectedSubCategoryIds = state.subCategoryID
@@ -280,7 +277,9 @@ export function BaseDetailsStep() {
     <CollapsibleSection
       isOpen={openSections.baseDetails}
       onToggle={() => actions.toggleSection("baseDetails")}
+      sectionId="baseDetails"
       title="جزئیات پایه"
+      titleTestId="basic-details"
     >
       <div className="mb-6 p-4">
         <InputField
@@ -317,10 +316,13 @@ export function BaseDetailsStep() {
           onChange={(value) => {
             handleChange("categoryID", value);
             handleChange("subCategoryID", "");
+            // Resetting is not a user error — don't mark the field as touched.
+            actions.setTouchedField("subCategoryID", false);
           }}
           options={meta.categories}
           placeholder="انتخاب دسته بندی"
           id="product-category"
+          testId="product-category"
         />
 
         <div className="mb-4">
@@ -349,6 +351,7 @@ export function BaseDetailsStep() {
               <option value="">انتخاب زیر دسته بندی</option>
             </select>
           )}
+          {getFieldError("subCategoryID") && <FieldError error={getFieldError("subCategoryID")} />}
         </div>
 
         <InputField label="قیمت محصول به دلار" error={getFieldError("price")} id="product-price">
@@ -371,7 +374,7 @@ export function BaseDetailsStep() {
             step="0.01"
             placeholder="تخفیف محصول را به دلار وارد کنید."
             min="0"
-            max={state.price}
+            max={state.price || undefined}
           />
         </InputField>
 
@@ -431,12 +434,10 @@ export function BaseDetailsStep() {
           error={getFieldError("bannerImage")}
           hasFile={hasBannerImage}
           preview={bannerImagePreview}
-          onChange={(e) => {
-            const file = e.target.files?.[0] || null;
-            handleChange("bannerImage", file);
-          }}
-          onClear={() => handleChange("bannerImage", null)}
+          onChange={(e) => handleBannerImageChange(e.target.files?.[0] ?? null)}
+          onClear={clearBannerImage}
           id="product-banner-image"
+          testId="product-banner-image"
         />
 
         <FileInputField
@@ -444,17 +445,15 @@ export function BaseDetailsStep() {
           error={getFieldError("transparentImage")}
           hasFile={hasTransparentImage}
           preview={transparentImagePreview}
-          onChange={(e) => {
-            const file = e.target.files?.[0] || null;
-            handleChange("transparentImage", file);
-          }}
-          onClear={() => handleChange("transparentImage", null)}
+          onChange={(e) => handleTransparentImageChange(e.target.files?.[0] ?? null)}
+          onClear={clearTransparentImage}
           id="product-transparent-image"
+          testId="product-transparent-image"
         />
 
-        <InputField label="وضعیت" error="" id="product-available">
+        <InputField label="وضعیت" id="product-available">
           <select
-            {...getSelectProps("categoryID" as any)}
+            data-testid="product-available"
             value={state.available ? "true" : "false"}
             onChange={(e) => handleChange("available", e.target.value === "true")}
             className="w-full rounded bg-gray-700 p-2 text-white"

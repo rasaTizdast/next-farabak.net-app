@@ -71,35 +71,9 @@ export function useNewProductForm() {
           handleChange(field, newValue);
         },
         onBlur: () => handleBlur(field),
-        error: getFieldError(field),
       };
     },
-    [state, handleChange, handleBlur, getFieldError]
-  );
-
-  const getSelectProps = useCallback(
-    (field: "categoryID" | "subCategoryID") => ({
-      value: state[field] ?? "",
-      onChange: (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const value = field === "categoryID" ? Number(e.target.value) || null : e.target.value;
-        handleChange(field, value);
-      },
-      onBlur: () => handleBlur(field),
-      error: getFieldError(field),
-    }),
-    [state, handleChange, handleBlur, getFieldError]
-  );
-
-  const getFileInputProps = useCallback(
-    (field: "bannerImage" | "transparentImage") => ({
-      value: state[field],
-      onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0] || null;
-        handleChange(field, file);
-      },
-      error: getFieldError(field),
-    }),
-    [state, handleChange, getFieldError]
+    [state, handleChange, handleBlur]
   );
 
   const validateAll = useCallback(() => {
@@ -116,8 +90,6 @@ export function useNewProductForm() {
     handleBlur,
     getFieldError,
     getFieldProps,
-    getSelectProps,
-    getFileInputProps,
     validateAll,
   };
 }

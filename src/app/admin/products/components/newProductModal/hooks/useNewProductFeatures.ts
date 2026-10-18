@@ -11,11 +11,12 @@ function validateFeature(value: string): string {
 }
 
 export function useNewProductFeatures() {
-  const { state, actions, touchedFields, hasSubmitted } = useNewProductWizard();
+  const { state, actions, hasSubmitted } = useNewProductWizard();
 
   const featuresInitGuard = useRef(false);
   const [localFeatures, setLocalFeatures] = useState<string[]>(() => state.features);
   const [localErrors, setLocalErrors] = useState<{ [key: string]: string }>({});
+  const [localTouchedFields, setLocalTouchedFields] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     if (!featuresInitGuard.current) {
@@ -38,6 +39,7 @@ export function useNewProductFeatures() {
     (index: number, value: string) => {
       const error = validateFeature(value);
       setLocalErrors((prev) => ({ ...prev, [`feature-${index}`]: error }));
+      setLocalTouchedFields((prev) => ({ ...prev, [`feature-${index}`]: true }));
 
       const updatedFeatures = [...localFeatures];
       updatedFeatures[index] = value;
@@ -58,6 +60,7 @@ export function useNewProductFeatures() {
         ...prev,
         [`feature-${newIndex}`]: "ویژگی نمی‌تواند خالی باشد.",
       }));
+      setLocalTouchedFields((prev) => ({ ...prev, [`feature-${newIndex}`]: false }));
     }
   }, [localFeatures, actions]);
 
@@ -80,8 +83,22 @@ export function useNewProductFeatures() {
         }
       });
       setLocalErrors(newErrors);
+
+      const newTouched: Record<string, boolean> = {};
+      Object.entries(localTouchedFields).forEach(([key, value]) => {
+        const match = key.match(/feature-(\d+)/);
+        if (match) {
+          const touchedIndex = parseInt(match[1]);
+          if (touchedIndex < index) {
+            newTouched[key] = value;
+          } else if (touchedIndex > index) {
+            newTouched[`feature-${touchedIndex - 1}`] = value;
+          }
+        }
+      });
+      setLocalTouchedFields(newTouched);
     },
-    [localFeatures, localErrors, actions]
+    [localFeatures, localErrors, localTouchedFields, actions]
   );
 
   useEffect(() => {
@@ -119,10 +136,11 @@ export function useNewProductFeatures() {
   const shouldShowError = useCallback(
     (index: number) => {
       return (
-        (hasSubmitted || touchedFields[`feature-${index}`]) && !!localErrors[`feature-${index}`]
+        (hasSubmitted || localTouchedFields[`feature-${index}`]) &&
+        !!localErrors[`feature-${index}`]
       );
     },
-    [hasSubmitted, touchedFields, localErrors]
+    [hasSubmitted, localTouchedFields, localErrors]
   );
 
   return {

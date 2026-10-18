@@ -27,7 +27,10 @@ export function SpecsStep() {
 
   return (
     <>
-      <div className="mb-4 overflow-hidden rounded-md bg-gray-900">
+      <div
+        id="wizard-section-specs"
+        className="mb-4 scroll-mt-14 overflow-hidden rounded-md bg-gray-900"
+      >
         <button
           type="button"
           onClick={() => actions.toggleSection("specs")}
@@ -84,7 +87,7 @@ export function SpecsStep() {
             <div className="space-y-4">
               {specs.map((spec, index) => (
                 <div
-                  key={spec.title + spec.description}
+                  key={`spec-${index}`}
                   className="flex gap-4"
                   onClick={(e) => e.stopPropagation()}
                 >

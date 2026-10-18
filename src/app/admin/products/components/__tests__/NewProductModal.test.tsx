@@ -87,7 +87,7 @@ vi.mock("../NewOverviewDetailsModal", () => ({
   ),
 }));
 
-vi.mock("../utils/createProduct", () => ({
+vi.mock("../../utils/createProduct", () => ({
   createProduct: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -236,7 +236,7 @@ describe("NewProductModal", () => {
     expect(screen.getByTestId("overview-details-modal")).toBeInTheDocument();
   });
 
-  it("submit button is initially disabled (has errors from empty state)", () => {
+  it("submit button is rendered enabled so validation can run on click", () => {
     render(
       <NewProductModal
         setShowNewProductModal={mockSetShowNewProductModal}
@@ -246,5 +246,27 @@ describe("NewProductModal", () => {
     );
     const submitBtn = screen.getByTestId("create-product-button");
     expect(submitBtn).toBeInTheDocument();
+    expect(submitBtn).not.toBeDisabled();
+  });
+
+  it("shows validation errors after submitting an empty form", async () => {
+    render(
+      <NewProductModal
+        setShowNewProductModal={mockSetShowNewProductModal}
+        refetchProducts={mockRefetchProducts}
+        categories={mockCategories}
+      />
+    );
+    const form = document.getElementById("new-product-form");
+    expect(form).not.toBeNull();
+    fireEvent.submit(form!);
+
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(
+      screen.getByText("فرم دارای خطا است. لطفا تمامی موارد خطا را اصلاح کنید.")
+    ).toBeInTheDocument();
+    expect((await import("react-hot-toast")).toast.error).toHaveBeenCalledWith(
+      "لطفاً تمام خطاها را برطرف کنید."
+    );
   });
 });

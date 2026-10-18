@@ -17,9 +17,12 @@ const steps = [
 type StepId = (typeof steps)[number]["id"];
 
 export function StepNavigation() {
-  const { openSections, actions, errors } = useNewProductWizard();
+  const { openSections, actions, errors, hasSubmitted } = useNewProductWizard();
 
   const getStepStatus = (stepId: StepId) => {
+    if (!hasSubmitted) {
+      return openSections[stepId] ? "active" : "pending";
+    }
     const sectionErrors = getSectionErrors(stepId);
     if (sectionErrors.length > 0) return "error";
     if (openSections[stepId]) return "active";
@@ -63,10 +66,13 @@ export function StepNavigation() {
   };
 
   return (
-    <nav className="mb-6 flex flex-wrap gap-2" aria-label="مراحل ساخت محصول">
+    <nav
+      className="sticky top-0 z-10 mb-6 flex flex-wrap gap-2 rounded-md bg-gray-800 py-2"
+      aria-label="مراحل ساخت محصول"
+    >
       {steps.map((step, index) => {
         const status = getStepStatus(step.id);
-        const isActive = openSections[step.id];
+        const isActive = openSections[step.id] && status !== "error";
         const hasError = status === "error";
 
         return (
@@ -80,6 +86,13 @@ export function StepNavigation() {
                 if (key !== step.id) {
                   actions.setOpenSections({ [key]: false });
                 }
+              });
+              // The section only becomes visible after the state update above,
+              // so scroll once React has re-rendered.
+              requestAnimationFrame(() => {
+                document
+                  .getElementById(`wizard-section-${step.id}`)
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
               });
             }}
             className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${

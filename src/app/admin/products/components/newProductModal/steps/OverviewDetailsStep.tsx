@@ -30,7 +30,10 @@ export function OverviewDetailsStep() {
 
   return (
     <>
-      <div className="mb-4 overflow-hidden rounded-md bg-gray-900">
+      <div
+        id="wizard-section-overviewDetails"
+        className="mb-4 scroll-mt-14 overflow-hidden rounded-md bg-gray-900"
+      >
         <button
           type="button"
           onClick={() => actions.toggleSection("overviewDetails")}

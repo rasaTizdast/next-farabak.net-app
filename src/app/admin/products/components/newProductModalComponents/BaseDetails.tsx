@@ -133,7 +133,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
 
     if (!isNaN(numericValue)) {
       // Additional validation for discount vs price
-      if (numericValue > state.price) {
+      if (numericValue > parseFloat(state.price || "0")) {
         setLocalErrors((prev) => ({
           ...prev,
           discount: "تخفیف نمیتواند بیشتر از قیمت باشد.",

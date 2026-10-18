@@ -9,6 +9,9 @@ import React, {
   useRef,
   ReactNode,
 } from "react";
+import { toast } from "react-hot-toast";
+
+import { createProduct } from "../../utils/createProduct";
 
 // ============================================
 // Types
@@ -46,8 +49,8 @@ export type WizardState = {
   categoryID: number | null;
   subCategoryID: string;
   available: boolean;
-  price: number;
-  discount: number;
+  price: string;
+  discount: string;
   smallDesc: string;
   bannerImage: File | null;
   transparentImage: File | null;
@@ -151,8 +154,8 @@ const initialState: WizardState = {
   categoryID: null,
   subCategoryID: "",
   available: true,
-  price: 0,
-  discount: 0,
+  price: "",
+  discount: "",
   smallDesc: "",
   bannerImage: null,
   transparentImage: null,
@@ -360,7 +363,16 @@ function validateAllFields(state: WizardState): WizardErrors {
     if (error) errors[field] = error;
   });
 
-  if (parseFloat(state.price.toString()) < parseFloat(state.discount.toString())) {
+  const priceNum = parseFloat(state.price);
+  const discountNum = parseFloat(state.discount);
+  if (
+    !errors.discount &&
+    state.price.trim() !== "" &&
+    state.discount.trim() !== "" &&
+    !isNaN(priceNum) &&
+    !isNaN(discountNum) &&
+    discountNum > priceNum
+  ) {
     errors.discount = "تخفیف نمیتواند بیشتر از قیمت باشد.";
   }
 
@@ -487,6 +499,16 @@ export function NewProductWizardProvider({
     stateRef.current = state;
   }, [state]);
 
+  const meta: WizardMeta = useMemo(
+    () => ({ categories, refetchProducts, setShowNewProductModal }),
+    [categories, refetchProducts, setShowNewProductModal]
+  );
+
+  const metaRef = useRef(meta);
+  useEffect(() => {
+    metaRef.current = meta;
+  }, [meta]);
+
   // Define actions that can be used by child components.
   // Memoized on `dispatch` only so that effects depending on `actions` do not
   // re-run on every render (which previously caused infinite dispatch loops).
@@ -505,21 +527,73 @@ export function NewProductWizardProvider({
       toggleSection: (section) => dispatch({ type: "TOGGLE_SECTION", section }),
       setOpenSections: (sections) => dispatch({ type: "SET_OPEN_SECTIONS", sections }),
       submitForm: async () => {
-        dispatch({ type: "SET_HAS_SUBMITTED", submitted: true });
-        const errors = validateAllFields(stateRef.current.state);
-        dispatch({ type: "SET_ERRORS", errors });
+        if (stateRef.current.isModalVisible) return;
 
-        if (Object.keys(errors).length > 0) {
-          // Find first section with errors and open it
-          const sectionsWithErrors = findSectionsWithErrors(errors);
+        const currentState = stateRef.current.state;
+        const currentErrors = stateRef.current.errors;
+
+        dispatch({ type: "SET_HAS_SUBMITTED", submitted: true });
+
+        // Re-validate base fields and merge with the child-hook errors
+        // (features/specs/faqs) that live in the same errors object.
+        const baseErrors = validateAllFields(currentState);
+        const mergedErrors: WizardErrors = { ...baseErrors };
+        Object.entries(currentErrors).forEach(([key, value]) => {
+          if (!(key in initialState)) {
+            mergedErrors[key] = value;
+          } else if (key === "features" && value) {
+            mergedErrors.features = value;
+          }
+        });
+        dispatch({ type: "SET_ERRORS", errors: mergedErrors });
+
+        const hasAnyError = Object.values(mergedErrors).some(
+          (message) => message && message.trim() !== ""
+        );
+        if (hasAnyError) {
+          // Open the first section that contains errors so the user can fix them.
+          const sectionsWithErrors = findSectionsWithErrors(mergedErrors);
           if (sectionsWithErrors.length > 0) {
             dispatch({ type: "SET_OPEN_SECTIONS", sections: { [sectionsWithErrors[0]]: true } });
           }
+          toast.error("لطفاً تمام خطاها را برطرف کنید.");
           return;
         }
 
-        // Submit logic would go here - delegated to the submit handler in the main component
-        // This will be overridden by the provider's submit handler
+        const selectedOverviewDetailsIds = currentState.overviewDetails
+          .filter((detail) => detail.selected)
+          .map((detail) => detail.ProductOverviewDetailsId);
+
+        const normalizedPrice = Number(currentState.price);
+        const normalizedDiscount = Number(currentState.discount);
+
+        const formData = {
+          ...currentState,
+          price: isNaN(normalizedPrice) ? 0 : normalizedPrice,
+          discount: isNaN(normalizedDiscount) ? 0 : normalizedDiscount,
+          overviewDetails: selectedOverviewDetailsIds,
+        };
+
+        dispatch({ type: "SET_MODAL_VISIBLE", visible: true });
+        try {
+          await createProduct(
+            formData,
+            (progress) => dispatch({ type: "SET_PROGRESS", progress }),
+            (step) => dispatch({ type: "SET_CURRENT_STEP", step })
+          );
+          setTimeout(() => {
+            dispatch({ type: "SET_MODAL_VISIBLE", visible: false });
+            metaRef.current.setShowNewProductModal(false);
+            metaRef.current.refetchProducts();
+            toast.success("محصول با موفقیت ایجاد شد!");
+          }, 1000);
+        } catch (error) {
+          console.error("مشکلی در ساخت محصول جدید", error);
+          dispatch({ type: "SET_MODAL_VISIBLE", visible: false });
+          toast.error(
+            "محصولی مشابه این محصول وجود دارد یا خطایی به وجود آمده لطفاً دوباره تلاش کنید"
+          );
+        }
       },
       setHasSubmitted: (submitted) => dispatch({ type: "SET_HAS_SUBMITTED", submitted }),
       setProgress: (progress) => dispatch({ type: "SET_PROGRESS", progress }),
@@ -529,11 +603,6 @@ export function NewProductWizardProvider({
         dispatch({ type: "SET_OVERVIEW_DETAILS_MODAL", visible }),
     }),
     [dispatch]
-  );
-
-  const meta: WizardMeta = useMemo(
-    () => ({ categories, refetchProducts, setShowNewProductModal }),
-    [categories, refetchProducts, setShowNewProductModal]
   );
 
   const contextValue: WizardContextValue = useMemo(

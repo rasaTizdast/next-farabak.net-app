@@ -1,11 +1,18 @@
 "use client";
 
-import React, { Suspense } from "react";
+import React from "react";
 import { IoIosClose } from "react-icons/io";
+
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 import { SaveActions } from "./components/SaveActions";
 import { StepNavigation } from "./components/StepNavigation";
-import { NewProductWizardProvider, useNewProductWizard, Category } from "./NewProductWizardContext";
+import {
+  NewProductWizardProvider,
+  useNewProductWizard,
+  Category,
+  OpenSections,
+} from "./NewProductWizardContext";
 import { BaseDetailsStep } from "./steps/BaseDetailsStep";
 import { FAQsStep } from "./steps/FAQsStep";
 import { OverviewDetailsStep } from "./steps/OverviewDetailsStep";
@@ -19,42 +26,65 @@ function NewProductWizardInner({
   setShowNewProductModal,
 }: {
   setShowNewProductModal: (visible: boolean) => void;
-  categories: Category[];
-  refetchProducts: () => void;
 }) {
-  const { isModalVisible } = useNewProductWizard();
+  const { isModalVisible, openSections, progress, currentStep, actions } = useNewProductWizard();
+
+  const sectionOrder = Object.keys(openSections) as (keyof OpenSections)[];
+  const firstOpenIndex = sectionOrder.findIndex((key) => openSections[key]);
+  const currentStepNumber = firstOpenIndex >= 0 ? firstOpenIndex + 1 : 1;
+  const totalSteps = sectionOrder.length || 7;
+
+  const panelRef = useModalA11y<HTMLDivElement>({
+    onClose: () => setShowNewProductModal(false),
+    shouldCloseOnEscape: () => {
+      // A nested progress modal owns Escape while it is visible.
+      if (isModalVisible) return false;
+      // Don't discard a draft mid-typing.
+      const target = document.activeElement as HTMLElement | null;
+      return !target?.closest("input, textarea, select, [contenteditable='true']");
+    },
+  });
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    void actions.submitForm();
+  };
 
   return (
     <>
-      {isModalVisible && <ProgressModal progress={0} currentStep={1} />}
-      <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm transition-opacity">
-        <div className="animate-fade-in relative max-h-[90dvh] w-full max-w-6xl overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg">
-          <h1 className="mb-6 text-center text-2xl font-bold">محصول جدید</h1>
+      {isModalVisible && <ProgressModal progress={progress} currentStep={currentStep} />}
+      <div
+        className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm transition-opacity"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) setShowNewProductModal(false);
+        }}
+      >
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="new-product-wizard-title"
+          tabIndex={-1}
+          className="animate-fade-in relative max-h-[90dvh] w-full max-w-6xl overflow-y-auto rounded-xl bg-gray-800 p-6 text-white shadow-lg focus:outline-none"
+        >
+          <h2 id="new-product-wizard-title" className="mb-6 text-center text-2xl font-bold">
+            محصول جدید
+          </h2>
 
-          <form id="new-product-form" onSubmit={() => {}}>
+          <p role="status" aria-live="polite" className="sr-only">
+            مرحله {currentStepNumber} از {totalSteps}
+          </p>
+
+          <form id="new-product-form" onSubmit={handleFormSubmit}>
             <StepNavigation />
 
-            <Suspense fallback={<div className="py-8 text-center">در حال بارگذاری...</div>}>
-              <BaseDetailsStep />
-            </Suspense>
-            <Suspense fallback={<div className="py-8 text-center">در حال بارگذاری...</div>}>
-              <ProductOverviewStep />
-            </Suspense>
-            <Suspense fallback={<div className="py-8 text-center">در حال بارگذاری...</div>}>
-              <OverviewDetailsStep />
-            </Suspense>
-            <Suspense fallback={<div className="py-8 text-center">در حال بارگذاری...</div>}>
-              <ProductBlogStep />
-            </Suspense>
-            <Suspense fallback={<div className="py-8 text-center">در حال بارگذاری...</div>}>
-              <SpecsStep />
-            </Suspense>
-            <Suspense fallback={<div className="py-8 text-center">در حال بارگذاری...</div>}>
-              <FAQsStep />
-            </Suspense>
-            <Suspense fallback={<div className="py-8 text-center">در حال بارگذاری...</div>}>
-              <PreviewStep />
-            </Suspense>
+            <BaseDetailsStep />
+            <ProductOverviewStep />
+            <OverviewDetailsStep />
+            <ProductBlogStep />
+            <SpecsStep />
+            <FAQsStep />
+            <PreviewStep />
 
             <SaveActions />
           </form>
@@ -93,11 +123,7 @@ export default function NewProductModal({
       refetchProducts={refetchProducts}
       setShowNewProductModal={setShowNewProductModal}
     >
-      <NewProductWizard.Form
-        setShowNewProductModal={setShowNewProductModal}
-        categories={categories}
-        refetchProducts={refetchProducts}
-      />
+      <NewProductWizard.Form setShowNewProductModal={setShowNewProductModal} />
     </NewProductWizard.Provider>
   );
 }

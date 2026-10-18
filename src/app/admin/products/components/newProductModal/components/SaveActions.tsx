@@ -1,12 +1,10 @@
 "use client";
 
-import { toast } from "react-hot-toast";
-
 import { useNewProductWizard } from "../NewProductWizardContext";
 import { ValidationSummary } from "./ValidationSummary";
 
 export function SaveActions() {
-  const { errors, hasSubmitted } = useNewProductWizard();
+  const { errors, hasSubmitted, isModalVisible } = useNewProductWizard();
 
   const hasErrors = () => {
     if (!errors) return false;
@@ -24,25 +22,9 @@ export function SaveActions() {
         form="new-product-form"
         data-testid="create-product-button"
         className={`rounded-lg px-6 py-2 ${
-          hasErrors() ? "cursor-not-allowed bg-gray-500" : "bg-blue-500 hover:bg-blue-600"
+          isModalVisible ? "cursor-not-allowed bg-gray-500" : "bg-blue-500 hover:bg-blue-600"
         } text-white`}
-        disabled={hasErrors()}
-        onClick={(e) => {
-          if (hasErrors()) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const hasFeatureErrors = Object.keys(errors).some(
-              (key) => (key === "features" || key.startsWith("features-")) && errors[key]
-            );
-
-            if (hasFeatureErrors) {
-              toast.error("لطفاً خطاهای ویژگی‌ها را برطرف کنید.");
-            } else {
-              toast.error("لطفاً تمام خطاها را برطرف کنید.");
-            }
-          }
-        }}
+        disabled={isModalVisible}
       >
         ایجاد محصول
       </button>

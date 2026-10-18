@@ -34,14 +34,14 @@ const ProductBlog = ({ dispatch, slug }: Props) => {
   return (
     <div>
       {slug === "" ? (
-        <h1 className="my-3 text-center font-extrabold text-red-300">
+        <p className="my-3 text-center font-extrabold text-red-300">
           ابتدا جزئیات پایه را وارد کنید، سپس مقاله را بنویسید.
-        </h1>
+        </p>
       ) : (
         <>
-          <h1 className="my-3 text-center font-extrabold text-red-300">
+          <p className="my-3 text-center font-extrabold text-red-300">
             محتوای مقاله به صورت خودکار ذخیره خواهد شد
-          </h1>
+          </p>
           <TipTapEditor content="" onChange={handleContentChange} />
         </>
       )}
