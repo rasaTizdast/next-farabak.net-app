@@ -100,23 +100,9 @@ async function generateWarrantyCodeForInvoice(
   } catch (error) {
     console.error("Error generating warranty code:", error);
 
-    const selectedBranch = branches.find((b) => b.branchid === warrantyData.branchId);
-    const branchCode =
-      selectedBranch?.location || selectedBranch?.name.substring(0, 2).toUpperCase() || "FA";
-
-    const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const date = new Date();
-    const persianYear = persianYearFormatter.format(date);
-    const persianMonth = persianMonthFormatter.format(date);
-    const yearStr = persianToEnglishDigits(persianYear);
-    const monthStr = persianToEnglishDigits(persianMonth);
-    const yearNum = yearStr.slice(-3);
-    const yearMonth = yearNum + monthStr.padStart(2, "0");
-
-    setWarrantyData((prev) => ({
-      ...prev,
-      warrantycode: `${branchCode}-${yearMonth}-${randomCode}`,
-    }));
+    // Never fabricate a warranty code locally: uniqueness/registration is
+    // guaranteed only by the server. Surface a blocking error instead.
+    toast.error("خطا در تولید کد گارانتی از سمت سرور. لطفاً دوباره تلاش کنید.");
   }
 }
 

@@ -81,15 +81,22 @@ async function doUpdateWarranties(
 ) {
   if (selectedProducts.length === 0 || isGeneratingCodes) return;
 
-  let allHaveWarranty = true;
+  // Reconcile every time: trim rows when a quantity was decreased, drop rows
+  // for products that are no longer selected, and only generate codes for
+  // genuinely new units. (Previously an early-return kept stale rows, so
+  // removed products / decreased quantities were still submitted.)
+  let allUpToDate = true;
   for (const product of selectedProducts) {
     const items = productsWithWarranty.filter((p) => p.ProductId === product.ProductId);
-    if (items.length < product.quantity) {
-      allHaveWarranty = false;
+    if (items.length !== product.quantity) {
+      allUpToDate = false;
       break;
     }
   }
-  if (allHaveWarranty && productsWithWarranty.length > 0) {
+  const staleRows = productsWithWarranty.filter(
+    (p) => !selectedProducts.some((s) => s.ProductId === p.ProductId)
+  );
+  if (allUpToDate && productsWithWarranty.length > 0 && staleRows.length === 0) {
     return;
   }
 
@@ -221,14 +228,11 @@ const WarrantyStep: React.FC<WarrantyStepProps> = ({
         return data.warrantyCodes;
       }
 
+      // Never fabricate codes locally: uniqueness/registration is guaranteed
+      // only by the server. Throw so the caller surfaces a blocking error and
+      // submit-time validation prevents persisting code-less warranties.
       console.error("Error generating batch warranty codes");
-      // Fallback to local generation if API fails
-      return Array(count)
-        .fill(null)
-        .map(() => {
-          const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-          return `${branchCode}-${yearMonth}-${randomCode}`;
-        });
+      throw new Error("خطا در تولید کدهای گارانتی از سمت سرور");
     },
     [generateBatchMutate]
   );

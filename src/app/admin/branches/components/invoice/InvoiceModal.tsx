@@ -172,9 +172,22 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
   ];
 
   const handleNext = () => {
-    if (currentStep === 0 && (!invoice.Fullname || !invoice.Phonenumber)) {
-      message.error("لطفا تمام اطلاعات خریدار را وارد کنید");
-      return;
+    if (currentStep === 0) {
+      if (!invoice.Fullname?.trim() || !invoice.Phonenumber?.trim()) {
+        message.error("لطفا تمام اطلاعات خریدار را وارد کنید");
+        return;
+      }
+      // Normalize Persian/Arabic digits before validating (same rule as the input: ^09\d{9}$)
+      const normalizedPhone = invoice.Phonenumber.replace(/[۰-۹]/g, (d) =>
+        String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+      ).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+      if (!/^09\d{9}$/.test(normalizedPhone)) {
+        message.error("شماره تماس معتبر نیست (مثال: 09123456789)");
+        return;
+      }
+      if (normalizedPhone !== invoice.Phonenumber) {
+        setInvoice({ ...invoice, Phonenumber: normalizedPhone });
+      }
     }
 
     if (currentStep === 1 && selectedProducts.length === 0) {
@@ -190,6 +203,39 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
   };
 
   const handleSubmit = async () => {
+    // Guard against stale/incomplete warranty data before submitting:
+    // every selected unit must have exactly one row, and every warranty row
+    // with hasWarranty must carry a server-issued code + valid dates.
+    for (const product of selectedProducts) {
+      const rows = productsWithWarranty.filter((p) => p.ProductId === product.ProductId);
+      if (rows.length !== product.quantity) {
+        message.error(
+          `تعداد ردیف‌های گارانتی محصول «${product.Name || product.ProductId}» با تعداد انتخاب‌شده هم‌خوانی ندارد. لطفاً به مرحله گارانتی بازگردید.`
+        );
+        return;
+      }
+    }
+    const stale = productsWithWarranty.filter(
+      (p) => !selectedProducts.some((s) => s.ProductId === p.ProductId)
+    );
+    if (stale.length > 0) {
+      message.error(
+        "اطلاعات گارانتی با محصولات انتخاب‌شده هم‌خوانی ندارد. لطفاً به مرحله گارانتی بازگردید."
+      );
+      return;
+    }
+    const missingCode = productsWithWarranty.some(
+      (item) =>
+        item.warranty?.hasWarranty &&
+        (!item.warranty.warrantycode || !item.warranty.startdate || !item.warranty.expirydate)
+    );
+    if (missingCode) {
+      message.error(
+        "برخی کدهای گارانتی تولید نشده‌اند. لطفاً به مرحله گارانتی بازگردید و دوباره تلاش کنید."
+      );
+      return;
+    }
+
     await submitInvoice(
       setIsLoading,
       productsWithWarranty,

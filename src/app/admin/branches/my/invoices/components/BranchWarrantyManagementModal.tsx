@@ -101,28 +101,9 @@ async function generateWarrantyCodeForBranch(
   } catch (error) {
     console.error("Error generating warranty code:", error);
 
-    if (currentBranch) {
-      const branchCode =
-        currentBranch.location || currentBranch.name.substring(0, 2).toUpperCase() || "FA";
-
-      const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const date = new Date();
-      const persianYear = persianYearFormatter.format(date);
-      const persianMonth = persianMonthFormatter.format(date);
-      const yearStr = persianToEnglishDigits(persianYear);
-      const monthStr = persianToEnglishDigits(persianMonth);
-      const yearNum = yearStr.slice(-3);
-      const yearMonth = yearNum + monthStr.padStart(2, "0");
-
-      const fallbackCode = `${branchCode}-${yearMonth}-${randomCode}`;
-
-      setWarrantyData((prev) => ({
-        ...prev,
-        warrantycode: fallbackCode,
-        hasWarranty: true,
-      }));
-      return fallbackCode;
-    }
+    // Never fabricate a warranty code locally: uniqueness/registration is
+    // guaranteed only by the server. Surface a blocking error instead.
+    toast.error("خطا در تولید کد گارانتی از سمت سرور. لطفاً دوباره تلاش کنید.");
     return null;
   }
 }
@@ -134,7 +115,9 @@ const BranchWarrantyManagementModal = ({
   onSuccess,
 }: BranchWarrantyManagementModalProps) => {
   const { data: currentBranchData } = useApiFetch<Branch>("/api/admin/branches/current");
-  const { data: productCheckData } = useApiFetch<{ hasProduct: boolean }>(
+  const { data: productCheckData, loading: productCheckLoading } = useApiFetch<{
+    hasProduct: boolean;
+  }>(
     currentBranchData?.branchid
       ? `/api/admin/branches/check-product?branchId=${currentBranchData.branchid}&productId=${item.ProductId}&invoiceId=${invoiceId}`
       : null
@@ -149,8 +132,6 @@ const BranchWarrantyManagementModal = ({
   const { mutate: createWarrantyMutate, loading: submittingCreate } = useApiMutation("post");
 
   const [nowTimestamp] = useState(() => Date.now());
-  const [loading] = useState(true);
-  const [isInitialized] = useState(false);
   const currentBranch = currentBranchData ?? null;
   const branchHasProduct = productCheckData?.hasProduct ?? false;
   const [warrantyData, setWarrantyData] = useState<{
@@ -176,6 +157,20 @@ const BranchWarrantyManagementModal = ({
   // Use the print hook with ref for the warranty card area
   const componentRef = useRef<HTMLDivElement>(null);
   const branchSyncedRef = useRef(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    panelRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   // Sync branchId from currentBranchData (one-time)
   useEffect(() => {
@@ -322,7 +317,7 @@ const BranchWarrantyManagementModal = ({
   const isSubmitDisabled = () => {
     const disabled =
       submittingCreate ||
-      loading ||
+      productCheckLoading ||
       !warrantyData.warrantycode ||
       !branchHasProduct ||
       durationText?.includes("باید") ||
@@ -331,15 +326,20 @@ const BranchWarrantyManagementModal = ({
     return disabled;
   };
 
-  // If still loading or not initialized, show loading state
-  if (loading || !isInitialized || !currentBranch) {
+  // If the current branch has not loaded yet, show loading state
+  if (!currentBranch) {
     return (
       <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
         onClick={(e) => e.stopPropagation()}
       >
         <div
-          className="flex w-full max-w-md flex-col items-center justify-center rounded-lg bg-slate-900 p-8"
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="در حال بارگذاری فرم گارانتی"
+          tabIndex={-1}
+          className="flex w-full max-w-md flex-col items-center justify-center rounded-lg bg-slate-900 p-8 focus:outline-none"
           onClick={(e) => e.stopPropagation()}
         >
           <Spin size="large" />
@@ -354,9 +354,22 @@ const BranchWarrantyManagementModal = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="w-full max-w-md rounded-lg bg-slate-900" onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="branch-warranty-management-title"
+        tabIndex={-1}
+        className="w-full max-w-md rounded-lg bg-slate-900 focus:outline-none"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="border-b border-slate-700 p-6">
-          <h2 className="text-center text-xl font-bold text-white">افزودن گارانتی جدید</h2>
+          <h2
+            id="branch-warranty-management-title"
+            className="text-center text-xl font-bold text-white"
+          >
+            افزودن گارانتی جدید
+          </h2>
         </div>
 
         {/* Main form view with ref for printing */}
@@ -443,6 +456,7 @@ const BranchWarrantyManagementModal = ({
                   <button
                     type="button"
                     onClick={() => generateWarrantyCode()}
+                    aria-label="تولید مجدد کد گارانتی"
                     className="rounded-lg bg-blue-700 px-2 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-600 print:hidden"
                     disabled={generatingCode || !branchHasProduct}
                   >
@@ -520,7 +534,7 @@ const BranchWarrantyManagementModal = ({
                   ) : (
                     <span className="text-xs text-green-400">فعال</span>
                   )}
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-400">
                     {" "}
                     (تعیین اتوماتیک براساس تاریخ انقضا)
                   </span>

@@ -46,13 +46,10 @@ function WarrantyStepInner({
         return data.warrantyCodes;
       }
 
-      // Fallback
-      return Array(count)
-        .fill(null)
-        .map(() => {
-          const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-          return `${branchCode}-${yearMonth}-${randomCode}`;
-        });
+      // Never fabricate codes locally: uniqueness/registration is guaranteed
+      // only by the server. Throw so the failure surfaces instead of being
+      // silently persisted.
+      throw new Error("خطا در تولید کدهای گارانتی از سمت سرور");
     },
     [mutate]
   );
