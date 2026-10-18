@@ -868,8 +868,8 @@ describe("src/lib/validation.ts - schemas", () => {
       assertError(result);
     });
 
-    it("rejects limit above 100", () => {
-      const result = productsQuerySchema.safeParse({ limit: 200 });
+    it("rejects limit above 500", () => {
+      const result = productsQuerySchema.safeParse({ limit: 501 });
       expect(result.success).toBe(false);
       assertError(result);
     });

@@ -237,7 +237,7 @@ export const updateInvoiceSchema = z.object({
 
 export const productsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(30),
+  limit: z.coerce.number().int().min(1).max(500).default(30),
   q: z.string().optional(),
   category: z.coerce.number().int().default(0),
   subcategory: z.string().optional(),
