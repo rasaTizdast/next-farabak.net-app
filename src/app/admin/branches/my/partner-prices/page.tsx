@@ -125,7 +125,7 @@ export default function BranchPartnerPricesPage() {
   };
 
   return (
-    <div className="mx-auto max-w-[1400px] text-white">
+    <div className="w-full text-white">
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-bold">قیمت‌های همکار</h1>
         <input
@@ -222,17 +222,19 @@ export default function BranchPartnerPricesPage() {
                       }
                       if (discount && discount > 0) {
                         const discountedUsd = Math.max(price - discount, 0);
+                        const originalRial = formatRial(price);
+                        const discountedRial = formatRial(discountedUsd);
                         return (
                           <div className="flex flex-col items-center gap-0.5">
-<span className="text-red-300 line-through">
-                               {formatRial(price) === "-"
-                                 ? `${Math.floor(price * usdRate).toLocaleString("fa-IR")} دلار`
-                                 : formatRial(price)}
+                            <span className="text-red-300 line-through">
+                              {originalRial === "-"
+                                ? `${price.toLocaleString("fa-IR")} دلار`
+                                : originalRial}
                             </span>
-<span className="font-semibold text-green-400">
-                               {formatRial(discountedUsd) === "-"
-                                 ? `${Math.floor(discountedUsd * usdRate).toLocaleString("fa-IR")} دلار`
-                                 : formatRial(discountedUsd)}
+                            <span className="font-semibold text-green-400">
+                              {discountedRial === "-"
+                                ? `${discountedUsd.toLocaleString("fa-IR")} دلار`
+                                : discountedRial}
                             </span>
                           </div>
                         );

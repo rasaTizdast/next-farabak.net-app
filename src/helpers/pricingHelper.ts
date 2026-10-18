@@ -42,9 +42,9 @@ export async function calculateProductPricing(
     };
   }
 
-  const originalPrice = Math.round(price * rate);
+  const originalPrice = Math.floor(price * rate);
   const hasDiscount = discountAmount > 0;
-  const discountedPrice = hasDiscount ? Math.round((price - discountAmount) * rate) : null;
+  const discountedPrice = hasDiscount ? Math.floor((price - discountAmount) * rate) : null;
 
   return {
     originalPrice,

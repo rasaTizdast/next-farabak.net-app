@@ -120,7 +120,7 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
                     </span>
                     <span className="text-gray-400">/</span>
                     <span className="font-medium text-white">
-                      {(Number(product.Price) * usdRate!).toLocaleString("fa-IR")} تومان
+                      {Math.floor(Number(product.Price) * usdRate!).toLocaleString("fa-IR")} تومان
                     </span>
                   </div>
                 </div>
@@ -133,7 +133,8 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
                       </span>
                       <span className="text-gray-400">/</span>
                       <span className="font-medium text-white">
-                        {Math.floor(Number(product.Discount) * usdRate!).toLocaleString("fa-IR")} تومان
+                        {Math.floor(Number(product.Discount) * usdRate!).toLocaleString("fa-IR")}{" "}
+                        تومان
                       </span>
                     </div>
                   </div>
@@ -180,7 +181,8 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
               />
               {isValidRate && formData.price > 0 && (
                 <span className="mt-2 block text-sm text-gray-400">
-                  معادل {(Number(formData.price) * usdRate!).toLocaleString("fa-IR")} تومان
+                  معادل {Math.floor(Number(formData.price) * usdRate!).toLocaleString("fa-IR")}{" "}
+                  تومان
                 </span>
               )}
             </div>
@@ -202,7 +204,8 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
               />
               {isValidRate && formData.discount > 0 && (
                 <span className="mt-2 block text-sm text-gray-400">
-                  معادل {(Number(formData.discount) * usdRate!).toLocaleString("fa-IR")} تومان
+                  معادل {Math.floor(Number(formData.discount) * usdRate!).toLocaleString("fa-IR")}{" "}
+                  تومان
                 </span>
               )}
             </div>

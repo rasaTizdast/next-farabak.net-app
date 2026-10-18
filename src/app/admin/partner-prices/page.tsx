@@ -133,7 +133,7 @@ export default function AdminPartnerPricesPage() {
 
   const formatRial = (usd: number) => {
     if (!usdRate) return "-";
-    return (usd * usdRate).toLocaleString("fa-IR") + " تومان";
+    return Math.floor(usd * usdRate).toLocaleString("fa-IR") + " تومان";
   };
 
   const sorted = (() => {
@@ -177,7 +177,7 @@ export default function AdminPartnerPricesPage() {
   };
 
   return (
-    <div className="mx-auto max-w-[1400px] text-white">
+    <div className="w-full text-white">
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-bold">قیمت‌های همکار</h1>
         <input
