@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { HomepageTestimonial } from "@/content/homepage-proof";
 import { getHomepageData } from "@/lib/data/homepage";
@@ -11,7 +11,7 @@ import {
 import { prisma } from "@/lib/prisma";
 
 vi.mock("@/lib/prisma", () => ({
-  prisma: { showcase_products: { findMany: vi.fn() } },
+  prisma: { showcase_products: { findMany: vi.fn() }, blogs: { findMany: vi.fn() } },
 }));
 vi.mock("@/lib/data/projects", () => ({ getProjects: vi.fn() }));
 
@@ -119,6 +119,9 @@ describe("resolveHomepageImage", () => {
 });
 
 describe("getHomepageData", () => {
+  beforeEach(() => {
+    vi.mocked(prisma.blogs.findMany).mockResolvedValue([]);
+  });
   it("keeps real showcase cards available when project records fail", async () => {
     vi.mocked(getProjects).mockRejectedValueOnce(new Error("unavailable"));
     vi.mocked(prisma.showcase_products.findMany).mockResolvedValueOnce([
@@ -143,6 +146,8 @@ describe("getHomepageData", () => {
           link: "/products/camera",
         },
       ],
+      blogs: [],
+      blogFeedStatus: "ready",
     });
   });
 
@@ -153,6 +158,8 @@ describe("getHomepageData", () => {
       projects: [],
       publishedProjectCount: 0,
       products: [],
+      blogs: [],
+      blogFeedStatus: "ready",
     });
   });
 
