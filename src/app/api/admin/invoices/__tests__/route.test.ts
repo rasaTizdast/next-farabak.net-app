@@ -56,6 +56,18 @@ describe("GET /api/admin/invoices", () => {
     mockCookieStore.clear();
   });
 
+  it("retains expired unchecked invoices when loading the list", async () => {
+    mockPrisma.$queryRaw
+      .mockResolvedValueOnce([{ Invoiceid: 99, Checked: false, Date: "1400-01-01T00:00:00" }])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([]);
+    const response = await GET();
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual([expect.objectContaining({ Invoiceid: 99 })]);
+    expect(mockPrisma.invoice.deleteMany).not.toHaveBeenCalled();
+    expect(mockPrisma.invoice_Details.deleteMany).not.toHaveBeenCalled();
+  });
+
   it("returns invoices list", async () => {
     mockPrisma.$queryRaw
       .mockResolvedValueOnce([{ Invoiceid: 1, Checked: true, Date: "1403-06-15T10:00:00" }])
