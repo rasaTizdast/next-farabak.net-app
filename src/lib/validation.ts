@@ -116,7 +116,15 @@ export const updateProductSchema = z.object({
   SEO_Title: z.string().optional(),
   SEO_Description: z.string().optional(),
   productBlog: z.string().optional(),
-  Partner_Price: z.string().optional(),
+  Partner_Price: z
+    .string()
+    .trim()
+    .refine(
+      (value) =>
+        value === "" || (/^(?:\d+\.?\d*|\.\d+)$/.test(value) && Number.isFinite(Number(value))),
+      "قیمت همکار باید عددی نامنفی باشد"
+    )
+    .optional(),
 });
 
 export const updateProductImagesSchema = z

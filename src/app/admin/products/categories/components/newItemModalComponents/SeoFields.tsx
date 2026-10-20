@@ -3,12 +3,14 @@ import { useState } from "react";
 // Regex patterns for validation
 const seoRegexPatterns = {
   SEO_Title: /^.{0,50}$/, // Any character, up to 50 characters
+  SEO_Description: /^.{0,4000}$/,
   SEO_Keywords: /^.{0,4000}$/, // Any character, up to 4000 characters (no commas restriction)‌
 };
 
 // Error messages
 const seoErrorMessages = {
   SEO_Title: "عنوان سئو باید حداکثر ۵۰ کاراکتر باشد.",
+  SEO_Description: "توضیحات سئو باید حداکثر ۴۰۰۰ کاراکتر باشد.",
   SEO_Keywords: "کلمه کلیدی نمی‌تواند شامل کاما باشد و حداکثر ۴۰۰۰ کاراکتر باشد.",
 };
 

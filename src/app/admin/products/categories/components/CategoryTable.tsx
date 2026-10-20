@@ -29,17 +29,12 @@ const SortableHeader = ({
       : "none";
 
   return (
-    <th
-      className="px-6 py-3 text-gray-300 transition-colors hover:text-gray-100"
-      onClick={() => onSort(sortKey)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") onSort(sortKey);
-      }}
-      tabIndex={0}
-      scope="col"
-      aria-sort={sortDirection}
-    >
-      <div className="flex items-center justify-center gap-2">
+    <th scope="col" aria-sort={sortDirection} className="px-4 py-3">
+      <button
+        type="button"
+        className="flex min-h-11 w-full items-center justify-center gap-2 rounded px-2 text-gray-300 transition-colors hover:text-gray-100 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
+        onClick={() => onSort(sortKey)}
+      >
         {children}
         {sortConfig.key === sortKey &&
           (sortConfig.direction === "ascending" ? (
@@ -48,12 +43,12 @@ const SortableHeader = ({
             <FaSortDown aria-hidden="true" />
           ))}
         {sortConfig.key !== sortKey && <FaSort aria-hidden="true" className="text-gray-400" />}
-      </div>
+      </button>
     </th>
   );
 };
 
-const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTableProps) => {
+const CategoryTable = ({ categories, isLoading, error, refetchCategories }: CategoryTableProps) => {
   const [sortConfig, setSortConfig] = useState<{
     key: SortKey;
     direction: "ascending" | "descending";
@@ -66,6 +61,7 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
 
   const [deleteItem, setDeleteItem] = useState<Category | Subcategory | null>(null);
   const [confirmationText, setConfirmationText] = useState(""); // State for the confirmation input
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { mutate: deleteMutate } = useApiMutation("delete");
 
@@ -116,13 +112,14 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
   };
 
   const handleModalClose = () => {
+    if (isDeleting) return;
     setIsEditModalOpen(false); // Close the edit modal
     setIsDeleteModalOpen(false); // Close the delete modal
     setConfirmationText(""); // Clear the confirmation text
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteItem) return;
+    if (!deleteItem || isDeleting) return;
     // Check if the user typed the correct name
     if (confirmationText !== deleteItem.Name) {
       toast.error("نام وارد شده صحیح نیست. لطفاً دوباره تلاش کنید.");
@@ -136,25 +133,38 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
       subCategoryId: !isCategoryItem ? deleteItem.CategoryContentId.toString() : undefined,
     };
 
-    const result = await deleteMutate("/api/categories/delete", requestBody);
-    if (result) {
-      toast.success(
-        `${isCategoryItem ? "دسته‌بندی" : "زیرمجموعه"} با موفقیت حذف شد، و محصولات مرتبط پاک شدند.`
-      );
-      refetchCategories();
-      setDeleteItem(null);
-      setIsDeleteModalOpen(false);
-      setConfirmationText("");
-    } else {
+    setIsDeleting(true);
+    try {
+      const result = await deleteMutate("/api/categories/delete", requestBody);
+      if (result) {
+        toast.success(
+          `${isCategoryItem ? "دسته‌بندی" : "زیرمجموعه"} با موفقیت حذف شد، و محصولات مرتبط پاک شدند.`
+        );
+        refetchCategories();
+        setDeleteItem(null);
+        setIsDeleteModalOpen(false);
+        setConfirmationText("");
+      } else {
+        toast.error("خطا در حذف، لطفاً دوباره تلاش کنید.");
+      }
+    } catch {
       toast.error("خطا در حذف، لطفاً دوباره تلاش کنید.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
     <>
-      <div className="w-full overflow-auto rounded-lg">
+      <div
+        role="region"
+        className="w-full overflow-x-auto rounded-lg focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
+        tabIndex={0}
+        aria-label="جدول دسته‌بندی‌ها؛ برای مشاهده ستون‌های بیشتر پیمایش افقی کنید"
+      >
         <table
-          className="w-full table-auto border-collapse border-spacing-0 overflow-hidden rounded-xl text-center text-xs whitespace-nowrap text-gray-100 lg:text-sm"
+          aria-label="دسته‌بندی‌ها و زیردسته‌بندی‌ها"
+          className="w-full min-w-208 table-auto border-collapse border-spacing-0 overflow-hidden rounded-xl text-center text-xs whitespace-nowrap text-gray-100 lg:text-sm"
           aria-busy={isLoading}
         >
           <thead className="bg-slate-900 text-gray-100 uppercase">
@@ -174,38 +184,59 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
             </tr>
           </thead>
           <tbody>
-            {isLoading
-              ? [...Array(20)].map((_, index) => (
-                  <tr key={index} className="animate-pulse">
-                    <td className="bg-slate-700 px-6 py-4"></td>
-                    <td className="bg-slate-700 px-6 py-4"></td>
-                    <td className="bg-slate-700 px-6 py-4"></td>
-                    <td className="bg-slate-700 px-6 py-4"></td>
-                  </tr>
-                ))
-              : sortedCategories.map((category, index) => (
-                  <React.Fragment key={category.CategoryID}>
-                    <CategoryRow
-                      key={category.CategoryID}
-                      category={category}
-                      onDeleteClick={handleDeleteClick}
-                      onEditClick={handleEditClick}
-                      onToggleExpand={handleToggleExpand}
-                      expandedCategories={expandedCategories}
-                      index={index}
-                    />
-                    {expandedCategories.has(category.CategoryID) &&
-                      category.Subcategories.map((subcategory, subIndex) => (
-                        <SubcategoryRow
-                          key={subcategory.CategoryContentId}
-                          subcategory={subcategory}
-                          onDeleteClick={handleDeleteClick}
-                          onEditClick={handleEditClick}
-                          subIndex={subIndex}
-                        />
-                      ))}
-                  </React.Fragment>
-                ))}
+            {isLoading ? (
+              [...Array(20)].map((_, index) => (
+                <tr key={index} className="animate-pulse">
+                  <td className="bg-slate-700 px-6 py-4"></td>
+                  <td className="bg-slate-700 px-6 py-4"></td>
+                  <td className="bg-slate-700 px-6 py-4"></td>
+                  <td className="bg-slate-700 px-6 py-4"></td>
+                </tr>
+              ))
+            ) : error ? (
+              <tr key="category-load-error">
+                <td colSpan={4} className="px-6 py-10 text-center" role="alert" aria-live="polite">
+                  <p>دریافت دسته‌بندی‌ها با خطا روبه‌رو شد.</p>
+                  <button
+                    type="button"
+                    onClick={refetchCategories}
+                    className="mt-3 min-h-11 rounded bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
+                  >
+                    تلاش دوباره
+                  </button>
+                </td>
+              </tr>
+            ) : sortedCategories.length === 0 ? (
+              <tr key="category-empty-state">
+                <td colSpan={4} className="px-6 py-10 text-center text-gray-300">
+                  هنوز دسته‌بندی‌ای ایجاد نشده است.
+                </td>
+              </tr>
+            ) : (
+              sortedCategories.map((category, index) => (
+                <React.Fragment key={category.CategoryID}>
+                  <CategoryRow
+                    key={category.CategoryID}
+                    category={category}
+                    onDeleteClick={handleDeleteClick}
+                    onEditClick={handleEditClick}
+                    onToggleExpand={handleToggleExpand}
+                    expandedCategories={expandedCategories}
+                    index={index}
+                  />
+                  {expandedCategories.has(category.CategoryID) &&
+                    category.Subcategories.map((subcategory, subIndex) => (
+                      <SubcategoryRow
+                        key={subcategory.CategoryContentId}
+                        subcategory={subcategory}
+                        onDeleteClick={handleDeleteClick}
+                        onEditClick={handleEditClick}
+                        subIndex={subIndex}
+                      />
+                    ))}
+                </React.Fragment>
+              ))
+            )}
           </tbody>
         </table>
 
@@ -229,6 +260,7 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
           onClose={handleModalClose}
           confirmationText={confirmationText}
           setConfirmationText={setConfirmationText}
+          isDeleting={isDeleting}
         />
       </div>
     </>

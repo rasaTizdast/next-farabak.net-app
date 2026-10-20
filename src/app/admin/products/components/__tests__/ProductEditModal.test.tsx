@@ -1,5 +1,8 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import toast from "react-hot-toast";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+const { mutate } = vi.hoisted(() => ({ mutate: vi.fn() }));
 
 vi.mock("react-hot-toast", () => ({
   default: { success: vi.fn(), error: vi.fn() },
@@ -31,7 +34,7 @@ vi.mock("@/hooks/useApiFetch", () => ({
 
 vi.mock("@/hooks/useApiMutation", () => ({
   useApiMutation: () => ({
-    mutate: vi.fn().mockResolvedValue({ success: true }),
+    mutate,
     loading: false,
     error: null,
     reset: vi.fn(),
@@ -39,7 +42,15 @@ vi.mock("@/hooks/useApiMutation", () => ({
 }));
 
 vi.mock("../EditModalFAQ", () => ({
-  default: () => <div data-testid="edit-modal-faq">EditModalFAQ</div>,
+  default: ({ setFaqs }: { setFaqs: (faqs: { question: string; answer: string }[]) => void }) => (
+    <button
+      type="button"
+      onClick={() => setFaqs([{ question: "Question", answer: "Answer" }])}
+      data-testid="edit-modal-faq"
+    >
+      EditModalFAQ
+    </button>
+  ),
 }));
 
 vi.mock("../EditModalOverview", () => ({
@@ -109,6 +120,83 @@ describe("ProductEditModal", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mutate.mockResolvedValue({ success: true });
+  });
+
+  it("keeps the edit modal open while saving when Escape or the backdrop is clicked", async () => {
+    mutate.mockImplementation(() => new Promise(() => {}));
+    render(
+      <ProductEditModal
+        product={mockProduct}
+        onClose={mockOnClose}
+        refetchProducts={mockRefetchProducts}
+        setIsEditModalOpen={mockSetIsEditModalOpen}
+      />
+    );
+    fireEvent.click(screen.getByText("ذخیره"));
+    await screen.findByRole("button", { name: "در حال ذخیره..." });
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    fireEvent.mouseDown(screen.getByRole("dialog", { name: "ویرایش محصول" }).parentElement!);
+
+    expect(mockOnClose).not.toHaveBeenCalled();
+  });
+
+  it("keeps the entered draft open when the main save fails", async () => {
+    mutate.mockResolvedValue(null);
+    render(
+      <ProductEditModal
+        product={mockProduct}
+        onClose={mockOnClose}
+        refetchProducts={mockRefetchProducts}
+        setIsEditModalOpen={mockSetIsEditModalOpen}
+      />
+    );
+
+    fireEvent.click(screen.getByText("ذخیره"));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    expect(mockSetIsEditModalOpen).not.toHaveBeenCalled();
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog", { name: "ویرایش محصول" })).toBeInTheDocument();
+  });
+
+  it("does not clear detail selections or FAQs that have not loaded", async () => {
+    render(
+      <ProductEditModal
+        product={mockProduct}
+        onClose={mockOnClose}
+        refetchProducts={mockRefetchProducts}
+        setIsEditModalOpen={mockSetIsEditModalOpen}
+      />
+    );
+
+    fireEvent.click(screen.getByText("ذخیره"));
+
+    await waitFor(() => expect(mockSetIsEditModalOpen).toHaveBeenCalledWith(false));
+    const urls = mutate.mock.calls.map(([url]) => url);
+    expect(urls).not.toContain("/api/productOverviewDetails/update");
+    expect(urls).not.toContain("/api/faqs/product/1");
+  });
+
+  it("does not report complete success or discard the draft when FAQ saving fails", async () => {
+    mutate.mockImplementation(async (url: string) =>
+      url === "/api/faqs/product/1" ? null : { success: true }
+    );
+    render(
+      <ProductEditModal
+        product={mockProduct}
+        onClose={mockOnClose}
+        refetchProducts={mockRefetchProducts}
+        setIsEditModalOpen={mockSetIsEditModalOpen}
+      />
+    );
+    fireEvent.click(screen.getByTestId("edit-modal-faq"));
+    fireEvent.click(screen.getByText("ذخیره"));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(mockSetIsEditModalOpen).not.toHaveBeenCalled();
   });
 
   it("renders the modal heading", () => {

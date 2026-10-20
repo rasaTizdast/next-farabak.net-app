@@ -53,8 +53,12 @@ const CategoryFields = ({
 
   // Handle slug input: convert spaces to dashes
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    value = value.replace(/\s+/g, "-").toLowerCase(); // Replace spaces with dashes
+    const value = e.target.value.replace(/\s+/g, "-").toLowerCase();
+    if (!regexPatterns.Slug.test(value)) {
+      setErrors((prev) => ({ ...prev, Slug: errorMessages.Slug }));
+    } else {
+      setErrors((prev) => ({ ...prev, Slug: "" }));
+    }
     setSlug(value);
   };
 
@@ -80,7 +84,11 @@ const CategoryFields = ({
           className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-500"
           placeholder="نام دسته‌بندی را وارد کنید"
         />
-        {errors.Name && <p className="text-sm text-red-500">{errors.Name}</p>}
+        {errors.Name && (
+          <p role="alert" aria-live="polite" className="text-sm text-red-500">
+            {errors.Name}
+          </p>
+        )}
       </div>
 
       {/* Slug */}
@@ -98,7 +106,11 @@ const CategoryFields = ({
           className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-500"
           placeholder="شناسه دسته‌بندی"
         />
-        {errors.Slug && <p className="text-sm text-red-500">{errors.Slug}</p>}
+        {errors.Slug && (
+          <p role="alert" aria-live="polite" className="text-sm text-red-500">
+            {errors.Slug}
+          </p>
+        )}
       </div>
 
       {/* Availability */}

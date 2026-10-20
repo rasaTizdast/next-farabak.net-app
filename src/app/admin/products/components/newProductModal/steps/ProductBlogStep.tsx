@@ -9,7 +9,7 @@ import { useNewProductBlog } from "../hooks/useNewProductBlog";
 import { useNewProductWizard } from "../NewProductWizardContext";
 
 export function ProductBlogStep() {
-  const { handleContentChange, slug } = useNewProductBlog();
+  const { handleContentChange, slug, productBlog } = useNewProductBlog();
   const { openSections, actions } = useNewProductWizard();
 
   return (
@@ -29,7 +29,7 @@ export function ProductBlogStep() {
             <p className="my-3 text-center font-extrabold text-red-300">
               محتوای مقاله به صورت خودکار ذخیره خواهد شد
             </p>
-            <TipTapEditor content="" onChange={handleContentChange} />
+            <TipTapEditor content={productBlog} onChange={handleContentChange} />
           </>
         )}
       </div>

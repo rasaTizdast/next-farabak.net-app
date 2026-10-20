@@ -12,6 +12,7 @@ const ProductCategories = () => {
   const {
     data: categoriesData,
     loading: isLoading,
+    error,
     refetch: fetchCategories,
   } = useApiFetch<Category[]>("/api/categories/getAll");
   const categories = categoriesData || [];
@@ -35,6 +36,7 @@ const ProductCategories = () => {
         <CategoryTable
           categories={categories}
           isLoading={isLoading}
+          error={error}
           refetchCategories={fetchCategories} // Pass refetch function
         />
       </div>

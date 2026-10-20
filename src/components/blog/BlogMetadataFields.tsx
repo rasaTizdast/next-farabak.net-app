@@ -26,6 +26,7 @@ const BlogMetadataFields: React.FC<BlogMetadataFieldsProps> = ({
         <input
           id="blog-title"
           type="text"
+          maxLength={255}
           required
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
@@ -40,6 +41,7 @@ const BlogMetadataFields: React.FC<BlogMetadataFieldsProps> = ({
         <input
           id="blog-author"
           type="text"
+          maxLength={100}
           required
           value={author}
           onChange={(e) => onAuthorChange(e.target.value)}
@@ -54,6 +56,9 @@ const BlogMetadataFields: React.FC<BlogMetadataFieldsProps> = ({
         <input
           id="blog-slug"
           type="text"
+          maxLength={255}
+          autoCapitalize="none"
+          spellCheck={false}
           required
           value={slug}
           onChange={(e) => onSlugChange(e.target.value.toLowerCase().replace(/[^a-z0-9\-_]/g, ""))}

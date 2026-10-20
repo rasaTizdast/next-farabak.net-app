@@ -141,6 +141,56 @@ describe("PATCH /api/admin/products/[productId]", () => {
     expect(res.status).toBe(400);
   });
 
+  it.each(["-1", "Infinity", "1.2.3", "1e3"])(
+    "rejects invalid partner price %s before writing",
+    async (Partner_Price) => {
+      mockCookieStore.set("accessToken", "admin-token");
+      mockJwtVerify.mockResolvedValue({
+        payload: { userId: 1, username: "admin", role: "Admin" },
+      });
+
+      const req = makeRequest("PATCH", { Partner_Price });
+      const res = await PATCH(req, { params: Promise.resolve({ productId: "123" }) });
+
+      expect(res.status).toBe(400);
+      expect(mockPrisma.product.update).not.toHaveBeenCalled();
+    }
+  );
+
+  it("trims and accepts a finite non-negative partner price string", async () => {
+    mockCookieStore.set("accessToken", "admin-token");
+    mockJwtVerify.mockResolvedValue({
+      payload: { userId: 1, username: "admin", role: "Admin" },
+    });
+    mockPrisma.product.update.mockResolvedValue({ ProductId: 123, Partner_Price: "12.50" });
+
+    const req = makeRequest("PATCH", { Partner_Price: " 12.50 " });
+    const res = await PATCH(req, { params: Promise.resolve({ productId: "123" }) });
+
+    expect(res.status).toBe(200);
+    expect(mockPrisma.product.update).toHaveBeenCalledWith({
+      where: { ProductId: 123 },
+      data: { Partner_Price: "12.50" },
+    });
+  });
+
+  it("allows an empty partner price string to clear the value", async () => {
+    mockCookieStore.set("accessToken", "admin-token");
+    mockJwtVerify.mockResolvedValue({
+      payload: { userId: 1, username: "admin", role: "Admin" },
+    });
+    mockPrisma.product.update.mockResolvedValue({ ProductId: 123, Partner_Price: "" });
+
+    const req = makeRequest("PATCH", { Partner_Price: "" });
+    const res = await PATCH(req, { params: Promise.resolve({ productId: "123" }) });
+
+    expect(res.status).toBe(200);
+    expect(mockPrisma.product.update).toHaveBeenCalledWith({
+      where: { ProductId: 123 },
+      data: { Partner_Price: "" },
+    });
+  });
+
   it("updates product successfully as Admin", async () => {
     mockCookieStore.set("accessToken", "admin-token");
     mockJwtVerify.mockResolvedValue({

@@ -64,6 +64,13 @@ const AdminProductsPage = () => {
 
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
+  useEffect(
+    () => () => {
+      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    },
+    []
+  );
+
   // Memoize refetchProducts to ensure a stable reference
   const refetchProducts = useCallback(async () => {
     const props = {
@@ -84,6 +91,10 @@ const AdminProductsPage = () => {
   }, [refetchProducts]);
 
   const handleSearch = async (query: string) => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+      debounceTimeout.current = null;
+    }
     // If the query is cleared
     if (!query) {
       setSearchQuery(""); // Clear the actual search query
@@ -121,12 +132,20 @@ const AdminProductsPage = () => {
   const deleteProduct = async (id: number, name: string) => {
     try {
       // Step 1: Delete the image from S3 using productId
-      const s3Response = await axios.delete("/api/s3/delete", {
-        data: {
-          type: "productImages", // Indicates this is a product image
-          productId: id, // The ID of the product
-        },
-      });
+      const s3Response = await axios
+        .delete("/api/s3/delete", {
+          data: {
+            type: "productImages", // Indicates this is a product image
+            productId: id, // The ID of the product
+          },
+        })
+        .catch((error: unknown) => {
+          // Products created without images have no storage folder to remove.
+          if (axios.isAxiosError(error) && error.response?.status === 404) {
+            return { status: 200 };
+          }
+          throw error;
+        });
 
       if (s3Response.status === 200) {
         // Step 2: Delete the product from the database

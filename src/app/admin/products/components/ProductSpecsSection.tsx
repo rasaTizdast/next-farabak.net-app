@@ -10,7 +10,7 @@ type ProductSpecsSectionProps = {
   formState: Product;
   specs: Specs | null;
   setSpecs: React.Dispatch<React.SetStateAction<Specs | null>>;
-  setFaqs: React.Dispatch<React.SetStateAction<FAQItem[]>>;
+  setFaqs: (faqs: FAQItem[]) => void;
   faqErrors: { [key: string]: string };
 };
 

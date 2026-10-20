@@ -48,9 +48,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const [overviews, setOverviews] = useState<Overview | null>(null);
   const [overviewDetails, setOverviewDetails] = useState<OverviewDetail[] | null>(null);
   const [specs, setSpecs] = useState<Specs | null>(null);
-  const [faqs, setFaqs] = useState<FAQItem[]>([]);
+  const [faqs, setFaqs] = useState<FAQItem[] | null>(null);
 
-  const panelRef = useModalA11y<HTMLDivElement>({ onClose });
+  const requestClose = () => {
+    if (!isLoading) onClose();
+  };
+  const panelRef = useModalA11y<HTMLDivElement>({ onClose: requestClose });
 
   const { data: categoriesData, error: categoriesError } =
     useApiFetch<Category[]>("/api/categories/getAll");
@@ -66,7 +69,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   }, [categoriesError]);
 
-  const faqErrors = deriveFaqErrors(faqs);
+  const faqErrors = deriveFaqErrors(faqs ?? []);
 
   const validateFaqs = () => {
     return Object.keys(faqErrors).length === 0;
@@ -92,7 +95,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formState) return;
+    if (!formState || isLoading) return;
 
     const formError = validateProductForm(formState);
     if (formError) {
@@ -138,7 +141,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
       if (!mainRes) {
         toast.error("آپدیت ثبت محصول مورد نظر با شکست مواجه شد، مجدد تلاش کنید");
-        setIsEditModalOpen(false);
         return;
       }
 
@@ -161,7 +163,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
         );
         if (!imgRes) {
           toast.error("آپدیت ثبت محصول مورد نظر با شکست مواجه شد، مجدد تلاش کنید");
-          setIsEditModalOpen(false);
           return;
         }
       }
@@ -179,7 +180,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
         });
         if (!overviewRes) {
           toast.error("آپدیت ثبت محصول مورد نظر با شکست مواجه شد، مجدد تلاش کنید");
-          setIsEditModalOpen(false);
           return;
         }
       }
@@ -191,26 +191,35 @@ const ProductForm: React.FC<ProductFormProps> = ({
         });
         if (!specsRes) {
           toast.error("اپدیت بررسی ها به مشکل  برخورد، مجددا تلاش کنید");
+          return;
         }
       }
 
-      const detailsRes = await putMutation.mutate("/api/productOverviewDetails/update", {
-        productId: updatedFormState.ProductId,
-        ProductName: updatedFormState.Type,
-        selectedDetails: overviewDetails,
-      });
-      if (!detailsRes) {
-        toast.error("آپدیت جزئیات بررسی به مشکل خورده است.");
+      if (overviewDetails !== null) {
+        const detailsRes = await putMutation.mutate("/api/productOverviewDetails/update", {
+          productId: updatedFormState.ProductId,
+          ProductName: updatedFormState.Type,
+          selectedDetails: overviewDetails,
+        });
+        if (!detailsRes) {
+          toast.error("آپدیت جزئیات بررسی به مشکل خورده است.");
+          return;
+        }
       }
 
-      const faqsRes = await putMutation.mutate(`/api/faqs/product/${formState.ProductId}`, faqs);
-      if (!faqsRes) {
-        toast.error("ذخیره سوالات متداول با مشکل روبرو شد.");
+      if (faqs !== null) {
+        const faqsRes = await putMutation.mutate(`/api/faqs/product/${formState.ProductId}`, faqs);
+        if (!faqsRes) {
+          toast.error("ذخیره سوالات متداول با مشکل روبرو شد.");
+          return;
+        }
       }
 
       toast.success("محصول مورد نظر با موفقیت آپدیت شد!");
       refetchProducts();
       setIsEditModalOpen(false);
+    } catch {
+      toast.error("ذخیره کامل محصول ناموفق بود. اطلاعات فرم حفظ شده است؛ دوباره تلاش کنید.");
     } finally {
       setIsloading(false);
     }
@@ -228,7 +237,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       <div
         className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black shadow-lg backdrop-blur-sm"
         onMouseDown={(e) => {
-          if (e.target === e.currentTarget) onClose();
+          if (e.target === e.currentTarget) requestClose();
         }}
       >
         <div
@@ -277,7 +286,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
               setFaqs={setFaqs}
               faqErrors={faqErrors}
             />
-            <ProductFormActions onClose={onClose} hasFaqErrors={hasFaqErrors} />
+            <ProductFormActions
+              onClose={requestClose}
+              hasFaqErrors={hasFaqErrors}
+              isLoading={isLoading}
+            />
           </form>
         </div>
       </div>

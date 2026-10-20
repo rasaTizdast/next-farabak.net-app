@@ -1,5 +1,4 @@
 import axios from "axios";
-import toast from "react-hot-toast";
 
 export type S3UploadBody = {
   type: string;
@@ -41,30 +40,25 @@ export async function doUploadImage(
     imageType,
   });
 
-  if (!response) return null;
+  if (!response) throw new Error("دریافت مجوز آپلود تصویر ناموفق بود.");
 
   const { uploadUrl, key } = response;
 
-  try {
-    await axios.put(uploadUrl, image, {
-      headers: {
-        "Content-Type": image.type,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
+  await axios.put(uploadUrl, image, {
+    headers: {
+      "Content-Type": image.type,
+    },
+  });
 
   return key;
 }
 
 export async function handleProductImageUpdate(
-  productId: number,
+  _productId: number,
   productName: string,
   newImg1: File | null,
   newImg2: File | null,
-  deleteMutation: DeleteMutateFn,
+  _deleteMutation: DeleteMutateFn,
   imageUploader: (
     image: File | null,
     productName: string,
@@ -74,41 +68,17 @@ export async function handleProductImageUpdate(
   const payload: { img1?: string; img2?: string } = {};
 
   if (newImg1) {
-    const delete1Res = await deleteMutation("/api/s3/delete", {
-      productId,
-      type: "productImages",
-      productImageType: "mini",
-    });
-    if (delete1Res !== null) {
-      const img1Key = await imageUploader(newImg1, productName, "mini");
-      if (!img1Key) {
-        console.error("Failed to upload img1");
-      } else {
-        payload.img1 = img1Key;
-        toast.success("تصویر بدون پس‌زمینه با موفقیت آپدیت شد!");
-      }
-    } else {
-      toast.error("آپلود تصویر بدون پس‌زمینه با شکست مواجه شد، مجددا تلاش کنید");
-    }
+    // The upload endpoint overwrites the deterministic image key. Deleting it
+    // first loses the existing image when uploading fails.
+    const img1Key = await imageUploader(newImg1, productName, "mini");
+    if (!img1Key) throw new Error("آپلود تصویر بدون پس‌زمینه ناموفق بود.");
+    payload.img1 = img1Key;
   }
 
   if (newImg2) {
-    const delete2Res = await deleteMutation("/api/s3/delete", {
-      productId,
-      type: "productImages",
-      productImageType: "banner",
-    });
-    if (delete2Res !== null) {
-      const img2Key = await imageUploader(newImg2, productName, "banner");
-      if (!img2Key) {
-        console.error("Failed to upload img2");
-      } else {
-        payload.img2 = img2Key;
-        toast.success("تصویر بنر با موفقیت آپدیت شد!");
-      }
-    } else {
-      toast.error("آپدیت تصویر بنر با شکست مواجه شد، مجددا تلاش کنید");
-    }
+    const img2Key = await imageUploader(newImg2, productName, "banner");
+    if (!img2Key) throw new Error("آپلود تصویر بنر ناموفق بود.");
+    payload.img2 = img2Key;
   }
 
   return payload;

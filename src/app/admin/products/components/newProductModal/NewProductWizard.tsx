@@ -34,8 +34,12 @@ function NewProductWizardInner({
   const currentStepNumber = firstOpenIndex >= 0 ? firstOpenIndex + 1 : 1;
   const totalSteps = sectionOrder.length || 7;
 
+  const requestClose = () => {
+    if (!isModalVisible) setShowNewProductModal(false);
+  };
+
   const panelRef = useModalA11y<HTMLDivElement>({
-    onClose: () => setShowNewProductModal(false),
+    onClose: requestClose,
     shouldCloseOnEscape: () => {
       // A nested progress modal owns Escape while it is visible.
       if (isModalVisible) return false;
@@ -56,7 +60,7 @@ function NewProductWizardInner({
       <div
         className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm transition-opacity"
         onClick={(e) => {
-          if (e.target === e.currentTarget) setShowNewProductModal(false);
+          if (e.target === e.currentTarget) requestClose();
         }}
       >
         <div
@@ -92,7 +96,8 @@ function NewProductWizardInner({
           <button
             type="button"
             className="absolute top-4 right-4 cursor-pointer text-red-400 transition-colors hover:text-red-500"
-            onClick={() => setShowNewProductModal(false)}
+            onClick={requestClose}
+            disabled={isModalVisible}
             aria-label="بستن"
           >
             <IoIosClose size={50} />

@@ -141,4 +141,16 @@ describe("POST /api/admin/products/createNewProduct", () => {
     const createCall = mockPrisma.product.create.mock.calls[0][0];
     expect(createCall.data.productBlog).toBe("");
   });
+
+  it("preserves an unavailable product instead of publishing it", async () => {
+    mockCookieStore.set("accessToken", "valid-token");
+    mockJwtVerify.mockResolvedValue({ payload: { userId: 1, role: "Admin" } });
+    mockPrisma.product.findFirst.mockResolvedValue(null);
+    mockPrisma.product.create.mockImplementation(async ({ data }) => ({ ProductId: 999, ...data }));
+
+    const response = await POST(makeRequest({ ...validBody, Available: false }));
+
+    expect(response.status).toBe(201);
+    expect((await response.json()).Available).toBe(false);
+  });
 });

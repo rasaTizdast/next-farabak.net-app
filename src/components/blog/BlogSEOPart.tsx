@@ -78,9 +78,9 @@ const BlogSEOPart: React.FC<BlogSEOPartProps> = ({
               <input
                 id="blog-image"
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp"
                 onChange={onFileChange}
-                className="hidden"
+                className="absolute inset-0 size-full cursor-pointer opacity-0"
               />
             </label>
 
@@ -88,7 +88,7 @@ const BlogSEOPart: React.FC<BlogSEOPartProps> = ({
               <div className="group relative">
                 <Image
                   src={
-                    previewImage.startsWith("blob:") || previewImage.startsWith("http")
+                    /^(https?:|blob:|data:)/.test(previewImage) || previewImage.startsWith("/")
                       ? previewImage
                       : process.env.NEXT_PUBLIC_LIARA_BUCKET_URL
                         ? `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${previewImage}`
@@ -99,7 +99,7 @@ const BlogSEOPart: React.FC<BlogSEOPartProps> = ({
                   alt="پیش‌نمایش"
                   className={
                     mode === "edit"
-                      ? "h-36 rounded-lg border-2 border-gray-600 object-cover"
+                      ? "h-36 max-w-full rounded-lg border-2 border-gray-600 object-cover"
                       : "size-32 rounded-lg border-2 border-gray-600 object-cover"
                   }
                 />
@@ -121,6 +121,7 @@ const BlogSEOPart: React.FC<BlogSEOPartProps> = ({
             <input
               id="blog-image-alt"
               type="text"
+              maxLength={250}
               required
               placeholder="متن جایگزین تصویر (الزامی)"
               value={image_alt}

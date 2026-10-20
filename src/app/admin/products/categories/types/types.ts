@@ -35,6 +35,7 @@ export interface Category {
 export interface CategoryTableProps {
   categories: Category[];
   isLoading: boolean;
+  error?: string | null;
   refetchCategories: () => void;
 }
 

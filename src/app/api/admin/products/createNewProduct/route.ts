@@ -178,7 +178,7 @@ export async function POST(request: Request) {
         Description: data.Description,
         CategoryId: data.CategoryId,
         CategoryContentId: data.CategoryContentId,
-        Available: data.Available || true,
+        Available: data.Available,
         Price: data.Price || "0",
         Discount: data.Discount || "0",
         Name: data.Name,

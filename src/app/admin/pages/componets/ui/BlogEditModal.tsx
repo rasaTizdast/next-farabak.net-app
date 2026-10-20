@@ -8,7 +8,7 @@ type BlogEditModalProps = {
 };
 
 const BlogEditModal: React.FC<BlogEditModalProps> = ({ id, onClose }) => {
-  return <BlogForm mode="edit" id={id} onClose={onClose} />;
+  return <BlogForm key={id} mode="edit" id={id} onClose={onClose} />;
 };
 
 export default BlogEditModal;

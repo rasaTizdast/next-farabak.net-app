@@ -7,8 +7,7 @@ import { useNewProductWizard } from "../NewProductWizardContext";
 export function useNewProductBlog() {
   const { state, actions } = useNewProductWizard();
 
-  const contentRef = useRef<string>("");
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const contentRef = useRef(state.productBlog);
 
   const handleContentChange = useCallback(
     (content: string) => {
@@ -16,13 +15,7 @@ export function useNewProductBlog() {
 
       contentRef.current = content;
 
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-
-      debounceTimerRef.current = setTimeout(() => {
-        actions.setProductBlog(content);
-      }, 1000);
+      actions.setProductBlog(content);
     },
     [actions]
   );

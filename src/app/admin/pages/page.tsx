@@ -2,11 +2,13 @@
 
 import { ChevronDown, ChevronUp, Plus, Eye, FileText } from "lucide-react";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { FaEdit } from "react-icons/fa";
 import { IoQrCode } from "react-icons/io5";
 import { MdDeleteForever } from "react-icons/md";
+
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 import ActivityEditor from "./componets/ui/ActivityEditor";
 import BlogEditModal from "./componets/ui/BlogEditModal";
@@ -91,7 +93,68 @@ type SubPage = {
   QrCode_expiryDays?: string;
 };
 
-async function doDeleteItem(type: string, id: number, fetchPageData: () => void) {
+function DeletePageDialog({
+  itemName,
+  isDeleting,
+  onCancel,
+  onConfirm,
+}: {
+  itemName: string;
+  isDeleting: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const panelRef = useModalA11y<HTMLDivElement>({
+    onClose: onCancel,
+    shouldCloseOnEscape: () => !isDeleting,
+  });
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !isDeleting) onCancel();
+      }}
+    >
+      <div
+        ref={panelRef}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="delete-page-title"
+        aria-describedby="delete-page-description"
+        tabIndex={-1}
+        className="w-full max-w-md rounded-xl border border-gray-700 bg-gray-900 p-5 text-white shadow-2xl focus:outline-none sm:p-6"
+      >
+        <h2 id="delete-page-title" className="text-lg font-semibold">
+          حذف صفحه
+        </h2>
+        <p id="delete-page-description" className="mt-3 text-sm leading-6 text-gray-300">
+          آیا از حذف «{itemName}» مطمئن هستید؟ این عملیات قابل بازگشت نیست.
+        </p>
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            disabled={isDeleting}
+            onClick={onCancel}
+            className="min-h-11 rounded-lg bg-gray-700 px-5 text-sm font-medium text-white hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            انصراف
+          </button>
+          <button
+            type="button"
+            disabled={isDeleting}
+            onClick={onConfirm}
+            className="min-h-11 rounded-lg bg-red-700 px-5 text-sm font-medium text-white hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isDeleting ? "در حال حذف..." : "حذف"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+async function doDeleteItem(type: string, id: number, fetchPageData: () => Promise<void>) {
   try {
     let endpoint = "";
 
@@ -119,14 +182,17 @@ async function doDeleteItem(type: string, id: number, fetchPageData: () => void)
 
     if (response.ok) {
       toast.success("عملیات حذف با موفقیت انجام شد");
-      fetchPageData();
+      await fetchPageData();
+      return true;
     } else {
       const errorData = await response.json();
       toast.error(`خطا در حذف: ${errorData.error || "خطای ناشناخته"}`);
+      return false;
     }
   } catch (error) {
     console.error("Error deleting item:", error);
     toast.error("خطا در ارتباط با سرور");
+    return false;
   }
 }
 
@@ -134,6 +200,13 @@ const AdminPageManager: React.FC = () => {
   const [rowNames, setRowNames] = useState<PageRow[]>([]);
   const [subPages, setSubPages] = useState<Record<string, SubPage[]>>({});
   const [loading, setLoading] = useState(true);
+  const [pageError, setPageError] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    type: string;
+    id: number;
+    name: string;
+  } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [isQrCodeModalOpen, setIsQrCodeModalOpen] = useState(false);
   const [qrCodeBlog, setQrCodeBlog] = useState<{
@@ -143,27 +216,24 @@ const AdminPageManager: React.FC = () => {
     QrCode_expiryDays?: string;
   } | null>(null);
 
-  const fetchPageData = () => {
-    fetch("/api/admin/pages")
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setRowNames(data.rowNames);
-        setSubPages(data.subPages);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
-  };
+  const fetchPageData = useCallback(async () => {
+    setPageError(false);
+    try {
+      const response = await fetch("/api/admin/pages");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      setRowNames(data.rowNames);
+      setSubPages(data.subPages);
+    } catch {
+      setPageError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    fetchPageData();
-  }, []);
+    void fetchPageData();
+  }, [fetchPageData]);
 
   const [expanded, setExpanded] = useState<string | null>(null);
   const [editorConfig, setEditorConfig] = useState<{
@@ -233,8 +303,12 @@ const AdminPageManager: React.FC = () => {
     }
   };
 
-  const deleteItem = async (type: string, id: number) => {
-    await doDeleteItem(type, id, fetchPageData);
+  const deleteItem = async () => {
+    if (!deleteTarget || isDeleting) return;
+    setIsDeleting(true);
+    const deleted = await doDeleteItem(deleteTarget.type, deleteTarget.id, fetchPageData);
+    setIsDeleting(false);
+    if (deleted) setDeleteTarget(null);
   };
 
   const handleQrCodeModal = (blog: {
@@ -254,6 +328,21 @@ const AdminPageManager: React.FC = () => {
         renderSkeleton()
       ) : (
         <div className="mx-auto w-full px-3 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8">
+          {pageError && (
+            <div
+              role="alert"
+              className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-800 bg-red-950/50 p-4 text-sm text-red-100"
+            >
+              <span>بارگذاری صفحات انجام نشد. اتصال را بررسی و دوباره تلاش کنید.</span>
+              <button
+                type="button"
+                onClick={() => void fetchPageData()}
+                className="min-h-10 rounded-md bg-red-800 px-4 font-medium text-white transition hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:outline-none"
+              >
+                تلاش دوباره
+              </button>
+            </div>
+          )}
           {/* Header */}
           <div className="mb-6 sm:mb-8">
             <h1 className="mb-1 text-2xl font-bold text-white sm:mb-2 sm:text-3xl lg:text-4xl">
@@ -263,7 +352,7 @@ const AdminPageManager: React.FC = () => {
           </div>
 
           {/* Empty State */}
-          {rowNames.length === 0 && (
+          {rowNames.length === 0 && !pageError && (
             <div className="py-12 text-center sm:py-16">
               <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-gray-800 sm:size-20">
                 <FileText className="size-8 text-gray-600 sm:size-10" />
@@ -421,7 +510,13 @@ const AdminPageManager: React.FC = () => {
                               <button
                                 type="button"
                                 className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg bg-red-600 p-2 text-white shadow-sm transition-[background-color,box-shadow] hover:bg-red-700 hover:shadow active:bg-red-800 sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5"
-                                onClick={() => deleteItem(row.editorType, subPage.id)}
+                                onClick={() =>
+                                  setDeleteTarget({
+                                    type: row.editorType,
+                                    id: subPage.id,
+                                    name: subPage.name,
+                                  })
+                                }
                                 title="حذف"
                                 aria-label="حذف صفحه"
                               >
@@ -473,6 +568,14 @@ const AdminPageManager: React.FC = () => {
       )}
       {renderEditor()}
       {renderNewPageBuilder()}
+      {deleteTarget && (
+        <DeletePageDialog
+          itemName={deleteTarget.name}
+          isDeleting={isDeleting}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={() => void deleteItem()}
+        />
+      )}
     </>
   );
 };

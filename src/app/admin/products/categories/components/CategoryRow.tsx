@@ -33,41 +33,43 @@ const CategoryRow: React.FC<CategoryRowProps> = ({
     <td className="px-6 py-4 font-medium text-white">{category.Name}</td>
     <td className="px-6 py-4 font-medium text-gray-300">{category.Slug}</td>
     <td className="px-6 py-4 text-gray-300">{category.Available ? "موجود" : "ناموجود"}</td>
-    <td className="flex w-full items-center justify-center gap-2 px-6 py-4">
-      <Link href={category.Link} target="_blank">
-        <button
-          type="button"
-          className="rounded bg-blue-600 px-5 py-2 text-white transition-colors hover:bg-blue-700"
+    <td className="px-6 py-4">
+      <div className="flex items-center justify-center gap-2">
+        <Link
+          href={category.Link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded bg-blue-600 px-5 py-2 text-white transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
         >
           مشاهده
+        </Link>
+        <button
+          type="button"
+          onClick={(e) => onEditClick(category, e)}
+          className="flex min-h-11 items-center justify-center gap-1 rounded bg-yellow-600 px-5 py-2 text-white transition-colors hover:bg-yellow-700 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
+        >
+          ویرایش
+          <FaEdit />
         </button>
-      </Link>
-      <button
-        type="button"
-        onClick={(e) => onEditClick(category, e)}
-        className="flex items-center justify-center gap-1 rounded bg-yellow-600 px-5 py-2 text-white transition-colors hover:bg-yellow-700"
-      >
-        ویرایش
-        <FaEdit />
-      </button>
-      <button
-        type="button"
-        onClick={() => onDeleteClick(category)}
-        className="flex items-center gap-1 rounded bg-red-600 px-5 py-2 text-white transition-colors hover:bg-red-700"
-      >
-        حذف
-        <FaTrash className="mb-1" />
-      </button>
-      <button
-        type="button"
-        onClick={() => onToggleExpand(category.CategoryID)}
-        className={`rounded bg-green-600 px-5 py-2 text-white transition-colors hover:bg-green-700 ${
-          !category.Subcategories.length ? "cursor-not-allowed opacity-30" : ""
-        }`}
-        disabled={!category.Subcategories.length}
-      >
-        {expandedCategories.has(category.CategoryID) ? "بستن" : "مشاهده زیردسته‌بندی"}
-      </button>
+        <button
+          type="button"
+          onClick={() => onDeleteClick(category)}
+          className="flex min-h-11 items-center gap-1 rounded bg-red-600 px-5 py-2 text-white transition-colors hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
+        >
+          حذف
+          <FaTrash className="mb-1" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onToggleExpand(category.CategoryID)}
+          className={`min-h-11 rounded bg-green-600 px-5 py-2 text-white transition-colors hover:bg-green-700 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none ${
+            !category.Subcategories.length ? "cursor-not-allowed opacity-30" : ""
+          }`}
+          disabled={!category.Subcategories.length}
+        >
+          {expandedCategories.has(category.CategoryID) ? "بستن" : "مشاهده زیردسته‌بندی"}
+        </button>
+      </div>
     </td>
   </tr>
 );

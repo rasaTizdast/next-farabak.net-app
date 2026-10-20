@@ -16,10 +16,21 @@ vi.mock("react-icons/io", () => ({
   IoIosClose: () => <span data-testid="close-icon">✕</span>,
 }));
 
-vi.mock("../newProductModal/steps/BaseDetailsStep", () => ({
-  default: () => <div data-testid="base-details">BaseDetailsStep</div>,
-  BaseDetailsStep: () => <div data-testid="base-details">BaseDetailsStep</div>,
-}));
+vi.mock("../newProductModal/steps/BaseDetailsStep", async () => {
+  const { useNewProductWizard } = await import("../newProductModal/NewProductWizardContext");
+  const BaseDetailsStep = () => {
+    const { actions } = useNewProductWizard();
+    return (
+      <div data-testid="base-details">
+        BaseDetailsStep
+        <button type="button" onClick={() => actions.setModalVisible(true)}>
+          Start pending creation
+        </button>
+      </div>
+    );
+  };
+  return { default: BaseDetailsStep, BaseDetailsStep };
+});
 
 vi.mock("../newProductModal/steps/ProductOverviewStep", () => ({
   default: () => <div data-testid="product-overview">ProductOverviewStep</div>,
@@ -108,6 +119,23 @@ describe("NewProductModal", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("keeps the wizard open during creation when Escape, backdrop or close is used", () => {
+    render(
+      <NewProductModal
+        setShowNewProductModal={mockSetShowNewProductModal}
+        refetchProducts={mockRefetchProducts}
+        categories={mockCategories}
+      />
+    );
+    fireEvent.click(screen.getByText("Start pending creation"));
+    const closeButton = screen.getByLabelText("بستن");
+    expect(closeButton).toBeDisabled();
+    fireEvent.click(closeButton);
+    fireEvent.keyDown(document, { key: "Escape" });
+    fireEvent.click(screen.getByRole("dialog", { name: "محصول جدید" }).parentElement!);
+    expect(mockSetShowNewProductModal).not.toHaveBeenCalled();
   });
 
   it("renders the modal with heading", () => {

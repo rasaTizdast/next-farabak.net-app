@@ -4,6 +4,7 @@ import { useDropzone } from "react-dropzone";
 import { toast } from "react-hot-toast";
 
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 type CreateCategoryBody = {
   type: string;
@@ -317,6 +318,11 @@ const CreateNewItemModal = ({
       return;
     }
 
+    if (isSubmitDisabled()) {
+      setError("لطفاً فیلدهای مشخص‌شده را اصلاح کنید و دوباره تلاش کنید.");
+      return;
+    }
+
     if (
       !checkIfUnique(
         name,
@@ -370,15 +376,23 @@ const CreateNewItemModal = ({
   };
 
   const isSubmitDisabled = () => {
+    const validName = /^[a-zA-Z0-9-\u0600-\u06FF\s_\u200C\u002D\u2013\u2014]{1,1000}$/.test(name);
+    const validSlug = /^[a-z0-9-]{1,200}$/.test(slug);
+    const validSeo =
+      seoTitle.length <= 50 &&
+      seoDescription.length <= 4000 &&
+      seoKeywords.join(",").length <= 4000;
+
     if (activeTab === "Category") {
       return (
-        name.trim() === "" ||
-        slug.trim() === "" ||
+        !validName ||
+        !validSlug ||
         seoTitle.trim() === "" ||
-        seoDescription.trim() === ""
+        seoDescription.trim() === "" ||
+        !validSeo
       );
     } else if (activeTab === "Subcategory") {
-      return name.trim() === "" || slug.trim() === "" || !parentCategoryId;
+      return !validName || !validSlug || !parentCategoryId || !validSeo;
     }
     return false;
   };
@@ -389,15 +403,21 @@ const CreateNewItemModal = ({
       if (accepted.length > 0) {
         const file = accepted[0];
         bannerFileRef.current = file;
-        setBannerPreview(URL.createObjectURL(file));
+        setForm((previous) => ({
+          ...previous,
+          error: null,
+          bannerPreview: URL.createObjectURL(file),
+        }));
       }
     },
-    [setBannerPreview]
+    [setForm]
   );
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
     onDrop,
     accept: { "image/*": [] },
+    maxSize: 2 * 1024 * 1024,
+    onDropRejected: () => setError("حجم تصویر باید حداکثر ۲ مگابایت باشد و فرمت آن تصویر باشد."),
     maxFiles: 1,
     multiple: false,
   });
@@ -408,14 +428,15 @@ const CreateNewItemModal = ({
     };
   }, [bannerPreview]);
 
-  return (
+  return isOpen ? (
     <CreateNewItemModalPanel
       isOpen={isOpen}
       onClose={onClose}
+      isSaving={loading}
       activeTab={activeTab}
       setActiveTab={setActiveTab}
     >
-      <div className="max-h-[90dvh] overflow-y-scroll rounded-2xl bg-gray-800 p-6 pr-9 text-white shadow-xl">
+      <div className="max-h-[90dvh] overflow-y-scroll overscroll-contain rounded-2xl bg-gray-800 p-6 pr-9 text-white shadow-xl">
         {activeTab === "Category" ? (
           <CategoryFields
             name={name}
@@ -492,7 +513,7 @@ const CreateNewItemModal = ({
                     : "border-gray-600 hover:border-blue-400 hover:bg-blue-900/10"
               } ${bannerPreview ? "border-green-500" : ""}`}
             >
-              <input {...getInputProps()} />
+              <input {...getInputProps({ id: "category-banner", name: "banner" })} />
               {bannerPreview ? (
                 <div className="space-y-2">
                   <p className="text-green-400">تصویر انتخاب شد</p>
@@ -553,11 +574,16 @@ const CreateNewItemModal = ({
           />
         </div>
 
-        {error && <div className="mt-4 text-sm text-red-500">{error}</div>}
+        {error && (
+          <div role="alert" aria-live="polite" className="mt-4 text-sm text-red-500">
+            {error}
+          </div>
+        )}
         <div className="mt-5 flex items-center justify-between">
           <button
             type="button"
             onClick={onClose}
+            disabled={loading}
             className="rounded-xl bg-white px-6 py-3 font-medium text-gray-700"
           >
             انصراف
@@ -577,37 +603,29 @@ const CreateNewItemModal = ({
         </div>
       </div>
     </CreateNewItemModalPanel>
-  );
+  ) : null;
 };
 
 function CreateNewItemModalPanel({
   isOpen,
   onClose,
+  isSaving,
   activeTab,
   setActiveTab,
   children,
 }: {
   isOpen: boolean;
   onClose: () => void;
+  isSaving: boolean;
   activeTab: string;
   setActiveTab: (tab: string) => void;
   children: React.ReactNode;
 }) {
-  const panelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    panelRef.current?.focus();
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !event.defaultPrevented) {
-        onClose();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  const panelRef = useModalA11y<HTMLDivElement>({
+    onClose,
+    isOpen,
+    shouldCloseOnEscape: () => !isSaving,
+  });
 
   if (!isOpen) return null;
 
@@ -625,6 +643,7 @@ function CreateNewItemModalPanel({
           <button
             type="button"
             role="tab"
+            disabled={isSaving}
             aria-selected={activeTab === "Category"}
             data-testid="newCategoryButton"
             onClick={() => setActiveTab("Category")}
@@ -639,6 +658,7 @@ function CreateNewItemModalPanel({
           <button
             type="button"
             role="tab"
+            disabled={isSaving}
             aria-selected={activeTab === "Subcategory"}
             data-testid="newSubCategoryButton"
             onClick={() => setActiveTab("Subcategory")}
