@@ -1,5 +1,5 @@
 import { S3 } from "aws-sdk";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 
@@ -64,6 +64,7 @@ export async function POST(request: Request) {
       },
     });
 
+    revalidateTag("showcase-products", "max");
     revalidatePath("/");
 
     return NextResponse.json(newShowcaseProduct);

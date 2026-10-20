@@ -1,69 +1,24 @@
-import { Metadata } from "next";
-import dynamicImport from "next/dynamic";
+import type { Metadata } from "next";
 
+import TrustLanding from "@/app/_components/LandingPage/TrustLanding";
 import Schema from "@/components/Schema";
-import { getSliders } from "@/lib/data/sliders";
 
-/* Skeleton fallbacks sized to match each section's real rendered height
-   (slider aspect 1920x900; content sections use py-12 + heading + cards)
-   so streaming them in causes minimal layout shift. */
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net";
 
-const SliderSkeleton = () => <div className="aspect-1920/900 w-full bg-gray-100" />;
-
-const SectionSkeleton = ({ minHeight }: { minHeight: string }) => (
-  <div className="w-full px-4 py-12 min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40">
-    <div className="mb-12 flex justify-center">
-      <div className="h-10 w-40 animate-pulse rounded-md bg-gray-200" />
-    </div>
-    <div className="mx-auto flex max-w-[1580px] animate-pulse gap-8" style={{ minHeight }}>
-      <div className="flex-1 rounded-lg bg-gray-100" />
-      <div className="hidden flex-1 rounded-lg bg-gray-100 md:block" />
-    </div>
-  </div>
-);
-
-// Dynamic imports for better performance
-const ImageSlider = dynamicImport(() => import("../_components/imageSlider/ImageSlider"), {
-  loading: () => <SliderSkeleton />,
-});
-
-const ProductsShowCase = dynamicImport(
-  () => import("../_components/LandingPage/ProductsShowCase"),
-  {
-    loading: () => <SectionSkeleton minHeight="560px" />,
-  }
-);
-
-// const ProjectsSection = dynamicImport(() => import("../_components/LandingPage/ProjectsSection"), {
-//   loading: () => <SectionSkeleton minHeight="480px" />,
-// });
-
-const SupportSection = dynamicImport(() => import("../_components/LandingPage/SupportSection"), {
-  loading: () => <SectionSkeleton minHeight="420px" />,
-});
-
-export const generateMetadata = async (): Promise<Metadata> => {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net";
-  return {
-    alternates: {
-      canonical: baseUrl,
-    },
-    openGraph: {
-      title: "خرید محصولات نظارتی و امنیتی با گارانتی معتبر | فرابک",
-      description:
-        "فرابک ارائه‌دهنده انواع محصولات نظارتی و امنیتی شامل دوربین مداربسته ریولینک با گارانتی معتبر، تضمین اصالت کالا و خدمات پس از فروش حرفه‌ای.",
-      url: baseUrl,
-      type: "website",
-      siteName: "فرابک",
-      locale: "fa_IR",
-      images: [
-        {
-          url: `${baseUrl}/opengraph-image.webp`,
-          alt: "فرابک | فروشگاه محصولات نظارتی و امنیتی",
-        },
-      ],
-    },
-  };
+export const metadata: Metadata = {
+  title: "فرابک | تجهیزات امنیتی، نظارت تصویری و پشتیبانی",
+  description:
+    "فرابک، ثبت‌شده در سال ۱۳۸۱؛ بررسی تجهیزات نظارت تصویری و بازرسی امنیتی، پروژه‌های اجراشده و پیگیری گارانتی. برای خانه، کسب‌وکار و سازمان.",
+  alternates: { canonical: baseUrl },
+  openGraph: {
+    title: "امنیت، با پشتوانهٔ فرابک.",
+    description:
+      "تجهیزات، تخصص و پشتیبانی؛ از انتخاب دوربین تا پروژه‌های حفاظت الکترونیک. با سابقه و نمونه‌کارهای فرابک آشنا شوید.",
+    url: baseUrl,
+    type: "website",
+    siteName: "فرابک",
+    locale: "fa_IR",
+  },
 };
 
 const jsonLd = {
@@ -71,185 +26,48 @@ const jsonLd = {
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://farabak.net",
+      "@id": `${baseUrl}/#organization`,
       name: "فرابک",
       alternateName: "Farabak",
-      url: "https://farabak.net",
-      logo: {
-        "@type": "ImageObject",
-        url: "https://farabak.net/Farabak_Logo.webp",
-        width: 150,
-        height: 40,
-      },
+      url: baseUrl,
+      logo: { "@type": "ImageObject", url: `${baseUrl}/Farabak_Logo.webp` },
       description:
-        "فرابک، واردکننده اصلی محصولات ریولینک و Smiths Detection و Ceia در ایران، ارائه‌دهنده انواع محصولات نظارتی و امنیتی با گارانتی معتبر، تضمین اصالت کالا و خدمات پس از فروش حرفه‌ای",
-      foundingDate: "2020",
-      address: {
-        "@type": "PostalAddress",
-        addressCountry: "IR",
-        addressLocality: "تهران",
-        streetAddress: "سعادت آباد، میدان کتاب، خیابان عسگری گراوندی، نبش آسمان هشتم، پلاک ۶",
-      },
-      email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "info@farabak.net",
-      contactPoint: {
-        "@type": "ContactPoint",
-        telephone: process.env.NEXT_PUBLIC_SUPPORT_NUMBER,
-        email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "info@farabak.net",
-        contactType: "customer service",
-        availableLanguage: "Persian",
-      },
+        "فرابک، ثبت‌شده در سال ۱۳۸۱؛ تجهیزات نظارت تصویری و بازرسی امنیتی، مشاوره و پشتیبانی.",
       knowsAbout: [
-        "Reolink Security Cameras",
-        "Smiths Detection Security Products",
-        "Ceia Security Products",
-        "Surveillance Systems",
-        "Security Equipment Import",
-        "CCTV Systems",
+        "Surveillance systems",
+        "Security cameras",
+        "Access control",
+        "Security inspection equipment",
       ],
-      memberOf: {
-        "@type": "Organization",
-        name: "Iran Security Products Importers Association",
-      },
-      sameAs: ["https://farabak.net"],
+      ...(process.env.NEXT_PUBLIC_SUPPORT_EMAIL
+        ? { email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL }
+        : {}),
     },
     {
       "@type": "WebSite",
-      "@id": "https://farabak.net",
-      url: "https://farabak.net",
-      name: "فرابک - محصولات نظارتی و امنیتی",
-      description: "خرید محصولات نظارتی و امنیتی با گارانتی معتبر | فرابک",
-      publisher: {
-        "@id": "https://farabak.net",
-      },
-      potentialAction: {
-        "@type": "SearchAction",
-        target: {
-          "@type": "EntryPoint",
-          urlTemplate: "https://farabak.net/search?q={search_term_string}",
-        },
-        "query-input": "required name=search_term_string",
-      },
+      "@id": `${baseUrl}/#website`,
+      url: baseUrl,
+      name: "فرابک",
       inLanguage: "fa-IR",
+      publisher: { "@id": `${baseUrl}/#organization` },
     },
     {
       "@type": "WebPage",
-      "@id": "https://farabak.net",
-      url: "https://farabak.net",
-      name: "خرید محصولات نظارتی و امنیتی با گارانتی معتبر | فرابک",
-      isPartOf: {
-        "@id": "https://farabak.net",
-      },
-      about: {
-        "@id": "https://farabak.net",
-      },
-      description:
-        "فرابک ارائه‌دهنده انواع محصولات نظارتی و امنیتی شامل دوربین مداربسته ریولینک با گارانتی معتبر، تضمین اصالت کالا و خدمات پس از فروش حرفه‌ای",
-      breadcrumb: {
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          {
-            "@type": "ListItem",
-            position: 1,
-            name: "خانه",
-            item: "https://farabak.net",
-          },
-        ],
-      },
+      "@id": `${baseUrl}/#webpage`,
+      url: baseUrl,
+      name: "امنیت، با پشتوانهٔ فرابک.",
       inLanguage: "fa-IR",
-    },
-    {
-      "@type": "LocalBusiness",
-      "@id": "https://farabak.net",
-      name: "فرابک",
-      image: "https://farabak.net/Farabak_Logo.webp",
-      description:
-        "واردکننده اصلی محصولات ریولینک و Smiths Detection و Ceia در ایران - فروشگاه تخصصی محصولات نظارتی و امنیتی",
-      url: "https://farabak.net",
-      telephone: process.env.NEXT_PUBLIC_SUPPORT_NUMBER,
-      address: {
-        "@type": "PostalAddress",
-        addressCountry: "IR",
-        addressLocality: "تهران",
-      },
-      openingHours: "Mo-Su 09:00-18:00",
-      priceRange: "$$",
-      paymentAccepted: "Cash, Credit Card, Bank Transfer",
-      currenciesAccepted: "IRR",
-      areaServed: {
-        "@type": "Country",
-        name: "Iran",
-      },
-      serviceArea: {
-        "@type": "Country",
-        name: "Iran",
-      },
-    },
-    {
-      "@type": "Organization",
-      "@id": "https://farabak.net/#importer",
-      name: "فرابک - واردکننده رسمی ریولینک و Smiths Detection و Ceia",
-      description: "واردکننده اصلی و رسمی محصولات ریولینک و Smiths Detection و Ceia در ایران",
-      url: "https://farabak.net",
-      parentOrganization: {
-        "@id": "https://farabak.net",
-      },
-      hasCredential: [
-        {
-          "@type": "EducationalOccupationalCredential",
-          name: "Official Reolink Importer License",
-          credentialCategory: "Import License",
-        },
-        {
-          "@type": "EducationalOccupationalCredential",
-          name: "Official Smiths Detection Importer License",
-          credentialCategory: "Import License",
-        },
-        {
-          "@type": "EducationalOccupationalCredential",
-          name: "Official Ceia Importer License",
-          credentialCategory: "Import License",
-        },
-      ],
-      areaServed: {
-        "@type": "Country",
-        name: "Iran",
-      },
+      isPartOf: { "@id": `${baseUrl}/#website` },
+      about: { "@id": `${baseUrl}/#organization` },
     },
   ],
 };
 
-const HomePage = async () => {
-  const sliderLinks = await getSliders();
-
+export default function HomePage() {
   return (
     <>
-      {/* Server-rendered JSON-LD so AI crawlers see structured data without JavaScript */}
-      <Schema id="json-ld" data={jsonLd} />
-
-      <div>
-        <div className="sr-only">
-          <h1>خرید محصولات نظارتی و امنیتی با گارانتی معتبر | فرابک</h1>
-          <p>
-            فرابک واردکننده اصلی محصولات ریولینک (Reolink)، Smiths Detection و Ceia در ایران است. در
-            فروشگاه فرابک می‌توانید انواع دوربین مداربسته، دوربین تحت شبکه، سیستم‌های نظارت تصویری
-            منزل و محل کار و تجهیزات تشخیص و بازرسی امنیتی را با قیمت مناسب، گارانتی معتبر، تضمین
-            اصالت کالا و خدمات پس از فروش حرفه‌ای تهیه کنید. کارشناسان فرابک برای انتخاب سیستم نظارت
-            تصویری مناسب پروژه‌های مسکونی، تجاری و صنعتی مشاوره تخصصی ارائه می‌دهند.
-          </p>
-        </div>
-        <ImageSlider slides={sliderLinks} />
-        <div style={{ contentVisibility: "auto", containIntrinsicSize: "800px 600px" }}>
-          <ProductsShowCase />
-        </div>
-        {/* <div style={{ contentVisibility: "auto", containIntrinsicSize: "800px 600px" }}>
-          <ProjectsSection />
-        </div> */}
-        <div style={{ contentVisibility: "auto", containIntrinsicSize: "800px 600px" }}>
-          <SupportSection />
-        </div>
-      </div>
+      <Schema id="homepage-json-ld" data={jsonLd} />
+      <TrustLanding />
     </>
   );
-};
-
-export default HomePage;
+}

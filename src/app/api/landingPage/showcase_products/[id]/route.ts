@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma"; // Adjust the import based on your Prisma setup
@@ -13,6 +13,7 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
       where: { id: parseInt(id) },
     });
 
+    revalidateTag("showcase-products", "max");
     revalidatePath("/");
 
     return NextResponse.json({ message: "محصول نمایشی با موفقیت حذف شد." });
@@ -37,6 +38,7 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
       },
     });
 
+    revalidateTag("showcase-products", "max");
     revalidatePath("/");
 
     return NextResponse.json(updatedProduct);
