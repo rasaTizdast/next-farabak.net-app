@@ -2,21 +2,12 @@ import { cacheLife, cacheTag } from "next/cache";
 
 import { getProjects, type ProjectListItem } from "@/lib/data/projects";
 import { TAGS } from "@/lib/data/tags";
-import { normalizeInternalLink, resolveHomepageImage } from "@/lib/homepage-proof";
+import { resolveHomepageImage } from "@/lib/homepage-proof";
 import { prisma } from "@/lib/prisma";
-
-export type ShowcaseItem = {
-  id: number;
-  title: string;
-  desc: string;
-  image: string;
-  link: string;
-};
 
 export type HomepageData = {
   projects: ProjectListItem[];
   publishedProjectCount: number | null;
-  products: ShowcaseItem[];
   blogs: HomepageBlogItem[];
   blogFeedStatus: "ready" | "unavailable";
 };
@@ -147,39 +138,8 @@ async function getHomepageBlogs(): Promise<HomepageBlogItem[]> {
   return selectHomepageBlogs(records);
 }
 
-async function getShowcaseProducts(): Promise<ShowcaseItem[]> {
-  "use cache";
-  cacheTag("showcase-products");
-  cacheLife("hours");
-
-  const records = await prisma.showcase_products.findMany({
-    orderBy: { order: "asc" },
-    take: 4,
-    select: { id: true, title: true, description: true, image: true, link: true },
-  });
-
-  return records.flatMap((record) => {
-    const image = resolveHomepageImage(record.image, process.env.LIARA_BUCKET_URL);
-    return image
-      ? [
-          {
-            id: record.id,
-            title: record.title,
-            desc: record.description,
-            image,
-            link: normalizeInternalLink(record.link),
-          },
-        ]
-      : [];
-  });
-}
-
 export async function getHomepageData(): Promise<HomepageData> {
-  const [projectResult, productResult, blogResult] = await Promise.allSettled([
-    getProjects(),
-    getShowcaseProducts(),
-    getHomepageBlogs(),
-  ]);
+  const [projectResult, blogResult] = await Promise.allSettled([getProjects(), getHomepageBlogs()]);
 
   const published = projectResult.status === "fulfilled" ? projectResult.value : null;
   const projects = (published ?? [])
@@ -192,7 +152,6 @@ export async function getHomepageData(): Promise<HomepageData> {
   return {
     projects,
     publishedProjectCount: published ? published.length : null,
-    products: productResult.status === "fulfilled" ? productResult.value : [],
     blogs: blogResult.status === "fulfilled" ? blogResult.value : [],
     blogFeedStatus: blogResult.status === "fulfilled" ? "ready" : "unavailable",
   };

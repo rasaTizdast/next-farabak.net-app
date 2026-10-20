@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 
 vi.mock("@/lib/data/projects", () => ({ getProjects: vi.fn() }));
 vi.mock("@/lib/prisma", () => ({
-  prisma: { showcase_products: { findMany: vi.fn() }, blogs: { findMany: vi.fn() } },
+  prisma: { blogs: { findMany: vi.fn() } },
 }));
 
 type CardRecord = {
@@ -40,7 +40,6 @@ function feed(records: CardRecord[]) {
 describe("homepage editorial feed", () => {
   beforeEach(() => {
     vi.mocked(getProjects).mockResolvedValue([]);
-    vi.mocked(prisma.showcase_products.findMany).mockResolvedValue([]);
     vi.mocked(prisma.blogs.findMany).mockReset();
     vi.mocked(prisma.blogs.findMany).mockResolvedValue([]);
   });
@@ -153,25 +152,14 @@ describe("homepage editorial feed", () => {
     expect(result.blogs[0]?.href).toBe("/support/blog/general/article-1");
   });
 
-  it("distinguishes an empty feed from failure without losing independent feeds", async () => {
+  it("distinguishes an empty feed from failure without losing the project feed", async () => {
     feed([]);
     expect(await getHomepageData()).toMatchObject({ blogs: [], blogFeedStatus: "ready" });
 
     vi.mocked(prisma.blogs.findMany).mockRejectedValueOnce(new Error("blog database down"));
-    vi.mocked(prisma.showcase_products.findMany).mockResolvedValueOnce([
-      {
-        id: 9,
-        title: "محصول",
-        description: "شرح",
-        order: 1,
-        image: "/images/product.webp",
-        link: "/products",
-      },
-    ]);
     const failed = await getHomepageData();
     expect(failed.blogs).toEqual([]);
     expect(failed.blogFeedStatus).toBe("unavailable");
-    expect(failed.products).toHaveLength(1);
     expect(failed.publishedProjectCount).toBe(0);
   });
 });

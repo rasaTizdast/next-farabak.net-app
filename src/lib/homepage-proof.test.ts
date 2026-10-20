@@ -11,7 +11,7 @@ import {
 import { prisma } from "@/lib/prisma";
 
 vi.mock("@/lib/prisma", () => ({
-  prisma: { showcase_products: { findMany: vi.fn() }, blogs: { findMany: vi.fn() } },
+  prisma: { blogs: { findMany: vi.fn() } },
 }));
 vi.mock("@/lib/data/projects", () => ({ getProjects: vi.fn() }));
 
@@ -122,42 +122,46 @@ describe("getHomepageData", () => {
   beforeEach(() => {
     vi.mocked(prisma.blogs.findMany).mockResolvedValue([]);
   });
-  it("keeps real showcase cards available when project records fail", async () => {
+  it("keeps the blog feed available when project records fail", async () => {
     vi.mocked(getProjects).mockRejectedValueOnce(new Error("unavailable"));
-    vi.mocked(prisma.showcase_products.findMany).mockResolvedValueOnce([
+    vi.mocked(prisma.blogs.findMany).mockResolvedValueOnce([
       {
-        id: 1,
-        title: "دوربین",
-        description: "دوربین نظارتی",
-        order: 1,
-        image: "/images/camera.webp",
-        link: "/products//camera",
+        id: 7,
+        title: "Reolink",
+        slug: "camera-guide",
+        image_URL: "/images/camera.webp",
+        image_alt: "راهنمای دوربین",
+        created_at: "2026-10-20T10:00:00.000Z",
+        SEO_description: "راهنمای انتخاب دوربین",
+        BlogCategories: [{ Categories: { name: "راهنما", slug: "camera" } }],
       },
-    ]);
+    ] as never);
     expect(await getHomepageData()).toEqual({
       projects: [],
       publishedProjectCount: null,
-      products: [
+      blogs: [
         {
-          id: 1,
-          title: "دوربین",
-          desc: "دوربین نظارتی",
+          id: 7,
+          title: "Reolink",
+          href: "/support/blog/camera/camera-guide",
+          category: "راهنما",
+          topic: "cctv",
+          reasonToRead: "برای تصمیم‌گیری درباره نظارت تصویری بخوانید.",
           image: "/images/camera.webp",
-          link: "/products/camera",
+          imageAlt: "راهنمای دوربین",
+          date: "2026-10-20T10:00:00.000Z",
+          description: "راهنمای انتخاب دوربین",
         },
       ],
-      blogs: [],
       blogFeedStatus: "ready",
     });
   });
 
   it("distinguishes a successful empty project feed from a failed feed", async () => {
     vi.mocked(getProjects).mockResolvedValueOnce([]);
-    vi.mocked(prisma.showcase_products.findMany).mockRejectedValueOnce(new Error("unavailable"));
     expect(await getHomepageData()).toEqual({
       projects: [],
       publishedProjectCount: 0,
-      products: [],
       blogs: [],
       blogFeedStatus: "ready",
     });
@@ -176,19 +180,8 @@ describe("getHomepageData", () => {
         media: [],
       }))
     );
-    vi.mocked(prisma.showcase_products.findMany).mockResolvedValueOnce([
-      {
-        id: 1,
-        title: "دوربین",
-        description: "نظارتی",
-        order: 1,
-        image: "javascript:alert(1)",
-        link: "/products",
-      },
-    ]);
     const result = await getHomepageData();
     expect(result.publishedProjectCount).toBe(5);
     expect(result.projects).toHaveLength(3);
-    expect(result.products).toEqual([]);
   });
 });
