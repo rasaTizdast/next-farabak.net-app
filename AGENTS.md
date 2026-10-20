@@ -50,6 +50,21 @@
 - **Auth**: JWT-based with refresh token flow in `src/proxy.ts` (middleware)
 - **AI content negotiation**: `src/proxy.ts` serves markdown for `acceptmarkdown.com` clients via `negotiate()` helper
 
+## Codex skills and active landing redesign
+
+Repository skills live in `.agents/skills/<name>/SKILL.md`. Codex discovers these project skills; read the relevant skill and its linked references before applying it. Invoke a specific workflow explicitly with `$frontend-design`, `$nextjs-performance`, or another skill name. Keep this directory as the source of truth.
+
+| Task                                      | Project skills to consult                                        |
+| ----------------------------------------- | ---------------------------------------------------------------- |
+| New UI, redesign or buyer journey         | `brainstorming`, `frontend-design`, `cro`                        |
+| Multi-step implementation                 | `writing-plans`; follow the approved task scope and saved plan   |
+| App Router, React or caching              | `next-best-practices`, `react-patterns`, `next-cache-components` |
+| Loading speed or animation budgets        | `nextjs-performance`, `core-web-vitals`                          |
+| Keyboard, responsive usability and motion | `accessibility`, `web-design-guidelines`                         |
+| Agent instructions or skill edits         | `writing-for-agents`                                             |
+
+For the landing redesign, read `docs/superpowers/specs/2026-10-19-farabak-landing-design.md` and `docs/superpowers/plans/2026-10-19-farabak-landing-redesign.md`. The user authorized writing the plan then implementation. Trust claims need real evidence; registration since Solar Hijri 1381 is confirmed. Testimonials remain unpublished until actual attributed quotes are approved. Preserve unrelated working-tree edits.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know
