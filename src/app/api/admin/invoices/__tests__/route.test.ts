@@ -54,6 +54,22 @@ describe("GET /api/admin/invoices", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockCookieStore.clear();
+    mockCookieStore.set("accessToken", "token");
+    mockJwtVerify.mockResolvedValue({ payload: { role: "Admin", userId: 1 } });
+  });
+
+  it("requires authentication before reading private invoice data", async () => {
+    mockCookieStore.clear();
+    mockPrisma.$queryRaw.mockResolvedValue([]);
+    expect((await GET()).status).toBe(401);
+    expect(mockPrisma.$queryRaw).not.toHaveBeenCalled();
+  });
+
+  it("does not expose all customers to a branch user", async () => {
+    mockJwtVerify.mockResolvedValue({ payload: { role: "Branch", userId: 1 } });
+    mockPrisma.$queryRaw.mockResolvedValue([]);
+    expect((await GET()).status).toBe(403);
+    expect(mockPrisma.$queryRaw).not.toHaveBeenCalled();
   });
 
   it("retains expired unchecked invoices when loading the list", async () => {

@@ -206,6 +206,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const auth = await requireAuth();
   if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") return errorResponse("Forbidden", 403);
   const bodyValidation = await validateBody(request, createBranchSchema);
   if ("error" in bodyValidation) return bodyValidation.error;
   try {

@@ -1,9 +1,8 @@
 // app/api/admin/users/route.ts
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { errorResponse, serverErrorResponse, unauthorizedResponse } from "@/lib/api-response";
-import { verifyToken } from "@/lib/auth";
+import { errorResponse, serverErrorResponse } from "@/lib/api-response";
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { userSearchSchema, validateBody } from "@/lib/validation";
 
@@ -34,30 +33,27 @@ import { userSearchSchema, validateBody } from "@/lib/validation";
  *         description: Bad request - Invalid parameters
  */
 export async function POST(request: Request) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role?.toLowerCase() !== "admin") return errorResponse("Forbidden", 403);
+
   const bodyValidation = await validateBody(request, userSearchSchema);
   if ("error" in bodyValidation) return bodyValidation.error;
 
   const { phoneNumber, userId } = bodyValidation.data;
-
-  const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value;
-
-  if (!token) {
-    return unauthorizedResponse("Authorization token required");
-  }
-
-  const decoded = await verifyToken(token);
-  const userRole = decoded.role;
-
-  if (!userRole || userRole !== "Admin") {
-    return unauthorizedResponse("Unauthorized");
-  }
 
   if (phoneNumber) {
     // Search for the user by phone number
     const users = await prisma.client.findMany({
       where: {
         PhoneNumber: phoneNumber,
+      },
+      select: {
+        UserID: true,
+        FirstName: true,
+        LastName: true,
+        PhoneNumber: true,
+        Role: true,
       },
     });
     return NextResponse.json(users);
@@ -91,6 +87,10 @@ export async function POST(request: Request) {
  *         description: Server error
  */
 export async function GET() {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role?.toLowerCase() !== "admin") return errorResponse("Forbidden", 403);
+
   try {
     // Get all users with left join to check if they have branches
     const usersWithBranches = await prisma.$queryRaw<Record<string, unknown>[]>`

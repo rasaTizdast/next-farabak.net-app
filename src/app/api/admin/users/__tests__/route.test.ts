@@ -59,7 +59,7 @@ describe("POST /api/admin/users", () => {
     mockJwtVerify.mockResolvedValue({ payload: { role: "Branch" } });
 
     const res = await POST(makePostRequest({ phoneNumber: "09121234567" }));
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(403);
   });
 
   it("searches users by phone number", async () => {
@@ -102,6 +102,8 @@ describe("GET /api/admin/users", () => {
   });
 
   it("returns users without branches", async () => {
+    mockCookieStore.set("accessToken", "token");
+    mockJwtVerify.mockResolvedValue({ payload: { role: "Admin" } });
     mockPrisma.$queryRaw.mockResolvedValue([
       { UserID: 1, Username: "user1", has_branch: 0 },
       { UserID: 2, Username: "user2", has_branch: 1 },
@@ -116,6 +118,8 @@ describe("GET /api/admin/users", () => {
   });
 
   it("returns 500 on database error", async () => {
+    mockCookieStore.set("accessToken", "token");
+    mockJwtVerify.mockResolvedValue({ payload: { role: "Admin" } });
     mockPrisma.$queryRaw.mockRejectedValue(new Error("DB error"));
 
     const res = await GET();

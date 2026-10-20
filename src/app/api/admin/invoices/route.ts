@@ -85,6 +85,12 @@ async function generateShortGuid(): Promise<string> {
  */
 export async function GET() {
   try {
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
+    if (auth.role !== "Admin") {
+      return errorResponse("دسترسی غیرمجاز", 403);
+    }
+
     // First, fetch all invoices with basic information
     const invoices = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT 

@@ -95,6 +95,7 @@ export async function GET(request: Request, props: { params: Promise<{ branchId:
 export async function PUT(request: Request, props: { params: Promise<{ branchId: string }> }) {
   const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") return errorResponse("Forbidden", 403);
   const paramValidation = validateParams(params, branchIdParamSchema);
   if ("error" in paramValidation) return paramValidation.error;
   const bodyValidation = await validateBody(request, updateBranchSchema);
@@ -161,6 +162,7 @@ export async function PUT(request: Request, props: { params: Promise<{ branchId:
 export async function DELETE(request: Request, props: { params: Promise<{ branchId: string }> }) {
   const [params, auth] = await Promise.all([props.params, requireAuth()]);
   if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") return errorResponse("Forbidden", 403);
   const paramValidation = validateParams(params, branchIdParamSchema);
   if ("error" in paramValidation) return paramValidation.error;
   try {
