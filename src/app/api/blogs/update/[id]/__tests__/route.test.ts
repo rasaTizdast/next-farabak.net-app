@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockPrisma } = vi.hoisted(() => ({
   mockPrisma: {
+    $transaction: vi.fn(),
     blogs: { update: vi.fn() },
     blogCategories: { deleteMany: vi.fn(), createMany: vi.fn() },
   },
@@ -53,6 +54,26 @@ describe("PUT /api/blogs/update/[id]", () => {
 describe("PATCH /api/blogs/update/[id]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPrisma.$transaction.mockImplementation(async (callback) => callback(mockPrisma));
+  });
+
+  it("keeps existing categories when the patch does not include categories", async () => {
+    mockPrisma.blogs.update.mockResolvedValue({ id: 1, title: "QA title" });
+    const res = await PATCH(makeRequest({ title: "QA title" }), {
+      params: Promise.resolve({ id: "1" }),
+    });
+    expect(res.status).toBe(200);
+    expect(mockPrisma.blogCategories.deleteMany).not.toHaveBeenCalled();
+    expect(mockPrisma.$transaction).toHaveBeenCalledOnce();
+  });
+
+  it("returns an actionable duplicate slug error", async () => {
+    mockPrisma.blogs.update.mockRejectedValue({ code: "P2002" });
+    const res = await PATCH(makeRequest({ slug: "existing" }), {
+      params: Promise.resolve({ id: "1" }),
+    });
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toContain("شناسه");
   });
 
   it("updates blog metadata and categories", async () => {

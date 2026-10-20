@@ -17,12 +17,21 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { name } = await request.json();
-
-    const slug = name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, "")
-      .replace(/\s+/g, "-");
+    const body = await request.json();
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const slug =
+      typeof body.slug === "string"
+        ? body.slug.trim()
+        : name
+            .toLowerCase()
+            .replace(/[^a-z0-9\s]/g, "")
+            .replace(/\s+/g, "-");
+    if (!name || name.length > 100 || !/^[a-z0-9_-]{1,100}$/.test(slug)) {
+      return NextResponse.json(
+        { error: "نام و شناسه انگلیسی معتبر دسته‌بندی الزامی است" },
+        { status: 400 }
+      );
+    }
 
     const newCategory = await prisma.categories.create({
       data: { name, slug },

@@ -53,6 +53,35 @@ describe("POST /api/blogs/categories", () => {
     vi.clearAllMocks();
   });
 
+  it("keeps the explicit English slug when the category name is Persian", async () => {
+    mockPrisma.categories.create.mockResolvedValue({ id: 1, name: "فناوری", slug: "technology" });
+    const res = await POST(
+      new Request("http://localhost/api/blogs/categories", {
+        method: "POST",
+        body: JSON.stringify({ name: " فناوری ", slug: "technology" }),
+      })
+    );
+    expect(res.status).toBe(200);
+    expect(mockPrisma.categories.create).toHaveBeenCalledWith({
+      data: { name: "فناوری", slug: "technology" },
+    });
+  });
+
+  it.each([
+    { name: "   ", slug: "valid" },
+    { name: "فناوری" },
+    { name: "Tech", slug: "../invalid" },
+  ])("rejects invalid category input before writing: %j", async (body) => {
+    const res = await POST(
+      new Request("http://localhost/api/blogs/categories", {
+        method: "POST",
+        body: JSON.stringify(body),
+      })
+    );
+    expect(res.status).toBe(400);
+    expect(mockPrisma.categories.create).not.toHaveBeenCalled();
+  });
+
   it("creates a category with auto-generated slug", async () => {
     const newCategory = { id: 1, name: "Web Development", slug: "web-development" };
     mockPrisma.categories.create.mockResolvedValue(newCategory);

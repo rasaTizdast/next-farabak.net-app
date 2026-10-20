@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockPrisma } = vi.hoisted(() => ({
   mockPrisma: {
+    $transaction: vi.fn(),
     blogs: { create: vi.fn() },
     blogCategories: { createMany: vi.fn() },
   },
@@ -21,6 +22,22 @@ function makeRequest(body: Record<string, unknown>) {
 describe("POST /api/blogs/create", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPrisma.$transaction.mockImplementation(async (callback) => callback(mockPrisma));
+  });
+
+  it("groups the draft and category writes in one transaction", async () => {
+    mockPrisma.blogs.create.mockResolvedValue({ id: 8, title: "QA", slug: "qa" });
+    mockPrisma.blogCategories.createMany.mockResolvedValue({ count: 1 });
+    const res = await POST(makeRequest({ title: "QA", slug: "qa", categories: [3] }));
+    expect(res.status).toBe(200);
+    expect(mockPrisma.$transaction).toHaveBeenCalledOnce();
+    expect(await res.json()).toMatchObject({ id: 8 });
+  });
+
+  it("rejects invalid category IDs before creating a draft", async () => {
+    const res = await POST(makeRequest({ title: "QA", slug: "qa", categories: ["3"] }));
+    expect(res.status).toBe(400);
+    expect(mockPrisma.blogs.create).not.toHaveBeenCalled();
   });
 
   it("creates a blog with Draft status and returns the blog", async () => {
