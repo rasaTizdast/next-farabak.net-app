@@ -13,6 +13,7 @@ const nextConfig = {
     },
   },
   cacheComponents: true,
+  partialPrefetching: true,
   // output: "standalone",
   // reactStrictMode: false, // Disable React Strict Mode
   images: {
