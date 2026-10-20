@@ -2,6 +2,7 @@
 import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
@@ -16,6 +17,11 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const body = await request.json();
     const name = typeof body.name === "string" ? body.name.trim() : "";
@@ -50,6 +56,11 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const { id, force } = await request.json();
 

@@ -2,10 +2,16 @@
 import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const body = await request.json();
     if (

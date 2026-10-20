@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+vi.mock("@/lib/auth", () => ({
+  requireAuth: vi.fn().mockResolvedValue({ userId: "1", username: "qa-admin", role: "Admin" }),
+}));
+
 const { mockPrisma } = vi.hoisted(() => ({
   mockPrisma: {
     categories: { findMany: vi.fn(), create: vi.fn(), delete: vi.fn() },
