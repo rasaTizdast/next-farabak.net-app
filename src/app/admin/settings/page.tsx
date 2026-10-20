@@ -3,6 +3,12 @@
 import React, { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useUser } from "@/context/UserContext";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -19,6 +25,7 @@ const SettingsPage = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [searchResults, setSearchResults] = useState<Client[]>([]);
   const [selectedUser, setSelectedUser] = useState<Client | null>(null);
+  const [adminToDemote, setAdminToDemote] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Password change states
@@ -27,7 +34,7 @@ const SettingsPage = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
 
-  const { logout } = useUser();
+  const { logout, user } = useUser();
 
   const { data: adminsData, refetch: refetchAdmins } =
     useApiFetch<Client[]>("/api/admin/users/admins");
@@ -80,14 +87,19 @@ const SettingsPage = () => {
   };
 
   const handleSearch = async () => {
-    if (!phoneNumber) {
+    const normalizedPhoneNumber = phoneNumber.trim();
+    setSearchResults([]);
+    setSelectedUser(null);
+    if (!normalizedPhoneNumber) {
       toast.error("لطفاً شماره تلفن را وارد کنید.");
       return;
     }
 
     setLoading(true);
     try {
-      const data = await searchUsersMutate("/api/admin/users", { phoneNumber });
+      const data = await searchUsersMutate("/api/admin/users", {
+        phoneNumber: normalizedPhoneNumber,
+      });
 
       if (data) {
         if (data.length === 0) {
@@ -125,12 +137,18 @@ const SettingsPage = () => {
   };
 
   const handleDemoteAdmin = async (userId: number) => {
+    if (Number(user?.userId) === userId) {
+      toast.error("نقش حساب فعلی را نمی‌توانید تغییر دهید.");
+      setAdminToDemote(null);
+      return;
+    }
     setLoading(true);
     try {
       const data = await demoteAdminMutate("/api/admin/users/admins", { userId });
 
       if (data?.UserID) {
         toast.success("کاربر با موفقیت به کاربر عادی تبدیل شد!");
+        setAdminToDemote(null);
         refetchAdmins();
       } else {
         toast.error("خطا در بروزرسانی نقش کاربر.");
@@ -148,44 +166,60 @@ const SettingsPage = () => {
           <h1 className="mb-6 text-2xl font-bold">تنظیمات</h1>
 
           {/* Main Grid Layout */}
-          <div className="w-full grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2">
             {/* Password Change Section */}
             <div className="rounded-lg bg-gray-700 p-6 shadow-md">
               <h2 className="mb-4 text-lg font-semibold">تغییر رمز عبور</h2>
-              <div className="flex flex-col space-y-4">
-                <input
-                  type="password"
-                  placeholder="رمز عبور فعلی"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  aria-label="رمز عبور فعلی"
-                  className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  type="password"
-                  placeholder="رمز عبور جدید"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  aria-label="رمز عبور جدید"
-                  className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  type="password"
-                  placeholder="تکرار رمز عبور جدید"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  aria-label="تکرار رمز عبور جدید"
-                  className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              <form
+                className="flex flex-col space-y-4"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void handlePasswordChange();
+                }}
+              >
+                <label className="flex flex-col gap-2">
+                  رمز عبور فعلی
+                  <input
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </label>
+                <label className="flex flex-col gap-2">
+                  رمز عبور جدید
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    minLength={6}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </label>
+                <label className="flex flex-col gap-2">
+                  تکرار رمز عبور جدید
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    minLength={6}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </label>
                 <button
-                  type="button"
-                  onClick={handlePasswordChange}
+                  type="submit"
                   disabled={changingPassword}
                   className="rounded-lg bg-green-600 p-2 text-white transition-colors hover:bg-green-700 disabled:bg-green-800 disabled:text-gray-300"
                 >
                   {changingPassword ? "در حال تغییر رمز عبور..." : "تغییر رمز عبور"}
                 </button>
-              </div>
+              </form>
             </div>
 
             {/* Search Section */}
@@ -193,26 +227,35 @@ const SettingsPage = () => {
               <h2 className="mb-4 text-lg font-semibold">مدیریت کاربران</h2>
 
               {/* Phone Number Input */}
-              <div className="flex flex-col space-y-4">
-                <input
-                  type="text"
-                  placeholder="شماره تلفن کاربر را وارد کنید"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  aria-label="شماره تلفن"
-                  className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              <form
+                className="flex flex-col space-y-4"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void handleSearch();
+                }}
+              >
+                <label className="flex flex-col gap-2">
+                  شماره تلفن کاربر
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    required
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </label>
 
                 {/* Search Button */}
                 <button
-                  type="button"
-                  onClick={handleSearch}
+                  type="submit"
                   disabled={loading}
                   className="rounded-lg bg-blue-600 p-2 text-white transition-colors hover:bg-blue-700 disabled:bg-blue-800 disabled:text-gray-300"
                 >
                   {loading ? "در حال جستجو..." : "جستجو"}
                 </button>
-              </div>
+              </form>
 
               {/* Search Results */}
               {searchResults.length > 0 && (
@@ -274,14 +317,20 @@ const SettingsPage = () => {
                         </p>
                         <p className="text-sm text-gray-300">{admin.PhoneNumber}</p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleDemoteAdmin(admin.UserID)}
-                        disabled={loading}
-                        className="rounded-lg bg-red-600 p-2 text-white transition-colors hover:bg-red-700 disabled:bg-red-800 disabled:text-gray-300"
-                      >
-                        {loading ? "در حال پردازش..." : "تبدیل به کاربر عادی"}
-                      </button>
+                      {Number(user?.userId) === admin.UserID ? (
+                        <span className="rounded-lg bg-gray-500 px-3 py-2 text-sm text-gray-100">
+                          حساب فعلی
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setAdminToDemote(admin.UserID)}
+                          disabled={loading}
+                          className="rounded-lg bg-red-600 p-2 text-white transition-colors hover:bg-red-700 disabled:bg-red-800 disabled:text-gray-300"
+                        >
+                          {loading ? "در حال پردازش..." : "تبدیل به کاربر عادی"}
+                        </button>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -290,6 +339,34 @@ const SettingsPage = () => {
           </div>
         </div>
       </div>
+      {adminToDemote !== null && (
+        <AlertDialog open onOpenChange={(open) => !open && !loading && setAdminToDemote(null)}>
+          <AlertDialogContent className="border-0 bg-gray-800 text-gray-100">
+            <AlertDialogTitle className="mb-3 text-start">تبدیل نقش ادمین</AlertDialogTitle>
+            <AlertDialogDescription className="mb-6 text-start text-gray-300">
+              این کار دسترسی مدیریتی این کاربر را حذف می‌کند. ادامه می‌دهید؟
+            </AlertDialogDescription>
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setAdminToDemote(null)}
+                disabled={loading}
+                className="rounded-lg bg-gray-600 px-4 py-2 text-white hover:bg-gray-500 disabled:opacity-60"
+              >
+                انصراف
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDemoteAdmin(adminToDemote)}
+                disabled={loading}
+                className="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:opacity-60"
+              >
+                {loading ? "در حال پردازش..." : "تأیید و ادامه"}
+              </button>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 };

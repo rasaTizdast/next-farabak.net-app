@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { BiCategory } from "react-icons/bi";
 import {
   FiHome,
@@ -66,19 +66,63 @@ const branchSidebarItems = [
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDesktopHovered, setIsDesktopHovered] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
   const { logout, user } = useUser();
 
-  const isBranch = user?.role === "Branch";
+  const isBranch = user?.role?.toLowerCase() === "branch";
   const sidebarItems = isBranch ? branchSidebarItems : adminSidebarItems;
 
   const isExpanded = isOpen || isDesktopHovered;
 
   const pathname = usePathname();
+  const currentHref = sidebarItems
+    .filter((item) => pathname === item.href || pathname.startsWith(item.href + "/"))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 
   const closeSidebar = useCallback(() => {
     setIsOpen(false);
     setIsDesktopHovered(false);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const main = document.getElementById("main-content");
+    const wasInert = main?.inert ?? false;
+    const previousOverflow = document.body.style.overflow;
+    if (main) main.inert = true;
+    document.body.style.overflow = "hidden";
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeSidebar();
+        triggerRef.current?.focus();
+      } else if (event.key === "Tab") {
+        const controls = [
+          triggerRef.current,
+          ...Array.from(
+            sidebarRef.current?.querySelectorAll<HTMLElement>("a[href], button:not([disabled])") ??
+              []
+          ),
+        ].filter((element): element is HTMLElement => element !== null);
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      if (main) main.inert = wasInert;
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, closeSidebar]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -94,8 +138,9 @@ const Sidebar = () => {
     <>
       {/* Mobile hamburger button */}
       <button
+        ref={triggerRef}
         type="button"
-        className="fixed top-4 right-4 z-50 flex size-10 items-center justify-center rounded-lg bg-[#0074e0] text-white shadow-lg md:hidden"
+        className="fixed top-4 right-4 z-60 flex size-10 items-center justify-center rounded-lg bg-[#0074e0] text-white shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white md:hidden"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label={isExpanded ? "بستن منو" : "باز کردن منو"}
         aria-expanded={isExpanded}
@@ -110,8 +155,8 @@ const Sidebar = () => {
 
       {/* Overlay */}
       <div
-        className={`fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity ${
-          isExpanded ? "opacity-100" : "pointer-events-none opacity-0"
+        className={`fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity md:hidden ${
+          isOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={closeSidebar}
         aria-hidden="true"
@@ -119,12 +164,24 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <div
+        ref={sidebarRef}
         id="admin-sidebar"
-        className={`fixed top-0 right-0 z-50 flex h-full flex-col bg-[#0074e0] text-gray-200 transition-[width] duration-200 ${
+        className={`fixed top-0 right-0 z-50 h-dvh flex-col bg-[#0074e0] text-gray-200 transition-[width] duration-200 motion-reduce:transition-none md:flex ${isOpen ? "flex" : "hidden"} ${
           isExpanded ? "w-64" : "w-16"
         }`}
-        onMouseEnter={() => setIsDesktopHovered(true)}
-        onMouseLeave={() => setIsDesktopHovered(false)}
+        onMouseEnter={() => {
+          if (window.innerWidth >= 768) setIsDesktopHovered(true);
+        }}
+        onMouseLeave={() => {
+          if (!sidebarRef.current?.contains(document.activeElement)) setIsDesktopHovered(false);
+        }}
+        onFocusCapture={() => {
+          if (window.innerWidth >= 768) setIsDesktopHovered(true);
+        }}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null))
+            setIsDesktopHovered(false);
+        }}
       >
         {/* Logo */}
         <div className="flex h-16 items-center justify-center">
@@ -140,7 +197,7 @@ const Sidebar = () => {
         {/* Navigation Links */}
         <nav className="mt-4 flex-1 overflow-y-auto" aria-label="منوی اصلی">
           {sidebarItems.map((item) => {
-            const isCurrent = pathname === item.href || pathname.startsWith(item.href + "/");
+            const isCurrent = currentHref === item.href;
             return (
               <Link
                 key={item.href}

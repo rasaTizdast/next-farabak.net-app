@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
+import React from "react";
 import { BiLinkExternal } from "react-icons/bi";
 import { FaChartArea, FaUsers } from "react-icons/fa";
 import { MdBarChart } from "react-icons/md";
@@ -11,20 +11,14 @@ import { cn } from "@/lib/utils";
 // Define the CardColor type
 type CardColor = "blue" | "green" | "purple";
 
-const colorMap: Record<CardColor, { bg: string; border: string; iconBg: string; text?: string }> = {
+const colorMap: Record<CardColor, { iconBg: string }> = {
   blue: {
-    bg: "bg-gray-950",
-    border: "border-[var(--primary)]",
     iconBg: "bg-blue-500/10",
   },
   green: {
-    bg: "bg-gray-950",
-    border: "border-[var(--secondary)]",
     iconBg: "bg-green-500/10",
   },
   purple: {
-    bg: "bg-gray-950",
-    border: "border-[var(--dark-blue)]",
     iconBg: "bg-purple-500/10",
   },
 };
@@ -56,20 +50,34 @@ const cards = [
   },
 ];
 
+const getAnalyticsUrl = (value: string | undefined) => {
+  if (!value) return undefined;
+
+  try {
+    const url = new URL(value);
+    if (!["https:", "http:"].includes(url.protocol) || url.username || url.password) {
+      return undefined;
+    }
+
+    return url.toString();
+  } catch {
+    return undefined;
+  }
+};
+
 const AnalyticsOverview = () => {
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-  const analyticsUrl = process.env.NEXT_PUBLIC_UMAMI_ANALYTICS_PAGE;
+  const analyticsUrl = getAnalyticsUrl(process.env.NEXT_PUBLIC_UMAMI_ANALYTICS_PAGE);
 
   return (
-    <div className="rounded-xl bg-gray-950 p-8 sm:p-10">
-      <div className="space-y-12">
+    <div className="rounded-xl bg-gray-950 p-4 sm:p-8 lg:p-10">
+      <div className="space-y-8 sm:space-y-12">
         {/* Header with subtle animation */}
         <div className="space-y-4 text-center">
           <h1 className="text-2xl font-bold text-gray-200 transition-colors duration-300 hover:text-blue-200 md:text-3xl lg:text-5xl">
             تحلیل وبسایت شما
           </h1>
           <p className="mx-auto max-w-3xl text-base text-gray-300 md:text-lg lg:text-xl">
-            عملکرد وبسایت خود را با استفاده از تحلیل‌های دقیق و معیارهای userable پیگیری کنید
+            عملکرد وبسایت خود را با استفاده از تحلیل‌های دقیق و معیارهای کاربردی پیگیری کنید
           </p>
           <div className="mx-auto mt-6 h-1 w-24 rounded-full bg-blue-500"></div>
         </div>
@@ -80,18 +88,17 @@ const AnalyticsOverview = () => {
             <div
               key={card.id}
               className={cn(
-                `relative transform overflow-hidden rounded-xl border bg-gray-800 p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${hoveredCard === card.id ? "border-gray-600" : "border-transparent"}`
+                "group relative transform overflow-hidden rounded-xl border border-transparent bg-gray-800 p-5 shadow-sm transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-gray-600 hover:shadow-lg motion-reduce:transform-none motion-reduce:transition-none sm:p-6"
               )}
-              onMouseEnter={() => setHoveredCard(card.id)}
-              onMouseLeave={() => setHoveredCard(null)}
             >
               <div
-                className={`absolute top-0 right-0 -mt-8 -mr-8 size-24 rounded-full ${colorMap[card.color].iconBg} opacity-80 transition-transform duration-300 ${hoveredCard === card.id ? "scale-[1.8]" : "scale-100"}`}
-              ></div>
+                aria-hidden="true"
+                className={`absolute top-0 right-0 -mt-8 -mr-8 size-24 rounded-full ${colorMap[card.color].iconBg} opacity-80 transition-transform duration-300 group-hover:scale-[1.8] motion-reduce:transition-none`}
+              />
               <div className="relative">
                 <div
                   aria-hidden="true"
-                  className={`${colorMap[card.color].text} transition-transform duration-300 ${hoveredCard === card.id ? "scale-110" : "scale-100"}`}
+                  className="transition-transform duration-300 group-hover:scale-110 motion-reduce:transition-none"
                 >
                   {card.icon}
                 </div>
@@ -129,11 +136,15 @@ const AnalyticsOverview = () => {
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                "bg-primary hover:bg-secondary inline-flex transform items-center gap-3 rounded-xl px-8 py-4 text-xs font-medium text-white transition-[transform,background-color,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lg sm:text-base"
+                "bg-primary hover:bg-secondary inline-flex transform items-center gap-3 rounded-xl px-8 py-4 text-xs font-medium text-white transition-[transform,background-color,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-300 motion-reduce:transform-none motion-reduce:transition-none sm:text-base"
               )}
             >
               مشاهده تحلیل‌های دقیق‌تر
-              <BiLinkExternal aria-hidden="true" className="animate-pulse" size={20} />
+              <BiLinkExternal
+                aria-hidden="true"
+                className="animate-pulse motion-reduce:animate-none"
+                size={20}
+              />
             </Link>
           ) : (
             <p className="text-sm text-gray-400">پیوند پنل تحلیلی تنظیم نشده است.</p>

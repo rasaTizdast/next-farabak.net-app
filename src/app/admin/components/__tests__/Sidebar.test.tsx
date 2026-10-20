@@ -1,10 +1,10 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
-  usePathname: () => "/admin",
+  usePathname: () => mockPathname,
 }));
 
 vi.mock("next/link", () => ({
@@ -22,6 +22,7 @@ vi.mock("@/context/UserContext", () => ({
 }));
 
 let mockUserState: any = null;
+let mockPathname = "/admin";
 function mockUseUser() {
   return {
     user: mockUserState,
@@ -148,6 +149,7 @@ describe("Sidebar - Common elements", () => {
       phoneNumber: "09120000000",
     };
     vi.clearAllMocks();
+    mockPathname = "/admin";
   });
 
   it("renders back to website link", () => {
@@ -166,5 +168,32 @@ describe("Sidebar - Common elements", () => {
     const logoutButton = screen.getByText("خروج");
     logoutButton.click();
     expect(mockLogout).toHaveBeenCalledTimes(1);
+  });
+
+  it("closes the mobile menu with Escape and returns focus to its trigger", () => {
+    render(<Sidebar />);
+    const trigger = screen.getByRole("button", { name: "باز کردن منو" });
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(trigger).toHaveFocus();
+  });
+
+  it("marks only the most specific matching navigation link as current", () => {
+    mockPathname = "/admin/products/categories";
+    render(<Sidebar />);
+    const currentLinks = screen
+      .getAllByRole("link")
+      .filter((link) => link.getAttribute("aria-current") === "page");
+    expect(currentLinks).toHaveLength(1);
+    expect(currentLinks[0]).toHaveAttribute("href", "/admin/products/categories");
+  });
+
+  it("uses the branch navigation for normalized branch roles", () => {
+    mockUserState.role = "branch";
+    render(<Sidebar />);
+    expect(screen.getByText("شعبه من")).toBeInTheDocument();
+    expect(screen.queryByText("محصولات")).not.toBeInTheDocument();
   });
 });
