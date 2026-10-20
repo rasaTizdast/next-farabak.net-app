@@ -59,33 +59,43 @@ describe("homepage editorial feed", () => {
     expect(result.blogs.map((blog) => blog.id)).toEqual([4, 3, 2]);
     expect(result.blogs.map((blog) => blog.topic)).toEqual(["xray", "blackmagic", "cctv"]);
     expect(prisma.blogs.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { status: "Published", QrCode_key: null }, take: 120 })
+      expect.objectContaining({ where: { status: "Published", QrCode_key: null } })
     );
+    expect(vi.mocked(prisma.blogs.findMany).mock.calls[0]?.[0]).not.toHaveProperty("take");
     const selected = vi.mocked(prisma.blogs.findMany).mock.calls.at(-1)?.[0]?.select;
     expect(selected).toMatchObject({ title: true, slug: true, image_URL: true });
     expect(selected).not.toHaveProperty("content");
     expect(selected).not.toHaveProperty("Comments");
     expect(selected).not.toHaveProperty("Likes");
-    expect(prisma.blogs.findMany).toHaveBeenCalledTimes(4);
+    expect(prisma.blogs.findMany).toHaveBeenCalledTimes(1);
   });
 
-  it("finds an older priority article beyond 120 newer general records with a bounded topic query", async () => {
-    feed(
-      Array.from({ length: 120 }, (_, index) =>
-        article(index + 1, "راهنمای عمومی", "general", "2026-10-20T10:00:00.000Z")
-      )
+  it("selects older topic spellings beyond 120 recent records and skips unusable matches", async () => {
+    const newer = Array.from({ length: 125 }, (_, index) =>
+      article(index + 1, "راهنمای عمومی", "general", "2026-10-20T10:00:00.000Z")
     );
-    vi.mocked(prisma.blogs.findMany).mockResolvedValueOnce([
-      article(121, "X-ray", "inspection", "2025-01-01T10:00:00.000Z"),
-    ] as never);
+    const older = [
+      article(126, "HI SCAN", "general", "2025-01-01T10:00:00.000Z"),
+      article(127, "X Ray", "general", "2025-01-02T10:00:00.000Z"),
+      article(128, "بلک-مجیک", "general", "2025-01-01T10:00:00.000Z"),
+      article(129, "Reolink", "general", "2025-01-01T10:00:00.000Z"),
+      article(130, "X Ray invalid", null, "2026-10-21T10:00:00.000Z"),
+      {
+        ...article(131, "Blackmagic invalid", "general", "2026-10-21T10:00:00.000Z"),
+        slug: "../unsafe",
+      },
+    ];
+    feed([...newer, ...older]);
 
     const result = await getHomepageData();
-    expect(result.blogs.map((blog) => blog.id)).toEqual([121, 120, 119]);
-    const topicQuery = vi.mocked(prisma.blogs.findMany).mock.calls[1]?.[0];
-    expect(topicQuery?.take).toBe(24);
-    expect(topicQuery?.where).toMatchObject({ status: "Published", QrCode_key: null });
-    expect(topicQuery?.where).toHaveProperty("OR");
-    expect(topicQuery?.select).not.toHaveProperty("content");
+    expect(result.blogs.map((blog) => blog.id)).toEqual([127, 128, 129]);
+    expect(result.blogs.map((blog) => blog.topic)).toEqual(["xray", "blackmagic", "cctv"]);
+    expect(prisma.blogs.findMany).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(prisma.blogs.findMany).mock.calls[0]?.[0]).not.toHaveProperty("take");
+
+    feed([...newer, ...older.filter((record) => record.id !== 127)]);
+    const withoutXRay = await getHomepageData();
+    expect(withoutXRay.blogs[0]?.id).toBe(126);
   });
 
   it("classifies every safe category and links through the matched priority category", async () => {

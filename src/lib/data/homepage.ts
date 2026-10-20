@@ -47,15 +47,6 @@ const BLOG_SELECT = {
   BlogCategories: { select: { Categories: { select: { name: true, slug: true } } } },
 } as const;
 
-const BLOG_CANDIDATE_LIMIT = 120;
-const BLOG_TOPIC_CANDIDATE_LIMIT = 24;
-
-const BLOG_TOPIC_TERMS = {
-  xray: ["x-ray", "xray", "hi-scan", "اسمیتس", "ایکس ری", "ایکس‌ری", "اشعه", "بازرسی بار"],
-  blackmagic: ["blackmagic", "بلک مجیک", "بلک‌مجیک", "pyxis", "پایکسیس"],
-  cctv: ["cctv", "reolink", "ریولینک", "دوربین مداربسته", "نظارت تصویری"],
-} as const;
-
 type BlogCardRecord = {
   id: number;
   title: string;
@@ -148,43 +139,12 @@ async function getHomepageBlogs(): Promise<HomepageBlogItem[]> {
   cacheTag(TAGS.blogs);
   cacheLife("minutes");
 
-  const baseWhere = { status: "Published", QrCode_key: null } as const;
-  const orderBy = [{ created_at: "desc" as const }, { id: "desc" as const }];
-  const recent = prisma.blogs.findMany({
-    where: baseWhere,
-    orderBy,
-    take: BLOG_CANDIDATE_LIMIT,
+  const records = await prisma.blogs.findMany({
+    where: { status: "Published", QrCode_key: null },
+    orderBy: [{ created_at: "desc" }, { id: "desc" }],
     select: BLOG_SELECT,
   });
-  const targeted = Object.values(BLOG_TOPIC_TERMS).map((terms) =>
-    prisma.blogs.findMany({
-      where: {
-        ...baseWhere,
-        OR: terms.flatMap((term) => [
-          { title: { contains: term, mode: "insensitive" as const } },
-          {
-            BlogCategories: {
-              some: {
-                Categories: {
-                  OR: [
-                    { name: { contains: term, mode: "insensitive" as const } },
-                    { slug: { contains: term, mode: "insensitive" as const } },
-                  ],
-                },
-              },
-            },
-          },
-        ]),
-      },
-      orderBy,
-      take: BLOG_TOPIC_CANDIDATE_LIMIT,
-      select: BLOG_SELECT,
-    })
-  );
-  const batches = await Promise.all([recent, ...targeted]);
-  return selectHomepageBlogs([
-    ...new Map(batches.flat().map((record) => [record.id, record])).values(),
-  ]);
+  return selectHomepageBlogs(records);
 }
 
 async function getShowcaseProducts(): Promise<ShowcaseItem[]> {
