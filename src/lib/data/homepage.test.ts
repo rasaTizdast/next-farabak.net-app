@@ -41,6 +41,8 @@ describe("homepage editorial feed", () => {
   beforeEach(() => {
     vi.mocked(getProjects).mockResolvedValue([]);
     vi.mocked(prisma.showcase_products.findMany).mockResolvedValue([]);
+    vi.mocked(prisma.blogs.findMany).mockReset();
+    vi.mocked(prisma.blogs.findMany).mockResolvedValue([]);
   });
 
   it("queries only published non-QR card fields and chooses one newest story per priority topic", async () => {
@@ -64,6 +66,56 @@ describe("homepage editorial feed", () => {
     expect(selected).not.toHaveProperty("content");
     expect(selected).not.toHaveProperty("Comments");
     expect(selected).not.toHaveProperty("Likes");
+    expect(prisma.blogs.findMany).toHaveBeenCalledTimes(4);
+  });
+
+  it("finds an older priority article beyond 120 newer general records with a bounded topic query", async () => {
+    feed(
+      Array.from({ length: 120 }, (_, index) =>
+        article(index + 1, "راهنمای عمومی", "general", "2026-10-20T10:00:00.000Z")
+      )
+    );
+    vi.mocked(prisma.blogs.findMany).mockResolvedValueOnce([
+      article(121, "X-ray", "inspection", "2025-01-01T10:00:00.000Z"),
+    ] as never);
+
+    const result = await getHomepageData();
+    expect(result.blogs.map((blog) => blog.id)).toEqual([121, 120, 119]);
+    const topicQuery = vi.mocked(prisma.blogs.findMany).mock.calls[1]?.[0];
+    expect(topicQuery?.take).toBe(24);
+    expect(topicQuery?.where).toMatchObject({ status: "Published", QrCode_key: null });
+    expect(topicQuery?.where).toHaveProperty("OR");
+    expect(topicQuery?.select).not.toHaveProperty("content");
+  });
+
+  it("classifies every safe category and links through the matched priority category", async () => {
+    feed([
+      {
+        ...article(1, "راهنمای انتخاب", "a-general", "2026-10-20T10:00:00.000Z"),
+        BlogCategories: [
+          { Categories: { name: "عمومی", slug: "a-general" } },
+          { Categories: { name: "Blackmagic", slug: "z-blackmagic" } },
+        ],
+      },
+    ]);
+    const result = await getHomepageData();
+    expect(result.blogs[0]).toMatchObject({
+      topic: "blackmagic",
+      category: "Blackmagic",
+      href: "/support/blog/z-blackmagic/article-1",
+    });
+  });
+
+  it("rejects impossible ISO calendar values and preserves a valid leap day", async () => {
+    feed([
+      article(1, "عمومی", "general", "2026-02-30T10:00:00Z"),
+      article(2, "عمومی", "general", "2026-02-29T10:00:00Z"),
+      article(3, "عمومی", "general", "2024-02-29T10:00:00Z"),
+    ]);
+    const result = await getHomepageData();
+    expect(result.blogs.find((blog) => blog.id === 1)?.date).toBeNull();
+    expect(result.blogs.find((blog) => blog.id === 2)?.date).toBeNull();
+    expect(result.blogs.find((blog) => blog.id === 3)?.date).toBe("2024-02-29T10:00:00.000Z");
   });
 
   it("requires safe article and category slugs; falls back to newer general articles", async () => {

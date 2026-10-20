@@ -47,9 +47,14 @@ const BLOG_SELECT = {
   BlogCategories: { select: { Categories: { select: { name: true, slug: true } } } },
 } as const;
 
-// Keep homepage selection bounded while allowing enough recent candidates to
-// find the three editorial topics before filling remaining positions by date.
 const BLOG_CANDIDATE_LIMIT = 120;
+const BLOG_TOPIC_CANDIDATE_LIMIT = 24;
+
+const BLOG_TOPIC_TERMS = {
+  xray: ["x-ray", "xray", "hi-scan", "اسمیتس", "ایکس ری", "ایکس‌ری", "اشعه", "بازرسی بار"],
+  blackmagic: ["blackmagic", "بلک مجیک", "بلک‌مجیک", "pyxis", "پایکسیس"],
+  cctv: ["cctv", "reolink", "ریولینک", "دوربین مداربسته", "نظارت تصویری"],
+} as const;
 
 type BlogCardRecord = {
   id: number;
@@ -69,7 +74,9 @@ function safeSlug(value: string | null): value is string {
 function validDate(value: string | null): string | null {
   if (!value || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(value)) return null;
   const timestamp = Date.parse(value);
-  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
+  if (!Number.isFinite(timestamp)) return null;
+  const normalized = new Date(timestamp).toISOString();
+  return normalized.slice(0, 19) === value.slice(0, 19) ? normalized : null;
 }
 
 function blogTopic(text: string): HomepageBlogTopic {
@@ -90,11 +97,21 @@ function selectHomepageBlogs(records: BlogCardRecord[]): HomepageBlogItem[] {
   const valid = records
     .flatMap((record) => {
       if (!safeSlug(record.slug)) return [];
-      const category = record.BlogCategories.map(({ Categories }) => Categories)
+      const categories = record.BlogCategories.map(({ Categories }) => Categories)
         .filter(({ slug }) => safeSlug(slug))
-        .sort((a, b) => a.slug!.localeCompare(b.slug!))[0];
+        .sort((a, b) => a.slug!.localeCompare(b.slug!));
+      const titleTopic = blogTopic(record.title);
+      const topic: HomepageBlogTopic =
+        titleTopic !== "other"
+          ? titleTopic
+          : (categories
+              .map((category) => blogTopic(`${category.name ?? ""} ${category.slug}`))
+              .find((candidate) => candidate !== "other") ?? "other");
+      const category =
+        categories.find(
+          (candidate) => blogTopic(`${candidate.name ?? ""} ${candidate.slug}`) === topic
+        ) ?? categories[0];
       if (!category?.slug) return [];
-      const topic = blogTopic(`${category.name ?? ""} ${category.slug} ${record.title}`);
       const image = resolveHomepageImage(record.image_URL, process.env.LIARA_BUCKET_URL);
       return [
         {
@@ -131,13 +148,43 @@ async function getHomepageBlogs(): Promise<HomepageBlogItem[]> {
   cacheTag(TAGS.blogs);
   cacheLife("minutes");
 
-  const records = await prisma.blogs.findMany({
-    where: { status: "Published", QrCode_key: null },
-    orderBy: [{ created_at: "desc" }, { id: "desc" }],
+  const baseWhere = { status: "Published", QrCode_key: null } as const;
+  const orderBy = [{ created_at: "desc" as const }, { id: "desc" as const }];
+  const recent = prisma.blogs.findMany({
+    where: baseWhere,
+    orderBy,
     take: BLOG_CANDIDATE_LIMIT,
     select: BLOG_SELECT,
   });
-  return selectHomepageBlogs(records);
+  const targeted = Object.values(BLOG_TOPIC_TERMS).map((terms) =>
+    prisma.blogs.findMany({
+      where: {
+        ...baseWhere,
+        OR: terms.flatMap((term) => [
+          { title: { contains: term, mode: "insensitive" as const } },
+          {
+            BlogCategories: {
+              some: {
+                Categories: {
+                  OR: [
+                    { name: { contains: term, mode: "insensitive" as const } },
+                    { slug: { contains: term, mode: "insensitive" as const } },
+                  ],
+                },
+              },
+            },
+          },
+        ]),
+      },
+      orderBy,
+      take: BLOG_TOPIC_CANDIDATE_LIMIT,
+      select: BLOG_SELECT,
+    })
+  );
+  const batches = await Promise.all([recent, ...targeted]);
+  return selectHomepageBlogs([
+    ...new Map(batches.flat().map((record) => [record.id, record])).values(),
+  ]);
 }
 
 async function getShowcaseProducts(): Promise<ShowcaseItem[]> {
