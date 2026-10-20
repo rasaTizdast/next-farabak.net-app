@@ -29,12 +29,23 @@ export default function CategoryStory({ story, index }: Props) {
         <div className={styles.storyFrame}>
           <div className={styles.storyCopy}>
             <p className={styles.sectionEyebrow}>
-              <span aria-hidden="true">{new Intl.NumberFormat("fa-IR").format(index + 1)} / ۵</span>{" "}
-              {story.eyebrow}
+              <span aria-hidden="true">{new Intl.NumberFormat("fa-IR").format(index + 1)} / ۵</span>
+              <bdi lang="en" dir="ltr">
+                {story.familyLabel}
+              </bdi>
+              <span>{story.eyebrow}</span>
             </p>
             <h2 id={`story-${story.key}-heading`}>{story.title}</h2>
             <p className={styles.storyIntroduction}>{story.introduction}</p>
-            <p className={styles.storySolution}>{story.solution}</p>
+            <p className={styles.storySolution}>
+              {story.solution.beforeModel}
+              {story.solution.modelName && (
+                <bdi lang="en" dir="ltr">
+                  {story.solution.modelName}
+                </bdi>
+              )}
+              {story.solution.afterModel}
+            </p>
             <div className={styles.storyFactors}>
               <h3>پیش از انتخاب بررسی کنید</h3>
               <ul>
@@ -46,7 +57,17 @@ export default function CategoryStory({ story, index }: Props) {
             <p className={styles.storySelectionPrompt}>{story.selectionPrompt}</p>
             <div className={styles.actions}>
               <Link className={styles.primaryButton} href={story.action.href}>
-                {story.action.label}
+                <span>
+                  {story.action.label}
+                  {story.action.modelName && (
+                    <>
+                      {" "}
+                      <bdi lang="en" dir="ltr">
+                        {story.action.modelName}
+                      </bdi>
+                    </>
+                  )}
+                </span>
                 <ArrowUpLeft size={18} aria-hidden="true" />
               </Link>
               <Link className={styles.storyKnowledgeLink} href={knowledgeHref}>

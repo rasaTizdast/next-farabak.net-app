@@ -45,7 +45,7 @@ function ArticleCard({ article, lead }: { article: HomepageBlogItem; lead: boole
             {publishedDate && <time dateTime={article.date!}>{publishedDate}</time>}
           </div>
           <h3>{article.title}</h3>
-          <p>{article.description || article.reasonToRead}</p>
+          <p>{article.reasonToRead}</p>
           <span className={styles.blogReadAction}>
             خواندن مقاله
             <ArrowUpLeft size={17} aria-hidden="true" />
