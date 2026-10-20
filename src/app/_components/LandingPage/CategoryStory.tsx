@@ -30,10 +30,12 @@ export default function CategoryStory({ story, index }: Props) {
           <div className={styles.storyCopy}>
             <p className={styles.sectionEyebrow}>
               <span aria-hidden="true">{new Intl.NumberFormat("fa-IR").format(index + 1)} / ۵</span>
-              <bdi lang="en" dir="ltr">
-                {story.familyLabel}
-              </bdi>
-              <span>{story.eyebrow}</span>
+              <span>
+                <bdi lang="en" dir="ltr">
+                  {story.familyLabel}
+                </bdi>{" "}
+                / {story.eyebrow}
+              </span>
             </p>
             <h2 id={`story-${story.key}-heading`}>{story.title}</h2>
             <p className={styles.storyIntroduction}>{story.introduction}</p>

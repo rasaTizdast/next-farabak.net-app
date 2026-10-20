@@ -86,10 +86,12 @@ export default function ProductRangeHero() {
             <li key={story.key}>
               <a href={`#story-${story.key}`}>
                 <span aria-hidden="true">{new Intl.NumberFormat("fa-IR").format(index + 1)}</span>
-                <bdi lang="en" dir="ltr">
-                  {story.familyLabel}
-                </bdi>
-                <span>{story.eyebrow}</span>
+                <span>
+                  <bdi lang="en" dir="ltr">
+                    {story.familyLabel}
+                  </bdi>{" "}
+                  / {story.eyebrow}
+                </span>
                 <ArrowDownLeft size={16} aria-hidden="true" />
               </a>
             </li>
