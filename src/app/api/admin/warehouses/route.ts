@@ -14,13 +14,6 @@ export async function GET(request: Request) {
   const auth = await requireAuth();
   if (auth instanceof NextResponse) return auth;
   try {
-    // Cleanup invalid warehouseproduct records where ProductGradeId is not null and invalid
-    await prisma.$queryRaw<Record<string, unknown>[]>`
-      DELETE FROM "support"."warehouseproduct"
-      WHERE "ProductGradeId" IS NOT NULL
-      AND "ProductGradeId" NOT IN (SELECT "ProductGradeId" FROM "support"."ProductGrade")
-    `;
-
     const { searchParams } = new URL(request.url);
     const queryValidation = validateParams(Object.fromEntries(searchParams), warehouseQuerySchema);
     if ("error" in queryValidation) return queryValidation.error;

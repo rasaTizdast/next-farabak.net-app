@@ -7,12 +7,15 @@ import { AdminInvoice } from "../../type";
 type DeleteInvoiceModalProps = {
   invoice: AdminInvoice | null;
   onClose: () => void;
-  onDelete: (invoiceId: string) => void;
+  onDelete: (invoiceId: string) => Promise<boolean>;
 };
 
 const DeleteInvoiceModal = ({ invoice, onClose, onDelete }: DeleteInvoiceModalProps) => {
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const closingAfterSuccessRef = useRef(false);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -32,18 +35,43 @@ const DeleteInvoiceModal = ({ invoice, onClose, onDelete }: DeleteInvoiceModalPr
     if (!dialog) return;
 
     const handleClose = () => {
+      if (isDeleting && !closingAfterSuccessRef.current) {
+        dialog.showModal();
+        return;
+      }
+      closingAfterSuccessRef.current = false;
       setTermsAccepted(false);
+      setError(null);
       onClose();
     };
 
     dialog.addEventListener("close", handleClose);
     return () => dialog.removeEventListener("close", handleClose);
-  }, [onClose]);
+  }, [isDeleting, onClose]);
 
-  const handleDelete = () => {
-    if (invoice) {
-      onDelete(invoice.Invoiceid);
-      dialogRef.current?.close();
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const preventPendingCancel = (event: Event) => {
+      if (isDeleting) event.preventDefault();
+    };
+    dialog.addEventListener("cancel", preventPendingCancel);
+    return () => dialog.removeEventListener("cancel", preventPendingCancel);
+  }, [isDeleting]);
+
+  const handleDelete = async () => {
+    if (!invoice || !termsAccepted || isDeleting) return;
+    setIsDeleting(true);
+    setError(null);
+    try {
+      if (await onDelete(invoice.Invoiceid)) {
+        closingAfterSuccessRef.current = true;
+        dialogRef.current?.close();
+      } else setError("حذف فاکتور انجام نشد. دوباره تلاش کنید.");
+    } catch {
+      setError("حذف فاکتور انجام نشد. دوباره تلاش کنید.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -65,6 +93,11 @@ const DeleteInvoiceModal = ({ invoice, onClose, onDelete }: DeleteInvoiceModalPr
 
       {/* Modal Content */}
       <div className="p-6 text-gray-300">
+        {error && (
+          <p role="alert" className="mb-4 text-sm text-red-300">
+            {error}
+          </p>
+        )}
         <p className="text-lg leading-relaxed">
           آیا از حذف این فاکتور اطمینان دارید؟ این عملیات غیرقابل بازگشت است.
         </p>
@@ -89,6 +122,7 @@ const DeleteInvoiceModal = ({ invoice, onClose, onDelete }: DeleteInvoiceModalPr
         <button
           type="button"
           onClick={() => dialogRef.current?.close()}
+          disabled={isDeleting}
           className="w-full rounded-lg bg-gray-700 px-6 py-3 text-gray-100 transition hover:bg-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none sm:w-auto"
           aria-label="Close modal"
         >
@@ -97,7 +131,7 @@ const DeleteInvoiceModal = ({ invoice, onClose, onDelete }: DeleteInvoiceModalPr
         <button
           type="button"
           onClick={handleDelete}
-          disabled={!termsAccepted}
+          disabled={!termsAccepted || isDeleting}
           className={`w-full rounded-lg px-6 py-3 transition-colors sm:w-auto ${
             termsAccepted
               ? "bg-red-600 text-gray-100 hover:bg-red-500 focus:ring-2 focus:ring-red-500 focus:outline-none"
@@ -105,7 +139,7 @@ const DeleteInvoiceModal = ({ invoice, onClose, onDelete }: DeleteInvoiceModalPr
           }`}
           aria-label="Delete invoice"
         >
-          حذف فاکتور
+          {isDeleting ? "در حال حذف…" : "حذف فاکتور"}
         </button>
       </div>
     </dialog>

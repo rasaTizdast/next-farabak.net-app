@@ -7,11 +7,13 @@ import { AdminInvoice } from "../../type";
 type ChangeStatusModalProps = {
   invoice: AdminInvoice | null;
   onClose: () => void;
-  onStatusChange: (invoiceId: string, status: boolean) => void; // Callback to handle status change
+  onStatusChange: (invoiceId: string, status: boolean) => Promise<boolean>;
 };
 
 const ChangeStatusModal = ({ invoice, onClose, onStatusChange }: ChangeStatusModalProps) => {
   const [status, setStatus] = useState(invoice?.Checked || false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
 
@@ -19,20 +21,29 @@ const ChangeStatusModal = ({ invoice, onClose, onStatusChange }: ChangeStatusMod
     panelRef.current?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !event.defaultPrevented) {
+      if (event.key === "Escape" && !event.defaultPrevented && !isSaving) {
         onClose();
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  }, [isSaving, onClose]);
 
   if (!invoice) return null;
 
-  const handleSave = () => {
-    onStatusChange(invoice.Invoiceid, status); // Call the parent handler
-    onClose(); // Close the modal
+  const handleSave = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    setError(null);
+    try {
+      if (await onStatusChange(invoice.Invoiceid, status)) onClose();
+      else setError("ذخیره وضعیت فاکتور انجام نشد. دوباره تلاش کنید.");
+    } catch {
+      setError("ذخیره وضعیت فاکتور انجام نشد. دوباره تلاش کنید.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -57,6 +68,11 @@ const ChangeStatusModal = ({ invoice, onClose, onStatusChange }: ChangeStatusMod
 
         {/* Modal Body */}
         <div className="space-y-6 px-6 pb-6" dir="rtl">
+          {error && (
+            <p role="alert" className="text-sm text-red-300">
+              {error}
+            </p>
+          )}
           <div className="space-y-4" role="radiogroup" aria-label="وضعیت فاکتور">
             <label
               className="flex cursor-pointer items-center gap-3 rounded-lg bg-slate-800 p-3 transition hover:bg-slate-700"
@@ -109,6 +125,7 @@ const ChangeStatusModal = ({ invoice, onClose, onStatusChange }: ChangeStatusMod
           <button
             type="button"
             onClick={onClose}
+            disabled={isSaving}
             className="rounded-lg bg-slate-700 px-6 py-2 text-sm text-gray-100 transition hover:bg-slate-600 focus:ring focus:ring-slate-500 sm:text-base"
           >
             بستن
@@ -116,9 +133,10 @@ const ChangeStatusModal = ({ invoice, onClose, onStatusChange }: ChangeStatusMod
           <button
             type="button"
             onClick={handleSave}
+            disabled={isSaving}
             className="rounded-lg bg-green-600 px-6 py-2 text-sm font-medium text-gray-100 transition hover:bg-green-500 focus:ring focus:ring-green-400 sm:text-base"
           >
-            ذخیره
+            {isSaving ? "در حال ذخیره…" : "ذخیره"}
           </button>
         </div>
       </div>

@@ -287,6 +287,7 @@ const AdminInvoicesPage = () => {
     } else {
       toast.error("آپدیت فاکتور با شکست مواجه شد");
     }
+    return Boolean(result);
   };
 
   // Handler to delete an invoice
@@ -298,6 +299,7 @@ const AdminInvoicesPage = () => {
     } else {
       toast.error("حذف فاکتور با شکست مواجه شد");
     }
+    return Boolean(result);
   };
 
   const handlePhoneNumberClick = (invoice: AdminInvoice) => {

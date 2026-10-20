@@ -3,6 +3,7 @@ import axios from "axios";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("axios");
+vi.mock("antd", () => ({ message: { error: vi.fn() } }));
 const mockAxiosGet = vi.mocked(axios.get);
 
 vi.mock("@/hooks/useApiMutation", () => ({

@@ -120,6 +120,7 @@ function WarehousesPageContent() {
   const [formLocation, setFormLocation] = useState<string | undefined>(undefined);
 
   const { mutate: saveWarehouseMutate } = useApiMutation();
+  const { mutate: updateWarehouseMutate } = useApiMutation("put");
   const { mutate: deleteWarehouseMutate } = useApiMutation("delete");
 
   const toastIdRef = useRef(0);
@@ -193,8 +194,10 @@ function WarehousesPageContent() {
     }
   };
 
-  const { data: allProductsRaw } = useApiFetch<Product[]>("/api/admin/products/all");
-  const allProducts = allProductsRaw ? (Array.isArray(allProductsRaw) ? allProductsRaw : []) : [];
+  const { data: allProductsRaw } = useApiFetch<Product[] | { data: Product[] }>(
+    "/api/admin/products/all"
+  );
+  const allProducts = Array.isArray(allProductsRaw) ? allProductsRaw : (allProductsRaw?.data ?? []);
 
   // Initialize selectedProduct and searchQuery from URL params
   if (productId && !selectedProduct && allProducts.length > 0) {
@@ -235,7 +238,7 @@ function WarehousesPageContent() {
     }
     const payload = { name: trimmedName, location: trimmedLocation };
     const res = editing
-      ? await saveWarehouseMutate(`/api/admin/warehouses/${editing.warehouseid}`, payload)
+      ? await updateWarehouseMutate(`/api/admin/warehouses/${editing.warehouseid}`, payload)
       : await saveWarehouseMutate(`/api/admin/warehouses`, payload);
     if (res) {
       notify("success", editing ? "انبار با موفقیت بروزرسانی شد" : "انبار با موفقیت ایجاد شد");
@@ -246,15 +249,21 @@ function WarehousesPageContent() {
     }
   };
   const deleteWarehouse = async (wh: Warehouse) => {
-    await deleteWarehouseMutate(`/api/admin/warehouses/${wh.warehouseid}`);
+    const result = await deleteWarehouseMutate(`/api/admin/warehouses/${wh.warehouseid}`);
+    if (!result) {
+      notify("error", "خطا در حذف انبار");
+      return false;
+    }
     fetchWarehouses();
+    return true;
   };
   const confirmAndDeleteWarehouse = async (wh: Warehouse) => {
     const ok =
       typeof window !== "undefined" ? window.confirm("آیا از حذف این انبار اطمینان دارید؟") : true;
     if (ok) {
-      await deleteWarehouse(wh);
-      notify("success", "انبار با موفقیت حذف شد");
+      if (await deleteWarehouse(wh)) {
+        notify("success", "انبار با موفقیت حذف شد");
+      }
     }
   };
 
@@ -277,13 +286,17 @@ function WarehousesPageContent() {
           </p>
         </div>
         <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-center">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Input
               placeholder="جستجو انبار یا محصول..."
               autoComplete="off"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-64"
+              aria-label="جستجوی نام انبار"
+              value={q}
+              onChange={(e) => {
+                setQ(e.target.value);
+                setPage(1);
+              }}
+              className="w-full sm:w-64"
             />
             <button
               type="button"
