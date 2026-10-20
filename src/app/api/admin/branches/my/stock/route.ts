@@ -28,30 +28,13 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Get the branch associated with this user
-    // Using a raw query to avoid model naming issues
-    const branchStaffResult = await prisma.$queryRaw<Record<string, unknown>[]>`
-      SELECT branchid FROM branch_staff 
-      WHERE userid = ${userId} 
-      LIMIT 1
-    `;
-
-    if (!branchStaffResult || !Array.isArray(branchStaffResult) || branchStaffResult.length === 0) {
-      return notFoundResponse("شما با هیچ شعبه‌ای مرتبط نیستید");
-    }
-
-    const branchId = branchStaffResult[0].branchid as number;
-
-    // Get branch details
-    const branch = await prisma.branch.findUnique({
-      where: {
-        branchid: branchId,
-      },
-    });
+    const branch = await prisma.branch.findFirst({ where: { UserID: Number(userId) } });
 
     if (!branch) {
       return notFoundResponse("شعبه یافت نشد");
     }
+
+    const branchId = branch.branchid;
 
     // Check if the branch has the product in stock
     const productStock = await prisma.branchproduct.findFirst({

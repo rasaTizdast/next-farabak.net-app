@@ -127,6 +127,8 @@ async function doLoadInitialBranchData(
   fetchAllProducts: () => Promise<void>
 ) {
   setLoading(true);
+  setError(null);
+  setAuthError(false);
   try {
     const response = await fetch("/api/admin/branches/my");
 
@@ -378,6 +380,7 @@ export function useBranchData() {
     }));
 
     quantityTimersRef.current[productId] = setTimeout(() => {
+      delete quantityTimersRef.current[productId];
       handleUpdateProductQuantity(productId, value);
     }, 2000);
   };
@@ -407,6 +410,7 @@ export function useBranchData() {
           onBlur={() => {
             if (quantityTimersRef.current[record.ProductId]) {
               clearTimeout(quantityTimersRef.current[record.ProductId]);
+              delete quantityTimersRef.current[record.ProductId];
               handleUpdateProductQuantity(record.ProductId, debouncedQuantities[record.ProductId]);
             }
           }}

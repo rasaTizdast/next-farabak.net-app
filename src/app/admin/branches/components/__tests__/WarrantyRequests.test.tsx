@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockFetch = vi.fn();
@@ -138,6 +138,21 @@ describe("WarrantyRequests", () => {
     await waitFor(() => {
       expect(screen.getByText("خطا")).toBeInTheDocument();
     });
+  });
+
+  it("clears a previous loading error after retry succeeds", async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false }).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        requests: [],
+        pagination: { currentPage: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
+      }),
+    });
+    render(<WarrantyRequests isTabActive={true} />);
+    await waitFor(() => expect(screen.getByTestId("alert-error")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /تلاش مجدد/ }));
+    await waitFor(() => expect(screen.queryByTestId("alert-error")).not.toBeInTheDocument());
+    expect(screen.getByText("هیچ درخواست بررسی گارانتی موجود نیست")).toBeInTheDocument();
   });
 
   it("shows refresh button", async () => {

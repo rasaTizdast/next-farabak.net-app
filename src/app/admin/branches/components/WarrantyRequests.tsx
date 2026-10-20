@@ -81,6 +81,7 @@ async function fetchWarrantyRequests(
     });
     setDataFetched(true);
     setLastFetchTime(now);
+    setError("");
   } catch (err: unknown) {
     console.error("[Client] Error fetching warranty requests:", err);
     const error = err as { message?: string };

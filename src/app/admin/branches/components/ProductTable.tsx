@@ -25,10 +25,20 @@ const ProductTable: React.FC<ProductTableProps> = ({
 }) => {
   // Keep track of debounced values per product
   const [debouncedValues, setDebouncedValues] = useState<{ [key: number]: number }>({});
-  const timersRef = useRef<{ [key: number]: NodeJS.Timeout }>({});
+  const timersRef = useRef<{ [key: number]: ReturnType<typeof setTimeout> }>({});
+
+  const commitQuantity = (productId: number, value: number) => {
+    const timer = timersRef.current[productId];
+    if (timer) {
+      clearTimeout(timer);
+      delete timersRef.current[productId];
+    }
+    onUpdateQuantity(productId, value);
+  };
 
   // Handle quantity change with debounce
   const handleQuantityChange = (productId: number, value: number) => {
+    if (!Number.isInteger(value) || value < 0) return;
     // Clear existing timer for this product
     if (timersRef.current[productId]) {
       clearTimeout(timersRef.current[productId]);
@@ -42,7 +52,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
 
     // Set a new timer for this product
     timersRef.current[productId] = setTimeout(() => {
-      onUpdateQuantity(productId, value);
+      commitQuantity(productId, value);
     }, 2000); // 2 second delay
   };
 
@@ -53,6 +63,22 @@ const ProductTable: React.FC<ProductTableProps> = ({
       Object.values(currentTimers).forEach((timer) => clearTimeout(timer));
     };
   }, []);
+
+  useEffect(() => {
+    setDebouncedValues((previous) => {
+      const next = { ...previous };
+      let changed = false;
+
+      for (const product of products) {
+        if (next[product.ProductId] === product.quantity) {
+          delete next[product.ProductId];
+          changed = true;
+        }
+      }
+
+      return changed ? next : previous;
+    });
+  }, [products]);
 
   // Define columns based on whether the remove button should be shown
   const baseColumns = [
@@ -69,26 +95,18 @@ const ProductTable: React.FC<ProductTableProps> = ({
       width: showRemoveButton ? "20%" : "30%",
       render: (_: number, record: Product) => (
         <InputNumber
-          min={record.quantity}
+          min={0}
+          step={1}
           value={debouncedValues[record.ProductId] ?? record.quantity}
           onChange={(value) => {
-            if (value !== null && value >= record.quantity) {
+            if (value !== null) {
               handleQuantityChange(record.ProductId, value);
             }
           }}
           onBlur={() => {
-            // Update immediately on blur (guarded: only if a value was actually typed)
-            if (timersRef.current[record.ProductId]) {
-              clearTimeout(timersRef.current[record.ProductId]);
-              const pending = debouncedValues[record.ProductId];
-              if (pending !== undefined) {
-                onUpdateQuantity(record.ProductId, pending);
-                setDebouncedValues((prev) => {
-                  const next = { ...prev };
-                  delete next[record.ProductId];
-                  return next;
-                });
-              }
+            const pending = debouncedValues[record.ProductId];
+            if (pending !== undefined && timersRef.current[record.ProductId]) {
+              commitQuantity(record.ProductId, pending);
             }
           }}
           className="dark-input-number w-20"

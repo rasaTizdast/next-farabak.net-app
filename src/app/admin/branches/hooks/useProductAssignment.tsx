@@ -1,7 +1,7 @@
 "use client";
 
 import { Form, message } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useApiMutation } from "@/hooks/useApiMutation";
 
@@ -125,9 +125,9 @@ export function useProductAssignment({
   const { mutate: updateProductQtyMutate } = useApiMutation("put");
   const { mutate: removeProductMutate } = useApiMutation("delete");
 
-  const fetchAllProducts = async () => {
+  const fetchAllProducts = useCallback(async () => {
     await fetchAllProductsHelper(setProductsLoading, setAllProducts);
-  };
+  }, []);
 
   const fetchBranchProducts = async (branchId: number) => {
     await fetchBranchProductsHelper(branchId, setProductsLoading, setProducts);

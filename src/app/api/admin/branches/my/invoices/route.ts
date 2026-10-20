@@ -166,6 +166,7 @@ export async function GET(request: Request) {
             WHERE
               id."Invoiceid" = ${invoice.Invoiceid}
               AND w."branchid" = ${branchId}
+            ORDER BY w."warrantyid" ASC
           `,
         ]);
 
@@ -188,15 +189,27 @@ export async function GET(request: Request) {
           };
         });
 
-        // Map warranty data to invoice details
+        // Group warranties by invoice line so each purchased unit can display
+        // its own warranty code in the branch invoice details.
         const detailsWithWarranty = (details as InvoiceDetailRaw[]).map((detail) => {
-          const warranty = processedWarranties.find(
+          const detailWarranties = processedWarranties.filter(
             (w) => w.invoicedetailid === detail.Invoice_Details
           );
+          const warranty = detailWarranties[0];
 
           return {
             ...detail,
-            warranty: warranty || null,
+            warranty: warranty
+              ? {
+                  ...warranty,
+                  warrantycodes: detailWarranties.map((item) => ({
+                    code: item.warrantycode,
+                    startdate: String(item.startdate),
+                    expirydate: String(item.expirydate),
+                    status: item.displayStatus,
+                  })),
+                }
+              : null,
           };
         });
 

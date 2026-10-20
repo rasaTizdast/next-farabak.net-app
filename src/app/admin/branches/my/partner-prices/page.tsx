@@ -48,6 +48,7 @@ export default function BranchPartnerPricesPage() {
     data: apiData,
     loading,
     error,
+    refetch,
   } = useApiFetch<ApiResponse>("/api/admin/products?limit=500");
 
   interface RawProduct {
@@ -77,7 +78,11 @@ export default function BranchPartnerPricesPage() {
     return () => clearTimeout(t);
   }, [keyword]);
 
-  const formatRial = (usd: number) => {
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedKeyword]);
+
+  const formatToman = (usd: number) => {
     if (!usdRate) return "-";
     return Math.floor(usd * usdRate).toLocaleString("fa-IR") + " تومان";
   };
@@ -137,9 +142,9 @@ export default function BranchPartnerPricesPage() {
         />
       </div>
 
-      {!loading && !usdRate && (
-        <div className="mb-4 rounded-md bg-red-700/80 p-3 text-sm">
-          <strong>توجه:</strong> نرخ دلار به ریال قابل دریافت نیست. قیمت‌ها به دلار نمایش داده
+      {!loading && !error && !usdRate && (
+        <div role="status" className="mb-4 rounded-md bg-amber-700/80 p-3 text-sm">
+          <strong>توجه:</strong> نرخ دلار به تومان قابل دریافت نیست. قیمت‌ها به دلار نمایش داده
           می‌شوند.
         </div>
       )}
@@ -149,35 +154,45 @@ export default function BranchPartnerPricesPage() {
           <thead className="sticky top-0 z-10 bg-slate-800 text-gray-100">
             <tr>
               <th
-                className="cursor-pointer px-4 py-3"
-                onClick={() => setSort("Type")}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") setSort("Type");
-                }}
-                tabIndex={0}
+                aria-sort={
+                  sortKey === "Type" ? (sortDir === "asc" ? "ascending" : "descending") : "none"
+                }
               >
-                نام محصول {sortKey === "Type" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                <button
+                  type="button"
+                  className="w-full px-4 py-3 text-start"
+                  onClick={() => setSort("Type")}
+                >
+                  نام محصول {sortKey === "Type" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                </button>
               </th>
               <th
-                className="cursor-pointer px-4 py-3"
-                onClick={() => setSort("Original")}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") setSort("Original");
-                }}
-                tabIndex={0}
+                aria-sort={
+                  sortKey === "Original" ? (sortDir === "asc" ? "ascending" : "descending") : "none"
+                }
               >
-                قیمت (ریال)
-                {sortKey === "Original" ? (sortDir === "asc" ? " ▲" : " ▼") : ""}
+                <button
+                  type="button"
+                  className="w-full px-4 py-3"
+                  onClick={() => setSort("Original")}
+                >
+                  قیمت ({usdRate ? "تومان" : "دلار"})
+                  {sortKey === "Original" ? (sortDir === "asc" ? " ▲" : " ▼") : ""}
+                </button>
               </th>
               <th
-                className="cursor-pointer px-4 py-3 text-center"
-                onClick={() => setSort("Partner")}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") setSort("Partner");
-                }}
-                tabIndex={0}
+                aria-sort={
+                  sortKey === "Partner" ? (sortDir === "asc" ? "ascending" : "descending") : "none"
+                }
               >
-                قیمت همکار {sortKey === "Partner" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                <button
+                  type="button"
+                  className="w-full px-4 py-3 text-center"
+                  onClick={() => setSort("Partner")}
+                >
+                  قیمت همکار ({usdRate ? "تومان" : "دلار"}){" "}
+                  {sortKey === "Partner" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                </button>
               </th>
               <th className="px-4 py-3 text-center">لینک محصول</th>
             </tr>
@@ -192,8 +207,15 @@ export default function BranchPartnerPricesPage() {
             )}
             {!loading && error && (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-red-300">
-                  {error}
+                <td colSpan={4} className="px-4 py-6 text-center text-red-300" role="alert">
+                  <p>{error}</p>
+                  <button
+                    type="button"
+                    onClick={() => refetch()}
+                    className="mt-3 rounded-md bg-slate-800 px-4 py-2 text-white hover:bg-slate-900"
+                  >
+                    تلاش مجدد
+                  </button>
                 </td>
               </tr>
             )}
@@ -222,24 +244,24 @@ export default function BranchPartnerPricesPage() {
                       }
                       if (discount && discount > 0) {
                         const discountedUsd = Math.max(price - discount, 0);
-                        const originalRial = formatRial(price);
-                        const discountedRial = formatRial(discountedUsd);
+                        const originalToman = formatToman(price);
+                        const discountedToman = formatToman(discountedUsd);
                         return (
                           <div className="flex flex-col items-center gap-0.5">
                             <span className="text-red-300 line-through">
-                              {originalRial === "-"
+                              {originalToman === "-"
                                 ? `${price.toLocaleString("fa-IR")} دلار`
-                                : originalRial}
+                                : originalToman}
                             </span>
                             <span className="font-semibold text-green-400">
-                              {discountedRial === "-"
+                              {discountedToman === "-"
                                 ? `${discountedUsd.toLocaleString("fa-IR")} دلار`
-                                : discountedRial}
+                                : discountedToman}
                             </span>
                           </div>
                         );
                       }
-                      return <span>{formatRial(price)}</span>;
+                      return <span>{formatToman(price)}</span>;
                     })()}
                   </td>
                   <td className="px-4 py-3 text-center">
@@ -248,7 +270,7 @@ export default function BranchPartnerPricesPage() {
                         {!p.Partner_Price
                           ? "بدون قیمت"
                           : usdRate
-                            ? formatRial(parseFloat(p.Partner_Price))
+                            ? formatToman(parseFloat(p.Partner_Price))
                             : `${parseFloat(p.Partner_Price).toLocaleString("fa-IR")} دلار`}
                       </span>
                     </div>
