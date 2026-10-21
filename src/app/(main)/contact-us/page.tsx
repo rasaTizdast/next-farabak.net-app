@@ -1,4 +1,7 @@
 import { Metadata } from "next";
+import { io } from "next/cache";
+import Link from "next/link";
+import { Suspense } from "react";
 
 import { getContactInfo } from "@/lib/data/contactUs";
 import { cn } from "@/lib/utils";
@@ -13,8 +16,22 @@ export const metadata: Metadata = {
   },
 };
 
-const ContactUsPage = async () => {
+const ContactUsContent = async () => {
+  // Contact details must be retried per request after a database outage.
+  await io();
   const { address, emails, phone_numbers } = await getContactInfo();
+
+  if (!address && emails.length === 0 && phone_numbers.length === 0) {
+    return (
+      <section className="mx-auto max-w-3xl px-6 py-20 text-center">
+        <h1 className="mb-4 text-2xl font-bold">ارتباط با فرابک</h1>
+        <p>اطلاعات تماس در حال حاضر در دسترس نیست. لطفاً کمی بعد دوباره تلاش کنید.</p>
+        <Link className="mt-6 inline-block underline" href="/support">
+          مرکز پشتیبانی
+        </Link>
+      </section>
+    );
+  }
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -135,4 +152,17 @@ const ContactUsPage = async () => {
   );
 };
 
-export default ContactUsPage;
+export default function ContactUsPage() {
+  return (
+    <Suspense
+      fallback={
+        <section className="mx-auto max-w-3xl px-6 py-20 text-center">
+          <h1 className="mb-4 text-2xl font-bold">ارتباط با فرابک</h1>
+          <p>اطلاعات تماس در حال بارگذاری است.</p>
+        </section>
+      }
+    >
+      <ContactUsContent />
+    </Suspense>
+  );
+}

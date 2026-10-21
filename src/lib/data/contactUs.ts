@@ -1,8 +1,9 @@
-import { Prisma, type address, type emails, type phone_numbers } from "@prisma/client";
+import type { address, emails, phone_numbers } from "@prisma/client";
 import { cacheLife, cacheTag } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 
+import { isPrismaConnectivityError } from "./prismaAvailability";
 import { TAGS } from "./tags";
 
 export interface ContactInfoResult {
@@ -43,11 +44,7 @@ export async function getContactInfo(): Promise<ContactInfoResult> {
   try {
     return await getCachedContactInfo();
   } catch (error) {
-    const isDatabaseUnavailable =
-      error instanceof Prisma.PrismaClientInitializationError ||
-      (error instanceof Prisma.PrismaClientKnownRequestError &&
-        ["P1000", "P1001", "P1002", "P1017"].includes(error.code));
-    if (!isDatabaseUnavailable) throw error;
+    if (!isPrismaConnectivityError(error)) throw error;
 
     // Only expected database connection failures use the uncached fallback.
     return { address: null, emails: [], phone_numbers: [] };

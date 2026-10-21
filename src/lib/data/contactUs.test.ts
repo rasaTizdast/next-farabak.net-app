@@ -53,4 +53,18 @@ describe("getContactInfo", () => {
 
     await expect(getContactInfo()).rejects.toThrow("query mapping bug");
   });
+
+  it("does not hide unrelated Prisma initialization failures", async () => {
+    vi.mocked(prisma.address.findFirst).mockRejectedValueOnce(
+      new Prisma.PrismaClientInitializationError(
+        "Invalid datasource configuration",
+        "test",
+        "P1012"
+      )
+    );
+    vi.mocked(prisma.emails.findMany).mockResolvedValue([]);
+    vi.mocked(prisma.phone_numbers.findMany).mockResolvedValue([]);
+
+    await expect(getContactInfo()).rejects.toThrow("Invalid datasource configuration");
+  });
 });

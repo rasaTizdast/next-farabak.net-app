@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import Script from "next/script";
 import { Suspense } from "react";
 
@@ -26,7 +27,21 @@ const Layout = ({
         strategy="lazyOnload"
       />
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-        <Header />
+        <Suspense
+          fallback={
+            <header className="flex h-20 items-center justify-between bg-[#000814] px-6 text-white md:px-12">
+              <Link className="font-bold" href="/">
+                فرابک
+              </Link>
+              <nav className="flex gap-5 text-sm" aria-label="صفحات اصلی">
+                <Link href="/products">محصولات</Link>
+                <Link href="/contact-us">ارتباط با ما</Link>
+              </nav>
+            </header>
+          }
+        >
+          <Header />
+        </Suspense>
         <main style={{ flex: 1 }}>{children}</main>
         <Suspense
           fallback={

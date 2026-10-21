@@ -3,6 +3,7 @@
 import type { CategoryContent as PrismaCategoryContent } from "@prisma/client";
 import { cacheLife, cacheTag } from "next/cache";
 
+import { isPrismaConnectivityError } from "@/lib/data/prismaAvailability";
 import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
@@ -59,19 +60,22 @@ async function queryMenuCategories(): Promise<MenuCategory[]> {
     .filter((category) => category.Available);
 }
 
-// Cached menu categories for the Header mega-menu and mobile drawer. Wrapped in
-// `use cache` (shared with the products/categories cache tag) so the layout's
-// top-level read is prerendered instead of blocking the route.
-export async function fetchMenuCategories(): Promise<MenuCategory[]> {
+// Cache successful menu categories for the Header mega-menu and mobile drawer.
+// The shared categories tag still invalidates this data after catalogue writes.
+async function getCachedMenuCategories(): Promise<MenuCategory[]> {
   "use cache";
   cacheTag(TAGS.categories);
   cacheLife("hours");
 
+  return queryMenuCategories();
+}
+
+export async function fetchMenuCategories(): Promise<MenuCategory[]> {
   try {
-    return await queryMenuCategories();
+    return await getCachedMenuCategories();
   } catch (error) {
-    // During build time or when DB is unavailable, return empty array so pages still build
-    console.error("Error fetching menu categories:", error);
+    if (!isPrismaConnectivityError(error)) throw error;
+    // This outage fallback stays outside the cached function so requests retry.
     return [];
   }
 }

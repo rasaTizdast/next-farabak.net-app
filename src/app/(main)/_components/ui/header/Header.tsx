@@ -1,3 +1,4 @@
+import { io } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -9,6 +10,8 @@ import NavBar from "../navbar/Navbar";
 import SearchBox from "../searchBox/SearchBox";
 
 const Header = async () => {
+  // The shared menu is retried at request time if the database is unavailable.
+  await io();
   const categories = await fetchMenuCategories();
 
   return (
