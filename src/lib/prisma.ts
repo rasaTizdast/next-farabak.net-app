@@ -14,19 +14,6 @@ if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
 
-// Ensure connection on startup
-if (!globalForPrisma.prisma) {
-  prisma
-    .$connect()
-    .then(() => {
-      // connected
-    })
-    .catch((error) => {
-      console.error("❌ Prisma connection failed:", error);
-      process.exit(1);
-    });
-}
-
 // Enhanced graceful shutdown
 const cleanup = async () => {
   try {
