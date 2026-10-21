@@ -31,10 +31,20 @@ async function queryContactInfo(): Promise<ContactInfoResult> {
   };
 }
 
-export async function getContactInfo(): Promise<ContactInfoResult> {
+async function getCachedContactInfo(): Promise<ContactInfoResult> {
   "use cache";
   cacheTag(TAGS.contactUs);
   cacheLife("hours");
 
   return queryContactInfo();
+}
+
+export async function getContactInfo(): Promise<ContactInfoResult> {
+  try {
+    return await getCachedContactInfo();
+  } catch {
+    // Keep the shared footer usable during a database outage. This response is
+    // outside the cached function, so a temporary failure is not cached.
+    return { address: null, emails: [], phone_numbers: [] };
+  }
 }
