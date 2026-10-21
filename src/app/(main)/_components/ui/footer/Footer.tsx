@@ -1,4 +1,4 @@
-import { cacheLife } from "next/cache";
+import { cacheLife, io } from "next/cache";
 import Link from "next/link";
 import { BsFillSignpostSplitFill } from "react-icons/bs";
 import { FaInstagram, FaPhoneSquare, FaWhatsapp } from "react-icons/fa";
@@ -12,6 +12,8 @@ async function getCopyrightYear(): Promise<string> {
 }
 
 const Footer = async () => {
+  // Keep outage fallbacks out of the prerendered shell so later requests retry.
+  await io();
   const { address, phone_numbers } = await getContactInfo();
   const currentYear = await getCopyrightYear();
 

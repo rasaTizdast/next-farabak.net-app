@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getContactInfo } from "@/lib/data/contactUs";
@@ -18,8 +19,10 @@ describe("getContactInfo", () => {
     vi.mocked(prisma.phone_numbers.findMany).mockReset();
   });
 
-  it("returns no invented contact details during an outage and retries on the next call", async () => {
-    vi.mocked(prisma.address.findFirst).mockRejectedValueOnce(new Error("database unavailable"));
+  it("returns no invented contact details for a Prisma connection error and retries on the next call", async () => {
+    vi.mocked(prisma.address.findFirst).mockRejectedValueOnce(
+      new Prisma.PrismaClientInitializationError("Can't reach database server", "test", "P1001")
+    );
     vi.mocked(prisma.emails.findMany).mockResolvedValue([]);
     vi.mocked(prisma.phone_numbers.findMany).mockResolvedValue([]);
 
@@ -41,5 +44,13 @@ describe("getContactInfo", () => {
       phone_numbers: [{ id: 1, number: "02112345678" }],
     });
     expect(prisma.address.findFirst).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not hide unexpected query errors", async () => {
+    vi.mocked(prisma.address.findFirst).mockRejectedValueOnce(new Error("query mapping bug"));
+    vi.mocked(prisma.emails.findMany).mockResolvedValue([]);
+    vi.mocked(prisma.phone_numbers.findMany).mockResolvedValue([]);
+
+    await expect(getContactInfo()).rejects.toThrow("query mapping bug");
   });
 });
