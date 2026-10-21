@@ -1122,6 +1122,62 @@
     padding-inline: 3px;
   }
 }
+
+/* The line is a quiet static connector unless the desktop scroll-timeline gate passes. */
+.storyTransition {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  height: 52px;
+  margin-block: -8px;
+  overflow: hidden;
+  color: #0e6aff;
+  pointer-events: none;
+}
+.storyTransition svg {
+  display: block;
+  width: min(100%, 1180px);
+  height: 52px;
+  overflow: visible;
+}
+.storyTransition path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  opacity: 0.5;
+}
+@media (min-width: 1024px) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .storyTransition[data-scroll-motion="true"] {
+    view-timeline-name: --farabak-story-bridge;
+    view-timeline-axis: block;
+  }
+  .storyTransition[data-scroll-motion="true"] path {
+    stroke-dasharray: 1100;
+    stroke-dashoffset: 1100;
+    animation: storyBridgeDraw 1ms linear both;
+    animation-timeline: --farabak-story-bridge;
+    animation-range: cover 30% cover 70%;
+  }
+}
+@keyframes storyBridgeDraw {
+  to {
+    stroke-dashoffset: 0;
+    opacity: 0.82;
+  }
+}
+@media (max-width: 767px) {
+  .storyTransition {
+    height: 20px;
+    margin-block: -12px;
+    opacity: 0.55;
+  }
+  .storyTransition svg {
+    height: 20px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .landing *,
   .landing *::before,
