@@ -6,15 +6,22 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import styles from "./landing.module.css";
 
-type RangeItem = {
+type RangeItemBase = {
   key: string;
   familyLabel: string;
   eyebrow: string;
   href: string;
   alt: string;
-  desktopSrc: string;
-  mobileSrc: string;
 };
+type RangeItem = RangeItemBase &
+  (
+    | {
+        mediaStatus: "generated-conceptual" | "approved-real-media";
+        desktopSrc: string;
+        mobileSrc: string;
+      }
+    | { mediaStatus: "pending-media"; desktopSrc: null; mobileSrc: null }
+  );
 
 type Props = { items: readonly RangeItem[]; children: ReactNode };
 
@@ -22,6 +29,7 @@ type Props = { items: readonly RangeItem[]; children: ReactNode };
 export default function ProductRangeFocus({ items, children }: Props) {
   const [activeKey, setActiveKey] = useState(items[0].key);
   const [ready, setReady] = useState(false);
+  const [failedKey, setFailedKey] = useState<string | null>(null);
   const request = useRef(0);
   const picture = useRef<HTMLPictureElement>(null);
   const animation = useRef<{ stop: () => void } | null>(null);
@@ -72,14 +80,27 @@ export default function ProductRangeFocus({ items, children }: Props) {
     if (connection?.saveData) return;
 
     let cancelled = false;
-    void import("motion/mini").then(({ animate }) => {
-      if (cancelled || document.hidden || !target.isConnected) return;
-      animation.current = animate(
-        target,
-        { opacity: [0.45, 1], transform: ["scale(1.018)", "scale(1)"] },
-        { duration: 0.72, ease: [0.22, 1, 0.36, 1] }
-      );
-    });
+    void import("motion/mini")
+      .then(({ animate }) => {
+        const liveConnection = (navigator as Navigator & { connection?: { saveData?: boolean } })
+          .connection;
+        if (
+          cancelled ||
+          document.hidden ||
+          !target.isConnected ||
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+          liveConnection?.saveData
+        )
+          return;
+        animation.current = animate(
+          target,
+          { opacity: [0.45, 1], transform: ["scale(1.018)", "scale(1)"] },
+          { duration: 0.72, ease: [0.22, 1, 0.36, 1] }
+        );
+      })
+      .catch(() => {
+        // The already rendered image is the static fallback if Motion cannot load.
+      });
     return () => {
       cancelled = true;
       animation.current?.stop();
@@ -92,17 +113,28 @@ export default function ProductRangeFocus({ items, children }: Props) {
       return;
     }
     const currentRequest = ++request.current;
+    if (item.mediaStatus === "pending-media") {
+      setFailedKey(null);
+      setActiveKey(item.key);
+      return;
+    }
     const mobile = window.matchMedia("(max-width: 767px)").matches;
     const src = mobile ? item.mobileSrc : item.desktopSrc;
     const candidate = new window.Image();
     candidate.onload = () => {
-      if (request.current === currentRequest) setActiveKey(item.key);
+      if (request.current === currentRequest) {
+        setFailedKey(null);
+        setActiveKey(item.key);
+      }
     };
     candidate.onerror = () => {
       // Preserve the last good preview if a conceptual image is unavailable.
     };
     candidate.src = src;
-    if (candidate.complete && candidate.naturalWidth) setActiveKey(item.key);
+    if (candidate.complete && candidate.naturalWidth && request.current === currentRequest) {
+      setFailedKey(null);
+      setActiveKey(item.key);
+    }
   }
 
   return (
@@ -110,29 +142,47 @@ export default function ProductRangeFocus({ items, children }: Props) {
       <div className={styles.heroGrid}>
         {children}
         <figure className={`${styles.heroArtwork} ${styles.rangeHeroArtwork}`}>
-          <picture ref={picture}>
-            <source
-              media="(max-width: 767px)"
-              srcSet={active.mobileSrc}
-              type="image/webp"
-              width={800}
-              height={1000}
-            />
-            <Image
-              src={active.desktopSrc}
-              alt={active.alt}
-              width={1600}
-              height={900}
-              sizes="(max-width: 767px) 100vw, 54vw"
-              loading="eager"
-              fetchPriority={activeKey === items[0].key ? "high" : "auto"}
-              unoptimized
-              style={{ width: "100%", height: "auto" }}
-            />
-          </picture>
+          {active.mediaStatus === "pending-media" || failedKey === active.key ? (
+            <span className={styles.rangeMediaFallback}>تصویر این حوزه در دست آماده‌سازی است.</span>
+          ) : (
+            <picture ref={picture}>
+              <source
+                media="(max-width: 767px)"
+                srcSet={active.mobileSrc}
+                type="image/webp"
+                width={800}
+                height={1000}
+              />
+              <Image
+                src={active.desktopSrc}
+                alt={active.alt}
+                width={1600}
+                height={900}
+                sizes="(max-width: 767px) 100vw, 54vw"
+                loading="eager"
+                fetchPriority={activeKey === items[0].key ? "high" : "auto"}
+                unoptimized
+                style={{ width: "100%", height: "auto" }}
+                onError={() => setFailedKey(active.key)}
+              />
+            </picture>
+          )}
           <figcaption className={styles.rangeHeroCaption} aria-live="polite" aria-atomic="true">
-            <span>تصویر مفهومی | {active.eyebrow}</span>
-            <span>فضای کاربرد؛ تصویر محصول یا پروژه واقعی نیست.</span>
+            <span>
+              {active.mediaStatus === "pending-media" || failedKey === active.key
+                ? "تصویر در دست آماده‌سازی"
+                : active.mediaStatus === "approved-real-media"
+                  ? "تصویر تأییدشده"
+                  : "تصویر مفهومی"}{" "}
+              | {active.eyebrow}
+            </span>
+            <span>
+              {active.mediaStatus === "pending-media" || failedKey === active.key
+                ? "برای بررسی گزینه‌ها، یکی از بخش‌های زیر را انتخاب کنید."
+                : active.mediaStatus === "approved-real-media"
+                  ? "تصویر تأییدشده برای این بخش."
+                  : "فضای کاربرد؛ تصویر محصول یا پروژه واقعی نیست."}
+            </span>
           </figcaption>
         </figure>
       </div>

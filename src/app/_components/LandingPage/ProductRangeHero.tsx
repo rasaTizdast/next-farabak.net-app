@@ -2,13 +2,24 @@ import { ArrowDownLeft, ArrowLeft, ArrowUpLeft } from "lucide-react";
 import Link from "next/link";
 
 import { HISTORY_START_YEAR } from "@/content/homepage-proof";
-import { landingAssets } from "@/content/landing-assets";
+import { landingAssets, type LandingAsset } from "@/content/landing-assets";
 import { landingStories } from "@/content/landing-stories";
 
 import styles from "./landing.module.css";
 import ProductRangeFocus from "./ProductRangeFocus";
 
 const startYear = new Intl.NumberFormat("fa-IR", { useGrouping: false }).format(HISTORY_START_YEAR);
+
+function rangeMedia(asset: LandingAsset) {
+  if (asset.mediaStatus === "pending-media") {
+    return { mediaStatus: asset.mediaStatus, desktopSrc: null, mobileSrc: null } as const;
+  }
+  return {
+    mediaStatus: asset.mediaStatus,
+    desktopSrc: asset.desktopSrc,
+    mobileSrc: asset.mobileSrc,
+  };
+}
 
 /** A complete, navigable first frame before the optional range-focus enhancement mounts. */
 export default function ProductRangeHero() {
@@ -20,8 +31,7 @@ export default function ProductRangeHero() {
       eyebrow: story.eyebrow,
       href: `#story-${story.key}`,
       alt: asset.alt,
-      desktopSrc: asset.desktopSrc ?? "",
-      mobileSrc: asset.mobileSrc ?? "",
+      ...rangeMedia(asset),
     };
   });
 

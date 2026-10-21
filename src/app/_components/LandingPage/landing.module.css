@@ -1300,12 +1300,19 @@
   border-block-end: 1px solid #9ddfff;
   border-inline-end: 1px solid #9ddfff;
 }
-.rangeHeroArtwork picture {
+.rangeHeroArtwork picture,
+.rangeHeroArtwork .rangeMediaFallback {
   display: block;
   height: min(620px, 44vw);
   min-height: 430px;
   overflow: hidden;
   background: #123653;
+}
+.rangeHeroArtwork .rangeMediaFallback {
+  display: grid;
+  place-items: center;
+  padding: 34px;
+  text-align: center;
 }
 .rangeHeroArtwork picture img {
   display: block;
@@ -2051,7 +2058,8 @@
   .productRangeHero .heroCopy h1 {
     font-size: clamp(39px, 4.5vw, 55px);
   }
-  .rangeHeroArtwork picture {
+  .rangeHeroArtwork picture,
+  .rangeHeroArtwork .rangeMediaFallback {
     min-height: 370px;
   }
   .storyCopy h2 {
@@ -2081,7 +2089,8 @@
     max-width: none;
     padding-bottom: 25px;
   }
-  .rangeHeroArtwork picture {
+  .rangeHeroArtwork picture,
+  .rangeHeroArtwork .rangeMediaFallback {
     width: 100%;
     height: clamp(390px, 53vw, 520px);
     min-height: 0;
@@ -2188,7 +2197,8 @@
   .rangeHeroArtwork {
     margin-top: 26px;
   }
-  .rangeHeroArtwork picture {
+  .rangeHeroArtwork picture,
+  .rangeHeroArtwork .rangeMediaFallback {
     height: auto;
     aspect-ratio: 4 / 5;
   }
