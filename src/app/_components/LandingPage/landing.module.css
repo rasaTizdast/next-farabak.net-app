@@ -1332,24 +1332,30 @@
 .rangeHeroCaption {
   position: absolute;
   z-index: 3;
-  inset-block-end: 52px;
-  inset-inline: 24px;
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 24px;
+  inset: 0;
+  pointer-events: none;
   color: #fff;
-  font-size: 11px;
-  line-height: 1.8;
-  text-shadow: 0 1px 6px #071b32;
+  font-size: 12px;
+  line-height: 1.75;
 }
 .rangeHeroCaption span:first-child {
-  font-weight: 700;
+  position: absolute;
+  inset-block-start: 24px;
+  inset-inline-start: 16px;
+  padding: 5px 12px;
+  background: #071b32ed;
+  font-size: 13px;
+  font-weight: 800;
   white-space: nowrap;
 }
 .rangeHeroCaption span:last-child {
-  max-width: 250px;
-  text-align: end;
+  position: absolute;
+  inset-block-end: 54px;
+  inset-inline-start: 22px;
+  max-width: 280px;
+  padding: 6px 10px;
+  background: #071b32db;
+  text-align: start;
 }
 .rangeNav {
   position: relative;
@@ -1595,10 +1601,10 @@
   justify-content: space-between;
   align-items: start;
   gap: 15px;
-  padding-top: 14px;
+  padding-top: 18px;
   color: #354b60;
-  font-size: 10px;
-  line-height: 1.9;
+  font-size: 12px;
+  line-height: 1.8;
 }
 .storyMediaCaption span:first-child {
   flex: 0 0 auto;
@@ -2045,9 +2051,6 @@
   .rangeHeroArtwork::after {
     inset-block-end: 15px;
   }
-  .rangeHeroCaption {
-    inset-block-end: 40px;
-  }
   .rangeList {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -2106,6 +2109,14 @@
   }
 }
 @media (max-width: 767px) {
+  .companyGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+  .supportPanel {
+    width: 100%;
+    min-width: 0;
+  }
   .landing {
     --header-gutter: 20px;
   }
@@ -2146,17 +2157,15 @@
   .rangeHeroArtwork picture::after {
     inset-block-end: 25px;
   }
-  .rangeHeroCaption {
-    inset-inline: 16px;
-    inset-block-end: 38px;
-    align-items: start;
-    flex-direction: column;
-    gap: 3px;
-    font-size: 10px;
+  .rangeHeroCaption span:first-child {
+    inset-block-start: 20px;
+    inset-inline-start: 14px;
   }
   .rangeHeroCaption span:last-child {
-    max-width: 32ch;
-    text-align: start;
+    inset-block-end: 38px;
+    inset-inline-start: 14px;
+    max-width: min(32ch, calc(100% - 28px));
+    font-size: 12px;
   }
   .rangeList {
     grid-template-columns: 1fr;
@@ -2250,7 +2259,10 @@
   }
   .storyMediaCaption {
     gap: 12px;
-    font-size: 10px;
+    font-size: 12px;
+  }
+  .story2 .storyMedia::before {
+    display: none;
   }
   .storyMediaCaption span:last-child {
     max-width: 26ch;
