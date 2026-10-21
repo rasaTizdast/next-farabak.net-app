@@ -1372,8 +1372,15 @@
   list-style: none;
 }
 .rangeList li {
+  display: flex;
+  align-items: stretch;
   min-width: 0;
   border-inline-end: 1px solid #dce5ee2e;
+  transition: background-color 180ms;
+}
+.rangeList li[data-active] {
+  background: #174769;
+  box-shadow: inset 0 -3px #73d6ff;
 }
 .rangeList li:first-child {
   border-inline-start: 1px solid #dce5ee2e;
@@ -1383,6 +1390,8 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 11px;
+  flex: 1;
+  min-width: 0;
   min-height: 92px;
   padding: 14px clamp(8px, 1vw, 18px);
   color: #f2f8ff;
@@ -1408,6 +1417,38 @@
 }
 .rangeList a svg {
   opacity: 0.72;
+}
+.rangePreviewButton {
+  display: grid;
+  flex: 0 0 44px;
+  place-items: center;
+  align-self: center;
+  width: 44px;
+  height: 44px;
+  margin-inline-end: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #f2f8ff;
+  cursor: pointer;
+}
+.rangePreviewButton:disabled {
+  visibility: hidden;
+}
+.rangePreviewButton:hover {
+  background: #2a5f7c;
+}
+.rangePreviewButton > span {
+  width: 11px;
+  height: 11px;
+  border: 1px solid #a4dbf6;
+  border-radius: 50%;
+  box-shadow: 0 0 0 5px #a4dbf61a;
+}
+.rangePreviewButton[aria-pressed="true"] > span {
+  background: #73d6ff;
+  box-shadow: 0 0 0 5px #73d6ff30;
 }
 .evidenceBand {
   background: #fff;

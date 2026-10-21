@@ -1,5 +1,4 @@
 import { ArrowDownLeft, ArrowLeft, ArrowUpLeft } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 
 import { HISTORY_START_YEAR } from "@/content/homepage-proof";
@@ -7,16 +6,28 @@ import { landingAssets } from "@/content/landing-assets";
 import { landingStories } from "@/content/landing-stories";
 
 import styles from "./landing.module.css";
+import ProductRangeFocus from "./ProductRangeFocus";
 
 const startYear = new Intl.NumberFormat("fa-IR", { useGrouping: false }).format(HISTORY_START_YEAR);
 
 /** A complete, navigable first frame before the optional range-focus enhancement mounts. */
 export default function ProductRangeHero() {
-  const poster = landingAssets.xray;
+  const items = landingStories.map((story) => {
+    const asset = landingAssets[story.key];
+    return {
+      key: story.key,
+      familyLabel: story.familyLabel,
+      eyebrow: story.eyebrow,
+      href: `#story-${story.key}`,
+      alt: asset.alt,
+      desktopSrc: asset.desktopSrc ?? "",
+      mobileSrc: asset.mobileSrc ?? "",
+    };
+  });
 
   return (
     <section className={`${styles.hero} ${styles.productRangeHero}`} aria-labelledby="home-heading">
-      <div className={styles.heroGrid}>
+      <ProductRangeFocus items={items}>
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>
             <span aria-hidden="true" /> فرابک | راهنمای انتخاب تجهیزات
@@ -44,60 +55,7 @@ export default function ProductRangeHero() {
             </Link>
           </div>
         </div>
-        <figure className={`${styles.heroArtwork} ${styles.rangeHeroArtwork}`}>
-          <picture>
-            {poster.mobileSrc && (
-              <source
-                media="(max-width: 767px)"
-                srcSet={poster.mobileSrc}
-                type="image/webp"
-                width={800}
-                height={1000}
-              />
-            )}
-            {poster.desktopSrc ? (
-              <Image
-                src={poster.desktopSrc}
-                alt={poster.alt}
-                width={1600}
-                height={900}
-                sizes="(max-width: 767px) 100vw, 54vw"
-                loading="eager"
-                fetchPriority="high"
-                style={{ width: "100%", height: "auto" }}
-              />
-            ) : (
-              <span className={styles.rangeMediaFallback}>فضای انتخاب تجهیزات بازرسی</span>
-            )}
-          </picture>
-          <figcaption className={styles.rangeHeroCaption}>
-            <span>
-              {poster.mediaStatus === "generated-conceptual" ? "تصویر مفهومی" : "تصویر محصول"}
-            </span>
-            {poster.mediaStatus === "generated-conceptual" && (
-              <span>نمونه‌ای از فضای کاربرد؛ تصویر دستگاه واقعی نیست.</span>
-            )}
-          </figcaption>
-        </figure>
-      </div>
-      <nav className={styles.rangeNav} aria-label="پنج حوزه برای بررسی و مشاوره">
-        <ol className={styles.rangeList}>
-          {landingStories.map((story, index) => (
-            <li key={story.key}>
-              <a href={`#story-${story.key}`}>
-                <span aria-hidden="true">{new Intl.NumberFormat("fa-IR").format(index + 1)}</span>
-                <span>
-                  <bdi lang="en" dir="ltr">
-                    {story.familyLabel}
-                  </bdi>{" "}
-                  / {story.eyebrow}
-                </span>
-                <ArrowDownLeft size={16} aria-hidden="true" />
-              </a>
-            </li>
-          ))}
-        </ol>
-      </nav>
+      </ProductRangeFocus>
     </section>
   );
 }
