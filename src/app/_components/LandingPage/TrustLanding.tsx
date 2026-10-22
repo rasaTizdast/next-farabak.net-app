@@ -1,15 +1,4 @@
-import {
-  ArrowLeft,
-  ArrowUpLeft,
-  Building2,
-  Check,
-  CircleHelp,
-  Download,
-  Headphones,
-  Quote,
-  ScanLine,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowLeft, ArrowUpLeft, Building2, ScanLine } from "lucide-react";
 import { io } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
@@ -37,14 +26,12 @@ const textOnly = (value: string) =>
     .trim();
 
 function SectionHeading({
-  eyebrow,
   title,
   description,
   href,
   linkLabel,
   id,
 }: {
-  eyebrow: string;
   title: string;
   description?: string;
   href?: string;
@@ -54,7 +41,6 @@ function SectionHeading({
   return (
     <div className={styles.sectionHeading} data-reveal>
       <div>
-        <p className={styles.sectionEyebrow}>{eyebrow}</p>
         <h2 id={id}>{title}</h2>
         {description && <p className={styles.sectionDescription}>{description}</p>}
       </div>
@@ -72,35 +58,23 @@ function EvidenceBand() {
   return (
     <nav className={styles.evidenceBand} aria-label="پشتوانه انتخاب فرابک">
       <div className={styles.container}>
-        <Link href="/about-us/activity">
-          <span className={styles.evidenceIcon}>
-            <Building2 size={24} aria-hidden="true" />
-          </span>
+        <Link href="/about-us/activity" data-reveal data-reveal-order="0">
           <span>
             <strong>ریشه‌دار از {digits(HISTORY_START_YEAR)}</strong>
             <small>با سابقه و فعالیت‌های ما آشنا شوید</small>
           </span>
-          <ArrowUpLeft size={17} aria-hidden="true" />
         </Link>
-        <Link href="/about-us/projects">
-          <span className={styles.evidenceIcon}>
-            <ScanLine size={25} aria-hidden="true" />
-          </span>
+        <Link href="/about-us/projects" data-reveal data-reveal-order="1">
           <span>
             <strong>تجربه‌ای که می‌توان دید</strong>
             <small>پروژه‌ها و نمونه‌کارهای فرابک</small>
           </span>
-          <ArrowUpLeft size={17} aria-hidden="true" />
         </Link>
-        <Link href="/support/warranty-tracking">
-          <span className={styles.evidenceIcon}>
-            <ShieldCheck size={25} aria-hidden="true" />
-          </span>
+        <Link href="/support/warranty-tracking" data-reveal data-reveal-order="2">
           <span>
             <strong>پشتیبانی قابل پیگیری</strong>
             <small>دسترسی مستقیم به پیگیری گارانتی</small>
           </span>
-          <ArrowUpLeft size={17} aria-hidden="true" />
         </Link>
       </div>
     </nav>
@@ -109,7 +83,7 @@ function EvidenceBand() {
 
 function ProjectsFallback() {
   return (
-    <div className={styles.projectFallback}>
+    <div className={styles.projectFallback} data-reveal>
       <ScanLine size={42} strokeWidth={1.1} aria-hidden="true" />
       <div>
         <h3>پشت هر سیستم، یک نگاه تخصصی است.</h3>
@@ -136,7 +110,6 @@ function ProjectsShowcase({
       <div className={styles.container}>
         <SectionHeading
           id="projects-heading"
-          eyebrow="فرابک، در عمل"
           title="اعتماد، از کارِ انجام‌شده آغاز می‌شود."
           description="برای شناختن ما، از پروژه‌ها و تجربه‌های اجرایی ما شروع کنید."
           href="/about-us/projects"
@@ -157,6 +130,7 @@ function ProjectsShowcase({
                   href={`/about-us/projects/${encodeURIComponent(project.slug)}`}
                   className={`${styles.projectCard} ${index === 0 ? styles.projectLead : ""}`}
                   data-reveal
+                  data-reveal-kind="image"
                 >
                   <div className={styles.projectImage}>
                     {image ? (
@@ -231,15 +205,10 @@ function CompanyAndSupport() {
       <div className={styles.container}>
         <div className={styles.companyGrid}>
           <div className={styles.companyStory} data-reveal>
-            <p className={styles.sectionEyebrow}>پشت تجهیزات، آدم‌ها ایستاده‌اند.</p>
-            <h2 id="company-heading">
-              یک نام،
-              <br />
-              با سابقه‌ای قابل شناخت.
-            </h2>
+            <h2 id="company-heading">فرابک، از {digits(HISTORY_START_YEAR)}</h2>
             <p>
-              ثبت فرابک به سال ۱۳۸۱ برمی‌گردد. برای شناخت مجموعه‌ای که انتخاب می‌کنید، با سابقه،
-              حوزه‌های کاری و اعضای آن آشنا شوید.
+              ثبت فرابک به سال {digits(HISTORY_START_YEAR)} برمی‌گردد. برای شناخت مجموعه‌ای که
+              انتخاب می‌کنید، با سابقه، حوزه‌های کاری و اعضای آن آشنا شوید.
             </p>
             <div className={styles.companyLinks}>
               <Link href="/about-us/activity">
@@ -251,7 +220,7 @@ function CompanyAndSupport() {
                 <ArrowUpLeft size={18} aria-hidden="true" />
               </Link>
             </div>
-            <div className={styles.historyGraphic} aria-hidden="true">
+            <div className={styles.historyGraphic} data-reveal aria-hidden="true">
               <span>۱۳۸۱</span>
               <i />
               <span>امروز</span>
@@ -259,45 +228,38 @@ function CompanyAndSupport() {
           </div>
           <div className={styles.supportPanel} data-reveal>
             <div className={styles.supportHeader}>
-              <span className={styles.supportIcon}>
-                <Headphones size={28} strokeWidth={1.4} aria-hidden="true" />
-              </span>
               <div>
                 <p>همراهی، بعد از انتخاب هم ادامه دارد.</p>
                 <h3>پشتیبانی در دسترس شما</h3>
               </div>
             </div>
             <Link href="/support/warranty-tracking">
-              <ShieldCheck size={23} strokeWidth={1.4} aria-hidden="true" />
               <span>
                 <strong>پیگیری گارانتی</strong>
                 <small>بررسی وضعیت گارانتی محصول</small>
               </span>
-              <ArrowUpLeft size={19} aria-hidden="true" />
+              <span aria-hidden="true">↖</span>
             </Link>
             <Link href="/support/download-center">
-              <Download size={23} strokeWidth={1.4} aria-hidden="true" />
               <span>
                 <strong>مرکز دانلود</strong>
                 <small>نرم‌افزارها، راهنماها و به‌روزرسانی‌ها</small>
               </span>
-              <ArrowUpLeft size={19} aria-hidden="true" />
+              <span aria-hidden="true">↖</span>
             </Link>
             <Link href="/support/faq">
-              <CircleHelp size={23} strokeWidth={1.4} aria-hidden="true" />
               <span>
                 <strong>پاسخ پرسش‌های شما</strong>
                 <small>پرسش‌های متداول درباره تجهیزات</small>
               </span>
-              <ArrowUpLeft size={19} aria-hidden="true" />
+              <span aria-hidden="true">↖</span>
             </Link>
             <Link href="/contact-us">
-              <Headphones size={23} strokeWidth={1.4} aria-hidden="true" />
               <span>
                 <strong>ارتباط با کارشناسان</strong>
                 <small>راه‌های تماس و نشانی شرکت</small>
               </span>
-              <ArrowUpLeft size={19} aria-hidden="true" />
+              <span aria-hidden="true">↖</span>
             </Link>
           </div>
         </div>
@@ -314,13 +276,11 @@ function Testimonials() {
       <div className={styles.container}>
         <SectionHeading
           id="testimonials-heading"
-          eyebrow="روایت همراهان فرابک"
           title="اعتماد، از نگاه کسانی که با ما کار کرده‌اند."
         />
         <div className={styles.testimonialGrid}>
           {testimonials.map((item) => (
             <figure key={`${item.name}-${item.source}`} data-reveal>
-              <Quote size={28} aria-hidden="true" />
               <blockquote>{item.quote}</blockquote>
               <figcaption>
                 <strong>{item.name}</strong>
@@ -338,26 +298,18 @@ function Closing() {
   return (
     <section className={styles.closingSection}>
       <div className={styles.container}>
-        <div className={styles.closingPanel} data-reveal>
-          <div className={styles.closingOrb} aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </div>
+        <div className={styles.closingPanel}>
           <div className={styles.closingContent}>
-            <p className={styles.eyebrow}>
-              <span /> انتخاب مطمئن، با یک گفت‌وگو آغاز می‌شود.
-            </p>
-            <h2>
-              برای پروژهٔ بعدی،
+            <h2 data-reveal data-reveal-order="0">
+              دربارهٔ نیاز پروژه
               <br />
-              با شناخت انتخاب کنید.
+              گفت‌وگو کنیم.
             </h2>
-            <p>
+            <p data-reveal data-reveal-order="1">
               اگر مدل را می‌شناسید، تجهیزات را بررسی کنید. اگر نیاز پروژه هنوز روشن نیست، با
               کارشناسان فرابک گفت‌وگو کنید.
             </p>
-            <div className={styles.actions}>
+            <div className={styles.actions} data-reveal data-reveal-order="2">
               <Link className={styles.lightButton} href="/contact-us">
                 گفت‌وگو با کارشناسان
                 <ArrowUpLeft size={20} aria-hidden="true" />
@@ -368,8 +320,9 @@ function Closing() {
               </Link>
             </div>
           </div>
-          <div className={styles.closingMark} lang="en" dir="ltr">
-            FARABAK<span>SECURITY. WITH A BACKING.</span>
+          <div className={styles.closingMark} data-reveal data-reveal-order="3">
+            از شناخت تجهیز
+            <span>تا پشتیبانی و پیگیری</span>
           </div>
         </div>
       </div>
@@ -400,10 +353,6 @@ export default function TrustLanding() {
       <CompanyAndSupport />
       <Testimonials />
       <Closing />
-      <div className={styles.endNote}>
-        <Check size={15} aria-hidden="true" />
-        <span>سابقه را بشناسید. نمونه‌کار را ببینید. با اطمینان انتخاب کنید.</span>
-      </div>
     </div>
   );
 }

@@ -4,8 +4,6 @@ import { useEffect } from "react";
 
 import "lenis/dist/lenis.css";
 
-import styles from "./landing.module.css";
-
 export default function LandingExperience() {
   useEffect(() => {
     const rootElement = document.getElementById("farabak-home");
@@ -30,7 +28,7 @@ export default function LandingExperience() {
     let destroyScroll: (() => void) | undefined;
     let activeAnimations: { stop: () => void }[] = [];
     const revealed = new WeakSet<Element>();
-    const revealSelector = `[data-reveal], .${styles.categoryStory} .${styles.storyMedia}, .${styles.categoryStory} .${styles.storyCopy}`;
+    const revealSelector = "[data-reveal]";
 
     function stopAnimations() {
       activeAnimations.forEach((animation) => animation.stop());
@@ -66,13 +64,22 @@ export default function LandingExperience() {
               observer?.unobserve(entry.target);
               if (revealed.has(entry.target)) return;
               revealed.add(entry.target);
+              const target = entry.target as HTMLElement;
+              const image = target.dataset.revealKind === "image";
+              const order = Number(target.dataset.revealOrder ?? 0);
               activeAnimations.push(
                 animate(
-                  entry.target as HTMLElement,
-                  { opacity: [0.82, 1], transform: ["translateY(12px)", "translateY(0px)"] },
+                  target,
                   {
-                    duration: 0.58,
-                    delay: entry.target.classList.contains(styles.storyCopy) ? 0.11 : 0,
+                    opacity: [0, 1],
+                    transform: [
+                      image ? "translateY(34px) scale(0.975)" : "translateY(22px)",
+                      "translateY(0px) scale(1)",
+                    ],
+                  },
+                  {
+                    duration: image ? 0.92 : 0.74,
+                    delay: Math.min(order, 7) * 0.075,
                     ease: [0.22, 1, 0.36, 1],
                   }
                 )

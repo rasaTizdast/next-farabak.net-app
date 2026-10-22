@@ -21,7 +21,11 @@ function ArticleCard({ article, lead }: { article: HomepageBlogItem; lead: boole
     : null;
 
   return (
-    <article className={`${styles.blogCard} ${lead ? styles.blogLead : ""}`}>
+    <article
+      className={`${styles.blogCard} ${lead ? styles.blogLead : ""}`}
+      data-reveal
+      data-reveal-kind="image"
+    >
       <Link href={article.href} className={styles.blogCardLink}>
         <div className={styles.blogMedia}>
           {article.image ? (
@@ -60,9 +64,8 @@ export default function BlogHighlights({ blogs, blogFeedStatus }: Props) {
   return (
     <section className={styles.blogSection} id="knowledge" aria-labelledby="knowledge-heading">
       <div className={styles.container}>
-        <div className={styles.sectionHeading}>
+        <div className={styles.sectionHeading} data-reveal>
           <div>
-            <p className={styles.sectionEyebrow}>دانش برای انتخاب بهتر</p>
             <h2 id="knowledge-heading">پیش از انتخاب، بیشتر بدانید.</h2>
             <p className={styles.sectionDescription}>
               راهنماها و مقاله‌های منتشرشده فرابک، برای شناخت مسئله و مقایسه گزینه‌ها.

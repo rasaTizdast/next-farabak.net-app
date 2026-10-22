@@ -10,7 +10,7 @@ export type LandingStoryLayout =
 export type LandingStory = {
   key: LandingStoryKey;
   layout: LandingStoryLayout;
-  eyebrow: string;
+  categoryLabel: string;
   /** A topic label, not a claim that every named manufacturer has a verified Farabak listing. */
   familyLabel: string;
   title: string;
@@ -28,7 +28,7 @@ export const landingStories = [
   {
     key: "xray",
     layout: "screening-threshold",
-    eyebrow: "بازرسی بار",
+    categoryLabel: "بازرسی بار",
     familyLabel: "Smiths Detection X-ray",
     title: "آنچه دیده نمی‌شود، در مسیر بازرسی روشن می‌شود.",
     introduction:
@@ -48,7 +48,7 @@ export const landingStories = [
   {
     key: "ceia",
     layout: "entrance-frame",
-    eyebrow: "کنترل ورودی",
+    categoryLabel: "کنترل ورودی",
     familyLabel: "CEIA",
     title: "ورودی پرتردد، تصمیم دقیق.",
     introduction:
@@ -66,7 +66,7 @@ export const landingStories = [
   {
     key: "blackmagic",
     layout: "cinema-workspace",
-    eyebrow: "تولید تصویر",
+    categoryLabel: "تولید تصویر",
     familyLabel: "Blackmagic",
     title: "تصویر حرفه‌ای از لحظهٔ ثبت آغاز می‌شود.",
     introduction:
@@ -85,7 +85,7 @@ export const landingStories = [
   {
     key: "cctv",
     layout: "architectural-view",
-    eyebrow: "نظارت تصویری",
+    categoryLabel: "نظارت تصویری",
     familyLabel: "CCTV / Reolink",
     title: "هر فضا، میدان دید خودش را دارد.",
     introduction:
@@ -105,7 +105,7 @@ export const landingStories = [
   {
     key: "smd-led-wall",
     layout: "modular-display",
-    eyebrow: "نمایش تصویر",
+    categoryLabel: "نمایش تصویر",
     familyLabel: "SMD LED",
     title: "تصویر بزرگ، با جزئیات نزدیک.",
     introduction:

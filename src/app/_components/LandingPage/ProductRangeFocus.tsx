@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowDownLeft } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import styles from "./landing.module.css";
@@ -9,7 +9,7 @@ import styles from "./landing.module.css";
 type RangeItemBase = {
   key: string;
   familyLabel: string;
-  eyebrow: string;
+  categoryLabel: string;
   href: string;
   alt: string;
 };
@@ -25,7 +25,7 @@ type RangeItem = RangeItemBase &
 
 type Props = { items: readonly RangeItem[]; children: ReactNode };
 
-/** The first image and all links are rendered in HTML; selection only changes the preview. */
+/** The first frame and story links render on the server; selection enhances the preview. */
 export default function ProductRangeFocus({ items, children }: Props) {
   const [activeKey, setActiveKey] = useState(items[0].key);
   const [ready, setReady] = useState(false);
@@ -141,7 +141,7 @@ export default function ProductRangeFocus({ items, children }: Props) {
     <>
       <div className={styles.heroGrid}>
         {children}
-        <figure className={`${styles.heroArtwork} ${styles.rangeHeroArtwork}`}>
+        <figure className={`${styles.heroArtwork} ${styles.rangeHeroArtwork}`} data-ui>
           {active.mediaStatus === "pending-media" || failedKey === active.key ? (
             <span className={styles.rangeMediaFallback}>تصویر این حوزه در دست آماده‌سازی است.</span>
           ) : (
@@ -162,59 +162,54 @@ export default function ProductRangeFocus({ items, children }: Props) {
                 loading="eager"
                 fetchPriority={activeKey === items[0].key ? "high" : "auto"}
                 unoptimized
-                style={{ width: "100%", height: "auto" }}
                 onError={() => setFailedKey(active.key)}
               />
             </picture>
           )}
           <figcaption className={styles.rangeHeroCaption} aria-live="polite" aria-atomic="true">
-            <span>
-              {active.mediaStatus === "pending-media" || failedKey === active.key
-                ? "تصویر در دست آماده‌سازی"
-                : active.mediaStatus === "approved-real-media"
-                  ? "تصویر تأییدشده"
-                  : "تصویر مفهومی"}{" "}
-              | {active.eyebrow}
+            <span className={styles.rangeStageIdentity}>
+              <strong>
+                <bdi lang="en" dir="ltr">
+                  {active.familyLabel}
+                </bdi>{" "}
+                / {active.categoryLabel}
+              </strong>
+              <span>
+                {active.mediaStatus === "pending-media" || failedKey === active.key
+                  ? "تصویر این حوزه در دست آماده‌سازی است."
+                  : active.mediaStatus === "approved-real-media"
+                    ? "تصویر تأییدشده برای این بخش."
+                    : "فضای کاربرد؛ تصویر محصول یا پروژه واقعی نیست."}
+              </span>
             </span>
-            <span>
-              {active.mediaStatus === "pending-media" || failedKey === active.key
-                ? "برای بررسی گزینه‌ها، یکی از بخش‌های زیر را انتخاب کنید."
-                : active.mediaStatus === "approved-real-media"
-                  ? "تصویر تأییدشده برای این بخش."
-                  : "فضای کاربرد؛ تصویر محصول یا پروژه واقعی نیست."}
-            </span>
+            <Link className={styles.rangeStageAction} href={active.href}>
+              راهنمای این دسته
+            </Link>
           </figcaption>
         </figure>
       </div>
-      <nav className={styles.rangeNav} aria-label="پنج حوزه برای بررسی و مشاوره">
+      <nav id="range-select" className={styles.rangeNav} aria-label="انتخاب حوزه برای پیش‌نمایش">
         <ol className={styles.rangeList}>
-          {items.map((item, index) => (
+          {items.map((item) => (
             <li key={item.key} data-active={item.key === activeKey || undefined}>
-              <a
-                href={item.href}
-                onFocus={() => focusItem(item)}
-                onPointerEnter={() => focusItem(item)}
-              >
-                <span aria-hidden="true">{new Intl.NumberFormat("fa-IR").format(index + 1)}</span>
-                <span>
-                  <bdi lang="en" dir="ltr">
-                    {item.familyLabel}
-                  </bdi>{" "}
-                  / {item.eyebrow}
-                </span>
-                <ArrowDownLeft size={16} aria-hidden="true" />
-              </a>
               <button
-                className={styles.rangePreviewButton}
+                className={styles.rangeOption}
                 type="button"
                 disabled={!ready}
-                aria-label={`پیش‌نمایش ${item.familyLabel}`}
                 aria-pressed={item.key === activeKey}
+                aria-label={`پیش‌نمایش ${item.familyLabel}، ${item.categoryLabel}`}
                 onFocus={() => focusItem(item)}
+                onPointerEnter={() => focusItem(item)}
                 onClick={() => focusItem(item)}
               >
-                <span aria-hidden="true" />
+                <bdi lang="en" dir="ltr">
+                  {item.familyLabel}
+                </bdi>
+                <strong>{item.categoryLabel}</strong>
               </button>
+              <Link className={styles.rangeAnchor} href={item.href}>
+                جزئیات این حوزه
+              </Link>
             </li>
           ))}
         </ol>

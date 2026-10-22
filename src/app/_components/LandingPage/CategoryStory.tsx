@@ -28,18 +28,21 @@ export default function CategoryStory({ story, index }: Props) {
       <div className={styles.container}>
         <div className={styles.storyFrame}>
           <div className={styles.storyCopy}>
-            <p className={styles.sectionEyebrow}>
-              <span aria-hidden="true">{new Intl.NumberFormat("fa-IR").format(index + 1)} / ۵</span>
-              <span>
-                <bdi lang="en" dir="ltr">
-                  {story.familyLabel}
-                </bdi>{" "}
-                / {story.eyebrow}
-              </span>
+            <p className={styles.storyCategory} data-reveal data-reveal-order="0">
+              {story.categoryLabel}
             </p>
-            <h2 id={`story-${story.key}-heading`}>{story.title}</h2>
-            <p className={styles.storyIntroduction}>{story.introduction}</p>
-            <p className={styles.storySolution}>
+            <h2 id={`story-${story.key}-heading`} data-reveal data-reveal-order="1">
+              <bdi lang="en" dir="ltr">
+                {story.familyLabel}
+              </bdi>
+            </h2>
+            <h3 className={styles.storyClaim} data-reveal data-reveal-order="2">
+              {story.title}
+            </h3>
+            <p className={styles.storyIntroduction} data-reveal data-reveal-order="3">
+              {story.introduction}
+            </p>
+            <p className={styles.storySolution} data-reveal data-reveal-order="4">
               {story.solution.beforeModel}
               {story.solution.modelName && (
                 <bdi lang="en" dir="ltr">
@@ -48,7 +51,7 @@ export default function CategoryStory({ story, index }: Props) {
               )}
               {story.solution.afterModel}
             </p>
-            <div className={styles.storyFactors}>
+            <div className={styles.storyFactors} data-reveal data-reveal-order="5">
               <h3>پیش از انتخاب بررسی کنید</h3>
               <ul>
                 {story.factors.map((factor) => (
@@ -56,8 +59,10 @@ export default function CategoryStory({ story, index }: Props) {
                 ))}
               </ul>
             </div>
-            <p className={styles.storySelectionPrompt}>{story.selectionPrompt}</p>
-            <div className={styles.actions}>
+            <p className={styles.storySelectionPrompt} data-reveal data-reveal-order="6">
+              {story.selectionPrompt}
+            </p>
+            <div className={styles.actions} data-reveal data-reveal-order="7">
               <Link className={styles.primaryButton} href={story.action.href}>
                 <span>
                   {story.action.label}
@@ -70,7 +75,9 @@ export default function CategoryStory({ story, index }: Props) {
                     </>
                   )}
                 </span>
-                <ArrowUpLeft size={18} aria-hidden="true" />
+                <span className={styles.buttonIcon}>
+                  <ArrowUpLeft size={18} aria-hidden="true" />
+                </span>
               </Link>
               <Link className={styles.storyKnowledgeLink} href={knowledgeHref}>
                 {knowledgeLabel}
@@ -78,7 +85,7 @@ export default function CategoryStory({ story, index }: Props) {
               </Link>
             </div>
           </div>
-          <figure className={styles.storyMedia}>
+          <figure className={styles.storyMedia} data-reveal data-reveal-kind="image">
             {media.desktopSrc ? (
               <picture>
                 {media.mobileSrc && (
@@ -96,16 +103,15 @@ export default function CategoryStory({ story, index }: Props) {
                   width={1600}
                   height={900}
                   sizes="(max-width: 767px) 100vw, (max-width: 1023px) 88vw, 58vw"
-                  style={{ width: "100%", height: "auto" }}
                 />
               </picture>
             ) : (
               <div
                 className={styles.storyMediaFallback}
                 role="img"
-                aria-label={`جای تصویر برای ${story.eyebrow}`}
+                aria-label={`جای تصویر برای ${story.categoryLabel}`}
               >
-                {story.eyebrow}
+                {story.categoryLabel}
               </div>
             )}
             <figcaption className={styles.storyMediaCaption}>
