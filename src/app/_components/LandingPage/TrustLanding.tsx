@@ -10,9 +10,10 @@ import {
   ScanLine,
   ShieldCheck,
 } from "lucide-react";
+import { io } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Fragment, Suspense } from "react";
 
 import { HISTORY_START_YEAR, homepageTestimonials } from "@/content/homepage-proof";
 import { landingStories } from "@/content/landing-stories";
@@ -24,6 +25,7 @@ import CategoryStory from "./CategoryStory";
 import styles from "./landing.module.css";
 import LandingExperience from "./LandingExperience";
 import ProductRangeHero from "./ProductRangeHero";
+import ProductStoryTransition from "./ProductStoryTransition";
 
 const digits = (value: number) =>
   new Intl.NumberFormat("fa-IR", { useGrouping: false }).format(value);
@@ -203,6 +205,8 @@ function ProjectsShowcase({
 }
 
 async function HomepageFeed() {
+  // Keep an outage-time empty result out of the static shell so the feed retries.
+  await io();
   const { projects, publishedProjectCount, blogs, blogFeedStatus } = await getHomepageData();
   return (
     <>
@@ -384,7 +388,10 @@ export default function TrustLanding() {
       <EvidenceBand />
       <div id="product-stories" className={styles.productStories}>
         {landingStories.map((story, index) => (
-          <CategoryStory key={story.key} story={story} index={index} />
+          <Fragment key={story.key}>
+            <CategoryStory story={story} index={index} />
+            {index === 0 && <ProductStoryTransition />}
+          </Fragment>
         ))}
       </div>
       <Suspense fallback={<FeedFallback />}>

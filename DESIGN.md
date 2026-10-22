@@ -1,250 +1,114 @@
-# Design System — next-farabak-app-v15
+# Farabak web design system
 
-## Brand Colors
+Status: next redesign target, 2026-10-20. Current production and this checkout do not yet implement every rule below. The next-phase spec is `docs/superpowers/specs/2026-10-20-farabak-product-storytelling-design.md`; the execution plan is `docs/superpowers/plans/2026-10-20-farabak-product-storytelling.md`.
 
-| Token               | Hex       | Usage                                                  |
-| ------------------- | --------- | ------------------------------------------------------ |
-| `--primary-color`   | `#00bfff` | Primary buttons, links, active states, scrollbar thumb |
-| `--secondary-color` | `#318ce7` | Secondary elements, hover states                       |
-| `--third-color`     | `#1e90ff` | Tertiary accents, subtle UI elements                   |
-| `--fourth-color`    | `#0e6aff` | Darker accents, active borders                         |
-| `--dark-blue-color` | `#003262` | Header, footer, dark sections titles                   |
+## Brand thesis and conversion
 
-_Defined in `src/app/globals.css:20-27`_
+Farabak helps people select, deploy, and support equipment across surveillance, security inspection, professional imaging, and display systems. The public interface should feel like an expert equipment showroom: precise, tactile, easy to read, and dramatic when the product merits it. Show real equipment, applications, and verifiable support paths. “از ۱۳۸۱” is the confirmed history statement. A manufacturer name identifies an offered family, not a partnership or authorization claim.
 
-### shadcn/ui Design Tokens
+The main path is useful exploration followed by a real product page or project consultation. The content must work with JavaScript, motion, and 3D disabled.
 
-The project uses a shadcn/ui design system on top of the brand palette. CSS variables are defined in `src/app/globals.css` and mapped to Tailwind utilities in `tailwind.config.ts`:
+## Art direction: precision gallery
 
-| Token                             | Value                           | Tailwind usage               |
-| --------------------------------- | ------------------------------- | ---------------------------- |
-| `--primary`                       | `195 100% 50%` (`#00bfff`)      | `bg-primary`, `text-primary` |
-| `--primary-foreground`            | `0 0% 100%` (white)             | `text-primary-foreground`    |
-| `--secondary`                     | `210 79% 55%` (`#318ce7`)       | `bg-secondary`               |
-| `--secondary-foreground`          | `0 0% 100%`                     | `text-secondary-foreground`  |
-| `--accent`                        | `195 100% 94%` (light blue)     | `bg-accent`, hover states    |
-| `--accent-foreground`             | `209 100% 19%` (`#003262`)      | `text-accent-foreground`     |
-| `--background`                    | `0 0% 94%` (`#f0f0f0`)          | `bg-background`              |
-| `--foreground`                    | `221 39% 11%` (near-black)      | `text-foreground`            |
-| `--muted` / `--muted-foreground`  | light gray / slate              | secondary text, disabled     |
-| `--destructive`                   | `0 84% 60%` (`#ef4444`)         | `bg-destructive`, errors     |
-| `--border` / `--input` / `--ring` | gray-200 / gray-300 / `#00bfff` | borders, focus ring          |
-| `--radius`                        | `0.5rem` (8px)                  | `rounded-md`/`lg`            |
+- The hero is a product range stage: an off-grid Persian headline and two clear actions sit beside or over a composition of five genuine product families. Selection brings one family into visual focus. The first static frame is complete and useful.
+- Replace the current generic procedural camera only after the static hero, product navigation, and fallback work. If a licensed, accurate 3D model of a stocked product is later verified, it may replace one photographic layer. Until then, use approved photography with restrained 2.5D depth. Never label approximate geometry as an actual model.
+- White space carries sparse optical rules, crop marks, soft cyan light grazing, and occasional diagrams. Keep it readable paper, not a full-page particle field.
+- Each chapter has its own composition: X-ray as a wide screening threshold, CEIA as a human-scale entrance, Blackmagic as a dark cinematic workspace, CCTV as an architectural field of view, and SMD LED wall as a modular light surface. Do not repeat five identical copy/image splits.
 
-Brand extras: `third` (`#1e90ff`), `fourth` (`#0e6aff`), `dark-blue` (`#003262`), `brand.*` namespace.
+| Surface          | Composition                                                           | Job                                   |
+| ---------------- | --------------------------------------------------------------------- | ------------------------------------- |
+| Hero             | Image-as-canvas, asymmetric text, integrated product range navigation | Establish range and route visitors    |
+| Proof            | Narrow factual band linked to history, projects, warranty             | Show evidence                         |
+| Category stories | Five alternating editorial spreads                                    | Explain fit and show a strong example |
+| Projects         | Asymmetric real project photography                                   | Demonstrate delivered work            |
+| Knowledge        | One lead article and two compact articles                             | Help visitors compare and learn       |
+| Closing          | Concise dark project inquiry and catalogue paths                      | Convert intent                        |
 
-### RTL Animation Utilities
+Avoid repeated icon cards, fake dashboards, fictional telemetry, fabricated testimonials, ornamental numbers, and a default purple glow. One visually dominant idea per viewport is enough.
 
-Custom Tailwind plugin in `tailwind.config.ts` adds logical `end`/`start` slide animations (RTL-aware):
-`slide-in-from-end-2`, `slide-in-from-start-2`, `slide-out-to-end-2`, `slide-out-to-start-2`.
+## Color and token architecture
 
-### Component Library
+The global palette in `src/app/globals.css` remains the current compatibility layer for the wider app. Introduce the target roles within the public landing surface first; do not silently restyle admin or product pages.
 
-23 shadcn primitives in `src/components/ui/` (all `"use client"`, Radix-based):
+| Primitive    | Value     | Role                              |
+| ------------ | --------- | --------------------------------- |
+| `navy-950`   | `#071B32` | Hero, closing panel, deepest ink  |
+| `navy-800`   | `#123653` | Dark secondary fields             |
+| `blue-600`   | `#0E6AFF` | Primary action and focus accent   |
+| `cyan-300`   | `#73D6FF` | Optical accent on dark            |
+| `silver-200` | `#DCE5EE` | Hardware edge, dark-surface rules |
+| `paper-50`   | `#F7FAFD` | Reading surface                   |
+| `white`      | `#FFFFFF` | Raised light surface              |
+| `slate-700`  | `#354B60` | Main body ink on light            |
+| `slate-500`  | `#536577` | Secondary ink on light            |
 
-- **Core:** `button`, `badge`, `card`, `input`, `label`, `textarea`, `separator`, `skeleton`, `switch`, `checkbox`
-- **Overlays:** `dialog`, `alert-dialog`, `dropdown-menu`, `tooltip`, `popover`, `alert`, `progress`
-- **Data:** `table`, `select`, `tabs`, `accordion`, `radio-group`, `scroll-area`, `toast` (+ `Toaster`, `useToast`)
+Semantic variables should express role (`--surface-hero`, `--surface-paper`, `--ink-on-dark`, `--ink-primary`, `--ink-secondary`, `--action-primary`, `--accent-optical`, `--rule-subtle`), and components should derive their own values (`--hero-rule`, `--button-primary-bg`, `--focus-ring`). Aim for roughly 20% dark opening/closing fields, 70% light reading fields, 10% accent and imagery. Cyan is not body text on paper. Verify actual color pairings against WCAG AA.
 
-Plus: `ErrorPage`, `ItemsAccordion` (FAQ items-based accordion).
+## Typography and RTL
 
-Dependencies: `class-variance-authority`, `clsx`, `tailwind-merge` (`cn` in `src/lib/utils.ts`), `tailwindcss-animate`, Radix primitives, `lucide-react`.
+- Keep the local IRANYekan variable font: display 800–900, heading 700–800, body 400–500, interface 500–600. No extra font download by default.
+- Persian H1 should read in one glance, ideally no more than two lines at 390px and 1440px. Preserve dots and diacritics with sufficient line-height. Useful detail belongs in the supporting line.
+- Suggested responsive roles: display `clamp(2.25rem, 5.5vw, 5.75rem)`, section title `clamp(1.9rem, 3.6vw, 3.8rem)`, statement `clamp(1.35rem, 2.2vw, 2.1rem)`, body `1rem–1.125rem`, label `0.75rem–0.875rem`. Confirm in rendered Persian.
+- Aim for 55–75 Persian characters per body line when width allows, with line-height near 1.8. Use Latin technical captions sparingly; isolate model names with `dir="ltr"` or `<bdi>`.
+- Set Persian language and RTL direction. Use logical CSS properties and intentional arrow direction. Important words stay in DOM text, never inside 3D, video, or generated art.
 
-### Color Usage Guidelines
+## Grid, spacing, and surfaces
 
-- Primary actions use `bg-[#00bfff]` or `bg-primary` (via Tailwind extended color)
-- Error states: `text-red-500`, `border-red-500`
-- Success states: `text-green-500`, `border-green-500`
-- Warning/info: Tailwind amber/blue utilities
-- Disabled states: `opacity-50`, `cursor-not-allowed`
+- Max content width 1400px. Desktop uses a 12-column conceptual grid with 24–40px page padding; tablet compresses; mobile uses one column and 16–20px padding.
+- Spacing scale: 4, 8, 12, 16, 24, 32, 48, 64, 96, 128px. Large section gaps help the five stories remain distinct.
+- Product media may bleed to an edge; text follows a stable reading line. Reserve aspect ratio before image load.
+- Core panel radii stay around 0–12px. Use shadows for real elevation only. Dividers are hairline; card grids are not the default structure.
+- At 320px, no horizontal overflow. At 360/390px, actions stack or wrap and chapter navigation is a compact accessible list. At 768/1024px, recompose rather than squeezing the desktop stage.
 
-## Typography
+## Imagery, 3D, and rights
 
-| Property       | Value                               |
-| -------------- | ----------------------------------- |
-| Primary Font   | `IRANYekanXVF.woff` (variable font) |
-| CSS Variable   | `--font-iran-yekan`                 |
-| Weight Range   | `100 1000` (variable)               |
-| `font-display` | `swap`                              |
-| Preloaded      | `preload: true`                     |
-| Fallback       | `system-ui, arial`                  |
+Asset priority: (1) approved Farabak product/project photos, (2) manufacturer photos with documented reuse permission, (3) commissioned accurate render from approved references, (4) generated conceptual environment clearly marked illustrative. A generated image must not invent branded equipment, a live feed, safety performance, certification, an installation, or a client site.
 
-_Defined in `src/app/layout.tsx:13-20`_
+Every public asset gets a manifest entry: subject, SKU or concept, source URL/file, rights/approval, alt text, aspect ratio, mobile crop, optimized formats, fallback, and owner. Keep credits with the project; no hotlinked manufacturer assets or extracted private viewer files.
 
-### Text Styles
+For any 3D candidate, verify an actual downloadable GLB/glTF/FBX/CAD asset, commercial web-use rights, exact current SKU, optimization feasibility, and a static poster. “3D zoom” or 3D X-ray imaging in product marketing does not mean a reusable product model exists. Use one WebGL scene at most, deferred and disposable. Product understanding must never depend on it.
 
-- Body: `font-iranyekan` applied globally via CSS variable
-- Headings: Tailwind `font-bold` + size utilities
-- Small/caption: `text-sm`, `text-xs` with `text-gray-400` or `text-gray-500`
-- Links: `text-[#00bfff]`, `hover:text-[#318ce7]`
+| Story        | Preferred visual                                                  | Conceptual fallback                                        |
+| ------------ | ----------------------------------------------------------------- | ---------------------------------------------------------- |
+| Smiths X-ray | Farabak-listed HI-SCAN 6040 DV product photo and real application | Unbranded architectural screening space                    |
+| CEIA gate    | Approved photo of an actual offered gate                          | Human-scale entrance study labelled conceptual             |
+| Blackmagic   | Farabak-listed PYXIS 12K product photo                            | Film-production environment without a fake camera          |
+| CCTV         | Farabak-listed RLC-823A or approved current flagship              | Surveillance use context without a fake live feed          |
+| SMD LED wall | Real Farabak display/project photo after verification             | Abstract modular LED surface without a false project claim |
 
-## Spacing & Breakpoints
+These image briefs are for future production, not verified product assets or permissions.
 
-| Breakpoint | Width  | Notes                               |
-| ---------- | ------ | ----------------------------------- |
-| `mobile`   | 577px  | Custom breakpoint for mobile-first  |
-| `sm`       | 640px  |                                     |
-| `md`       | 768px  |                                     |
-| `lg`       | 1024px |                                     |
-| `xl`       | 1280px |                                     |
-| `2xl`      | 1400px | Custom, matches max container width |
+## Motion grammar
 
-_Defined in `tailwind.config.ts`_
+Expressive motion should clarify equipment and connect chapters. Reuse four verbs: reveal, focus, traverse, settle. A scan line may introduce X-ray; a framing movement may focus CCTV; color light may lead to Blackmagic; a modular field may resolve into the LED wall. These are design metaphors, not simulations of actual device output.
 
-### Layout
+| Layer                  | Treatment                                                           | Boundary                                          |
+| ---------------------- | ------------------------------------------------------------------- | ------------------------------------------------- |
+| First viewport         | Short staged entrance and product-focus transition                  | H1 and actions readable before JS; no long loader |
+| Section arrival        | One reveal per chapter; media/copy stagger 80–140ms                 | Transform/opacity only; server HTML visible       |
+| Background/white space | Sparse SVG linework or light drift in 2–3 sections                  | No perpetual full-page shader                     |
+| Scroll story           | One short desktop progress-linked sequence if it explains selection | No long pin or scroll hijack; normal mobile flow  |
+| Microinteraction       | Button focus, crop, chapter index, pause feedback                   | Keyboard and touch equivalents                    |
 
-- Direction: **RTL** (right-to-left)
-- Container: responsive padding, constrained at `max-w-7xl`
-- Grid: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4` (common pattern)
+Respect `prefers-reduced-motion`, save-data, visibility, and low capability. Persistent motion gets a visible pause control. Mobile defaults to static or short entrance motion; 3D requires explicit opt-in. Use Motion for small transitions. Use GSAP ScrollTrigger only for a unique scroll choreography; scope and clean up timelines. Do not combine particle fields, magnetic buttons, split text, cursor trails, and pinned carousels.
 
-## Custom CSS Utilities
+## Content, proof, and components
 
-_Defined in `src/app/globals.css`_
+Each category chapter answers: what problem it solves, where it fits, one verifiable example, two or three grounded differentiators, what to consider before selection, and the next action. Do not claim “best”, “first”, “official”, “largest”, or “in stock” without current approved evidence. Do not hardcode prices or discounts in editorial copy.
 
-### `.glass-card`
+Proof uses confirmed ۱۳۸۱ history, published projects, warranty tracking, downloads, FAQ, and genuine blog content. Project counts render only after successful data retrieval. Testimonials require approved attributed quotes. Blog cards show published, non-QR editorial articles with valid category links and media; missing data get a useful textual fallback. Dates must come from valid data.
 
-```css
-background: rgba(255, 255, 255, 0.8);
-backdrop-filter: blur(10px);
-border-radius: 12px;
-```
+- Product chapter: stable heading, LTR model name, selection criterion, real image alt, one explicit destination. Label illustrative diagrams.
+- Product navigation: real links form the baseline; enhanced selection may update imagery but must not block navigation. Show current state and retain keyboard focus.
+- Blog card: title, topic, image or textual fallback, reliable link. No invented reading time or date.
+- Buttons: at least 44px target, distinct default/hover/focus/active/disabled states. Meaning does not depend on color.
+- Decorative art is `aria-hidden` and does not capture pointer events. Pause and 3D opt-in are native labelled buttons.
+- Shared header, search, account, support widget, and footer remain usable above decorative layers.
 
-Used for cards, modals, overlay panels.
+Use catalogue or exact product links where a verified listing exists. Use `/contact-us` for integration solutions and unlisted equipment. Never route to a speculative or broken SKU URL. Do not make manufacturer affiliation claims from a catalogue listing alone.
 
-### `.input-field`
+## Acceptance and migration
 
-```css
-border: 1px solid #d1d5db;
-border-radius: 8px;
-padding: 8px 12px;
-transition: border-color 0.2s;
-```
+Inspect static first frame, enhanced motion, keyboard path, and reduced-motion path at 320, 360, 390, 768, 1024, and 1440px. Check Persian breaks, crops, contrast, links, focus, full-page rhythm, slow network, missing media, empty feeds, and WebGL failure. Measure on a representative build before claiming speed. Aspirational field targets: LCP ≤2.5s, INP ≤200ms, CLS ≤0.1; these are not current measured results.
 
-Used for form text inputs.
-
-### `.textarea-field`
-
-```css
-border: 1px solid #d1d5db;
-border-radius: 8px;
-padding: 8px 12px;
-min-height: 100px;
-resize: vertical;
-```
-
-### `.responsive-table-wrapper`
-
-```css
-overflow-x: auto;
--webkit-overflow-scrolling: touch;
-```
-
-Wraps tables for horizontal scroll on mobile.
-
-### `.scrollbar-hide`
-
-Hides scrollbar while preserving scroll functionality.
-
-### `.prose-view`
-
-Styling for TipTap editor output:
-
-- Headings (h1-h4) with appropriate sizes
-- Ordered/unordered lists
-- Code blocks
-- Tables with zebra striping
-- Responsive images
-- Video embeds
-
-## Component Patterns
-
-### Image Slider (Homepage Hero)
-
-- Component: `src/app/_components/imageSlider/ImageSlider.tsx`
-- Dimensions: `1920x900`
-- Quality: 90
-- First slide: `priority` + `fetchPriority="high"` for LCP
-- Remaining slides: `loading="lazy"`
-- `placeholder="blur"` with `blurDataURL`
-
-### Product Cards
-
-- Used in: `CategoryGrid.tsx`, `ProductGrid.tsx`, `ProductsShowCase.tsx`
-- Structure: Image → Title → Price → Add-to-invoice button
-- Image: `width={1340}`, `height={780}`, `quality={75}`
-- Responsive grid layout
-
-### Category Slider
-
-- Component: `src/app/(main)/products/_components/CategorySlider.tsx`
-- Horizontal scroll with arrow navigation
-- Category cards with image and name
-- Wrapped in `<Suspense fallback={<SkeletonLoader amount={8} />}>`
-
-### Forms (Auth, Contact, Admin)
-
-- Uses React Hook Form + Yup validation
-- Custom `TextInput` component in `src/app/auth/_components/TextInput.tsx`
-- Error messages shown inline below inputs
-- Persian labels and placeholder text
-
-### Tables (Admin)
-
-- Ant Design tables (`Table` component)
-- Used in branches, products, invoices, warehouses
-- Skeleton loading via `ProductTableSkeleton`
-- Empty state: Ant Design's built-in empty or custom Persian message
-
-### Accordion (FAQ)
-
-- Custom `FaqAccordion` in `src/components/FaqAccordion.tsx`
-- Custom `BlogFaqAccordion` in `src/components/BlogFaqAccordion.tsx`
-- Uses `content-visibility: auto` for rendering performance
-- Persian titles and content
-
-### Skeleton Loaders
-
-Reusable skeleton components:
-
-- `src/app/_components/ui/SkeletonLoader.tsx` — generic, accepts `amount` prop
-- `ProductTableSkeleton.tsx` — admin table rows
-- `SkeletonFeatures` — product detail page features
-
-## UI States (Persian)
-
-All data-driven components implement these visual states:
-
-### Loading
-
-- Pulsing skeleton placeholders matching final content shape
-- `animate-pulse` from Tailwind
-
-### Empty / No Data
-
-| Context  | Persian Text                          |
-| -------- | ------------------------------------- |
-| Products | `"محصولی یافت نشد"`                   |
-| Generic  | `"آیتمی یافت نشد"`                    |
-| Invoice  | `"فاکتوری وجود ندارد"`                |
-| Search   | `"نتیجه‌ای برای جستجوی شما یافت نشد"` |
-
-### Error
-
-| Context      | Persian Text                         |
-| ------------ | ------------------------------------ |
-| Data fetch   | `"خطا در دریافت اطلاعات"`            |
-| Save         | `"خطا در ذخیره اطلاعات"`             |
-| Connection   | `"خطا در برقراری ارتباط با سرور"`    |
-| Retry button | `"تلاش مجدد"` / `"دوباره تلاش کنید"` |
-
-### Success
-
-- Toast notifications via `react-hot-toast`
-- Persian: `"عملیات با موفقیت انجام شد"`, `"اطلاعات ذخیره شد"`
-
-## Animations
-
-- `fade-in`: scale(0.95) → scale(1) + opacity 0 → 1 (defined in tailwind config)
-- `animate-pulse`: used for skeleton loaders
-- `animate-spin`: used for loading spinners (via Ant Design `Spin` component)
-- Transition: `transition-all duration-200` for hover/active states
+This checkout currently has `TrustLanding.tsx`, a procedural camera scene, `landing.module.css`, and a basic Motion/Lenis lifecycle. The 2026-10-19 spec/plan document that completed phase. This file supersedes its visual target while retaining verified content restrictions. Existing global shadcn/Tailwind tokens and admin styles remain current implementation until a separate redesign addresses them. This document does not authorize publication, new commercial claims, or production data mutations.
