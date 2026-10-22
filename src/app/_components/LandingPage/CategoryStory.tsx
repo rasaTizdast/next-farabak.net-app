@@ -100,8 +100,8 @@ export default function CategoryStory({ story, index }: Props) {
                 <Image
                   src={media.desktopSrc}
                   alt={media.alt}
-                  width={1600}
-                  height={900}
+                  width={1536}
+                  height={1024}
                   sizes="(max-width: 767px) 100vw, (max-width: 1023px) 88vw, 58vw"
                 />
               </picture>
@@ -114,13 +114,8 @@ export default function CategoryStory({ story, index }: Props) {
                 {story.categoryLabel}
               </div>
             )}
-            <figcaption className={styles.storyMediaCaption}>
-              <span>
-                {media.mediaStatus === "generated-conceptual" ? story.mediaLabel : "تصویر محصول"}
-              </span>
-              {media.mediaStatus === "generated-conceptual" && (
-                <span>نمایی از فضای کاربرد، نه تصویر محصول یا پروژه واقعی فرابک.</span>
-              )}
+            <figcaption className="mt-3 flex flex-col gap-1 text-sm leading-6 text-slate-600">
+              <span>{media.caption}</span>
             </figcaption>
           </figure>
         </div>

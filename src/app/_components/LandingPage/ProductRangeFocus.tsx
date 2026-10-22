@@ -16,7 +16,7 @@ type RangeItemBase = {
 type RangeItem = RangeItemBase &
   (
     | {
-        mediaStatus: "generated-conceptual" | "approved-real-media";
+        mediaStatus: "generated-conceptual" | "generated-product-render" | "approved-real-media";
         desktopSrc: string;
         mobileSrc: string;
       }
@@ -156,8 +156,8 @@ export default function ProductRangeFocus({ items, children }: Props) {
               <Image
                 src={active.desktopSrc}
                 alt={active.alt}
-                width={1600}
-                height={900}
+                width={1536}
+                height={1024}
                 sizes="(max-width: 767px) 100vw, 54vw"
                 loading="eager"
                 fetchPriority={activeKey === items[0].key ? "high" : "auto"}
@@ -179,7 +179,9 @@ export default function ProductRangeFocus({ items, children }: Props) {
                   ? "تصویر این حوزه در دست آماده‌سازی است."
                   : active.mediaStatus === "approved-real-media"
                     ? "تصویر تأییدشده برای این بخش."
-                    : "فضای کاربرد؛ تصویر محصول یا پروژه واقعی نیست."}
+                    : active.mediaStatus === "generated-product-render"
+                      ? "بازآفرینی هوش مصنوعی بر پایه مرجع محصول؛ عکس رسمی سازنده یا نصب واقعی نیست."
+                      : "فضای کاربرد؛ تصویر محصول یا پروژه واقعی نیست."}
               </span>
             </span>
             <Link className={styles.rangeStageAction} href={active.href}>

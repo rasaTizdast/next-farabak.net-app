@@ -1,7 +1,7 @@
 /**
  * Product-story media and evidence manifest.
- * Generated context images are conceptual only; none depicts actual Farabak,
- * manufacturer, or customer equipment or an installation.
+ * Generated product-context renders use manufacturer reference images for model
+ * identity; they are not manufacturer photos or depictions of Farabak installs.
  */
 
 export type LandingStoryKey = "xray" | "ceia" | "blackmagic" | "cctv" | "smd-led-wall";
@@ -18,8 +18,9 @@ type LandingAssetBase = {
     evidence: string;
   };
   alt: string;
-  desktopAspectRatio: "16:9";
-  mobileAspectRatio: "4:5";
+  caption: string;
+  desktopAspectRatio: "3:2";
+  mobileAspectRatio: "3:2";
   mobileCrop: "center" | "center-right" | "center-left";
   sourceNotes: string[];
   requiredOwnerEvidence: string[];
@@ -34,6 +35,13 @@ export type LandingAsset = LandingAssetBase &
         desktopSrc: string;
         mobileSrc: string;
         rights: "original-project-concept-no-real-product-rights-implication";
+      }
+    | {
+        mediaStatus: "generated-product-render";
+        publicationStatus: "generated-reference-render-not-official-product-photo-or-installation";
+        desktopSrc: string;
+        mobileSrc: string;
+        rights: "generated-image-based-on-product-reference-no-product-photo-rights-claim";
       }
     | {
         mediaStatus: "approved-real-media";
@@ -56,7 +64,7 @@ export const landingAssets = {
   xray: {
     key: "xray",
     subject:
-      "Generated conceptual baggage-screening corridor with conveyor surfaces and trays; not a scanner product depiction",
+      "AI-generated product-in-context illustration of Smiths Detection HI-SCAN 6040 DV, based on manufacturer product reference; not an official photo or Farabak installation",
     productModel: "Smiths Detection HI-SCAN 6040 DV",
     productUrl: "https://farabak.net/products/x-ray/airport-luggage/HI-SCAN-6040-DV",
     productLink: {
@@ -65,32 +73,32 @@ export const landingAssets = {
       evidence:
         "Farabak exact product page opened; HI-SCAN 6040 DV heading and image label visible.",
     },
-    mediaStatus: "generated-conceptual",
-    publicationStatus: "conceptual-only-not-real-product-or-installation-media",
-    desktopSrc: "/landing/xray-desktop.webp",
-    mobileSrc: "/landing/xray-mobile.webp",
-    alt: "تصویر مفهومی از فضای بازرسی بار با سطوح نقاله و سینی؛ تصویر دستگاه واقعی نیست",
-    desktopAspectRatio: "16:9",
-    mobileAspectRatio: "4:5",
+    mediaStatus: "generated-product-render",
+    publicationStatus: "generated-reference-render-not-official-product-photo-or-installation",
+    desktopSrc: "/landing/xray-product.webp",
+    mobileSrc: "/landing/xray-product.webp",
+    alt: "دستگاه بازرسی بار Smiths Detection HI-SCAN 6040 DV روی نقاله در محیط فرودگاه",
+    caption: "بازآفرینی هوش مصنوعی بر پایه مرجع محصول؛ عکس رسمی سازنده یا نصب فرابک نیست.",
+    desktopAspectRatio: "3:2",
+    mobileAspectRatio: "3:2",
     mobileCrop: "center",
     sourceNotes: [
-      "Original project-generated conceptual environment, created 2026-10-20; no scanner, logo, or branded product is depicted.",
-      "Desktop and mobile files are optimized WebP crops generated for this project; planning previews remain excluded.",
+      "AI-generated product-in-context render created 2026-10-22 using the official manufacturer product image as a visual reference; not a manufacturer photo or Farabak installation.",
+      "One crop-safe WebP asset is used on desktop and mobile.",
       "Farabak product page: https://farabak.net/products/x-ray/airport-luggage/HI-SCAN-6040-DV",
       "Manufacturer reference for future technical fact checks: https://www.smithsdetection.com/products/hi-scan-6040/",
+      "Image reference: https://www.smithsdetection.com/media/k2zlrpqc/6040-dv.png?format=webp&quality=90&rmode=max&width=1400",
     ],
-    rights: "original-project-concept-no-real-product-rights-implication",
-    requiredOwnerEvidence: [
-      "Written reuse approval for any exact HI-SCAN product photo used in addition to this conceptual environment.",
-    ],
+    rights: "generated-image-based-on-product-reference-no-product-photo-rights-claim",
+    requiredOwnerEvidence: ["Confirm generated product renders are acceptable for publication."],
     fallback:
-      "If conceptual media is not appropriate for the final page, use an approved product photo or a neutral CSS field.",
+      "If generated product renders are not appropriate, use an approved product photo or a neutral Tailwind field.",
   },
   ceia: {
     key: "ceia",
     subject:
-      "Generated conceptual public entrance threshold with a metallic architectural frame; not a CEIA detector or Farabak installation",
-    productModel: null,
+      "AI-generated product-in-context illustration of CEIA OPENGATE, based on manufacturer product reference; visual example only, not a confirmed Farabak offering or installation",
+    productModel: "CEIA OPENGATE (visual example only)",
     productUrl: "https://farabak.net/contact-us",
     productLink: {
       status: "contact-until-offering-verified",
@@ -98,31 +106,30 @@ export const landingAssets = {
       evidence:
         "The spec's live Farabak catalogue search recorded no CEIA result; owner confirmation remains required.",
     },
-    mediaStatus: "generated-conceptual",
-    publicationStatus: "conceptual-only-not-real-product-or-installation-media",
-    desktopSrc: "/landing/ceia-desktop.webp",
-    mobileSrc: "/landing/ceia-mobile.webp",
-    alt: "تصویر مفهومی از آستانه ورودی عمومی با قاب معماری فلزی؛ گیت واقعی یا محصول CEIA نیست",
-    desktopAspectRatio: "16:9",
-    mobileAspectRatio: "4:5",
+    mediaStatus: "generated-product-render",
+    publicationStatus: "generated-reference-render-not-official-product-photo-or-installation",
+    desktopSrc: "/landing/ceia-opengate-product.webp",
+    mobileSrc: "/landing/ceia-opengate-product.webp",
+    alt: "دو ستون گیت بازرسی CEIA OPENGATE در ورودی یک ساختمان عمومی",
+    caption:
+      "بازآفرینی هوش مصنوعی بر پایه مرجع CEIA؛ نمونه بصری است و عرضه این مدل توسط فرابک تأیید نشده.",
+    desktopAspectRatio: "3:2",
+    mobileAspectRatio: "3:2",
     mobileCrop: "center-left",
     sourceNotes: [
-      "Original project-generated conceptual environment, created 2026-10-20; the architectural frame is not a detector or product.",
-      "The planning preview containing generic equipment-like forms is excluded and must not be published.",
-      "CEIA OPENGATE and SMD600 Plus manufacturer references are not evidence of a Farabak offering.",
+      "AI-generated product-in-context render created 2026-10-22 using the CEIA manufacturer product image as a visual reference; not a CEIA official photo or Farabak installation.",
+      "The product model is a visual example only; current Farabak offering remains unverified and the chapter remains contact-led.",
+      "Image reference: https://www.ceia.net/security/images/products/p75.jpg",
     ],
-    rights: "original-project-concept-no-real-product-rights-implication",
-    requiredOwnerEvidence: [
-      "Written confirmation that Farabak currently offers the named CEIA solution.",
-      "Reuse approval for an exact offered gate photo, if used.",
-    ],
+    rights: "generated-image-based-on-product-reference-no-product-photo-rights-claim",
+    requiredOwnerEvidence: ["Confirm whether Farabak currently offers this CEIA solution."],
     fallback:
-      "Keep the chapter contact-led; do not name or depict a CEIA model until offering and image are approved.",
+      "Keep the chapter contact-led; retain the visual-example disclosure until the offering is confirmed.",
   },
   blackmagic: {
     key: "blackmagic",
     subject:
-      "Generated conceptual film-production studio and worktable; no camera or fictional screen interface depicted",
+      "AI-generated product-in-context illustration of Blackmagic PYXIS 12K, based on manufacturer product reference; not an official photo or Farabak installation",
     productModel: "Blackmagic PYXIS 12K",
     productUrl: "https://farabak.net/products/blackmagic/professional-camera/blackmagic-pyxis-12k",
     productLink: {
@@ -131,30 +138,30 @@ export const landingAssets = {
       evidence:
         "Independent live scout verified the exact Farabak PYXIS 12K listing and URL on 2026-10-20.",
     },
-    mediaStatus: "generated-conceptual",
-    publicationStatus: "conceptual-only-not-real-product-or-installation-media",
-    desktopSrc: "/landing/blackmagic-desktop.webp",
-    mobileSrc: "/landing/blackmagic-mobile.webp",
-    alt: "تصویر مفهومی از فضای استودیوی تولید فیلم و میز کار با نور گرم؛ دوربین واقعی نمایش داده نمی‌شود",
-    desktopAspectRatio: "16:9",
-    mobileAspectRatio: "4:5",
+    mediaStatus: "generated-product-render",
+    publicationStatus: "generated-reference-render-not-official-product-photo-or-installation",
+    desktopSrc: "/landing/blackmagic-pyxis-product.webp",
+    mobileSrc: "/landing/blackmagic-pyxis-product.webp",
+    alt: "دوربین سینمایی Blackmagic PYXIS 12K با لنز و تجهیزات نصب روی میز استودیو",
+    caption: "بازآفرینی هوش مصنوعی بر پایه مرجع محصول؛ عکس رسمی سازنده یا نصب فرابک نیست.",
+    desktopAspectRatio: "3:2",
+    mobileAspectRatio: "3:2",
     mobileCrop: "center-left",
     sourceNotes: [
-      "Original project-generated conceptual environment, created 2026-10-20; no camera, brand, or screen UI is depicted.",
-      "Exact Farabak PYXIS 12K listing verified live by the independent scout on 2026-10-20; no further product facts inferred here.",
+      "AI-generated product-in-context render created 2026-10-22 using the official manufacturer product image as a visual reference; not a manufacturer photo or Farabak installation.",
+      "Exact Farabak PYXIS 12K listing verified live by the independent scout on 2026-10-20.",
       "Manufacturer reference: https://www.blackmagicdesign.com/products/blackmagicpyxis",
+      "Image reference: https://images.blackmagicdesign.com/images/products/blackmagicpyxis/landing/hero/hero-xl.jpg?_v=1743026412",
     ],
-    rights: "original-project-concept-no-real-product-rights-implication",
-    requiredOwnerEvidence: [
-      "Written reuse approval for an exact PYXIS 12K product photo, if one is used.",
-    ],
+    rights: "generated-image-based-on-product-reference-no-product-photo-rights-claim",
+    requiredOwnerEvidence: ["Confirm generated product renders are acceptable for publication."],
     fallback:
-      "Use only as clearly conceptual studio context; otherwise use an approved product photo or neutral CSS field.",
+      "If generated product renders are not appropriate, use an approved product photo or neutral Tailwind field.",
   },
   cctv: {
     key: "cctv",
     subject:
-      "Generated conceptual contemporary exterior at blue hour; no camera or simulated surveillance feed depicted",
+      "AI-generated product-in-context illustration of Reolink RLC-823A, based on manufacturer product reference; provisional visual example, not an official photo or installation",
     productModel: "Reolink RLC-823A (provisional visual example)",
     productUrl: "https://farabak.net/products/reolink-cctv-camera/ip/RLC-823A",
     productLink: {
@@ -163,30 +170,29 @@ export const landingAssets = {
       evidence:
         "Farabak RLC-823A exact page opened; model heading and product image label visible.",
     },
-    mediaStatus: "generated-conceptual",
-    publicationStatus: "conceptual-only-not-real-product-or-installation-media",
-    desktopSrc: "/landing/cctv-desktop.webp",
-    mobileSrc: "/landing/cctv-mobile.webp",
-    alt: "تصویر مفهومی از نمای بیرونی ساختمان در گرگ‌ومیش؛ دوربین و تصویر نظارتی نمایش داده نمی‌شود",
-    desktopAspectRatio: "16:9",
-    mobileAspectRatio: "4:5",
+    mediaStatus: "generated-product-render",
+    publicationStatus: "generated-reference-render-not-official-product-photo-or-installation",
+    desktopSrc: "/landing/reolink-rlc-823a-product.webp",
+    mobileSrc: "/landing/reolink-rlc-823a-product.webp",
+    alt: "دوربین چرخشی Reolink RLC-823A نصب‌شده زیر پیش‌آمدگی ورودی ساختمان",
+    caption: "بازآفرینی هوش مصنوعی بر پایه مرجع محصول؛ عکس رسمی سازنده یا تصویر نصب واقعی نیست.",
+    desktopAspectRatio: "3:2",
+    mobileAspectRatio: "3:2",
     mobileCrop: "center-right",
     sourceNotes: [
-      "Original project-generated conceptual environment, created 2026-10-20; no camera, logo, or simulated feed is depicted.",
+      "AI-generated product-in-context render created 2026-10-22 using the official Reolink product image as a visual reference; not a manufacturer photo or Farabak installation.",
       "RLC-823A page opened 2026-10-20; keep the model provisional pending content-owner confirmation.",
-      "Farabak listing and manufacturer product images were not copied; reuse permission is not documented.",
+      "Image reference: https://home-cdn.reolink.us/wp-content/uploads/2025/07/230858561753261136.045.jpg",
     ],
-    rights: "original-project-concept-no-real-product-rights-implication",
-    requiredOwnerEvidence: [
-      "Confirm RLC-823A remains the intended current example and approve any exact product photo used.",
-    ],
-    fallback: "Use as conceptual architecture only; no fake video feed or camera depiction.",
+    rights: "generated-image-based-on-product-reference-no-product-photo-rights-claim",
+    requiredOwnerEvidence: ["Confirm RLC-823A remains the intended current example."],
+    fallback: "Use only with its generated-render disclosure; no fake video feed.",
   },
   "smd-led-wall": {
     key: "smd-led-wall",
     subject:
-      "Generated conceptual unbranded modular LED display in a generic venue; not a Farabak project",
-    productModel: null,
+      "AI-generated indoor LED-wall illustration based on Unilumin Uslim III product reference; visual example only, not a confirmed Farabak offering or installation",
+    productModel: "Unilumin Uslim III (visual example only)",
     productUrl: "https://farabak.net/contact-us",
     productLink: {
       status: "contact-until-offering-verified",
@@ -194,33 +200,33 @@ export const landingAssets = {
       evidence:
         "No specific SMD listing or project was verified in the spec; the contact page is the safe destination pending owner confirmation.",
     },
-    mediaStatus: "generated-conceptual",
-    publicationStatus: "conceptual-only-not-real-product-or-installation-media",
-    desktopSrc: "/landing/smd-led-wall-desktop.webp",
-    mobileSrc: "/landing/smd-led-wall-mobile.webp",
-    alt: "تصویر مفهومی از نمایشگر LED ماژولار در سالن عمومی؛ محصول یا پروژه فرابک نیست",
-    desktopAspectRatio: "16:9",
-    mobileAspectRatio: "4:5",
+    mediaStatus: "generated-product-render",
+    publicationStatus: "generated-reference-render-not-official-product-photo-or-installation",
+    desktopSrc: "/landing/unilumin-uslim-iii-product.webp",
+    mobileSrc: "/landing/unilumin-uslim-iii-product.webp",
+    alt: "دیوار نمایشگر LED ماژولار در سالن همایش داخلی",
+    caption:
+      "بازآفرینی هوش مصنوعی بر پایه مرجع Unilumin؛ نمونه بصری است و عرضه این مدل توسط فرابک تأیید نشده.",
+    desktopAspectRatio: "3:2",
+    mobileAspectRatio: "3:2",
     mobileCrop: "center-left",
     sourceNotes: [
-      "Original project-generated conceptual environment, created 2026-10-20; generic unbranded display and venue only.",
-      "No specific Farabak SMD product, installation, client, or project is represented or claimed.",
-      "The planning preview is also conceptual and must never be described as a Farabak installation.",
+      "AI-generated indoor LED-wall render created 2026-10-22 using the Unilumin Uslim III manufacturer product image as a visual reference; not a manufacturer photo or Farabak installation.",
+      "The model is a visual example only; no specific Farabak SMD product, installation, client, or project is represented or claimed.",
+      "Image reference: https://unilumin.com/wp-content/uploads/tmp/webp/products/f31d3826defac7e5be2a6d62cc2a704c.webp",
     ],
-    rights: "original-project-concept-no-real-product-rights-implication",
-    requiredOwnerEvidence: [
-      "Confirm the specific SMD LED wall solution Farabak offers.",
-      "Approve rights and client/site attribution for any real project photo used.",
-    ],
+    rights: "generated-image-based-on-product-reference-no-product-photo-rights-claim",
+    requiredOwnerEvidence: ["Confirm the specific SMD LED wall solution Farabak offers."],
     fallback:
-      "Keep the story contact-led; never identify this concept image as a Farabak installation.",
+      "Keep the story contact-led and retain the visual-example disclosure until the offering is confirmed.",
   },
 } satisfies Record<LandingStoryKey, LandingAsset>;
 
 export const landingAssetReview = {
-  reviewedOn: "2026-10-20",
+  reviewedOn: "2026-10-22",
   exact3dModel: "out-of-scope: no exact SKU-matched commercial-use model verified",
-  conceptualAssetCount: 10,
+  conceptualAssetCount: 0,
+  generatedProductRenderCount: 5,
   planningPreviews:
     "docs/superpowers/concepts/2026-10-20-product-stories/README.md; composition references only, not publication assets",
 } as const;
