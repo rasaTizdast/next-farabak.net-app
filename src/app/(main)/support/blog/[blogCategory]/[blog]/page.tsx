@@ -1,12 +1,16 @@
 import DOMPurify from "isomorphic-dompurify";
+import { ArrowLeft } from "lucide-react";
 import { io } from "next/cache";
 import { notFound } from "next/navigation";
 
-import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import BlogFaqAccordion from "@/components/BlogFaqAccordion";
-import SmartImage from "@/components/ui/SmartImage";
+import { ActionLink } from "@/components/public/ActionLink";
+import BlogCover from "@/components/public/BlogCover";
+import { PageIntro } from "@/components/public/PageIntro";
+import { PublicShell } from "@/components/public/PublicShell";
 import { getBlogBySlug, type BlogDetailData } from "@/lib/data/blogs";
-import { cn } from "@/lib/utils";
+
+import { addArticleHeadingAnchors, extractArticleHeadings } from "../../_components/blog-helpers";
 
 function processContentWithImageUrls(content: string) {
   const baseUrl = process.env.LIARA_BUCKET_URL || "";
@@ -285,55 +289,116 @@ export default async function BlogPage(props: {
         })
       : null;
 
-  return (
-    <div className="w-full max-w-[1580px]">
-      <Breadcrumb breadcrumbs={["/", "/support", "/support/blog"]} />
+  const articleHeadings = extractArticleHeadings(blog.content);
+  const articleMarkup = addArticleHeadingAnchors(processContentWithImageUrls(blog.content));
+  const imageSrc = blog.image_URL ? `${bucketUrl}/${blog.image_URL}` : null;
 
-      <article className={cn("bg-background mt-5 w-full rounded-lg p-5 sm:p-10")}>
-        <header className={cn("mb-8")}>
-          <h1 className={cn("mb-8 text-2xl font-bold sm:text-4xl")}>{blog.title}</h1>
-          <SmartImage
-            src={`${process.env.LIARA_BUCKET_URL}/${blog.image_URL}`}
-            alt={blog.image_alt}
-            className={cn("mx-auto mb-6 w-full rounded-lg object-cover lg:w-3/5")}
-            width={1200}
-            height={630}
-            quality={75}
-            sizes="(min-width: 1400px) calc(60vw - 15rem), (min-width: 1200px) calc(60vw - 10rem), (min-width: 1024px) calc(60vw - 8rem), (min-width: 768px) calc(100vw - 11rem), (min-width: 640px) calc(100vw - 8rem), calc(100vw - 6rem)"
-          />
-          <div className={cn("scrollbar-hide bg-background mb-4 overflow-x-auto rounded-lg p-2")}>
-            <div
-              className={cn(
-                "mobile:text-base text-muted-foreground flex items-center gap-3 text-xs whitespace-nowrap"
-              )}
-            >
-              <span>{blog.author}</span>
-              <span>•</span>
-              <time>
-                {blog.created_at ? new Date(blog.created_at).toLocaleDateString("fa") : ""}
-              </time>
-              <span>•</span>
+  return (
+    <PublicShell className="pb-16">
+      <PageIntro
+        eyebrow={blogCategories[0]?.name ?? "مقاله آموزشی"}
+        title={blog.title}
+        description={blog.description ?? blog.SEO_description}
+        actions={
+          <ActionLink href="/support/blog" variant="secondary">
+            بازگشت به آرشیو <ArrowLeft aria-hidden="true" className="size-4" />
+          </ActionLink>
+        }
+      />
+
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <article
+          id="article-content"
+          className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)] sm:p-8 md:p-10"
+        >
+          <header className="mb-8 border-b border-slate-100 pb-8">
+            <BlogCover
+              src={imageSrc}
+              alt={blog.image_alt}
+              className="mx-auto mb-6 aspect-video w-full rounded-xl object-cover"
+              width={1200}
+              height={630}
+              sizes="(min-width: 1024px) 65vw, 100vw"
+              priority
+            />
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-(--farabak-ink-muted)">
+              {blog.author ? <span>{blog.author}</span> : null}
+              {blog.author && blog.created_at ? <span aria-hidden="true">•</span> : null}
+              {blog.created_at ? (
+                <time dateTime={blog.created_at}>
+                  {new Date(blog.created_at).toLocaleDateString("fa-IR")}
+                </time>
+              ) : null}
+              <span aria-hidden="true">•</span>
               <span>{readingTime} دقیقه مطالعه</span>
             </div>
-          </div>
-        </header>
+          </header>
 
-        <div
-          className={cn(
-            "prose-view max-w-none [&_.w-1\/2]:mx-auto [&_.w-1\/2]:w-1/2 [&_.w-1\/3]:mx-auto [&_.w-1\/3]:w-1/3 [&_.w-full]:w-full [&_img]:h-auto [&_img]:max-w-full"
-          )}
-          dangerouslySetInnerHTML={{
-            __html: DOMPurify.sanitize(processContentWithImageUrls(blog.content), {
-              ADD_TAGS: ["Image", "video", "source"],
-              ADD_ATTR: ["controls", "class"],
-            }),
-          }}
-        />
-      </article>
+          {articleHeadings.length > 0 ? (
+            <nav
+              aria-label="فهرست مقاله"
+              className="mb-8 rounded-xl bg-(--farabak-surface-blue) p-5 lg:hidden"
+            >
+              <p className="mb-3 text-sm font-bold text-(--farabak-ink-deep)">در این مقاله</p>
+              <ol className="space-y-2 text-sm">
+                {articleHeadings.map((heading) => (
+                  <li key={heading.id} className={heading.level === 3 ? "pr-4" : undefined}>
+                    <a
+                      href={"#" + heading.id}
+                      className="text-(--farabak-ink-muted) underline-offset-4 hover:text-(--farabak-action-blue) hover:underline"
+                    >
+                      {heading.text}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          ) : null}
 
-      {/* FAQ Section */}
-      {faqs && faqs.length > 0 && (
-        <section className={cn("bg-background mt-8 w-full rounded-lg p-5 shadow-sm sm:p-10")}>
+          <div
+            className="prose-view [&_.w-1\/2]:w-1\/2 [&_.w-1\/3]:w-1\/3 mx-auto max-w-3xl [&_.w-1\/2]:mx-auto [&_.w-1\/3]:mx-auto [&_.w-full]:w-full [&_h2]:scroll-mt-28 [&_h3]:scroll-mt-28 [&_img]:h-auto [&_img]:max-w-full"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(articleMarkup, {
+                ADD_TAGS: ["Image", "video", "source"],
+                ADD_ATTR: ["controls", "class", "id"],
+              }),
+            }}
+          />
+        </article>
+
+        <aside className="sticky top-28 hidden space-y-4 lg:block">
+          {articleHeadings.length > 0 ? (
+            <nav
+              aria-label="فهرست مقاله"
+              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)]"
+            >
+              <p className="mb-3 text-sm font-bold text-(--farabak-ink-deep)">در این مقاله</p>
+              <ol className="space-y-3 text-sm">
+                {articleHeadings.map((heading) => (
+                  <li key={heading.id} className={heading.level === 3 ? "pr-4" : undefined}>
+                    <a
+                      href={"#" + heading.id}
+                      className="text-(--farabak-ink-muted) underline-offset-4 hover:text-(--farabak-action-blue) hover:underline"
+                    >
+                      {heading.text}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          ) : null}
+          <ActionLink
+            href={categorySlug ? "/support/blog/" + categorySlug : "/support/blog"}
+            variant="secondary"
+            className="w-full"
+          >
+            مقالات مرتبط <ArrowLeft aria-hidden="true" className="size-4" />
+          </ActionLink>
+        </aside>
+      </div>
+
+      {faqs && faqs.length > 0 ? (
+        <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)] sm:p-8">
           <BlogFaqAccordion
             faqs={faqs}
             blogTitle={blog.title}
@@ -341,13 +406,29 @@ export default async function BlogPage(props: {
             description={`پاسخ سوالات رایج درباره "${blog.title}"`}
           />
         </section>
-      )}
+      ) : null}
+
+      <section className="mt-8 grid gap-4 rounded-2xl bg-(--farabak-ink-deep) p-6 text-white md:grid-cols-[1fr_auto] md:items-center md:p-8">
+        <div>
+          <p className="text-sm font-semibold text-cyan-200">هنوز سوالی دارید؟</p>
+          <h2 className="mt-2 text-2xl font-bold">کارشناسان فرابک راهنمایی‌تان می‌کنند</h2>
+          <p className="mt-2 leading-8 text-slate-300">
+            اگر در انتخاب یا استفاده از محصول نیاز به توضیح بیشتری دارید، با ما در ارتباط باشید.
+          </p>
+        </div>
+        <ActionLink
+          href="/contact-us"
+          className="bg-white text-(--farabak-ink-deep) hover:bg-slate-100"
+        >
+          تماس با ما <ArrowLeft aria-hidden="true" className="size-4" />
+        </ActionLink>
+      </section>
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: blogJsonLd }} />
       {faqJsonLd && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: faqJsonLd }} />
       )}
-    </div>
+    </PublicShell>
   );
 }
 

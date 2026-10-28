@@ -59,6 +59,7 @@ const BlogFaqAccordion = ({
               <Search className="pointer-events-none absolute top-1/2 right-3 size-3.5 -translate-y-1/2 text-blue-500 md:size-4" />
               <input
                 type="text"
+                aria-label="جستجو در سوالات متداول مقاله"
                 placeholder="جستجو در سوالات متداول..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -95,11 +96,12 @@ const BlogFaqAccordion = ({
                 <div key={faqId}>
                   <dt>
                     <button
+                      id={`blog-faq-question-${faq.id}`}
                       type="button"
                       onClick={() => toggleFaq(faqId)}
                       aria-expanded={isOpen}
                       aria-controls={`faq-answer-${faq.id}`}
-                      className="flex w-full items-center justify-between gap-2 px-4 py-3 text-right hover:bg-gray-50"
+                      className="flex min-h-14 w-full items-center justify-between gap-2 px-4 py-3 text-right transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:outline-none focus-visible:ring-inset"
                     >
                       <span className="pr-2 text-right text-sm font-semibold text-gray-900 md:pr-3 md:text-base">
                         {faq.question}
@@ -116,8 +118,10 @@ const BlogFaqAccordion = ({
                   </dt>
                   <dd
                     id={`faq-answer-${faq.id}`}
+                    role="region"
+                    aria-labelledby={`blog-faq-question-${faq.id}`}
                     hidden={!isOpen}
-                    className="border-t border-gray-100 px-4 py-3"
+                    className="border-t border-slate-100 p-4"
                   >
                     <p className="text-sm leading-relaxed text-gray-700 md:text-base">
                       {faq.answer}
