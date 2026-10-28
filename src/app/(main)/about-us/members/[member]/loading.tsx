@@ -1,8 +1,14 @@
 import { BreadcrumbSkeleton, TextBlockSkeleton } from "@/app/_components/ui/PageSkeletons";
+import { PublicShell } from "@/components/public/PublicShell";
 
 export default function MemberDetailLoading() {
   return (
-    <div className="w-full max-w-[1580px]" role="status" aria-label="در حال بارگذاری">
+    <PublicShell
+      as="main"
+      className="py-10 sm:py-14 lg:py-16"
+      role="status"
+      aria-label="در حال بارگذاری معرفی عضو"
+    >
       <BreadcrumbSkeleton />
       <section className="flex w-full animate-pulse flex-col flex-wrap items-stretch justify-between gap-8 lg:flex-row">
         <div className="w-full max-w-[1000px] rounded-lg bg-white p-5 shadow-lg md:p-8 lg:w-[60%]">
@@ -18,6 +24,6 @@ export default function MemberDetailLoading() {
           </div>
         </aside>
       </section>
-    </div>
+    </PublicShell>
   );
 }

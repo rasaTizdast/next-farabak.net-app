@@ -3,13 +3,15 @@ import {
   ImageSkeleton,
   TextBlockSkeleton,
 } from "@/app/_components/ui/PageSkeletons";
+import { PublicShell } from "@/components/public/PublicShell";
 
 export default function ProjectDetailLoading() {
   return (
-    <section
-      className="w-full max-w-[1580px] animate-pulse"
+    <PublicShell
+      as="main"
+      className="animate-pulse py-10 sm:py-14 lg:py-16"
       role="status"
-      aria-label="در حال بارگذاری"
+      aria-label="در حال بارگذاری پرونده پروژه"
     >
       <BreadcrumbSkeleton />
       <div className="mt-8 h-8 w-1/2 rounded-md bg-gray-200" />
@@ -19,6 +21,6 @@ export default function ProjectDetailLoading() {
         <TextBlockSkeleton lines={4} />
       </div>
       <ImageSkeleton className="mx-auto mb-10 h-64 w-full rounded-xl md:h-[500px]" />
-    </section>
+    </PublicShell>
   );
 }

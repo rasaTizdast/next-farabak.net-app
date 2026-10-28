@@ -1,9 +1,9 @@
-import { Metadata } from "next";
-import Link from "next/link";
+import type { Metadata } from "next";
 
-import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import { ActionLink } from "@/components/public/ActionLink";
+import { PageIntro } from "@/components/public/PageIntro";
+import { PublicShell } from "@/components/public/PublicShell";
 import aboutUsData from "@/constants/aboutUs.json";
-import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "درباره ما | تاریخچه و فعالیت‌های فرابک",
@@ -38,60 +38,61 @@ const structuredData = {
 };
 
 const AboutUs = () => {
-  const jsonLd = JSON.stringify(structuredData);
-
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <div
-        className={cn(
-          "flex w-full flex-col items-center justify-center px-6 py-12 min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40"
-        )}
-        dir="rtl"
-      >
-        <div className="w-full max-w-[1580px]">
-          <Breadcrumb breadcrumbs={["/", "/about-us"]} />
-          <div className={cn("flex w-full flex-wrap items-stretch justify-evenly gap-8")}>
-            {aboutUsData.map((item) => (
-              <Card
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+        <PageIntro
+          eyebrow="آرشیو شرکت"
+          title="فرابک را از روی کارنامه‌اش بشناسید"
+          description="تاریخچه، اعضای هیئت‌مدیره و پروژه‌های منتشرشده را در یک آرشیو روشن و قابل بررسی دنبال کنید. هر صفحه فقط همان چیزی را نشان می‌دهد که برای آن سند یا داده داریم."
+        />
+
+        <section aria-labelledby="about-archive-title" className="pb-8 sm:pb-12">
+          <div className="mb-6 sm:mb-8">
+            <p className="mb-2 text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
+              مسیرهای بررسی
+            </p>
+            <h2
+              id="about-archive-title"
+              className="text-2xl font-bold text-(--farabak-ink-deep) sm:text-3xl"
+            >
+              سه نمای مستند از شرکت
+            </h2>
+          </div>
+
+          <div className="grid gap-5 lg:grid-cols-3">
+            {aboutUsData.map((item, index) => (
+              <article
                 key={item.id}
-                title={item.title}
-                desc={item.desc}
-                link={`/about-us/${item.link}`}
-              />
+                className="flex min-h-72 flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_16px_36px_rgba(6,26,48,0.06)] transition-[border-color,box-shadow] duration-300 hover:border-(--farabak-action-blue)/40 hover:shadow-[0_20px_46px_rgba(6,26,48,0.1)] sm:p-8"
+              >
+                <div>
+                  <p className="mb-8 text-sm font-bold tracking-[0.16em] text-(--farabak-action-blue)">
+                    {String(index + 1).padStart(2, "0")}
+                  </p>
+                  <h3 className="text-xl leading-9 font-bold text-(--farabak-ink-deep)">
+                    {item.title}
+                  </h3>
+                  <p className="mt-3 leading-8 text-(--farabak-ink-muted)">{item.desc}</p>
+                </div>
+                <ActionLink
+                  href={`/about-us/${item.link}`}
+                  variant="secondary"
+                  className="mt-8 w-full"
+                >
+                  مشاهده آرشیو
+                </ActionLink>
+              </article>
             ))}
           </div>
-        </div>
-      </div>
+        </section>
+      </PublicShell>
     </>
   );
 };
 
 export default AboutUs;
-
-type CardProps = {
-  title: string;
-  desc: string;
-  link: string;
-};
-
-const Card = ({ title, desc, link }: CardProps) => {
-  return (
-    <div
-      className={cn(
-        "flex max-w-[300px] flex-col items-center justify-between gap-4 rounded-lg bg-white p-4 text-center shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-transform duration-300 hover:scale-[1.05]"
-      )}
-    >
-      <h2 className="text-[1.3rem] font-bold">{title}</h2>
-      <p>{desc}</p>
-      <Link
-        href={link}
-        className={cn(
-          "bg-third after:bg-fourth relative mt-8 inline-block w-full overflow-hidden rounded-lg px-8 py-2 text-[0.9rem] text-white transition-[transform,color,box-shadow] duration-300 after:absolute after:inset-y-0 after:inset-s-[100%] after:inset-e-0 after:z-[-1] after:transition-[inset-inline-start,inset-inline-end] after:duration-500 hover:scale-[1.03] hover:text-white hover:shadow-[0_6px_12px_rgba(0,0,0,0.2)] hover:after:inset-s-0 hover:after:inset-e-0"
-        )}
-      >
-        مشاهده
-      </Link>
-    </div>
-  );
-};

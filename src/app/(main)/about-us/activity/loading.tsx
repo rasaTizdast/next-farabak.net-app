@@ -1,11 +1,13 @@
 import { LineSkeleton } from "@/app/_components/ui/PageSkeletons";
+import { PublicShell } from "@/components/public/PublicShell";
 
 export default function ActivityLoading() {
   return (
-    <div
-      className="mx-auto mb-4 flex w-full max-w-[1580px] animate-pulse flex-col gap-6 md:gap-8"
+    <PublicShell
+      as="main"
+      className="mb-4 animate-pulse py-10 sm:py-14 lg:py-16"
       role="status"
-      aria-label="در حال بارگذاری"
+      aria-label="در حال بارگذاری فعالیت‌ها"
     >
       {Array.from({ length: 4 }).map((_, i) => (
         <section key={i} className="flex flex-col gap-5 rounded-lg bg-white p-5 shadow-lg sm:p-8">
@@ -22,6 +24,6 @@ export default function ActivityLoading() {
           </ul>
         </section>
       ))}
-    </div>
+    </PublicShell>
   );
 }

@@ -1,43 +1,11 @@
-import { Metadata } from "next";
-import Link from "next/link";
+import type { Members } from "@prisma/client";
+import type { Metadata } from "next";
 
-import Breadcrumb from "@/app/_components/ui/Breadcrumb";
-import SmartImage from "@/components/ui/SmartImage";
+import { ActionLink } from "@/components/public/ActionLink";
+import { PageIntro } from "@/components/public/PageIntro";
+import { PublicImage } from "@/components/public/PublicImage";
+import { PublicShell } from "@/components/public/PublicShell";
 import { getMembers } from "@/lib/data/members";
-
-type CardProps = {
-  data: {
-    id: number;
-    slug: string;
-    name: string;
-    role: string;
-    img: string;
-  };
-};
-
-const Card = ({ data: { slug, name, role, img } }: CardProps) => {
-  return (
-    <div className="relative flex w-[20%] max-w-[300px] min-w-[300px] flex-col justify-between rounded-lg bg-white p-4 text-center shadow-[0_4px_10px_rgba(0,0,0,0.1)] max-[768px]:min-w-[250px]">
-      <SmartImage
-        src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/member-images/${img}`}
-        alt={name}
-        width={200}
-        height={150}
-        quality={75}
-        loading="lazy"
-        className="h-[200px] w-full rounded-lg object-cover"
-      />
-      <h2 className="mt-4 mb-2 text-[1.1rem] max-[768px]:text-[1rem]"> {name}</h2>
-      <p className="mt-2 max-[768px]:text-[0.9rem]">{role}</p>
-      <Link
-        href={`/about-us/members/${slug}`}
-        className="relative mt-6 inline-block w-full overflow-hidden rounded-lg bg-[#1e90ff] px-8 py-2 text-center text-[0.9rem] text-white transition-[transform,color,box-shadow] duration-300 after:absolute after:inset-y-0 after:inset-s-[100%] after:inset-e-0 after:z-[-1] after:bg-[#0e6aff] after:transition-[inset-inline-start,inset-inline-end] after:duration-500 hover:scale-[1.03] hover:text-white hover:shadow-[0_6px_12px_rgba(0,0,0,0.2)] hover:after:inset-s-0 hover:after:inset-e-0"
-      >
-        مشاهده
-      </Link>
-    </div>
-  );
-};
 
 export const metadata: Metadata = {
   title: "اعضای هیئت مدیره | فرابک",
@@ -48,15 +16,7 @@ export const metadata: Metadata = {
   },
 };
 
-type Member = {
-  Membersid: number;
-  Slug: string;
-  Name: string;
-  Role: string;
-  main_pic: string;
-};
-
-const fetchMembers = async (): Promise<Member[]> => {
+const fetchMembers = async (): Promise<Members[]> => {
   try {
     return await getMembers();
   } catch (error) {
@@ -65,15 +25,8 @@ const fetchMembers = async (): Promise<Member[]> => {
   }
 };
 
-const membersBreadcrumbs = ["/", "/about-us", "/about-us/members"];
-
-const Members = async () => {
+const MembersPage = async () => {
   const members = await fetchMembers();
-
-  if (!members || members.length === 0) {
-    return <div className="py-8 text-center text-red-500">هیچ عضوی یافت نشد</div>;
-  }
-
   const structuredData = {
     "@context": "https://schema.org",
     "@type": ["AboutPage", "ItemList"],
@@ -82,29 +35,6 @@ const Members = async () => {
       "مشاهده اعضای هیئت مدیره به‌همراه تجربیات و نقش های کلیدی هر یک از اعضای هیئت مدیره",
     url: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/members`,
     numberOfItems: members.length,
-    breadcrumb: {
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "صفحه اصلی",
-          item: process.env.NEXT_PUBLIC_BASE_URL,
-        },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: "درباره ما",
-          item: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us`,
-        },
-        {
-          "@type": "ListItem",
-          position: 3,
-          name: "اعضای هیئت مدیره",
-          item: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/members`,
-        },
-      ],
-    },
     isPartOf: {
       "@type": "WebSite",
       url: process.env.NEXT_PUBLIC_BASE_URL,
@@ -118,60 +48,96 @@ const Members = async () => {
         "@type": "Person",
         name: member.Name,
         jobTitle: member.Role,
-        image: `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/member-images/${member.main_pic}`,
+        image: member.main_pic
+          ? `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/member-images/${member.main_pic}`
+          : undefined,
         url: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/members/${member.Slug}`,
         worksFor: {
           "@type": "Organization",
           name: "فرابک",
         },
-        affiliation: {
-          "@id": "https://farabak.net",
-        },
-        areaServed: {
-          "@type": "Country",
-          name: "Iran",
-        },
-        keywords: [
-          ...new Set(
-            [
-              ...(member.Role ? member.Role.split(/\s+/) : []),
-              "فرابک",
-              "هیئت مدیره",
-              "دوربین مداربسته",
-              "نظارت تصویری",
-              "فلزیاب",
-              "ایکس‌ری",
-            ].filter((word) => word.length >= 2)
-          ),
-        ],
       })),
     },
   };
 
-  const jsonLd = JSON.stringify(structuredData);
-
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <div className="w-full max-w-[1580px]">
-        <Breadcrumb breadcrumbs={membersBreadcrumbs} />
-        <div className="flex w-full flex-wrap items-stretch justify-evenly gap-8">
-          {members.map((member) => (
-            <Card
-              key={member.Membersid}
-              data={{
-                id: member.Membersid,
-                slug: member.Slug,
-                name: member.Name,
-                role: member.Role,
-                img: member.main_pic,
-              }}
-            />
-          ))}
-        </div>
-      </div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+        <PageIntro
+          eyebrow="آرشیو افراد"
+          title="افرادی که پشت این مسیر ایستاده‌اند"
+          description="معرفی اعضای هیئت‌مدیره و نقش ثبت‌شده آن‌ها در ساختار شرکت. برای هر نفر، تنها اطلاعاتی را می‌بینید که در صفحه معرفی منتشر شده است."
+          actions={
+            <ActionLink href="/about-us/activity" variant="secondary">
+              حوزه‌های فعالیت
+            </ActionLink>
+          }
+        />
+
+        {members.length > 0 ? (
+          <section aria-labelledby="members-list-title">
+            <h2 id="members-list-title" className="sr-only">
+              فهرست اعضای هیئت‌مدیره
+            </h2>
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {members.map((member) => (
+                <article
+                  key={member.Membersid}
+                  className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_16px_36px_rgba(6,26,48,0.06)]"
+                >
+                  <PublicImage
+                    src={
+                      member.main_pic
+                        ? `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/member-images/${member.main_pic}`
+                        : null
+                    }
+                    alt={member.Name}
+                    fallbackLabel="تصویر این عضو موجود نیست"
+                    width={600}
+                    height={480}
+                    className="aspect-5/4 h-auto w-full object-cover"
+                    sizes="(min-width: 1024px) 31vw, (min-width: 640px) 45vw, 100vw"
+                  />
+                  <div className="flex flex-1 flex-col p-6 sm:p-7">
+                    <p className="text-sm font-semibold tracking-[0.08em] text-(--farabak-action-blue)">
+                      عضو هیئت‌مدیره
+                    </p>
+                    <h3 className="mt-3 text-xl font-bold text-(--farabak-ink-deep)">
+                      {member.Name}
+                    </h3>
+                    <p className="mt-2 leading-8 text-(--farabak-ink-muted)">{member.Role}</p>
+                    <ActionLink
+                      href={`/about-us/members/${member.Slug}`}
+                      variant="secondary"
+                      className="mt-6 w-full"
+                    >
+                      مشاهده معرفی
+                    </ActionLink>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : (
+          <div
+            role="status"
+            className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center"
+          >
+            <h2 className="text-xl font-bold text-(--farabak-ink-deep)">
+              فهرست اعضا در دسترس نیست
+            </h2>
+            <p className="mt-3 leading-8 text-(--farabak-ink-muted)">
+              اطلاعات این آرشیو هنوز منتشر نشده است.
+            </p>
+          </div>
+        )}
+      </PublicShell>
     </>
   );
 };
 
-export default Members;
+export default MembersPage;

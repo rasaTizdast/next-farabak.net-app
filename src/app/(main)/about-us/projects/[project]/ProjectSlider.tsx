@@ -1,9 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import React, { useState, useEffect, useCallback } from "react";
 import { BsChevronCompactLeft, BsChevronCompactRight } from "react-icons/bs";
 import { RxDotFilled } from "react-icons/rx";
+
+import { PublicImage } from "@/components/public/PublicImage";
 
 type Slider = {
   id: number;
@@ -19,42 +20,100 @@ type ImageSliderProps = {
 const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    if (!window.matchMedia) return;
+
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => setPrefersReducedMotion(mediaQuery.matches);
+
+    updatePreference();
+    mediaQuery.addEventListener("change", updatePreference);
+
+    return () => mediaQuery.removeEventListener("change", updatePreference);
+  }, []);
+
+  useEffect(() => {
+    setCurrentIndex((current) => (slides.length > 0 ? Math.min(current, slides.length - 1) : 0));
+  }, [slides.length]);
 
   const nextSlide = useCallback(() => {
     setCurrentIndex((prevIndex) => (prevIndex === slides.length - 1 ? 0 : prevIndex + 1));
   }, [slides.length]);
 
   const prevSlide = () => {
+    if (slides.length <= 1) return;
+
     const isFirstSlide = currentIndex === 0;
     const newIndex = isFirstSlide ? slides.length - 1 : currentIndex - 1;
     setCurrentIndex(newIndex);
   };
 
-  // Autoplay logic
   useEffect(() => {
-    if (isPaused) return; // Stop autoplay when paused
+    if (slides.length <= 1 || isPaused || prefersReducedMotion) return;
 
     const autoplay = setInterval(nextSlide, interval || 3000);
 
-    return () => clearInterval(autoplay); // Clear interval on cleanup
-  }, [isPaused, interval, nextSlide]);
+    return () => clearInterval(autoplay);
+  }, [isPaused, interval, nextSlide, prefersReducedMotion, slides.length]);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      nextSlide();
+    }
+
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      prevSlide();
+    }
+
+    if (event.key === "Home") {
+      event.preventDefault();
+      setCurrentIndex(0);
+    }
+
+    if (event.key === "End") {
+      event.preventDefault();
+      setCurrentIndex(Math.max(slides.length - 1, 0));
+    }
+  };
+
+  if (slides.length === 0) {
+    return (
+      <div
+        role="img"
+        aria-label="تصویر پروژه موجود نیست"
+        className="flex min-h-64 items-center justify-center rounded-3xl bg-slate-100 p-6 text-center text-sm leading-7 text-slate-500"
+      >
+        تصویر این پروژه در دسترس نیست.
+      </div>
+    );
+  }
 
   return (
     <div
-      className="group relative m-auto h-auto max-h-[300px] w-full max-w-[1580px] overflow-hidden md:max-h-[800px]"
+      role="region"
+      aria-label="گالری تصاویر پروژه"
+      aria-roledescription="carousel"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      className="group relative m-auto h-auto max-h-[300px] w-full max-w-[1580px] overflow-hidden rounded-3xl bg-slate-950 focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-4 focus-visible:outline-none md:max-h-[800px]"
       onMouseEnter={() => setIsPaused(true)} // Pause autoplay on hover
       onMouseLeave={() => setIsPaused(false)} // Resume autoplay on mouse leave
     >
       <div
-        className="flex h-auto w-full transition-transform duration-700 ease-in-out"
+        className="flex h-auto w-full transition-transform duration-500 ease-out motion-reduce:transition-none"
         style={{
-          transform: `translateX(${currentIndex * 100}%)`,
+          transform: `translateX(-${currentIndex * 100}%)`,
         }}
       >
         {slides.map((slide) => (
-          <Image
+          <PublicImage
             key={slide.id}
-            className="max-h-[300px] w-full shrink-0 object-contain md:max-h-[800px]"
+            className="h-auto max-h-[300px] w-full shrink-0 object-contain md:max-h-[800px]"
+            fallbackLabel="تصویر پروژه موجود نیست"
             src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${slide.img}`}
             alt={slide.alt}
             width={1920}
@@ -67,7 +126,7 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
       <button
         type="button"
         onClick={prevSlide}
-        className="absolute top-[45.5%] left-5 hidden translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
+        className="absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-black/60 p-2 text-2xl text-white transition-colors hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none sm:left-6"
         aria-label="اسلاید قبلی"
       >
         <BsChevronCompactLeft size={30} />
@@ -76,30 +135,49 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
       <button
         type="button"
         onClick={nextSlide}
-        className="absolute top-[45.5%] right-5 hidden translate-x-0 cursor-pointer rounded-full bg-black/30 p-2 text-2xl text-white group-hover:block"
+        className="absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-black/60 p-2 text-2xl text-white transition-colors hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none sm:right-6"
         aria-label="اسلاید بعدی"
       >
         <BsChevronCompactRight size={30} />
       </button>
 
-      {/* Slider Pagination */}
-      <div className="absolute left-[50%] flex translate-x-[-50%] -translate-y-10 justify-center gap-1 rounded-t-2xl bg-[#f0f0f0] px-2 py-1">
-        {slides.map((slide, slideIndex) => (
+      <div className="absolute inset-x-4 bottom-4 flex items-center justify-between gap-3 sm:inset-x-6">
+        {slides.length > 1 ? (
           <button
             type="button"
-            className="cursor-pointer text-2xl"
-            key={slideIndex}
-            onClick={() => setCurrentIndex(slideIndex)}
-            aria-label={`اسلاید ${slideIndex + 1}`}
+            aria-label={isPaused ? "ادامه پخش خودکار" : "توقف پخش خودکار"}
+            aria-pressed={isPaused}
+            onClick={() => setIsPaused((paused) => !paused)}
+            className="rounded-full bg-black/60 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
           >
-            <RxDotFilled
-              size={33}
-              className={`transition-colors ${
-                slideIndex === currentIndex ? "text-[#000000]" : "text-[#0e8bff]"
-              }`}
-            />
+            {isPaused ? "ادامه" : "توقف"}
           </button>
-        ))}
+        ) : (
+          <span aria-hidden="true" />
+        )}
+
+        <div className="flex justify-center gap-1 rounded-full bg-black/60 px-2 py-1">
+          <span className="sr-only" aria-live="polite">
+            اسلاید {currentIndex + 1} از {slides.length}
+          </span>
+          {slides.map((slide, slideIndex) => (
+            <button
+              type="button"
+              className="rounded-full text-2xl leading-none focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+              key={slideIndex}
+              onClick={() => setCurrentIndex(slideIndex)}
+              aria-label={`رفتن به اسلاید ${slideIndex + 1}`}
+              aria-current={slideIndex === currentIndex ? "true" : undefined}
+            >
+              <RxDotFilled
+                size={33}
+                className={`transition-colors ${
+                  slideIndex === currentIndex ? "text-white" : "text-slate-400"
+                }`}
+              />
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -4,10 +4,16 @@ import {
   CardSkeleton,
   LineSkeleton,
 } from "@/app/_components/ui/PageSkeletons";
+import { PublicShell } from "@/components/public/PublicShell";
 
 export default function MembersLoading() {
   return (
-    <div className="w-full max-w-[1580px]" role="status" aria-label="در حال بارگذاری">
+    <PublicShell
+      as="main"
+      className="py-10 sm:py-14 lg:py-16"
+      role="status"
+      aria-label="در حال بارگذاری اعضا"
+    >
       <BreadcrumbSkeleton />
       <div className="flex w-full flex-wrap items-stretch justify-evenly gap-8">
         {Array.from({ length: 6 }).map((_, i) => (
@@ -22,6 +28,6 @@ export default function MembersLoading() {
           </CardSkeleton>
         ))}
       </div>
-    </div>
+    </PublicShell>
   );
 }

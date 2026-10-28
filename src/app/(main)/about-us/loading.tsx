@@ -4,15 +4,17 @@ import {
   CardSkeleton,
   LineSkeleton,
 } from "@/app/_components/ui/PageSkeletons";
+import { PublicShell } from "@/components/public/PublicShell";
 
 export default function AboutUsLoading() {
   return (
-    <div
-      className="flex w-full flex-col items-center px-6 py-12 min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40"
+    <PublicShell
+      as="main"
+      className="animate-pulse py-10 sm:py-14 lg:py-16"
       role="status"
-      aria-label="در حال بارگذاری"
+      aria-label="در حال بارگذاری درباره ما"
     >
-      <div className="w-full max-w-[1580px]">
+      <div className="w-full">
         <BreadcrumbSkeleton />
         <div className="flex w-full flex-wrap items-stretch justify-evenly gap-8">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -25,6 +27,6 @@ export default function AboutUsLoading() {
           ))}
         </div>
       </div>
-    </div>
+    </PublicShell>
   );
 }

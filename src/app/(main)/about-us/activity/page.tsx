@@ -1,6 +1,9 @@
-import { Metadata } from "next";
-import Image from "next/image";
+import type { Metadata } from "next";
 
+import { ActionLink } from "@/components/public/ActionLink";
+import { PageIntro } from "@/components/public/PageIntro";
+import { PublicImage } from "@/components/public/PublicImage";
+import { PublicShell } from "@/components/public/PublicShell";
 import { getActivities } from "@/lib/data/activities";
 
 export const metadata: Metadata = {
@@ -24,29 +27,8 @@ type MasterActivity = {
   Details_activity: DetailsActivity[];
 };
 
-const Card = ({ data: { title, items } }: CardProps) => {
-  return (
-    <section className="flex flex-col gap-5 rounded-lg bg-white p-5 shadow-[0px_8px_20px_rgba(0,0,0,0.1)] transition-shadow duration-300 hover:shadow-[0px_12px_30px_rgba(0,0,0,0.15)] sm:p-8 lg:p-12">
-      <h1 className="relative pb-3 text-[calc(0.9rem+0.5vw)] font-extrabold text-[#1e90ff] after:absolute after:inset-s-0 after:bottom-0 after:h-[3px] after:w-14 after:rounded-full after:bg-linear-to-l after:from-[#00bfff] after:to-[#318ce7]">
-        {title}
-      </h1>
-      <ul className="list-square me-6 flex flex-col gap-4 md:me-10">
-        {items.map((item, index) => (
-          <li
-            key={index}
-            className="text-justify leading-loose font-medium text-[#003262] transition-colors duration-300 hover:text-[#1e90ff] md:text-[calc(0.8rem+0.5vw)] lg:text-[calc(0.8rem+0.5vw)] xl:text-[calc(0.7rem+0.5vw)]"
-          >
-            {item}
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-};
-
 const ActivityPage = async () => {
   const activities: MasterActivity[] = await getActivities();
-
   const structuredData = {
     "@context": "https://schema.org",
     "@type": ["AboutPage", "ItemList"],
@@ -93,76 +75,120 @@ const ActivityPage = async () => {
     },
   };
 
-  const jsonLd = JSON.stringify(structuredData);
-
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <div className="mx-auto mb-4 flex w-full max-w-[1580px] flex-col gap-6 md:gap-8">
-        {activities.map((activity: MasterActivity) => (
-          <Card
-            key={activity.id}
-            data={{
-              title: activity.title,
-              items: activity.Details_activity.map((detail) => detail.description),
-            }}
-          />
-        ))}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+        <PageIntro
+          eyebrow="پرونده فعالیت"
+          title="حوزه‌های کاری فرابک"
+          description="این صفحه فهرستی از فعالیت‌ها و تخصص‌هایی است که در داده‌های شرکت ثبت شده‌اند؛ برای هر حوزه، جزئیات منتشرشده را دقیق و بدون ادعای اضافه می‌خوانید."
+          actions={
+            <>
+              <ActionLink href="/about-us/projects" variant="secondary">
+                مشاهده پروژه‌ها
+              </ActionLink>
+              <ActionLink href="/contact-us" variant="primary">
+                گفت‌وگو درباره پروژه
+              </ActionLink>
+            </>
+          }
+        />
+
+        {activities.length > 0 ? (
+          <div className="grid gap-5 md:grid-cols-2">
+            {activities.map((activity) => (
+              <section
+                key={activity.id}
+                aria-labelledby={`activity-${activity.id}`}
+                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_16px_36px_rgba(6,26,48,0.06)] sm:p-8"
+              >
+                <p className="mb-3 text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
+                  حوزه ثبت‌شده
+                </p>
+                <h2
+                  id={`activity-${activity.id}`}
+                  className="text-xl leading-9 font-bold text-(--farabak-ink-deep)"
+                >
+                  {activity.title}
+                </h2>
+                <ul className="list-square mt-5 space-y-3 pe-5 leading-8 text-(--farabak-ink-muted)">
+                  {activity.Details_activity.map((detail) => (
+                    <li key={detail.id}>{detail.description}</li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        ) : (
+          <div
+            role="status"
+            className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center"
+          >
+            <h2 className="text-xl font-bold text-(--farabak-ink-deep)">
+              اطلاعات فعالیت‌ها در دسترس نیست
+            </h2>
+            <p className="mt-3 leading-8 text-(--farabak-ink-muted)">
+              برای دریافت اطلاعات دقیق‌تر با تیم فرابک در ارتباط باشید.
+            </p>
+          </div>
+        )}
+
         <section
           aria-labelledby="company-certificates-title"
-          className="border-t border-[#d6e3ee] pt-10 sm:pt-14"
+          className="mt-16 border-t border-slate-200 pt-10 sm:mt-20 sm:pt-14"
         >
           <div className="mb-6 max-w-2xl sm:mb-8">
-            <p className="mb-3 text-sm font-bold tracking-[0.08em] text-[#1265e8]">اسناد شرکت</p>
+            <p className="mb-3 text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
+              اسناد شرکت
+            </p>
             <h2
               id="company-certificates-title"
-              className="text-2xl font-extrabold text-[#061a30] sm:text-3xl"
+              className="text-2xl font-bold text-(--farabak-ink-deep) sm:text-3xl"
             >
               گواهی‌نامه‌ها و افتخارات
             </h2>
-            <p className="mt-3 leading-8 text-[#496278]">
+            <p className="mt-3 leading-8 text-(--farabak-ink-muted)">
               گزیده‌ای از گواهی‌نامه‌ها و اسناد ثبت‌شده شرکت فرابک.
             </p>
           </div>
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.65fr)] lg:items-start">
-            <figure className="overflow-hidden rounded-xl border border-[#d6e3ee] bg-white p-2 shadow-[0_16px_36px_rgba(6,26,48,0.08)] sm:p-3">
-              <Image
+            <figure className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-2 shadow-[0_16px_36px_rgba(6,26,48,0.08)] sm:p-3">
+              <PublicImage
                 src="/about-us/certificates/company-certificates.jpeg"
                 alt="مجموعه گواهی‌نامه‌ها و افتخارات شرکت فرابک"
+                fallbackLabel="تصویر گواهی‌نامه‌ها موجود نیست"
                 width={1306}
                 height={819}
-                className="h-auto w-full rounded-lg"
+                className="h-auto w-full rounded-2xl"
                 sizes="(min-width: 1024px) 64vw, 100vw"
               />
-              <figcaption className="px-2 pt-4 pb-1 text-sm font-medium text-[#496278]">
+              <figcaption className="px-2 pt-4 pb-1 text-sm font-medium text-(--farabak-ink-muted)">
                 مجموعه‌ای از گواهی‌نامه‌ها و تقدیرنامه‌های شرکت
               </figcaption>
             </figure>
-            <figure className="mx-auto w-full max-w-md overflow-hidden rounded-xl border border-[#d6e3ee] bg-white p-2 shadow-[0_16px_36px_rgba(6,26,48,0.08)] sm:p-3 lg:max-w-none">
-              <Image
+            <figure className="mx-auto w-full max-w-md overflow-hidden rounded-3xl border border-slate-200 bg-white p-2 shadow-[0_16px_36px_rgba(6,26,48,0.08)] sm:p-3 lg:max-w-none">
+              <PublicImage
                 src="/about-us/certificates/quality-registration-certificate.jpeg"
                 alt="گواهی ثبت کیفیت شرکت فرابهکاران تصویر هفتم (فرابک)"
+                fallbackLabel="تصویر گواهی ثبت کیفیت موجود نیست"
                 width={900}
                 height={1200}
-                className="h-auto w-full rounded-lg"
+                className="h-auto w-full rounded-2xl"
                 sizes="(min-width: 1024px) 31vw, (min-width: 640px) 448px, 100vw"
               />
-              <figcaption className="px-2 pt-4 pb-1 text-sm font-medium text-[#496278]">
+              <figcaption className="px-2 pt-4 pb-1 text-sm font-medium text-(--farabak-ink-muted)">
                 گواهی ثبت کیفیت — سند آرشیوی
               </figcaption>
             </figure>
           </div>
         </section>
-      </div>
+      </PublicShell>
     </>
   );
 };
 
 export default ActivityPage;
-
-type CardProps = {
-  data: {
-    title: string;
-    items: string[];
-  };
-};

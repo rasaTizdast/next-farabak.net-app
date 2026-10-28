@@ -1,11 +1,12 @@
-import { Metadata } from "next";
-import Link from "next/link";
+import type { Metadata } from "next";
 
-import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import { ActionLink } from "@/components/public/ActionLink";
+import { PageIntro } from "@/components/public/PageIntro";
+import { PublicImage } from "@/components/public/PublicImage";
+import { PublicShell } from "@/components/public/PublicShell";
 import SourcesList from "@/components/SourcesList";
-import SmartImage from "@/components/ui/SmartImage";
 import { buildSourcesFor } from "@/helpers/sources";
-import { getProjects as getProjectsFromData } from "@/lib/data/projects";
+import { getProjects as getProjectsFromData, type ProjectListItem } from "@/lib/data/projects";
 
 export const metadata: Metadata = {
   title: "گالری تصاویر پروژه ها | فرابک",
@@ -16,17 +17,7 @@ export const metadata: Metadata = {
   },
 };
 
-type ProjectData = {
-  id: number;
-  title: string;
-  smallDesc: string;
-  mainImg: string;
-  date: string;
-  location: string;
-  slug: string;
-};
-
-async function getProjects(): Promise<ProjectData[]> {
+async function getProjects(): Promise<ProjectListItem[]> {
   try {
     return await getProjectsFromData();
   } catch (error) {
@@ -35,11 +26,15 @@ async function getProjects(): Promise<ProjectData[]> {
   }
 }
 
-const projectsBreadCrumbs = ["/", "/about-us", "/about-us/projects"];
+const formatDate = (date: string) => {
+  const parsedDate = new Date(date);
+  return Number.isNaN(parsedDate.getTime())
+    ? "تاریخ ثبت نشده"
+    : parsedDate.toLocaleDateString("fa-IR");
+};
 
 const ProjectsPage = async () => {
   const projects = await getProjects();
-
   const structuredData = {
     "@context": "https://schema.org",
     "@type": ["AboutPage", "CollectionPage"],
@@ -47,29 +42,6 @@ const ProjectsPage = async () => {
     description:
       "مشاهده تصاویری از پروژه‌های انجام شده قبلی توسط تیم فرابک، به همراه توضیحات تکمیلی پروژه‌ها",
     url: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/projects`,
-    breadcrumb: {
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "صفحه اصلی",
-          item: process.env.NEXT_PUBLIC_BASE_URL,
-        },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: "درباره ما",
-          item: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us`,
-        },
-        {
-          "@type": "ListItem",
-          position: 3,
-          name: "گالری تصاویر پروژه ها",
-          item: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/projects`,
-        },
-      ],
-    },
     mainEntity: {
       "@type": "ItemList",
       numberOfItems: projects.length,
@@ -80,7 +52,9 @@ const ProjectsPage = async () => {
           "@type": "Project",
           name: project.title,
           description: project.smallDesc,
-          image: `${process.env.LIARA_BUCKET_URL}/${project.mainImg}`,
+          image: project.mainImg
+            ? `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${project.mainImg}`
+            : undefined,
           url: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/projects/${project.slug}`,
           location: {
             "@type": "Place",
@@ -96,63 +70,96 @@ const ProjectsPage = async () => {
     .map((project) => `${project.title} ${project.smallDesc} ${project.location}`)
     .join(" ");
 
-  const jsonLd = JSON.stringify(structuredData);
-
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <div className="w-full max-w-[1580px]">
-        <Breadcrumb breadcrumbs={projectsBreadCrumbs} />
-        <main className="flex flex-wrap items-center justify-center gap-8">
-          {projects.length > 0 ? (
-            projects.map((item) => <Card key={item.id} data={item} />)
-          ) : (
-            <div className="py-8 text-center text-red-500">
-              <p>هیچ پروژه ای یافت نشد</p>
-            </div>
-          )}
-        </main>
-        <SourcesList sources={buildSourcesFor(projectsSourceText)} className="mt-10">
-          <p className="mb-4 text-xs leading-6 text-gray-500">
-            پروژه‌های نمایش‌داده‌شده با تجهیزات رسمی تولیدکنندگان معتبر جهانی مانند Reolink، Smiths
-            Detection و CEIA اجرا شده‌اند. برای آشنایی بیشتر با این تجهیزات می‌توانید به وب‌سایت
-            رسمی تولیدکنندگان و همچنین صفحات پشتیبانی و گارانتی فرابک مراجعه کنید.
-          </p>
-        </SourcesList>
-      </div>
-    </>
-  );
-};
-
-type CardProps = {
-  data: ProjectData;
-};
-
-const Card = ({ data }: CardProps) => {
-  const truncatedDescription =
-    data.smallDesc.length > 160 ? `${data.smallDesc.substring(0, 160)}...` : data.smallDesc;
-
-  return (
-    <div className="relative flex max-w-[300px] flex-col justify-between rounded-lg bg-white p-4 text-start shadow-[0_4px_10px_rgba(0,0,0,0.1)]">
-      <SmartImage
-        src={`${process.env.LIARA_BUCKET_URL}/${data.mainImg}`}
-        alt={data.title}
-        width={1000}
-        height={700}
-        quality={75}
-        className="h-[200px] w-full rounded-lg object-cover"
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <h2 className="mt-4 mb-2 text-[1.1rem]">{data.title}</h2>
-      <div className="font-light">{new Date(data.date).toLocaleDateString("fa")}</div>
-      <div className="font-light">{data.location}</div>
-      <p className="mt-2">{truncatedDescription}</p>
-      <Link
-        href={`projects/${data.slug}`}
-        className="relative mt-6 inline-block w-full overflow-hidden rounded-lg bg-[#1e90ff] px-8 py-2 text-center text-[0.9rem] text-white transition-[transform,color,box-shadow] duration-300 after:absolute after:inset-y-0 after:inset-s-[100%] after:inset-e-0 after:z-[-1] after:bg-[#0e6aff] after:transition-[inset-inline-start,inset-inline-end] after:duration-500 hover:scale-[1.03] hover:text-white hover:shadow-[0_6px_12px_rgba(0,0,0,0.2)] hover:after:inset-s-0 hover:after:inset-e-0"
-      >
-        مشاهده
-      </Link>
-    </div>
+      <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+        <PageIntro
+          eyebrow="آرشیو پروژه‌ها"
+          title="پروژه‌ها، به‌عنوان سابقه منتشرشده"
+          description="این صفحه مجموعه‌ای از پروژه‌هایی است که برای معرفی عمومی ثبت شده‌اند. هر رکورد، تاریخ، موقعیت و توضیح خودش را دارد؛ نمایش یک پروژه به‌تنهایی به معنی موجودی یا دسترسی فعلی نیست."
+          actions={
+            <ActionLink href="/contact-us" variant="primary">
+              درباره پروژه شما گفت‌وگو کنیم
+            </ActionLink>
+          }
+        />
+
+        {projects.length > 0 ? (
+          <section aria-labelledby="projects-list-title">
+            <h2 id="projects-list-title" className="sr-only">
+              فهرست پروژه‌های منتشرشده
+            </h2>
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {projects.map((project) => (
+                <article
+                  key={project.id}
+                  className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_16px_36px_rgba(6,26,48,0.06)]"
+                >
+                  <PublicImage
+                    src={
+                      project.mainImg
+                        ? `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${project.mainImg}`
+                        : null
+                    }
+                    alt={project.title}
+                    fallbackLabel="تصویر این پروژه موجود نیست"
+                    width={1000}
+                    height={700}
+                    className="aspect-10/7 h-auto w-full object-cover"
+                    sizes="(min-width: 1024px) 31vw, (min-width: 768px) 47vw, 100vw"
+                  />
+                  <div className="flex flex-1 flex-col p-6 sm:p-7">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-(--farabak-ink-muted)">
+                      <span>{formatDate(project.date)}</span>
+                      <span aria-hidden="true" className="text-slate-300">
+                        |
+                      </span>
+                      <span>{project.location || "موقعیت ثبت نشده"}</span>
+                    </div>
+                    <h3 className="mt-4 text-xl leading-9 font-bold text-(--farabak-ink-deep)">
+                      {project.title}
+                    </h3>
+                    <p className="mt-3 line-clamp-4 leading-8 text-(--farabak-ink-muted)">
+                      {project.smallDesc}
+                    </p>
+                    <ActionLink
+                      href={`/about-us/projects/${project.slug}`}
+                      variant="secondary"
+                      className="mt-6 w-full"
+                    >
+                      مشاهده پرونده پروژه
+                    </ActionLink>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : (
+          <div
+            role="status"
+            className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center"
+          >
+            <h2 className="text-xl font-bold text-(--farabak-ink-deep)">
+              پروژه‌ای برای نمایش ثبت نشده است
+            </h2>
+            <p className="mt-3 leading-8 text-(--farabak-ink-muted)">
+              برای بررسی راهکار مناسب، مسیر گفت‌وگو با تیم فرابک باز است.
+            </p>
+          </div>
+        )}
+
+        <SourcesList sources={buildSourcesFor(projectsSourceText)} className="mt-12">
+          <span>
+            این بخش برای شفافیت داده‌های معرفی‌شده است. برای بررسی مشخصات تجهیزات، شرایط فعلی و
+            امکان اجرای پروژه جدید، اطلاعات پرونده را با تیم فرابک تطبیق دهید.
+          </span>
+        </SourcesList>
+      </PublicShell>
+    </>
   );
 };
 

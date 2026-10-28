@@ -1,10 +1,11 @@
-import { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { FaPhoneAlt, FaWhatsapp } from "react-icons/fa";
 
-import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import { ActionLink } from "@/components/public/ActionLink";
+import { PageIntro } from "@/components/public/PageIntro";
+import { PublicImage } from "@/components/public/PublicImage";
+import { PublicShell } from "@/components/public/PublicShell";
 import { getMemberPage } from "@/lib/data/members";
 
 type Props = {
@@ -34,8 +35,6 @@ export const generateMetadata = async (props: Props): Promise<Metadata> => {
   };
 };
 
-const memberBreadcrumbs = ["/", "/about-us", "/about-us/members"];
-
 const MemberPage = async (props: Props) => {
   const params = await props.params;
   const memberData = await getMemberPage(params.member);
@@ -47,21 +46,22 @@ const MemberPage = async (props: Props) => {
   const {
     Name: name,
     Role: role,
-    main_description: desc,
-    main_pic: img,
+    main_description: description,
+    main_pic: image,
     phonenumber: phone,
   } = memberData;
-
   const memberUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/members/${params.member}`;
-
+  const imageUrl = image
+    ? `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/member-images/${image}`
+    : null;
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Person",
     "@id": memberUrl,
     name,
     jobTitle: role,
-    description: desc || undefined,
-    image: img ? `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/member-images/${img}` : undefined,
+    description: description || undefined,
+    image: imageUrl || undefined,
     url: memberUrl,
     worksFor: {
       "@id": "https://farabak.net",
@@ -74,19 +74,6 @@ const MemberPage = async (props: Props) => {
       name: "Iran",
     },
     knowsAbout: ["دوربین مداربسته", "ایکس‌ری", "فلزیاب", "نظارت تصویری"],
-    keywords: [
-      ...new Set(
-        [
-          ...(role ? role.split(/\s+/) : []),
-          "فرابک",
-          "هیئت مدیره",
-          "دوربین مداربسته",
-          "نظارت تصویری",
-          "فلزیاب",
-          "ایکس‌ری",
-        ].filter((word) => word.length >= 2)
-      ),
-    ],
     contactPoint: phone
       ? {
           "@type": "ContactPoint",
@@ -95,59 +82,88 @@ const MemberPage = async (props: Props) => {
         }
       : undefined,
   };
-  const jsonLd = JSON.stringify(structuredData);
 
   return (
     <>
-      <div className="w-full max-w-[1580px]">
-        <Breadcrumb breadcrumbs={memberBreadcrumbs} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-        <section className="flex w-full flex-col flex-wrap items-stretch justify-between gap-8 lg:flex-row">
-          <div className="w-full max-w-[1000px] rounded-lg bg-white p-5 text-justify text-base leading-[2.2rem] shadow-[0_3px_8px_rgba(0,0,0,0.1)] md:p-8 lg:w-[60%]">
-            <h1 className="mb-2 text-[1.4rem] font-extrabold">{name}</h1>
-            <h3 className="mb-8 font-normal">{role}</h3>
-            {desc ? (
-              <p className="whitespace-pre-wrap">{desc}</p>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+        <PageIntro
+          eyebrow="آرشیو اعضای هیئت‌مدیره"
+          title={name}
+          description={role}
+          actions={
+            <ActionLink href="/about-us/members" variant="secondary">
+              بازگشت به فهرست اعضا
+            </ActionLink>
+          }
+        />
+
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+          <section
+            aria-labelledby="member-bio-title"
+            className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_16px_36px_rgba(6,26,48,0.06)] sm:p-10"
+          >
+            <p className="mb-3 text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
+              معرفی منتشرشده
+            </p>
+            <h2 id="member-bio-title" className="text-2xl font-bold text-(--farabak-ink-deep)">
+              درباره {name}
+            </h2>
+            {description ? (
+              <p className="mt-7 text-justify leading-[2.2] whitespace-pre-wrap text-(--farabak-ink-muted)">
+                {description}
+              </p>
             ) : (
-              <p className="w-full rounded-lg bg-blue-100 p-3 text-center">
-                برای این عضو اطلاعاتی یافت نشد، مجددا بعدا تلاش کنید
+              <p
+                role="status"
+                className="mt-7 rounded-2xl bg-slate-100 p-5 text-center leading-8 text-slate-600"
+              >
+                برای این عضو اطلاعات تکمیلی منتشر نشده است.
               </p>
             )}
-          </div>
-          <aside className="static flex h-fit w-full max-w-[500px] flex-col items-center gap-8 rounded-lg bg-white p-5 shadow-[0_3px_8px_rgba(0,0,0,0.1)] md:p-8 lg:sticky lg:top-[100px] lg:w-[35%]">
-            {img ? (
-              <Image
-                src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/member-images/${img}`}
-                alt={name}
-                width={400}
-                height={300}
-                quality={75}
-                className="h-[90%] w-full rounded-lg object-cover"
-              />
-            ) : (
-              <div className="flex h-96 w-full items-center justify-center rounded-lg bg-blue-100 p-3">
-                تصویری برای این عضو یافت نشد
+          </section>
+
+          <aside className="space-y-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_16px_36px_rgba(6,26,48,0.06)] sm:p-7 lg:sticky lg:top-28">
+            <PublicImage
+              src={imageUrl}
+              alt={name}
+              fallbackLabel="تصویر این عضو موجود نیست"
+              width={600}
+              height={480}
+              className="aspect-5/4 h-auto w-full rounded-2xl object-cover"
+              sizes="(min-width: 1024px) 352px, 100vw"
+            />
+            {phone ? (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                <a
+                  href={`https://wa.me/${phone}`}
+                  className="flex min-h-12 items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-(--farabak-ink-deep) transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:outline-none"
+                >
+                  <span>واتس‌اپ</span>
+                  <FaWhatsapp aria-hidden="true" size={20} />
+                </a>
+                <a
+                  href={`tel:${phone}`}
+                  className="flex min-h-12 items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-(--farabak-ink-deep) transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:outline-none"
+                >
+                  <span>تماس مستقیم</span>
+                  <FaPhoneAlt aria-hidden="true" size={18} />
+                </a>
+                <span className="sr-only">
+                  شماره تماس: <bdi dir="ltr">{phone}</bdi>
+                </span>
               </div>
+            ) : (
+              <p className="rounded-2xl bg-slate-100 p-4 text-center text-sm leading-7 text-slate-600">
+                راه ارتباطی مستقیمی برای این عضو ثبت نشده است.
+              </p>
             )}
-            <div className="flex w-full flex-col gap-6 md:flex-row md:flex-wrap md:items-center md:justify-center md:gap-6">
-              <Link
-                href={`https://wa.me/${phone}`}
-                className="relative z-1 flex w-full items-center justify-between overflow-hidden rounded-lg bg-[#7bdeff33] p-4 text-inherit no-underline shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[color,box-shadow] duration-300 after:absolute after:inset-y-0 after:inset-s-[100%] after:inset-e-0 after:z-[-1] after:bg-[#318ce7] after:transition-[inset-inline-start,inset-inline-end] after:duration-500 hover:text-white hover:shadow-[0_6px_12px_rgba(0,0,0,0.2)] hover:after:inset-s-0 hover:after:inset-e-0"
-              >
-                <div>واتس‌آپ</div>
-                <FaWhatsapp size={20} />
-              </Link>
-              <Link
-                href={`tel:${phone}`}
-                className="relative z-1 flex w-full items-center justify-between overflow-hidden rounded-lg bg-[#7bdeff33] p-4 text-inherit no-underline shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-[color,box-shadow] duration-300 after:absolute after:inset-y-0 after:inset-s-[100%] after:inset-e-0 after:z-[-1] after:bg-[#318ce7] after:transition-[inset-inline-start,inset-inline-end] after:duration-500 hover:text-white hover:shadow-[0_6px_12px_rgba(0,0,0,0.2)] hover:after:inset-s-0 hover:after:inset-e-0"
-              >
-                <div>شماره تماس</div>
-                <FaPhoneAlt size={20} />
-              </Link>
-            </div>
           </aside>
-        </section>
-      </div>
+        </div>
+      </PublicShell>
     </>
   );
 };

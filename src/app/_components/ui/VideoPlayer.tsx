@@ -2,13 +2,20 @@ type Props = { url: string };
 
 const VideoPlayer = ({ url }: Props) => {
   return (
-    <div className="mx-auto my-8 flex w-full flex-col items-center px-4">
-      <div className="h-[2px] w-full bg-[#969696]"></div>
-      <h1 className="mb-8 self-start text-[1.1rem] md:self-center">کلیپ معرفی پروژه</h1>
-      <video className="h-auto w-full max-w-[1100px] rounded-lg" controls>
+    <section
+      aria-labelledby="project-video-title"
+      className="mx-auto mt-10 flex w-full flex-col items-center border-t border-slate-200 pt-8"
+    >
+      <h2
+        id="project-video-title"
+        className="mb-6 self-start text-xl font-bold text-(--farabak-ink-deep) md:self-center"
+      >
+        ویدیوی ثبت‌شده پروژه
+      </h2>
+      <video className="h-auto w-full max-w-[1100px] rounded-2xl" controls preload="metadata">
         <source src={url} type="video/mp4" />
       </video>
-    </div>
+    </section>
   );
 };
 
