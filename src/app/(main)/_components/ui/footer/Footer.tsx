@@ -3,6 +3,7 @@ import { BsFillSignpostSplitFill } from "react-icons/bs";
 import { FaInstagram, FaPhoneSquare, FaWhatsapp } from "react-icons/fa";
 
 import Link from "@/components/NoPrefetchLink";
+import { PublicShell } from "@/components/public/PublicShell";
 import { getContactInfo } from "@/lib/data/contactUs";
 
 const Footer = async () => {
@@ -12,8 +13,8 @@ const Footer = async () => {
   const { address, phone_numbers } = await getContactInfo();
 
   return (
-    <footer className="w-full bg-[#000814] px-6 py-12 text-[#cecece] min-[992px]:px-16 min-[1200px]:px-24 md:px-12 md:py-14 2xl:px-40">
-      <div className="mx-auto flex w-full max-w-[1580px] flex-col gap-10">
+    <footer className="w-full bg-[#000814] py-12 text-[#cecece] md:py-14">
+      <PublicShell className="flex flex-col gap-10">
         <div className="grid w-full grid-cols-1 gap-x-8 gap-y-10 border-b border-[#2a425b] pb-10 sm:grid-cols-2 lg:grid-cols-4">
           <nav
             aria-label="صفحات اصلی"
@@ -205,7 +206,7 @@ const Footer = async () => {
             کلیه حقوق مادی و معنوی این سایت متعلق به شرکت فرابک می‌باشد &copy; {currentYear}
           </p>
         </div>
-      </div>
+      </PublicShell>
     </footer>
   );
 };

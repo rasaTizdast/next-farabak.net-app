@@ -53,7 +53,10 @@ const HamburgerMenu = ({ categories }: HamburgerMenuProps) => {
   useEffect(() => {
     if (!isOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        document.querySelector<HTMLElement>(".hamburger-react")?.focus();
+      }
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
@@ -76,10 +79,11 @@ const HamburgerMenu = ({ categories }: HamburgerMenuProps) => {
         toggle={setOpen}
         size={34}
         color="#fff"
+        label={isOpen ? "بستن منو" : "باز کردن منو"}
         easing="ease-in-out"
         duration={0.3}
         rounded
-        hideOutline={true}
+        hideOutline={false}
       />
 
       <button

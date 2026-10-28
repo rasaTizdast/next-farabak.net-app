@@ -4,6 +4,8 @@ import Image from "next/image";
 import { Suspense } from "react";
 
 import Link from "@/components/NoPrefetchLink";
+import { ActionLink } from "@/components/public/ActionLink";
+import { PublicShell } from "@/components/public/PublicShell";
 import { blackwonderCategoryHref, blackwonderHeroSrc } from "@/content/blackwonder-products";
 import { HISTORY_START_YEAR } from "@/content/homepage-proof";
 import { landingAssets } from "@/content/landing-assets";
@@ -14,18 +16,16 @@ import { resolveHomepageImage } from "@/lib/homepage-proof";
 import LandingExperience from "./LandingExperience";
 import RangeInstrument from "./RangeInstrument";
 
-const shell =
-  "mx-auto w-full max-w-[1900px] px-6 md:px-12 min-[992px]:px-16 min-[1200px]:px-24 2xl:px-40";
 const focus =
-  "focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-[#56bcff]";
-const action =
-  "group inline-flex min-h-12 items-center justify-center gap-4 px-5 py-3 text-[15px] font-semibold no-underline transition-[transform,background-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98] " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2";
+const primaryAction =
+  "group inline-flex min-h-12 items-center justify-center gap-4 px-5 py-3 text-[15px] font-semibold no-underline transition-[transform,background-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98] bg-(--farabak-action-blue) text-white hover:bg-[#0751c1] " +
   focus;
-const primaryAction = `${action} bg-[#1265e8] text-white hover:bg-[#0751c1]`;
-const ledWallAction = `${action} bg-white text-[#0c3c7d] hover:bg-[#d9ebff]`;
+const ledWallAction =
+  "group inline-flex min-h-12 items-center justify-center gap-4 bg-white px-5 py-3 text-[15px] font-semibold text-[#0c3c7d] no-underline transition-[transform,background-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98] hover:bg-[#d9ebff] " +
+  focus;
 const textLink =
-  "group inline-flex min-h-11 items-center gap-2 text-[15px] font-semibold underline decoration-current/40 underline-offset-6 transition-[color,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[#1265e8] " +
-  focus;
+  "group inline-flex min-h-11 items-center gap-2 text-[15px] font-semibold underline decoration-current/40 underline-offset-6 transition-[color,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[#1265e8]";
 const cut =
   "[clip-path:polygon(0_0,calc(100%_-_24px)_0,100%_24px,100%_100%,24px_100%,0_calc(100%_-_24px))]";
 const digits = (value: number) =>
@@ -58,10 +58,10 @@ function SectionTitle({
         )}
       </div>
       {href && (
-        <Link className={textLink} href={href}>
+        <ActionLink className={textLink} href={href} variant="quiet">
           {linkLabel}
           <ArrowUpLeft size={18} strokeWidth={1.4} aria-hidden="true" />
-        </Link>
+        </ActionLink>
       )}
     </div>
   );
@@ -89,7 +89,7 @@ function Hero() {
       className="overflow-hidden bg-[#061a30] py-10 text-white md:pt-16 lg:pt-20"
       aria-labelledby="home-heading"
     >
-      <div className={shell}>
+      <PublicShell>
         <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-12 2xl:gap-20">
           <div className="relative z-1">
             <h1
@@ -147,7 +147,7 @@ function Hero() {
           </div>
           <RangeInstrument items={items} />
         </div>
-      </div>
+      </PublicShell>
     </section>
   );
 }
@@ -168,7 +168,7 @@ function Evidence() {
   ];
   return (
     <nav className="bg-[#e8f0f6] py-8 md:py-11" aria-label="پشتوانه انتخاب فرابک">
-      <div className={shell}>
+      <PublicShell>
         <div className="grid gap-7 md:grid-cols-3 md:gap-10">
           {facts.map((fact, index) => (
             <Link
@@ -188,7 +188,7 @@ function Evidence() {
             </Link>
           ))}
         </div>
-      </div>
+      </PublicShell>
     </nav>
   );
 }
@@ -227,7 +227,7 @@ function StoryChapter({ story, index }: { story: LandingStory; index: number }) 
       className={`scroll-mt-24 overflow-hidden py-20 md:py-28 xl:py-36 ${chapterSurface[index]}`}
       aria-labelledby={`story-${story.key}-heading`}
     >
-      <div className={shell}>
+      <PublicShell>
         <div className={`grid items-center gap-10 lg:gap-16 ${chapterGrid[index]}`}>
           <div className={`min-w-0 ${mediaFirst ? "lg:order-2" : ""}`}>
             <h2
@@ -346,7 +346,7 @@ function StoryChapter({ story, index }: { story: LandingStory; index: number }) 
             </figcaption>
           </figure>
         </div>
-      </div>
+      </PublicShell>
     </section>
   );
 }
@@ -358,7 +358,7 @@ function BlackwonderRange() {
       id="blackwonder-range"
       aria-labelledby="blackwonder-heading"
     >
-      <div className={shell}>
+      <PublicShell>
         <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
           <div className="min-w-0">
             <p className="text-sm font-bold tracking-[0.18em] text-[#1265e8] uppercase">
@@ -410,7 +410,7 @@ function BlackwonderRange() {
             </figcaption>
           </figure>
         </div>
-      </div>
+      </PublicShell>
     </section>
   );
 }
@@ -425,7 +425,7 @@ function Projects({
       id="published-work"
       aria-labelledby="projects-heading"
     >
-      <div className={shell}>
+      <PublicShell>
         <SectionTitle
           id="projects-heading"
           title="کار را از نزدیک ببینید"
@@ -506,7 +506,7 @@ function Projects({
             </Link>
           </div>
         )}
-      </div>
+      </PublicShell>
     </section>
   );
 }
@@ -518,7 +518,7 @@ function Knowledge({ blogs }: Pick<HomepageData, "blogs">) {
       id="knowledge"
       aria-labelledby="knowledge-heading"
     >
-      <div className={shell}>
+      <PublicShell>
         <SectionTitle
           id="knowledge-heading"
           title="پیش از انتخاب، بخوانید"
@@ -573,7 +573,7 @@ function Knowledge({ blogs }: Pick<HomepageData, "blogs">) {
             رفتن به کتابخانه مقاله‌ها <ArrowUpLeft size={18} aria-hidden="true" />
           </Link>
         )}
-      </div>
+      </PublicShell>
     </section>
   );
 }
@@ -600,7 +600,7 @@ function Support() {
       className="bg-[#09243b] py-20 text-white md:py-28 xl:py-36"
       aria-labelledby="support-heading"
     >
-      <div className={shell}>
+      <PublicShell>
         <div className="grid gap-12 lg:grid-cols-[1fr_0.85fr] lg:gap-20">
           <div data-reveal>
             <h2
@@ -644,7 +644,7 @@ function Support() {
             </div>
           </div>
         </div>
-      </div>
+      </PublicShell>
     </section>
   );
 }
@@ -652,7 +652,7 @@ function Support() {
 function Closing() {
   return (
     <section className="bg-[#f4f7fa] py-20 md:py-28" aria-labelledby="closing-heading">
-      <div className={shell}>
+      <PublicShell>
         <div className={`bg-[#1265e8] px-7 py-12 text-white md:px-14 md:py-20 xl:px-20 ${cut}`}>
           <h2
             id="closing-heading"
@@ -683,7 +683,7 @@ function Closing() {
             </Link>
           </div>
         </div>
-      </div>
+      </PublicShell>
     </section>
   );
 }

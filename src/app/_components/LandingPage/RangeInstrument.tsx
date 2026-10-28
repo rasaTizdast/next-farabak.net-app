@@ -2,8 +2,9 @@
 
 import { ArrowDownLeft, ArrowUpLeft } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+
+import { ActionLink } from "@/components/public/ActionLink";
 
 type RangeItem = {
   key: string;
@@ -161,12 +162,13 @@ export default function RangeInstrument({ items }: Props) {
                 {" · "}
                 {active.categoryLabel}
               </strong>
-              <Link
-                className="inline-flex min-h-9 items-center gap-2 text-sm font-semibold text-white underline underline-offset-5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#56bcff]"
+              <ActionLink
+                className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-white underline underline-offset-5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#56bcff]"
                 href={active.href}
+                variant="quiet"
               >
                 دیدن این حوزه <ArrowUpLeft size={16} strokeWidth={1.4} aria-hidden="true" />
-              </Link>
+              </ActionLink>
             </span>
             <span className="mt-1 block text-sm leading-6 text-[#d3e4f0]">{active.caption}</span>
           </figcaption>
