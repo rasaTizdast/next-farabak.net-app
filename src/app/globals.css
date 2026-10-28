@@ -58,6 +58,11 @@
 
 @layer base {
   :root {
+    --farabak-action-blue: #1265e8;
+    --farabak-ink-deep: #061a30;
+    --farabak-ink-muted: #52657d;
+    --farabak-paper: #f7f9fc;
+    --farabak-signal-cyan: #00bfff;
     --font-family: var(--font-iran-yekan);
     --background: 0 0% 94%;
     --foreground: 221 39% 11%;
@@ -93,6 +98,11 @@
 
   html {
     scroll-behavior: smooth;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--farabak-action-blue);
+    outline-offset: 3px;
   }
 
   body {
@@ -179,6 +189,21 @@
 
   .file-input {
     @apply w-full rounded-md border border-gray-300 px-4 py-2 text-gray-900 file:cursor-pointer file:rounded-md file:bg-blue-500 file:px-4 file:py-2 file:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
