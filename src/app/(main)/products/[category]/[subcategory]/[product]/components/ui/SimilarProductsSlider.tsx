@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRef, useState, useEffect, useCallback } from "react";
 
-import SmartImage from "@/components/ui/SmartImage";
+import ProductCard, { type ProductCardData } from "@/app/(main)/products/_components/ProductCard";
 
 type SliderProduct = {
   ProductId: number;
@@ -204,10 +203,10 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
 
   return (
     <section aria-labelledby="similar-products-heading" className="mt-12">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <h2
           id="similar-products-heading"
-          className="mb-8 border-b-2 border-dashed border-[#cecece] pb-6 text-start text-2xl font-semibold"
+          className="mb-6 text-start text-xl font-bold text-(--farabak-ink-deep) sm:text-2xl"
         >
           {title}
         </h2>
@@ -216,7 +215,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
             type="button"
             aria-label="قبلی"
             onClick={() => scrollBy(1)}
-            className="rounded-full border border-gray-300 bg-white p-2 text-gray-700 shadow-sm hover:bg-gray-50"
+            className="inline-flex size-11 items-center justify-center rounded-full border border-(--farabak-ink-deep)/15 bg-white text-(--farabak-ink-deep) shadow-sm hover:bg-(--farabak-paper) focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:outline-none"
           >
             <span className="inline-block">{"<"}</span>
           </button>
@@ -224,7 +223,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
             type="button"
             aria-label="بعدی"
             onClick={() => scrollBy(-1)}
-            className="rounded-full border border-gray-300 bg-white p-2 text-gray-700 shadow-sm hover:bg-gray-50"
+            className="inline-flex size-11 items-center justify-center rounded-full border border-(--farabak-ink-deep)/15 bg-white text-(--farabak-ink-deep) shadow-sm hover:bg-(--farabak-paper) focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:outline-none"
           >
             <span>{">"}</span>
           </button>
@@ -235,7 +234,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
 
       <div
         ref={scrollerRef}
-        role="application"
+        role="region"
         aria-label="لیست محصولات مشابه"
         tabIndex={0}
         onKeyDown={(e) => {
@@ -244,7 +243,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
           if (e.key === "ArrowRight")
             scrollerRef.current?.scrollBy({ left: 200, behavior: "smooth" });
         }}
-        className={`hide-scrollbar relative mt-2 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2`}
+        className="hide-scrollbar relative mt-2 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2"
         style={{
           scrollBehavior: isDragging ? "auto" : "smooth",
           cursor: isDragging ? "grabbing" : "grab",
@@ -253,47 +252,13 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
         onTouchStart={handleTouchStart}
       >
         {products.map((product) => (
-          <Link
-            key={product.ProductId}
-            href={`/products/${product.link}`}
-            className="xs:hover:scale-105 flex h-auto shrink-0 snap-start flex-col items-center justify-between rounded-lg border border-[#ddd] bg-white p-4 text-center shadow-[2px_2px_12px_rgba(0,0,0,0.05)] transition-transform duration-300"
-            style={{ width: 260 }}
-          >
-            <SmartImage
-              width={260}
-              height={260}
-              quality={75}
-              src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/productImages/${product.img1 ?? ""}`}
-              alt={product.Type}
-              loading="lazy"
-              className="mb-8 aspect-square w-full object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.1)] filter"
+          <div key={product.ProductId} className="w-65 shrink-0 snap-start">
+            <ProductCard
+              product={product as ProductCardData}
+              usdRate={usdRate}
+              isValidRate={Boolean(isValidRate)}
             />
-            <h2>{product.Type}</h2>
-            <div className="mt-3 font-extralight">
-              {product.Price === null || product.Price === undefined || +product.Price === 0 ? (
-                <span className="text-gray-600">برای ثبت سفارش با بخش فروش تماس بگیرید</span>
-              ) : !isValidRate ? (
-                <span className="font-medium text-gray-600">برای دریافت قیمت تماس بگیرید</span>
-              ) : product.Discount && +product.Discount > 0 ? (
-                <div className="flex flex-col items-center gap-1 text-lg">
-                  <span className="font-light text-gray-500 line-through">
-                    {Math.floor(+product.Price * (usdRate as number)).toLocaleString("fa-IR") +
-                      " تومان"}
-                  </span>
-                  <span className="font-semibold">
-                    {Math.floor(
-                      (+product.Price - +product.Discount) * (usdRate as number)
-                    ).toLocaleString("fa-IR") + " تومان"}
-                  </span>
-                </div>
-              ) : (
-                <span className="text-lg font-semibold text-gray-900">
-                  {Math.floor(+product.Price * (usdRate as number)).toLocaleString("fa-IR") +
-                    " تومان"}
-                </span>
-              )}
-            </div>
-          </Link>
+          </div>
         ))}
       </div>
     </section>

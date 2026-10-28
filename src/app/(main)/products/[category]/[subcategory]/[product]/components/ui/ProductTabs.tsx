@@ -4,87 +4,62 @@ import { useEffect, useRef, useState } from "react";
 
 const HEADER_GAP = 12;
 
+const tabs = [
+  { id: "overview", label: "توضیحات" },
+  { id: "blog", label: "توضیحات تکمیلی" },
+  { id: "specs", label: "مشخصات" },
+  { id: "faq", label: "سوالات" },
+] as const;
+
 const ProductTabs = () => {
   const navRef = useRef<HTMLElement | null>(null);
   const [stickyTop, setStickyTop] = useState<number | null>(null);
 
   useEffect(() => {
     const header = document.querySelector("header");
-
     if (!header) return;
 
-    const measureHeader = () => {
-      setStickyTop(header.offsetHeight + HEADER_GAP);
-    };
-
+    const measureHeader = () => setStickyTop(header.offsetHeight + HEADER_GAP);
     measureHeader();
-
     const observer = new ResizeObserver(measureHeader);
     observer.observe(header);
-
     return () => observer.disconnect();
   }, []);
 
-  // Scroll function with offset
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
+    if (!element) return;
+
     const headerHeight = document.querySelector("header")?.offsetHeight ?? 0;
     const navHeight = navRef.current?.offsetHeight ?? 0;
+    const yOffset = -(headerHeight + HEADER_GAP + navHeight + 8);
+    const yPosition = element.getBoundingClientRect().top + window.scrollY + yOffset;
 
-    if (element) {
-      const yOffset = -(headerHeight + HEADER_GAP + navHeight + 8);
-      const yPosition = element.getBoundingClientRect().top + window.scrollY + yOffset;
-
-      window.scrollTo({
-        top: yPosition,
-        behavior: "smooth",
-      });
-    }
+    window.scrollTo({ top: yPosition, behavior: "smooth" });
   };
 
   return (
     <nav
       ref={navRef}
+      aria-label="بخش‌های محصول"
       style={stickyTop !== null ? { top: `${stickyTop}px` } : undefined}
-      className="sticky top-[100px] z-5 mx-auto my-8 flex w-full items-center justify-center rounded-[5px] bg-[#2774c0] text-center text-white shadow-[0_4px_10px_4px_rgba(0,0,0,0.2)]"
+      className="sticky z-5 mx-auto my-8 w-full overflow-x-auto rounded-xl border border-(--farabak-ink-deep)/10 bg-(--farabak-ink-deep) shadow-[0_12px_30px_rgba(6,26,48,0.14)]"
     >
-      <ul className="flex w-[80%] list-none items-center justify-evenly max-[576px]:w-full">
-        <li className="cursor-pointer px-2 py-[0.8rem] text-[clamp(0.8rem,1.7vw,1rem)] transition-colors duration-200 max-[400px]:text-[0.7rem]">
-          <button
-            type="button"
-            className="cursor-pointer text-white transition-colors"
-            onClick={() => scrollToSection("overview")}
-          >
-            توضیحات
-          </button>
-        </li>
-        <li className="cursor-pointer px-2 py-[0.8rem] text-[clamp(0.8rem,1.7vw,1rem)] transition-colors duration-200 max-[400px]:text-[0.7rem]">
-          <button
-            type="button"
-            className="cursor-pointer text-white transition-colors"
-            onClick={() => scrollToSection("blog")}
-          >
-            توضیحات تکمیلی
-          </button>
-        </li>
-        <li className="cursor-pointer px-2 py-[0.8rem] text-[clamp(0.8rem,1.7vw,1rem)] transition-colors duration-200 max-[400px]:text-[0.7rem]">
-          <button
-            type="button"
-            className="cursor-pointer text-white transition-colors"
-            onClick={() => scrollToSection("specs")}
-          >
-            مشخصات
-          </button>
-        </li>
-        <li className="cursor-pointer px-2 py-[0.8rem] text-[clamp(0.8rem,1.7vw,1rem)] transition-colors duration-200 max-[400px]:text-[0.7rem]">
-          <button
-            type="button"
-            className="cursor-pointer text-white transition-colors"
-            onClick={() => scrollToSection("faq")}
-          >
-            سوالات
-          </button>
-        </li>
+      <ul className="flex min-w-max items-center justify-center gap-1 p-1 sm:gap-2">
+        {tabs.map((tab) => (
+          <li key={tab.id}>
+            <a
+              href={`#${tab.id}`}
+              onClick={(event) => {
+                event.preventDefault();
+                scrollToSection(tab.id);
+              }}
+              className="inline-flex min-h-11 items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:ring-offset-(--farabak-ink-deep) focus-visible:outline-none sm:px-5"
+            >
+              {tab.label}
+            </a>
+          </li>
+        ))}
       </ul>
     </nav>
   );

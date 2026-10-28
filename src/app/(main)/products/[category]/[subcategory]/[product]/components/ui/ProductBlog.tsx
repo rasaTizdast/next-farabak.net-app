@@ -59,7 +59,7 @@ type Props = {
 const ProductBlog = ({ productBlog }: Props) => {
   if (!productBlog) {
     return (
-      <div className="mt-5 rounded-lg bg-gray-200 p-5 text-center text-lg font-bold shadow-lg">
+      <div className="mt-5 rounded-2xl border border-dashed border-(--farabak-ink-deep)/15 bg-(--farabak-paper) p-8 text-center text-sm font-semibold text-(--farabak-ink-muted) shadow-sm">
         توضیحات تکمیلی برای این محصول یافت نشد
       </div>
     );
@@ -72,10 +72,12 @@ const ProductBlog = ({ productBlog }: Props) => {
 
   return (
     <div>
-      <article className="mx-auto mt-5 w-full max-w-[1580px] rounded-lg bg-gray-300 p-5 shadow-lg">
-        <div className="mb-5 text-center text-2xl font-bold">توضیحات تکمیلی محصول</div>
+      <article className="mx-auto mt-5 w-full max-w-[1580px] rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-4 shadow-[0_18px_45px_rgba(6,26,48,0.06)] sm:p-7">
+        <div className="mb-5 text-start text-xl font-bold text-(--farabak-ink-deep) sm:text-2xl">
+          توضیحات تکمیلی محصول
+        </div>
         <div
-          className="prose-view overflow-wrap-break-word word-wrap-break-word word-break-break-word max-w-none rounded-lg bg-gray-200 p-5 hyphens-auto shadow-md"
+          className="prose-view overflow-wrap-break-word word-wrap-break-word word-break-break-word max-w-none rounded-xl bg-(--farabak-paper) p-4 hyphens-auto sm:p-6"
           style={{
             overflowWrap: "break-word",
             wordWrap: "break-word",

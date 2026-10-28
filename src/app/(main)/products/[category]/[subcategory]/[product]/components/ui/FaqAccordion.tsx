@@ -29,9 +29,10 @@ const FaqAccordion = ({ faqs }: FaqAccordionProps) => {
             <button
               type="button"
               onClick={() => toggleFaq(faq.FAQsId)}
+              id={`faq-question-${faq.FAQsId}`}
               aria-expanded={isOpen}
               aria-controls={`faq-answer-${faq.FAQsId}`}
-              className="flex w-full items-start justify-between gap-3 bg-gray-50 px-4 py-3.5 text-right transition-colors hover:bg-gray-100 max-[576px]:px-3"
+              className="flex min-h-14 w-full items-start justify-between gap-3 bg-(--farabak-paper) px-4 py-3.5 text-right transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:outline-none focus-visible:ring-inset max-[576px]:px-3"
             >
               <span className="w-[97%] text-right text-[0.95rem] font-medium wrap-break-word break-all text-gray-800">
                 {faq.Title}
@@ -42,10 +43,10 @@ const FaqAccordion = ({ faqs }: FaqAccordionProps) => {
             </button>
             <div
               id={`faq-answer-${faq.FAQsId}`}
-              aria-hidden={!isOpen}
-              className={`overflow-hidden transition-[max-height,padding] duration-300 ease-in-out ${
-                isOpen ? "p-4" : "max-h-0"
-              }`}
+              role="region"
+              aria-labelledby={`faq-question-${faq.FAQsId}`}
+              hidden={!isOpen}
+              className="overflow-hidden border-t border-(--farabak-ink-deep)/10 p-4"
             >
               <p className="text-[0.9rem] leading-7 wrap-break-word whitespace-pre-wrap text-gray-700">
                 {faq.Description}

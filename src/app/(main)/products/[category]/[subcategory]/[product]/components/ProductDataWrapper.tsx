@@ -4,7 +4,6 @@ import { Suspense } from "react";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import SourcesList from "@/components/SourcesList";
-import SmartImage from "@/components/ui/SmartImage";
 import { BRAND_LABELS, buildSourcesFor, detectBrand } from "@/helpers/sources";
 import { getProductBySlug } from "@/lib/data/products";
 import { getPriceValidUntil } from "@/utils/priceValidUntil";
@@ -13,6 +12,7 @@ import ClientInvoiceSection from "./ui/ClientInvoiceSection";
 import ProductBlog from "./ui/ProductBlog";
 import ProductFaq from "./ui/ProductFaq";
 import ProductFeatures from "./ui/ProductFeatures";
+import ProductGallery from "./ui/ProductGallery";
 import ProductOverview from "./ui/ProductOverviewDetails";
 import ProductSpecs from "./ui/ProductSpecs";
 import ProductTabs from "./ui/ProductTabs";
@@ -30,7 +30,8 @@ interface ProductData {
   ProductId: number;
   Name: string;
   Type: string;
-  img2: string;
+  img1: string | null;
+  img2: string | null;
   Price: string;
   Discount: string;
   Description: string;
@@ -104,6 +105,13 @@ export default async function ProductDataWrapper({
 
   const brandToken = detectBrand(productData.Type);
   const brandName = brandToken ? BRAND_LABELS[brandToken] : "فرابک";
+  const productTitle = productData.Name || productData.Type || "محصول فرابک";
+  const bucketUrl = process.env.LIARA_BUCKET_URL || process.env.NEXT_PUBLIC_LIARA_BUCKET_URL || "";
+  const imageUrl = (image: string | null) => {
+    if (!image) return null;
+    if (image.startsWith("http") || image.startsWith("/")) return image;
+    return `${bucketUrl}/productImages/${image}`;
+  };
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -113,7 +121,7 @@ export default async function ProductDataWrapper({
         "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
         name: productData.Type,
         description: productData.Description,
-        image: `${process.env.LIARA_BUCKET_URL}/productImages/${productData.img2}`,
+        image: imageUrl(productData.img2),
         url: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
         category: `${productData.categorySlug}/${productData.subCategorySlug}`,
         model: productData.Type,
@@ -188,31 +196,59 @@ export default async function ProductDataWrapper({
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <Breadcrumb breadcrumbs={breadCrumbs} />
-      <section className="flex flex-[3_1] justify-between gap-8 max-[950px]:flex-col">
-        <SmartImage
-          src={`${process.env.LIARA_BUCKET_URL}/productImages/${productData.img2}`}
-          alt={productData.Type}
-          width={1340}
-          height={780}
-          quality={75}
-          priority
-          className="aspect-1340/780 w-[60%] flex-[2.5] self-start rounded-md object-contain shadow-[0_4px_10px_rgba(0,0,0,0.2)] max-[950px]:w-full min-[2000px]:flex-3"
-        />
+      <section aria-labelledby="product-dossier-title" className="py-4 md:py-8">
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
+          <ProductGallery
+            title={productTitle}
+            images={[imageUrl(productData.img2), imageUrl(productData.img1)]}
+          />
 
-        <div className="relative flex-[1.2] max-[950px]:contents min-[1200px]:max-w-[385px]">
-          <div className="flex w-full flex-col items-start rounded-lg bg-[#fafafa] p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)] min-[951px]:absolute min-[951px]:inset-0 min-[951px]:overflow-y-auto">
-            <div className="mb-2 max-w-full text-[1.1rem] font-light wrap-break-word max-[950px]:flex max-[950px]:w-full max-[950px]:flex-col max-[950px]:items-start max-[950px]:justify-between">
-              <div>{productData.Type}</div>
-              <h1 className="mb-8 text-justify text-[1.2rem] font-bold max-[840px]:mt-4 max-[840px]:mb-2">
-                {productData.Name}
-              </h1>
+          <aside className="rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-5 shadow-[0_18px_45px_rgba(6,26,48,0.08)] sm:p-7">
+            <p className="text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
+              پرونده فنی محصول
+            </p>
+            <h1
+              id="product-dossier-title"
+              className="mt-4 text-2xl leading-10 font-bold text-(--farabak-ink-deep) sm:text-3xl"
+            >
+              {productTitle}
+            </h1>
+            <p dir="ltr" className="mt-3 text-sm text-(--farabak-ink-muted)">
+              مدل: <bdi>{productData.Type || "—"}</bdi>
+            </p>
+
+            <div className="mt-5 grid grid-cols-2 gap-3 border-y border-(--farabak-ink-deep)/10 py-4 text-sm">
+              <div>
+                <span className="block text-xs text-(--farabak-ink-muted)">کد محصول</span>
+                <span
+                  dir="ltr"
+                  className="mt-1 block font-mono font-semibold text-(--farabak-ink-deep)"
+                >
+                  <bdi>FAR-{productData.ProductId}</bdi>
+                </span>
+              </div>
+              <div>
+                <span className="block text-xs text-(--farabak-ink-muted)">وضعیت</span>
+                <span className="mt-1 block font-semibold text-(--farabak-action-blue)">
+                  قابل بررسی برای سفارش
+                </span>
+              </div>
             </div>
 
-            <Suspense fallback={<SkeletonFeatures />}>
-              <ProductFeatures productId={productData.ProductId} />
-            </Suspense>
+            {productData.Description ? (
+              <p className="mt-5 text-sm leading-8 text-(--farabak-ink-muted)">
+                {productData.Description}
+              </p>
+            ) : null}
 
-            <div className="mt-auto w-full">
+            <div className="mt-5 border-t border-(--farabak-ink-deep)/10 pt-5">
+              <p className="mb-3 text-sm font-bold text-(--farabak-ink-deep)">ویژگی‌های کلیدی</p>
+              <Suspense fallback={<SkeletonFeatures />}>
+                <ProductFeatures productId={productData.ProductId} />
+              </Suspense>
+            </div>
+
+            <div className="mt-6 border-t border-(--farabak-ink-deep)/10 pt-2">
               <ClientInvoiceSection
                 ProductId={productData.ProductId}
                 ProductName={productData.Type}
@@ -222,29 +258,57 @@ export default async function ProductDataWrapper({
                 maximumAmount={productData.Maximum_Amount}
               />
             </div>
-          </div>
+          </aside>
         </div>
       </section>
       <ProductTabs />
-      <section id="overview" className="flex flex-col items-center gap-10">
+      <section
+        id="overview"
+        aria-labelledby="overview-heading"
+        className="flex scroll-mt-32 flex-col items-center gap-10"
+      >
+        <h2 id="overview-heading" className="sr-only">
+          توضیحات محصول
+        </h2>
         <Suspense fallback={<SkeletonOverview />}>
           <ProductOverview productId={productData.ProductId} />
         </Suspense>
       </section>
 
-      <section id="blog" className="flex flex-col items-center gap-10">
+      <section
+        id="blog"
+        aria-labelledby="blog-heading"
+        className="flex scroll-mt-32 flex-col items-center gap-10"
+      >
+        <h2 id="blog-heading" className="sr-only">
+          توضیحات تکمیلی محصول
+        </h2>
         <Suspense fallback={<SkeletonBlog />}>
           <ProductBlog productBlog={productData.productBlog} />
         </Suspense>
       </section>
 
-      <section id="specs" className="mt-8 flex flex-col items-center gap-10">
+      <section
+        id="specs"
+        aria-labelledby="specs-heading"
+        className="mt-8 flex scroll-mt-32 flex-col items-center gap-10"
+      >
+        <h2 id="specs-heading" className="sr-only">
+          مشخصات محصول
+        </h2>
         <Suspense fallback={<SkeletonSpecs />}>
           <ProductSpecs productId={productData.ProductId} />
         </Suspense>
       </section>
 
-      <section id="faq" className="mt-8 flex flex-col items-center gap-10">
+      <section
+        id="faq"
+        aria-labelledby="faq-heading"
+        className="mt-8 flex scroll-mt-32 flex-col items-center gap-10"
+      >
+        <h2 id="faq-heading" className="sr-only">
+          سوالات متداول محصول
+        </h2>
         <Suspense fallback={<SkeletonFaq />}>
           <ProductFaq productId={productData.ProductId} />
         </Suspense>

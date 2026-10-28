@@ -131,13 +131,16 @@ const ClientInvoiceSection = ({
   // Product has no price — it cannot be invoiced through the site at all
   if (!productPrice || +productPrice === 0) {
     return (
-      <div className="my-6 flex w-full flex-col items-center justify-center gap-5 rounded-lg bg-blue-100 p-3 text-center">
-        <p className="text-lg font-bold text-blue-950">
+      <div
+        role="alert"
+        className="my-6 flex w-full flex-col items-center justify-center gap-5 rounded-xl border border-(--farabak-action-blue)/20 bg-(--farabak-paper) p-4 text-center"
+      >
+        <p className="text-sm leading-7 font-bold text-(--farabak-ink-deep)">
           این محصول امکان ثبت فاکتور از طریق سایت ندارد، لطفا با بخش فروش تماس بگیرید.
         </p>
         <Link
           href="tel:02177500008"
-          className="animate-fade-in rounded-lg bg-blue-600 px-4 py-2 text-base text-white transition-colors hover:bg-blue-700 md:text-lg"
+          className="inline-flex min-h-11 items-center rounded-md bg-(--farabak-action-blue) px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-(--farabak-action-blue)/90 focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:outline-none md:text-base"
         >
           تماس با بخش فروش
         </Link>
@@ -148,8 +151,13 @@ const ClientInvoiceSection = ({
   // Exchange rate is still being fetched (after client-side retries)
   if (rateStatus === "loading") {
     return (
-      <div className="my-6 flex w-full animate-pulse flex-col items-center justify-center gap-2 rounded-lg bg-blue-100 p-3 text-center">
-        <p className="text-lg font-bold text-blue-950">قیمت‌ها در حال بروزرسانی هستند...</p>
+      <div
+        role="status"
+        className="my-6 flex w-full animate-pulse flex-col items-center justify-center gap-2 rounded-xl border border-(--farabak-ink-deep)/10 bg-(--farabak-paper) p-4 text-center"
+      >
+        <p className="text-sm font-bold text-(--farabak-ink-deep)">
+          قیمت‌ها در حال بروزرسانی هستند...
+        </p>
       </div>
     );
   }
@@ -157,22 +165,25 @@ const ClientInvoiceSection = ({
   // Exchange rate could not be retrieved after multiple attempts
   if (rateStatus === "error" || exchangeRate === null) {
     return (
-      <div className="my-6 flex w-full flex-col items-center justify-center gap-4 rounded-lg bg-amber-50 p-3 text-center">
-        <p className="text-lg font-bold text-amber-900">
+      <div
+        role="alert"
+        className="my-6 flex w-full flex-col items-center justify-center gap-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-center"
+      >
+        <p className="text-sm leading-7 font-bold text-amber-900">
           دریافت قیمت‌ها با مشکل مواجه شد. لطفا دوباره تلاش کنید.
         </p>
         <div className="flex flex-col items-center gap-3 sm:flex-row">
           <button
             type="button"
             onClick={loadExchangeRate}
-            className="animate-fade-in flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-base text-white transition-colors hover:bg-blue-700 md:text-lg"
+            className="inline-flex min-h-11 items-center gap-2 rounded-md bg-(--farabak-action-blue) px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-(--farabak-action-blue)/90 focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:outline-none md:text-base"
           >
             <FaRedo className="text-sm" />
             <span>تلاش مجدد</span>
           </button>
           <Link
             href="tel:02177500008"
-            className="animate-fade-in rounded-lg bg-blue-600 px-4 py-2 text-base text-white transition-colors hover:bg-blue-700 md:text-lg"
+            className="inline-flex min-h-11 items-center rounded-md bg-(--farabak-action-blue) px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-(--farabak-action-blue)/90 focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:outline-none md:text-base"
           >
             تماس با بخش فروش
           </Link>
@@ -184,7 +195,10 @@ const ClientInvoiceSection = ({
   // Render user context loading state
   if (loading) {
     return (
-      <div className="mt-6 flex w-full animate-pulse justify-center rounded-lg bg-gray-200 p-2 text-sm text-slate-800 sm:mt-0 md:text-base">
+      <div
+        role="status"
+        className="mt-6 flex w-full animate-pulse justify-center rounded-xl bg-(--farabak-paper) p-3 text-sm text-(--farabak-ink-muted) sm:mt-0 md:text-base"
+      >
         درحال بارگذاری...
       </div>
     );
@@ -192,7 +206,7 @@ const ClientInvoiceSection = ({
 
   // Price display block - now with conditional rendering based on discount
   const priceBlock = (
-    <div className="animate-fade-in my-6 flex max-w-full flex-col items-center justify-between gap-3 rounded-lg bg-blue-100 p-3">
+    <div className="my-6 flex max-w-full flex-col items-center justify-between gap-3 rounded-xl border border-(--farabak-ink-deep)/10 bg-(--farabak-paper) p-4">
       {hasDiscount ? (
         // Show before/after prices with discount badge
         <>
@@ -201,13 +215,13 @@ const ClientInvoiceSection = ({
             <span className="font-extralight text-gray-500 line-through">
               {e2p(priceInRial?.toLocaleString() || "0")} تومان
             </span>
-            <span className="bg-dark-blue rounded-lg px-2 py-1 text-xs font-semibold text-white">
+            <span className="rounded-full bg-(--farabak-ink-deep) px-2 py-1 text-xs font-semibold text-white">
               {e2p(discountPercentage?.toLocaleString() || "0")}%
             </span>
           </div>
           <div className="flex content-center items-center gap-2">
             قیمت جدید:{" "}
-            <span className="text-dark-blue text-2xl font-black">
+            <span className="text-2xl font-black text-(--farabak-ink-deep)">
               {e2p(finalPrice?.toLocaleString() || "0")} تومان
             </span>
           </div>
@@ -216,7 +230,7 @@ const ClientInvoiceSection = ({
         // Show only current price without discount styling
         <div className="flex content-center items-center gap-2">
           قیمت:{" "}
-          <span className="text-dark-blue text-2xl font-black">
+          <span className="text-2xl font-black text-(--farabak-ink-deep)">
             {e2p(finalPrice?.toLocaleString() || "0")} تومان
           </span>
         </div>
@@ -226,7 +240,7 @@ const ClientInvoiceSection = ({
 
   // Enhanced limits info with better design
   const limitsInfo = hasLimits && currentQuantity === 0 && (
-    <div className="mb-4 rounded-lg border border-blue-200 bg-linear-to-r from-blue-50 to-indigo-50 p-4 shadow-sm">
+    <div className="mb-4 rounded-xl border border-(--farabak-action-blue)/20 bg-(--farabak-paper) p-4">
       <div className="flex items-start gap-3">
         <div className="mt-0.5 shrink-0">
           <FaInfoCircle className="text-lg text-blue-600" />
@@ -368,7 +382,7 @@ const ClientInvoiceSection = ({
                 {/* + button */}
                 <button
                   type="button"
-                  className="h-10 w-5 origin-right text-[1.2rem] transition-[background-color,filter,opacity]"
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-xl transition-colors hover:bg-(--farabak-paper) focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:outline-none"
                   onClick={() => handleQuantityChange(1)}
                   disabled={!canIncrease}
                   title={
@@ -385,7 +399,7 @@ const ClientInvoiceSection = ({
                   <button
                     type="button"
                     onClick={() => removeProductFromInvoice(ProductId)}
-                    className="size-5 origin-left text-[1.2rem] transition-[background-color,filter] hover:bg-red-600 hover:brightness-110"
+                    className="inline-flex size-11 items-center justify-center rounded-md text-xl transition-colors hover:bg-red-50 hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:outline-none"
                     aria-label="حذف کامل از فاکتور"
                   >
                     <FaRegTrashAlt />
@@ -393,7 +407,7 @@ const ClientInvoiceSection = ({
                 ) : (
                   <button
                     type="button"
-                    className="size-5 origin-left text-[1.2rem] transition-[background-color,filter] hover:bg-yellow-600 hover:brightness-110"
+                    className="inline-flex size-11 items-center justify-center rounded-md text-xl transition-colors hover:bg-amber-50 hover:text-amber-700 focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:outline-none"
                     onClick={() => handleQuantityChange(-1)}
                     title="کاهش تعداد"
                   >
@@ -404,7 +418,7 @@ const ClientInvoiceSection = ({
             ) : (
               <button
                 type="button"
-                className="bg-dark-blue flex w-full items-center justify-center gap-2 rounded-lg p-3 text-sm text-white transition-[background-color,box-shadow] hover:bg-[#00244a] hover:shadow-lg sm:mt-0 md:text-base"
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-(--farabak-action-blue) p-3 text-sm font-semibold text-white transition-[background-color,box-shadow] hover:bg-(--farabak-action-blue)/90 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:outline-none sm:mt-0 md:text-base"
                 onClick={handleInitialAdd}
               >
                 <span>افزودن به فاکتور</span>

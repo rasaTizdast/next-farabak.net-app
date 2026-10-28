@@ -15,17 +15,11 @@ function Overview({
   img: string | null;
 }) {
   return (
-    <div className="flex w-full max-w-[calc(1900px-20rem)] flex-col items-center rounded-lg bg-[#141414] p-12 shadow-[0_4px_10px_rgba(0,0,0,0.1)] max-[576px]:p-8 max-[400px]:px-6">
-      <div className="mb-10 flex flex-col items-center gap-[1.3rem] text-white">
-        {title && (
-          <h3 className="mb-4 text-center text-[1.7rem] font-black max-[768px]:text-[1.3rem] max-[400px]:mb-2 max-[400px]:text-[1.1rem]">
-            {title}
-          </h3>
-        )}
+    <div className="flex w-full max-w-[calc(1900px-20rem)] flex-col items-center rounded-2xl bg-(--farabak-ink-deep) p-6 shadow-[0_18px_45px_rgba(6,26,48,0.12)] sm:p-10">
+      <div className="mb-8 flex max-w-3xl flex-col items-center gap-4 text-white">
+        {title && <h3 className="mb-2 text-center text-2xl font-bold sm:text-3xl">{title}</h3>}
         {description && (
-          <p className="w-[75%] text-justify text-[1rem] font-light max-[768px]:w-[90%] max-[768px]:text-[0.9rem] max-[400px]:mb-0 max-[400px]:text-[0.7rem]">
-            {description}
-          </p>
+          <p className="text-center text-sm leading-8 text-slate-200 sm:text-base">{description}</p>
         )}
       </div>
       {img && (
@@ -36,7 +30,7 @@ function Overview({
           height={1080}
           quality={75}
           loading="lazy"
-          className="h-auto w-[80%] max-w-[900px] min-w-[550px] rounded-lg shadow-[0_4px_10px_5px_rgba(255,255,255,0.1)] max-[768px]:min-w-[300px] max-[400px]:min-w-[200px]"
+          className="h-auto w-full max-w-[900px] rounded-xl shadow-[0_4px_10px_5px_rgba(255,255,255,0.1)]"
         />
       )}
     </div>
@@ -51,7 +45,7 @@ export default async function ProductOverviewDetails({ productId }: { productId:
 
   if (productDetails.length === 0) {
     return (
-      <p className="flex w-full max-w-[calc(1900px-20rem)] flex-col items-center rounded-lg bg-[#141414] p-12 text-center text-white shadow-[0_4px_10px_rgba(0,0,0,0.1)] max-[576px]:p-8 max-[400px]:px-6">
+      <p className="flex w-full max-w-[calc(1900px-20rem)] flex-col items-center rounded-2xl bg-(--farabak-ink-deep) p-8 text-center text-slate-200 shadow-[0_18px_45px_rgba(6,26,48,0.12)]">
         اطلاعاتی یافت نشد / این محصول توضیحات ندارد
       </p>
     );

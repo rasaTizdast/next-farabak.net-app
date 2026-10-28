@@ -14,7 +14,7 @@ export default async function ProductFeatures({ productId }: { productId: number
   const features = await getProductFeatures(productId);
 
   if (!features) {
-    return <p>ویژگی برای این محصول یافت نشد</p>;
+    return <p className="text-sm text-(--farabak-ink-muted)">ویژگی برای این محصول یافت نشد</p>;
   }
 
   const properties = [
@@ -25,11 +25,11 @@ export default async function ProductFeatures({ productId }: { productId: number
   ].filter((prop) => prop !== null && prop !== undefined && prop.trim() !== "");
 
   if (properties.length === 0) {
-    return <p>ویژگی برای این محصول یافت نشد</p>;
+    return <p className="text-sm text-(--farabak-ink-muted)">ویژگی برای این محصول یافت نشد</p>;
   }
 
   return (
-    <ul className="my-4 ms-3 me-8 list-[circle] self-stretch text-[1rem] font-light max-[950px]:w-1/2 max-[640px]:me-6 max-[640px]:gap-x-8 max-[640px]:gap-y-4 max-[640px]:text-[0.9rem] max-[576px]:my-0 max-[576px]:w-full max-[550px]:me-4">
+    <ul className="my-4 me-5 list-[circle] space-y-2 self-stretch text-sm leading-7 text-(--farabak-ink-muted) sm:text-base">
       {properties.map((property) => (
         <li
           key={property}
