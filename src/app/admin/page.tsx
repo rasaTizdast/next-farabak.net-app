@@ -24,7 +24,7 @@ type ReportData = {
 const SkeletonCard = () => (
   <div
     aria-hidden="true"
-    className="glass-card animate-pulse rounded-lg p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)]"
+    className="glass-card rounded-lg p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] motion-safe:animate-pulse motion-reduce:animate-none"
   >
     <div className="h-6 w-3/4 rounded-md bg-blue-200/50"></div>
     <div className="mt-4 h-8 w-1/2 rounded-md bg-blue-200/50"></div>
@@ -128,7 +128,10 @@ const AdminPage = () => {
         <p className="text-sm text-gray-300">نمای کلی عملکرد فروشگاه</p>
       </header>
       {/* Bento Grid */}
-      <div className={cn("grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3")}>
+      <div
+        className={cn("grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3")}
+        aria-label="خلاصه عملکرد فروشگاه"
+      >
         {/* USD to Rial Exchange Rate */}
         <div
           className={cn(
@@ -139,7 +142,7 @@ const AdminPage = () => {
             <h3 className="text-lg font-bold text-white">نرخ دلار به تومان</h3>
             <FiDollarSign className="text-secondary text-3xl" />
           </div>
-          <span className="text-secondary mt-4 text-4xl font-extrabold">
+          <span className="text-secondary mt-4 text-4xl font-extrabold" aria-live="polite">
             {usdToRialRate !== null
               ? `${Math.floor(usdToRialRate).toLocaleString()} تومان`
               : isExchangeRateLoading
@@ -158,7 +161,7 @@ const AdminPage = () => {
             <h3 className="text-lg font-bold text-white">تعداد فاکتورها</h3>
             <FiFileText className="text-primary text-3xl" />
           </div>
-          <span className="text-primary mt-4 text-5xl font-extrabold">
+          <span className="text-primary mt-4 text-5xl font-extrabold" aria-live="polite">
             {reportData.invoiceCount}
           </span>
         </div>
@@ -173,7 +176,11 @@ const AdminPage = () => {
             <h3 className="text-lg font-bold text-white">وضعیت فاکتورها</h3>
             <FiFileText className="text-primary text-3xl" />
           </div>
-          <div className="mt-4 h-4 w-full overflow-hidden rounded-full bg-green-500">
+          <div
+            className="mt-4 h-4 w-full overflow-hidden rounded-full bg-green-500"
+            role="img"
+            aria-label="وضعیت فاکتورهای تایید شده"
+          >
             <div
               className="bg-primary h-4 rounded-full"
               aria-hidden="true"
@@ -201,7 +208,11 @@ const AdminPage = () => {
             <h3 className="text-lg font-bold text-white">محصولات</h3>
             <FiBox className="text-primary text-3xl" />
           </div>
-          <div className="bg-primary mt-4 h-4 w-full overflow-hidden rounded-full">
+          <div
+            className="bg-primary mt-4 h-4 w-full overflow-hidden rounded-full"
+            role="img"
+            aria-label="وضعیت موجودی محصولات"
+          >
             <div
               className="bg-secondary h-4 rounded-full"
               aria-hidden="true"

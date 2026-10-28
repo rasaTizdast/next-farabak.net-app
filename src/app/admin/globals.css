@@ -284,6 +284,10 @@ body:has(.admin-shell) ::-webkit-scrollbar-thumb:hover {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+
+  .admin-shell .glass-card:hover {
+    transform: none !important;
+  }
 }
 
 .ant-select-dropdown {

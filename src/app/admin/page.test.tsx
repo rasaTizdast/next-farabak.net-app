@@ -49,6 +49,8 @@ describe("admin dashboard", () => {
     expect(screen.getByText("دریافت نرخ ناموفق بود")).toBeInTheDocument();
     expect(screen.getByText("موجود: 0")).toBeInTheDocument();
     expect(screen.getByText("ناموجود: 0")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "وضعیت فاکتورهای تایید شده" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "وضعیت موجودی محصولات" })).toBeInTheDocument();
     expect(document.querySelector(".bg-primary.h-4")).toHaveStyle({ width: "0%" });
     expect(document.querySelector(".bg-secondary.h-4")).toHaveStyle({ width: "0%" });
   });

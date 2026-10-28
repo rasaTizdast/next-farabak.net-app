@@ -4,11 +4,13 @@ import { ErrorPage } from "@/components/ui/ErrorPage";
 
 export default function AdminError({ reset }: { error: Error; reset: () => void }) {
   return (
-    <ErrorPage
-      statusCode={500}
-      title="خطا در بارگذاری پنل مدیریت"
-      message="متأسفانه در دریافت اطلاعات خطایی رخ داده است."
-      onRetry={reset}
-    />
+    <div className="flex min-h-80 items-center justify-center px-4 py-12">
+      <ErrorPage
+        statusCode={500}
+        title="پنل مدیریت در دسترس نیست"
+        message="متأسفانه دریافت اطلاعات پنل با خطا روبه‌رو شد. لطفاً دوباره تلاش کنید."
+        onRetry={reset}
+      />
+    </div>
   );
 }

@@ -69,11 +69,14 @@ const AnalyticsOverview = () => {
   const analyticsUrl = getAnalyticsUrl(process.env.NEXT_PUBLIC_UMAMI_ANALYTICS_PAGE);
 
   return (
-    <div className="rounded-xl bg-gray-950 p-4 sm:p-8 lg:p-10">
+    <div className="rounded-xl bg-gray-950 p-4 sm:p-8 lg:p-10" aria-labelledby="analytics-title">
       <div className="space-y-8 sm:space-y-12">
         {/* Header with subtle animation */}
         <div className="space-y-4 text-center">
-          <h1 className="text-2xl font-bold text-gray-100 md:text-3xl lg:text-5xl">
+          <h1
+            id="analytics-title"
+            className="text-2xl font-bold text-gray-100 md:text-3xl lg:text-5xl"
+          >
             تحلیل وبسایت شما
           </h1>
           <p className="mx-auto max-w-3xl text-base text-gray-300 md:text-lg lg:text-xl">
@@ -140,11 +143,7 @@ const AnalyticsOverview = () => {
               )}
             >
               مشاهده تحلیل‌های دقیق‌تر
-              <BiLinkExternal
-                aria-hidden="true"
-                className="animate-pulse motion-reduce:animate-none"
-                size={20}
-              />
+              <BiLinkExternal aria-hidden="true" className="motion-reduce:animate-none" size={20} />
             </Link>
           ) : (
             <p className="text-sm text-gray-400">پیوند پنل تحلیلی تنظیم نشده است.</p>

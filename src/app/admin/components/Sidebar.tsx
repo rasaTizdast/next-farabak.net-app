@@ -164,9 +164,10 @@ const Sidebar = () => {
       />
 
       {/* Sidebar */}
-      <div
+      <aside
         ref={sidebarRef}
         id="admin-sidebar"
+        aria-label="ناوبری پنل مدیریت"
         className={`fixed top-0 right-0 z-50 h-dvh flex-col bg-[#0074e0] text-gray-200 transition-[width] duration-200 motion-reduce:transition-none md:flex ${isOpen ? "flex" : "hidden"} ${
           isExpanded ? "w-64" : "w-16"
         }`}
@@ -203,7 +204,7 @@ const Sidebar = () => {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center px-4 py-3 text-white transition-colors hover:bg-[#2797ff] ${
+                className={`flex items-center px-4 py-3 text-white transition-colors hover:bg-[#2797ff] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white motion-reduce:transition-none ${
                   isExpanded ? "gap-4" : "justify-center"
                 }`}
                 onClick={closeSidebar}
@@ -221,7 +222,7 @@ const Sidebar = () => {
         {/* Back to Main Website Button */}
         <Link
           href="/"
-          className={`flex items-center bg-blue-800 px-4 py-2 text-white transition-colors hover:bg-blue-900 ${
+          className={`flex items-center bg-blue-800 px-4 py-2 text-white transition-colors hover:bg-blue-900 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white motion-reduce:transition-none ${
             isExpanded ? "gap-4" : "justify-center"
           }`}
           onClick={closeSidebar}
@@ -234,14 +235,14 @@ const Sidebar = () => {
         <button
           type="button"
           onClick={logout}
-          className={`flex items-center bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 ${
+          className={`flex items-center bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white motion-reduce:transition-none ${
             isExpanded ? "gap-4" : "justify-center"
           }`}
         >
           <FiLogOut size={20} aria-hidden="true" />
           <span className={`${isExpanded ? "block" : "sr-only"}`}>خروج</span>
         </button>
-      </div>
+      </aside>
     </>
   );
 };
