@@ -257,6 +257,7 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
         role="dialog"
         aria-modal="true"
         aria-labelledby="customer-invoice-title"
+        aria-busy={loading}
         tabIndex={-1}
         className="max-h-[calc(100dvh-1.5rem)] w-full max-w-[850px] overflow-auto overscroll-contain rounded-xl border border-slate-300 bg-white p-4 text-start shadow-2xl focus:outline-none sm:p-6"
       >
@@ -273,13 +274,13 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
           </button>
         </div>
         {loading ? (
-          <div className="space-y-4 p-8">
-            <div className="mx-auto h-6 w-48 animate-pulse rounded-md bg-gray-300"></div>
-            <div className="mx-auto h-4 w-32 animate-pulse rounded-md bg-gray-300"></div>
-            <div className="h-6 w-full animate-pulse rounded-md bg-gray-300"></div>
-            <div className="h-6 w-full animate-pulse rounded-md bg-gray-300"></div>
-            <div className="h-2 w-full animate-pulse rounded-md bg-gray-300"></div>
-            <div className="h-48 w-full animate-pulse rounded-md bg-gray-300"></div>
+          <div className="space-y-4 p-8" role="status" aria-label="در حال بارگذاری جزئیات فاکتور">
+            <div className="mx-auto h-6 w-48 rounded-md bg-gray-300 motion-safe:animate-pulse motion-reduce:animate-none"></div>
+            <div className="mx-auto h-4 w-32 rounded-md bg-gray-300 motion-safe:animate-pulse motion-reduce:animate-none"></div>
+            <div className="h-6 w-full rounded-md bg-gray-300 motion-safe:animate-pulse motion-reduce:animate-none"></div>
+            <div className="h-6 w-full rounded-md bg-gray-300 motion-safe:animate-pulse motion-reduce:animate-none"></div>
+            <div className="h-2 w-full rounded-md bg-gray-300 motion-safe:animate-pulse motion-reduce:animate-none"></div>
+            <div className="h-48 w-full rounded-md bg-gray-300 motion-safe:animate-pulse motion-reduce:animate-none"></div>
           </div>
         ) : (
           <div
@@ -401,13 +402,13 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
             type="button"
             onClick={handleDownload}
             title="دانلود فاکتور"
-            className="cursor-pointer rounded-lg border-none bg-[#003262] px-6 py-3 text-base font-semibold text-white transition-[transform,background-color] duration-200 hover:translate-y-[-2px] hover:bg-[#0e6aff] md:w-auto lg:w-auto xl:w-auto 2xl:w-auto"
+            className="cursor-pointer rounded-lg border-none bg-[#003262] px-6 py-3 text-base font-semibold text-white transition-[transform,background-color] duration-200 hover:translate-y-[-2px] hover:bg-[#0e6aff] motion-reduce:transition-none md:w-auto lg:w-auto xl:w-auto 2xl:w-auto"
           >
             دانلود فاکتور
           </button>
           <button
             type="button"
-            className="cursor-pointer rounded-lg border-none bg-[#f0f0f0] px-6 py-3 text-base font-semibold text-[#333] transition-[transform,background-color] duration-200 hover:translate-y-[-2px] hover:bg-[#e0e0e0] md:w-auto lg:w-auto xl:w-auto 2xl:w-auto"
+            className="cursor-pointer rounded-lg border-none bg-[#f0f0f0] px-6 py-3 text-base font-semibold text-[#333] transition-[transform,background-color] duration-200 hover:translate-y-[-2px] hover:bg-[#e0e0e0] motion-reduce:transition-none md:w-auto lg:w-auto xl:w-auto 2xl:w-auto"
             onClick={onClose}
             title="بستن"
           >

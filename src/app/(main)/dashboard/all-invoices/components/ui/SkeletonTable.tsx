@@ -1,44 +1,37 @@
 const SkeletonTable = () => {
   return (
-    <>
-      <h3 className="mb-5 font-bold">فاکتورها ثبت شده توسط شما</h3>
-      <div className="w-full rounded-md border border-gray-200 shadow-sm">
-        <table className="w-full table-auto border-collapse animate-pulse bg-gray-100">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="px-4 py-3 text-center">شماره فاکتور</th>
-              <th className="px-4 py-3 text-center">تعداد محصولات</th>
-              <th className="px-4 py-3 text-center">وضعیت</th>
-              <th className="px-4 py-3 text-center">زمان باقیمانده</th>
-              <th className="px-4 py-3 text-center">عملیات‌ها</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Array(8)
-              .fill("")
-              .map((_, idx) => (
-                <tr key={idx} className="border-t border-gray-300">
-                  <td className="px-4 py-5">
-                    <div className="h-4 rounded-md bg-gray-300"></div>
-                  </td>
-                  <td className="px-4 py-5">
-                    <div className="h-4 rounded-md bg-gray-300"></div>
-                  </td>
-                  <td className="px-4 py-5">
-                    <div className="h-4 rounded-md bg-gray-300"></div>
-                  </td>
-                  <td className="px-4 py-5">
-                    <div className="h-4 rounded-md bg-gray-300"></div>
-                  </td>
-                  <td className="px-4 py-5">
-                    <div className="h-4 rounded-md bg-gray-300"></div>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+    <div
+      className="flex w-full max-w-6xl flex-col gap-6"
+      role="status"
+      aria-label="در حال بارگذاری"
+    >
+      <div className="motion-safe:animate-pulse motion-reduce:animate-none">
+        <div className="h-4 w-28 rounded bg-slate-200" />
+        <div className="mt-3 h-8 w-48 rounded bg-slate-200" />
+        <div className="mt-3 h-5 w-full max-w-xl rounded bg-slate-200" />
       </div>
-    </>
+      <div className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white md:block">
+        <div className="grid grid-cols-5 gap-4 border-b border-slate-200 bg-slate-50 p-4 motion-safe:animate-pulse motion-reduce:animate-none">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="h-4 rounded bg-slate-200" />
+          ))}
+        </div>
+        <div className="space-y-4 p-4 motion-safe:animate-pulse motion-reduce:animate-none">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="grid grid-cols-5 gap-4">
+              {Array.from({ length: 5 }).map((__, cellIndex) => (
+                <div key={cellIndex} className="h-10 rounded bg-slate-100" />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-3 motion-safe:animate-pulse motion-reduce:animate-none md:hidden">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className="h-44 rounded-2xl bg-slate-100" />
+        ))}
+      </div>
+    </div>
   );
 };
 

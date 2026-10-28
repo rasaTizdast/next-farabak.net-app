@@ -41,11 +41,12 @@ beforeEach(() => vi.clearAllMocks());
 
 it("keeps a product when its quantity field is cleared and only removes it through the delete action", () => {
   render(<NewInvoicePage />);
-  const quantity = screen.getByRole("spinbutton", { name: "تعداد محصول آزمایشی" });
+  expect(screen.getByRole("list", { name: "مراحل ثبت فاکتور" })).toBeVisible();
+  const quantity = screen.getAllByRole("spinbutton", { name: "تعداد محصول آزمایشی" })[0];
   fireEvent.change(quantity, { target: { value: "" } });
   fireEvent.change(quantity, { target: { value: "0" } });
   expect(removeProductFromInvoice).not.toHaveBeenCalled();
 
-  fireEvent.click(screen.getByRole("button", { name: "حذف محصول" }));
+  fireEvent.click(screen.getAllByRole("button", { name: "حذف محصول" })[0]);
   expect(removeProductFromInvoice).toHaveBeenCalledWith(7);
 });
