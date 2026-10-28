@@ -1,10 +1,12 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { io } from "next/cache";
-import Link from "next/link";
 import { Suspense } from "react";
 
+import { ContactInquiryForm } from "@/app/(main)/contact-us/_components/ContactInquiryForm";
+import { ActionLink } from "@/components/public/ActionLink";
+import { PageIntro } from "@/components/public/PageIntro";
+import { PublicShell } from "@/components/public/PublicShell";
 import { getContactInfo } from "@/lib/data/contactUs";
-import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "تماس با فرابک | آدرس و پشتیبانی",
@@ -17,19 +19,29 @@ export const metadata: Metadata = {
 };
 
 const ContactUsContent = async () => {
-  // Contact details must be retried per request after a database outage.
   await io();
-  const { address, emails, phone_numbers } = await getContactInfo();
+  const { address, emails, phone_numbers: phoneNumbers } = await getContactInfo();
 
-  if (!address && emails.length === 0 && phone_numbers.length === 0) {
+  if (!address && emails.length === 0 && phoneNumbers.length === 0) {
     return (
-      <section className="mx-auto max-w-3xl px-6 py-20 text-center">
-        <h1 className="mb-4 text-2xl font-bold">ارتباط با فرابک</h1>
-        <p>اطلاعات تماس در حال حاضر در دسترس نیست. لطفاً کمی بعد دوباره تلاش کنید.</p>
-        <Link className="mt-6 inline-block underline" href="/support">
-          مرکز پشتیبانی
-        </Link>
-      </section>
+      <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+        <PageIntro
+          eyebrow="ارتباط با فرابک"
+          title="اطلاعات تماس موقتاً در دسترس نیست"
+          description="اطلاعات تماس از منبع اصلی دریافت نشد. لطفاً کمی بعد دوباره تلاش کنید یا از مرکز پشتیبانی مسیر مناسب را پیدا کنید."
+          actions={
+            <ActionLink href="/support" variant="primary">
+              رفتن به مرکز پشتیبانی
+            </ActionLink>
+          }
+        />
+        <div
+          role="status"
+          className="rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center leading-8 text-(--farabak-ink-muted)"
+        >
+          هیچ شماره، ایمیل یا نشانی قابل اتکایی برای نمایش دریافت نشد.
+        </div>
+      </PublicShell>
     );
   }
 
@@ -39,36 +51,21 @@ const ContactUsContent = async () => {
     name: "تماس با فرابک | آدرس و پشتیبانی",
     description: "راه های تماس با شرکت فرابک",
     url: `${process.env.NEXT_PUBLIC_BASE_URL}/contact-us`,
-    breadcrumb: {
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "صفحه اصلی",
-          item: process.env.NEXT_PUBLIC_BASE_URL,
-        },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: "تماس با ما",
-          item: `${process.env.NEXT_PUBLIC_BASE_URL}/contact-us`,
-        },
-      ],
-    },
     mainEntity: {
       "@type": "Organization",
       name: "فرابک",
       url: process.env.NEXT_PUBLIC_BASE_URL,
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: address?.address,
-        postalCode: address?.postal_code,
-        addressCountry: "IR",
-      },
-      email: emails.map((email: { id: number; title: string; address: string }) => email.address),
-      telephone: phone_numbers.map((phone: { id: number; number: string }) => phone.number),
-      contactPoint: emails.map((email: { id: number; title: string; address: string }) => ({
+      address: address
+        ? {
+            "@type": "PostalAddress",
+            streetAddress: address.address,
+            postalCode: address.postal_code,
+            addressCountry: "IR",
+          }
+        : undefined,
+      email: emails.map((email) => email.address),
+      telephone: phoneNumbers.map((phone) => phone.number),
+      contactPoint: emails.map((email) => ({
         "@type": "ContactPoint",
         email: email.address,
         contactType: email.title,
@@ -76,78 +73,131 @@ const ContactUsContent = async () => {
     },
   };
 
-  const jsonLd = JSON.stringify(structuredData);
-
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <main
-        className={cn(
-          "my-4 flex w-full flex-col flex-wrap items-stretch gap-8 px-6 py-8 min-[992px]:px-16 min-[1200px]:px-24 md:my-8 md:flex-row md:px-12 2xl:px-40"
-        )}
-      >
-        <div
-          className={cn(
-            "flex w-full flex-1 flex-col gap-4 rounded-lg bg-white p-8 shadow-[0px_8px_20px_rgba(0,0,0,0.1)] md:w-auto md:flex-[30%_1_1] md:p-[2rem_3rem]"
-          )}
-        >
-          <h1 className="text-third mb-0 self-center text-[calc(0.7rem+0.5vw)] font-extrabold md:text-[calc(1rem+0.5vw)]">
-            آدرس
-          </h1>
-          <div className="text-justify leading-loose font-extrabold">
-            <div className="inline">آدرس: </div>
-            {address?.address}
-          </div>
-          <div className="text-justify leading-loose font-extrabold">
-            <div className="inline">کدپستی: </div>
-            {address?.postal_code}
-          </div>
-          <p>{address?.alt_text}</p>
-        </div>
-        <div
-          className={cn(
-            "flex w-full flex-1 flex-col gap-4 rounded-lg bg-white p-8 shadow-[0px_8px_20px_rgba(0,0,0,0.1)] md:w-auto md:flex-[30%_1_1] md:p-[2rem_3rem]"
-          )}
-        >
-          <h1 className="text-third mb-0 self-center text-[calc(0.7rem+0.5vw)] font-extrabold md:self-start md:text-[calc(1rem+0.5vw)]">
-            شماره‌های تماس
-          </h1>
-          <ul className="list-square flex h-full flex-col justify-evenly gap-4">
-            {phone_numbers.map((phone: { id: number; number: string }) => (
-              <li key={phone.id}>
-                <a
-                  href={`tel:${phone.number}`}
-                  className={cn("flex justify-between gap-4 text-(--color-dark-blue)")}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+        <PageIntro
+          eyebrow="تماس و شروع گفت‌وگو"
+          title="برای پروژه‌تان از یک گفت‌وگوی دقیق شروع کنید"
+          description="اگر هنوز مدل یا مشخصات فنی را نمی‌دانید، مسئله، محل استفاده و محدودیت‌های پروژه را بنویسید. پیام شما در برنامه ایمیل‌تان آماده می‌شود تا آن را بررسی و ارسال کنید."
+          actions={
+            <ActionLink href="/privacy" variant="quiet">
+              مطالعه سیاست حریم خصوصی
+            </ActionLink>
+          }
+        />
+
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-start">
+          <section
+            aria-labelledby="contact-form-title"
+            className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_16px_36px_rgba(6,26,48,0.06)] sm:p-9"
+          >
+            <p className="mb-3 text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
+              فرم شروع پروژه
+            </p>
+            <h2 id="contact-form-title" className="text-2xl font-bold text-(--farabak-ink-deep)">
+              نیازتان را کوتاه و روشن بنویسید
+            </h2>
+            <p className="mt-3 mb-7 leading-8 text-(--farabak-ink-muted)">
+              فیلدهای ستاره‌دار نداریم؛ فقط اطلاعاتی را وارد کنید که برای تماس بعدی لازم است.
+            </p>
+            <ContactInquiryForm recipient={emails[0]?.address} />
+          </section>
+
+          <aside className="space-y-5">
+            <section
+              aria-labelledby="contact-address-title"
+              className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_16px_36px_rgba(6,26,48,0.06)] sm:p-7"
+            >
+              <p className="mb-3 text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
+                اطلاعات ثبت‌شده
+              </p>
+              <h2
+                id="contact-address-title"
+                className="text-xl font-bold text-(--farabak-ink-deep)"
+              >
+                راه‌های تماس
+              </h2>
+              <dl className="mt-5 space-y-5 leading-8">
+                {address ? (
+                  <div>
+                    <dt className="text-sm text-(--farabak-ink-muted)">نشانی</dt>
+                    <dd className="mt-1 font-semibold text-(--farabak-ink-deep)">
+                      {address.address}
+                    </dd>
+                    {address.postal_code ? (
+                      <dd className="mt-1 text-sm text-(--farabak-ink-muted)">
+                        کدپستی: <bdi dir="ltr">{address.postal_code}</bdi>
+                      </dd>
+                    ) : null}
+                  </div>
+                ) : null}
+                {phoneNumbers.length > 0 ? (
+                  <div>
+                    <dt className="text-sm text-(--farabak-ink-muted)">شماره‌های تماس</dt>
+                    <dd className="mt-1 flex flex-col gap-1">
+                      {phoneNumbers.map((phone) => (
+                        <a
+                          key={phone.id}
+                          href={`tel:${phone.number}`}
+                          className="font-semibold text-(--farabak-ink-deep) underline-offset-4 hover:text-(--farabak-action-blue) hover:underline focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:outline-none"
+                        >
+                          <bdi dir="ltr">{phone.number}</bdi>
+                        </a>
+                      ))}
+                    </dd>
+                  </div>
+                ) : null}
+                {emails.length > 0 ? (
+                  <div>
+                    <dt className="text-sm text-(--farabak-ink-muted)">آدرس‌های ایمیل</dt>
+                    <dd className="mt-1 flex flex-col gap-1">
+                      {emails.map((email) => (
+                        <a
+                          key={email.id}
+                          href={`mailto:${email.address}`}
+                          className="font-semibold text-(--farabak-ink-deep) underline-offset-4 hover:text-(--farabak-action-blue) hover:underline focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:outline-none"
+                        >
+                          <span>{email.title}: </span>
+                          <bdi dir="ltr">{email.address}</bdi>
+                        </a>
+                      ))}
+                    </dd>
+                  </div>
+                ) : null}
+              </dl>
+            </section>
+
+            <section
+              aria-labelledby="contact-location-title"
+              className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_16px_36px_rgba(6,26,48,0.06)]"
+            >
+              <div
+                role="img"
+                aria-label="نقشه تعاملی موقعیت دفتر در دسترس نیست"
+                className="flex min-h-48 items-center justify-center bg-[linear-gradient(135deg,#e6eef5_0%,#f8fafc_48%,#d9e6f0_100%)] p-8 text-center text-sm leading-7 text-(--farabak-ink-muted)"
+              >
+                نقشه تعاملی در این نسخه در دسترس نیست؛ نشانی ثبت‌شده را بررسی کنید.
+              </div>
+              <div className="p-6 sm:p-7">
+                <h2
+                  id="contact-location-title"
+                  className="text-lg font-bold text-(--farabak-ink-deep)"
                 >
-                  {phone.number}
-                </a>
-              </li>
-            ))}
-          </ul>
+                  قبل از مراجعه هماهنگ کنید
+                </h2>
+                <p className="mt-2 leading-8 text-(--farabak-ink-muted)">
+                  {address?.alt_text || "برای زمان بازدید و جزئیات مسیر با تیم فرابک تماس بگیرید."}
+                </p>
+              </div>
+            </section>
+          </aside>
         </div>
-        <div
-          className={cn(
-            "flex w-full flex-1 flex-col gap-4 rounded-lg bg-white p-8 shadow-[0px_8px_20px_rgba(0,0,0,0.1)] md:w-auto md:flex-[30%_1_1] md:p-[2rem_3rem]"
-          )}
-        >
-          <h1 className="text-third mb-0 self-center text-[calc(0.7rem+0.5vw)] font-extrabold md:self-start md:text-[calc(1rem+0.5vw)]">
-            آدرس‌های ایمیل
-          </h1>
-          <ul className="list-square flex h-full flex-col items-center justify-evenly gap-4">
-            {emails.map((email: { id: number; title: string; address: string }) => (
-              <li key={email.id}>
-                <a
-                  href={`mailto:${email.address}`}
-                  className={cn("flex justify-between gap-4 text-(--color-dark-blue)")}
-                >
-                  <div className="inline font-extrabold">{email.title}:</div>
-                  <span>{email.address}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </main>
+      </PublicShell>
     </>
   );
 };
@@ -156,10 +206,14 @@ export default function ContactUsPage() {
   return (
     <Suspense
       fallback={
-        <section className="mx-auto max-w-3xl px-6 py-20 text-center">
-          <h1 className="mb-4 text-2xl font-bold">ارتباط با فرابک</h1>
-          <p>اطلاعات تماس در حال بارگذاری است.</p>
-        </section>
+        <PublicShell
+          as="main"
+          className="py-16"
+          role="status"
+          aria-label="در حال بارگذاری تماس با فرابک"
+        >
+          <PageIntro title="ارتباط با فرابک" description="اطلاعات تماس در حال بارگذاری است." />
+        </PublicShell>
       }
     >
       <ContactUsContent />

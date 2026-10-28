@@ -1,26 +1,31 @@
+import { PublicShell } from "@/components/public/PublicShell";
+
 export default function PrivacyLoading() {
   return (
-    <div
-      className="mx-auto max-w-3xl animate-pulse px-4 py-10 min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40"
+    <PublicShell
+      as="main"
+      className="animate-pulse py-10 sm:py-14 lg:py-16"
       role="status"
-      aria-label="در حال بارگذاری"
+      aria-label="در حال بارگذاری سیاست حریم خصوصی"
     >
-      <div className="mb-6 h-9 w-40 rounded-md bg-gray-200" />
-      <div className="flex flex-col gap-8">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <section key={i}>
-            <div className="mb-2 h-6 w-1/2 rounded bg-gray-200" />
-            <div className="space-y-3">
-              {Array.from({ length: 4 }).map((_, j) => (
-                <div
-                  key={j}
-                  className={`h-4 rounded bg-gray-200 ${j === 3 ? "w-4/5" : "w-full"}`}
-                />
-              ))}
-            </div>
-          </section>
-        ))}
+      <div className="space-y-5 py-10 md:py-16">
+        <div className="h-4 w-28 rounded-full bg-slate-200" />
+        <div className="h-12 w-72 rounded-2xl bg-slate-200" />
+        <div className="h-5 w-full max-w-2xl rounded-full bg-slate-100" />
       </div>
-    </div>
+      <div className="grid gap-8 lg:grid-cols-[15rem_minmax(0,1fr)]">
+        <div className="h-56 rounded-3xl border border-slate-100 bg-white shadow-sm" />
+        <article className="space-y-8 rounded-3xl border border-slate-100 bg-white p-8 shadow-sm">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <section key={i} className="space-y-4">
+              <div className="h-7 w-1/2 rounded-2xl bg-slate-200" />
+              <div className="h-4 w-full rounded-full bg-slate-100" />
+              <div className="h-4 w-full rounded-full bg-slate-100" />
+              <div className="h-4 w-4/5 rounded-full bg-slate-100" />
+            </section>
+          ))}
+        </article>
+      </div>
+    </PublicShell>
   );
 }
