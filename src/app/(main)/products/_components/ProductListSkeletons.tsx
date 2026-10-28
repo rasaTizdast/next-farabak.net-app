@@ -8,22 +8,24 @@ export const CategorySliderSkeleton = () => <CategorySliderLoader amount={8} />;
 
 export const ProductGridSkeleton = () => (
   <div
-    className="grid w-full grid-cols-1 items-stretch justify-items-center gap-4 min-[485px]:grid-cols-2 min-[485px]:gap-4 sm:grid-cols-2 sm:gap-6 md:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] xl:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]"
+    className="grid w-full grid-cols-1 items-stretch gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4"
     role="status"
     aria-label="در حال بارگذاری محصولات"
   >
     {Array.from({ length: 15 }).map((_, i) => (
       <div
         key={i}
-        className="flex w-full min-w-[130px] animate-pulse flex-col items-center overflow-hidden rounded-2xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4"
+        className="flex w-full animate-pulse flex-col overflow-hidden rounded-2xl border border-(--farabak-ink-deep)/10 bg-white shadow-sm"
       >
-        <div className="mb-3 aspect-square w-full rounded-md bg-gray-200 sm:mb-4" />
-        <div className="flex w-full flex-1 flex-col items-start gap-2">
-          <div className="h-4 w-3/4 rounded bg-gray-200" />
-          <div className="h-4 w-full rounded bg-gray-200" />
-          <div className="mt-auto w-full space-y-2">
-            <div className="h-3 w-1/2 rounded bg-gray-200" />
-            <div className="h-5 w-2/3 rounded bg-gray-200" />
+        <div className="aspect-square w-full bg-(--farabak-paper) p-4 sm:p-6">
+          <div className="size-full rounded-xl bg-slate-200" />
+        </div>
+        <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
+          <div className="h-5 w-1/3 rounded-full bg-slate-200" />
+          <div className="h-5 w-4/5 rounded bg-slate-200" />
+          <div className="mt-auto space-y-2 border-t border-slate-200 pt-3">
+            <div className="h-3 w-1/3 rounded bg-slate-200" />
+            <div className="h-5 w-1/2 rounded bg-slate-200" />
           </div>
         </div>
       </div>

@@ -1,5 +1,8 @@
 import { Suspense } from "react";
 
+import { Reveal } from "@/components/motion/Reveal";
+import { ActionLink } from "@/components/public/ActionLink";
+import { PageIntro } from "@/components/public/PageIntro";
 import { getProductsBlogContent } from "@/lib/data/products";
 
 import BannerImage from "./BannerImage";
@@ -34,6 +37,23 @@ const BlogSkeleton = () => (
   </div>
 );
 
+const ProductIntro = ({ title }: { title: string }) => (
+  <PageIntro
+    eyebrow="کاتالوگ تجهیزات فرابک"
+    title={title}
+    description="مدل‌ها و راهکارهای مناسب پروژه‌تان را با مشخصات روشن، تصویر واقعی محصول و مسیر ارتباط با کارشناس پیدا کنید."
+    actions={
+      <>
+        <ActionLink href="/products/search">جستجوی مدل</ActionLink>
+        <ActionLink href="/contact-us" variant="secondary">
+          مشاوره انتخاب
+        </ActionLink>
+      </>
+    }
+    className="py-8 md:py-12"
+  />
+);
+
 const ProductGrid: React.FC<ProductGridProps> = ({
   title,
   apiUrl,
@@ -61,23 +81,18 @@ const ProductGrid: React.FC<ProductGridProps> = ({
 
   return (
     <div className="w-full">
-      <Suspense
-        fallback={
-          <h1 className="mb-8 border-b-2 border-dashed border-[#cecece] pb-6 text-start text-2xl font-semibold">
-            {title}
-          </h1>
-        }
-      >
+      <Suspense fallback={<ProductIntro title={title} />}>
         {(async () => {
           const { topBlog } = await blogsPromise;
           if (topBlog) {
-            return <BlogContent text={topBlog} as="h1" />;
+            return (
+              <>
+                <ProductIntro title={title} />
+                <BlogContent text={topBlog} as="none" />
+              </>
+            );
           }
-          return (
-            <h1 className="mb-8 border-b-2 border-dashed border-[#cecece] pb-6 text-start text-2xl font-semibold">
-              {title}
-            </h1>
-          );
+          return <ProductIntro title={title} />;
         })()}
       </Suspense>
 
@@ -91,12 +106,14 @@ const ProductGrid: React.FC<ProductGridProps> = ({
       </Suspense>
 
       <Suspense fallback={<ProductGridSkeleton />}>
-        <GridContentServer
-          apiUrl={apiUrl}
-          currentPage={currentPage}
-          categorySlug={categorySlug}
-          subcategorySlug={subcategorySlug}
-        />
+        <Reveal>
+          <GridContentServer
+            apiUrl={apiUrl}
+            currentPage={currentPage}
+            categorySlug={categorySlug}
+            subcategorySlug={subcategorySlug}
+          />
+        </Reveal>
       </Suspense>
 
       <Suspense fallback={<BlogSkeleton />}>

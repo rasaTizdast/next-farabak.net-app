@@ -64,7 +64,10 @@ export default async function CategorySlider({ type, categorySlug }: CategorySli
 
   return (
     <Suspense fallback={<SkeletonLoader amount={8} />}>
-      <CategorySliderContent items={items} />
+      <CategorySliderContent
+        items={items}
+        type={type === "subcategories" ? "subcategory" : "category"}
+      />
     </Suspense>
   );
 }
