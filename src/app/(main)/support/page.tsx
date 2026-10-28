@@ -1,7 +1,9 @@
+import { ArrowLeft, BookOpenText, CircleHelp, Download, ShieldCheck } from "lucide-react";
 import { Metadata } from "next";
-import Link from "next/link";
 
-import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import { ActionLink } from "@/components/public/ActionLink";
+import { PageIntro } from "@/components/public/PageIntro";
+import { PublicShell } from "@/components/public/PublicShell";
 import supportData from "@/constants/supportData.json";
 
 export const metadata: Metadata = {
@@ -14,40 +16,98 @@ export const metadata: Metadata = {
   },
 };
 
+const supportIcons = {
+  blog: BookOpenText,
+  "warranty-tracking": ShieldCheck,
+  "download-center": Download,
+  faq: CircleHelp,
+} as const;
+
+const formatIndex = (value: number) =>
+  new Intl.NumberFormat("fa-IR", { minimumIntegerDigits: 2 }).format(value);
+
 const SupportPage = () => {
   return (
-    <section className="flex w-full flex-col items-center px-6 py-4 min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40">
-      <div className="w-full max-w-[1580px]">
-        <Breadcrumb breadcrumbs={["/", "/support"]} />
-        <div className="flex w-full flex-wrap items-stretch justify-evenly gap-8">
-          {supportData.map((item) => (
-            <Card key={item.id} title={item.title} desc={item.desc} link={item.link} />
-          ))}
+    <PublicShell className="pb-16">
+      <PageIntro
+        eyebrow="پشتیبانی مشتریان"
+        title="هر چیزی که برای ادامه مسیر لازم دارید"
+        description="از یک سوال سریع تا پیگیری گارانتی و دریافت نرم‌افزار، مسیر مناسب را انتخاب کنید و بدون گم‌شدن بین صفحات به پاسخ برسید."
+        actions={
+          <ActionLink href="/contact-us" variant="secondary">
+            تماس با پشتیبانی
+          </ActionLink>
+        }
+      />
+
+      <section aria-labelledby="support-services-heading">
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-(--farabak-action-blue)">خدمات اصلی</p>
+            <h2
+              id="support-services-heading"
+              className="mt-2 text-2xl font-bold text-(--farabak-ink-deep) md:text-3xl"
+            >
+              از اینجا شروع کنید
+            </h2>
+          </div>
+          <span className="hidden text-sm text-(--farabak-ink-muted) md:block">
+            ۴ مسیر روشن برای پشتیبانی
+          </span>
         </div>
-      </div>
-    </section>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {supportData.map((item) => {
+            const Icon = supportIcons[item.link as keyof typeof supportIcons];
+
+            return (
+              <article
+                key={item.id}
+                className="group flex min-h-56 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:border-(--farabak-action-blue)/40 hover:shadow-[0_22px_60px_rgba(15,23,42,0.1)]"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-4">
+                    <span className="grid size-12 place-items-center rounded-xl bg-(--farabak-surface-blue) text-(--farabak-action-blue)">
+                      <Icon aria-hidden="true" className="size-6" />
+                    </span>
+                    <span className="text-sm font-semibold text-slate-400">
+                      {formatIndex(item.id)}
+                    </span>
+                  </div>
+                  <h3 className="mt-6 text-xl font-bold text-(--farabak-ink-deep)">{item.title}</h3>
+                  <p className="mt-3 max-w-lg leading-8 text-(--farabak-ink-muted)">{item.desc}</p>
+                </div>
+                <ActionLink
+                  href={`/support/${item.link}`}
+                  variant="quiet"
+                  className="mt-6 self-start px-0"
+                >
+                  مشاهده مسیر <ArrowLeft aria-hidden="true" className="size-4" />
+                </ActionLink>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="mt-10 grid gap-4 rounded-2xl bg-(--farabak-ink-deep) p-6 text-white md:grid-cols-[1fr_auto] md:items-center md:p-8">
+        <div>
+          <p className="text-sm font-semibold text-cyan-200">نیاز به راهنمایی انسانی دارید؟</p>
+          <h2 className="mt-2 text-2xl font-bold">تیم فرابک آماده پاسخ‌گویی است</h2>
+          <p className="mt-3 max-w-2xl leading-8 text-slate-300">
+            اگر پاسخ موردنظرتان را پیدا نکردید، جزئیات درخواست را برای ما بفرستید تا سریع‌تر
+            راهنمایی‌تان کنیم.
+          </p>
+        </div>
+        <ActionLink
+          href="/contact-us"
+          className="bg-white text-(--farabak-ink-deep) hover:bg-slate-100"
+        >
+          ارتباط با فرابک <ArrowLeft aria-hidden="true" className="size-4" />
+        </ActionLink>
+      </section>
+    </PublicShell>
   );
 };
 
 export default SupportPage;
-
-type CardProps = {
-  title: string;
-  desc: string;
-  link: string;
-};
-
-const Card = ({ title, desc, link }: CardProps) => {
-  return (
-    <div className="flex max-w-[300px] flex-col items-center justify-between gap-4 rounded-lg bg-white p-4 text-center shadow-[0_4px_10px_rgba(0,0,0,0.1)]">
-      <h2 className="text-[1.3rem] font-bold">{title}</h2>
-      <p>{desc}</p>
-      <Link
-        href={`/support/${link}`}
-        className="bg-third after:bg-fourth relative mt-8 inline-block w-full overflow-hidden rounded-lg px-8 py-2 text-[0.9rem] text-white transition-[transform,color,box-shadow] duration-300 after:absolute after:inset-y-0 after:inset-s-[100%] after:inset-e-0 after:z-[-1] after:transition-[inset-inline-start,inset-inline-end] after:duration-500 hover:scale-[1.03] hover:text-white hover:shadow-[0_6px_12px_rgba(0,0,0,0.2)] hover:after:inset-s-0 hover:after:inset-e-0"
-      >
-        مشاهده
-      </Link>
-    </div>
-  );
-};

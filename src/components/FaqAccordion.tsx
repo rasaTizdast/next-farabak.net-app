@@ -49,6 +49,7 @@ const FaqAccordion = ({ faqs, className = "" }: FaqAccordionProps) => {
             <Search className="pointer-events-none absolute top-1/2 right-3 size-3.5 -translate-y-1/2 text-blue-500 md:size-4" />
             <input
               type="text"
+              aria-label="جستجو در سوالات متداول"
               placeholder="جستجو در سوالات متداول..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

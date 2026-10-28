@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 
-import { cn } from "@/lib/utils";
+import { PublicShell } from "@/components/public/PublicShell";
 
 import WarrantyTrackingPage from "./ClientWarrantyTracking";
 
@@ -16,8 +16,8 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div className={cn("w-full")}>
+    <PublicShell className="pb-16">
       <WarrantyTrackingPage />
-    </div>
+    </PublicShell>
   );
 }

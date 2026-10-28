@@ -1,10 +1,10 @@
-import { HelpCircle } from "lucide-react";
 import { Metadata } from "next";
-import Link from "next/link";
 
 import FaqAccordion, { type FaqItem } from "@/components/FaqAccordion";
+import { ActionLink } from "@/components/public/ActionLink";
+import { PageIntro } from "@/components/public/PageIntro";
+import { PublicShell } from "@/components/public/PublicShell";
 import { getGeneralFaqs } from "@/lib/data/faqs";
-import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "سوالات متداول درباره فرابک | FAQ",
@@ -18,15 +18,16 @@ export const metadata: Metadata = {
 
 const FaqPage = async () => {
   let faqs: FaqItem[] = [];
+  let hasFetchError = false;
 
   try {
     const result = await getGeneralFaqs();
     faqs = result.faqs;
   } catch (error) {
+    hasFetchError = true;
     console.error("Failed to fetch FAQs:", error);
   }
 
-  // Prepare structured data for Schema.org
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -40,87 +41,64 @@ const FaqPage = async () => {
     })),
   };
 
-  const jsonLd = JSON.stringify(structuredData);
-
   return (
-    <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <div className="w-full max-w-[1580px]">
-        {/* Hero section */}
-        <section
-          className={cn(
-            "from-primary via-secondary to-dark-blue relative mx-auto w-full overflow-hidden rounded-lg bg-linear-to-br py-6 shadow-lg md:rounded-xl md:py-10 lg:py-14"
-          )}
-        >
-          {/* Decorative elements - hidden on mobile for better performance */}
-          <div className="absolute top-0 left-0 hidden size-full overflow-hidden opacity-10 md:block">
-            <div className="absolute top-10 left-10 size-20 rounded-full bg-white"></div>
-            <div className="absolute right-10 bottom-10 size-32 rounded-full bg-white"></div>
-            <div className="absolute top-1/3 right-1/4 size-16 rounded-full bg-white"></div>
-          </div>
+    <PublicShell className="pb-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <PageIntro
+        eyebrow="مرکز پاسخ‌گویی"
+        title="سوالات متداول"
+        description="پاسخ‌های کوتاه و کاربردی به سوالاتی که هنگام انتخاب، نصب و استفاده از محصولات امنیتی بیشتر مطرح می‌شوند."
+        actions={
+          <ActionLink href="/contact-us" variant="secondary">
+            سوال دیگری دارید؟
+          </ActionLink>
+        }
+      />
 
-          <div className={cn("relative mx-auto max-w-2xl px-4 text-center")}>
-            <div className="mb-3 flex justify-center md:mb-4">
-              <div className="rounded-full bg-white/20 p-2 shadow-md backdrop-blur-sm md:p-3">
-                <HelpCircle className="size-5 text-white md:size-6" />
-              </div>
-            </div>
-            <h1 className="mb-2 text-xl font-bold text-white drop-shadow-md md:mb-3 md:text-3xl lg:text-4xl">
-              سوالات متداول
-            </h1>
-            <p className="mx-auto max-w-xl text-sm text-blue-50 md:text-base">
-              پاسخ به سوالاتی که معمولاً از ما پرسیده می‌شود. اگر پاسخ سوال خود را پیدا نکردید،
-              می‌توانید با ما تماس بگیرید.
+      <section
+        aria-labelledby="faq-list-heading"
+        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.06)] md:p-8"
+      >
+        <div className="mb-6 border-b border-slate-100 pb-5">
+          <p className="text-sm font-semibold text-(--farabak-action-blue)">راهنمای سریع</p>
+          <h2 id="faq-list-heading" className="mt-2 text-2xl font-bold text-(--farabak-ink-deep)">
+            پاسخ را جست‌وجو کنید
+          </h2>
+        </div>
+
+        {hasFetchError ? (
+          <div
+            role="alert"
+            className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-amber-950"
+          >
+            دریافت سوالات متداول با مشکل روبه‌رو شد. لطفاً صفحه را دوباره بارگذاری کنید یا با
+            پشتیبانی تماس بگیرید.
+          </div>
+        ) : (
+          <FaqAccordion faqs={faqs} />
+        )}
+      </section>
+
+      {faqs.length > 0 && !hasFetchError ? (
+        <section className="mt-8 grid gap-4 rounded-2xl bg-(--farabak-surface-blue) p-6 md:grid-cols-[1fr_auto] md:items-center md:p-8">
+          <div>
+            <p className="text-sm font-semibold text-(--farabak-action-blue)">
+              پاسخ موردنظر را پیدا نکردید؟
+            </p>
+            <h2 className="mt-2 text-2xl font-bold text-(--farabak-ink-deep)">
+              با تیم پشتیبانی صحبت کنید
+            </h2>
+            <p className="mt-2 leading-8 text-(--farabak-ink-muted)">
+              سوالتان را با جزئیات بفرستید تا کارشناسان فرابک راهنمایی دقیق‌تری ارائه کنند.
             </p>
           </div>
+          <ActionLink href="/contact-us">تماس با ما</ActionLink>
         </section>
-
-        {/* FAQ content section */}
-        <section className="w-full">
-          <div
-            className={cn(
-              "border-border bg-background my-6 rounded-lg border p-3 shadow-md md:my-8 md:p-5 lg:my-12"
-            )}
-          >
-            <FaqAccordion faqs={faqs} />
-          </div>
-
-          {faqs.length > 0 && (
-            <div className="text-center">
-              <div className="relative mx-auto w-full overflow-hidden rounded-lg border border-gray-200 bg-linear-to-br from-gray-50 to-gray-100 p-4 shadow-md md:max-w-2xl md:p-6">
-                {/* Decorative element - hidden on mobile */}
-                <div
-                  className={cn(
-                    "absolute top-0 right-0 -mt-8 -mr-8 hidden size-20 rounded-full bg-gray-50 opacity-40 md:block"
-                  )}
-                ></div>
-
-                <div className="mb-2 flex justify-center md:mb-3">
-                  <div className="rounded-full bg-gray-100 p-2">
-                    <HelpCircle className="size-5 text-white md:size-6" />
-                  </div>
-                </div>
-
-                <h3 className="relative mb-1 text-lg font-bold text-gray-900 md:mb-2 md:text-xl">
-                  سوالی که به آن پاسخ داده نشده است؟
-                </h3>
-                <p className="relative mx-auto mb-3 max-w-sm text-xs text-gray-700 md:mb-4 md:text-sm">
-                  تیم پشتیبانی ما آماده پاسخگویی به سوالات شما است.
-                </p>
-                <Link
-                  href="/contact-us"
-                  className={cn(
-                    "bg-primary hover:bg-secondary inline-flex transform items-center rounded-lg px-4 py-2 text-sm font-medium text-white shadow-md transition-[transform,background-color,box-shadow] duration-300 hover:-translate-y-0.5 md:px-5 md:py-2.5"
-                  )}
-                >
-                  تماس با ما
-                </Link>
-              </div>
-            </div>
-          )}
-        </section>
-      </div>
-    </>
+      ) : null}
+    </PublicShell>
   );
 };
 

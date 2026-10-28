@@ -41,11 +41,11 @@ function formatDate(dateString: string) {
 }
 
 const secondaryButtonClass = cn(
-  "inline-flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 px-6 py-3 text-base font-medium text-gray-700 transition-colors hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+  "inline-flex min-h-11 min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-300 px-6 py-3 text-base font-medium text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2"
 );
 
 const primaryButtonClass = cn(
-  "inline-flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#00bfff] px-6 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-[#318ce7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00bfff]/50 disabled:cursor-not-allowed disabled:opacity-50"
+  "inline-flex min-h-11 min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-(--farabak-action-blue) px-6 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-(--farabak-action-blue)/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 );
 
 const StepIndicator = ({
@@ -98,8 +98,12 @@ const WarrantyTrackingPage = () => {
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [, startTransition] = useTransition();
 
-  const handleSearchWarranty = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const searchWarranty = async () => {
+    if (!warrantyCode.trim()) {
+      setError("کد گارانتی را وارد کنید");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -127,6 +131,11 @@ const WarrantyTrackingPage = () => {
       setError("خطا در بررسی گارانتی");
       setLoading(false);
     }
+  };
+
+  const handleSearchWarranty = (e: React.FormEvent) => {
+    e.preventDefault();
+    void searchWarranty();
   };
 
   const handleConfirmRequest = async () => {
@@ -194,7 +203,8 @@ const WarrantyTrackingPage = () => {
     <div dir="rtl" className={cn("warranty-page w-full")}>
       {loading ? (
         // Loading skeleton
-        <div className={cn("mx-auto max-w-4xl")}>
+        <div className={cn("mx-auto max-w-4xl")} role="status" aria-live="polite">
+          <span className="sr-only">در حال بررسی گارانتی</span>
           <div className="mb-8 flex justify-center">
             <div className="w-full md:w-2/3 lg:w-1/2 xl:w-2/5">
               <div className="mx-auto mb-2 h-8 w-3/4 animate-pulse rounded-md bg-gray-200"></div>
@@ -225,9 +235,13 @@ const WarrantyTrackingPage = () => {
       ) : (
         <div className={cn("mx-auto max-w-4xl")}>
           <div className="mx-auto mb-8 max-w-xl md:max-w-2xl lg:max-w-3xl">
-            <h2 className={cn("mb-2 text-center text-2xl font-bold text-gray-900 md:text-3xl")}>
+            <h1
+              className={cn(
+                "mb-2 text-center text-2xl font-bold text-(--farabak-ink-deep) md:text-3xl"
+              )}
+            >
               سامانه استعلام گارانتی محصولات
-            </h2>
+            </h1>
             <p className="mb-10 text-center text-gray-500">
               با وارد کردن کد گارانتی محصول، از وضعیت و اعتبار گارانتی خود مطلع شوید
             </p>
@@ -235,31 +249,48 @@ const WarrantyTrackingPage = () => {
             <StepIndicator steps={stepsConfig} current={currentStep} />
           </div>
 
-          <div className={cn("overflow-hidden rounded-lg bg-white p-6 shadow-lg md:p-8")}>
+          <div
+            className={cn(
+              "overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] md:p-8"
+            )}
+          >
             {currentStep === 0 && (
               <div className="mb-8">
-                <h4 className="mb-4 text-lg font-semibold text-gray-900">بررسی وضعیت گارانتی</h4>
-                <p className="text-gray-500">لطفا کد گارانتی محصول خود را در کادر زیر وارد کنید</p>
+                <h2 className="mb-4 text-lg font-semibold text-(--farabak-ink-deep)">
+                  بررسی وضعیت گارانتی
+                </h2>
+                <p id="warranty-code-help" className="text-(--farabak-ink-muted)">
+                  لطفا کد گارانتی محصول خود را در کادر زیر وارد کنید
+                </p>
 
-                <form onSubmit={handleSearchWarranty} className={cn("mb-6")}>
-                  <div className="flex gap-3">
+                <form
+                  aria-label="استعلام گارانتی"
+                  onSubmit={handleSearchWarranty}
+                  className={cn("my-6")}
+                  aria-busy={loading}
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <label htmlFor="warranty-code" className="sr-only">
+                      کد گارانتی
+                    </label>
                     <input
+                      id="warranty-code"
                       type="text"
                       placeholder="کد گارانتی را وارد کنید"
                       value={warrantyCode}
                       onChange={(e) => setWarrantyCode(e.target.value)}
                       dir="ltr"
                       disabled={loading}
+                      aria-describedby={error ? "warranty-code-error" : "warranty-code-help"}
+                      aria-invalid={Boolean(error)}
                       className={cn(
-                        "min-w-0 flex-1 rounded-lg border border-gray-300 px-4 py-3 text-left text-base transition-colors focus:border-[#00bfff] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00bfff]/30 disabled:bg-gray-50"
+                        "min-h-11 min-w-0 flex-1 rounded-lg border border-slate-300 px-4 py-3 text-left text-base transition-colors focus:border-(--farabak-action-blue) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue)/30 disabled:bg-slate-50"
                       )}
                     />
                     <button
                       type="submit"
-                      disabled={loading || !warrantyCode}
-                      className={cn(
-                        "inline-flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#00bfff] px-6 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-[#318ce7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00bfff]/50 disabled:cursor-not-allowed disabled:opacity-50"
-                      )}
+                      disabled={loading}
+                      className={cn(primaryButtonClass, "w-full sm:w-auto")}
                     >
                       {loading ? <Loader2 className="size-5 animate-spin" /> : "بررسی"}
                     </button>
@@ -267,11 +298,22 @@ const WarrantyTrackingPage = () => {
                 </form>
 
                 {error && (
-                  <div className="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+                  <div
+                    id="warranty-code-error"
+                    role="alert"
+                    className="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-red-950"
+                  >
                     <XCircle className="mt-0.5 size-5 shrink-0 text-red-500" />
-                    <div>
-                      <div className="font-medium text-red-700">خطا در بررسی گارانتی</div>
-                      <div className="text-sm text-red-600">{error}</div>
+                    <div className="flex-1">
+                      <div className="font-medium">خطا در بررسی گارانتی</div>
+                      <div className="text-sm text-red-800">{error}</div>
+                      <button
+                        type="button"
+                        onClick={() => void searchWarranty()}
+                        className="mt-3 min-h-11 rounded-md px-0 text-sm font-semibold text-red-800 underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 focus-visible:outline-none"
+                      >
+                        دوباره تلاش کنید
+                      </button>
                     </div>
                   </div>
                 )}

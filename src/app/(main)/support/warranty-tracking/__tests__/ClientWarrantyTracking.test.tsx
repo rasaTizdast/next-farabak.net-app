@@ -61,7 +61,17 @@ describe("ClientWarrantyTracking", () => {
   it("renders the initial warranty search form", () => {
     render(<WarrantyTrackingPage />);
     expect(screen.getByPlaceholderText("کد گارانتی را وارد کنید")).toBeInTheDocument();
+    expect(screen.getByLabelText("کد گارانتی")).toBeInTheDocument();
     expect(screen.getByText("بررسی")).toBeInTheDocument();
+  });
+
+  it("shows a validation message without calling the warranty API", async () => {
+    render(<WarrantyTrackingPage />);
+
+    fireEvent.submit(screen.getByRole("form", { name: "استعلام گارانتی" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("کد گارانتی را وارد کنید");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("advances to the result step after search then confirm without extra requests", async () => {
@@ -76,6 +86,7 @@ describe("ClientWarrantyTracking", () => {
     });
     fireEvent.click(screen.getByText("بررسی"));
 
+    expect(screen.getByRole("status")).toHaveTextContent("در حال بررسی گارانتی");
     const confirmButton = await screen.findByText("تایید و ثبت درخواست");
     expect(confirmButton).toBeInTheDocument();
 
@@ -106,6 +117,7 @@ describe("ClientWarrantyTracking", () => {
       expect(screen.getAllByText("خطا در بررسی گارانتی").length).toBeGreaterThan(0);
     });
 
+    expect(screen.getByRole("button", { name: "دوباره تلاش کنید" })).toBeInTheDocument();
     expect(screen.getByPlaceholderText("کد گارانتی را وارد کنید")).toBeInTheDocument();
     expect(screen.queryByText("تایید و ثبت درخواست")).toBeNull();
     expect(fetchMock).toHaveBeenCalledTimes(1);
