@@ -79,6 +79,7 @@ export function StepNavigation() {
           <button
             key={step.id}
             type="button"
+            aria-label={`مرحله ${index + 1}: ${step.label}${hasError ? "، دارای خطا" : ""}`}
             onClick={() => {
               actions.setOpenSections({ [step.id]: true });
               // Close other sections
@@ -98,7 +99,7 @@ export function StepNavigation() {
                 });
               });
             }}
-            className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none ${
+            className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none ${
               isActive
                 ? "bg-blue-600 text-white"
                 : hasError

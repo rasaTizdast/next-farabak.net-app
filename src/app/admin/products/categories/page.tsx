@@ -26,7 +26,10 @@ const ProductCategories = () => {
           از اینجا می‌توانید دسته‌بندی‌ها و زیردسته‌ها را مدیریت کنید
         </p>
       </header>
-      <div className="flex w-full flex-col gap-6">
+      <div className="flex w-full flex-col gap-6" aria-labelledby="categories-list-title">
+        <h2 id="categories-list-title" className="sr-only">
+          فهرست دسته‌بندی‌ها و عملیات مدیریت
+        </h2>
         <CreateNewItem
           refetchCategories={fetchCategories}
           isLoading={isLoading}

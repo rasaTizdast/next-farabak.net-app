@@ -224,6 +224,14 @@ const AdminProductsPage = () => {
     toast.success("فیلترها حذف شدند.");
   };
 
+  const activeFilterLabels = [
+    searchQuery ? `جستجو: ${searchQuery}` : null,
+    filters.category ? `دسته‌بندی: ${filters.category}` : null,
+    filters.subCategory ? `زیردسته‌بندی: ${filters.subCategory}` : null,
+    filters.available === true ? "فقط موجود" : null,
+    filters.available === false ? "فقط ناموجود" : null,
+  ].filter((label): label is string => Boolean(label));
+
   const catFetchGuard = useRef(false);
   useEffect(() => {
     if (!catFetchGuard.current) {
@@ -259,17 +267,17 @@ const AdminProductsPage = () => {
                 value={tempSearchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 aria-label="جستجوی محصول"
-                className="admin-products-search min-h-11 w-full rounded-lg border border-slate-500 bg-white px-4 py-2 text-base text-slate-950 shadow-sm transition-colors placeholder:text-slate-500 hover:border-slate-600 focus-visible:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
+                className="admin-products-search min-h-11 w-full rounded-lg border border-slate-500 bg-white px-4 py-2 text-base text-slate-950 shadow-sm transition-colors placeholder:text-slate-500 hover:border-slate-600 focus-visible:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none"
               />
             </div>
             <button
               type="button"
               onClick={() => setShowFilterModal(true)}
-              className={`w-full px-4 py-2 lg:w-auto ${
+              className={`w-full rounded-lg px-4 py-2 text-white transition-colors focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none lg:w-auto ${
                 hasFilters(filters)
                   ? "bg-orange-600 hover:bg-orange-700"
                   : "bg-blue-950 hover:bg-blue-600"
-              } rounded-lg text-white transition-colors`}
+              }`}
             >
               {hasFilters(filters) ? "فیلتر فعال" : "فیلتر"}
             </button>
@@ -278,7 +286,7 @@ const AdminProductsPage = () => {
                 type="button"
                 onClick={clearFilters}
                 className={cn(
-                  "w-full rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 lg:w-auto"
+                  "w-full rounded-lg bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:outline-none motion-reduce:transition-none lg:w-auto"
                 )}
               >
                 حذف فیلترها
@@ -290,12 +298,28 @@ const AdminProductsPage = () => {
             type="button"
             data-testid="new-product-button"
             className={cn(
-              "mt-4 w-full rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700 lg:mt-0 lg:w-auto"
+              "mt-4 w-full rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700 focus-visible:ring-2 focus-visible:ring-green-300 focus-visible:outline-none motion-reduce:transition-none lg:mt-0 lg:w-auto"
             )}
             onClick={() => setShowNewProductModal(true)}
           >
             محصول جدید
           </button>
+        </div>
+
+        <div
+          role="status"
+          aria-live="polite"
+          aria-label="خلاصه فیلترهای محصولات"
+          className="rounded-lg border border-slate-600 bg-slate-800/80 px-4 py-3 text-sm text-slate-200"
+        >
+          {activeFilterLabels.length > 0 ? (
+            <>
+              <span className="font-semibold text-white">فیلترهای فعال:</span>{" "}
+              {activeFilterLabels.join(" · ")}
+            </>
+          ) : (
+            "فیلتر فعالی اعمال نشده است."
+          )}
         </div>
 
         {/* Table */}
@@ -308,7 +332,7 @@ const AdminProductsPage = () => {
             <button
               type="button"
               onClick={() => refetchProducts()}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none"
             >
               تلاش مجدد
             </button>

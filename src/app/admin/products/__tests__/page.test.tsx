@@ -69,6 +69,15 @@ describe("product list actions", () => {
     );
   });
 
+  it("keeps the catalogue filter summary visible while browsing results", async () => {
+    render(<ProductsPage />);
+
+    expect(await screen.findByRole("status", { name: "خلاصه فیلترهای محصولات" })).toHaveTextContent(
+      "فیلتر فعالی اعمال نشده است."
+    );
+    expect(screen.getByTestId("new-product-button")).toHaveAccessibleName("محصول جدید");
+  });
+
   it("can delete a product when its storage folder is already empty", async () => {
     vi.mocked(axios.delete).mockImplementation(async (url) => {
       if (url === "/api/s3/delete") throw { isAxiosError: true, response: { status: 404 } };

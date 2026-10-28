@@ -171,7 +171,7 @@ const SubCategoriesPanel = ({
       <button
         type="button"
         onClick={onClose}
-        className="mt-8 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-800"
+        className="mt-8 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-800 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none"
       >
         بستن
       </button>
@@ -334,7 +334,10 @@ const ProductsTable = ({
 
   if (notFound) {
     return (
-      <div className="animate-fade-in w-full rounded-lg bg-blue-600 p-5 text-center text-white shadow-lg transition-colors">
+      <div
+        className="w-full rounded-lg bg-slate-800 p-6 text-center text-slate-100 shadow-lg"
+        role="status"
+      >
         محصولی یافت نشد
       </div>
     );
@@ -357,7 +360,7 @@ const ProductsTable = ({
             <button
               type="button"
               onClick={resetSorting}
-              className="flex items-center gap-1 rounded-lg bg-blue-800 px-3 py-1 text-xs text-white transition-colors hover:bg-blue-900"
+              className="flex items-center gap-1 rounded-lg bg-blue-800 px-3 py-1 text-xs text-white transition-colors hover:bg-blue-900 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none"
             >
               <FaTimes size={10} />
               <span>حذف مرتب‌سازی</span>
@@ -372,7 +375,7 @@ const ProductsTable = ({
               <button
                 type="button"
                 onClick={() => handleBulkAction("delete")}
-                className="rounded-lg bg-red-600 px-3 py-1 text-xs text-white transition-colors hover:bg-red-700"
+                className="rounded-lg bg-red-600 px-3 py-1 text-xs text-white transition-colors hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:outline-none motion-reduce:transition-none"
               >
                 حذف محصولات
               </button>
@@ -436,7 +439,7 @@ const ProductsTable = ({
                     key={product.ProductId}
                     className={`${
                       index % 2 === 0 ? "bg-slate-700" : "bg-slate-600"
-                    } transition-colors hover:bg-slate-900`}
+                    } transition-colors hover:bg-slate-900 motion-reduce:transition-none`}
                   >
                     <td className="px-6 py-4">
                       <input
@@ -459,7 +462,7 @@ const ProductsTable = ({
                               subCategories: product.CategoryContentIds.map((sub) => sub.Name),
                             })
                           }
-                          className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+                          className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none"
                         >
                           مشاهده
                         </button>
@@ -530,7 +533,7 @@ const ProductsTable = ({
                           onClick={() => qrCodeModalHandler(product)}
                           className={`${product.QrCode_Key ? "bg-violet-800" : "bg-sky-600"} ${
                             product.QrCode_Key ? "hover:bg-violet-900" : "hover:bg-sky-700"
-                          } rounded-lg p-2 transition-colors`}
+                          } rounded-lg p-2 transition-colors focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none`}
                         >
                           <IoQrCode size={20} color="#fff" />
                         </button>
@@ -544,7 +547,8 @@ const ProductsTable = ({
                         <button
                           type="button"
                           onClick={() => handleEditProduct(product)}
-                          className="rounded-lg bg-yellow-600 px-2 py-1 text-white transition-colors hover:bg-yellow-700"
+                          aria-label={`ویرایش ${product.Type}`}
+                          className="rounded-lg bg-yellow-600 px-2 py-1 text-white transition-colors hover:bg-yellow-700 focus-visible:ring-2 focus-visible:ring-yellow-300 focus-visible:outline-none motion-reduce:transition-none"
                         >
                           ویرایش
                         </button>
@@ -559,7 +563,8 @@ const ProductsTable = ({
                               name: product.Type,
                             });
                           }}
-                          className="rounded-lg bg-red-600 px-2 py-1 text-white transition-colors hover:bg-red-700"
+                          aria-label={`حذف ${product.Type}`}
+                          className="rounded-lg bg-red-600 px-2 py-1 text-white transition-colors hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:outline-none motion-reduce:transition-none"
                           data-testid="delete-product-button"
                         >
                           حذف
@@ -568,7 +573,8 @@ const ProductsTable = ({
                         <Link
                           href={`/products/${product.link}`}
                           target="_blank"
-                          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-2 py-1 text-white transition-colors hover:bg-emerald-700"
+                          aria-label={`مشاهده ${product.Type}`}
+                          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-2 py-1 text-white transition-colors hover:bg-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:outline-none motion-reduce:transition-none"
                         >
                           مشاهده
                           <FaExternalLinkAlt size={12} />

@@ -186,7 +186,7 @@ const CategoryTable = ({ categories, isLoading, error, refetchCategories }: Cate
           <tbody>
             {isLoading ? (
               [...Array(20)].map((_, index) => (
-                <tr key={index} className="animate-pulse">
+                <tr key={index} className="motion-safe:animate-pulse motion-reduce:animate-none">
                   <td className="bg-slate-700 px-6 py-4"></td>
                   <td className="bg-slate-700 px-6 py-4"></td>
                   <td className="bg-slate-700 px-6 py-4"></td>
@@ -208,7 +208,7 @@ const CategoryTable = ({ categories, isLoading, error, refetchCategories }: Cate
               </tr>
             ) : sortedCategories.length === 0 ? (
               <tr key="category-empty-state">
-                <td colSpan={4} className="px-6 py-10 text-center text-gray-300">
+                <td colSpan={4} className="px-6 py-10 text-center text-gray-300" role="status">
                   هنوز دسته‌بندی‌ای ایجاد نشده است.
                 </td>
               </tr>
