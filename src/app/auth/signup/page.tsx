@@ -110,7 +110,8 @@ const SignUp = () => {
 
   return (
     <FormProvider {...methods}>
-      <div
+      <main
+        aria-labelledby="signup-title"
         className={cn(
           "rtl m-0 flex h-dvh min-h-[550px] w-full max-w-[400px] min-w-[290px] items-stretch justify-center rounded-none bg-white/40 shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur-[5px]",
           "min-[401px]:mx-6 min-[401px]:my-12 min-[401px]:h-auto min-[401px]:w-[90%] min-[401px]:max-w-[600px] min-[401px]:min-w-[350px] min-[401px]:rounded-[20px]",
@@ -141,9 +142,12 @@ const SignUp = () => {
             </Link>
             <div className="h-[2px] w-full bg-white min-[861px]:h-[60px] min-[861px]:w-[2px]"></div>
             <div className="flex flex-col">
-              <h3 className="text-[1.2rem] font-medium min-[401px]:text-[1.1rem] min-[861px]:text-[1rem] min-[1201px]:text-[1.1rem]">
+              <h1
+                id="signup-title"
+                className="text-[1.2rem] font-medium min-[401px]:text-[1.1rem] min-[861px]:text-[1rem] min-[1201px]:text-[1.1rem]"
+              >
                 ساخت حساب کاربری
-              </h3>
+              </h1>
               <div className="text-base font-light min-[861px]:text-[0.9rem] min-[1201px]:text-base">
                 شرکت فرابک
               </div>
@@ -173,6 +177,7 @@ const SignUp = () => {
                 control={methods.control}
                 errors={errors}
                 type="tel"
+                autoComplete="tel"
               />
             </div>
           )}
@@ -193,6 +198,7 @@ const SignUp = () => {
                 control={methods.control}
                 errors={errors}
                 type="email"
+                autoComplete="email"
               />
               <CitySelector
                 control={methods.control}
@@ -212,6 +218,7 @@ const SignUp = () => {
                 placeholder="نام کاربری خود را انگلیسی وارد کنید"
                 control={methods.control}
                 errors={errors}
+                autoComplete="username"
               />
               <TextInput
                 name="password"
@@ -220,6 +227,7 @@ const SignUp = () => {
                 control={methods.control}
                 errors={errors}
                 type="password"
+                autoComplete="new-password"
               />
               <TextInput
                 name="secondPassword"
@@ -228,6 +236,7 @@ const SignUp = () => {
                 control={methods.control}
                 errors={errors}
                 type="password"
+                autoComplete="new-password"
               />
             </div>
           )}
@@ -239,13 +248,19 @@ const SignUp = () => {
               disabled={isSubmitting}
               readOnly
               className={cn(
-                "bg-primary mt-4 -mb-4 w-full cursor-pointer rounded-[8px] border-none px-0 py-[0.8rem] text-base font-medium text-white transition-[background-color,box-shadow] duration-300 hover:bg-[#036bf4] hover:shadow-[rgba(0,0,0,0.25)_0_8px_15px] disabled:cursor-not-allowed"
+                "bg-primary mt-4 -mb-4 w-full cursor-pointer rounded-[8px] border-none px-0 py-[0.8rem] text-base font-medium text-white transition-[background-color,box-shadow] duration-300 hover:bg-[#036bf4] hover:shadow-[rgba(0,0,0,0.25)_0_8px_15px] focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:outline-none disabled:cursor-not-allowed motion-reduce:transition-none"
               )}
             />
           )}
 
           {errorMessage && (
-            <p className={cn("text-[0.9rem] font-medium text-[#e74c3c]")}>{errorMessage}</p>
+            <p
+              role="alert"
+              aria-live="assertive"
+              className={cn("text-[0.9rem] font-medium text-[#e74c3c]")}
+            >
+              {errorMessage}
+            </p>
           )}
 
           <div className="-mb-6 flex w-full items-center justify-between min-[861px]:mb-4">
@@ -309,7 +324,7 @@ const SignUp = () => {
             با ساخت حساب کاربری خود، میتوانید از تمامی امکانات وبسایت استفاده کنید.
           </h3>
         </div>
-      </div>
+      </main>
     </FormProvider>
   );
 };

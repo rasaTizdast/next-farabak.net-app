@@ -61,6 +61,8 @@ const TextInput = <T extends FieldValues>({
               {...field}
               type={type === "password" && showPassword ? "text" : type}
               id={String(name)}
+              aria-invalid={hasError}
+              aria-describedby={hasError ? `${String(name)}-error` : undefined}
               placeholder={placeholder}
               value={value ?? ""}
               className={`w-full rounded-lg border border-[#c7c7c7] bg-white p-[14px] text-start text-[14px] font-medium transition-colors duration-300 outline-none ${
@@ -77,7 +79,7 @@ const TextInput = <T extends FieldValues>({
         {type === "password" && (
           <button
             type="button"
-            className="absolute inset-e-[15px] top-1/2 -translate-y-1/2 cursor-pointer text-[1.2rem] text-gray-500"
+            className="absolute inset-e-[15px] top-1/2 -translate-y-1/2 cursor-pointer rounded p-1 text-[1.2rem] text-gray-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none motion-reduce:transition-none"
             onClick={handleTogglePassword}
             aria-label={showPassword ? "مخفی کردن رمز" : "نمایش رمز"}
           >
@@ -86,7 +88,13 @@ const TextInput = <T extends FieldValues>({
         )}
       </div>
       {hasError && (
-        <p className="mt-1 text-[0.875rem] text-[#e74c3c]">{errors[name]?.message as string}</p>
+        <p
+          id={`${String(name)}-error`}
+          role="alert"
+          className="mt-1 text-[0.875rem] text-[#e74c3c]"
+        >
+          {errors[name]?.message as string}
+        </p>
       )}
     </div>
   );
