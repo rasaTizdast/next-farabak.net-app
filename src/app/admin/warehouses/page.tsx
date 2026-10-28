@@ -360,21 +360,25 @@ function WarehousesPageContent() {
           </div>
         )}
         {(!selectedProduct || searchQuery.trim()) && (
-          <div className="mt-2 text-sm text-gray-400">{total} انبار یافت شد</div>
+          <div className="mt-2 text-sm text-gray-400" role="status" aria-live="polite">
+            {total} انبار یافت شد
+          </div>
         )}
       </div>
 
-      <WarehousesTable
-        items={items}
-        loading={loading}
-        page={page}
-        total={total}
-        onPageChange={(p) => setPage(p)}
-        onEdit={openEdit}
-        onDelete={confirmAndDeleteWarehouse}
-        onProducts={openProducts}
-        isSearching={!!selectedProduct}
-      />
+      <section aria-label="فهرست انبارها">
+        <WarehousesTable
+          items={items}
+          loading={loading}
+          page={page}
+          total={total}
+          onPageChange={(p) => setPage(p)}
+          onEdit={openEdit}
+          onDelete={confirmAndDeleteWarehouse}
+          onProducts={openProducts}
+          isSearching={!!selectedProduct}
+        />
+      </section>
 
       <WarehouseFormModal
         open={isModalOpen}

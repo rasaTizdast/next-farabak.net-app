@@ -324,11 +324,11 @@ const AdminInvoicesPage = () => {
           // Search UI skeleton during loading
           <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
             <div className="flex w-full items-center sm:w-96">
-              <div className="h-[32px] w-[105px] animate-pulse rounded-r-md bg-gray-800"></div>
-              <div className="h-[32px] flex-1 animate-pulse bg-gray-800"></div>
-              <div className="size-[32px] animate-pulse rounded-l-md bg-blue-700"></div>
+              <div className="h-[32px] w-[105px] animate-pulse rounded-r-md bg-gray-800 motion-reduce:animate-none"></div>
+              <div className="h-[32px] flex-1 animate-pulse bg-gray-800 motion-reduce:animate-none"></div>
+              <div className="size-[32px] animate-pulse rounded-l-md bg-blue-700 motion-reduce:animate-none"></div>
             </div>
-            <div className="h-[32px] w-full animate-pulse rounded-md bg-blue-700 sm:w-[120px]"></div>
+            <div className="h-[32px] w-full animate-pulse rounded-md bg-blue-700 motion-reduce:animate-none sm:w-[120px]"></div>
           </div>
         ) : (
           <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
@@ -388,9 +388,14 @@ const AdminInvoicesPage = () => {
         )}
       </div>
 
-      <div className="w-full overflow-auto rounded-lg bg-gray-800 shadow-md">
+      <div
+        className="w-full overflow-auto rounded-lg bg-gray-800 shadow-md"
+        role="region"
+        aria-label="فهرست فاکتورهای فروش"
+        tabIndex={0}
+      >
         {loading ? (
-          <table className="w-full table-auto border-collapse whitespace-nowrap text-gray-100">
+          <table className="w-full min-w-176 table-auto border-collapse whitespace-nowrap text-gray-100">
             <thead className="bg-slate-900 uppercase">
               <tr>
                 <th scope="col" className="px-6 py-3">
@@ -414,7 +419,7 @@ const AdminInvoicesPage = () => {
               {Array.from({ length: 15 }).map((_, index) => (
                 <tr
                   key={index}
-                  className={`animate-pulse ${index % 2 === 0 ? "bg-slate-700" : "bg-slate-800"}`}
+                  className={`animate-pulse motion-reduce:animate-none ${index % 2 === 0 ? "bg-slate-700" : "bg-slate-800"}`}
                 >
                   <td className="w-full px-6 py-4">
                     <div className="h-4 w-full rounded bg-slate-600"></div>
@@ -438,12 +443,16 @@ const AdminInvoicesPage = () => {
             </tbody>
           </table>
         ) : error ? (
-          <div className="p-4 text-red-500">خطا: {error}</div>
+          <div className="p-4 text-red-300" role="alert">
+            خطا: {error}
+          </div>
         ) : filteredInvoices.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">هیچ فاکتوری با این مشخصات یافت نشد</div>
+          <div className="p-8 text-center text-gray-400" role="status">
+            هیچ فاکتوری با این مشخصات یافت نشد
+          </div>
         ) : (
           <>
-            <table className="w-full table-auto border-collapse whitespace-nowrap text-gray-100">
+            <table className="w-full min-w-176 table-auto border-collapse whitespace-nowrap text-gray-100">
               <thead className="bg-slate-900 uppercase">
                 <tr>
                   <th scope="col" className="px-6 py-3">

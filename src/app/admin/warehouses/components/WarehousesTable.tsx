@@ -70,21 +70,24 @@ export default function WarehousesTable({
           <Button
             variant="primary"
             onClick={() => onEdit(record)}
-            className="flex items-center gap-2"
+            aria-label={`ویرایش انبار ${record.name}`}
+            className="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
           >
             ویرایش
           </Button>
           <Button
             variant="danger"
             onClick={() => onDelete(record)}
-            className="flex items-center gap-2"
+            aria-label={`حذف انبار ${record.name}`}
+            className="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:outline-none"
           >
             حذف
           </Button>
           <Button
             variant="primary"
             onClick={() => onProducts(record)}
-            className="flex items-center gap-2"
+            aria-label={`مشاهده محصولات انبار ${record.name}`}
+            className="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
           >
             محصولات
           </Button>

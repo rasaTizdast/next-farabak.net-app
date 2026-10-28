@@ -191,7 +191,7 @@ export default function AdminPartnerPricesPage() {
           autoComplete="off"
           placeholder="جستجوی نام محصول…"
           aria-label="جستجوی محصول"
-          className="min-h-11 w-full rounded-md border border-slate-500 bg-slate-700 px-3 py-2 text-base text-white placeholder:text-slate-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none md:w-80"
+          className="min-h-11 w-full rounded-md border border-slate-500 bg-slate-700 px-3 py-2 text-base text-white placeholder:text-slate-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none md:w-80"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
         />
@@ -204,8 +204,13 @@ export default function AdminPartnerPricesPage() {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-lg bg-slate-700">
-        <table className="w-full table-auto text-sm">
+      <div
+        className="overflow-x-auto rounded-lg bg-slate-700"
+        role="region"
+        aria-label="فهرست قیمت‌های همکار"
+        tabIndex={0}
+      >
+        <table className="w-full min-w-176 table-auto text-sm">
           <thead className="sticky top-0 z-10 bg-slate-800 text-gray-100">
             <tr>
               <th
