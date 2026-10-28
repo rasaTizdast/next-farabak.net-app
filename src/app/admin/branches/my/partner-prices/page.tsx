@@ -152,8 +152,13 @@ export default function BranchPartnerPricesPage() {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-lg bg-slate-700">
-        <table className="w-full table-auto text-sm">
+      <div
+        className="overflow-x-auto rounded-lg bg-slate-700"
+        role="region"
+        aria-label="فهرست قیمت‌های همکار"
+        tabIndex={0}
+      >
+        <table className="w-full min-w-176 table-auto text-sm">
           <thead className="sticky top-0 z-10 bg-slate-800 text-gray-100">
             <tr>
               <th
@@ -163,7 +168,7 @@ export default function BranchPartnerPricesPage() {
               >
                 <button
                   type="button"
-                  className="w-full px-4 py-3 text-start"
+                  className="w-full px-4 py-3 text-start transition-colors hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none"
                   onClick={() => setSort("Type")}
                 >
                   نام محصول {sortKey === "Type" ? (sortDir === "asc" ? "▲" : "▼") : ""}
@@ -176,7 +181,7 @@ export default function BranchPartnerPricesPage() {
               >
                 <button
                   type="button"
-                  className="w-full px-4 py-3"
+                  className="w-full px-4 py-3 transition-colors hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none"
                   onClick={() => setSort("Original")}
                 >
                   قیمت ({usdRate ? "تومان" : "دلار"})
@@ -190,7 +195,7 @@ export default function BranchPartnerPricesPage() {
               >
                 <button
                   type="button"
-                  className="w-full px-4 py-3 text-center"
+                  className="w-full px-4 py-3 text-center transition-colors hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none"
                   onClick={() => setSort("Partner")}
                 >
                   قیمت همکار ({usdRate ? "تومان" : "دلار"}){" "}
@@ -215,7 +220,7 @@ export default function BranchPartnerPricesPage() {
                   <button
                     type="button"
                     onClick={() => refetch()}
-                    className="mt-3 rounded-md bg-slate-800 px-4 py-2 text-white hover:bg-slate-900"
+                    className="mt-3 rounded-md bg-slate-800 px-4 py-2 text-white transition-colors hover:bg-slate-900 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none"
                   >
                     تلاش مجدد
                   </button>
@@ -224,7 +229,7 @@ export default function BranchPartnerPricesPage() {
             )}
             {!loading && !error && filtered.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-gray-300">
+                <td colSpan={4} className="px-4 py-6 text-center text-gray-300" role="status">
                   آیتمی یافت نشد
                 </td>
               </tr>

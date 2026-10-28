@@ -68,80 +68,84 @@ export default function BranchTabs({
   onViewWarranty,
 }: BranchTabsProps) {
   return (
-    <Tabs
-      activeKey={activeTab}
-      onChange={onTabChange}
-      className="invoice-warranty-tabs mb-6 rounded-lg bg-gray-800 pt-4 text-white"
-      type="card"
-      items={[
-        {
-          key: "products",
-          label: <span className="px-3 py-1 text-base font-medium text-white">محصولات</span>,
-          children: (
-            <ProductTab
-              products={products}
-              productsLoading={productsLoading}
-              productPagination={productPagination}
-              productColumns={productColumns}
-              branch={branch}
-              onAddProduct={onAddProduct}
-              onPageChange={onProductPageChange}
-            />
-          ),
-        },
-        {
-          key: "invoices",
-          label: (
-            <span className="flex items-center px-3 py-1 text-base font-medium text-white">
-              فاکتورها و گارانتی‌ها
-              {warrantySummary.active > 0 && (
-                <Badge
-                  count={warrantySummary.active}
-                  style={{
-                    backgroundColor: adminColors.successAnt,
-                    marginRight: "8px",
-                    fontFamily: "inherit",
-                  }}
-                />
-              )}
-            </span>
-          ),
-          children: (
-            <InvoiceTab
-              invoices={invoices}
-              invoicesLoading={invoicesLoading}
-              invoicePagination={invoicePagination}
-              searchText={searchText}
-              searchOptions={searchOptions}
-              filteredInvoices={filteredInvoices}
-              filteredStandaloneWarranties={filteredStandaloneWarranties}
-              warrantySummary={warrantySummary}
-              memoizedInvoiceColumns={memoizedInvoiceColumns}
-              branchName={branchName}
-              onSearchChange={onSearchChange}
-              onRefresh={onRefreshInvoices}
-              onCreateInvoice={onCreateInvoice}
-              onInvoicePageChange={onInvoicePageChange}
-              onViewInvoice={onViewInvoice}
-              onViewWarranty={onViewWarranty}
-            />
-          ),
-        },
-        {
-          key: "warranty-requests",
-          label: (
-            <span className="px-3 py-1 text-base font-medium text-white">درخواست‌های گارانتی</span>
-          ),
-          children: <WarrantyTab tabKey="warranty-requests" />,
-        },
-        {
-          key: "warranty-stats",
-          label: (
-            <span className="px-3 py-1 text-base font-medium text-white">آمار گارانتی‌ها</span>
-          ),
-          children: <WarrantyTab tabKey="warranty-stats" />,
-        },
-      ]}
-    />
+    <section aria-label="مدیریت محصولات، فاکتورها و گارانتی‌های شعبه">
+      <Tabs
+        activeKey={activeTab}
+        onChange={onTabChange}
+        className="invoice-warranty-tabs mb-6 rounded-lg bg-gray-800 pt-4 text-white"
+        type="card"
+        items={[
+          {
+            key: "products",
+            label: <span className="px-3 py-1 text-base font-medium text-white">محصولات</span>,
+            children: (
+              <ProductTab
+                products={products}
+                productsLoading={productsLoading}
+                productPagination={productPagination}
+                productColumns={productColumns}
+                branch={branch}
+                onAddProduct={onAddProduct}
+                onPageChange={onProductPageChange}
+              />
+            ),
+          },
+          {
+            key: "invoices",
+            label: (
+              <span className="flex items-center px-3 py-1 text-base font-medium text-white">
+                فاکتورها و گارانتی‌ها
+                {warrantySummary.active > 0 && (
+                  <Badge
+                    count={warrantySummary.active}
+                    style={{
+                      backgroundColor: adminColors.successAnt,
+                      marginRight: "8px",
+                      fontFamily: "inherit",
+                    }}
+                  />
+                )}
+              </span>
+            ),
+            children: (
+              <InvoiceTab
+                invoices={invoices}
+                invoicesLoading={invoicesLoading}
+                invoicePagination={invoicePagination}
+                searchText={searchText}
+                searchOptions={searchOptions}
+                filteredInvoices={filteredInvoices}
+                filteredStandaloneWarranties={filteredStandaloneWarranties}
+                warrantySummary={warrantySummary}
+                memoizedInvoiceColumns={memoizedInvoiceColumns}
+                branchName={branchName}
+                onSearchChange={onSearchChange}
+                onRefresh={onRefreshInvoices}
+                onCreateInvoice={onCreateInvoice}
+                onInvoicePageChange={onInvoicePageChange}
+                onViewInvoice={onViewInvoice}
+                onViewWarranty={onViewWarranty}
+              />
+            ),
+          },
+          {
+            key: "warranty-requests",
+            label: (
+              <span className="px-3 py-1 text-base font-medium text-white">
+                درخواست‌های گارانتی
+              </span>
+            ),
+            children: <WarrantyTab tabKey="warranty-requests" />,
+          },
+          {
+            key: "warranty-stats",
+            label: (
+              <span className="px-3 py-1 text-base font-medium text-white">آمار گارانتی‌ها</span>
+            ),
+            children: <WarrantyTab tabKey="warranty-stats" />,
+          },
+        ]}
+      />
+    </section>
   );
 }

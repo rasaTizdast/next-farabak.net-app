@@ -93,14 +93,14 @@ describe("BranchTable", () => {
   it("renders the table with branch data", () => {
     render(<BranchTable {...defaultProps} />);
     expect(screen.getByTestId("persian-table")).toBeInTheDocument();
-    expect(screen.getByText("Branch A")).toBeInTheDocument();
-    expect(screen.getByText("Branch B")).toBeInTheDocument();
+    expect(screen.getAllByText("Branch A")).not.toHaveLength(0);
+    expect(screen.getAllByText("Branch B")).not.toHaveLength(0);
   });
 
   it("renders branch locations", () => {
     render(<BranchTable {...defaultProps} />);
-    expect(screen.getByText("BR001")).toBeInTheDocument();
-    expect(screen.getByText("BR002")).toBeInTheDocument();
+    expect(screen.getAllByText("BR001")).not.toHaveLength(0);
+    expect(screen.getAllByText("BR002")).not.toHaveLength(0);
   });
 
   it("renders status badges", () => {
@@ -168,11 +168,17 @@ describe("BranchTable", () => {
 
   it("shows specific product quantity when searching", () => {
     render(<BranchTable {...defaultProps} isSearching={true} />);
-    expect(screen.getByText("3 عدد")).toBeInTheDocument();
+    expect(screen.getAllByText("3 عدد")).not.toHaveLength(0);
   });
 
   it("shows not found text for zero specific product when searching", () => {
     const { container } = render(<BranchTable {...defaultProps} isSearching={true} />);
     expect(container.textContent).toContain("ناموجود");
+  });
+
+  it("provides a labelled mobile branch workspace", () => {
+    render(<BranchTable {...defaultProps} />);
+    expect(screen.getByRole("region", { name: "فهرست شعبه‌ها" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "نمای موبایل شعبه‌ها" })).toBeInTheDocument();
   });
 });

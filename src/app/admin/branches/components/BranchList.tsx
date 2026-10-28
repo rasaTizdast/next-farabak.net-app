@@ -159,6 +159,19 @@ const BranchList: React.FC<BranchListProps> = ({
         </div>
       </div>
 
+      <div
+        role="status"
+        aria-live="polite"
+        aria-label="خلاصه فهرست شعبه‌ها"
+        className="rounded-lg border border-gray-700 bg-gray-800/80 px-4 py-3 text-sm text-gray-200"
+      >
+        {searchProductId
+          ? `فیلتر موجودی برای محصول ${searchProductId} فعال است.`
+          : pagination.total
+            ? `${pagination.total} شعبه در فهرست قرار دارد.`
+            : "فیلتر محصولی فعال نیست."}
+      </div>
+
       {searchProductId && allProducts.length > 0 && (
         <ProductSearchSummary
           productName={
@@ -170,7 +183,13 @@ const BranchList: React.FC<BranchListProps> = ({
         />
       )}
 
-      <div className="overflow-hidden rounded-lg bg-gray-800 shadow">
+      <div
+        className="overflow-hidden rounded-lg bg-gray-800 shadow"
+        aria-labelledby="branch-results-title"
+      >
+        <h2 id="branch-results-title" className="sr-only">
+          نتایج فهرست شعبه‌ها
+        </h2>
         <BranchTable
           branches={branches}
           loading={branchesLoading || refreshing}

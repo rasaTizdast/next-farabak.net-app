@@ -186,45 +186,135 @@ const BranchTable: React.FC<BranchTableProps> = ({
   ];
 
   return (
-    <div className="overflow-hidden rounded-lg bg-gray-800 shadow-md">
-      <div className="overflow-x-auto">
-        <PersianTable
-          columns={columns}
-          dataSource={branches}
-          rowKey="branchid"
-          loading={loading}
-          pagination={{
-            current: pagination?.current,
-            pageSize: pagination?.pageSize || 10,
-            total: pagination?.total,
-            onChange: pagination?.onChange,
-            showSizeChanger: true,
-            showQuickJumper: false,
-            pageSizeOptions: ["10", "20", "50"],
-            position: ["bottomCenter"],
-            className: "pagination-dark [&_.ant-pagination-options-quick-jumper]:!hidden",
-          }}
-          scroll={{ x: "max-content" }}
-          className="branch-table dark-table rtl-table [&_.ant-pagination-next]:rotate-180 [&_.ant-pagination-prev]:rotate-180 [&_.ant-table-pagination]:my-4!"
-          locale={{
-            emptyText: (
-              <Empty
-                description="هیچ شعبه‌ای یافت نشد"
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                className="text-gray-200"
-              />
-            ),
-          }}
-          rowClassName={(record) => {
-            if (isSearching && record.specificProductQuantity !== undefined) {
-              return record.specificProductQuantity > 0
-                ? "[&>td]:!bg-emerald-500/5 hover:[&>td]:!bg-emerald-500/10"
-                : "opacity-75 hover:opacity-100";
-            }
-            return "";
-          }}
-          direction="rtl"
-        />
+    <div
+      className="overflow-hidden rounded-lg bg-gray-800 shadow-md"
+      role="region"
+      aria-label="فهرست شعبه‌ها"
+    >
+      <div className="space-y-3 p-3 md:hidden" role="group" aria-label="نمای موبایل شعبه‌ها">
+        {loading ? (
+          <div role="status" className="rounded-lg bg-gray-700 p-6 text-center text-gray-200">
+            در حال بارگذاری شعبه‌ها…
+          </div>
+        ) : branches.length === 0 ? (
+          <div role="status" className="rounded-lg bg-gray-700 p-6 text-center text-gray-200">
+            هیچ شعبه‌ای یافت نشد
+          </div>
+        ) : (
+          branches.map((branch) => (
+            <article
+              key={branch.branchid}
+              className="rounded-lg border border-gray-600 bg-gray-700/80 p-4 shadow-sm"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="font-semibold text-white">{branch.name}</h2>
+                  <p className="mt-1 text-sm text-gray-300" dir="ltr">
+                    {branch.location}
+                  </p>
+                </div>
+                <span
+                  className="rounded bg-gray-800 px-2 py-1 text-xs text-gray-200"
+                  aria-label={`${branch.productCount} محصول، ${branch.totalQuantity} عدد`}
+                >
+                  {branch.productCount} محصول · {branch.totalQuantity} عدد
+                </span>
+              </div>
+              <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <dt className="text-gray-400">تاریخ ایجاد</dt>
+                  <dd className="mt-1 text-gray-100">
+                    {branch.createdat ? toPersianDate(branch.createdat) : "تاریخ نامشخص"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-gray-400">موجودی جستجو</dt>
+                  <dd className="mt-1 text-gray-100">
+                    {isSearching && branch.specificProductQuantity !== undefined
+                      ? `${branch.specificProductQuantity} عدد`
+                      : "—"}
+                  </dd>
+                </div>
+              </dl>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <Button
+                  icon={<EditOutlined />}
+                  onClick={() => onEdit(branch)}
+                  aria-label={`ویرایش شعبه ${branch.name}`}
+                  className="border-blue-700 bg-blue-600 text-white"
+                />
+                <Button
+                  icon={<ShoppingOutlined />}
+                  onClick={() => onViewProducts(branch)}
+                  aria-label={`مدیریت محصولات شعبه ${branch.name}`}
+                  className="border-gray-600 bg-gray-700 text-white"
+                />
+                <Button
+                  icon={<FileTextOutlined />}
+                  onClick={() => onCreateInvoice(branch)}
+                  aria-label={`ایجاد فاکتور جدید برای شعبه ${branch.name}`}
+                  className="border-green-600 bg-green-700 text-white"
+                />
+                <Popconfirm
+                  title="حذف شعبه"
+                  description="آیا از حذف این شعبه اطمینان دارید؟"
+                  onConfirm={() => onDelete(branch.branchid)}
+                  okText="بله"
+                  cancelText="خیر"
+                >
+                  <Button
+                    icon={<DeleteOutlined />}
+                    danger
+                    aria-label={`حذف شعبه ${branch.name}`}
+                    className="border-red-700 bg-red-700 text-white"
+                  />
+                </Popconfirm>
+              </div>
+            </article>
+          ))
+        )}
+      </div>
+
+      <div className="hidden md:block">
+        <div className="overflow-x-auto">
+          <PersianTable
+            columns={columns}
+            dataSource={branches}
+            rowKey="branchid"
+            loading={loading}
+            pagination={{
+              current: pagination?.current,
+              pageSize: pagination?.pageSize || 10,
+              total: pagination?.total,
+              onChange: pagination?.onChange,
+              showSizeChanger: true,
+              showQuickJumper: false,
+              pageSizeOptions: ["10", "20", "50"],
+              position: ["bottomCenter"],
+              className: "pagination-dark [&_.ant-pagination-options-quick-jumper]:!hidden",
+            }}
+            scroll={{ x: "max-content" }}
+            className="branch-table dark-table rtl-table [&_.ant-pagination-next]:rotate-180 [&_.ant-pagination-prev]:rotate-180 [&_.ant-table-pagination]:my-4!"
+            locale={{
+              emptyText: (
+                <Empty
+                  description="هیچ شعبه‌ای یافت نشد"
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  className="text-gray-200"
+                />
+              ),
+            }}
+            rowClassName={(record) => {
+              if (isSearching && record.specificProductQuantity !== undefined) {
+                return record.specificProductQuantity > 0
+                  ? "[&>td]:!bg-emerald-500/5 hover:[&>td]:!bg-emerald-500/10"
+                  : "opacity-75 hover:opacity-100";
+              }
+              return "";
+            }}
+            direction="rtl"
+          />
+        </div>
       </div>
     </div>
   );
