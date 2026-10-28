@@ -1,19 +1,24 @@
 export default function ChangePasswordLoading() {
   return (
     <div
-      className="mt-6 flex w-full max-w-[500px] min-w-[190px] animate-pulse flex-col items-center justify-center gap-6 self-center rounded-lg bg-white p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] md:p-6"
+      className="flex w-full max-w-2xl flex-col gap-6"
       role="status"
       aria-label="در حال بارگذاری"
     >
-      <div className="flex w-full flex-col gap-6">
-        {Array.from({ length: 2 }).map((_, i) => (
-          <div key={i} className="flex w-full flex-col gap-2">
-            <div className="h-5 w-32 rounded bg-gray-200" />
-            <div className="h-[50px] w-full rounded-lg border border-gray-200 bg-gray-100" />
+      <div className="motion-safe:animate-pulse motion-reduce:animate-none">
+        <div className="h-4 w-24 rounded bg-slate-200" />
+        <div className="mt-3 h-8 w-52 rounded bg-slate-200" />
+        <div className="mt-3 h-5 w-full max-w-xl rounded bg-slate-200" />
+      </div>
+      <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 motion-safe:animate-pulse motion-reduce:animate-none sm:p-7">
+        {Array.from({ length: 2 }).map((_, index) => (
+          <div key={index} className="space-y-2">
+            <div className="h-4 w-32 rounded bg-slate-200" />
+            <div className="h-12 w-full rounded-xl bg-slate-100" />
           </div>
         ))}
+        <div className="h-11 w-36 rounded-xl bg-slate-200" />
       </div>
-      <div className="mt-4 h-10 w-32 rounded-[6px] bg-gray-200" />
     </div>
   );
 }

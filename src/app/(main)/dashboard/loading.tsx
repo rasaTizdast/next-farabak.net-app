@@ -1,21 +1,22 @@
 export default function DashboardLoading() {
   return (
-    <div className="animate-pulse" role="status" aria-label="در حال بارگذاری">
-      <div className="h-6 w-64 rounded bg-gray-200" />
-      <div className="mt-8 flex w-full flex-wrap justify-start gap-8">
-        {Array.from({ length: 2 }).map((_, i) => (
-          <div
-            key={i}
-            className="flex w-[30%] max-w-[400px] min-w-[350px] flex-col items-center rounded-lg bg-white px-4 py-6 text-center shadow-[0_4px_10px_rgba(0,0,0,0.1)] md:min-w-[250px] lg:w-full lg:max-w-[450px]"
-          >
-            <div className="mb-4 h-6 w-1/2 rounded bg-gray-200" />
-            <div className="mb-4 w-full space-y-2">
-              <div className="h-4 w-full rounded bg-gray-200" />
-              <div className="h-4 w-3/4 rounded bg-gray-200" />
-            </div>
-            <div className="mt-auto h-10 w-1/2 rounded-[6px] bg-gray-200" />
-          </div>
-        ))}
+    <div
+      className="flex w-full max-w-6xl flex-col gap-6"
+      role="status"
+      aria-label="در حال بارگذاری"
+    >
+      <div className="motion-safe:animate-pulse motion-reduce:animate-none">
+        <div className="h-4 w-28 rounded bg-slate-200" />
+        <div className="mt-3 h-9 w-64 rounded bg-slate-200" />
+        <div className="mt-3 h-5 w-full max-w-xl rounded bg-slate-200" />
+      </div>
+      <div className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6 sm:grid-cols-[1fr_auto]">
+        <div className="space-y-3 motion-safe:animate-pulse motion-reduce:animate-none">
+          <div className="h-6 w-32 rounded bg-slate-200" />
+          <div className="h-4 w-full max-w-md rounded bg-slate-200" />
+          <div className="h-4 w-full max-w-sm rounded bg-slate-200" />
+        </div>
+        <div className="h-11 w-36 rounded-xl bg-slate-200 motion-safe:animate-pulse motion-reduce:animate-none" />
       </div>
     </div>
   );

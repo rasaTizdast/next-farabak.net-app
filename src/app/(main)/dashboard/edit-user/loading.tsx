@@ -1,19 +1,23 @@
 export default function EditUserLoading() {
   return (
-    <form
-      className="flex animate-pulse flex-col items-center justify-center gap-6 self-center rounded-lg bg-white p-6 md:p-6"
+    <div
+      className="flex w-full max-w-4xl flex-col gap-6"
       role="status"
       aria-label="در حال بارگذاری"
     >
-      <div className="flex w-full flex-wrap justify-evenly gap-8">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="flex w-full flex-col gap-2">
-            <div className="h-5 w-32 rounded bg-gray-200" />
-            <div className="h-[50px] w-full rounded-lg border border-gray-200 bg-gray-100" />
+      <div className="motion-safe:animate-pulse motion-reduce:animate-none">
+        <div className="h-4 w-24 rounded bg-slate-200" />
+        <div className="mt-3 h-8 w-48 rounded bg-slate-200" />
+      </div>
+      <div className="grid gap-5 rounded-2xl border border-slate-200 bg-white p-5 motion-safe:animate-pulse motion-reduce:animate-none sm:grid-cols-2 sm:p-7">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div key={index} className="space-y-2">
+            <div className="h-4 w-28 rounded bg-slate-200" />
+            <div className="h-12 w-full rounded-xl bg-slate-100" />
           </div>
         ))}
+        <div className="h-11 w-36 rounded-xl bg-slate-200 sm:col-span-2" />
       </div>
-      <div className="mt-4 h-10 w-32 rounded-[6px] bg-gray-200" />
-    </form>
+    </div>
   );
 }
