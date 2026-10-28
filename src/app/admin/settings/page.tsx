@@ -159,11 +159,13 @@ const SettingsPage = () => {
   };
 
   return (
-    <div>
+    <main aria-labelledby="settings-title">
       <Toaster position="bottom-center" />
       <div className="flex w-full flex-col overflow-auto rounded-lg border border-slate-700 bg-gray-800 p-4 text-gray-100 sm:p-6">
         <div className="w-full">
-          <h1 className="mb-6 text-2xl font-bold">تنظیمات</h1>
+          <h1 id="settings-title" className="mb-6 text-2xl font-bold">
+            تنظیمات
+          </h1>
 
           {/* Main Grid Layout */}
           <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2">
@@ -215,7 +217,7 @@ const SettingsPage = () => {
                 <button
                   type="submit"
                   disabled={changingPassword}
-                  className="rounded-lg bg-green-600 p-2 text-white transition-colors hover:bg-green-700 disabled:bg-green-800 disabled:text-gray-300"
+                  className="rounded-lg bg-green-600 p-2 text-white transition-colors hover:bg-green-700 focus-visible:ring-2 focus-visible:ring-green-300 focus-visible:outline-none disabled:bg-green-800 disabled:text-gray-300 motion-reduce:transition-none"
                 >
                   {changingPassword ? "در حال تغییر رمز عبور..." : "تغییر رمز عبور"}
                 </button>
@@ -251,7 +253,7 @@ const SettingsPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-lg bg-blue-600 p-2 text-white transition-colors hover:bg-blue-700 disabled:bg-blue-800 disabled:text-gray-300"
+                  className="rounded-lg bg-blue-600 p-2 text-white transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none disabled:bg-blue-800 disabled:text-gray-300 motion-reduce:transition-none"
                 >
                   {loading ? "در حال جستجو..." : "جستجو"}
                 </button>
@@ -303,7 +305,9 @@ const SettingsPage = () => {
               <h2 className="mb-4 text-lg font-semibold">لیست ادمین‌ها</h2>
 
               {admins.length === 0 ? (
-                <p className="text-right text-gray-300">هیچ ادمینی یافت نشد.</p>
+                <p className="text-right text-gray-300" role="status">
+                  هیچ ادمینی یافت نشد.
+                </p>
               ) : (
                 <ul className="space-y-2">
                   {admins.map((admin) => (
@@ -326,7 +330,7 @@ const SettingsPage = () => {
                           type="button"
                           onClick={() => setAdminToDemote(admin.UserID)}
                           disabled={loading}
-                          className="rounded-lg bg-red-600 p-2 text-white transition-colors hover:bg-red-700 disabled:bg-red-800 disabled:text-gray-300"
+                          className="rounded-lg bg-red-600 p-2 text-white transition-colors hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:outline-none disabled:bg-red-800 disabled:text-gray-300 motion-reduce:transition-none"
                         >
                           {loading ? "در حال پردازش..." : "تبدیل به کاربر عادی"}
                         </button>
@@ -367,7 +371,7 @@ const SettingsPage = () => {
           </AlertDialogContent>
         </AlertDialog>
       )}
-    </div>
+    </main>
   );
 };
 

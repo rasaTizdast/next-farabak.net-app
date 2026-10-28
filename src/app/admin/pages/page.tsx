@@ -136,7 +136,7 @@ function DeletePageDialog({
             type="button"
             disabled={isDeleting}
             onClick={onCancel}
-            className="min-h-11 rounded-lg bg-gray-700 px-5 text-sm font-medium text-white hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-60"
+            className="min-h-11 rounded-lg bg-gray-700 px-5 text-sm font-medium text-white transition-colors hover:bg-gray-600 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
           >
             انصراف
           </button>
@@ -144,7 +144,7 @@ function DeletePageDialog({
             type="button"
             disabled={isDeleting}
             onClick={onConfirm}
-            className="min-h-11 rounded-lg bg-red-700 px-5 text-sm font-medium text-white hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+            className="min-h-11 rounded-lg bg-red-700 px-5 text-sm font-medium text-white transition-colors hover:bg-red-600 focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
           >
             {isDeleting ? "در حال حذف..." : "حذف"}
           </button>
@@ -327,7 +327,10 @@ const AdminPageManager: React.FC = () => {
       {loading ? (
         renderSkeleton()
       ) : (
-        <div className="mx-auto w-full px-3 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8">
+        <main
+          className="mx-auto w-full px-3 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8"
+          aria-labelledby="pages-title"
+        >
           {pageError && (
             <div
               role="alert"
@@ -345,10 +348,18 @@ const AdminPageManager: React.FC = () => {
           )}
           {/* Header */}
           <div className="mb-6 sm:mb-8">
-            <h1 className="mb-1 text-2xl font-bold text-white sm:mb-2 sm:text-3xl lg:text-4xl">
+            <h1
+              id="pages-title"
+              className="mb-1 text-2xl font-bold text-white sm:mb-2 sm:text-3xl lg:text-4xl"
+            >
               مدیریت صفحات
             </h1>
             <p className="text-sm text-gray-400 sm:text-base">مدیریت و ویرایش صفحات وب‌سایت</p>
+            <p role="status" aria-live="polite" className="mt-3 text-sm text-gray-300">
+              {rowNames.length > 0
+                ? `${rowNames.length} گروه محتوایی آماده مدیریت است.`
+                : "گروه محتوایی برای نمایش وجود ندارد."}
+            </p>
           </div>
 
           {/* Empty State */}
@@ -367,7 +378,7 @@ const AdminPageManager: React.FC = () => {
           )}
 
           {/* Page Rows */}
-          <div className="space-y-2 sm:space-y-3">
+          <section className="space-y-2 sm:space-y-3" aria-label="گروه‌های محتوایی قابل انتشار">
             {rowNames.map((row) => (
               <div
                 key={row.link}
@@ -558,8 +569,8 @@ const AdminPageManager: React.FC = () => {
                 )}
               </div>
             ))}
-          </div>
-        </div>
+          </section>
+        </main>
       )}
 
       {isQrCodeModalOpen && (
