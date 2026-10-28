@@ -1,7 +1,7 @@
 import { FiAlertTriangle, FiTrash2, FiX } from "react-icons/fi";
 
 export const ImagePreview = ({ imageUrl, onClose }: { imageUrl: string; onClose: () => void }) => (
-  <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
     <div className="relative max-h-[90vh] max-w-4xl">
       <img
         src={imageUrl}
@@ -27,7 +27,7 @@ export const ConfirmationDialog = ({
   onCancel: () => void;
   onConfirm: () => void;
 }) => (
-  <div className="bg-opacity-75 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
     <div className="animate-fadeIn w-full max-w-md rounded-lg border border-gray-700 bg-gray-800 p-8 text-gray-200 shadow-xl">
       <div className="mb-6 flex flex-col items-center text-center">
         <div className="mb-4 rounded-full bg-red-500/20 p-3">

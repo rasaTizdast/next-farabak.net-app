@@ -76,7 +76,7 @@ describe("branch partner prices", () => {
     fireEvent.click(screen.getByRole("button", { name: "بعدی" }));
     expect(screen.getByText("صفحه 2 از 2")).toBeTruthy();
 
-    fireEvent.change(screen.getByRole("textbox", { name: "جستجوی محصول" }), {
+    fireEvent.change(screen.getByRole("searchbox", { name: "جستجوی محصول" }), {
       target: { value: "QA router 21" },
     });
 

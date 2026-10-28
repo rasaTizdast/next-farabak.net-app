@@ -1,7 +1,8 @@
 import { Metadata } from "next";
-import Link from "next/link";
 import Script from "next/script";
 import { Suspense } from "react";
+
+import Link from "@/components/NoPrefetchLink";
 
 import BackToTop from "../_components/ui/BackToTop";
 import Footer from "./_components/ui/footer/Footer";

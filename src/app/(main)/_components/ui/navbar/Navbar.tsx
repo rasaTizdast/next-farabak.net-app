@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/NoPrefetchLink";
 
 import HeaderSubMenu from "./HeaderSubMenu";
 import ProductsMegaMenu from "../productsMegaMenu/ProductsMegaMenu";

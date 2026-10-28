@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockPrisma, mockS3 } = vi.hoisted(() => ({
+const { auth, mockPrisma, mockS3 } = vi.hoisted(() => ({
+  auth: vi.fn(),
   mockPrisma: {
     members: {
       findUnique: vi.fn(),
@@ -12,6 +13,7 @@ const { mockPrisma, mockS3 } = vi.hoisted(() => ({
     deleteObject: vi.fn().mockReturnValue({ promise: vi.fn().mockResolvedValue({}) }),
   },
 }));
+vi.mock("@/lib/auth", () => ({ requireAuth: auth }));
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 vi.mock("aws-sdk", () => ({
   S3: vi.fn().mockImplementation(function () {
@@ -20,6 +22,10 @@ vi.mock("aws-sdk", () => ({
 }));
 
 import { PUT } from "../route";
+
+beforeEach(() => {
+  auth.mockResolvedValue({ userId: "1", username: "admin", role: "Admin" });
+});
 
 function createFormData(fields: Record<string, string | File | null>): Request {
   const fd = new FormData();

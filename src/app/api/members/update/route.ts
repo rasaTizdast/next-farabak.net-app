@@ -2,6 +2,7 @@ import { S3 } from "aws-sdk";
 import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
@@ -12,6 +13,12 @@ const s3 = new S3({
 });
 
 export async function PUT(request: Request) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   try {
     const formData = await request.formData();
     const id = formData.get("id") as string;

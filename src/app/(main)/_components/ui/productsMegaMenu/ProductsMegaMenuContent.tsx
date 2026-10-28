@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { IoIosArrowDown } from "react-icons/io";
 import { MdArrowBackIosNew } from "react-icons/md";
 
+import Link from "@/components/NoPrefetchLink";
 import type { MenuCategory, MenuSubcategory } from "@/helpers/menuHelpers";
 
 interface ProductsMegaMenuContentProps {

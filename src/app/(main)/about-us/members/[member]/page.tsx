@@ -107,7 +107,7 @@ const MemberPage = async (props: Props) => {
             <h1 className="mb-2 text-[1.4rem] font-extrabold">{name}</h1>
             <h3 className="mb-8 font-normal">{role}</h3>
             {desc ? (
-              <p>{desc}</p>
+              <p className="whitespace-pre-wrap">{desc}</p>
             ) : (
               <p className="w-full rounded-lg bg-blue-100 p-3 text-center">
                 برای این عضو اطلاعاتی یافت نشد، مجددا بعدا تلاش کنید

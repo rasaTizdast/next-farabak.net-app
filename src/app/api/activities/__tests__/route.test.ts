@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockPrisma } = vi.hoisted(() => ({
   mockPrisma: {
+    $transaction: vi.fn(),
     master_activity: {
       findMany: vi.fn(),
       update: vi.fn(),
@@ -61,7 +62,10 @@ describe("GET /api/activities", () => {
 });
 
 describe("PUT /api/activities", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPrisma.$transaction.mockImplementation(async (callback) => callback(mockPrisma));
+  });
 
   it("updates existing activities and their details", async () => {
     mockPrisma.master_activity.findMany.mockResolvedValue([
@@ -121,5 +125,22 @@ describe("PUT /api/activities", () => {
 
     const res = await PUT(makePutRequest([]));
     expect(res.status).toBe(500);
+  });
+
+  it("writes long activity details inside a database transaction", async () => {
+    const description = "الف".repeat(200);
+    mockPrisma.master_activity.findMany.mockResolvedValue([]);
+    mockPrisma.master_activity.create.mockResolvedValue({ id: 2, title: "Long activity" });
+    mockPrisma.details_activity.create.mockResolvedValue({});
+
+    const res = await PUT(
+      makePutRequest([{ title: "Long activity", Details_activity: [{ description }] }])
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockPrisma.$transaction).toHaveBeenCalledOnce();
+    expect(mockPrisma.details_activity.create).toHaveBeenCalledWith({
+      data: { activityID: 2, description },
+    });
   });
 });

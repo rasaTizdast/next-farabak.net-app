@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useState } from "react";
+
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 import { AdminInvoice } from "../../type";
 
@@ -14,21 +16,8 @@ const ChangeStatusModal = ({ invoice, onClose, onStatusChange }: ChangeStatusMod
   const [status, setStatus] = useState(invoice?.Checked || false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const panelRef = useModalA11y<HTMLDivElement>({ onClose, shouldCloseOnEscape: () => !isSaving });
   const titleId = useId();
-
-  useEffect(() => {
-    panelRef.current?.focus();
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !event.defaultPrevented && !isSaving) {
-        onClose();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isSaving, onClose]);
 
   if (!invoice) return null;
 
@@ -54,7 +43,7 @@ const ChangeStatusModal = ({ invoice, onClose, onStatusChange }: ChangeStatusMod
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-slate-900 focus:outline-none"
+        className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-xl border border-slate-600 bg-slate-900 shadow-2xl focus:outline-none"
       >
         {/* Modal Header */}
         <div className="p-6">

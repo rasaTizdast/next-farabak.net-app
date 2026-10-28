@@ -45,7 +45,7 @@ const ImageInput: React.FC<ImageInputProps> = ({ label, imageUrl, onChange }) =>
         />
 
         {/* Hover overlay */}
-        <div className="bg-opacity-50 absolute inset-0 flex items-center justify-center rounded-lg bg-black opacity-0 transition-opacity duration-300 hover:opacity-100">
+        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 opacity-0 transition-opacity duration-300 hover:opacity-100">
           <label className="cursor-pointer rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700">
             آپلود عکس
             <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />

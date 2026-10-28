@@ -26,14 +26,31 @@ function InputField({
 }) {
   return (
     <div className="mb-4">
-      <label htmlFor={id} className="mb-2 block">
+      <label htmlFor={id} className="mb-2 block text-sm font-semibold text-slate-100">
         {label}
       </label>
       {id && React.isValidElement(children)
-        ? React.cloneElement(children as React.ReactElement<{ id?: string }>, { id })
+        ? React.cloneElement(
+            children as React.ReactElement<{
+              id?: string;
+              className?: string;
+              "aria-invalid"?: boolean;
+              "aria-describedby"?: string;
+            }>,
+            {
+              id,
+              className: `min-h-11 w-full rounded-lg border bg-slate-700 px-3 py-2.5 text-base text-white placeholder:text-slate-300 transition-colors focus-visible:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none ${error ? "border-red-400" : "border-slate-500 hover:border-slate-300"} ${(children.props as { className?: string }).className ?? ""}`,
+              "aria-invalid": Boolean(error),
+              "aria-describedby": error ? `${id}-error` : undefined,
+            }
+          )
         : children}
-      {error && <FieldError error={error} />}
-      {helpText && <div className="mt-1 text-sm text-gray-400">{helpText}</div>}
+      {error && (
+        <p id={`${id}-error`} className="mt-1 text-sm text-red-300">
+          {error}
+        </p>
+      )}
+      {helpText && <div className="mt-1 text-sm text-slate-300">{helpText}</div>}
     </div>
   );
 }
@@ -76,7 +93,7 @@ function FileInputField({
         type="file"
         accept="image/*"
         onChange={onChange}
-        className="w-full rounded bg-gray-700 p-2 text-white"
+        className="min-h-11 w-full rounded-lg border border-slate-500 bg-slate-700 px-3 py-2 text-white file:me-3 file:rounded-md file:border-0 file:bg-blue-600 file:px-3 file:py-1.5 file:text-white hover:border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
         disabled={hasFile}
       />
       {hasFile && preview && (
@@ -126,7 +143,7 @@ function CategorySelect({
         value={value ?? ""}
         onChange={(e) => onChange(Number(e.target.value) || null)}
         disabled={disabled}
-        className="w-full rounded bg-gray-700 p-2 text-white"
+        className="min-h-11 w-full rounded-lg border border-slate-500 bg-slate-700 px-3 py-2 text-white hover:border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none disabled:opacity-60"
       >
         <option value="">{placeholder}</option>
         {options.map((opt) => (
@@ -149,7 +166,11 @@ function SubCategoryGrid({
   onToggle: (id: number) => void;
 }) {
   return (
-    <div className="rounded bg-gray-700 p-2 text-white">
+    <div
+      role="group"
+      aria-label="زیردسته‌بندی‌ها"
+      className="rounded-lg border border-slate-500 bg-slate-700 p-2 text-white"
+    >
       <div
         className="grid gap-2"
         style={{ gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))" }}
@@ -163,6 +184,7 @@ function SubCategoryGrid({
               type="button"
               data-testid={`subcategory-button-${sub.CategoryContentId}`}
               onClick={() => onToggle(sub.CategoryContentId)}
+              aria-pressed={isSelected}
               className={`rounded border px-3 py-1 text-center ${
                 isSelected
                   ? isFirstSelected
@@ -219,7 +241,7 @@ function KeywordsInput({
         data-testid="product-keywords"
         type="text"
         onKeyDown={handleKeyDown}
-        className={`w-full rounded bg-gray-700 p-2 text-white ${error ? "border border-red-500" : ""}`}
+        className={`min-h-11 w-full rounded-lg border bg-slate-700 px-3 py-2.5 text-white placeholder:text-slate-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none ${error ? "border-red-400" : "border-slate-500"}`}
         placeholder="کلمات کلیدی را تایپ کنید و Enter را فشار دهید"
         maxLength={100}
       />
@@ -281,7 +303,7 @@ export function BaseDetailsStep() {
       title="جزئیات پایه"
       titleTestId="basic-details"
     >
-      <div className="mb-6 p-4">
+      <div className="mx-auto mb-6 w-full max-w-3xl px-1 py-4 sm:px-4">
         <InputField
           label="نام محصول"
           error={getFieldError("name")}
@@ -326,16 +348,10 @@ export function BaseDetailsStep() {
         />
 
         <div className="mb-4">
-          <label htmlFor="product-subcategory" className="mb-2 flex items-center gap-3">
-            زیر دسته بندی
-            <div className="group relative">
-              <span className="cursor-pointer text-gray-500 hover:text-blue-500">ℹ️</span>
-              <div className="absolute top-full right-0 z-40 mt-1 hidden w-64 rounded bg-gray-700 p-3 text-justify text-sm text-white shadow-2xl group-hover:block">
-                شما می‌توانید چندین زیر دسته‌بندی را انتخاب کنید. اولین زیر دسته‌بندی که انتخاب
-                می‌شود به عنوان زیر دسته‌بندی اصلی محصول نشان داده می‌شود.
-              </div>
-            </div>
-          </label>
+          <p className="mb-1 text-sm font-semibold text-slate-100">زیر دسته بندی</p>
+          <p className="mb-2 text-sm text-slate-300">
+            می‌توانید چند زیر دسته‌بندی انتخاب کنید. اولین انتخاب، زیر دسته‌بندی اصلی است.
+          </p>
           {state.categoryID && selectedCategory ? (
             <SubCategoryGrid
               subCategories={selectedCategory.Subcategories}
@@ -346,7 +362,7 @@ export function BaseDetailsStep() {
             <select
               id="product-subcategory"
               disabled
-              className="w-full rounded bg-gray-700 p-2 text-white"
+              className="min-h-11 w-full rounded-lg border border-slate-500 bg-slate-700 px-3 py-2 text-white opacity-60"
             >
               <option value="">انتخاب زیر دسته بندی</option>
             </select>

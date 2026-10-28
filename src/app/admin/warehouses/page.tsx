@@ -288,7 +288,7 @@ function WarehousesPageContent() {
         <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-center">
           <div className="flex flex-wrap items-center gap-2">
             <Input
-              placeholder="جستجو انبار یا محصول..."
+              placeholder="جستجوی نام انبار…"
               autoComplete="off"
               aria-label="جستجوی نام انبار"
               value={q}
@@ -296,12 +296,12 @@ function WarehousesPageContent() {
                 setQ(e.target.value);
                 setPage(1);
               }}
-              className="w-full sm:w-64"
+              className="min-h-11 w-full sm:w-64"
             />
             <button
               type="button"
               onClick={openCreate}
-              className="inline-flex items-center gap-2 rounded bg-emerald-600 px-4 py-1 whitespace-nowrap text-white transition-colors hover:bg-emerald-700"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 whitespace-nowrap text-white transition-colors hover:bg-emerald-700"
             >
               <span className="text-lg">＋</span>
               ایجاد انبار
@@ -310,11 +310,20 @@ function WarehousesPageContent() {
         </div>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-4 rounded-lg border border-slate-700 bg-slate-800 p-3 sm:p-4">
+        <label
+          htmlFor="warehouse-product-search"
+          className="mb-2 block text-sm font-medium text-slate-100"
+        >
+          یافتن محصول در انبارها
+        </label>
         <AutoComplete
+          id="warehouse-product-search"
           value={searchQuery}
           onChange={handleProductSearch}
-          placeholder="جستجو انبار یا محصول..."
+          placeholder="نام محصول را وارد کنید…"
+          aria-label="یافتن محصول در انبارها"
+          className="w-full"
           options={allProducts.reduce<
             { value: string; label: string | undefined; productId: string }[]
           >((acc, p) => {

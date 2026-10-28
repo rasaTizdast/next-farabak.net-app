@@ -1,11 +1,11 @@
 "use client";
 
 import { Divide } from "hamburger-react";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { IoIosArrowDown } from "react-icons/io";
 import { PiUserCircleDashedFill } from "react-icons/pi";
 
+import Link from "@/components/NoPrefetchLink";
 import { useUser } from "@/context/UserContext";
 import type { MenuCategory } from "@/helpers/menuHelpers";
 

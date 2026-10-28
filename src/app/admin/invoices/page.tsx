@@ -1,6 +1,5 @@
 "use client";
 
-import { SearchOutlined } from "@ant-design/icons";
 import { Input, Button, Select } from "antd";
 import jalaali from "jalali-moment";
 import { useEffect, useRef, useState } from "react";
@@ -340,7 +339,8 @@ const AdminInvoicesPage = () => {
                 onChange={(value) => {
                   setSearchMode(value);
                 }}
-                className="search-select h-8 w-[105px] [&_.ant-select-selector]:rounded-l-none! [&_.ant-select-selector]:rounded-r-md! [&_.ant-select-selector]:border-[#384152]! [&_.ant-select-selector]:bg-slate-800! [&_.ant-select-selector]:text-white! [&.ant-select-focused_.ant-select-selector]:border-blue-500! [&.ant-select-focused_.ant-select-selector]:shadow-none! [&.ant-select:hover_.ant-select-selector]:border-gray-600!"
+                aria-label="نوع جستجوی فاکتورها"
+                className="search-select h-11 w-[105px] [&_.ant-select-selector]:rounded-l-none! [&_.ant-select-selector]:rounded-r-md! [&_.ant-select-selector]:border-slate-400! [&_.ant-select-selector]:bg-slate-800! [&_.ant-select-selector]:text-white! [&.ant-select-focused_.ant-select-selector]:border-blue-300! [&.ant-select-focused_.ant-select-selector]:shadow-none! [&.ant-select:hover_.ant-select-selector]:border-slate-300!"
                 classNames={{
                   popup: {
                     root: "!bg-gray-800 !text-white !border !border-gray-600 [&_.ant-select-item]:!text-white",
@@ -358,6 +358,7 @@ const AdminInvoicesPage = () => {
               {/* Search Input - Middle */}
               <Input
                 autoComplete="off"
+                aria-label="جستجوی فاکتورها"
                 placeholder={
                   searchMode === "warranty"
                     ? "جستجو در کدهای گارانتی..."
@@ -367,22 +368,11 @@ const AdminInvoicesPage = () => {
                 onChange={(e) => {
                   setSearchText(e.target.value);
                 }}
-                className="search-input h-8! flex-1! rounded-none! border-[#384152]! text-white! focus:z-2 [&_.ant-select-selector]:rounded-l-none! [&_.ant-select-selector]:rounded-r-md! [&_.ant-select-selector]:border-[#384152]! [&_.ant-select-selector]:bg-slate-800! [&_.ant-select-selector]:text-white! [&.ant-select-focused_.ant-select-selector]:border-blue-500! [&.ant-select-focused_.ant-select-selector]:shadow-none! [&.ant-select:hover_.ant-select-selector]:border-gray-600!"
+                className="search-input h-11! flex-1! rounded-l-md! rounded-r-none! border-slate-400! text-white! focus:z-2"
                 style={{
                   backgroundColor: adminColors.panelInner,
                   direction: "rtl",
                 }}
-              />
-
-              {/* Search Button - Left side */}
-              <Button
-                icon={<SearchOutlined style={{ fontSize: "14px" }} />}
-                type="primary"
-                aria-label="جستجو"
-                onClick={() => {
-                  // Search is handled by the useMemo filter
-                }}
-                className="search-button flex size-8 items-center justify-center rounded-l-md rounded-r-none border-blue-500! bg-blue-500! p-0 hover:border-blue-600! hover:bg-blue-600!"
               />
             </div>
 
@@ -390,7 +380,7 @@ const AdminInvoicesPage = () => {
               htmlType="button"
               onClick={checkWarrantyStatus}
               loading={isCheckingWarranties}
-              className="h-8 w-full border-blue-800 bg-blue-700 px-3 text-white hover:bg-blue-600 sm:w-auto"
+              className="min-h-11 w-full border-blue-800 bg-blue-700 px-3 text-white hover:bg-blue-600 sm:w-auto"
             >
               بررسی گارانتی‌ها
             </Button>

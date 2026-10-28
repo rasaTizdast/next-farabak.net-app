@@ -65,6 +65,15 @@ describe("SpecTemplateModal", () => {
     expect(updatedItems).toHaveLength(2);
   });
 
+  it("keeps focus in an item field while its title changes", () => {
+    render(<SpecTemplateModal onClose={mockOnClose} onTemplateAdded={mockOnTemplateAdded} />);
+    const item = screen.getByLabelText("عنوان مشخصات");
+    item.focus();
+    fireEvent.change(item, { target: { value: "Camera" } });
+    expect(screen.getByLabelText("عنوان مشخصات")).toBe(item);
+    expect(document.activeElement).toBe(item);
+  });
+
   it("calls onClose when cancel button is clicked", () => {
     render(<SpecTemplateModal onClose={mockOnClose} onTemplateAdded={mockOnTemplateAdded} />);
     fireEvent.click(screen.getByText("انصراف"));

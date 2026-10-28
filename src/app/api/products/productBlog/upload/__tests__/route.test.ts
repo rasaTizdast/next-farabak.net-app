@@ -1,9 +1,12 @@
+import { NextResponse } from "next/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockPutObject } = vi.hoisted(() => ({
+const { auth, mockPutObject } = vi.hoisted(() => ({
+  auth: vi.fn(),
   mockPutObject: vi.fn().mockReturnValue({ promise: vi.fn().mockResolvedValue({}) }),
 }));
 
+vi.mock("@/lib/auth", () => ({ requireAuth: auth }));
 vi.mock("aws-sdk", () => ({
   S3: vi.fn().mockImplementation(function () {
     return {
@@ -17,6 +20,20 @@ import { POST } from "../route";
 describe("POST /api/products/productBlog/upload", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    auth.mockResolvedValue({ userId: "1", username: "admin", role: "Admin" });
+  });
+
+  it("rejects an unauthenticated request before parsing its body", async () => {
+    auth.mockResolvedValue(NextResponse.json({ error: "Unauthorized" }, { status: 401 }));
+    const req = new Request("http://localhost/api/products/productBlog/upload", {
+      method: "POST",
+      headers: { "content-type": "application/octet-stream" },
+      body: "untrusted bytes",
+    });
+
+    const res = await POST(req);
+
+    expect(res.status).toBe(401);
   });
 
   it("should upload file successfully", async () => {

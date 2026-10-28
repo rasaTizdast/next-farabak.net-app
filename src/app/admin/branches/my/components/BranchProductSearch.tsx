@@ -166,7 +166,7 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
               onChange={(value) => setSelectedProduct(value)}
               value={selectedProduct}
               loading={productsLoading}
-              className="w-full border-gray-600 bg-gray-700 text-white"
+              className="w-full border-gray-600 bg-gray-700 text-white [&_.ant-select-selector]:min-h-11!"
               classNames={{
                 popup: {
                   root: "custom-dropdown enhanced-dropdown !bg-gray-800 !border !border-gray-600 !rounded-lg !shadow-[0_8px_16px_rgba(0,0,0,0.5)] !overflow-hidden !max-h-[400px] !py-1.5 [&_.ant-select-item]:!text-white [&_.ant-select-item]:!bg-gray-800 [&_.ant-select-item]:!px-3 [&_.ant-select-item]:!py-2.5 [&_.ant-select-item]:!my-0.5 [&_.ant-select-item]:!mx-1.5 [&_.ant-select-item]:!rounded [&_.ant-select-item-option-active]:!bg-slate-700 [&_.ant-empty-description]:!text-gray-200",
@@ -188,7 +188,7 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
               onClick={handleSearch}
               loading={searchLoading}
               icon={<SearchOutlined />}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="min-h-11 w-full bg-blue-600 hover:bg-blue-700"
             >
               جستجو در شعبه‌ها
             </Button>

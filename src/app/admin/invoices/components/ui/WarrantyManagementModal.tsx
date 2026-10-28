@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { usePrint } from "@/app/utils/usePrint";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
 import { formatDateToISOString, persianToEnglishDigits } from "@/lib/validators";
 
 import { ExpandedInvoiceItem } from "./types";
@@ -365,14 +366,24 @@ const WarrantyManagementModal = ({
     }, 100);
   };
 
+  const panelRef = useModalA11y<HTMLDivElement>({ onClose });
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="w-full max-w-md rounded-lg bg-slate-900" onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="warranty-management-title"
+        tabIndex={-1}
+        className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-xl border border-slate-600 bg-slate-900 shadow-2xl focus:outline-none"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="border-b border-slate-700 p-6">
-          <h2 className="text-center text-xl font-bold text-white">
+          <h2 id="warranty-management-title" className="text-center text-xl font-bold text-white">
             {isUpdate ? "ویرایش گارانتی" : "افزودن گارانتی جدید"}
           </h2>
         </div>

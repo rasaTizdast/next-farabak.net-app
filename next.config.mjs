@@ -7,6 +7,9 @@ const allowedHostnames = [
 ].filter(Boolean);
 
 const nextConfig = {
+  // The framework defaults to a 50 MB in-process cache. Keep a bounded hot
+  // cache, but leave headroom for React rendering, Prisma, Sharp, and Node.
+  cacheMaxMemorySize: 16 * 1024 * 1024,
   logging: {
     fetches: {
       fullUrl: true,
@@ -26,11 +29,15 @@ const nextConfig = {
     formats: ["image/webp", "image/avif"],
     deviceSizes: [375, 485, 640, 768, 1024, 1280, 1440, 1536, 1920, 2048],
     imageSizes: [32, 48, 64, 96, 128, 256, 384],
-    qualities: [50, 75, 100],
+    qualities: [50, 75, 90, 100],
   },
   // Performance optimizations
   experimental: {
     optimizePackageImports: ["react-icons", "axios"],
+    // This app has a large route graph (including many admin/API bundles).
+    // Loading every route module at boot consumes most of a small container's
+    // memory before it has served a single request. Load routes on demand.
+    preloadEntriesOnStart: false,
   },
   // Turbopack configuration (now stable)
   turbopack: {

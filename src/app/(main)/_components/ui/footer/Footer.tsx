@@ -1,35 +1,30 @@
-import { cacheLife, io } from "next/cache";
-import Link from "next/link";
+import { io } from "next/cache";
 import { BsFillSignpostSplitFill } from "react-icons/bs";
 import { FaInstagram, FaPhoneSquare, FaWhatsapp } from "react-icons/fa";
 
+import Link from "@/components/NoPrefetchLink";
 import { getContactInfo } from "@/lib/data/contactUs";
-
-async function getCopyrightYear(): Promise<string> {
-  "use cache";
-  cacheLife("hours");
-  return new Date().getFullYear().toString();
-}
 
 const Footer = async () => {
   // Keep outage fallbacks out of the prerendered shell so later requests retry.
   await io();
+  const currentYear = new Date().getFullYear().toString();
   const { address, phone_numbers } = await getContactInfo();
-  const currentYear = await getCopyrightYear();
 
   return (
-    <footer className="flex w-full justify-center bg-[#000814] px-6 py-12 pb-8 text-[#cecece] min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40">
-      <div className="mx-auto flex w-full max-w-395 flex-col items-center justify-between gap-6 min-[576px]:gap-8">
-        <div className="w-full grid-cols-1 gap-10 border-b border-amber-50 pb-5 md:grid md:grid-cols-2 md:gap-8 lg:grid-cols-4 lg:gap-8 2xl:gap-6">
-          <nav aria-label="صفحات اصلی" className="flex flex-col items-center text-center">
-            <h4 className="mb-3 text-sm font-bold text-white max-[768px]:text-sm max-[576px]:text-xs md:text-base lg:text-base 2xl:text-[1.2rem]">
-              صفحات اصلی
-            </h4>
+    <footer className="w-full bg-[#000814] px-6 py-12 text-[#cecece] min-[992px]:px-16 min-[1200px]:px-24 md:px-12 md:py-14 2xl:px-40">
+      <div className="mx-auto flex w-full max-w-[1580px] flex-col gap-10">
+        <div className="grid w-full grid-cols-1 gap-x-8 gap-y-10 border-b border-[#2a425b] pb-10 sm:grid-cols-2 lg:grid-cols-4">
+          <nav
+            aria-label="صفحات اصلی"
+            className="flex flex-col items-center text-center lg:items-start lg:text-start"
+          >
+            <h4 className="mb-3 text-base font-bold text-white">صفحات اصلی</h4>
             <ul className="flex w-full flex-col gap-2">
               <li>
                 <Link
                   href="/"
-                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-colors duration-200 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#00bfff] lg:justify-start"
                 >
                   <span className="hidden sm:inline">صفحه اصلی</span>
                   <span className="sm:hidden">خانه</span>
@@ -38,7 +33,7 @@ const Footer = async () => {
               <li>
                 <Link
                   href="/products"
-                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-colors duration-200 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#00bfff] lg:justify-start"
                 >
                   محصولات
                 </Link>
@@ -46,16 +41,22 @@ const Footer = async () => {
               <li>
                 <Link
                   href="/about-us"
-                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-colors duration-200 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#00bfff] lg:justify-start"
                 >
                   درباره ما
                 </Link>
               </li>
             </ul>
           </nav>
-          <nav aria-label="پشتیبانی" className="mt-6 flex flex-col items-center text-center">
-            <h4 className="mb-3 text-sm font-bold text-white max-[768px]:text-sm max-[576px]:text-xs">
-              <Link href="/support" className="text-white transition-colors hover:text-[#00bfff]">
+          <nav
+            aria-label="پشتیبانی"
+            className="flex flex-col items-center text-center lg:items-start lg:text-start"
+          >
+            <h4 className="mb-3 text-base font-bold text-white">
+              <Link
+                href="/support"
+                className="text-white transition-colors hover:text-[#00bfff] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#00bfff]"
+              >
                 پشتیبانی
               </Link>
             </h4>
@@ -63,7 +64,7 @@ const Footer = async () => {
               <li>
                 <Link
                   href="/support/warranty-tracking"
-                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-colors duration-200 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#00bfff] lg:justify-start"
                 >
                   پیگیری گارانتی
                 </Link>
@@ -71,7 +72,7 @@ const Footer = async () => {
               <li>
                 <Link
                   href="/support/download-center"
-                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-colors duration-200 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#00bfff] lg:justify-start"
                 >
                   نرم‌افزارها و آپدیت‌ها
                 </Link>
@@ -79,16 +80,22 @@ const Footer = async () => {
               <li>
                 <Link
                   href="/support/faq"
-                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-colors duration-200 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#00bfff] lg:justify-start"
                 >
                   سوالات متداول
                 </Link>
               </li>
             </ul>
           </nav>
-          <nav aria-label="شرکت فرابک" className="mt-6 flex flex-col items-center text-center">
-            <h4 className="mb-3 text-sm font-bold text-white max-[768px]:text-sm max-[576px]:text-xs">
-              <Link href="/about-us" className="text-white transition-colors hover:text-[#00bfff]">
+          <nav
+            aria-label="شرکت فرابک"
+            className="flex flex-col items-center text-center lg:items-start lg:text-start"
+          >
+            <h4 className="mb-3 text-base font-bold text-white">
+              <Link
+                href="/about-us"
+                className="text-white transition-colors hover:text-[#00bfff] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#00bfff]"
+              >
                 شرکت فرابک
               </Link>
             </h4>
@@ -96,7 +103,7 @@ const Footer = async () => {
               <li>
                 <Link
                   href="/about-us/projects"
-                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-colors duration-200 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#00bfff] lg:justify-start"
                 >
                   پروژه‌ها
                 </Link>
@@ -104,7 +111,7 @@ const Footer = async () => {
               <li>
                 <Link
                   href="/about-us/activity"
-                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-colors duration-200 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#00bfff] lg:justify-start"
                 >
                   فعالیت شرکت
                 </Link>
@@ -112,24 +119,25 @@ const Footer = async () => {
               <li>
                 <Link
                   href="/about-us/members"
-                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-colors duration-200 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#00bfff] lg:justify-start"
                 >
                   اعضای هیئت مدیره
                 </Link>
               </li>
             </ul>
           </nav>
-          <nav aria-label="شبکه‌های مجازی" className="mt-6 flex flex-col items-center text-center">
-            <h4 className="mb-3 text-sm font-bold text-white max-[768px]:text-sm max-[576px]:text-xs">
-              شبکه‌های مجازی
-            </h4>
+          <nav
+            aria-label="شبکه‌های مجازی"
+            className="flex flex-col items-center text-center lg:items-start lg:text-start"
+          >
+            <h4 className="mb-3 text-base font-bold text-white">شبکه‌های مجازی</h4>
             <ul className="flex w-full flex-col gap-2">
               <li>
                 <Link
                   target="_blank"
                   rel="noopener noreferrer"
                   href="https://www.instagram.com/farabak_cctv"
-                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-colors duration-200 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#00bfff] lg:justify-start"
                 >
                   <FaInstagram className="text-[1rem]" aria-hidden="true" />
                   اینستاگرام
@@ -138,7 +146,7 @@ const Footer = async () => {
               <li>
                 <Link
                   href="https://wa.me/989121007066"
-                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-[color,font-weight] duration-300 hover:font-medium hover:text-white"
+                  className="flex justify-center gap-2 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7] transition-colors duration-200 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#00bfff] lg:justify-start"
                 >
                   <FaWhatsapp className="text-[1rem]" aria-hidden="true" />
                   واتس‌آپ
@@ -148,16 +156,16 @@ const Footer = async () => {
           </nav>
         </div>
 
-        <div className="mt-2 grid w-full grid-cols-1 gap-8 lg:grid-cols-2">
-          <address className="not-italic" aria-label="آدرس دفتر مرکزی">
+        <div className="grid w-full items-start gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
+          <address className="text-center not-italic lg:text-start" aria-label="آدرس دفتر مرکزی">
             <h5 className="mb-4 text-base font-bold text-white">آدرس دفتر مرکزی</h5>
             {address && (
               <>
-                <div className="flex flex-col gap-3 text-start text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7]">
-                  <div className="flex gap-2">
+                <div className="flex flex-col gap-4 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7]">
+                  <div className="flex justify-center gap-2 lg:justify-start">
                     <span>{address.address}</span>
                   </div>
-                  <div className="flex flex-col gap-3 md:grid md:grid-cols-2 lg:grid-cols-3">
+                  <div className="flex flex-col items-center gap-3 sm:grid sm:grid-cols-2 sm:items-start lg:grid-cols-3">
                     <div className="flex gap-2">
                       <BsFillSignpostSplitFill
                         className="shrink-0 text-[#00bfff]"
@@ -170,7 +178,7 @@ const Footer = async () => {
                         <FaPhoneSquare className="shrink-0 text-[#00bfff]" aria-hidden="true" />
                         <Link
                           href={`tel:${phone.number}`}
-                          className="whitespace-nowrap text-[#cecece] transition-colors hover:text-[#00bfff]"
+                          className="whitespace-nowrap text-[#cecece] transition-colors hover:text-[#00bfff] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#00bfff]"
                         >
                           {phone.number}
                         </Link>
@@ -188,11 +196,11 @@ const Footer = async () => {
             allowFullScreen
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            className="h-87.5 w-full rounded-lg max-[768px]:h-62.5 max-[576px]:h-50 md:h-75"
+            className="h-56 w-full rounded-lg border border-[#2a425b] sm:h-72 lg:h-80"
           />
         </div>
 
-        <div className="mt-8 w-full border-t border-[#2a2a2a] pt-6">
+        <div className="w-full border-t border-[#2a425b] pt-6">
           <p className="text-center text-[0.8rem] leading-5 text-[#888]">
             کلیه حقوق مادی و معنوی این سایت متعلق به شرکت فرابک می‌باشد &copy; {currentYear}
           </p>

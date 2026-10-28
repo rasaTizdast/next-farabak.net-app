@@ -6,6 +6,7 @@ import { CgSpinnerTwo } from "react-icons/cg";
 import { IoIosClose } from "react-icons/io";
 
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 type SpecTemplate = {
   SpecTemplateId: number;
@@ -30,6 +31,7 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
   onTemplateAdded,
   templateToEdit,
 }) => {
+  const panelRef = useModalA11y<HTMLDivElement>({ onClose });
   const [templateName, setTemplateName] = useState("");
   const [items, setItems] = useState<{ Title: string }[]>([{ Title: "" }]);
   const { mutate: createTemplate, loading: isCreating } = useApiMutation("post");
@@ -110,14 +112,19 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
 
   return (
     <div
-      className="bg-opacity-70 fixed inset-0 z-60 flex items-center justify-center bg-black backdrop-blur-sm transition-opacity"
+      className="fixed inset-0 z-60 flex items-center justify-center bg-black/55 p-3 backdrop-blur-[2px]"
       onClick={(e) => e.stopPropagation()}
     >
       <div
-        className="animate-fade-in relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-gray-800 p-6 text-white shadow-lg"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="spec-template-editor-title"
+        tabIndex={-1}
+        className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl overflow-y-auto overscroll-contain rounded-xl border border-slate-500 bg-gray-800 p-4 text-white shadow-xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-6 text-center text-xl font-bold">
+        <h2 id="spec-template-editor-title" className="mb-6 text-center text-xl font-bold">
           {templateToEdit ? "ویرایش قالب مشخصات" : "ایجاد قالب مشخصات جدید"}
         </h2>
 
@@ -153,7 +160,7 @@ const SpecTemplateModal: React.FC<SpecTemplateModalProps> = ({
 
             <div className="space-y-2">
               {items.map((item, index) => (
-                <div key={item.Title} className="flex items-center gap-2">
+                <div key={index} className="flex items-center gap-2">
                   <input
                     type="text"
                     aria-label="عنوان مشخصات"

@@ -9,6 +9,7 @@ import { IoMdClose } from "react-icons/io";
 import { adminColors } from "@/constants/adminColors";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 const { TextArea } = Input;
 
@@ -33,6 +34,7 @@ interface FAQ {
 const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const panelRef = useModalA11y<HTMLDivElement>({ onClose, isOpen: !modalVisible });
   const [editingFaq, setEditingFaq] = useState<FAQ | null>(null);
   const [formData, setFormData] = useState({
     Q: "",
@@ -191,17 +193,21 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
   ];
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <div
-        className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-gray-700 bg-gray-800 shadow-xl"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="faq-editor-title"
+        tabIndex={-1}
+        className="flex max-h-[calc(100dvh-2rem)] w-full max-w-3xl flex-col overflow-hidden overscroll-contain rounded-xl border border-slate-500 bg-gray-800 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-gray-700 bg-gray-900 p-4">
           <div>
-            <h2 className="text-xl font-bold text-gray-100">مدیریت سوالات متداول</h2>
+            <h2 id="faq-editor-title" className="text-xl font-bold text-gray-100">
+              مدیریت سوالات متداول
+            </h2>
             <p className="mt-1 text-sm text-gray-400">{totalFaqsCount} سوال موجود</p>
           </div>
           <Button
@@ -268,7 +274,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
             overflow: "hidden",
           },
           mask: {
-            backgroundColor: "rgba(0, 0, 0, 0.7)",
+            backgroundColor: "rgba(2, 8, 23, 0.58)",
           },
         }}
       >

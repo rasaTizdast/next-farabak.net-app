@@ -11,9 +11,6 @@ import ProductRangeFocus from "./ProductRangeFocus";
 const startYear = new Intl.NumberFormat("fa-IR", { useGrouping: false }).format(HISTORY_START_YEAR);
 
 function rangeMedia(asset: LandingAsset) {
-  if (asset.mediaStatus === "pending-media") {
-    return { mediaStatus: asset.mediaStatus, desktopSrc: null, mobileSrc: null } as const;
-  }
   return {
     mediaStatus: asset.mediaStatus,
     desktopSrc: asset.desktopSrc,

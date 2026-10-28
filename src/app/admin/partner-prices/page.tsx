@@ -191,7 +191,7 @@ export default function AdminPartnerPricesPage() {
           autoComplete="off"
           placeholder="جستجوی نام محصول…"
           aria-label="جستجوی محصول"
-          className="w-full rounded-md bg-slate-700 px-3 py-2 text-sm outline-none placeholder:text-gray-300 focus-visible:ring-2 focus-visible:ring-blue-400 md:w-80"
+          className="min-h-11 w-full rounded-md border border-slate-500 bg-slate-700 px-3 py-2 text-base text-white placeholder:text-slate-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none md:w-80"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
         />

@@ -393,7 +393,7 @@ const AdminPageManager: React.FC = () => {
                             <span className="size-1.5 rounded-full bg-blue-500 sm:size-2" />
                             {row.pages} صفحه
                           </span>
-                          <span className="xs:inline hidden text-gray-600">•</span>
+                          <span className="xs:inline hidden text-gray-300">•</span>
                           <span className="whitespace-nowrap">
                             {row.multiPage ? "چند صفحه‌ای" : "تک صفحه‌ای"}
                           </span>
@@ -407,7 +407,8 @@ const AdminPageManager: React.FC = () => {
                       <Link
                         href={row.link}
                         target="_blank"
-                        className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-gray-700 px-2.5 py-2 text-xs font-medium text-gray-200 shadow-sm transition-[background-color,box-shadow] hover:bg-gray-600 hover:shadow-md active:bg-gray-500 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
+                        aria-label={`مشاهده ${row.name}`}
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-lg bg-gray-700 px-2.5 py-2 text-xs font-medium text-gray-200 shadow-sm transition-[background-color,box-shadow] hover:bg-gray-600 hover:shadow-md active:bg-gray-500 sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
                       >
                         <Eye className="size-4 shrink-0 sm:size-4.5 lg:size-5" />
                         <span className="hidden md:inline">مشاهده</span>
@@ -417,7 +418,8 @@ const AdminPageManager: React.FC = () => {
                       {!row.multiPage && (
                         <button
                           type="button"
-                          className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-[background-color,box-shadow] hover:bg-blue-700 hover:shadow-md active:bg-blue-800 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
+                          aria-label={`ویرایش ${row.name}`}
+                          className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-[background-color,box-shadow] hover:bg-blue-700 hover:shadow-md active:bg-blue-800 sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
                           onClick={() => openEditor(row.editorType)}
                         >
                           <FaEdit className="size-4 shrink-0 sm:size-4.5 lg:size-5" />
@@ -429,7 +431,8 @@ const AdminPageManager: React.FC = () => {
                       {row.multiPage && (
                         <button
                           type="button"
-                          className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-green-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-[background-color,box-shadow] hover:bg-green-700 hover:shadow-md active:bg-green-800 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
+                          aria-label={`افزودن ${row.name}`}
+                          className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-lg bg-green-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-[background-color,box-shadow] hover:bg-green-700 hover:shadow-md active:bg-green-800 sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
                           onClick={() => openNewPageBuilder(row.newType)}
                         >
                           <Plus className="size-4 shrink-0 sm:size-4.5 lg:size-5" />
@@ -442,12 +445,12 @@ const AdminPageManager: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => toggleExpand(row.link)}
-                          className={`flex min-w-[36px] items-center justify-center rounded-lg p-2 shadow-sm transition-shadow hover:shadow-md sm:min-w-[40px] sm:p-2.5 ${
+                          className={`flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 shadow-sm transition-shadow hover:shadow-md sm:p-2.5 ${
                             expanded === row.link
                               ? "bg-blue-600 text-white"
                               : "bg-gray-700 text-gray-200 hover:bg-gray-600 active:bg-gray-500"
                           }`}
-                          aria-label={expanded === row.link ? "بستن" : "باز کردن"}
+                          aria-label={`${expanded === row.link ? "بستن" : "باز کردن"} ${row.name}`}
                         >
                           {expanded === row.link ? (
                             <ChevronUp className="size-4.5 sm:size-5 lg:size-6" />
@@ -466,7 +469,7 @@ const AdminPageManager: React.FC = () => {
                     <div className="space-y-1.5 p-2 sm:space-y-2 sm:p-3 lg:p-4">
                       {subPages[row.link]?.length === 0 ? (
                         <div className="py-6 text-center sm:py-8">
-                          <p className="text-sm text-gray-500">هیچ صفحه فرعی وجود ندارد</p>
+                          <p className="text-sm text-gray-300">هیچ صفحه فرعی وجود ندارد</p>
                         </div>
                       ) : (
                         subPages[row.link]?.map((subPage) => (

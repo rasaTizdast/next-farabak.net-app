@@ -4,6 +4,7 @@ import { FaTimes } from "react-icons/fa";
 import { TbShoppingCartCog } from "react-icons/tb";
 
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 import { Product } from "../types";
 
@@ -46,6 +47,7 @@ const MinimumAmountSelector = ({ product, refetchProducts }: ButtonProps) => {
 export default MinimumAmountSelector;
 
 const MinimumAmountSelectorModal = ({ product, onClose, refetchProducts }: ModalProps) => {
+  const panelRef = useModalA11y<HTMLDivElement>({ onClose });
   const [minAmount, setMinAmount] = useState<string>(
     () => product.Minimum_Amount?.toString() || ""
   );
@@ -94,10 +96,19 @@ const MinimumAmountSelectorModal = ({ product, onClose, refetchProducts }: Modal
   };
 
   return (
-    <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black p-4 backdrop-blur-sm">
-      <div className="min-w-[450px] rounded-lg bg-slate-800 p-6 text-white shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-3 backdrop-blur-[2px]">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="amount-limits-title"
+        tabIndex={-1}
+        className="max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto overscroll-contain rounded-xl border border-slate-500 bg-slate-800 p-4 text-white shadow-xl sm:p-6"
+      >
         <div className="mb-6 flex items-center justify-between">
-          <h3 className="text-2xl font-bold">محدودیت مقدار محصول</h3>
+          <h3 id="amount-limits-title" className="text-xl font-bold sm:text-2xl">
+            محدودیت مقدار محصول
+          </h3>
           <button
             onClick={onClose}
             aria-label="بستن"

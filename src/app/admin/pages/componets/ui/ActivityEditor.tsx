@@ -5,6 +5,7 @@ import { IoIosCloseCircle } from "react-icons/io";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 type ActivityEditModalProps = {
   onClose: () => void;
@@ -39,6 +40,10 @@ const SkeletonLoader = () => (
 );
 
 const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
+  const panelRef = useModalA11y<HTMLDivElement>({
+    onClose,
+    shouldCloseOnEscape: () => !document.activeElement?.closest("input, textarea, select"),
+  });
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set<number>());
@@ -119,7 +124,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
       const updatedActivities = activities.map((activity) => ({
         id: activity.id,
         title: activity.title,
-        details: activity.Details_activity.map((detail) => ({
+        Details_activity: activity.Details_activity.map((detail) => ({
           id: detail.id || undefined,
           description: detail.description,
         })),
@@ -138,12 +143,14 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div
-      className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-3 backdrop-blur-[2px]">
       <div
-        className="relative max-h-[95dvh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="activity-editor-title"
+        tabIndex={-1}
+        className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-7xl overflow-auto overscroll-contain rounded-xl border border-slate-500 bg-gray-700 p-4 text-gray-100 shadow-2xl sm:p-6"
         dir="rtl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -157,7 +164,9 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
           <IoIosCloseCircle size={40} />
         </button>
 
-        <h2 className="mb-10 text-center text-xl font-bold">ویرایش فعالیت‌ها</h2>
+        <h2 id="activity-editor-title" className="mb-10 text-center text-xl font-bold">
+          ویرایش فعالیت‌ها
+        </h2>
         {isFetching ? ( // Show skeleton while fetching data
           <SkeletonLoader />
         ) : (

@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockPrisma, mockS3Instance, mockUuid } = vi.hoisted(() => {
+const { auth, mockPrisma, mockS3Instance, mockUuid } = vi.hoisted(() => {
   const s3Inst = {
     putObject: vi.fn().mockReturnValue({ promise: vi.fn().mockResolvedValue({}) }),
   };
   return {
+    auth: vi.fn(),
     mockPrisma: {
       showcase_products: {
         findMany: vi.fn(),
@@ -16,6 +17,7 @@ const { mockPrisma, mockS3Instance, mockUuid } = vi.hoisted(() => {
   };
 });
 
+vi.mock("@/lib/auth", () => ({ requireAuth: auth }));
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 vi.mock("aws-sdk", () => ({
   S3: class {
@@ -28,6 +30,10 @@ vi.mock("aws-sdk", () => ({
 vi.mock("uuid", () => ({ v4: mockUuid }));
 
 import { GET, POST } from "../route";
+
+beforeEach(() => {
+  auth.mockResolvedValue({ userId: "1", username: "admin", role: "Admin" });
+});
 
 describe("GET /api/landingPage/showcase_products", () => {
   beforeEach(() => {

@@ -252,10 +252,7 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/55 p-3 backdrop-blur-[2px]">
       {/* Image Preview */}
       {selectedImage && (
         <ImagePreview imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
@@ -277,7 +274,7 @@ const LandingPageEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
       )}
 
       <div
-        className="relative max-h-[95vh] w-full max-w-4xl overflow-auto rounded-lg bg-gray-900 p-6 text-gray-200 shadow-xl"
+        className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-4xl overflow-auto overscroll-contain rounded-xl border border-slate-500 bg-gray-900 p-4 text-gray-100 shadow-2xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-6 flex items-center justify-between bg-gray-900 py-2">

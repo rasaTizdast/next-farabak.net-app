@@ -31,6 +31,7 @@ import { DatePicker } from "zaman";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
 import { generateSlug } from "@/utils/generateSlug";
 
 // Update your file removal to handle both existing and new files
@@ -81,6 +82,10 @@ function usePreviewUrls(files: (File | string)[]) {
 }
 
 const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
+  const panelRef = useModalA11y<HTMLDivElement>({
+    onClose,
+    shouldCloseOnEscape: () => !document.activeElement?.closest("input, textarea, select"),
+  });
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -283,12 +288,14 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
   });
 
   return (
-    <div
-      className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-3 backdrop-blur-[2px]">
       <div
-        className="max-h-[95vh] w-full max-w-4xl overflow-auto rounded-xl bg-gray-800 p-6 text-gray-100 shadow-2xl"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-project-title"
+        tabIndex={-1}
+        className="max-h-[calc(100dvh-1.5rem)] w-full max-w-4xl overflow-auto overscroll-contain rounded-xl border border-slate-500 bg-gray-800 p-4 text-gray-100 shadow-2xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         {isLoading ? (
@@ -300,7 +307,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
             </div>
 
             {/* Text Inputs Skeleton */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i}>
                   <div className="mb-2 h-4 w-24 rounded bg-gray-700" />
@@ -325,7 +332,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
             <div>
               <div className="mb-3 h-4 w-56 rounded bg-gray-700" />
               <div className="h-32 rounded-lg bg-gray-700" />
-              <div className="mt-4 grid grid-cols-4 gap-4">
+              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="h-32 rounded-lg bg-gray-700" />
                 ))}
@@ -336,7 +343,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
             <div>
               <div className="mb-3 h-4 w-56 rounded bg-gray-700" />
               <div className="h-32 rounded-lg bg-gray-700" />
-              <div className="mt-4 grid grid-cols-3 gap-4">
+              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
                 {[1].map((i) => (
                   <div key={i} className="h-32 rounded-lg bg-gray-700" />
                 ))}
@@ -359,7 +366,9 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
           <>
             {/* Header */}
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold">ساخت پروژه جدید</h2>
+              <h2 id="edit-project-title" className="text-xl font-bold sm:text-2xl">
+                ویرایش پروژه
+              </h2>
               <button
                 type="button"
                 onClick={onClose}
@@ -373,7 +382,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
             {/* Form */}
             <div className="space-y-6">
               {/* Text Inputs */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label htmlFor="project-title" className="mb-2 block font-medium">
                     تیتر پروژه *
@@ -499,7 +508,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
                   </p>
                   {errors.details && <p className="mt-2 text-sm text-red-400">{errors.details}</p>}
                 </div>
-                <div className="mt-4 grid grid-cols-4 gap-4">
+                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
                   {detailImages.map((file, index) => {
                     const isFile = file instanceof File;
                     const key = isFile ? file.name + file.size : String(file) + index;
@@ -539,7 +548,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
                   </p>
                   {errors.videos && <p className="mt-2 text-sm text-red-400">{errors.videos}</p>}
                 </div>
-                <div className="mt-4 grid grid-cols-3 gap-4">
+                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
                   {videos.map((file, index) => {
                     const isFile = file instanceof File;
                     const key = isFile ? file.name + file.size : String(file) + index;

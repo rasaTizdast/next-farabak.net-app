@@ -3,6 +3,7 @@ import { S3 } from "aws-sdk";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
 
@@ -22,6 +23,12 @@ const deleteFile = async (key: string) => {
 };
 
 export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const params = await props.params;
   try {
     const formData = await request.formData();

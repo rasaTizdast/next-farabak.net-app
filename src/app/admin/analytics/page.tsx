@@ -73,7 +73,7 @@ const AnalyticsOverview = () => {
       <div className="space-y-8 sm:space-y-12">
         {/* Header with subtle animation */}
         <div className="space-y-4 text-center">
-          <h1 className="text-2xl font-bold text-gray-200 transition-colors duration-300 hover:text-blue-200 md:text-3xl lg:text-5xl">
+          <h1 className="text-2xl font-bold text-gray-100 md:text-3xl lg:text-5xl">
             تحلیل وبسایت شما
           </h1>
           <p className="mx-auto max-w-3xl text-base text-gray-300 md:text-lg lg:text-xl">

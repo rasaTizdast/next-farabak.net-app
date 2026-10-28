@@ -1,15 +1,7 @@
-import { S3 } from "aws-sdk";
-import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { requireAuth } from "@/lib/auth";
-import { TAGS } from "@/lib/data/tags";
-
-const s3 = new S3({
-  accessKeyId: process.env.LIARA_ACCESS_KEY,
-  secretAccessKey: process.env.LIARA_SECRET_KEY,
-  endpoint: process.env.LIARA_ENDPOINT,
-});
+import { createVideoUploadUrl } from "@/lib/s3/createVideoUploadUrl";
 
 export async function POST(request: Request) {
   const auth = await requireAuth();
@@ -17,46 +9,11 @@ export async function POST(request: Request) {
   if (auth.role !== "Admin") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+
   try {
-    const formData = await request.formData();
-    const file = formData.get("file") as File;
-    const slug = formData.get("slug") as string;
-
-    if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
-    }
-
-    if (!slug) {
-      return NextResponse.json({ error: "Blog slug is required" }, { status: 400 });
-    }
-
-    // Maximum video size - 500MB
-    if (file.size > 500 * 1024 * 1024) {
-      return NextResponse.json({ error: "File size exceeds 500MB limit" }, { status: 400 });
-    }
-
-    // Sanitize filename and create unique name
-    const originalName = file.name.replace(/\s+/g, "-").replace(/[^a-zA-Z0-9-.]/g, "");
-
-    const key = `blogVideos/${slug}/${originalName}`;
-
-    const buffer = Buffer.from(await file.arrayBuffer());
-
-    await s3
-      .putObject({
-        Bucket: process.env.LIARA_BUCKET_NAME!,
-        Key: key,
-        Body: buffer,
-        ContentType: file.type,
-      })
-      .promise();
-
-    const url = key;
-
-    revalidateTag(TAGS.blogs, "max");
-    return NextResponse.json({ url });
+    return await createVideoUploadUrl(request, "blogVideos");
   } catch (error) {
-    console.error("Upload error:", error);
-    return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
+    console.error("Failed to create blog video upload URL:", error);
+    return NextResponse.json({ error: "Failed to create upload URL" }, { status: 500 });
   }
 }

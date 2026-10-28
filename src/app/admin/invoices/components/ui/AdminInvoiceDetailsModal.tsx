@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 
 import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 import { ExpandedInvoiceItem } from "./types";
 import WarrantyManagementModal from "./WarrantyManagementModal";
@@ -36,6 +37,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
   const [selectedItem, setSelectedItem] = useState<ExpandedInvoiceItem | null>(null);
   const [refreshCounter, setRefreshCounter] = useState(0);
   const [nowTimestamp] = useState(() => Date.now());
+  const panelRef = useModalA11y<HTMLDivElement>({ onClose, isOpen: !selectedItem });
 
   const { componentRef, handlePrint } = usePrint();
 
@@ -164,7 +166,14 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 backdrop-blur-sm sm:p-4">
-      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-slate-900">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="admin-invoice-details-title"
+        tabIndex={-1}
+        className="max-h-[calc(100dvh-1rem)] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-xl border border-slate-600 bg-slate-900 shadow-2xl focus:outline-none sm:max-h-[calc(100dvh-2rem)]"
+      >
         <div ref={componentRef} className="p-3 sm:p-6">
           <div className="text-gray-100">
             {/* Header */}
@@ -176,7 +185,10 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                 height={130}
                 className="logo print-only mx-auto mt-4 mb-5 hidden print:inline-block"
               />
-              <h2 className="text-center text-xl font-bold sm:text-2xl">
+              <h2
+                id="admin-invoice-details-title"
+                className="text-center text-xl font-bold sm:text-2xl"
+              >
                 جزئیات فاکتور
                 <br />
                 {invoice.FactorGuid}
@@ -388,7 +400,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
           <button
             type="button"
             onClick={onClose}
-            className="w-full rounded-lg bg-slate-700 px-4 py-2 text-sm text-gray-100 transition-colors duration-200 hover:bg-slate-600 sm:w-auto sm:px-6 sm:text-base"
+            className="min-h-11 w-full rounded-lg bg-slate-700 px-4 py-2 text-sm text-gray-100 transition-colors duration-200 hover:bg-slate-600 sm:w-auto sm:px-6 sm:text-base"
           >
             بستن
           </button>

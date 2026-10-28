@@ -67,7 +67,7 @@ export function StepNavigation() {
 
   return (
     <nav
-      className="sticky top-0 z-10 mb-6 flex flex-wrap gap-2 rounded-md bg-gray-800 py-2"
+      className="sticky top-0 z-10 mb-6 flex gap-2 overflow-x-auto overscroll-x-contain rounded-lg border border-slate-600 bg-slate-800/95 p-2 shadow-md"
       aria-label="مراحل ساخت محصول"
     >
       {steps.map((step, index) => {
@@ -90,12 +90,15 @@ export function StepNavigation() {
               // The section only becomes visible after the state update above,
               // so scroll once React has re-rendered.
               requestAnimationFrame(() => {
-                document
-                  .getElementById(`wizard-section-${step.id}`)
-                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                document.getElementById(`wizard-section-${step.id}`)?.scrollIntoView({
+                  behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                    ? "instant"
+                    : "smooth",
+                  block: "start",
+                });
               });
             }}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none ${
               isActive
                 ? "bg-blue-600 text-white"
                 : hasError
@@ -126,7 +129,7 @@ export function StepNavigation() {
                 index + 1
               )}
             </span>
-            <span className="hidden sm:inline">{step.label}</span>
+            <span>{step.label}</span>
           </button>
         );
       })}

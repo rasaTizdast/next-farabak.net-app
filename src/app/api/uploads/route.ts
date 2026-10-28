@@ -3,6 +3,8 @@ import { join } from "path";
 
 import { NextRequest, NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
+
 /**
  * @swagger
  * /api/uploads:
@@ -48,6 +50,12 @@ import { NextRequest, NextResponse } from "next/server";
  */
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const data = await request.formData();
   const file: File | null = data.get("image") as unknown as File;
 

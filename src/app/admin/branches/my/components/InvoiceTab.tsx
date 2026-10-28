@@ -185,7 +185,7 @@ export default function InvoiceTab({
       >
         <div className="relative">
           <AutoComplete
-            placeholder="جستجوی شماره فاکتور، نام مشتری، شماره تماس یا کد گارانتی..."
+            placeholder="جستجوی شماره فاکتور، نام مشتری، شماره تماس یا کد گارانتی…"
             popupMatchSelectWidth={500}
             style={{ width: "100%" }}
             options={searchOptions}
@@ -206,11 +206,11 @@ export default function InvoiceTab({
               aria-label="جستجوی فاکتور"
               suffix={<SearchOutlined className="text-blue-400" />}
               style={{
-                backgroundColor: adminColors.textPlaceholder,
+                backgroundColor: adminColors.panelInner,
                 color: "white",
-                borderColor: adminColors.borderLight,
+                borderColor: "#8293aa",
                 padding: "10px 12px",
-                height: "42px",
+                height: "44px",
                 fontSize: "15px",
                 textAlign: "right",
               }}

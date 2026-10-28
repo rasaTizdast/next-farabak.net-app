@@ -342,7 +342,15 @@ const ProductsTable = ({
 
   return (
     <>
-      <div className="w-full overflow-x-auto rounded-xl">
+      <p className="mb-2 text-xs text-slate-300 md:hidden">
+        برای دیدن قیمت، موجودی و عملیات، جدول را به چپ بکشید.
+      </p>
+      <div
+        className="w-full overflow-x-auto rounded-xl"
+        role="region"
+        aria-label="جدول محصولات؛ برای دیدن همه ستون‌ها به صورت افقی پیمایش کنید"
+        tabIndex={0}
+      >
         {/* Sort reset bar */}
         {sortConfig.key !== null && (
           <div className="flex justify-end rounded-t-xl bg-blue-600 p-2">
@@ -572,7 +580,7 @@ const ProductsTable = ({
           </tbody>
         </table>
         {activeSubCategories && (
-          <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
             <SubCategoriesPanel
               onClose={() => setActiveSubCategories(null)}
               name={activeSubCategories.name}

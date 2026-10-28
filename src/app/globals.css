@@ -120,6 +120,16 @@
   ::-webkit-scrollbar-thumb:hover {
     background: var(--color-secondary);
   }
+
+  body:has(.dashboard-shell) ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  body:has(.dashboard-shell) ::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #94a3b8;
+  }
 }
 
 @layer components {

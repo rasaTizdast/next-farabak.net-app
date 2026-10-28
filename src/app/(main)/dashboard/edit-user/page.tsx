@@ -89,7 +89,7 @@ const EditUser: React.FC = () => {
       <Toaster position="bottom-center" reverseOrder={false} />
       <FormProvider {...methods}>
         <form
-          className="flex flex-col items-center justify-center gap-6 self-center rounded-[6px] bg-white p-6"
+          className="flex w-full max-w-2xl flex-col items-center justify-center gap-6 self-center rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6"
           onSubmit={handleSubmit(onSubmit)}
         >
           <div className="flex w-full flex-wrap justify-evenly gap-8">
@@ -140,7 +140,7 @@ const EditUser: React.FC = () => {
           </div>
           <button
             type="submit"
-            className="mt-4 inline-block cursor-pointer rounded-[6px] bg-[#003262] px-6 py-2 text-base text-white transition-[transform,background-color,box-shadow] duration-300 hover:scale-[1.05] hover:bg-[#000814] hover:shadow-[0_4px_10px_rgba(0,0,0,0.3)]"
+            className="mt-4 inline-flex min-h-11 cursor-pointer items-center justify-center rounded-lg bg-[#003262] px-6 py-2 text-base text-white transition-colors hover:bg-[#000814] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
           >
             ثبت اطلاعات
           </button>
@@ -201,17 +201,19 @@ const InputGroup: React.FC<InputGroupProps> = ({
             id={name}
             placeholder={placeholder}
             value={value ?? ""}
-            className={`w-full rounded-[8px] border border-[#c7c7c7] p-[14px] text-start text-[14px] font-medium transition-colors duration-300 outline-none ${
-              hasError
-                ? "border-2 border-[#e74c3c] text-[#e74c3c] placeholder:font-light placeholder:text-[#e74c3c]"
-                : hasValue
-                  ? "border-2 border-[#2ecc71] text-[#03af4b]"
-                  : ""
+            aria-invalid={hasError}
+            aria-describedby={hasError ? `${name}-error` : undefined}
+            className={`w-full rounded-lg border border-slate-400 bg-white p-3.5 text-start text-base font-medium text-slate-900 placeholder:text-slate-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 ${
+              hasError ? "border-2 border-red-700" : hasValue ? "border-2 border-green-700" : ""
             }`}
           />
         )}
       />
-      {hasError && <p className="mt-1 text-[0.875rem] text-[#e74c3c]">{errors[name]?.message}</p>}
+      {hasError && (
+        <p id={`${name}-error`} className="mt-1 text-sm text-red-700">
+          {errors[name]?.message}
+        </p>
+      )}
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { FaTimes } from "react-icons/fa";
 
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 import { Product } from "../types";
 import GradeList from "./GradeList";
@@ -21,6 +22,7 @@ type GradeForm = {
 };
 
 const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
+  const panelRef = useModalA11y<HTMLDivElement>({ onClose });
   const [formData, setFormData] = useState<GradeForm>({
     grade: "",
     price: 0,
@@ -79,10 +81,19 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
   const isValidRate = usdRate && !isNaN(usdRate) && usdRate > 0;
 
   return (
-    <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black p-4">
-      <div className="min-w-[450px] rounded-lg bg-slate-800 p-6 text-white shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-3 backdrop-blur-[2px]">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="product-grade-title"
+        tabIndex={-1}
+        className="max-h-[calc(100dvh-1.5rem)] w-full max-w-xl overflow-y-auto overscroll-contain rounded-xl border border-slate-500 bg-slate-800 p-4 text-white shadow-xl sm:p-6"
+      >
         <div className="mb-6 flex items-center justify-between">
-          <h3 className="text-2xl font-bold">مدیریت گرید‌های محصول</h3>
+          <h3 id="product-grade-title" className="text-xl font-bold sm:text-2xl">
+            مدیریت گرید‌های محصول
+          </h3>
           <button
             type="button"
             onClick={onClose}

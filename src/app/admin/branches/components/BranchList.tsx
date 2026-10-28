@@ -107,7 +107,7 @@ const BranchList: React.FC<BranchListProps> = ({
                 width: "100%",
                 direction: "rtl",
               }}
-              className="custom-autocomplete w-full [&_.ant-select-selection-search]:right-0! [&_.ant-select-selection-search]:left-auto! [&_.ant-select-selection-search]:w-full! [&_.ant-select-selector]:h-8! [&_.ant-select-selector]:border-0! [&_.ant-select-selector]:bg-transparent! [&_.ant-select-selector]:p-0! [&_input]:rounded-md [&_input]:text-[15px] [&_input]:text-white! [&_input]:placeholder-slate-300! [&_input:focus]:border-blue-500! [&_input:hover]:border-blue-500!"
+              className="custom-autocomplete w-full [&_.ant-select-selection-search]:right-0! [&_.ant-select-selection-search]:left-auto! [&_.ant-select-selection-search]:w-full! [&_.ant-select-selector]:h-11! [&_.ant-select-selector]:border-0! [&_.ant-select-selector]:bg-transparent! [&_.ant-select-selector]:p-0! [&_input]:rounded-md [&_input]:text-[15px] [&_input]:text-white! [&_input]:placeholder-slate-300! [&_input:focus]:border-blue-300! [&_input:hover]:border-slate-300!"
               popupMatchSelectWidth={false}
               classNames={{
                 popup: {
@@ -120,35 +120,39 @@ const BranchList: React.FC<BranchListProps> = ({
               filterOption={false}
             >
               <Input
-                className="search-input border-[#384152] bg-[#1e293b] pl-12 text-white hover:border-[#4b5563]! focus:border-blue-500! focus:bg-[#1e293b]! focus:shadow-[0_0_0_2px_rgba(59,130,246,0.2)]!"
+                aria-label="جستجوی محصول در شعبه‌ها"
+                className="search-input border-slate-400 bg-[#1e293b] pl-12 text-white hover:border-slate-300! focus:border-blue-300! focus:bg-[#1e293b]! focus:shadow-[0_0_0_2px_rgba(59,130,246,0.2)]!"
                 style={{
-                  height: "32px",
+                  height: "44px",
                   direction: "rtl",
                   textAlign: "right",
                 }}
                 onPressEnter={() => onSearch(searchValue)}
               />
             </AutoComplete>
-            <Button
-              type="primary"
-              icon={<SearchOutlined style={{ fontSize: "14px" }} />}
-              onClick={() => {
-                if (searchValue.trim()) {
-                  onSearch(searchValue);
-                } else {
-                  onClearSearch();
-                }
-              }}
-              className="absolute top-0 left-0 flex h-full items-center justify-center rounded-l-md rounded-r-none border-0 bg-blue-600 hover:bg-blue-700"
-              style={{ width: "40px" }}
-            />
+            <div className="absolute inset-y-0 left-0 flex items-start">
+              <Button
+                type="primary"
+                icon={<SearchOutlined style={{ fontSize: "14px" }} />}
+                aria-label="جستجوی محصول در شعبه‌ها"
+                onClick={() => {
+                  if (searchValue.trim()) {
+                    onSearch(searchValue);
+                  } else {
+                    onClearSearch();
+                  }
+                }}
+                className="flex min-h-11 items-center justify-center rounded-l-md rounded-r-none border-0 bg-blue-600 hover:bg-blue-700"
+                style={{ width: "44px" }}
+              />
+            </div>
           </div>
 
           <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={onCreateBranch}
-            className="w-full border-blue-700 bg-blue-600 hover:bg-blue-700 sm:w-auto"
+            className="min-h-11 w-full border-blue-700 bg-blue-600 hover:bg-blue-700 sm:w-auto"
           >
             ایجاد شعبه
           </Button>

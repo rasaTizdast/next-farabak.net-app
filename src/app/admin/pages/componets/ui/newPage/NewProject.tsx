@@ -6,6 +6,7 @@ import { BiTrash } from "react-icons/bi";
 import { DatePicker } from "zaman";
 
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
 import { generateSlug } from "@/utils/generateSlug";
 
 type NewProjectProps = {
@@ -18,6 +19,10 @@ const removeFile = (setter: Function, files: File[], index: number) => {
 };
 
 const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
+  const panelRef = useModalA11y<HTMLDivElement>({
+    onClose,
+    shouldCloseOnEscape: () => !document.activeElement?.closest("input, textarea, select"),
+  });
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -180,11 +185,20 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
   });
 
   return (
-    <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black backdrop-blur-sm">
-      <div className="max-h-[95vh] w-full max-w-4xl overflow-auto rounded-xl bg-gray-800 p-6 text-gray-100 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-3 backdrop-blur-[2px]">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-project-title"
+        tabIndex={-1}
+        className="max-h-[calc(100dvh-1.5rem)] w-full max-w-4xl overflow-auto overscroll-contain rounded-xl border border-slate-500 bg-gray-800 p-4 text-gray-100 shadow-2xl sm:p-6"
+      >
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">ساخت پروژه جدید</h2>
+          <h2 id="new-project-title" className="text-xl font-bold sm:text-2xl">
+            ساخت پروژه جدید
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -198,7 +212,7 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
         {/* Form */}
         <div className="space-y-6">
           {/* Text Inputs */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="new-project-title" className="mb-2 block font-medium">
                 تیتر پروژه *
@@ -319,7 +333,7 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
               <p className="text-sm text-gray-400">عکس را بکشید و اینجا بگذارید، و یا کلیک کنید</p>
               {errors.details && <p className="mt-2 text-sm text-red-400">{errors.details}</p>}
             </div>
-            <div className="mt-4 grid grid-cols-4 gap-4">
+            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
               {detailImages.map((file, index) => (
                 <div key={file.name + file.size} className="group relative">
                   <img
@@ -355,7 +369,7 @@ const NewProject: React.FC<NewProjectProps> = ({ onClose }) => {
               </p>
               {errors.videos && <p className="mt-2 text-sm text-red-400">{errors.videos}</p>}
             </div>
-            <div className="mt-4 grid grid-cols-3 gap-4">
+            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
               {videos.map((file, index) => (
                 <div
                   key={file.name + file.size}

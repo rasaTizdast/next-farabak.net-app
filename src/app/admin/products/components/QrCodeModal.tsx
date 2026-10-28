@@ -116,7 +116,7 @@ const QrCodeModal = ({ onClose, product, refetchProducts }: Props) => {
 
   return (
     <div
-      className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm transition-opacity"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm transition-opacity"
       dir="rtl"
     >
       <div className="animate-fade-in relative max-h-[90dvh] w-full max-w-2xl overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg">

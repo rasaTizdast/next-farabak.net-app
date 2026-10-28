@@ -1,3 +1,4 @@
+import { io } from "next/cache";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
@@ -61,6 +62,8 @@ export default async function ProductDataWrapper({
   params: { category: string; product: string };
   searchParams: { key: string };
 }) {
+  // QR expiry and price validity are request-time values, not static-shell data.
+  await io();
   const productData = await getProduct(params.product);
 
   if (!productData) {

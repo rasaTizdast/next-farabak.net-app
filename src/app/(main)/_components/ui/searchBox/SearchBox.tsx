@@ -1,12 +1,12 @@
 "use client";
 
 import debounce from "lodash/debounce";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { CgSearch } from "react-icons/cg";
 import { escape } from "validator";
 
+import Link from "@/components/NoPrefetchLink";
 import SmartImage from "@/components/ui/SmartImage";
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 

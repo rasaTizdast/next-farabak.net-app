@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 type ContactUsEditModalProps = {
   onClose: () => void;
@@ -43,6 +44,10 @@ const SkeletonLoader = () => (
 );
 
 const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
+  const panelRef = useModalA11y<HTMLDivElement>({
+    onClose,
+    shouldCloseOnEscape: () => !document.activeElement?.closest("input, textarea, select"),
+  });
   const [address, setAddress] = useState({
     id: 0,
     address: "",
@@ -123,16 +128,30 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div
-      className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-3 backdrop-blur-[2px]">
       <div
-        className="max-h-[95dvh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="contact-editor-title"
+        tabIndex={-1}
+        className="max-h-[calc(100dvh-1.5rem)] w-full max-w-7xl overflow-auto overscroll-contain rounded-xl border border-slate-500 bg-gray-700 p-4 text-gray-100 shadow-2xl sm:p-6"
         dir="rtl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-4 text-xl font-bold">ویرایش اطلاعات تماس</h2>
+        <div className="sticky top-0 z-10 mb-4 flex items-center justify-between gap-3 border-b border-slate-500 bg-gray-700 py-2">
+          <h2 id="contact-editor-title" className="text-xl font-bold">
+            ویرایش اطلاعات تماس
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="بستن ویرایش اطلاعات تماس"
+            className="min-h-10 rounded-lg border border-slate-400 px-3 text-slate-100 hover:bg-slate-600"
+          >
+            بستن
+          </button>
+        </div>
 
         {loading ? (
           <SkeletonLoader />

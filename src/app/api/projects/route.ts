@@ -3,6 +3,7 @@ import { S3 } from "aws-sdk";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
 
@@ -50,6 +51,12 @@ export async function GET() {
 const requiredFields = ["title", "description", "slug", "date", "city", "mainImage"];
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   try {
     const formData = await request.formData();
 

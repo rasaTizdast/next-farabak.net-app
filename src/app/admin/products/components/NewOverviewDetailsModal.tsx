@@ -155,7 +155,7 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
   }, [onClose]);
 
   return (
-    <div className="bg-opacity-70 fixed inset-0 z-51 flex items-center justify-center bg-black backdrop-blur-sm transition-opacity">
+    <div className="fixed inset-0 z-51 flex items-center justify-center bg-black/55 backdrop-blur-sm transition-opacity">
       <div
         ref={panelRef}
         role="dialog"

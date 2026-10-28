@@ -138,6 +138,7 @@ const Sidebar = () => {
     <>
       {/* Mobile hamburger button */}
       <button
+        id="admin-sidebar-toggle"
         ref={triggerRef}
         type="button"
         className="fixed top-4 right-4 z-60 flex size-10 items-center justify-center rounded-lg bg-[#0074e0] text-white shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white md:hidden"

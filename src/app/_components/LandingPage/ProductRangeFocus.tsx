@@ -13,15 +13,11 @@ type RangeItemBase = {
   href: string;
   alt: string;
 };
-type RangeItem = RangeItemBase &
-  (
-    | {
-        mediaStatus: "generated-conceptual" | "generated-product-render" | "approved-real-media";
-        desktopSrc: string;
-        mobileSrc: string;
-      }
-    | { mediaStatus: "pending-media"; desktopSrc: null; mobileSrc: null }
-  );
+type RangeItem = RangeItemBase & {
+  mediaStatus: "editorial-illustration";
+  desktopSrc: string;
+  mobileSrc: string;
+};
 
 type Props = { items: readonly RangeItem[]; children: ReactNode };
 
@@ -113,11 +109,6 @@ export default function ProductRangeFocus({ items, children }: Props) {
       return;
     }
     const currentRequest = ++request.current;
-    if (item.mediaStatus === "pending-media") {
-      setFailedKey(null);
-      setActiveKey(item.key);
-      return;
-    }
     const mobile = window.matchMedia("(max-width: 767px)").matches;
     const src = mobile ? item.mobileSrc : item.desktopSrc;
     const candidate = new window.Image();
@@ -142,7 +133,7 @@ export default function ProductRangeFocus({ items, children }: Props) {
       <div className={styles.heroGrid}>
         {children}
         <figure className={`${styles.heroArtwork} ${styles.rangeHeroArtwork}`} data-ui>
-          {active.mediaStatus === "pending-media" || failedKey === active.key ? (
+          {failedKey === active.key ? (
             <span className={styles.rangeMediaFallback}>تصویر این حوزه در دست آماده‌سازی است.</span>
           ) : (
             <picture ref={picture}>
@@ -175,13 +166,9 @@ export default function ProductRangeFocus({ items, children }: Props) {
                 / {active.categoryLabel}
               </strong>
               <span>
-                {active.mediaStatus === "pending-media" || failedKey === active.key
+                {failedKey === active.key
                   ? "تصویر این حوزه در دست آماده‌سازی است."
-                  : active.mediaStatus === "approved-real-media"
-                    ? "تصویر تأییدشده برای این بخش."
-                    : active.mediaStatus === "generated-product-render"
-                      ? "بازآفرینی هوش مصنوعی بر پایه مرجع محصول؛ عکس رسمی سازنده یا نصب واقعی نیست."
-                      : "فضای کاربرد؛ تصویر محصول یا پروژه واقعی نیست."}
+                  : "نمایی از حوزه انتخابی شما."}
               </span>
             </span>
             <Link className={styles.rangeStageAction} href={active.href}>

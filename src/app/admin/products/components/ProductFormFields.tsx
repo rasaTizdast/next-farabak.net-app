@@ -91,7 +91,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
 
 export const Loading = () => {
   return (
-    <div className="bg-opacity-50 fixed inset-0 flex items-center justify-center bg-black shadow-lg backdrop-blur-sm">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 shadow-lg backdrop-blur-sm">
       <div className="flex flex-col items-center gap-6 rounded-lg bg-gray-800 p-6 text-white shadow-lg">
         <div className="text-xl font-semibold">در حال آپدیت محصول، لطفا منتظر بمانید</div>
         <CgSpinnerTwo className="animate-spin" size={80} />

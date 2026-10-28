@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Image from "next/image";
 
 import { getActivities } from "@/lib/data/activities";
 
@@ -107,6 +108,51 @@ const ActivityPage = async () => {
             }}
           />
         ))}
+        <section
+          aria-labelledby="company-certificates-title"
+          className="border-t border-[#d6e3ee] pt-10 sm:pt-14"
+        >
+          <div className="mb-6 max-w-2xl sm:mb-8">
+            <p className="mb-3 text-sm font-bold tracking-[0.08em] text-[#1265e8]">اسناد شرکت</p>
+            <h2
+              id="company-certificates-title"
+              className="text-2xl font-extrabold text-[#061a30] sm:text-3xl"
+            >
+              گواهی‌نامه‌ها و افتخارات
+            </h2>
+            <p className="mt-3 leading-8 text-[#496278]">
+              گزیده‌ای از گواهی‌نامه‌ها و اسناد ثبت‌شده شرکت فرابک.
+            </p>
+          </div>
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.65fr)] lg:items-start">
+            <figure className="overflow-hidden rounded-xl border border-[#d6e3ee] bg-white p-2 shadow-[0_16px_36px_rgba(6,26,48,0.08)] sm:p-3">
+              <Image
+                src="/about-us/certificates/company-certificates.jpeg"
+                alt="مجموعه گواهی‌نامه‌ها و افتخارات شرکت فرابک"
+                width={1306}
+                height={819}
+                className="h-auto w-full rounded-lg"
+                sizes="(min-width: 1024px) 64vw, 100vw"
+              />
+              <figcaption className="px-2 pt-4 pb-1 text-sm font-medium text-[#496278]">
+                مجموعه‌ای از گواهی‌نامه‌ها و تقدیرنامه‌های شرکت
+              </figcaption>
+            </figure>
+            <figure className="mx-auto w-full max-w-md overflow-hidden rounded-xl border border-[#d6e3ee] bg-white p-2 shadow-[0_16px_36px_rgba(6,26,48,0.08)] sm:p-3 lg:max-w-none">
+              <Image
+                src="/about-us/certificates/quality-registration-certificate.jpeg"
+                alt="گواهی ثبت کیفیت شرکت فرابهکاران تصویر هفتم (فرابک)"
+                width={900}
+                height={1200}
+                className="h-auto w-full rounded-lg"
+                sizes="(min-width: 1024px) 31vw, (min-width: 640px) 448px, 100vw"
+              />
+              <figcaption className="px-2 pt-4 pb-1 text-sm font-medium text-[#496278]">
+                گواهی ثبت کیفیت — سند آرشیوی
+              </figcaption>
+            </figure>
+          </div>
+        </section>
       </div>
     </>
   );

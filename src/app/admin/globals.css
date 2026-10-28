@@ -167,7 +167,123 @@
 .dark-modal .ant-input::placeholder,
 .dark-modal .ant-input-affix-wrapper input::placeholder,
 .dark-modal .ant-input-number-input::placeholder {
-  color: #9ca3af !important;
+  color: #cbd5e1 !important;
+}
+
+.ant-modal-mask,
+.ant-drawer-mask {
+  background-color: rgb(2 8 23 / 58%) !important;
+  backdrop-filter: blur(2px);
+}
+
+.admin-shell :is(button, a, input, textarea, select):focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.admin-shell
+  :is(
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="password"],
+    input[type="search"],
+    input[type="url"],
+    textarea,
+    select
+  ):not(.ant-input):not(.ant-select-selection-search-input):not(.admin-products-search) {
+  border: 1px solid #8293aa;
+  border-radius: 8px;
+  color: #f8fafc;
+}
+
+.admin-shell :is(input, textarea):not(.admin-products-search)::placeholder {
+  color: #cbd5e1;
+  opacity: 1;
+}
+
+.admin-product-wizard
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+  min-height: 44px;
+  width: 100%;
+  border: 1px solid #8293aa;
+  border-radius: 8px;
+  background: #334155;
+  color: #f8fafc;
+  padding: 10px 12px;
+  font-size: 16px;
+}
+
+.admin-product-wizard :is(input, textarea)::placeholder {
+  color: #cbd5e1;
+  opacity: 1;
+}
+
+.admin-product-wizard :is(input, select, textarea):focus-visible {
+  border-color: #93c5fd;
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.admin-product-wizard :is(input, select, textarea)[aria-invalid="true"] {
+  border-color: #fca5a5;
+}
+
+.admin-product-wizard {
+  scrollbar-width: thin;
+  scrollbar-color: #64748b #1e293b;
+}
+
+body:has(.admin-shell) ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+body:has(.admin-shell) ::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #64748b;
+}
+
+body:has(.admin-shell) ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.admin-product-wizard::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-product-wizard::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #64748b;
+}
+
+@media (max-width: 767px) {
+  body:has([role="dialog"][aria-modal="true"]) #admin-sidebar-toggle {
+    display: none;
+  }
+}
+
+.admin-shell .glass-card {
+  border-color: #475569;
+  background: #1e293b;
+  backdrop-filter: none;
+}
+
+.admin-shell .glass-card::before {
+  display: none;
+}
+
+.admin-shell .glass-card:hover {
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell .glass-card,
+  .admin-product-wizard * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .ant-select-dropdown {

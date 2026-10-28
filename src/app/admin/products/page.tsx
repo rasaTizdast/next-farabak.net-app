@@ -250,16 +250,16 @@ const AdminProductsPage = () => {
           )}
         >
           {/* Search and Filter */}
-          <div className={cn("flex w-full flex-col gap-5 lg:w-auto lg:flex-row")}>
-            <div className="relative w-full lg:w-auto">
+          <div className={cn("flex w-full flex-col gap-3 sm:flex-row lg:w-auto")}>
+            <div className="relative w-full sm:min-w-64 lg:w-80">
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="جستجو"
+                placeholder="جستجوی نام یا شناسه محصول…"
                 value={tempSearchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 aria-label="جستجوی محصول"
-                className="w-full rounded-lg border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none lg:max-w-[350px] lg:min-w-[200px]"
+                className="admin-products-search min-h-11 w-full rounded-lg border border-slate-500 bg-white px-4 py-2 text-base text-slate-950 shadow-sm transition-colors placeholder:text-slate-500 hover:border-slate-600 focus-visible:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
               />
             </div>
             <button

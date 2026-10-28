@@ -1,14 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { NextResponse } from "next/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { mockPutObject } = vi.hoisted(() => ({
-  mockPutObject: vi.fn().mockReturnValue({ promise: vi.fn().mockResolvedValue({}) }),
+const { auth, getSignedUrl } = vi.hoisted(() => ({
+  auth: vi.fn(),
+  getSignedUrl: vi.fn(),
 }));
 
+vi.mock("@/lib/auth", () => ({ requireAuth: auth }));
 vi.mock("aws-sdk", () => ({
   S3: vi.fn().mockImplementation(function () {
-    return {
-      putObject: mockPutObject,
-    };
+    return { getSignedUrlPromise: getSignedUrl };
   }),
 }));
 
@@ -17,79 +18,57 @@ import { POST } from "../route";
 describe("POST /api/products/productBlog/uploadVideo", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    auth.mockResolvedValue({ userId: "1", username: "admin", role: "Admin" });
+    getSignedUrl.mockResolvedValue("https://uploads.example.test/signed");
   });
 
-  it("should upload video successfully", async () => {
-    const file = new File(["video content"], "test.mp4", { type: "video/mp4" });
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("slug", "my-product");
-
+  it("returns a direct S3 upload URL without accepting video bytes", async () => {
     const req = new Request("http://localhost/api/products/productBlog/uploadVideo", {
       method: "POST",
-      body: formData,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        slug: "my-product",
+        fileName: "demo clip.mp4",
+        contentType: "video/mp4",
+      }),
     });
 
     const res = await POST(req);
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body.url).toContain("my-product");
-    expect(mockPutObject).toHaveBeenCalled();
+    expect(body).toEqual({
+      uploadUrl: "https://uploads.example.test/signed",
+      url: "productImages/my-product/productBlogVideos/demo-clip.mp4",
+    });
   });
 
-  it("should return 400 when no file provided", async () => {
-    const formData = new FormData();
-    formData.append("slug", "my-product");
-
+  it("rejects an unauthenticated request before parsing its body", async () => {
+    auth.mockResolvedValue(NextResponse.json({ error: "Unauthorized" }, { status: 401 }));
     const req = new Request("http://localhost/api/products/productBlog/uploadVideo", {
       method: "POST",
-      body: formData,
+      headers: { "content-type": "application/octet-stream" },
+      body: "untrusted bytes",
     });
 
     const res = await POST(req);
-    const body = await res.json();
+
+    expect(res.status).toBe(401);
+  });
+
+  it("rejects non-video content types", async () => {
+    const req = new Request("http://localhost/api/products/productBlog/uploadVideo", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        slug: "my-product",
+        fileName: "payload.bin",
+        contentType: "application/octet-stream",
+      }),
+    });
+
+    const res = await POST(req);
 
     expect(res.status).toBe(400);
-    expect(body.error).toBe("No file provided");
-  });
-
-  it("should return 400 when slug is missing", async () => {
-    const file = new File(["video content"], "test.mp4", { type: "video/mp4" });
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const req = new Request("http://localhost/api/products/productBlog/uploadVideo", {
-      method: "POST",
-      body: formData,
-    });
-
-    const res = await POST(req);
-    const body = await res.json();
-
-    expect(res.status).toBe(400);
-    expect(body.error).toBe("Product slug is required");
-  });
-
-  it("should return 500 on S3 upload error", async () => {
-    mockPutObject.mockReturnValue({
-      promise: vi.fn().mockRejectedValue(new Error("S3 error")),
-    });
-
-    const file = new File(["video content"], "test.mp4", { type: "video/mp4" });
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("slug", "my-product");
-
-    const req = new Request("http://localhost/api/products/productBlog/uploadVideo", {
-      method: "POST",
-      body: formData,
-    });
-
-    const res = await POST(req);
-    const body = await res.json();
-
-    expect(res.status).toBe(500);
-    expect(body.error).toBe("Failed to upload file");
   });
 });

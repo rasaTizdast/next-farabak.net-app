@@ -79,7 +79,7 @@ const DeleteOverviewDetailButton = ({
 
       {/* Confirmation Modal */}
       {showConfirmModal && (
-        <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm">
           <div className="relative w-full max-w-md rounded-lg bg-gray-800 p-6 text-white shadow-lg">
             <button
               type="button"
@@ -98,7 +98,7 @@ const DeleteOverviewDetailButton = ({
             </p>
 
             {inUseInfo.isInUse && (
-              <div className="bg-opacity-30 mb-4 rounded-lg border border-yellow-500 bg-yellow-600 p-3">
+              <div className="mb-4 rounded-lg border border-yellow-500 bg-yellow-600/30 p-3">
                 <p className="text-sm text-yellow-300">
                   هشدار: این توضیحات در {inUseInfo.productsCount} محصول استفاده شده است. حذف آن باعث
                   حذف این ویژگی از تمام محصولات خواهد شد.

@@ -3,6 +3,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma"; // Assuming you have a Prisma client setup
 
 export async function GET() {
@@ -26,6 +27,12 @@ const s3 = new S3({
 });
 
 export async function POST(request: Request) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File;

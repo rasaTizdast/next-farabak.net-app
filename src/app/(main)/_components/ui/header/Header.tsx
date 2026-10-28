@@ -1,7 +1,7 @@
 import { io } from "next/cache";
 import Image from "next/image";
-import Link from "next/link";
 
+import Link from "@/components/NoPrefetchLink";
 import { fetchMenuCategories } from "@/helpers/menuHelpers";
 
 import UserStatusIcon from "./UserStatusIcon";

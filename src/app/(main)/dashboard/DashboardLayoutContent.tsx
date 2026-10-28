@@ -59,20 +59,43 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    if (!overlay) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setTextVis(false);
+        setOverlay(false);
+      }
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [overlay]);
+
   return (
-    <div className="relative flex gap-8 max-[576px]:gap-4">
+    <div className="dashboard-shell relative flex min-w-0 gap-8 max-[576px]:gap-3">
       {overlay && (
-        <div className="fixed inset-s-0 top-[80px] z-2 h-screen w-full bg-black/50"></div>
+        <button
+          type="button"
+          aria-label="بستن منوی داشبورد"
+          className="fixed inset-0 z-40 bg-black/50"
+          onClick={() => {
+            setTextVis(false);
+            setOverlay(false);
+          }}
+        />
       )}
       <aside
-        className={`z-3 flex w-[25%] max-w-[200px] min-w-[150px] flex-col bg-[#003262] text-white ${textVis ? "" : ""}`}
+        aria-label="منوی داشبورد"
+        className={`z-50 flex shrink-0 flex-col bg-[#003262] text-white max-[576px]:min-w-16 max-[576px]:transition-[width] max-[576px]:duration-200 ${width && width <= 576 ? (textVis ? "w-52" : "w-16") : "w-[25%] max-w-[200px] min-w-[150px]"}`}
       >
         <ul className="sticky top-[61px] flex max-h-max w-full flex-1 list-none flex-col text-base">
           {asideData.map(({ id, link, name, icon }) => (
             <li key={id}>
               <Link
                 href={link}
-                className={`block w-full p-4 font-medium transition-colors duration-300 ${pathname === link ? "bg-[#318ce7]" : ""}`}
+                aria-label={name}
+                aria-current={pathname === link ? "page" : undefined}
+                className={`flex min-h-12 w-full items-center gap-3 p-4 font-medium text-white! transition-colors duration-200 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white ${pathname === link ? "bg-[#318ce7]" : "hover:bg-blue-800"}`}
                 onClick={() => {
                   if (width && width <= 576) {
                     setTextVis(false);
@@ -80,15 +103,17 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
                   }
                 }}
               >
-                {textVis && <span className="block flex-1">{name}</span>}
-                {width && width <= 576 && <span className="ms-2 mt-2 text-[1rem]">{icon}</span>}
+                <span aria-hidden="true" className="shrink-0 text-lg">
+                  {icon}
+                </span>
+                {textVis && <span className="min-w-0 flex-1 text-sm">{name}</span>}
               </Link>
             </li>
           ))}
           {width && width <= 576 && (
             <button
               type="button"
-              className="z-10 mt-8 flex cursor-pointer items-center justify-center border-none bg-[#003262] p-[0.6rem] text-white"
+              className="z-10 mt-4 flex min-h-11 cursor-pointer items-center justify-center border-t border-blue-300/40 bg-[#003262] p-3 text-white focus-visible:outline-2 focus-visible:outline-white"
               onClick={() => {
                 setTextVis((v) => !v);
                 setOverlay((v) => !v);
@@ -102,14 +127,16 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
             <button
               type="button"
               onClick={() => logout()}
-              className="flex w-full cursor-pointer items-center justify-between gap-4 p-4 text-center font-medium text-red-400 transition-all duration-300 last:mt-auto hover:bg-[#ff4d4d] hover:text-white"
+              aria-label="خروج از حساب"
+              className="flex min-h-12 w-full cursor-pointer items-center gap-3 p-4 text-center font-medium text-red-200 transition-colors duration-200 last:mt-auto hover:bg-red-700 hover:text-white focus-visible:outline-2 focus-visible:outline-white"
             >
-              {textVis ? "خروج از حساب" : <ImExit />}
+              <ImExit aria-hidden="true" className="shrink-0 text-lg" />
+              {textVis && "خروج از حساب"}
             </button>
           </li>
         </ul>
       </aside>
-      <div className="mb-10 flex w-full flex-col py-4 ps-4 pe-0">{children}</div>
+      <div className="mb-10 flex min-w-0 flex-1 flex-col py-4 ps-4 pe-0">{children}</div>
     </div>
   );
 };

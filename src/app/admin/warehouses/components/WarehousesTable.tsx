@@ -98,6 +98,7 @@ export default function WarehousesTable({
       dataSource={items}
       rowKey={(r) => r.warehouseid}
       columns={columns}
+      scroll={{ x: 680 }}
       loading={loading}
       pagination={{ current: page, pageSize: 20, total, onChange: (p) => onPageChange(p) }}
     />

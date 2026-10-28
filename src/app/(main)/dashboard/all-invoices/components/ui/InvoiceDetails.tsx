@@ -4,6 +4,8 @@ import jsPDF from "jspdf";
 import Image from "next/image";
 import { useRef, useEffect, useState } from "react";
 
+import { useModalA11y } from "@/hooks/useModalA11y";
+
 import logo from "../../../../../../../public/Farabak_Logo.webp";
 
 const currencyFormatter = new Intl.NumberFormat("fa-IR");
@@ -202,6 +204,7 @@ function formatCurrency(amount: number) {
 }
 
 const InvoiceDetails = ({ invoice, onClose }: Props) => {
+  const panelRef = useModalA11y<HTMLDivElement>({ onClose });
   const componentRef = useRef<HTMLDivElement>(null);
   const [productNames, setProductNames] = useState<{ [key: number]: string }>({});
   const [warranties, setWarranties] = useState<{ [key: number]: Warranty }>({});
@@ -248,8 +251,27 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
   if (!invoice) return null;
 
   return (
-    <div className="fixed inset-0 z-10 flex items-center justify-center overflow-y-auto bg-black/70 p-4">
-      <div className="max-h-[90vh] w-[90%] max-w-[850px] overflow-y-auto rounded-xl bg-white p-8 text-start shadow-[0_10px_25px_rgba(0,0,0,0.2)] md:p-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-3 backdrop-blur-[2px]">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="customer-invoice-title"
+        tabIndex={-1}
+        className="max-h-[calc(100dvh-1.5rem)] w-full max-w-[850px] overflow-auto overscroll-contain rounded-xl border border-slate-300 bg-white p-4 text-start shadow-2xl focus:outline-none sm:p-6"
+      >
+        <div className="sticky top-0 z-10 mb-3 flex items-center justify-between gap-3 border-b border-slate-200 bg-white py-2">
+          <h2 id="customer-invoice-title" className="text-lg font-bold text-slate-900">
+            جزئیات فاکتور
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="min-h-10 rounded-lg border border-slate-400 px-4 text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-blue-700"
+          >
+            بستن
+          </button>
+        </div>
         {loading ? (
           <div className="space-y-4 p-8">
             <div className="mx-auto h-6 w-48 animate-pulse rounded-md bg-gray-300"></div>
@@ -260,7 +282,11 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
             <div className="h-48 w-full animate-pulse rounded-md bg-gray-300"></div>
           </div>
         ) : (
-          <div ref={componentRef} className="flex flex-col justify-center p-4 md:p-4" dir="rtl">
+          <div
+            ref={componentRef}
+            className="flex w-full min-w-0 flex-col justify-center p-2 sm:p-4"
+            dir="rtl"
+          >
             <div className="mb-8 flex w-full items-center justify-center">
               <Image
                 src={logo}
@@ -278,11 +304,11 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
               </h3>
 
               <div className="my-4 flex flex-col gap-2">
-                <div className="flex justify-center gap-4 font-bold">
+                <div className="flex flex-wrap justify-center gap-2 font-bold">
                   نام و نام خانوادگی:{" "}
                   <span className="font-medium text-[#444]">{invoice.Fullname}</span>
                 </div>
-                <div className="flex justify-center gap-4 font-bold">
+                <div className="flex flex-wrap justify-center gap-2 font-bold">
                   شماره تماس: <span className="font-medium text-[#444]">{invoice.Phonenumber}</span>
                 </div>
                 <div className="my-6">
@@ -297,70 +323,77 @@ const InvoiceDetails = ({ invoice, onClose }: Props) => {
               </div>
             </div>
 
-            <table className="mb-8 w-full border-collapse overflow-hidden rounded-lg shadow-[0_2px_5px_rgba(0,0,0,0.05)]">
-              <thead>
-                <tr>
-                  <th className="border border-[#eaeaea] bg-[#003262] p-3 text-start font-semibold text-white">
-                    محصول
-                  </th>
-                  <th className="border border-[#eaeaea] bg-[#003262] p-3 text-start font-semibold text-white">
-                    قیمت نهایی
-                  </th>
-                  <th className="border border-[#eaeaea] bg-[#003262] p-3 text-start font-semibold text-white">
-                    وضعیت گارانتی
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoice.Invoice_Details.map((product, index) => {
-                  const detailId = product.Invoice_Details || product.ProductId || index;
-                  const lookupKey = typeof detailId === "number" ? detailId : index;
-                  const warranty = warranties[lookupKey];
-                  const warrantyStyling = warranty ? formatWarrantyStatus(warranty.status) : null;
+            <div
+              className="mb-8 w-full overflow-x-auto rounded-lg border border-slate-200"
+              role="region"
+              aria-label="اقلام فاکتور و وضعیت گارانتی"
+              tabIndex={0}
+            >
+              <table className="w-full min-w-[560px] border-collapse shadow-[0_2px_5px_rgba(0,0,0,0.05)]">
+                <thead>
+                  <tr>
+                    <th className="border border-[#eaeaea] bg-[#003262] p-3 text-start font-semibold text-white">
+                      محصول
+                    </th>
+                    <th className="border border-[#eaeaea] bg-[#003262] p-3 text-start font-semibold text-white">
+                      قیمت نهایی
+                    </th>
+                    <th className="border border-[#eaeaea] bg-[#003262] p-3 text-start font-semibold text-white">
+                      وضعیت گارانتی
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoice.Invoice_Details.map((product, index) => {
+                    const detailId = product.Invoice_Details || product.ProductId || index;
+                    const lookupKey = typeof detailId === "number" ? detailId : index;
+                    const warranty = warranties[lookupKey];
+                    const warrantyStyling = warranty ? formatWarrantyStatus(warranty.status) : null;
 
-                  return (
-                    <tr key={product.ProductId} className="even:bg-[#f9f9f9] hover:bg-[#f1f1f1]">
-                      <td className="border border-[#eaeaea] p-3">
-                        {productNames[product.ProductId] || "در حال بارگذاری..."}
-                      </td>
-                      <td className="border border-[#eaeaea] p-3">
-                        {formatCurrency(product.total_price)}
-                      </td>
-                      <td className="border border-[#eaeaea] p-3">
-                        {warranty ? (
-                          <div className="rounded-[6px] bg-[#f8f8f8] p-2 text-[0.9rem] leading-[1.6]">
-                            <div className="mb-1">
-                              <strong className="ms-1 text-[#003262]">کد گارانتی:</strong>{" "}
-                              {warranty.warrantycode}
-                            </div>
-                            <div className="mb-1">
-                              <strong className="ms-1 text-[#003262]">وضعیت:</strong>
-                              <span
-                                className={`ms-2 inline-block rounded-[4px] p-1 px-2 text-[0.8rem] font-semibold ${warrantyStyling?.className}`}
-                              >
-                                {warrantyStyling?.text}
-                              </span>
-                            </div>
-                            {warranty.startdate && warranty.expirydate && (
-                              <div>
-                                <strong className="ms-1 text-[#003262]">اعتبار:</strong>
-                                <span>{formatPersianDate(warranty.startdate)}</span>
-                                {" تا "}
-                                <span>{formatPersianDate(warranty.expirydate)}</span>
+                    return (
+                      <tr key={product.ProductId} className="even:bg-[#f9f9f9] hover:bg-[#f1f1f1]">
+                        <td className="border border-[#eaeaea] p-3">
+                          {productNames[product.ProductId] || "در حال بارگذاری..."}
+                        </td>
+                        <td className="border border-[#eaeaea] p-3">
+                          {formatCurrency(product.total_price)}
+                        </td>
+                        <td className="border border-[#eaeaea] p-3">
+                          {warranty ? (
+                            <div className="rounded-[6px] bg-[#f8f8f8] p-2 text-[0.9rem] leading-[1.6]">
+                              <div className="mb-1">
+                                <strong className="ms-1 text-[#003262]">کد گارانتی:</strong>{" "}
+                                {warranty.warrantycode}
                               </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="inline-block rounded-[4px] bg-[#f5f5f5] p-1 px-2 text-[0.9rem] text-[#757575] italic">
-                            گارانتی ثبت نشده
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                              <div className="mb-1">
+                                <strong className="ms-1 text-[#003262]">وضعیت:</strong>
+                                <span
+                                  className={`ms-2 inline-block rounded-[4px] p-1 px-2 text-[0.8rem] font-semibold ${warrantyStyling?.className}`}
+                                >
+                                  {warrantyStyling?.text}
+                                </span>
+                              </div>
+                              {warranty.startdate && warranty.expirydate && (
+                                <div>
+                                  <strong className="ms-1 text-[#003262]">اعتبار:</strong>
+                                  <span>{formatPersianDate(warranty.startdate)}</span>
+                                  {" تا "}
+                                  <span>{formatPersianDate(warranty.expirydate)}</span>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="inline-block rounded-[4px] bg-[#f5f5f5] p-1 px-2 text-[0.9rem] text-[#757575] italic">
+                              گارانتی ثبت نشده
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
         <div className="mt-6 flex justify-center gap-4 md:flex-row lg:flex-row xl:flex-row 2xl:flex-row">

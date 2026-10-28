@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockPrisma, mockS3Instance } = vi.hoisted(() => ({
+const { auth, mockPrisma, mockS3Instance } = vi.hoisted(() => ({
+  auth: vi.fn(),
   mockPrisma: {
     projects: {
       findUnique: vi.fn(),
@@ -22,6 +23,7 @@ const { mockPrisma, mockS3Instance } = vi.hoisted(() => ({
   },
 }));
 
+vi.mock("@/lib/auth", () => ({ requireAuth: auth }));
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 vi.mock("aws-sdk", () => ({
   S3: vi.fn().mockImplementation(function () {
@@ -30,6 +32,10 @@ vi.mock("aws-sdk", () => ({
 }));
 
 import { GET, PUT, DELETE } from "../route";
+
+beforeEach(() => {
+  auth.mockResolvedValue({ userId: "1", username: "admin", role: "Admin" });
+});
 
 describe("GET /api/projects/[id]", () => {
   beforeEach(() => {

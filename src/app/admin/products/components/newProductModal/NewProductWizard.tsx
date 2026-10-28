@@ -27,7 +27,8 @@ function NewProductWizardInner({
 }: {
   setShowNewProductModal: (visible: boolean) => void;
 }) {
-  const { isModalVisible, openSections, progress, currentStep, actions } = useNewProductWizard();
+  const { state, isModalVisible, openSections, progress, currentStep, actions } =
+    useNewProductWizard();
 
   const sectionOrder = Object.keys(openSections) as (keyof OpenSections)[];
   const firstOpenIndex = sectionOrder.findIndex((key) => openSections[key]);
@@ -35,7 +36,15 @@ function NewProductWizardInner({
   const totalSteps = sectionOrder.length || 7;
 
   const requestClose = () => {
-    if (!isModalVisible) setShowNewProductModal(false);
+    if (isModalVisible) return;
+    const hasDraft = Object.entries(state).some(([field, value]) => {
+      if (field === "available") return false;
+      if (Array.isArray(value)) return value.length > 0;
+      if (typeof value === "string") return value.trim().length > 0;
+      return value !== null;
+    });
+    if (hasDraft && !window.confirm("اطلاعات واردشده ذخیره نشده است. فرم بسته شود؟")) return;
+    setShowNewProductModal(false);
   };
 
   const panelRef = useModalA11y<HTMLDivElement>({
@@ -57,21 +66,16 @@ function NewProductWizardInner({
   return (
     <>
       {isModalVisible && <ProgressModal progress={progress} currentStep={currentStep} />}
-      <div
-        className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm transition-opacity"
-        onClick={(e) => {
-          if (e.target === e.currentTarget) requestClose();
-        }}
-      >
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-2 backdrop-blur-[2px] sm:p-5">
         <div
           ref={panelRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="new-product-wizard-title"
           tabIndex={-1}
-          className="animate-fade-in relative max-h-[90dvh] w-full max-w-6xl overflow-y-auto rounded-xl bg-gray-800 p-6 text-white shadow-lg focus:outline-none"
+          className="admin-product-wizard relative max-h-[calc(100dvh-1rem)] w-full max-w-5xl overflow-y-auto overscroll-contain rounded-xl border border-slate-500 bg-slate-800 p-4 text-white shadow-2xl focus:outline-none sm:max-h-[calc(100dvh-2.5rem)] sm:p-6"
         >
-          <h2 id="new-product-wizard-title" className="mb-6 text-center text-2xl font-bold">
+          <h2 id="new-product-wizard-title" className="mb-6 pe-12 text-right text-2xl font-bold">
             محصول جدید
           </h2>
 
@@ -95,12 +99,12 @@ function NewProductWizardInner({
 
           <button
             type="button"
-            className="absolute top-4 right-4 cursor-pointer text-red-400 transition-colors hover:text-red-500"
+            className="absolute top-3 left-3 flex size-10 cursor-pointer items-center justify-center rounded-lg border border-slate-500 text-slate-200 transition-colors hover:bg-slate-700 hover:text-white focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none sm:top-4 sm:left-4"
             onClick={requestClose}
             disabled={isModalVisible}
             aria-label="بستن"
           >
-            <IoIosClose size={50} />
+            <IoIosClose size={28} />
           </button>
         </div>
       </div>

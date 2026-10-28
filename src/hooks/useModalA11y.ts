@@ -54,8 +54,8 @@ export function useModalA11y<T extends HTMLElement>({
     panel?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (!isOpenRef.current) return;
       if (event.key === "Escape") {
-        if (!isOpenRef.current) return;
         if (shouldCloseRef.current && !shouldCloseRef.current()) return;
         onCloseRef.current();
         return;

@@ -27,6 +27,7 @@ export const adminDarkTheme: ThemeConfig = {
     colorTextSecondary: "#e5e7eb",
     colorTextTertiary: "#9ca3af",
     colorTextQuaternary: "#6b7280",
+    colorTextPlaceholder: "#cbd5e1",
     borderRadius: 8,
     fontFamily: "var(--font-iran-yekan), system-ui, arial",
   },
@@ -46,6 +47,7 @@ export const adminDarkTheme: ThemeConfig = {
       optionSelectedBg: "#3b82f6",
       optionActiveBg: "#374151",
       selectorBg: "#374151",
+      colorBorder: "#8293aa",
     },
     Modal: {
       contentBg: "#1f2937",
@@ -70,11 +72,13 @@ export const adminDarkTheme: ThemeConfig = {
     },
     Input: {
       colorBgContainer: "#374151",
-      activeBorderColor: "#3b82f6",
-      hoverBorderColor: "#4b5563",
+      colorBorder: "#8293aa",
+      activeBorderColor: "#93c5fd",
+      hoverBorderColor: "#94a3b8",
     },
     InputNumber: {
       colorBgContainer: "#374151",
+      colorBorder: "#8293aa",
     },
     Tag: {
       defaultBg: "#1f2937",

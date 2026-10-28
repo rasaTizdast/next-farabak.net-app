@@ -161,14 +161,14 @@ const SettingsPage = () => {
   return (
     <div>
       <Toaster position="bottom-center" />
-      <div className="flex w-full flex-col overflow-auto rounded-lg bg-gray-800 p-4 text-gray-100 sm:p-6">
+      <div className="flex w-full flex-col overflow-auto rounded-lg border border-slate-700 bg-gray-800 p-4 text-gray-100 sm:p-6">
         <div className="w-full">
           <h1 className="mb-6 text-2xl font-bold">تنظیمات</h1>
 
           {/* Main Grid Layout */}
           <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2">
             {/* Password Change Section */}
-            <div className="rounded-lg bg-gray-700 p-6 shadow-md">
+            <div className="rounded-lg border border-slate-500 bg-gray-700 p-4 shadow-md sm:p-6">
               <h2 className="mb-4 text-lg font-semibold">تغییر رمز عبور</h2>
               <form
                 className="flex flex-col space-y-4"
@@ -185,7 +185,7 @@ const SettingsPage = () => {
                     required
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                    className="min-h-11 w-full rounded-lg border border-slate-400 bg-gray-800 px-3 py-2 text-white focus-visible:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
                   />
                 </label>
                 <label className="flex flex-col gap-2">
@@ -197,7 +197,7 @@ const SettingsPage = () => {
                     minLength={6}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                    className="min-h-11 w-full rounded-lg border border-slate-400 bg-gray-800 px-3 py-2 text-white focus-visible:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
                   />
                 </label>
                 <label className="flex flex-col gap-2">
@@ -209,7 +209,7 @@ const SettingsPage = () => {
                     minLength={6}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                    className="min-h-11 w-full rounded-lg border border-slate-400 bg-gray-800 px-3 py-2 text-white focus-visible:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
                   />
                 </label>
                 <button
@@ -223,7 +223,7 @@ const SettingsPage = () => {
             </div>
 
             {/* Search Section */}
-            <div className="rounded-lg bg-gray-700 p-6 shadow-md">
+            <div className="rounded-lg border border-slate-500 bg-gray-700 p-4 shadow-md sm:p-6">
               <h2 className="mb-4 text-lg font-semibold">مدیریت کاربران</h2>
 
               {/* Phone Number Input */}
@@ -243,7 +243,7 @@ const SettingsPage = () => {
                     required
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                    className="min-h-11 w-full rounded-lg border border-slate-400 bg-gray-800 px-3 py-2 text-white focus-visible:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
                   />
                 </label>
 
@@ -299,7 +299,7 @@ const SettingsPage = () => {
             </div>
 
             {/* Admins Section */}
-            <div className="rounded-lg bg-gray-700 p-6 shadow-md md:col-span-2">
+            <div className="rounded-lg border border-slate-500 bg-gray-700 p-4 shadow-md sm:p-6 md:col-span-2">
               <h2 className="mb-4 text-lg font-semibold">لیست ادمین‌ها</h2>
 
               {admins.length === 0 ? (
@@ -341,7 +341,7 @@ const SettingsPage = () => {
       </div>
       {adminToDemote !== null && (
         <AlertDialog open onOpenChange={(open) => !open && !loading && setAdminToDemote(null)}>
-          <AlertDialogContent className="border-0 bg-gray-800 text-gray-100">
+          <AlertDialogContent className="border border-slate-500 bg-gray-800 text-gray-100 shadow-2xl">
             <AlertDialogTitle className="mb-3 text-start">تبدیل نقش ادمین</AlertDialogTitle>
             <AlertDialogDescription className="mb-6 text-start text-gray-300">
               این کار دسترسی مدیریتی این کاربر را حذف می‌کند. ادامه می‌دهید؟

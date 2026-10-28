@@ -96,7 +96,7 @@ describe("warehouse page mutations", () => {
 
   it("filters warehouses by the warehouse search input", async () => {
     render(<WarehousesPage />);
-    fireEvent.change(screen.getByPlaceholderText("جستجو انبار یا محصول..."), {
+    fireEvent.change(screen.getByRole("textbox", { name: "جستجوی نام انبار" }), {
       target: { value: "QA depot" },
     });
     await waitFor(() =>

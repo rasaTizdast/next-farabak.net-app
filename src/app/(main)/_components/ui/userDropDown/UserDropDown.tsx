@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { PiUserCircleDashedFill } from "react-icons/pi";
 
+import Link from "@/components/NoPrefetchLink";
 import { useInvoice } from "@/context/InvoiceContext";
 import { useUser } from "@/context/UserContext";
 

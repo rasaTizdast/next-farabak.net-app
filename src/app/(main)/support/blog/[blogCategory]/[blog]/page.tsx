@@ -1,4 +1,5 @@
 import DOMPurify from "isomorphic-dompurify";
+import { io } from "next/cache";
 import { notFound } from "next/navigation";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
@@ -169,6 +170,7 @@ const getBlog = async (
     }
 
     if (blog.QrCode_expiryDays) {
+      await io();
       const expiryDate = new Date(blog.QrCode_expiryDays);
       if (new Date() > expiryDate) {
         notFound();

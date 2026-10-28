@@ -185,7 +185,7 @@ const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Prop
 
       {/* Detail Modal */}
       {showDetailModal && selectedDetail && (
-        <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm">
           <div className="relative max-h-[700px] w-full max-w-lg overflow-y-scroll rounded-lg bg-gray-800 p-6 text-white shadow-lg">
             <button
               type="button"

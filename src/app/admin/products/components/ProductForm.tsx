@@ -235,7 +235,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         <NewOverviewDetailsModal onClose={() => setShowNewOverviewDetailsModal(false)} />
       )}
       <div
-        className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black shadow-lg backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 shadow-lg backdrop-blur-sm"
         onMouseDown={(e) => {
           if (e.target === e.currentTarget) requestClose();
         }}

@@ -4,7 +4,7 @@ import Sidebar from "./Sidebar";
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative min-h-screen bg-linear-to-l from-blue-800 to-blue-900">
+    <div className="admin-shell relative min-h-screen bg-linear-to-l from-slate-950 via-[#0c1e39] to-slate-900 text-slate-100">
       {/* Sidebar */}
       <Sidebar />
 

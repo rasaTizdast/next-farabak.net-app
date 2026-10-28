@@ -14,8 +14,7 @@ type RangeItem = {
   desktopSrc: string | null;
   mobileSrc: string | null;
   alt: string;
-  mediaStatus:
-    "generated-conceptual" | "generated-product-render" | "approved-real-media" | "pending-media";
+  mediaStatus: "editorial-illustration";
   caption: string;
 };
 
@@ -169,15 +168,7 @@ export default function RangeInstrument({ items }: Props) {
                 دیدن این حوزه <ArrowUpLeft size={16} strokeWidth={1.4} aria-hidden="true" />
               </Link>
             </span>
-            <span className="mt-1 block text-sm leading-6 text-[#d3e4f0]">
-              {active.mediaStatus === "generated-product-render"
-                ? active.caption
-                : active.mediaStatus === "generated-conceptual"
-                  ? "تصویر مفهومی از فضای کاربرد"
-                  : active.mediaStatus === "approved-real-media"
-                    ? "تصویر تأییدشده"
-                    : "تصویر در دست آماده‌سازی"}
-            </span>
+            <span className="mt-1 block text-sm leading-6 text-[#d3e4f0]">{active.caption}</span>
           </figcaption>
         </figure>
       </div>

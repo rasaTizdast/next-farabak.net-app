@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 import { AdminInvoice } from "../../type";
 
@@ -10,18 +10,28 @@ type Props = {
 };
 
 const AdminPhoneNumberModal = ({ invoice, onClose }: Props) => {
-  const componentRef = useRef<HTMLDivElement>(null);
+  const panelRef = useModalA11y<HTMLDivElement>({ onClose });
 
   if (!invoice) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 backdrop-blur-sm sm:p-4">
-      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-slate-900">
-        <div ref={componentRef} className="p-3 sm:p-6">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="admin-phone-modal-title"
+        tabIndex={-1}
+        className="max-h-[calc(100dvh-1rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-xl border border-slate-600 bg-slate-900 shadow-2xl focus:outline-none"
+      >
+        <div className="p-3 sm:p-6">
           <div className="text-gray-100">
             {/* Header */}
             <div className="mb-4 sm:mb-8">
-              <h2 className="text-center text-xl font-bold sm:text-2xl">
+              <h2
+                id="admin-phone-modal-title"
+                className="text-center text-xl font-bold sm:text-2xl"
+              >
                 شماره تماس مشتری {invoice.Fullname}
               </h2>
             </div>
@@ -52,7 +62,7 @@ const AdminPhoneNumberModal = ({ invoice, onClose }: Props) => {
           <button
             type="button"
             onClick={onClose}
-            className="w-full rounded-lg bg-slate-700 px-4 py-2 text-sm text-gray-100 transition-colors duration-200 hover:bg-slate-600 sm:w-auto sm:px-6 sm:text-base"
+            className="min-h-11 w-full rounded-lg bg-slate-700 px-4 py-2 text-sm text-gray-100 transition-colors duration-200 hover:bg-slate-600 sm:w-auto sm:px-6 sm:text-base"
           >
             بستن
           </button>

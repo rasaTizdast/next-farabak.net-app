@@ -1,5 +1,6 @@
 // Components
 import { Metadata } from "next";
+import { io } from "next/cache";
 import { Suspense } from "react";
 
 import { formatTitle } from "@/helpers/formatTitle";
@@ -63,6 +64,7 @@ export async function generateMetadata(props: ProductPageProps): Promise<Metadat
       }
 
       // Check if the QR code has expired
+      await io();
       const expiryDate = new Date(data.QrCode_expiryDays);
       if (new Date() > expiryDate) {
         return {

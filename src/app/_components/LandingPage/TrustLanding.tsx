@@ -1,9 +1,10 @@
 import { ArrowDownLeft, ArrowLeft, ArrowUpLeft } from "lucide-react";
 import { io } from "next/cache";
 import Image from "next/image";
-import Link from "next/link";
 import { Suspense } from "react";
 
+import Link from "@/components/NoPrefetchLink";
+import { blackwonderCategoryHref, blackwonderHeroSrc } from "@/content/blackwonder-products";
 import { HISTORY_START_YEAR } from "@/content/homepage-proof";
 import { landingAssets } from "@/content/landing-assets";
 import { landingStories, type LandingStory } from "@/content/landing-stories";
@@ -18,8 +19,10 @@ const shell =
 const focus =
   "focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-[#56bcff]";
 const action =
-  "group inline-flex min-h-12 items-center justify-center gap-4 bg-[#1265e8] px-5 py-3 text-[15px] font-semibold text-white no-underline transition-[transform,background-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[#0751c1] active:scale-[0.98] " +
+  "group inline-flex min-h-12 items-center justify-center gap-4 px-5 py-3 text-[15px] font-semibold no-underline transition-[transform,background-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98] " +
   focus;
+const primaryAction = `${action} bg-[#1265e8] text-white hover:bg-[#0751c1]`;
+const ledWallAction = `${action} bg-white text-[#0c3c7d] hover:bg-[#d9ebff]`;
 const textLink =
   "group inline-flex min-h-11 items-center gap-2 text-[15px] font-semibold underline decoration-current/40 underline-offset-6 transition-[color,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[#1265e8] " +
   focus;
@@ -117,7 +120,7 @@ function Hero() {
               data-reveal
               data-reveal-order="3"
             >
-              <a className={action} href="#range-select">
+              <a className={primaryAction} href="#range-select">
                 حوزه خود را انتخاب کنید
                 <ArrowDownLeft size={19} strokeWidth={1.5} aria-hidden="true" />
               </a>
@@ -271,7 +274,7 @@ function StoryChapter({ story, index }: { story: LandingStory; index: number }) 
               data-reveal-order="4"
             >
               <Link
-                className={`${action} ${index === 4 ? "bg-white text-[#0c3c7d] hover:bg-[#d9ebff]" : ""}`}
+                className={index === 4 ? ledWallAction : primaryAction}
                 href={story.action.href}
               >
                 {story.action.label}
@@ -324,6 +327,7 @@ function StoryChapter({ story, index }: { story: LandingStory; index: number }) 
                   alt={media.alt}
                   width={1536}
                   height={1024}
+                  quality={100}
                   sizes="(max-width: 767px) calc(100vw - 48px), (max-width: 1200px) 50vw, 60vw"
                   className="size-full object-cover transition-transform duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.035]"
                 />
@@ -339,6 +343,70 @@ function StoryChapter({ story, index }: { story: LandingStory; index: number }) 
               className={`mt-4 text-sm leading-7 ${dark ? "text-[#c7dbe9]" : "text-[#536a7b]"}`}
             >
               {media.caption}
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BlackwonderRange() {
+  return (
+    <section
+      className="scroll-mt-24 overflow-hidden bg-[#dce8ef] py-20 text-[#09243b] md:py-28 xl:py-36"
+      id="blackwonder-range"
+      aria-labelledby="blackwonder-heading"
+    >
+      <div className={shell}>
+        <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
+          <div className="min-w-0">
+            <p className="text-sm font-bold tracking-[0.18em] text-[#1265e8] uppercase">
+              BlackWonder · نظارت صنعتی
+            </p>
+            <h2
+              id="blackwonder-heading"
+              className="mt-4 max-w-[15ch] text-[clamp(2.3rem,4.2vw,4.4rem)] leading-[1.2] font-extrabold tracking-tight text-balance"
+              data-reveal
+            >
+              برای محیط‌هایی که خطا پذیرفته نیست.
+            </h2>
+            <p className="mt-6 max-w-[54ch] text-base leading-8 text-[#173248] md:text-lg md:leading-9">
+              دوربین‌ها، محفظه‌های ضدانفجار و متعلقات BlackWonder را برای طراحی یک سامانه نظارت
+              صنعتی منسجم کنار هم ببینید.
+            </p>
+            <div className="mt-8" data-reveal>
+              <h3 className="text-base font-bold">برای انتخاب، این‌ها مهم‌اند:</h3>
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {["دوربین‌های ضدانفجار", "اتصال و متعلقات", "خروجی‌های تصویر"].map((factor) => (
+                  <li
+                    key={factor}
+                    className="bg-[#c5dce8] px-3 py-2 text-sm leading-6 text-[#12374e]"
+                  >
+                    {factor}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <Link className={`${primaryAction} mt-8`} href={blackwonderCategoryHref}>
+              دیدن همه محصولات BlackWonder{" "}
+              <ArrowUpLeft size={19} strokeWidth={1.4} aria-hidden="true" />
+            </Link>
+          </div>
+          <figure className="min-w-0" data-reveal data-reveal-kind="image">
+            <div className={`overflow-hidden bg-[#bdd0de] ${cut}`}>
+              <Image
+                src={blackwonderHeroSrc}
+                alt="مجموعه‌ای از تجهیزات نظارت صنعتی BlackWonder شامل دوربین‌ها، محفظه‌ها و متعلقات نصب"
+                width={1536}
+                height={1024}
+                quality={100}
+                sizes="(max-width: 1024px) 100vw, 52vw"
+                className="size-full object-cover"
+              />
+            </div>
+            <figcaption className="mt-4 text-sm leading-7 text-[#536a7b]">
+              تجهیزات و متعلقات منتخب از فهرست BlackWonder فرابک.
             </figcaption>
           </figure>
         </div>
@@ -390,6 +458,7 @@ function Projects({
                         src={image}
                         alt={project.title}
                         fill
+                        quality={100}
                         sizes={
                           index === 0
                             ? "(max-width: 1024px) 100vw, 58vw"
@@ -480,6 +549,7 @@ function Knowledge({ blogs }: Pick<HomepageData, "blogs">) {
                           ? "(max-width: 1024px) 100vw, 58vw"
                           : "(max-width: 1024px) 100vw, 25vw"
                       }
+                      quality={100}
                       className="size-full object-cover transition-transform duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.035]"
                     />
                   </div>
@@ -635,6 +705,7 @@ export default function TrustLanding() {
           <StoryChapter story={story} index={index} key={story.key} />
         ))}
       </div>
+      <BlackwonderRange />
       <Suspense
         fallback={
           <>
