@@ -27,9 +27,14 @@ export default function ProductResultsBar({
         <span>{toPersianNumber(totalCount)} محصول در کاتالوگ</span>
         <span className="text-xs">صفحه {toPersianNumber(currentPage)}</span>
       </div>
-      <ActionLink href="/products/search" variant="secondary" className="w-full sm:w-auto">
-        جستجوی محصول
-      </ActionLink>
+      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+        <ActionLink href="/product-finder" className="w-full sm:w-auto">
+          راهنمای انتخاب محصول
+        </ActionLink>
+        <ActionLink href="/products/search" variant="secondary" className="w-full sm:w-auto">
+          جستجوی محصول
+        </ActionLink>
+      </div>
     </div>
   );
 }

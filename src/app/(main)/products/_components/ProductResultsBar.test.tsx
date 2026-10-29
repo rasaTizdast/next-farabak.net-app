@@ -13,5 +13,9 @@ describe("ProductResultsBar", () => {
       "href",
       "/products/search"
     );
+    expect(screen.getByRole("link", { name: "راهنمای انتخاب محصول" })).toHaveAttribute(
+      "href",
+      "/product-finder"
+    );
   });
 });
