@@ -31,7 +31,7 @@ export default async function ProductFinderPage({
               <a
                 key={item.id}
                 href={`/product-finder?category=${item.categorySlug}`}
-                className="rounded-2xl border border-white/15 p-5 font-bold transition hover:bg-white/10"
+                className="rounded-2xl border border-white/25 bg-white/5 p-5 font-bold text-white transition-colors hover:border-cyan-200 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 focus-visible:outline-none"
               >
                 {item.label}
               </a>
