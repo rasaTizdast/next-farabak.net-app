@@ -19,6 +19,19 @@ export default function FinderWorkspace({ category, products }: FinderWorkspaceP
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<AdvisorAnswer[]>([]);
   if (!definition) return null;
+  if (!products.length) {
+    return (
+      <section className="rounded-3xl bg-white p-6 shadow-sm sm:p-10">
+        <h1 className="text-2xl font-black text-slate-950">محصول فعالی برای این نیاز نداریم</h1>
+        <p className="mt-3 text-slate-600">
+          این دسته فعلاً محصول قابل پیشنهاد ندارد؛ از فهرست محصولات موجود مسیر دیگری را انتخاب کنید.
+        </p>
+        <Link className="mt-6 inline-flex font-bold text-blue-700" href="/product-finder">
+          بازگشت به انتخاب نیاز
+        </Link>
+      </section>
+    );
+  }
   const question = definition.questions[step];
   const result = recommendProducts(definition, products, answers);
 

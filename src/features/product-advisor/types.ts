@@ -18,6 +18,7 @@ export interface AdvisorProductSnapshot {
   subcategorySlug: string | null;
   name: string;
   model: string | null;
+  sourceText: string;
   imageUrl: string | null;
   detailHref: string;
   specs: readonly NormalizedAdvisorSpec[];
@@ -46,8 +47,9 @@ export interface AdvisorSpecNormalizer {
 export interface AdvisorRule {
   questionId: string;
   optionId: string;
-  specKey: string;
-  acceptedValues: readonly string[];
+  specKey?: string;
+  acceptedValues?: readonly string[];
+  productKeywords?: readonly string[];
   evidenceLabel: string;
   tradeoff?: string;
 }

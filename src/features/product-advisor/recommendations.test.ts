@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { advisorCategoryDefinitions } from "./category-definitions";
 import { recommendProducts } from "./recommendations";
-import type { AdvisorProductSnapshot } from "./types";
+import type { AdvisorCategoryDefinition, AdvisorProductSnapshot } from "./types";
 
 const reolinkDefinition = advisorCategoryDefinitions["reolink-cctv-camera"];
 
@@ -13,6 +13,7 @@ const products: AdvisorProductSnapshot[] = [
     subcategorySlug: "outdoor-camera",
     name: "دوربین فضای باز",
     model: "RLC-OUT",
+    sourceText: "دوربین فضای باز",
     imageUrl: null,
     detailHref: "/products/reolink-cctv-camera/outdoor-camera/rlc-out",
     specs: [
@@ -26,6 +27,7 @@ const products: AdvisorProductSnapshot[] = [
     subcategorySlug: "outdoor-camera",
     name: "دوربین با مشخصات ناقص",
     model: "RLC-UNKNOWN",
+    sourceText: "دوربین با مشخصات ناقص",
     imageUrl: null,
     detailHref: "/products/reolink-cctv-camera/outdoor-camera/rlc-unknown",
     specs: [{ key: "placement", label: "محل نصب", value: "outdoor", sourceLabel: "محل نصب" }],
@@ -59,5 +61,41 @@ describe("recommendProducts", () => {
 
     expect(result.mode).toBe("narrowed");
     expect(result.candidates).toHaveLength(1);
+  });
+
+  it("ranks catalogue families from verified product names without requesting another service", () => {
+    const definition: AdvisorCategoryDefinition = {
+      slug: "blackmagic",
+      label: "بلک‌مجیک",
+      intentIds: [],
+      questions: [],
+      normalizers: [],
+      rules: [
+        {
+          questionId: "workflow",
+          optionId: "live",
+          productKeywords: ["atem"],
+          evidenceLabel: "برای تولید زنده ثبت شده است",
+        },
+        {
+          questionId: "form-factor",
+          optionId: "compact",
+          productKeywords: ["mini"],
+          evidenceLabel: "فرم جمع‌وجور در نام محصول ثبت شده است",
+        },
+      ],
+    };
+
+    const result = recommendProducts(definition, [
+      { ...products[0], productId: 3, name: "ATEM Mini Pro", model: "ATEM Mini Pro" },
+      { ...products[0], productId: 4, name: "DeckLink 8K Pro", model: "DeckLink 8K Pro" },
+    ], [
+      { questionId: "workflow", value: "live" },
+      { questionId: "form-factor", value: "compact" },
+    ]);
+
+    expect(result.mode).toBe("ranked");
+    expect(result.candidates[0]?.product.productId).toBe(3);
+    expect(result.candidates[0]?.matched).toHaveLength(2);
   });
 });

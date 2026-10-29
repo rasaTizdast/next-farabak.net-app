@@ -15,6 +15,7 @@ const reolinkCamera: AdvisorProductSnapshot = {
   subcategorySlug: null,
   name: "رئولینک",
   model: "RLC",
+  sourceText: "رئولینک",
   imageUrl: null,
   detailHref: "/products/reolink-cctv-camera",
   specs: [],

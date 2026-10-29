@@ -95,8 +95,9 @@ export async function getAdvisorCategory(slug: string): Promise<AdvisorCategoryD
           productId: product.ProductId,
           categorySlug,
           subcategorySlug: subcategory,
-          name: product.Name?.trim() || product.Type?.trim() || "محصول فرابک",
-          model: product.Type?.trim() || null,
+          name: product.Type?.trim() || product.Name?.trim() || "محصول فرابک",
+          model: null,
+          sourceText: product.Name?.trim() || product.Type?.trim() || "",
           imageUrl: productImageUrl(product.img1),
           detailHref,
           specs: normalizeAdvisorSpecs(

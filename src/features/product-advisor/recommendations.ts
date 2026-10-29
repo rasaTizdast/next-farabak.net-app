@@ -28,6 +28,41 @@ function ruleEvidence(
     return { matched: [], tradeoffs: [], unknown: [], sourceLabels: [] };
   }
 
+  if (rule.productKeywords?.length) {
+    const searchableProductText = [
+      product.name,
+      product.model,
+      product.sourceText,
+      product.subcategorySlug,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLocaleLowerCase("fa-IR");
+    const isMatch = rule.productKeywords.some((keyword) =>
+      searchableProductText.includes(keyword.toLocaleLowerCase("fa-IR"))
+    );
+
+    return isMatch
+      ? {
+          matched: [rule.evidenceLabel],
+          tradeoffs: [],
+          unknown: [],
+          sourceLabels: ["نام و دسته‌بندی ثبت‌شده محصول"],
+        }
+      : {
+          matched: [],
+          tradeoffs: [
+            rule.tradeoff ?? `نیاز «${rule.evidenceLabel}» در نام یا دسته‌بندی ثبت‌شده تأیید نشده است.`,
+          ],
+          unknown: [],
+          sourceLabels: [],
+        };
+  }
+
+  if (!rule.specKey || !rule.acceptedValues) {
+    return { matched: [], tradeoffs: [], unknown: [rule.evidenceLabel], sourceLabels: [] };
+  }
+
   const spec = product.specs.find((candidate) => candidate.key === rule.specKey);
   if (!spec) {
     return { matched: [], tradeoffs: [], unknown: [rule.evidenceLabel], sourceLabels: [] };

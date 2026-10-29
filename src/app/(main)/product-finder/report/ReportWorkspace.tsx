@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { summarizeAdvisorAnswers } from "@/features/product-advisor/answer-summary";
 import { shouldShowAdvisorModel } from "@/features/product-advisor/display";
 
 type Report = {
-  category: { name: string };
+  category: { name: string; slug: string };
   answers: { questionId: string; value: string }[];
   candidates: {
     product: { productId: number; name: string; model: string | null; detailHref: string };
@@ -52,6 +53,17 @@ export default function ReportWorkspace() {
       <p className="text-sm text-slate-500">
         این گزارش پیشنهاد اولیه است و جایگزین استعلام یا پیش‌فاکتور نیست.
       </p>
+      <section className="mt-8 rounded-2xl bg-slate-50 p-5">
+        <h2 className="text-xl font-bold">نیازهای ثبت‌شده</h2>
+        <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+          {summarizeAdvisorAnswers(report.category.slug, report.answers).map((item) => (
+            <div key={item.question}>
+              <dt className="text-sm text-slate-500">{item.question}</dt>
+              <dd className="mt-1 font-semibold text-slate-900">{item.answer}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
       <h2 className="mt-8 text-xl font-bold">محصولات پیشنهادی</h2>
       <div className="mt-4 space-y-4">
         {report.candidates.map((candidate) => (
