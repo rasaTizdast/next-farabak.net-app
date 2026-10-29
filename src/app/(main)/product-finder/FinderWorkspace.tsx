@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useState } from "react";
 
+import SmartImage from "@/components/ui/SmartImage";
 import { advisorCategoryDefinitions } from "@/features/product-advisor/category-definitions";
 import { recommendProducts } from "@/features/product-advisor/recommendations";
 import type { AdvisorAnswer, AdvisorProductSnapshot } from "@/features/product-advisor/types";
@@ -64,20 +65,42 @@ export default function FinderWorkspace({ category, products }: FinderWorkspaceP
         </p>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {result.candidates.map(({ product, matched, unknown }) => (
-            <article key={product.productId} className="rounded-2xl border border-slate-200 p-5">
-              <h2 className="font-bold text-slate-950">{product.name}</h2>
-              <p className="mt-2 text-sm text-slate-600">
-                {matched.join("، ") || "تطبیق قطعی ثبت نشده"}
-              </p>
-              {unknown.length ? (
-                <p className="mt-2 text-sm text-amber-700">{unknown.join("، ")}</p>
-              ) : null}
-              <Link
-                className="mt-4 inline-flex font-semibold text-blue-700"
-                href={product.detailHref}
-              >
-                مشاهده محصول
-              </Link>
+            <article
+              key={product.productId}
+              className="grid overflow-hidden rounded-2xl border border-slate-200 bg-white sm:grid-cols-[8.5rem_1fr]"
+            >
+              <div className="relative aspect-square bg-slate-50">
+                {product.imageUrl ? (
+                  <SmartImage
+                    fill
+                    alt={`تصویر محصول ${product.name}`}
+                    className="object-contain p-4"
+                    sizes="(min-width: 768px) 136px, 40vw"
+                    src={product.imageUrl}
+                  />
+                ) : (
+                  <span className="absolute inset-0 grid place-items-center px-4 text-center text-xs text-slate-500">
+                    تصویر منتشر نشده است
+                  </span>
+                )}
+              </div>
+              <div className="p-5">
+                <h2 className="font-bold text-slate-950">
+                  <bdi dir="ltr">{product.name}</bdi>
+                </h2>
+                <p className="mt-2 text-sm text-slate-600">
+                  {matched.join("، ") || "تطبیق قطعی ثبت نشده"}
+                </p>
+                {unknown.length ? (
+                  <p className="mt-2 text-sm text-amber-700">{unknown.join("، ")}</p>
+                ) : null}
+                <Link
+                  className="mt-4 inline-flex font-semibold text-blue-700"
+                  href={product.detailHref}
+                >
+                  مشاهده محصول
+                </Link>
+              </div>
             </article>
           ))}
         </div>
