@@ -18,4 +18,13 @@ describe("ProductResultsBar", () => {
       "/product-finder"
     );
   });
+
+  it("hides product search controls for category listings", () => {
+    render(
+      <ProductResultsBar resultCount={12} totalCount={36} currentPage={1} showSearch={false} />
+    );
+
+    expect(screen.queryByRole("link", { name: "جستجوی محصول" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "راهنمای انتخاب محصول" })).toBeVisible();
+  });
 });

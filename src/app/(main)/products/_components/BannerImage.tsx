@@ -12,7 +12,7 @@ export default function BannerImage({ src, alt }: { src: string; alt?: string })
         alt={alt || "Category banner"}
         fill
         sizes="100vw"
-        priority
+        preload
         className="rounded-md object-cover"
       />
       <div className="pointer-events-none absolute -inset-2 rounded-md border-2 border-dotted border-gray-400" />

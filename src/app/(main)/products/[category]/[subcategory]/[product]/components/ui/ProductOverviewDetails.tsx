@@ -44,15 +44,11 @@ export default async function ProductOverviewDetails({ productId }: { productId:
   });
 
   if (productDetails.length === 0) {
-    return (
-      <p className="flex w-full max-w-[calc(1900px-20rem)] flex-col items-center rounded-2xl bg-(--farabak-ink-deep) p-8 text-center text-slate-200 shadow-[0_18px_45px_rgba(6,26,48,0.12)]">
-        اطلاعاتی یافت نشد / این محصول توضیحات ندارد
-      </p>
-    );
+    return null;
   }
 
   return (
-    <div className="flex flex-col items-center gap-8">
+    <div data-product-section-content className="flex flex-col items-center gap-8">
       {productDetails.map((detail: ProductOverviewDetailItem) => (
         <Overview
           key={detail.ProductOverviewDetailsId}

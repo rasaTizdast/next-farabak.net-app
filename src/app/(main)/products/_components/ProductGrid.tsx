@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Reveal } from "@/components/motion/Reveal";
 import { ActionLink } from "@/components/public/ActionLink";
 import { PageIntro } from "@/components/public/PageIntro";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getProductsBlogContent } from "@/lib/data/products";
 
 import BannerImage from "./BannerImage";
@@ -20,31 +21,33 @@ interface ProductGridProps {
 
 const BannerSkeleton = () => (
   <div
-    className="mb-8 w-full animate-pulse rounded-md bg-gray-200"
+    className="mb-8 w-full overflow-hidden rounded-xl border border-slate-200 bg-white p-1"
     style={{ aspectRatio: "1920 / 600" }}
-  />
+  >
+    <Skeleton className="size-full rounded-lg" />
+  </div>
 );
 
 const BlogSkeleton = () => (
-  <div className="mx-auto mb-5 w-full animate-pulse rounded-xl border border-gray-800 bg-gray-800 p-3 sm:p-5 md:p-7">
+  <div className="mx-auto mb-5 w-full rounded-xl border border-slate-700 bg-slate-800 p-3 sm:p-5 md:p-7">
     <div className="space-y-3">
-      <div className="h-4 w-full rounded bg-gray-700" />
-      <div className="h-4 w-5/6 rounded bg-gray-700" />
-      <div className="h-4 w-3/4 rounded bg-gray-700" />
-      <div className="h-4 w-full rounded bg-gray-700" />
-      <div className="h-4 w-2/3 rounded bg-gray-700" />
+      <Skeleton className="h-4 w-full bg-slate-700" />
+      <Skeleton className="h-4 w-5/6 bg-slate-700" />
+      <Skeleton className="h-4 w-3/4 bg-slate-700" />
+      <Skeleton className="h-4 w-full bg-slate-700" />
+      <Skeleton className="h-4 w-2/3 bg-slate-700" />
     </div>
   </div>
 );
 
-const ProductIntro = ({ title }: { title: string }) => (
+const ProductIntro = ({ title, showSearch }: { title: string; showSearch: boolean }) => (
   <PageIntro
     eyebrow="کاتالوگ تجهیزات فرابک"
     title={title}
     description="مدل‌ها و راهکارهای مناسب پروژه‌تان را با مشخصات روشن، تصویر واقعی محصول و مسیر ارتباط با کارشناس پیدا کنید."
     actions={
       <>
-        <ActionLink href="/products/search">جستجوی مدل</ActionLink>
+        {showSearch ? <ActionLink href="/products/search">جستجوی مدل</ActionLink> : null}
         <ActionLink href="/contact-us" variant="secondary">
           مشاوره انتخاب
         </ActionLink>
@@ -81,18 +84,18 @@ const ProductGrid: React.FC<ProductGridProps> = ({
 
   return (
     <div className="w-full">
-      <Suspense fallback={<ProductIntro title={title} />}>
+      <Suspense fallback={<ProductIntro title={title} showSearch={!categorySlug} />}>
         {(async () => {
           const { topBlog } = await blogsPromise;
           if (topBlog) {
             return (
               <>
-                <ProductIntro title={title} />
+                <ProductIntro title={title} showSearch={!categorySlug} />
                 <BlogContent text={topBlog} as="none" />
               </>
             );
           }
-          return <ProductIntro title={title} />;
+          return <ProductIntro title={title} showSearch={!categorySlug} />;
         })()}
       </Suspense>
 
@@ -112,6 +115,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
             currentPage={currentPage}
             categorySlug={categorySlug}
             subcategorySlug={subcategorySlug}
+            showSearch={!categorySlug}
           />
         </Reveal>
       </Suspense>

@@ -252,7 +252,7 @@ export default function SimilarProductsSlider({ title, products, usdRate }: Prop
         onTouchStart={handleTouchStart}
       >
         {products.map((product) => (
-          <div key={product.ProductId} className="w-65 shrink-0 snap-start">
+          <div key={product.ProductId} className="w-[min(100%,300px)] shrink-0 snap-start">
             <ProductCard
               product={product as ProductCardData}
               usdRate={usdRate}

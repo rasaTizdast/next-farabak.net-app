@@ -4,6 +4,7 @@ interface ProductResultsBarProps {
   resultCount: number;
   totalCount: number;
   currentPage: number;
+  showSearch?: boolean;
 }
 
 function toPersianNumber(value: number) {
@@ -14,6 +15,7 @@ export default function ProductResultsBar({
   resultCount,
   totalCount,
   currentPage,
+  showSearch = true,
 }: ProductResultsBarProps) {
   return (
     <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-(--farabak-ink-deep)/10 bg-(--farabak-paper) p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
@@ -31,9 +33,11 @@ export default function ProductResultsBar({
         <ActionLink href="/product-finder" className="w-full sm:w-auto">
           راهنمای انتخاب محصول
         </ActionLink>
-        <ActionLink href="/products/search" variant="secondary" className="w-full sm:w-auto">
-          جستجوی محصول
-        </ActionLink>
+        {showSearch ? (
+          <ActionLink href="/products/search" variant="secondary" className="w-full sm:w-auto">
+            جستجوی محصول
+          </ActionLink>
+        ) : null}
       </div>
     </div>
   );

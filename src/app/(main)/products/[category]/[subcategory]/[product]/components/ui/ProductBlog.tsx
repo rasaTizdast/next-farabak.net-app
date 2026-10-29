@@ -57,13 +57,7 @@ type Props = {
 };
 
 const ProductBlog = ({ productBlog }: Props) => {
-  if (!productBlog) {
-    return (
-      <div className="mt-5 rounded-2xl border border-dashed border-(--farabak-ink-deep)/15 bg-(--farabak-paper) p-8 text-center text-sm font-semibold text-(--farabak-ink-muted) shadow-sm">
-        توضیحات تکمیلی برای این محصول یافت نشد
-      </div>
-    );
-  }
+  if (!productBlog?.trim()) return null;
 
   const articleHtml = processContentWithImageAndVideoUrls(productBlog);
   const brandToken = detectBrand(productBlog);
@@ -71,7 +65,7 @@ const ProductBlog = ({ productBlog }: Props) => {
   const citationUrls = brandOfficialUrls.length > 0 ? brandOfficialUrls : null;
 
   return (
-    <div>
+    <div data-product-section-content>
       <article className="mx-auto mt-5 w-full max-w-[1580px] rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-4 shadow-[0_18px_45px_rgba(6,26,48,0.06)] sm:p-7">
         <div className="mb-5 text-start text-xl font-bold text-(--farabak-ink-deep) sm:text-2xl">
           توضیحات تکمیلی محصول

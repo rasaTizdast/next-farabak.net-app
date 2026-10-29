@@ -10,10 +10,28 @@ const tabs = [
   { id: "specs", label: "مشخصات" },
   { id: "faq", label: "سوالات" },
 ] as const;
+type ProductTab = (typeof tabs)[number];
 
 const ProductTabs = () => {
   const navRef = useRef<HTMLElement | null>(null);
   const [stickyTop, setStickyTop] = useState<number | null>(null);
+  const [visibleTabs, setVisibleTabs] = useState<ProductTab[]>([...tabs]);
+
+  useEffect(() => {
+    const updateVisibleTabs = () => {
+      setVisibleTabs(
+        tabs.filter((tab) => document.querySelector(`#${tab.id} [data-product-section-content]`))
+      );
+    };
+
+    updateVisibleTabs();
+    const observer = new MutationObserver(updateVisibleTabs);
+    observer.observe(document.getElementById("main-content") ?? document.body, {
+      childList: true,
+      subtree: true,
+    });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const header = document.querySelector("header");
@@ -38,6 +56,8 @@ const ProductTabs = () => {
     window.scrollTo({ top: yPosition, behavior: "smooth" });
   };
 
+  if (visibleTabs.length === 0) return null;
+
   return (
     <nav
       ref={navRef}
@@ -46,7 +66,7 @@ const ProductTabs = () => {
       className="sticky z-5 mx-auto my-8 w-full overflow-x-auto rounded-xl border border-(--farabak-ink-deep)/10 bg-(--farabak-ink-deep) shadow-[0_12px_30px_rgba(6,26,48,0.14)]"
     >
       <ul className="flex min-w-max items-center justify-center gap-1 p-1 sm:gap-2">
-        {tabs.map((tab) => (
+        {visibleTabs.map((tab) => (
           <li key={tab.id}>
             <a
               href={`#${tab.id}`}

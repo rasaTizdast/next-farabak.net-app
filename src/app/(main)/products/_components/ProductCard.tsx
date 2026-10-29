@@ -57,11 +57,11 @@ function ProductCard({ product, usdRate, isValidRate }: ProductCardProps) {
             </span>
           ) : null}
           <SmartImage
-            width={480}
-            height={480}
+            fill
             src={getProductImageSrc(product.img1)}
             alt={`تصویر ${title}`}
-            sizes="(min-width: 1280px) 280px, (min-width: 1024px) 240px, (min-width: 640px) 30vw, 45vw"
+            sizes="(min-width: 1536px) 240px, (min-width: 1280px) 300px, (min-width: 1024px) 29vw, (min-width: 640px) 44vw, 92vw"
+            quality={75}
             className="size-full object-contain transition-transform duration-500 group-hover:scale-105"
           />
         </div>
@@ -70,7 +70,7 @@ function ProductCard({ product, usdRate, isValidRate }: ProductCardProps) {
           <div className="flex items-center justify-between gap-3 text-xs text-(--farabak-ink-muted)">
             <span className="rounded-full bg-(--farabak-paper) px-2.5 py-1">تجهیزات فرابک</span>
             <span dir="ltr" className="shrink-0 font-mono">
-              <bdi>#{product.ProductId}</bdi>
+              <bdi>FAR-{product.ProductId}</bdi>
             </span>
           </div>
           <h2 className="line-clamp-2 text-base leading-8 font-bold text-(--farabak-ink-deep) sm:text-lg">
@@ -78,7 +78,6 @@ function ProductCard({ product, usdRate, isValidRate }: ProductCardProps) {
           </h2>
 
           <div className="mt-auto border-t border-(--farabak-ink-deep)/10 pt-3">
-            <p className="mb-1 text-xs text-(--farabak-ink-muted)">کد محصول: {product.ProductId}</p>
             {!hasPrice ? (
               <p className="text-sm font-semibold text-(--farabak-action-blue)">
                 برای قیمت تماس بگیرید

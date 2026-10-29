@@ -29,6 +29,7 @@ interface GridContentServerProps {
   currentPage: number;
   categorySlug?: string;
   subcategorySlug?: string;
+  showSearch?: boolean;
 }
 
 async function loadProductFeed(apiUrl: string): Promise<ProductFeed> {
@@ -73,15 +74,17 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
   currentPage,
   categorySlug,
   subcategorySlug,
+  showSearch = true,
 }) => {
-  const { data: products, pagination } = await loadProductFeed(apiUrl);
+  const [feed, usdRateData] = await Promise.all([loadProductFeed(apiUrl), getUsdToRialRate()]);
+  const { data: products, pagination } = feed;
   if (currentPage < 1 || pagination.currentPage !== currentPage) {
     notFound();
   }
   const totalPages = pagination.totalPages;
 
   // Get the USD to Rial rate once for all products
-  const { rate } = await getUsdToRialRate();
+  const { rate } = usdRateData;
   const usdRate = rate ?? 0;
   const isValidRate = usdRate && !isNaN(usdRate) && usdRate > 0;
 
@@ -94,10 +97,11 @@ export const GridContentServer: React.FC<GridContentServerProps> = async ({
         resultCount={availableProducts.length}
         totalCount={pagination.totalCount}
         currentPage={currentPage}
+        showSearch={showSearch}
       />
 
       {availableProducts.length > 0 ? (
-        <div className="grid w-full grid-cols-1 items-stretch gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid w-full grid-cols-1 items-stretch gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
           {availableProducts.map((product) => (
             <ProductCard
               key={product.ProductId}

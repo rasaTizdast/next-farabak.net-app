@@ -21,15 +21,14 @@ export default async function ProductSpecs({ productId }: { productId: number })
   const specsData = await getProductSpecs(productId);
 
   if (!specsData || specsData.length === 0) {
-    return (
-      <div className="mt-6 flex w-full justify-center rounded-2xl border border-dashed border-(--farabak-ink-deep)/15 bg-(--farabak-paper) px-5 py-8 text-center text-sm font-semibold text-(--farabak-ink-muted) sm:mt-0 md:text-base">
-        مشخصاتی برای این محصول ثبت نشده است
-      </div>
-    );
+    return null;
   }
 
   return (
-    <div className="flex w-full max-w-[calc(1900px-20rem)] flex-col rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-5 shadow-[0_18px_45px_rgba(6,26,48,0.06)] sm:p-7">
+    <div
+      data-product-section-content
+      className="flex w-full max-w-[calc(1900px-20rem)] flex-col rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-5 shadow-[0_18px_45px_rgba(6,26,48,0.06)] sm:p-7"
+    >
       <h3 className="mb-5 text-start text-xl font-bold text-(--farabak-ink-deep) max-[576px]:mb-4">
         مشخصات محصول
       </h3>

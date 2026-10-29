@@ -105,7 +105,8 @@ export default async function ProductDataWrapper({
 
   const brandToken = detectBrand(productData.Type);
   const brandName = brandToken ? BRAND_LABELS[brandToken] : "فرابک";
-  const productTitle = productData.Name || productData.Type || "محصول فرابک";
+  const productModel = productData.Type || productData.Name || "محصول فرابک";
+  const productDescription = productData.Name?.trim();
   const bucketUrl = process.env.LIARA_BUCKET_URL || process.env.NEXT_PUBLIC_LIARA_BUCKET_URL || "";
   const imageUrl = (image: string | null) => {
     if (!image) return null;
@@ -197,13 +198,10 @@ export default async function ProductDataWrapper({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <Breadcrumb breadcrumbs={breadCrumbs} />
       <section aria-labelledby="product-dossier-title" className="py-4 md:py-8">
-        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
-          <ProductGallery
-            title={productTitle}
-            images={[imageUrl(productData.img2), imageUrl(productData.img1)]}
-          />
+        <div className="grid items-stretch gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
+          <ProductGallery title={productModel} images={[imageUrl(productData.img2)]} />
 
-          <aside className="rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-5 shadow-[0_18px_45px_rgba(6,26,48,0.08)] sm:p-7">
+          <aside className="flex h-full flex-col rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-5 shadow-[0_18px_45px_rgba(6,26,48,0.08)] sm:p-7">
             <p className="text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
               پرونده فنی محصول
             </p>
@@ -211,11 +209,13 @@ export default async function ProductDataWrapper({
               id="product-dossier-title"
               className="mt-4 text-2xl leading-10 font-bold text-(--farabak-ink-deep) sm:text-3xl"
             >
-              {productTitle}
+              {productModel}
             </h1>
-            <p dir="ltr" className="mt-3 text-sm text-(--farabak-ink-muted)">
-              مدل: <bdi>{productData.Type || "—"}</bdi>
-            </p>
+            {productDescription && productDescription !== productModel ? (
+              <p className="mt-3 text-sm leading-7 text-(--farabak-ink-muted)">
+                {productDescription}
+              </p>
+            ) : null}
 
             <div className="mt-5 grid grid-cols-2 gap-3 border-y border-(--farabak-ink-deep)/10 py-4 text-sm">
               <div>
@@ -234,12 +234,6 @@ export default async function ProductDataWrapper({
                 </span>
               </div>
             </div>
-
-            {productData.Description ? (
-              <p className="mt-5 text-sm leading-8 text-(--farabak-ink-muted)">
-                {productData.Description}
-              </p>
-            ) : null}
 
             <div className="mt-5 border-t border-(--farabak-ink-deep)/10 pt-5">
               <p className="mb-3 text-sm font-bold text-(--farabak-ink-deep)">ویژگی‌های کلیدی</p>
@@ -291,7 +285,7 @@ export default async function ProductDataWrapper({
       <section
         id="specs"
         aria-labelledby="specs-heading"
-        className="mt-8 flex scroll-mt-32 flex-col items-center gap-10"
+        className="flex scroll-mt-32 flex-col items-center gap-10"
       >
         <h2 id="specs-heading" className="sr-only">
           مشخصات محصول
@@ -304,7 +298,7 @@ export default async function ProductDataWrapper({
       <section
         id="faq"
         aria-labelledby="faq-heading"
-        className="mt-8 flex scroll-mt-32 flex-col items-center gap-10"
+        className="flex scroll-mt-32 flex-col items-center gap-10"
       >
         <h2 id="faq-heading" className="sr-only">
           سوالات متداول محصول

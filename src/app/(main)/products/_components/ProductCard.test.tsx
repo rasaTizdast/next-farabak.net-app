@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import ProductCard from "./ProductCard";
 
 describe("ProductCard", () => {
-  it("keeps the product destination, readable name, and bidi-safe code visible", () => {
+  it("keeps the product destination, readable name, and FAR code visible", () => {
     render(
       <ProductCard
         product={{
@@ -26,7 +26,7 @@ describe("ProductCard", () => {
       "href",
       "/products/cctv/network-camera/alpha"
     );
-    expect(screen.getByText("کد محصول: 42")).toBeVisible();
+    expect(screen.getByText("FAR-42")).toBeVisible();
     expect(screen.getAllByText(/تومان/)).toHaveLength(2);
   });
 
