@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { shouldShowAdvisorModel } from "@/features/product-advisor/display";
+
 type Candidate = {
   product: { productId: number; name: string; model: string | null };
   matched: string[];
@@ -76,7 +78,9 @@ export default function BoardWorkspace() {
               {report.candidates.map((candidate) => (
                 <th className="border-b p-3" key={candidate.product.productId}>
                   {candidate.product.name}
-                  {candidate.product.model ? <bdi dir="ltr"> {candidate.product.model}</bdi> : null}
+                  {shouldShowAdvisorModel(candidate.product.name, candidate.product.model) ? (
+                    <bdi dir="ltr"> {candidate.product.model}</bdi>
+                  ) : null}
                 </th>
               ))}
             </tr>

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { shouldShowAdvisorModel } from "@/features/product-advisor/display";
+
 type Report = {
   category: { name: string };
   answers: { questionId: string; value: string }[];
@@ -59,7 +61,9 @@ export default function ReportWorkspace() {
           >
             <h3 className="font-bold">
               {candidate.product.name}{" "}
-              {candidate.product.model ? <bdi dir="ltr">{candidate.product.model}</bdi> : null}
+              {shouldShowAdvisorModel(candidate.product.name, candidate.product.model) ? (
+                <bdi dir="ltr">{candidate.product.model}</bdi>
+              ) : null}
             </h3>
             <p className="mt-2 text-sm text-slate-600">
               {candidate.matched.join("، ") || "تطبیق قطعی ثبت نشده"}

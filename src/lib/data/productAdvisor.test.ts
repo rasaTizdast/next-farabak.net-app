@@ -45,6 +45,8 @@ describe("getAdvisorCategory", () => {
       products: [
         {
           productId: 12,
+          name: "دوربین فضای باز",
+          model: "RLC-OUT",
           subcategorySlug: "outdoor-camera",
           specs: [{ key: "night-detail", value: "رنگی" }],
         },
