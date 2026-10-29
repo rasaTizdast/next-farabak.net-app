@@ -1,3 +1,5 @@
+import { Skeleton } from "@/components/ui/skeleton";
+
 type Props = {
   amount?: number;
 };
@@ -6,7 +8,7 @@ const CategorySliderLoader = ({ amount = 6 }: Props) => {
   return (
     <div className="flex items-center gap-2 pb-10 md:gap-4">
       {/* Right Button Skeleton */}
-      <div className="mobile:flex order-1 hidden size-10 shrink-0 animate-pulse rounded-full bg-gray-200"></div>
+      <Skeleton className="mobile:flex order-1 hidden size-10 shrink-0 rounded-full" />
 
       {/* Slider Container */}
       <div
@@ -20,13 +22,15 @@ const CategorySliderLoader = ({ amount = 6 }: Props) => {
         {Array.from({ length: amount }).map((_, index) => (
           <div
             key={index}
-            className="relative h-[55px] w-[280px] shrink-0 animate-pulse overflow-hidden rounded-2xl bg-gray-300 shadow-lg"
-          />
+            className="relative h-[55px] w-[280px] shrink-0 overflow-hidden rounded-2xl shadow-sm"
+          >
+            <Skeleton className="size-full rounded-2xl" />
+          </div>
         ))}
       </div>
 
       {/* Left Button Skeleton */}
-      <div className="mobile:flex order-3 hidden size-10 shrink-0 animate-pulse rounded-full bg-gray-200"></div>
+      <Skeleton className="mobile:flex order-3 hidden size-10 shrink-0 rounded-full" />
 
       {/* Hide scrollbar */}
       <style>{`

@@ -37,7 +37,7 @@ const Layout = ({
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         <Suspense
           fallback={
-            <header className="min-h-20 bg-[#000814] text-white">
+            <header className="min-h-20 bg-(--farabak-mega-menu-bg) text-white">
               <PublicShell className="flex min-h-20 items-center justify-between gap-5">
                 <Link className="font-bold" href="/">
                   فرابک
@@ -57,7 +57,7 @@ const Layout = ({
         </main>
         <Suspense
           fallback={
-            <footer className="bg-[#000814] py-8 text-center text-sm text-[#cecece]">
+            <footer className="bg-linear-to-b from-(--farabak-mega-menu-bg) to-(--farabak-footer-bg) py-8 text-center text-sm text-[#cecece]">
               <PublicShell>
                 <span>فرابک</span>
                 <a className="mr-4 underline" href="/contact-us">

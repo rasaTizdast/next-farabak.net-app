@@ -36,6 +36,34 @@
   --breakpoint-2xl: 1400px;
 }
 
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background-image: linear-gradient(
+    105deg,
+    rgb(226 232 240 / 0.72) 20%,
+    rgb(248 250 252 / 0.98) 38%,
+    rgb(226 232 240 / 0.72) 56%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation: none;
+    background-image: none;
+    background-color: rgb(226 232 240 / 0.78);
+  }
+}
+
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -59,9 +87,12 @@
 @layer base {
   :root {
     --farabak-action-blue: #1265e8;
+    --farabak-mega-menu-bg: #003262;
     --farabak-ink-deep: #061a30;
     --farabak-ink-muted: #52657d;
     --farabak-paper: #f7f9fc;
+    --farabak-surface-blue: #eaf3ff;
+    --farabak-footer-bg: #000814;
     --farabak-signal-cyan: #00bfff;
     --font-family: var(--font-iran-yekan);
     --background: 0 0% 94%;

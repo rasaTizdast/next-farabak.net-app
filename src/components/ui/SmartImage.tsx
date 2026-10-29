@@ -1,7 +1,7 @@
 "use client";
 
 import Image, { type ImageProps } from "next/image";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 type SmartImageProps = Omit<ImageProps, "onLoadingComplete" | "placeholder" | "blurDataURL"> & {
   alt: string;
@@ -14,6 +14,7 @@ const BLUR_DATA_URL =
 export default function SmartImage({
   className,
   priority = false,
+  preload,
   alt,
   style,
   fill,
@@ -24,31 +25,21 @@ export default function SmartImage({
   const [error, setError] = useState(false);
 
   // Handle both load and error events for reliability
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // Fallback: if image hasn't loaded after 3s, show it anyway
-      // This handles edge cases where onLoadingComplete doesn't fire
-      setLoaded(true);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <Image
       alt={alt}
       placeholder="blur"
       blurDataURL={BLUR_DATA_URL}
-      className={`transition-opacity duration-700 ease-out ${
-        loaded || error ? "opacity-100" : "opacity-0"
+      className={`transition-opacity duration-300 ease-out ${
+        loaded || error ? "opacity-100" : "opacity-95"
       } ${className ?? ""}`}
       onLoad={() => setLoaded(true)}
       onError={() => {
         setError(true);
         setLoaded(true);
       }}
-      priority={priority}
-      loading={priority ? undefined : "lazy"}
+      preload={preload ?? priority}
+      loading={preload || priority ? undefined : "lazy"}
       fill={fill}
       sizes={fill ? (sizes ?? "100vw") : undefined}
       style={style}

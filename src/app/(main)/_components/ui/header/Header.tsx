@@ -16,13 +16,13 @@ const Header = async () => {
   const categories = await fetchMenuCategories();
 
   return (
-    <header className="sticky top-0 z-6 min-h-20 w-full bg-[#000814] py-4 transition-shadow duration-300 hover:shadow-[0_4px_10px_rgba(0,0,0,0.1)]">
+    <header className="sticky top-0 z-6 min-h-20 w-full bg-(--farabak-mega-menu-bg) py-4 transition-shadow duration-300 hover:shadow-[0_4px_10px_rgba(0,0,0,0.1)]">
       <PublicShell className="flex min-h-12 items-center justify-between gap-3 transition-colors duration-300">
         <HamburgerMenu categories={categories} />
         <Link
           href="/"
           aria-label="صفحه اصلی فرابک"
-          className="inline-flex shrink-0 rounded-sm focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:ring-offset-[#000814] focus-visible:outline-none"
+          className="inline-flex shrink-0 rounded-sm focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:ring-offset-(--farabak-mega-menu-bg) focus-visible:outline-none"
         >
           <Image
             className="mb-2 w-[110%] max-w-[180px] cursor-pointer max-lg:mb-0"

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export function BreadcrumbSkeleton({ className }: { className?: string }) {
@@ -7,31 +8,29 @@ export function BreadcrumbSkeleton({ className }: { className?: string }) {
     <nav
       aria-hidden="true"
       className={cn(
-        "mb-5 w-full animate-pulse overflow-hidden rounded-lg bg-gray-200 p-4 shadow-lg",
+        "mb-5 w-full overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm",
         className
       )}
     >
       <div className="flex items-center gap-3">
-        <div className="h-3 w-16 rounded-full bg-gray-300" />
-        <div className="size-3 rounded-full bg-gray-300" />
-        <div className="h-3 w-24 rounded-full bg-gray-300" />
+        <Skeleton className="h-3 w-16 rounded-full" />
+        <Skeleton className="size-3 rounded-full" />
+        <Skeleton className="h-3 w-24 rounded-full" />
       </div>
     </nav>
   );
 }
 
 export function TitleSkeleton({ className }: { className?: string }) {
-  return (
-    <div className={cn("mb-6 h-8 min-w-40 animate-pulse rounded-md bg-gray-200", className)} />
-  );
+  return <Skeleton className={cn("mb-6 h-8 min-w-40", className)} />;
 }
 
 export function LineSkeleton({ className }: { className?: string }) {
-  return <div className={cn("h-4 animate-pulse rounded bg-gray-200", className)} />;
+  return <Skeleton className={cn("h-4", className)} />;
 }
 
 export function ImageSkeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-md bg-gray-200", className)} />;
+  return <Skeleton className={cn("rounded-md", className)} />;
 }
 
 export function TextBlockSkeleton({
@@ -51,7 +50,7 @@ export function TextBlockSkeleton({
 }
 
 export function ButtonSkeleton({ className }: { className?: string }) {
-  return <div className={cn("mt-6 h-10 w-full animate-pulse rounded-lg bg-gray-200", className)} />;
+  return <Skeleton className={cn("mt-6 h-10 w-full rounded-lg", className)} />;
 }
 
 export function CardSkeleton({ children, className }: { children: ReactNode; className?: string }) {

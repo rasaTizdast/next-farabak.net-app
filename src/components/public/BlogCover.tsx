@@ -49,7 +49,7 @@ const BlogCover = ({
       sizes={sizes}
       priority={priority}
       loading={priority ? undefined : "lazy"}
-      className={className}
+      className={`bg-(--farabak-paper) ${className ?? ""}`}
       onError={() => setFailed(true)}
     />
   );

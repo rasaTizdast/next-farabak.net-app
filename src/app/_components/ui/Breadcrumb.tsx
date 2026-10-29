@@ -7,11 +7,12 @@ type BreadcrumbItem = string;
 
 interface BreadcrumbProps {
   breadcrumbs: BreadcrumbItem[];
+  labels?: Record<string, string>;
 }
 
-const Breadcrumb: React.FC<BreadcrumbProps> = async ({ breadcrumbs }) => {
+const Breadcrumb: React.FC<BreadcrumbProps> = async ({ breadcrumbs, labels }) => {
   // getBreadcrumbNames throws on DB error — keep the prior throw-on-error behavior.
-  const names = await getBreadcrumbNames(breadcrumbs);
+  const names = { ...(await getBreadcrumbNames(breadcrumbs)), ...labels };
 
   // Prepare structured data for Schema.org
   const structuredData = {

@@ -1,4 +1,5 @@
 import { io } from "next/cache";
+import Image from "next/image";
 import { BsFillSignpostSplitFill } from "react-icons/bs";
 import { FaInstagram, FaPhoneSquare, FaWhatsapp } from "react-icons/fa";
 
@@ -13,7 +14,7 @@ const Footer = async () => {
   const { address, phone_numbers } = await getContactInfo();
 
   return (
-    <footer className="w-full bg-[#000814] py-12 text-[#cecece] md:py-14">
+    <footer className="w-full bg-linear-to-b from-(--farabak-mega-menu-bg) to-(--farabak-footer-bg) py-12 text-[#cecece] md:py-14">
       <PublicShell className="flex flex-col gap-10">
         <div className="grid w-full grid-cols-1 gap-x-8 gap-y-10 border-b border-[#2a425b] pb-10 sm:grid-cols-2 lg:grid-cols-4">
           <nav
@@ -190,15 +191,20 @@ const Footer = async () => {
               </>
             )}
           </address>
-          <iframe
-            title="فرابک - آدرس دفتر مرکزی"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1360.8932132644327!2d51.35469992463351!3d35.78108017399431!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3f8e07b684c2b9d5%3A0x703fbc3293eb71d6!2sFARABAK%20Head%20Office%20Company!5e0!3m2!1sen!2s!4v1711904970824!5m2!1sen!2s"
-            sandbox="allow-scripts allow-same-origin allow-popups"
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            className="h-56 w-full rounded-lg border border-[#2a425b] sm:h-72 lg:h-80"
-          />
+          <figure className="overflow-hidden rounded-2xl border border-white/15 bg-white/5">
+            <Image
+              src="/contact/location-map.svg"
+              alt="نمایش تصویری موقعیت دفتر مرکزی فرابک"
+              width={900}
+              height={520}
+              loading="lazy"
+              sizes="(min-width: 1024px) 34vw, 100vw"
+              className="h-auto w-full"
+            />
+            <figcaption className="px-4 py-3 text-center text-xs text-slate-300">
+              موقعیت دفتر مرکزی فرابک
+            </figcaption>
+          </figure>
         </div>
 
         <div className="w-full border-t border-[#2a425b] pt-6">
