@@ -7,6 +7,7 @@ import BlogFaqAccordion from "@/components/BlogFaqAccordion";
 import { ActionLink } from "@/components/public/ActionLink";
 import BlogCover from "@/components/public/BlogCover";
 import { PageIntro } from "@/components/public/PageIntro";
+import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 import { getBlogBySlug, type BlogDetailData } from "@/lib/data/blogs";
 
@@ -294,14 +295,29 @@ export default async function BlogPage(props: {
   const imageSrc = blog.image_URL ? `${bucketUrl}/${blog.image_URL}` : null;
 
   return (
-    <PublicShell className="pb-16">
+    <PublicShell className="pt-4 pb-16 sm:pt-6">
+      <PublicBreadcrumbs
+        breadcrumbs={[
+          "/",
+          "/support",
+          "/support/blog",
+          ...(categorySlug ? [`/support/blog/${categorySlug}`] : []),
+          ...(categorySlug ? [`/support/blog/${categorySlug}/${params.blog}`] : []),
+        ]}
+        labels={{
+          ...(categorySlug
+            ? { [`/support/blog/${categorySlug}`]: blogCategories[0]?.name ?? "مقالات مرتبط" }
+            : {}),
+          ...(categorySlug ? { [`/support/blog/${categorySlug}/${params.blog}`]: blog.title } : {}),
+        }}
+      />
       <PageIntro
         eyebrow={blogCategories[0]?.name ?? "مقاله آموزشی"}
         title={blog.title}
         description={blog.description ?? blog.SEO_description}
         actions={
           <ActionLink href="/support/blog" variant="secondary">
-            بازگشت به آرشیو <ArrowLeft aria-hidden="true" className="size-4" />
+            بازگشت به مقالات مرتبط <ArrowLeft aria-hidden="true" className="size-4" />
           </ActionLink>
         }
       />

@@ -7,6 +7,7 @@ import BlogCategoryNav from "@/app/(main)/support/blog/_components/BlogCategoryN
 import { ActionLink } from "@/components/public/ActionLink";
 import BlogCover from "@/components/public/BlogCover";
 import { PageIntro } from "@/components/public/PageIntro";
+import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 import { getBlogCategories } from "@/lib/data/blogCategories";
 import { getBlogs } from "@/lib/data/blogs";
@@ -66,7 +67,11 @@ const BlogLandingContent = ({
   const [featuredBlog, ...otherBlogs] = blogs;
 
   return (
-    <PublicShell className="pb-16">
+    <PublicShell className="pt-4 pb-16 sm:pt-6">
+      <PublicBreadcrumbs
+        breadcrumbs={["/", "/support", "/support/blog"]}
+        labels={{ "/support/blog": "مقالات آموزشی" }}
+      />
       <PageIntro
         eyebrow="دانش و تجربه فرابک"
         title="راهنمایی برای تصمیم‌های دقیق‌تر"
@@ -119,7 +124,7 @@ const BlogLandingContent = ({
               height={1080}
               priority
               sizes="(min-width: 768px) 58vw, 100vw"
-              className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              className="size-full bg-(--farabak-paper) object-cover"
             />
           </div>
           <div className="flex flex-col justify-center p-6 md:p-10">
@@ -150,7 +155,7 @@ const BlogLandingContent = ({
         >
           <div className="mb-5 flex items-end justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold text-(--farabak-action-blue)">آرشیو آموزشی</p>
+              <p className="text-sm font-semibold text-(--farabak-action-blue)">راهنماهای آموزشی</p>
               <h2
                 id="other-articles-heading"
                 className="mt-2 text-2xl font-bold text-(--farabak-ink-deep) md:text-3xl"
@@ -164,7 +169,7 @@ const BlogLandingContent = ({
               <Link
                 key={blog.id}
                 href={getBlogHref(blog)}
-                className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.05)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:border-(--farabak-action-blue)/40 hover:shadow-[0_22px_60px_rgba(15,23,42,0.1)] focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:outline-none"
+                className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.05)] transition-[border-color,box-shadow] duration-300 hover:border-(--farabak-action-blue)/40 hover:shadow-[0_24px_70px_rgba(6,26,48,0.28)] focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:outline-none"
               >
                 <div className="relative aspect-video overflow-hidden">
                   <BlogCover
@@ -173,7 +178,7 @@ const BlogLandingContent = ({
                     width={960}
                     height={540}
                     sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
-                    className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                    className="size-full bg-(--farabak-paper) object-cover"
                   />
                 </div>
                 <div className="flex flex-1 flex-col p-5">

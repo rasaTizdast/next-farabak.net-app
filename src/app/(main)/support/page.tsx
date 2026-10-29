@@ -1,8 +1,9 @@
 import { ArrowLeft, BookOpenText, CircleHelp, Download, ShieldCheck } from "lucide-react";
 import { Metadata } from "next";
+import Link from "next/link";
 
 import { ActionLink } from "@/components/public/ActionLink";
-import { PageIntro } from "@/components/public/PageIntro";
+import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 import supportData from "@/constants/supportData.json";
 
@@ -28,17 +29,71 @@ const formatIndex = (value: number) =>
 
 const SupportPage = () => {
   return (
-    <PublicShell className="pb-16">
-      <PageIntro
-        eyebrow="پشتیبانی مشتریان"
-        title="هر چیزی که برای ادامه مسیر لازم دارید"
-        description="از یک سوال سریع تا پیگیری گارانتی و دریافت نرم‌افزار، مسیر مناسب را انتخاب کنید و بدون گم‌شدن بین صفحات به پاسخ برسید."
-        actions={
-          <ActionLink href="/contact-us" variant="secondary">
-            تماس با پشتیبانی
-          </ActionLink>
-        }
-      />
+    <PublicShell className="pt-4 pb-16 sm:pt-6">
+      <PublicBreadcrumbs breadcrumbs={["/", "/support"]} />
+      <section className="relative isolate overflow-hidden rounded-3xl bg-(--farabak-ink-deep) px-6 py-8 text-white shadow-[0_24px_80px_rgba(6,26,48,0.2)] sm:px-8 sm:py-10 lg:px-12 lg:py-14">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-24 left-1/4 -z-10 size-72 rounded-full bg-(--farabak-action-blue)/30 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-24 bottom-0 -z-10 size-64 rounded-full bg-cyan-300/15 blur-3xl"
+        />
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:items-end">
+          <div>
+            <p className="text-sm font-semibold tracking-[0.12em] text-cyan-200">
+              پشتیبانی مشتریان
+            </p>
+            <h1 className="mt-4 max-w-3xl text-3xl leading-[1.35] font-bold tracking-tight sm:text-4xl lg:text-5xl">
+              پاسخ بعدی شما، فقط یک مسیر روشن فاصله دارد
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
+              از یک سوال سریع تا پیگیری گارانتی و دریافت نرم‌افزار، مسیر مناسب را انتخاب کنید و بدون
+              گم‌شدن بین صفحات به پاسخ برسید.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <ActionLink
+                href="/contact-us"
+                className="bg-white text-(--farabak-ink-deep) hover:bg-slate-100"
+              >
+                تماس با پشتیبانی <ArrowLeft aria-hidden="true" className="size-4" />
+              </ActionLink>
+              <ActionLink
+                href="/support/faq"
+                variant="secondary"
+                className="border-white/25 bg-white/10 text-white hover:bg-white/15"
+              >
+                سوالات متداول
+              </ActionLink>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm sm:p-5">
+            <p className="text-sm font-semibold text-cyan-200">شروع سریع</p>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
+              {[
+                ["دریافت نرم‌افزار", "/support/download-center", Download],
+                ["پیگیری گارانتی", "/support/warranty-tracking", ShieldCheck],
+                ["مطالعه راهنماها", "/support/blog", BookOpenText],
+              ].map(([label, href, Icon]) => (
+                <ActionLink
+                  key={href as string}
+                  href={href as string}
+                  variant="quiet"
+                  className="justify-between rounded-xl px-3 text-white hover:bg-white/10"
+                >
+                  <span className="flex items-center gap-2">
+                    <Icon aria-hidden="true" className="size-4 text-cyan-200" />
+                    {label as string}
+                  </span>
+                  <ArrowLeft aria-hidden="true" className="size-4" />
+                </ActionLink>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section aria-labelledby="support-services-heading">
         <div className="mb-5 flex items-end justify-between gap-4">
@@ -61,7 +116,8 @@ const SupportPage = () => {
             const Icon = supportIcons[item.link as keyof typeof supportIcons];
 
             return (
-              <article
+              <Link
+                href={`/support/${item.link}`}
                 key={item.id}
                 className="group flex min-h-56 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:border-(--farabak-action-blue)/40 hover:shadow-[0_22px_60px_rgba(15,23,42,0.1)]"
               >
@@ -77,14 +133,10 @@ const SupportPage = () => {
                   <h3 className="mt-6 text-xl font-bold text-(--farabak-ink-deep)">{item.title}</h3>
                   <p className="mt-3 max-w-lg leading-8 text-(--farabak-ink-muted)">{item.desc}</p>
                 </div>
-                <ActionLink
-                  href={`/support/${item.link}`}
-                  variant="quiet"
-                  className="mt-6 self-start px-0"
-                >
+                <span className="mt-6 inline-flex items-center gap-2 self-start text-sm font-semibold text-(--farabak-action-blue)">
                   مشاهده مسیر <ArrowLeft aria-hidden="true" className="size-4" />
-                </ActionLink>
-              </article>
+                </span>
+              </Link>
             );
           })}
         </div>

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import VideoPlayer from "@/app/_components/ui/VideoPlayer";
 import { ActionLink } from "@/components/public/ActionLink";
 import { PageIntro } from "@/components/public/PageIntro";
+import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 import { getProjectData as getProjectDataFromDataLayer } from "@/lib/data/projects";
 
@@ -125,6 +126,15 @@ const ProjectPage = async (props: ParamsType) => {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
       <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+        <PublicBreadcrumbs
+          breadcrumbs={[
+            "/",
+            "/about-us",
+            "/about-us/projects",
+            `/about-us/projects/${params.project}`,
+          ]}
+          labels={{ [`/about-us/projects/${params.project}`]: title }}
+        />
         <PageIntro
           eyebrow="پرونده پروژه"
           title={title}
@@ -132,7 +142,7 @@ const ProjectPage = async (props: ParamsType) => {
           actions={
             <>
               <ActionLink href="/about-us/projects" variant="secondary">
-                بازگشت به آرشیو پروژه‌ها
+                بازگشت به پروژه‌ها
               </ActionLink>
               <ActionLink href="/contact-us" variant="primary">
                 بررسی پروژه جدید
@@ -184,10 +194,6 @@ const ProjectPage = async (props: ParamsType) => {
                 </dd>
               </div>
             </dl>
-            <p className="mt-6 rounded-2xl bg-slate-100 p-4 text-sm leading-7 text-slate-600">
-              امکان اجرای پروژه جدید یا شرایط فعلی تجهیزات از این آرشیو نتیجه‌گیری نمی‌شود؛ برای
-              بررسی روزآمد، با تیم فرابک تماس بگیرید.
-            </p>
           </aside>
         </div>
       </PublicShell>

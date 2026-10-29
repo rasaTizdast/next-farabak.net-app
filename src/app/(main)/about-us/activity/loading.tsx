@@ -10,10 +10,16 @@ export default function ActivityLoading() {
       aria-label="در حال بارگذاری فعالیت‌ها"
     >
       {Array.from({ length: 4 }).map((_, i) => (
-        <section key={i} className="flex flex-col gap-5 rounded-lg bg-white p-5 shadow-lg sm:p-8">
-          <div className="relative pb-3">
-            <div className="h-6 w-1/2 rounded-md bg-gray-200" />
-            <div className="absolute inset-s-0 bottom-0 h-[3px] w-14 rounded-full bg-gray-200" />
+        <section
+          key={i}
+          className="flex flex-col gap-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_16px_36px_rgba(6,26,48,0.06)] sm:p-8"
+        >
+          <div className="flex items-start gap-4">
+            <div className="size-12 rounded-2xl bg-slate-200" />
+            <div className="flex flex-1 flex-col gap-3 pt-1">
+              <div className="h-3 w-24 rounded-full bg-slate-200" />
+              <div className="h-6 w-1/2 rounded-md bg-slate-200" />
+            </div>
           </div>
           <ul className="me-6 flex flex-col gap-4">
             {Array.from({ length: 5 }).map((_, j) => (

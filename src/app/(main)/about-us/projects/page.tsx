@@ -2,10 +2,9 @@ import type { Metadata } from "next";
 
 import { ActionLink } from "@/components/public/ActionLink";
 import { PageIntro } from "@/components/public/PageIntro";
+import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicImage } from "@/components/public/PublicImage";
 import { PublicShell } from "@/components/public/PublicShell";
-import SourcesList from "@/components/SourcesList";
-import { buildSourcesFor } from "@/helpers/sources";
 import { getProjects as getProjectsFromData, type ProjectListItem } from "@/lib/data/projects";
 
 export const metadata: Metadata = {
@@ -66,10 +65,6 @@ const ProjectsPage = async () => {
     },
   };
 
-  const projectsSourceText = projects
-    .map((project) => `${project.title} ${project.smallDesc} ${project.location}`)
-    .join(" ");
-
   return (
     <>
       <script
@@ -77,8 +72,12 @@ const ProjectsPage = async () => {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
       <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+        <PublicBreadcrumbs
+          breadcrumbs={["/", "/about-us", "/about-us/projects"]}
+          labels={{ "/about-us/projects": "پروژه‌ها" }}
+        />
         <PageIntro
-          eyebrow="آرشیو پروژه‌ها"
+          eyebrow="پرونده پروژه‌ها"
           title="پروژه‌ها، به‌عنوان سابقه منتشرشده"
           description="این صفحه مجموعه‌ای از پروژه‌هایی است که برای معرفی عمومی ثبت شده‌اند. هر رکورد، تاریخ، موقعیت و توضیح خودش را دارد؛ نمایش یک پروژه به‌تنهایی به معنی موجودی یا دسترسی فعلی نیست."
           actions={
@@ -151,13 +150,6 @@ const ProjectsPage = async () => {
             </p>
           </div>
         )}
-
-        <SourcesList sources={buildSourcesFor(projectsSourceText)} className="mt-12">
-          <span>
-            این بخش برای شفافیت داده‌های معرفی‌شده است. برای بررسی مشخصات تجهیزات، شرایط فعلی و
-            امکان اجرای پروژه جدید، اطلاعات پرونده را با تیم فرابک تطبیق دهید.
-          </span>
-        </SourcesList>
       </PublicShell>
     </>
   );

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { ActionLink } from "@/components/public/ActionLink";
 import { PageIntro } from "@/components/public/PageIntro";
+import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicImage } from "@/components/public/PublicImage";
 import { PublicShell } from "@/components/public/PublicShell";
 import { getActivities } from "@/lib/data/activities";
@@ -82,6 +83,10 @@ const ActivityPage = async () => {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
       <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+        <PublicBreadcrumbs
+          breadcrumbs={["/", "/about-us", "/about-us/activity"]}
+          labels={{ "/about-us/activity": "فعالیت‌های شرکت" }}
+        />
         <PageIntro
           eyebrow="پرونده فعالیت"
           title="حوزه‌های کاری فرابک"
@@ -104,20 +109,39 @@ const ActivityPage = async () => {
               <section
                 key={activity.id}
                 aria-labelledby={`activity-${activity.id}`}
-                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_16px_36px_rgba(6,26,48,0.06)] sm:p-8"
+                className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_16px_36px_rgba(6,26,48,0.06)] transition-[border-color,box-shadow] duration-300 hover:border-(--farabak-action-blue)/35 hover:shadow-[0_22px_55px_rgba(18,101,232,0.12)] sm:p-8"
               >
-                <p className="mb-3 text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
-                  حوزه ثبت‌شده
-                </p>
-                <h2
-                  id={`activity-${activity.id}`}
-                  className="text-xl leading-9 font-bold text-(--farabak-ink-deep)"
-                >
-                  {activity.title}
-                </h2>
-                <ul className="list-square mt-5 space-y-3 pe-5 leading-8 text-(--farabak-ink-muted)">
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-x-0 top-0 h-1 bg-linear-to-l from-(--farabak-action-blue) to-cyan-300"
+                />
+                <div className="flex items-start gap-4">
+                  <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-(--farabak-surface-blue) text-lg font-bold text-(--farabak-action-blue)">
+                    {new Intl.NumberFormat("fa-IR", { minimumIntegerDigits: 2 }).format(
+                      activity.id
+                    )}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="mb-2 text-xs font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
+                      حوزه فعالیت
+                    </p>
+                    <h2
+                      id={`activity-${activity.id}`}
+                      className="text-xl leading-9 font-bold text-(--farabak-ink-deep)"
+                    >
+                      {activity.title}
+                    </h2>
+                  </div>
+                </div>
+                <ul className="mt-6 space-y-3 border-t border-slate-100 pt-5 leading-8 text-(--farabak-ink-muted)">
                   {activity.Details_activity.map((detail) => (
-                    <li key={detail.id}>{detail.description}</li>
+                    <li key={detail.id} className="flex items-start gap-3">
+                      <span
+                        aria-hidden="true"
+                        className="mt-3 size-1.5 shrink-0 rounded-full bg-(--farabak-action-blue)"
+                      />
+                      <span>{detail.description}</span>
+                    </li>
                   ))}
                 </ul>
               </section>
