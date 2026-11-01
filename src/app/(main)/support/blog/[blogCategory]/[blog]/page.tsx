@@ -11,7 +11,12 @@ import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 import { getBlogBySlug, type BlogDetailData } from "@/lib/data/blogs";
 
-import { addArticleHeadingAnchors, extractArticleHeadings } from "../../_components/blog-helpers";
+import {
+  addArticleHeadingAnchors,
+  calculateReadingTime,
+  countWords,
+  extractArticleHeadings,
+} from "../../_components/blog-helpers";
 
 function processContentWithImageUrls(content: string) {
   const baseUrl = process.env.LIARA_BUCKET_URL || "";
@@ -295,7 +300,7 @@ export default async function BlogPage(props: {
   const imageSrc = blog.image_URL ? `${bucketUrl}/${blog.image_URL}` : null;
 
   return (
-    <PublicShell className="pt-4 pb-16 sm:pt-6">
+    <PublicShell className="pt-6 pb-12 sm:pt-8 sm:pb-14">
       <PublicBreadcrumbs
         breadcrumbs={[
           "/",
@@ -331,13 +336,13 @@ export default async function BlogPage(props: {
             <BlogCover
               src={imageSrc}
               alt={blog.image_alt}
-              className="mx-auto mb-6 aspect-video w-full rounded-xl object-cover"
+              className="mx-auto mb-6 aspect-video w-full max-w-3xl rounded-xl object-cover"
               width={1200}
               height={630}
               sizes="(min-width: 1024px) 65vw, 100vw"
               priority
             />
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-(--farabak-ink-muted)">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-700 shadow-sm">
               {blog.author ? <span>{blog.author}</span> : null}
               {blog.author && blog.created_at ? <span aria-hidden="true">•</span> : null}
               {blog.created_at ? (
@@ -446,20 +451,6 @@ export default async function BlogPage(props: {
       )}
     </PublicShell>
   );
-}
-
-function countWords(content: string): number {
-  const text = content.replace(/<[^>]*>/g, " ");
-  const cleanText = text
-    .replace(/[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF0-9\s]/g, " ")
-    .replace(/[\u200B-\u200D\uFEFF]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-  return cleanText.split(/\s+/).filter((word) => word.length > 0).length;
-}
-
-function calculateReadingTime(content: string): number {
-  return Math.max(1, Math.ceil(countWords(content) / 250));
 }
 
 function serializeJsonLd(data: unknown): string {

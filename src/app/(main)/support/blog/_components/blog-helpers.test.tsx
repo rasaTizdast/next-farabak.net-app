@@ -1,7 +1,11 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { addArticleHeadingAnchors, extractArticleHeadings } from "./blog-helpers";
+import {
+  addArticleHeadingAnchors,
+  calculateReadingTime,
+  extractArticleHeadings,
+} from "./blog-helpers";
 import BlogCategoryNav from "./BlogCategoryNav";
 
 describe("blog article helpers", () => {
@@ -16,6 +20,11 @@ describe("blog article helpers", () => {
     expect(addArticleHeadingAnchors('<h2 class="title">راهنمای انتخاب</h2>')).toBe(
       '<h2 class="title" id="section-1">راهنمای انتخاب</h2>'
     );
+  });
+
+  it("calculates a minimum one minute and rounds longer articles up", () => {
+    expect(calculateReadingTime("")).toBe(1);
+    expect(calculateReadingTime(Array.from({ length: 251 }, () => "راهنما").join(" "))).toBe(2);
   });
 
   it("marks the active category for assistive technology", () => {

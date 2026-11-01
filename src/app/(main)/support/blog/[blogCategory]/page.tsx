@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { calculateReadingTime } from "@/app/(main)/support/blog/_components/blog-helpers";
 import BlogCategoryNav from "@/app/(main)/support/blog/_components/BlogCategoryNav";
 import { ActionLink } from "@/components/public/ActionLink";
 import BlogCover from "@/components/public/BlogCover";
@@ -88,7 +89,7 @@ const CategoryContent = ({ blogs, categorySlug }: { blogs: Blog[]; categorySlug:
   const categoryName = getCategoryName(blogs, categorySlug);
 
   return (
-    <PublicShell className="pt-4 pb-16 sm:pt-6">
+    <PublicShell className="pt-6 pb-12 sm:pt-8 sm:pb-14">
       <PublicBreadcrumbs
         breadcrumbs={["/", "/support", "/support/blog", `/support/blog/${categorySlug}`]}
         labels={{ [`/support/blog/${categorySlug}`]: categoryName }}
@@ -139,11 +140,15 @@ const CategoryContent = ({ blogs, categorySlug }: { blogs: Blog[]; categorySlug:
             <h3 className="text-2xl leading-tight font-bold text-(--farabak-ink-deep) md:text-3xl">
               {featuredBlog.title}
             </h3>
-            <p className="mt-4 text-sm text-(--farabak-ink-muted)">
+            <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600 shadow-sm">
+              {featuredBlog.author ? <span>{featuredBlog.author}</span> : null}
+              {featuredBlog.author ? <span aria-hidden="true">•</span> : null}
               <time dateTime={featuredBlog.created_at}>
                 {new Date(featuredBlog.created_at).toLocaleDateString("fa-IR")}
               </time>
-            </p>
+              <span aria-hidden="true">•</span>
+              <span>{calculateReadingTime(featuredBlog.content)} دقیقه مطالعه</span>
+            </div>
             <span className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-(--farabak-action-blue)">
               مطالعه مقاله <ArrowLeft aria-hidden="true" className="size-4" />
             </span>
@@ -152,7 +157,7 @@ const CategoryContent = ({ blogs, categorySlug }: { blogs: Blog[]; categorySlug:
       </section>
 
       {otherBlogs.length > 0 ? (
-        <section aria-labelledby="category-articles-heading" className="mt-12">
+        <section aria-labelledby="category-articles-heading" className="mt-8">
           <div className="mb-5">
             <p className="text-sm font-semibold text-(--farabak-action-blue)">مقالات مرتبط</p>
             <h2
@@ -183,11 +188,15 @@ const CategoryContent = ({ blogs, categorySlug }: { blogs: Blog[]; categorySlug:
                   <h3 className="text-lg leading-8 font-bold text-(--farabak-ink-deep)">
                     {blog.title}
                   </h3>
-                  <p className="mt-auto pt-4 text-sm text-(--farabak-ink-muted)">
+                  <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl bg-slate-50 px-3 py-2.5 text-xs text-slate-600 shadow-sm">
+                    {blog.author ? <span>{blog.author}</span> : null}
+                    {blog.author ? <span aria-hidden="true">•</span> : null}
                     <time dateTime={blog.created_at}>
                       {new Date(blog.created_at).toLocaleDateString("fa-IR")}
                     </time>
-                  </p>
+                    <span aria-hidden="true">•</span>
+                    <span>{calculateReadingTime(blog.content)} دقیقه مطالعه</span>
+                  </div>
                 </div>
               </Link>
             ))}
