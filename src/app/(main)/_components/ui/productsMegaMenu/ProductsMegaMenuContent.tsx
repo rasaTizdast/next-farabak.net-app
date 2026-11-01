@@ -15,7 +15,7 @@ interface ProductsMegaMenuContentProps {
 interface MenuEntry {
   id: number;
   name: string;
-  viewAllLink: string;
+  link: string;
   items: { id: number; name: string; link: string }[];
 }
 
@@ -38,7 +38,7 @@ const ProductsMegaMenuContent = ({
     ...categoriesWithSubcategories.map((category) => ({
       id: category.CategoryID,
       name: category.Name,
-      viewAllLink: category.Link,
+      link: category.Link,
       items: category.Subcategories.filter((sub) => sub.Available).map((sub: MenuSubcategory) => ({
         id: sub.CategoryContentId,
         name: sub.Name,
@@ -50,7 +50,7 @@ const ProductsMegaMenuContent = ({
           {
             id: -1,
             name: "دیگر محصولات",
-            viewAllLink: "/products",
+            link: "/products",
             items: categoriesWithoutSubcategories.map((category) => ({
               id: category.CategoryID,
               name: category.Name,
@@ -154,12 +154,13 @@ const ProductsMegaMenuContent = ({
                   const isActive = entry.id === activeEntry.id;
                   return (
                     <li key={entry.id}>
-                      <button
-                        type="button"
+                      <Link
+                        href={entry.link}
                         onMouseEnter={() => setActiveEntryId(entry.id)}
-                        onClick={() => setActiveEntryId(entry.id)}
+                        onFocus={() => setActiveEntryId(entry.id)}
+                        onClick={() => setOpen(false)}
                         aria-current={isActive ? "true" : undefined}
-                        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-start text-[0.95rem] font-medium transition-colors duration-150 ${
+                        className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-start text-[0.95rem] font-medium transition-colors duration-150 ${
                           isActive
                             ? "bg-primary/10 text-primary"
                             : "text-[#f5f7fa] hover:bg-white/5"
@@ -172,7 +173,7 @@ const ProductsMegaMenuContent = ({
                           }`}
                           aria-hidden="true"
                         />
-                      </button>
+                      </Link>
                     </li>
                   );
                 })}
@@ -180,17 +181,10 @@ const ProductsMegaMenuContent = ({
 
               {/* Detail: subcategories of the active category */}
               <div className="flex flex-1 flex-col overflow-hidden" key={activeEntry.id}>
-                <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+                <div className="border-b border-white/10 px-6 py-4">
                   <h3 className="m-0 truncate text-base font-bold text-white">
                     {activeEntry.name}
                   </h3>
-                  <Link
-                    href={activeEntry.viewAllLink}
-                    onClick={() => setOpen(false)}
-                    className="text-primary hover:bg-primary/10 shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors duration-150"
-                  >
-                    مشاهده همه
-                  </Link>
                 </div>
                 <ul className="m-0 grid list-none grid-cols-2 content-start gap-x-4 gap-y-1 overflow-y-auto p-5 xl:grid-cols-3">
                   {activeEntry.items.map((item) => (

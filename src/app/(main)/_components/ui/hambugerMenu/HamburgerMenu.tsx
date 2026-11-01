@@ -215,7 +215,9 @@ const HamburgerMenu = ({ categories }: HamburgerMenuProps) => {
         </div>
 
         {/* Other links — pushed down by products panel */}
-        <ul className={`m-0 flex shrink-0 list-none flex-col gap-1 p-5 ${contentVisibilityClass}`}>
+        <ul
+          className={`m-0 flex min-h-0 flex-1 list-none flex-col gap-1 overflow-y-auto p-5 ${contentVisibilityClass}`}
+        >
           <li>
             <Link
               href="/support"
@@ -224,6 +226,24 @@ const HamburgerMenu = ({ categories }: HamburgerMenuProps) => {
             >
               پشتیبانی
             </Link>
+            <ul className="m-0 list-none space-y-0.5 border-e border-white/10 pe-3">
+              {[
+                ["پیگیری گارانتی", "/support/warranty-tracking"],
+                ["نرم‌افزارها و آپدیت‌ها", "/support/download-center"],
+                ["سوالات متداول", "/support/faq"],
+                ["مقالات آموزشی", "/support/blog"],
+              ].map(([label, href]) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    onClick={closeMenu}
+                    className="block rounded-lg px-3 py-2 text-sm text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </li>
           <li>
             <Link
@@ -233,6 +253,23 @@ const HamburgerMenu = ({ categories }: HamburgerMenuProps) => {
             >
               درباره‌ما
             </Link>
+            <ul className="m-0 list-none space-y-0.5 border-e border-white/10 pe-3">
+              {[
+                ["فعالیت شرکت", "/about-us/activity"],
+                ["پروژه‌ها", "/about-us/projects"],
+                ["اعضای هیئت‌مدیره", "/about-us/members"],
+              ].map(([label, href]) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    onClick={closeMenu}
+                    className="block rounded-lg px-3 py-2 text-sm text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </li>
           <li>
             <Link

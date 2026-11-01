@@ -1,5 +1,5 @@
+import { ArrowUpRight, MapPin } from "lucide-react";
 import { io } from "next/cache";
-import Image from "next/image";
 import { BsFillSignpostSplitFill } from "react-icons/bs";
 import { FaInstagram, FaPhoneSquare, FaWhatsapp } from "react-icons/fa";
 
@@ -191,20 +191,32 @@ const Footer = async () => {
               </>
             )}
           </address>
-          <figure className="overflow-hidden rounded-2xl border border-white/15 bg-white/5">
-            <Image
-              src="/contact/location-map.svg"
-              alt="نمایش تصویری موقعیت دفتر مرکزی فرابک"
-              width={900}
-              height={520}
-              loading="lazy"
-              sizes="(min-width: 1024px) 34vw, 100vw"
-              className="h-auto w-full"
+          <div className="relative flex min-h-52 flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-[radial-gradient(ellipse_at_15%_15%,rgba(18,101,232,0.3),transparent_52%),linear-gradient(135deg,#102b49,#071323)] px-6 py-8 text-center">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,transparent_49.8%,rgba(148,185,224,0.1)_50%,transparent_50.3%),linear-gradient(25deg,transparent_49.8%,rgba(148,185,224,0.08)_50%,transparent_50.3%)]"
             />
-            <figcaption className="px-4 py-3 text-center text-xs text-slate-300">
-              موقعیت دفتر مرکزی فرابک
-            </figcaption>
-          </figure>
+            <span className="relative grid size-14 place-items-center rounded-2xl border border-white/20 bg-white/10 text-cyan-200 shadow-[0_12px_32px_rgba(0,0,0,0.2)]">
+              <MapPin aria-hidden="true" className="size-7" />
+            </span>
+            <p className="relative mt-4 text-base font-bold text-white">دفتر مرکزی فرابک</p>
+            {address && (
+              <p className="relative mt-1 text-sm leading-7 text-slate-300">
+                نشانی و مسیر دسترسی را روی نقشه ببینید.
+              </p>
+            )}
+            {address && (
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative mt-4 inline-flex items-center gap-2 rounded-full border border-cyan-200/30 bg-cyan-100/10 px-4 py-2 text-sm font-semibold text-cyan-100 transition-colors hover:bg-cyan-100/20 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-200"
+              >
+                مشاهده موقعیت روی نقشه
+                <ArrowUpRight aria-hidden="true" className="size-4" />
+              </a>
+            )}
+          </div>
         </div>
 
         <div className="w-full border-t border-[#2a425b] pt-6">
