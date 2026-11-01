@@ -4,6 +4,7 @@ import { FaPhoneAlt, FaWhatsapp } from "react-icons/fa";
 
 import { ActionLink } from "@/components/public/ActionLink";
 import { PageIntro } from "@/components/public/PageIntro";
+import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicImage } from "@/components/public/PublicImage";
 import { PublicShell } from "@/components/public/PublicShell";
 import { getMemberPage } from "@/lib/data/members";
@@ -89,7 +90,19 @@ const MemberPage = async (props: Props) => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+      <PublicShell as="main" className="pt-6 pb-12 sm:pt-8 sm:pb-14">
+        <PublicBreadcrumbs
+          breadcrumbs={[
+            "/",
+            "/about-us",
+            "/about-us/members",
+            `/about-us/members/${params.member}`,
+          ]}
+          labels={{
+            "/about-us/members": "اعضای هیئت‌مدیره",
+            [`/about-us/members/${params.member}`]: name,
+          }}
+        />
         <PageIntro
           eyebrow="آرشیو اعضای هیئت‌مدیره"
           title={name}

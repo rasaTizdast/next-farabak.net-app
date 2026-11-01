@@ -125,7 +125,7 @@ const ProjectPage = async (props: ParamsType) => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+      <PublicShell as="main" className="pt-6 pb-12 sm:pt-8 sm:pb-14">
         <PublicBreadcrumbs
           breadcrumbs={[
             "/",
@@ -138,7 +138,6 @@ const ProjectPage = async (props: ParamsType) => {
         <PageIntro
           eyebrow="پرونده پروژه"
           title={title}
-          description="یک رکورد منتشرشده از آرشیو پروژه‌های فرابک؛ جزئیات این صفحه را به‌عنوان سابقه ثبت‌شده بخوانید، نه نشانه‌ای از دسترسی یا موجودی فعلی."
           actions={
             <>
               <ActionLink href="/about-us/projects" variant="secondary">

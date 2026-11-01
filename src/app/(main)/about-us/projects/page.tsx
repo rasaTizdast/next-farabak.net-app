@@ -71,7 +71,7 @@ const ProjectsPage = async () => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+      <PublicShell as="main" className="pt-6 pb-12 sm:pt-8 sm:pb-14">
         <PublicBreadcrumbs
           breadcrumbs={["/", "/about-us", "/about-us/projects"]}
           labels={{ "/about-us/projects": "پروژه‌ها" }}

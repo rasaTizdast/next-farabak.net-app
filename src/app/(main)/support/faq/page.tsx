@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import FaqAccordion, { type FaqItem } from "@/components/FaqAccordion";
 import { ActionLink } from "@/components/public/ActionLink";
 import { PageIntro } from "@/components/public/PageIntro";
+import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 import { getGeneralFaqs } from "@/lib/data/faqs";
 
@@ -42,10 +43,14 @@ const FaqPage = async () => {
   };
 
   return (
-    <PublicShell className="pb-16">
+    <PublicShell className="pt-6 pb-12 sm:pt-8 sm:pb-14">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <PublicBreadcrumbs
+        breadcrumbs={["/", "/support", "/support/faq"]}
+        labels={{ "/support/faq": "سوالات متداول" }}
       />
       <PageIntro
         eyebrow="مرکز پاسخ‌گویی"

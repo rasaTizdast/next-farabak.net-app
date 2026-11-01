@@ -10,6 +10,7 @@ import {
 import { Metadata } from "next";
 
 import { ActionLink } from "@/components/public/ActionLink";
+import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 
 export const metadata: Metadata = {
@@ -97,8 +98,12 @@ const downloadGroups = [
 
 const DownloadCenterPage = () => {
   return (
-    <PublicShell className="pb-16">
-      <header className="flex flex-col gap-5 py-10 md:gap-6 md:py-16">
+    <PublicShell className="pt-6 pb-12 sm:pt-8 sm:pb-14">
+      <PublicBreadcrumbs
+        breadcrumbs={["/", "/support", "/support/download-center"]}
+        labels={{ "/support/download-center": "مرکز دانلود" }}
+      />
+      <header className="flex flex-col gap-5 py-6 md:gap-6 md:py-8">
         <p className="text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
           نرم‌افزار و راهنما
         </p>

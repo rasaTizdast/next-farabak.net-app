@@ -26,7 +26,7 @@ const ContactUsContent = async () => {
 
   if (!address && emails.length === 0 && phoneNumbers.length === 0) {
     return (
-      <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+      <PublicShell as="main" className="pt-6 pb-12 sm:pt-8 sm:pb-14">
         <PublicBreadcrumbs
           breadcrumbs={["/", "/contact-us"]}
           labels={{ "/contact-us": "تماس با ما" }}
@@ -85,7 +85,7 @@ const ContactUsContent = async () => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+      <PublicShell as="main" className="pt-6 pb-12 sm:pt-8 sm:pb-14">
         <PublicBreadcrumbs
           breadcrumbs={["/", "/contact-us"]}
           labels={{ "/contact-us": "تماس با ما" }}
@@ -201,7 +201,7 @@ export default function ContactUsPage() {
       fallback={
         <PublicShell
           as="main"
-          className="py-16"
+          className="py-10"
           role="status"
           aria-label="در حال بارگذاری تماس با فرابک"
         >

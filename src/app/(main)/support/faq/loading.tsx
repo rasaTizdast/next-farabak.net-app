@@ -1,7 +1,7 @@
 export default function FaqLoading() {
   return (
     <div
-      className="mx-auto w-full max-w-[1580px] animate-pulse px-6 pb-16 min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40"
+      className="mx-auto w-full max-w-[1580px] animate-pulse px-6 pt-6 pb-12 min-[992px]:px-16 min-[1200px]:px-24 sm:pt-8 md:px-12 2xl:px-40"
       role="status"
       aria-label="در حال بارگذاری"
     >

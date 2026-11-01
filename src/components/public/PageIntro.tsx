@@ -19,7 +19,7 @@ function PageIntro({
   ...props
 }: PageIntroProps) {
   return (
-    <header className={cn("flex flex-col gap-5 py-8 md:gap-6 md:py-12", className)} {...props}>
+    <header className={cn("flex flex-col gap-5 py-6 md:gap-6 md:py-8", className)} {...props}>
       {eyebrow ? (
         <p className="text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
           {eyebrow}

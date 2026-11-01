@@ -24,12 +24,9 @@ const supportIcons = {
   faq: CircleHelp,
 } as const;
 
-const formatIndex = (value: number) =>
-  new Intl.NumberFormat("fa-IR", { minimumIntegerDigits: 2 }).format(value);
-
 const SupportPage = () => {
   return (
-    <PublicShell className="pt-4 pb-16 sm:pt-6">
+    <PublicShell className="pt-6 pb-12 sm:pt-8 sm:pb-14">
       <PublicBreadcrumbs breadcrumbs={["/", "/support"]} />
       <section className="relative isolate overflow-hidden rounded-3xl bg-(--farabak-ink-deep) px-6 py-8 text-white shadow-[0_24px_80px_rgba(6,26,48,0.2)] sm:px-8 sm:py-10 lg:px-12 lg:py-14">
         <div
@@ -95,7 +92,7 @@ const SupportPage = () => {
         </div>
       </section>
 
-      <section aria-labelledby="support-services-heading">
+      <section aria-labelledby="support-services-heading" className="mt-10 sm:mt-12">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-(--farabak-action-blue)">خدمات اصلی</p>
@@ -126,9 +123,6 @@ const SupportPage = () => {
                     <span className="grid size-12 place-items-center rounded-xl bg-(--farabak-surface-blue) text-(--farabak-action-blue)">
                       <Icon aria-hidden="true" className="size-6" />
                     </span>
-                    <span className="text-sm font-semibold text-slate-400">
-                      {formatIndex(item.id)}
-                    </span>
                   </div>
                   <h3 className="mt-6 text-xl font-bold text-(--farabak-ink-deep)">{item.title}</h3>
                   <p className="mt-3 max-w-lg leading-8 text-(--farabak-ink-muted)">{item.desc}</p>
@@ -142,7 +136,7 @@ const SupportPage = () => {
         </div>
       </section>
 
-      <section className="mt-10 grid gap-4 rounded-2xl bg-(--farabak-ink-deep) p-6 text-white md:grid-cols-[1fr_auto] md:items-center md:p-8">
+      <section className="mt-8 grid gap-4 rounded-2xl bg-(--farabak-ink-deep) p-6 text-white md:grid-cols-[1fr_auto] md:items-center md:p-8">
         <div>
           <p className="text-sm font-semibold text-cyan-200">نیاز به راهنمایی انسانی دارید؟</p>
           <h2 className="mt-2 text-2xl font-bold">تیم فرابک آماده پاسخ‌گویی است</h2>

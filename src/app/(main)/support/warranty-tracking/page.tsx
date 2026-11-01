@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 
+import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 
 import WarrantyTrackingPage from "./ClientWarrantyTracking";
@@ -16,7 +17,11 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <PublicShell className="pb-16">
+    <PublicShell className="pt-6 pb-12 sm:pt-8 sm:pb-14">
+      <PublicBreadcrumbs
+        breadcrumbs={["/", "/support", "/support/warranty-tracking"]}
+        labels={{ "/support/warranty-tracking": "پیگیری گارانتی" }}
+      />
       <WarrantyTrackingPage />
     </PublicShell>
   );

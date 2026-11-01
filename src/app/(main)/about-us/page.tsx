@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { ActionLink } from "@/components/public/ActionLink";
 import { PageIntro } from "@/components/public/PageIntro";
+import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 import aboutUsData from "@/constants/aboutUs.json";
 
@@ -44,14 +45,15 @@ const AboutUs = () => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+      <PublicShell as="main" className="pt-6 pb-12 sm:pt-8 sm:pb-14">
+        <PublicBreadcrumbs breadcrumbs={["/", "/about-us"]} />
         <PageIntro
           eyebrow="آرشیو شرکت"
           title="فرابک را از روی کارنامه‌اش بشناسید"
           description="تاریخچه، اعضای هیئت‌مدیره و پروژه‌های منتشرشده را در یک آرشیو روشن و قابل بررسی دنبال کنید. هر صفحه فقط همان چیزی را نشان می‌دهد که برای آن سند یا داده داریم."
         />
 
-        <section aria-labelledby="about-archive-title" className="pb-8 sm:pb-12">
+        <section aria-labelledby="about-archive-title" className="pb-6 sm:pb-8">
           <div className="mb-6 sm:mb-8">
             <p className="mb-2 text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
               مسیرهای بررسی

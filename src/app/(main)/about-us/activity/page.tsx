@@ -82,7 +82,7 @@ const ActivityPage = async () => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+      <PublicShell as="main" className="pt-6 pb-12 sm:pt-8 sm:pb-14">
         <PublicBreadcrumbs
           breadcrumbs={["/", "/about-us", "/about-us/activity"]}
           labels={{ "/about-us/activity": "فعالیت‌های شرکت" }}
@@ -116,11 +116,6 @@ const ActivityPage = async () => {
                   className="absolute inset-x-0 top-0 h-1 bg-linear-to-l from-(--farabak-action-blue) to-cyan-300"
                 />
                 <div className="flex items-start gap-4">
-                  <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-(--farabak-surface-blue) text-lg font-bold text-(--farabak-action-blue)">
-                    {new Intl.NumberFormat("fa-IR", { minimumIntegerDigits: 2 }).format(
-                      activity.id
-                    )}
-                  </span>
                   <div className="min-w-0">
                     <p className="mb-2 text-xs font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
                       حوزه فعالیت
@@ -133,7 +128,7 @@ const ActivityPage = async () => {
                     </h2>
                   </div>
                 </div>
-                <ul className="mt-6 space-y-3 border-t border-slate-100 pt-5 leading-8 text-(--farabak-ink-muted)">
+                <ul className="mt-6 space-y-3 border-t border-slate-100 pt-5 leading-8 text-slate-700">
                   {activity.Details_activity.map((detail) => (
                     <li key={detail.id} className="flex items-start gap-3">
                       <span

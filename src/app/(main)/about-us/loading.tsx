@@ -10,7 +10,7 @@ export default function AboutUsLoading() {
   return (
     <PublicShell
       as="main"
-      className="animate-pulse py-10 sm:py-14 lg:py-16"
+      className="animate-pulse pt-6 pb-12 sm:pt-8 sm:pb-14"
       role="status"
       aria-label="در حال بارگذاری درباره ما"
     >
