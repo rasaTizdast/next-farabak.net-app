@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   title: "بلاگ آموزشی فرابک | مقالات امنیتی",
   description:
     "مقالات تخصصی درباره خرید دوربین مداربسته، نصب محصولات بلک مجیک و نکات نگهداری سیستم‌های امنیتی. محتوای مفید و به‌روز از کارشناسان فرابک.",
+  alternates: {
+    canonical: "/support/blog",
+  },
   robots: {
     index: true,
     follow: true,

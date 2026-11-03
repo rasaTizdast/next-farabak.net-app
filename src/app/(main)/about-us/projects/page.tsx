@@ -8,6 +8,7 @@ import { PublicShell } from "@/components/public/PublicShell";
 import { getProjects as getProjectsFromData, type ProjectListItem } from "@/lib/data/projects";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/about-us/projects" },
   title: "گالری تصاویر پروژه ها | فرابک",
   description: "شما در این صفحه میتوانید اطلاعاتی درباره پروژه های شرکت فرابک مشاهده کنید.",
   robots: {

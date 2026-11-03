@@ -31,6 +31,9 @@ export async function generateMetadata(props: {
     return {
       title: `مقالات ${getCategoryName(data.blogs, params.blogCategory)} | فرابک`,
       description: `مقالات آموزشی فرابک درباره ${getCategoryName(data.blogs, params.blogCategory)}.`,
+      alternates: {
+        canonical: `/support/blog/${encodeURIComponent(params.blogCategory)}`,
+      },
     };
   } catch {
     return {

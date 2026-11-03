@@ -7,6 +7,7 @@ import { PublicShell } from "@/components/public/PublicShell";
 import aboutUsData from "@/constants/aboutUs.json";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/about-us" },
   title: "درباره ما | تاریخچه و فعالیت‌های فرابک",
   description:
     "با فرابک آشنا شوید: شرکتی متخصص در واردات و توزیع تجهیزات امنیتی مانند دوربین‌های ریولینک، دستگاه‌های ایکس‌ری و محصولات بلک مجیک با گارانتی معتبر. بیش از ربع قرن تجربه در پروژه‌های نظارتی. برای همکاری تماس بگیرید.",

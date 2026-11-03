@@ -9,6 +9,7 @@ import { PublicShell } from "@/components/public/PublicShell";
 import { getMembers } from "@/lib/data/members";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/about-us/members" },
   title: "اعضای هیئت مدیره | فرابک",
   description: "مشاهده اعضای هیئت مدیره به‌همراه تجربیات و نقش های کلیدی هر یک از اعضای هیئت مدیره",
   robots: {

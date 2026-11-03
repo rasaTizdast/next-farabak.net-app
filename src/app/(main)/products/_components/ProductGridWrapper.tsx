@@ -1,5 +1,6 @@
-import Script from "next/script";
+import { serializeJsonLd } from "@/lib/seo/json-ld";
 
+import { buildProductCollectionSchema, type CollectionProduct } from "./product-collection-schema";
 import ProductGrid from "./ProductGrid";
 
 interface ProductGridWrapperProps {
@@ -9,6 +10,7 @@ interface ProductGridWrapperProps {
   categorySlug?: string;
   subcategorySlug?: string;
   canonicalUrl?: string;
+  collectionItems?: CollectionProduct[];
 }
 
 function ProductCollectionStructuredData({
@@ -17,36 +19,25 @@ function ProductCollectionStructuredData({
   categorySlug,
   subcategorySlug,
   canonicalUrl,
+  collectionItems,
 }: Pick<
   ProductGridWrapperProps,
-  "title" | "currentPage" | "categorySlug" | "subcategorySlug" | "canonicalUrl"
+  "title" | "currentPage" | "categorySlug" | "subcategorySlug" | "canonicalUrl" | "collectionItems"
 >) {
-  const breadcrumbItems = [
-    { position: 1, name: "خانه", item: "https://farabak.net" },
-    { position: 2, name: "محصولات", item: "https://farabak.net/products" },
-  ];
+  if (collectionItems) {
+    const schema = buildProductCollectionSchema({
+      title: currentPage > 1 ? `${title} - صفحه ${currentPage} | فرابک` : `${title} | فرابک`,
+      canonicalUrl: canonicalUrl || "https://farabak.net/products",
+      products: collectionItems,
+    });
 
-  let position = 3;
-  if (categorySlug) {
-    breadcrumbItems.push({
-      position: position++,
-      name: categorySlug,
-      item: `https://farabak.net/products/${categorySlug}`,
-    });
-  }
-  if (subcategorySlug) {
-    breadcrumbItems.push({
-      position: position++,
-      name: subcategorySlug,
-      item: `https://farabak.net/products/${categorySlug}/${subcategorySlug}`,
-    });
-  }
-  if (currentPage > 1) {
-    breadcrumbItems.push({
-      position: position++,
-      name: `صفحه ${currentPage}`,
-      item: canonicalUrl || `https://farabak.net/products/page/${currentPage}`,
-    });
+    return schema ? (
+      <script
+        id={`json-ld-product-grid-${categorySlug ?? "all"}-${subcategorySlug ?? "all"}-${currentPage}`}
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }}
+      />
+    ) : null;
   }
 
   const url = canonicalUrl || `https://farabak.net/products?page=${currentPage}`;
@@ -61,15 +52,6 @@ function ProductCollectionStructuredData({
         description: `مجموعه‌ای از ${title} با کیفیت بالا و گارانتی معتبر از فرابک`,
         isPartOf: { "@type": "WebSite", "@id": "https://farabak.net" },
         about: { "@type": "Organization", "@id": "https://farabak.net" },
-        breadcrumb: {
-          "@type": "BreadcrumbList",
-          itemListElement: breadcrumbItems.map((item) => ({
-            "@type": "ListItem",
-            position: item.position,
-            name: item.name,
-            item: item.item,
-          })),
-        },
         mainEntity: {
           "@type": "ItemList",
           name: title,
@@ -82,10 +64,10 @@ function ProductCollectionStructuredData({
   };
 
   return (
-    <Script
+    <script
       id={`json-ld-product-grid-${categorySlug ?? "all"}-${subcategorySlug ?? "all"}-${currentPage}`}
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
     />
   );
 }
@@ -97,6 +79,7 @@ export default function ProductGridWrapper({
   categorySlug,
   subcategorySlug,
   canonicalUrl,
+  collectionItems,
 }: ProductGridWrapperProps) {
   return (
     <>
@@ -106,6 +89,7 @@ export default function ProductGridWrapper({
         categorySlug={categorySlug}
         subcategorySlug={subcategorySlug}
         canonicalUrl={canonicalUrl}
+        collectionItems={collectionItems}
       />
       <ProductGrid
         title={title}

@@ -8,6 +8,7 @@ import { PublicShell } from "@/components/public/PublicShell";
 import { getGeneralFaqs } from "@/lib/data/faqs";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/support/faq" },
   title: "سوالات متداول درباره فرابک | FAQ",
   description:
     "پاسخ به سوالات رایج درباره خرید و استفاده از دوربین مداربسته ریولینک، محصولات بلک مجیک و گیت‌های امنیتی. راهنمایی‌های مفید برای حل مشکلات سریع در فرابک.",

@@ -9,6 +9,7 @@ import BlogCover from "@/components/public/BlogCover";
 import { PageIntro } from "@/components/public/PageIntro";
 import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
+import { SITE_URL } from "@/constants/meta";
 import { getBlogBySlug, type BlogDetailData } from "@/lib/data/blogs";
 
 import {
@@ -192,7 +193,7 @@ const getBlog = async (
 };
 
 export async function generateMetadata(props: {
-  params: Promise<{ blog: string }>;
+  params: Promise<{ blogCategory: string; blog: string }>;
   searchParams: Promise<{ key?: string }>;
 }) {
   const searchParams = await props.searchParams;
@@ -213,6 +214,12 @@ export async function generateMetadata(props: {
   return {
     title: content.blog.SEO_Title,
     description: content.blog.SEO_description,
+    alternates: {
+      canonical: new URL(
+        `/support/blog/${encodeURIComponent(params.blogCategory)}/${encodeURIComponent(params.blog)}`,
+        SITE_URL
+      ).toString(),
+    },
     robots: {
       index: true,
       follow: true,
@@ -221,7 +228,7 @@ export async function generateMetadata(props: {
 }
 
 export default async function BlogPage(props: {
-  params: Promise<{ blog: string }>;
+  params: Promise<{ blogCategory: string; blog: string }>;
   searchParams: Promise<{ key?: string }>;
 }) {
   const searchParams = await props.searchParams;

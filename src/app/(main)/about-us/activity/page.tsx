@@ -8,6 +8,7 @@ import { PublicShell } from "@/components/public/PublicShell";
 import { getActivities } from "@/lib/data/activities";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/about-us/activity" },
   title: "فعالیت های شرکت فرابک | فرابک",
   description: "شما در این صفحه میتوانید اطلاعاتی درباره فعالیت های شرکت فرابک مشاهده کنید.",
   robots: {

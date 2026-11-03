@@ -8,6 +8,7 @@ import { PublicShell } from "@/components/public/PublicShell";
 import supportData from "@/constants/supportData.json";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/support" },
   title: "پشتیبانی مشتریان فرابک | گارانتی و سوالات متداول",
   description:
     "در بخش پشتیبانی فرابک، به دانلود نرم‌افزارها، پیگیری گارانتی، سوالات متداول و مقالات آموزشی دسترسی پیدا کنید. پشتیبانی حرفه‌ای برای محصولات امنیتی مانند ریولینک و بلک مجیک",

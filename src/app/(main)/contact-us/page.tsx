@@ -9,6 +9,7 @@ import { PublicShell } from "@/components/public/PublicShell";
 import { getContactInfo } from "@/lib/data/contactUs";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/contact-us" },
   title: "تماس با فرابک | آدرس و پشتیبانی",
   description:
     "برای خرید محصولات امنیتی یا پیگیری سفارشات با فرابک تماس بگیرید. آدرس: سعادت آباد، میدان کتاب، خیابان عسگری گراوندی، نبش آسمان هشتم، پلاک 6، طبقه همکف. ساعات بازدید: ۱۱-۱۳ و ۱۴-۱۶. پیام به پشتیبانی ارسال کنید یا با شماره ۰۲۱-۷۷۵۰۰۰۰۸ تماس حاصل فرمایید.",

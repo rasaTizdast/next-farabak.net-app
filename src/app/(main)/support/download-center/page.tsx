@@ -14,6 +14,7 @@ import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/support/download-center" },
   title: "مرکز دانلود اپلیکیشن و منابع رسمی | فرابک",
   description:
     "دانلود رایگان نرم‌افزار، راهنماها و بروزرسانی‌های محصولات ریولینک، بلک مجیک و دستگاه‌های ایکس‌ری از فرابک. دسترسی آسان برای کاربران خرید دوربین مداربسته و سیستم‌های امنیتی.",

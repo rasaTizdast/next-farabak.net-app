@@ -2,6 +2,7 @@ import Link from "next/link";
 import { IoIosArrowBack } from "react-icons/io";
 
 import { getBreadcrumbNames } from "@/lib/data/breadcrumbs";
+import { serializeJsonLd } from "@/lib/seo/json-ld";
 
 type BreadcrumbItem = string;
 
@@ -29,7 +30,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = async ({ breadcrumbs, labels }) =>
     })),
   };
 
-  const jsonLd = JSON.stringify(structuredData);
+  const jsonLd = serializeJsonLd(structuredData);
 
   return (
     <>
