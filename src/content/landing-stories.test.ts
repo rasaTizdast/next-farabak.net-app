@@ -15,7 +15,7 @@ describe("landing stories", () => {
     const publicCopy = [
       ...landingStories.flatMap((story) => [
         story.solution.beforeModel,
-        story.solution.afterModel ?? "",
+        "afterModel" in story.solution ? story.solution.afterModel : "",
       ]),
       ...Object.values(landingAssets).flatMap((asset) => [asset.caption, asset.alt]),
     ].join(" ");
