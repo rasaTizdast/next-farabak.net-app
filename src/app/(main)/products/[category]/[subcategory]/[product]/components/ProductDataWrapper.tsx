@@ -242,7 +242,7 @@ export default async function ProductDataWrapper({
               </Suspense>
             </div>
 
-            <div className="mt-6 border-t border-(--farabak-ink-deep)/10 pt-2">
+            <div className="mt-auto border-t border-(--farabak-ink-deep)/10 pt-5">
               <ClientInvoiceSection
                 ProductId={productData.ProductId}
                 ProductName={productData.Type}
@@ -259,7 +259,7 @@ export default async function ProductDataWrapper({
       <section
         id="overview"
         aria-labelledby="overview-heading"
-        className="flex scroll-mt-32 flex-col items-center gap-10"
+        className="flex w-full scroll-mt-32 flex-col items-center gap-10"
       >
         <h2 id="overview-heading" className="sr-only">
           توضیحات محصول
@@ -272,7 +272,7 @@ export default async function ProductDataWrapper({
       <section
         id="blog"
         aria-labelledby="blog-heading"
-        className="flex scroll-mt-32 flex-col items-center gap-10"
+        className="flex w-full scroll-mt-32 flex-col items-center gap-10"
       >
         <h2 id="blog-heading" className="sr-only">
           توضیحات تکمیلی محصول
@@ -285,7 +285,7 @@ export default async function ProductDataWrapper({
       <section
         id="specs"
         aria-labelledby="specs-heading"
-        className="flex scroll-mt-32 flex-col items-center gap-10"
+        className="mt-10 flex w-full scroll-mt-32 flex-col items-center gap-10"
       >
         <h2 id="specs-heading" className="sr-only">
           مشخصات محصول
@@ -298,7 +298,7 @@ export default async function ProductDataWrapper({
       <section
         id="faq"
         aria-labelledby="faq-heading"
-        className="flex scroll-mt-32 flex-col items-center gap-10"
+        className="flex w-full scroll-mt-32 flex-col items-center gap-10"
       >
         <h2 id="faq-heading" className="sr-only">
           سوالات متداول محصول

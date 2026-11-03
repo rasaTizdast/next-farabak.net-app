@@ -65,8 +65,8 @@ const ProductBlog = ({ productBlog }: Props) => {
   const citationUrls = brandOfficialUrls.length > 0 ? brandOfficialUrls : null;
 
   return (
-    <div data-product-section-content>
-      <article className="mx-auto mt-5 w-full max-w-[1580px] rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-4 shadow-[0_18px_45px_rgba(6,26,48,0.06)] sm:p-7">
+    <div data-product-section-content className="mx-auto w-full max-w-[1580px]">
+      <article className="mt-5 w-full rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-4 shadow-[0_18px_45px_rgba(6,26,48,0.06)] sm:p-7">
         <div className="mb-5 text-start text-xl font-bold text-(--farabak-ink-deep) sm:text-2xl">
           توضیحات تکمیلی محصول
         </div>

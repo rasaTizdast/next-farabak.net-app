@@ -10,6 +10,7 @@ import BannerImage from "./BannerImage";
 import BlogContent from "./BlogContent";
 import { GridContentServer } from "./GridContentServer";
 import { ProductGridSkeleton } from "./ProductListSkeletons";
+import XRayModelComparison from "./XRayModelComparison";
 
 interface ProductGridProps {
   title: string;
@@ -119,6 +120,10 @@ const ProductGrid: React.FC<ProductGridProps> = ({
           />
         </Reveal>
       </Suspense>
+
+      {categorySlug === "x-ray" && !subcategorySlug && currentPage === 1 ? (
+        <XRayModelComparison />
+      ) : null}
 
       <Suspense fallback={<BlogSkeleton />}>
         {(async () => {

@@ -46,7 +46,7 @@ const ProductFaq = async ({ productId }: ProductFaqProps) => {
       />
       <div
         data-product-section-content
-        className="flex w-full max-w-[calc(1900px-20rem)] flex-col rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-5 shadow-[0_18px_45px_rgba(6,26,48,0.06)] sm:p-7"
+        className="mx-auto flex w-full max-w-[1580px] flex-col rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-5 shadow-[0_18px_45px_rgba(6,26,48,0.06)] sm:p-7"
       >
         <h3 className="mb-5 text-start text-xl font-bold text-(--farabak-ink-deep) max-[576px]:mb-4">
           سوالات متداول

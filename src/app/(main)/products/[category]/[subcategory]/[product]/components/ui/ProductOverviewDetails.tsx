@@ -15,7 +15,7 @@ function Overview({
   img: string | null;
 }) {
   return (
-    <div className="flex w-full max-w-[calc(1900px-20rem)] flex-col items-center rounded-2xl bg-(--farabak-ink-deep) p-6 shadow-[0_18px_45px_rgba(6,26,48,0.12)] sm:p-10">
+    <div className="mx-auto flex w-full max-w-[1580px] flex-col items-center rounded-2xl bg-(--farabak-ink-deep) p-6 shadow-[0_18px_45px_rgba(6,26,48,0.12)] sm:p-10">
       <div className="mb-8 flex max-w-3xl flex-col items-center gap-4 text-white">
         {title && <h3 className="mb-2 text-center text-2xl font-bold sm:text-3xl">{title}</h3>}
         {description && (
@@ -23,15 +23,18 @@ function Overview({
         )}
       </div>
       {img && (
-        <SmartImage
-          src={`${process.env.LIARA_BUCKET_URL}/overview-details-images${img}`}
-          alt={title || "Product image"}
-          width={1920}
-          height={1080}
-          quality={75}
-          loading="lazy"
-          className="h-auto w-full max-w-[900px] rounded-xl shadow-[0_4px_10px_5px_rgba(255,255,255,0.1)]"
-        />
+        <div className="relative aspect-video w-full max-w-[900px] overflow-hidden rounded-xl bg-white/5 shadow-[0_4px_10px_5px_rgba(255,255,255,0.1)]">
+          <SmartImage
+            src={`${process.env.LIARA_BUCKET_URL}/overview-details-images${img}`}
+            alt={title || "Product image"}
+            width={1920}
+            height={1080}
+            quality={75}
+            loading="lazy"
+            sizes="(max-width: 768px) 100vw, 900px"
+            className="size-full object-contain"
+          />
+        </div>
       )}
     </div>
   );
@@ -48,7 +51,10 @@ export default async function ProductOverviewDetails({ productId }: { productId:
   }
 
   return (
-    <div data-product-section-content className="flex flex-col items-center gap-8">
+    <div
+      data-product-section-content
+      className="mx-auto flex w-full max-w-[1580px] flex-col items-center gap-8"
+    >
       {productDetails.map((detail: ProductOverviewDetailItem) => (
         <Overview
           key={detail.ProductOverviewDetailsId}

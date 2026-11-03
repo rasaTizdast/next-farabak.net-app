@@ -63,7 +63,7 @@ const ProductTabs = () => {
       ref={navRef}
       aria-label="بخش‌های محصول"
       style={stickyTop !== null ? { top: `${stickyTop}px` } : undefined}
-      className="sticky z-5 mx-auto my-8 w-full overflow-x-auto rounded-xl border border-(--farabak-ink-deep)/10 bg-(--farabak-ink-deep) shadow-[0_12px_30px_rgba(6,26,48,0.14)]"
+      className="sticky z-5 mx-auto my-8 w-full overflow-x-auto rounded-xl border border-white/10 bg-(--farabak-ink-deep)/95 shadow-[0_12px_30px_rgba(6,26,48,0.14)] backdrop-blur-md"
     >
       <ul className="flex min-w-max items-center justify-center gap-1 p-1 sm:gap-2">
         {visibleTabs.map((tab) => (
