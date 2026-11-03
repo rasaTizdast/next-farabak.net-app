@@ -15,6 +15,8 @@ export function assessScannerFit(input: SiteFitInput, facts: ScannerFitFacts): F
     if (object !== null && opening !== null) {
       if (input.clearanceMm === null) {
         missing.push("فاصله آزاد موردنیاز برای عبور شیء وارد نشده است");
+      } else if (facts.tunnelWidthIsMaximumAtConveyorEdge) {
+        missing.push(`${label}: بیشینهٔ عرض در لبهٔ نوار ثبت شده است؛ دهانهٔ مفید برای این شیء در ارتفاع آن تأیید نشده است`);
       } else if (object + input.clearanceMm < opening) {
         passed.push(`${label}: ${object + input.clearanceMm} میلی‌متر با فاصله آزاد، کمتر از ${opening} میلی‌متر`);
       } else {
@@ -65,6 +67,11 @@ export function assessScannerFit(input: SiteFitInput, facts: ScannerFitFacts): F
 
   const status = failed.length ? "does-not-fit" : missing.length ? "needs-review" : "fits";
   return { status, passed, failed, missing: [...new Set(missing)] };
+}
+
+export function compareDimension(required: number | null, available: number | null, clearance: number | null) {
+  if (required === null || available === null || clearance === null) return "needs-review" as const;
+  return required + clearance < available ? "fits" as const : "does-not-fit" as const;
 }
 
 export function describeFlowRequirement(requiredItemsPerHour: number | null): string {
