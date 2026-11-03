@@ -105,15 +105,15 @@ async function queryAllProducts(
   params: ProductsQueryParams
 ): Promise<PaginatedProductResult | null> {
   const { page, limit } = params;
+  if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1) {
+    return null;
+  }
 
   const totalCount = await prisma.product.count();
 
   if (totalCount === 0) {
     return null;
   }
-
-  const totalPages = Math.ceil(totalCount / limit);
-  const currentPageToUse = page > totalPages ? 1 : page;
 
   const allCategories = await prisma.category.findMany({
     orderBy: {
@@ -210,6 +210,10 @@ async function queryAllProducts(
     return true;
   });
 
+  const totalPages = Math.ceil(allProcessedProducts.length / limit);
+  if (page > totalPages) return null;
+  const currentPageToUse = page;
+
   const startIndex = (currentPageToUse - 1) * limit;
   const endIndex = Math.min(startIndex + limit, allProcessedProducts.length);
   const paginatedProducts = allProcessedProducts.slice(startIndex, endIndex);
@@ -252,6 +256,9 @@ async function queryProductsByCategory(
   params: ProductsQueryParams
 ): Promise<CategoryProductsResult | null> {
   const { page, limit } = params;
+  if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1) {
+    return null;
+  }
 
   const category = await prisma.category.findFirst({
     where: { Slug: categoryName },
@@ -271,9 +278,6 @@ async function queryProductsByCategory(
   if (totalCount === 0) {
     return null;
   }
-
-  const totalPages = Math.ceil(totalCount / limit);
-  const currentPageToUse = page > totalPages ? 1 : page;
 
   const allSubCategories = await prisma.categoryContent.findMany({
     orderBy: {
@@ -348,6 +352,10 @@ async function queryProductsByCategory(
     return true;
   });
 
+  const totalPages = Math.ceil(allProcessedProducts.length / limit);
+  if (page > totalPages) return null;
+  const currentPageToUse = page;
+
   const startIndex = (currentPageToUse - 1) * limit;
   const endIndex = Math.min(startIndex + limit, allProcessedProducts.length);
   const paginatedProducts = allProcessedProducts.slice(startIndex, endIndex);
@@ -407,6 +415,9 @@ async function queryProductsBySubcategory(
   params: ProductsQueryParams
 ): Promise<CategoryProductsResult | null> {
   const { page, limit } = params;
+  if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1) {
+    return null;
+  }
 
   const subCategory = await prisma.categoryContent.findFirst({
     where: { Slug: subCategoryName },
@@ -427,9 +438,6 @@ async function queryProductsBySubcategory(
   if (totalCount === 0) {
     return null;
   }
-
-  const totalPages = Math.ceil(totalCount / limit);
-  const currentPageToUse = page > totalPages ? 1 : page;
 
   const allSubCategories = await prisma.categoryContent.findMany({
     orderBy: {
@@ -474,6 +482,10 @@ async function queryProductsBySubcategory(
     const sortedProducts = [...productsInCategory].sort((a, b) => b.ProductId - a.ProductId);
     allProcessedProducts = [...allProcessedProducts, ...sortedProducts];
   }
+
+  const totalPages = Math.ceil(allProcessedProducts.length / limit);
+  if (page > totalPages) return null;
+  const currentPageToUse = page;
 
   const startIndex = (currentPageToUse - 1) * limit;
   const endIndex = Math.min(startIndex + limit, allProcessedProducts.length);

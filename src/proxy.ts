@@ -3,6 +3,7 @@ import { NextResponse, NextRequest } from "next/server";
 
 import { verifyToken } from "@/lib/auth";
 import { negotiate } from "@/lib/contentNegotiation";
+import { parsePositivePageNumber } from "@/lib/pagination";
 
 // Define your JWT secrets (ensure they're stored securely)
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -24,6 +25,74 @@ function htmlResponse() {
   const response = NextResponse.next();
   response.headers.append("Vary", "Accept");
   return response;
+}
+
+type ProductPageCheck =
+  | { type: "all"; page: number }
+  | { type: "category"; category: string; page: number }
+  | { type: "subcategory"; subcategory: string; page: number }
+  | "not-found"
+  | null;
+
+function getProductPageCheck(req: NextRequest): ProductPageCheck {
+  const pathname = req.nextUrl.pathname;
+  const segments = pathname.split("/").filter(Boolean);
+
+  if (pathname === "/products") {
+    const pageValues = req.nextUrl.searchParams.getAll("page");
+    if (pageValues.length === 0) return null;
+    if (pageValues.length !== 1) return "not-found";
+    const page = parsePositivePageNumber(pageValues[0]);
+    return page === null ? "not-found" : { type: "all", page };
+  }
+
+  if (segments[0] !== "products") return null;
+
+  if (segments.length === 3 && segments[1] === "page") {
+    const page = parsePositivePageNumber(segments[2]);
+    return page === null ? "not-found" : { type: "all", page };
+  }
+
+  if (segments.length === 2 && segments[1] !== "search") {
+    return { type: "category", category: segments[1], page: 1 };
+  }
+
+  if (segments.length === 3 && segments[1] !== "page") {
+    return { type: "subcategory", subcategory: segments[2], page: 1 };
+  }
+
+  if (segments.length === 4 && segments[2] === "page") {
+    const page = parsePositivePageNumber(segments[3]);
+    return page === null ? "not-found" : { type: "category", category: segments[1], page };
+  }
+
+  if (segments.length === 5 && segments[3] === "page") {
+    const page = parsePositivePageNumber(segments[4]);
+    return page === null ? "not-found" : { type: "subcategory", subcategory: segments[2], page };
+  }
+
+  return null;
+}
+
+async function hasProductPageData(check: Exclude<ProductPageCheck, "not-found" | null>) {
+  const { hasProductListingPage } = await import("@/lib/data/product-page-validation");
+  return hasProductListingPage(check);
+}
+
+function notFoundResponse(method: string) {
+  const body =
+    method === "HEAD"
+      ? null
+      : '<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><title>صفحه پیدا نشد</title><main><h1>صفحه پیدا نشد</h1><p>صفحه مورد نظر در فهرست محصولات پیدا نشد.</p><a href="/products">مشاهده محصولات</a></main></html>';
+
+  return new NextResponse(body, {
+    status: 404,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store",
+      Vary: "Accept",
+    },
+  });
 }
 
 interface ExtendedNextRequest extends NextRequest {
@@ -67,6 +136,20 @@ const refreshAccessToken = async (refreshToken: string) => {
 export async function proxy(req: ExtendedNextRequest) {
   const pathname = req.nextUrl.pathname;
   const isProtectedRoute = pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
+
+  const isDocumentRequest = req.headers.get("RSC") !== "1";
+  if (isDocumentRequest && (req.method === "GET" || req.method === "HEAD")) {
+    const productPageCheck = getProductPageCheck(req);
+    if (productPageCheck === "not-found") return notFoundResponse(req.method);
+
+    if (productPageCheck) {
+      try {
+        if (!(await hasProductPageData(productPageCheck))) return notFoundResponse(req.method);
+      } catch {
+        console.error("Product page validation failed before rendering.");
+      }
+    }
+  }
 
   // Content negotiation for AI agents (acceptmarkdown.com):
   // serve text/markdown when the client prefers it, and always declare

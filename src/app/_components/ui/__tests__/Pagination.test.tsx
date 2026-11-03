@@ -25,6 +25,7 @@ describe("Pagination (public)", () => {
     const prevBtn = within(desktop).getByText("قبلی");
     expect(firstBtn.hasAttribute("disabled")).toBe(true);
     expect(prevBtn.hasAttribute("disabled")).toBe(true);
+    expect(desktop.querySelector('a[href="/products/page/0"]')).toBeNull();
   });
 
   it("disables next/last on last page in desktop", () => {
@@ -37,6 +38,38 @@ describe("Pagination (public)", () => {
     const lastBtn = within(desktop).getByText("آخرین");
     expect(nextBtn.hasAttribute("disabled")).toBe(true);
     expect(lastBtn.hasAttribute("disabled")).toBe(true);
+    expect(desktop.querySelector('a[href="/products/page/6"]')).toBeNull();
+  });
+
+  it("does not link before page one or after the last category page", () => {
+    const { container } = render(
+      <Pagination currentPage={3} totalPages={3} basePath="/products" categorySlug="x-ray" />
+    );
+
+    const links = Array.from(container.querySelectorAll("a")).map((link) =>
+      link.getAttribute("href")
+    );
+    expect(links).not.toContain("/products/x-ray/page/0");
+    expect(links).not.toContain("/products/x-ray/page/4");
+  });
+
+  it("links page one to the listing root instead of a duplicate page/1 URL", () => {
+    const { container } = render(
+      <Pagination
+        currentPage={2}
+        totalPages={3}
+        basePath="/products"
+        categorySlug="x-ray"
+        subcategorySlug="airport-luggage"
+      />
+    );
+
+    const hrefs = Array.from(container.querySelectorAll("a")).map((link) =>
+      link.getAttribute("href")
+    );
+
+    expect(hrefs).toContain("/products/x-ray/airport-luggage");
+    expect(hrefs).not.toContain("/products/x-ray/airport-luggage/page/1");
   });
 
   it("highlights current page in desktop", () => {

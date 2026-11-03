@@ -1,4 +1,5 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { getProductsByCategory } from "@/lib/data/products";
@@ -14,45 +15,39 @@ interface CategoryPageProps {
 export const generateMetadata = async (props: CategoryPageProps): Promise<Metadata> => {
   const params = await props.params;
   const categoryName = params.category;
+  let data: Awaited<ReturnType<typeof getProductsByCategory>>;
 
   try {
-    const data = await getProductsByCategory(categoryName, { page: 1, limit: 1 });
-
-    if (!data || !data.seoDetails) {
-      return {
-        title: categoryName,
-        description: `محصولات دسته‌بندی ${categoryName}`,
-        robots: {
-          index: true,
-          follow: true,
-        },
-      };
-    }
-
-    const { seoDetails } = data;
-
-    return {
-      title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${categoryName}`,
-      description: seoDetails.SEO_Description || `محصولات دسته‌بندی ${categoryName}`,
-      alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${categoryName}`,
-      },
-      robots: {
-        index: true,
-        follow: true,
-      },
-    };
+    data = await getProductsByCategory(categoryName, { page: 1, limit: 30 });
   } catch (error) {
     console.error(error);
     return {
       title: "دسته‌بندی یافت نشد!",
       description: "دسته‌بندی مورد نظر یافت نشد!",
+      alternates: {
+        canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${categoryName}`,
+      },
       robots: {
         index: false,
         follow: true,
       },
     };
   }
+
+  if (!data) notFound();
+
+  const { seoDetails } = data;
+  return {
+    title: seoDetails?.SEO_Title || `محصولات دسته‌بندی ${categoryName}`,
+    description: seoDetails?.SEO_Description || `محصولات دسته‌بندی ${categoryName}`,
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${categoryName}`,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
 };
 
 export default async function CategoryPage(props: CategoryPageProps) {
@@ -60,6 +55,8 @@ export default async function CategoryPage(props: CategoryPageProps) {
   const categoryName = params.category;
   const currentPage = 1;
   const limit = 30;
+  const categoryData = await getProductsByCategory(categoryName, { page: currentPage, limit });
+  if (!categoryData) notFound();
 
   const canonicalUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/products/${categoryName}`;
   const breadcrumbs = ["/", "/products", `/products/${categoryName}`];
