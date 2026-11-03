@@ -2,6 +2,7 @@ import { cacheLife, cacheTag } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 
+import { buildProductSitemapUrls } from "./sitemap-utils";
 import { TAGS } from "./tags";
 
 const staticUrls = [
@@ -27,9 +28,11 @@ async function querySitemapUrls(): Promise<SitemapResult> {
   const [products, categories, categoryContents, blogs, blogCategories, projects] =
     await Promise.all([
       prisma.product.findMany({
+        where: { Available: true },
         include: {
           Category: {
             select: {
+              CategoryID: true,
               Slug: true,
             },
           },
@@ -38,12 +41,13 @@ async function querySitemapUrls(): Promise<SitemapResult> {
 
       prisma.category.findMany({
         where: { Available: true },
-        select: { Slug: true },
+        select: { CategoryID: true, Slug: true },
       }),
 
       prisma.categoryContent.findMany({
         where: { Available: true },
         select: {
+          CategoryContentId: true,
           Slug: true,
           CategoryID: true,
           Category: {
@@ -80,31 +84,42 @@ async function querySitemapUrls(): Promise<SitemapResult> {
       }),
     ]);
 
-  const productUrls = await Promise.all(
-    products.map(async (product) => {
-      const categorySlug = product.Category?.Slug || null;
+  const productUrls = buildProductSitemapUrls(products, categories, categoryContents);
 
-      const categoryContentIds = product.CategoryContentId
-        ? product.CategoryContentId.split(",").map((id) => parseInt(id.trim(), 10))
-        : [];
+  const availableCategoryIds = new Set(categories.map((category) => category.CategoryID));
+  const categoriesWithProducts = new Set<number>();
+  const subcategoriesWithProducts = new Set<string>();
 
-      const subCategory = await prisma.categoryContent.findFirst({
-        where: {
-          CategoryContentId: { in: categoryContentIds },
-        },
-      });
+  for (const product of products) {
+    const categoryId = product.Category?.CategoryID;
+    if (categoryId === undefined || !availableCategoryIds.has(categoryId)) continue;
 
-      return `https://farabak.net/products/${categorySlug}/${subCategory?.Slug}/${product.Slug}`;
-    })
-  );
+    categoriesWithProducts.add(categoryId);
+    for (const rawId of product.CategoryContentId?.split(",") ?? []) {
+      const categoryContentId = Number.parseInt(rawId.trim(), 10);
+      if (Number.isInteger(categoryContentId)) {
+        subcategoriesWithProducts.add(`${categoryId}:${categoryContentId}`);
+      }
+    }
+  }
 
-  const categoryUrls = categories.map(
-    (category) => `https://farabak.net/products/${category.Slug}`
-  );
+  const categoryUrls = categories.flatMap((category) => {
+    const slug = category.Slug?.trim();
+    if (!slug || !categoriesWithProducts.has(category.CategoryID)) return [];
+    return [`https://farabak.net/products/${slug}`];
+  });
 
   const subcategoryUrls = categoryContents.reduce<string[]>((acc, content) => {
-    if (content.Category?.Slug) {
-      acc.push(`https://farabak.net/products/${content.Category.Slug}/${content.Slug}`);
+    const categorySlug = content.Category?.Slug?.trim();
+    const slug = content.Slug?.trim();
+    if (
+      categorySlug &&
+      slug &&
+      content.CategoryID !== null &&
+      availableCategoryIds.has(content.CategoryID) &&
+      subcategoriesWithProducts.has(`${content.CategoryID}:${content.CategoryContentId}`)
+    ) {
+      acc.push(`https://farabak.net/products/${categorySlug}/${slug}`);
     }
     return acc;
   }, []);
