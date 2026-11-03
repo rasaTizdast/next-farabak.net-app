@@ -7,6 +7,10 @@ const allowedHostnames = [
 ].filter(Boolean);
 
 const nextConfig = {
+  // jsdom reads browser/default-stylesheet.css at runtime. Keeping the
+  // isomorphic sanitizer external avoids bundling that file-relative lookup
+  // into a server chunk where the asset path is no longer valid.
+  serverExternalPackages: ["isomorphic-dompurify", "jsdom"],
   // The framework defaults to a 50 MB in-process cache. Keep a bounded hot
   // cache, but leave headroom for React rendering, Prisma, Sharp, and Node.
   cacheMaxMemorySize: 16 * 1024 * 1024,
@@ -26,14 +30,15 @@ const nextConfig = {
       port: "",
       pathname: "/**",
     })),
-    formats: ["image/webp", "image/avif"],
+    // These origins already store WebP derivatives. Avoid the slower first-hit
+    // AVIF encode on the small production container; WebP remains broadly supported.
+    formats: ["image/webp"],
     deviceSizes: [375, 485, 640, 768, 1024, 1280, 1440, 1536, 1920, 2048],
     imageSizes: [32, 48, 64, 96, 128, 256, 384],
     qualities: [50, 75, 90, 100],
   },
   // Performance optimizations
   experimental: {
-    optimizePackageImports: ["react-icons", "axios"],
     // This app has a large route graph (including many admin/API bundles).
     // Loading every route module at boot consumes most of a small container's
     // memory before it has served a single request. Load routes on demand.
@@ -64,56 +69,6 @@ const nextConfig = {
   trailingSlash: false,
   // Optimize for production
   productionBrowserSourceMaps: false,
-  // Optimize bundle (Note: This uses Webpack, not Turbopack)
-  webpack: (config, { dev, isServer }) => {
-    if (!dev && !isServer) {
-      // Disable source maps in production for better performance
-      config.devtool = false;
-
-      // Optimize bundle splitting for better caching
-      config.optimization.splitChunks = {
-        chunks: "all",
-        minSize: 20000,
-        maxSize: 244000,
-        cacheGroups: {
-          default: {
-            minChunks: 2,
-            priority: -20,
-            reuseExistingChunk: true,
-          },
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: "vendors",
-            priority: -10,
-            chunks: "all",
-            maxSize: 244000,
-          },
-          react: {
-            test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
-            name: "react",
-            priority: 20,
-            chunks: "all",
-          },
-          common: {
-            name: "common",
-            minChunks: 2,
-            chunks: "all",
-            priority: -5,
-            reuseExistingChunk: true,
-            maxSize: 244000,
-          },
-        },
-      };
-
-      // CSS optimization
-      config.optimization.minimize = true;
-
-      // Tree shaking optimization
-      config.optimization.usedExports = true;
-      config.optimization.sideEffects = false;
-    }
-    return config;
-  },
 };
 
 export default nextConfig;
