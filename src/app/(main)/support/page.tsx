@@ -74,6 +74,7 @@ const SupportPage = () => {
                 ["دریافت نرم‌افزار", "/support/download-center", Download],
                 ["پیگیری گارانتی", "/support/warranty-tracking", ShieldCheck],
                 ["مطالعه راهنماها", "/support/blog", BookOpenText],
+                ["ابزارهای انتخاب و برآورد", "/support/tools", CircleHelp],
               ].map(([label, href, Icon]) => (
                 <ActionLink
                   key={href as string}

@@ -1,0 +1,28 @@
+@media print {
+  @page {
+    margin: 16mm;
+  }
+
+  body {
+    background: white !important;
+    color: #061a30 !important;
+  }
+
+  body:has(#brief-preview) * {
+    visibility: hidden !important;
+  }
+
+  body:has(#brief-preview) #brief-preview,
+  body:has(#brief-preview) #brief-preview * {
+    visibility: visible !important;
+  }
+
+  #brief-preview {
+    width: 100% !important;
+  }
+
+  #brief-preview .brief-print-content {
+    font-size: 11pt !important;
+    line-height: 1.8 !important;
+  }
+}
