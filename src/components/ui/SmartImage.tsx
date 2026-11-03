@@ -19,10 +19,14 @@ export default function SmartImage({
   style,
   fill,
   sizes,
+  unoptimized,
+  onError,
+  onLoad,
   ...props
 }: SmartImageProps) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
+  const [retryWithoutOptimization, setRetryWithoutOptimization] = useState(false);
 
   // Handle both load and error events for reliability
   return (
@@ -33,15 +37,23 @@ export default function SmartImage({
       className={`transition-opacity duration-300 ease-out ${
         loaded || error ? "opacity-100" : "opacity-95"
       } ${className ?? ""}`}
-      onLoad={() => setLoaded(true)}
-      onError={() => {
+      onLoad={(event) => {
+        setLoaded(true);
+        onLoad?.(event);
+      }}
+      onError={(event) => {
+        if (!unoptimized && !retryWithoutOptimization) {
+          setRetryWithoutOptimization(true);
+        }
         setError(true);
         setLoaded(true);
+        onError?.(event);
       }}
       preload={preload ?? priority}
       loading={preload || priority ? undefined : "lazy"}
       fill={fill}
-      sizes={fill ? (sizes ?? "100vw") : undefined}
+      sizes={sizes ?? (fill ? "100vw" : undefined)}
+      unoptimized={unoptimized || retryWithoutOptimization}
       style={style}
       {...props}
     />
