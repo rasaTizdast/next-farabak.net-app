@@ -7,7 +7,6 @@ export function assessScannerFit(input: SiteFitInput, facts: ScannerFitFacts): F
 
   const objectComparisons = [
     ["عرض شیء و دهانه", input.objectWidthMm, facts.tunnelWidthMm],
-    ["ارتفاع شیء و دهانه", input.objectHeightMm, facts.tunnelHeightMm],
   ] as const;
 
   for (const [label, object, opening] of objectComparisons) {
@@ -23,6 +22,7 @@ export function assessScannerFit(input: SiteFitInput, facts: ScannerFitFacts): F
       }
     }
   }
+  if (facts.tunnelHeightMm === null) missing.push("ارتفاع مفید دهانه در منبع سازنده مشخص نشده است");
 
   const siteComparisons = [
     ["عرض مسیر تحویل", input.pathWidthMm, facts.outerWidthMm],
@@ -39,6 +39,26 @@ export function assessScannerFit(input: SiteFitInput, facts: ScannerFitFacts): F
         passed.push(`${label}: ${machine + input.handlingClearanceMm} میلی‌متر در محدوده ${route} میلی‌متر`);
       } else {
         failed.push(`${label}: ${machine + input.handlingClearanceMm} میلی‌متر بیشتر از محدوده ${route} میلی‌متر`);
+      }
+    }
+  }
+
+  const placementComparisons = [
+    ["عرض فضای نصب", input.placementWidthMm, facts.outerWidthMm],
+    ["طول فضای نصب", input.placementLengthMm, facts.outerLengthMm],
+    ["ارتفاع محل نصب", input.placementHeightMm, facts.outerHeightMm],
+  ] as const;
+
+  for (const [label, site, machine] of placementComparisons) {
+    if (site === null) missing.push(`${label} وارد نشده است`);
+    if (machine === null) missing.push(`بعد دستگاه برای ${label} در منبع موجود نیست`);
+    if (site !== null && machine !== null) {
+      if (input.handlingClearanceMm === null) {
+        missing.push("فضای جابه‌جایی/نصب دستگاه وارد نشده است");
+      } else if (machine + input.handlingClearanceMm <= site) {
+        passed.push(`${label}: ${machine + input.handlingClearanceMm} میلی‌متر در محدوده ${site} میلی‌متر`);
+      } else {
+        failed.push(`${label}: ${machine + input.handlingClearanceMm} میلی‌متر بیشتر از محدوده ${site} میلی‌متر`);
       }
     }
   }

@@ -6,11 +6,13 @@ export interface ScannerFitFacts {
   href: string;
   tunnelWidthMm: Dimension;
   tunnelHeightMm: Dimension;
+  tunnelWidthIsMaximumAtConveyorEdge: boolean;
   outerWidthMm: Dimension;
   outerLengthMm: Dimension;
   outerHeightMm: Dimension;
   conveyorSpeedMps: Dimension;
-  sourceLabel: string;
+  sourceUrl: string;
+  checkedOn: string;
 }
 
 export interface SiteFitInput {

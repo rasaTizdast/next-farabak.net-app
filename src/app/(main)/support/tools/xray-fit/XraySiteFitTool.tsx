@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 
-import { describeFlowRequirement } from "@/features/support-tools/xray-fit/fit";
+import { describeFlowRequirement, assessScannerFit } from "@/features/support-tools/xray-fit/fit";
+import { scannerCatalog } from "@/features/support-tools/xray-fit/catalog";
 import type { FieldKey, SiteFitInput } from "@/features/support-tools/xray-fit/types";
 
 type Unit = "mm" | "cm";
@@ -62,6 +63,7 @@ export default function XraySiteFitTool() {
     return value === null ? "" : String(key === "requiredItemsPerHour" ? value : value / multiplier);
   };
   const dimensionsEntered = useMemo(() => Object.entries(input).filter(([key, value]) => key !== "requiredItemsPerHour" && typeof value === "number").length, [input]);
+  const results = useMemo(() => scannerCatalog.map((facts) => ({ facts, result: assessScannerFit(input, facts) })), [input]);
 
   function updateField(key: FieldKey, value: string) {
     if (!/^\d*(?:\.\d*)?$/.test(value)) return;
@@ -124,18 +126,32 @@ export default function XraySiteFitTool() {
       <aside aria-labelledby="xray-result-title" className="min-w-0 border-t-4 border-(--farabak-action-blue) bg-slate-50 p-4 sm:p-6 lg:sticky lg:top-6">
         <div aria-live="polite" aria-atomic="true">
           <p className="text-sm font-semibold text-(--farabak-action-blue)">خلاصهٔ محل و مسیر</p>
-          <h2 id="xray-result-title" className="mt-2 text-2xl font-bold text-(--farabak-ink-deep)">نیازمند بررسی مشخصات مدل</h2>
-          <p className="mt-3 text-sm leading-7 text-slate-700">در حال حاضر ابعاد مستند دهانه و بدنهٔ مدل‌های فهرست‌شده در دادهٔ قابل‌استفادهٔ این ابزار در دسترس نیست؛ بنابراین هیچ مدل یا نتیجهٔ تطبیقی نمایش داده نمی‌شود.</p>
+          <h2 id="xray-result-title" className="mt-2 text-2xl font-bold text-(--farabak-ink-deep)">مقایسهٔ مقدماتی مدل‌های دارای مشخصات منتشرشده</h2>
+          <p className="mt-3 text-sm leading-7 text-slate-700">ابعاد منتشرشدهٔ سازنده مقایسه می‌شوند؛ نبودن ارتفاع دهانه یا جزئیات نصب به معنی نیاز به بررسی است.</p>
         </div>
         <figure className="mt-6 rounded-xl border border-slate-200 bg-white p-4" aria-labelledby="xray-diagram-caption">
           <figcaption id="xray-diagram-caption" className="text-sm font-bold text-slate-800">مسیر اندازه‌گیری: قلم ← دهانهٔ دستگاه ← مسیر و محل نصب</figcaption>
           <div className="mt-4 grid grid-cols-3 items-stretch gap-2 text-center text-xs font-semibold leading-6 sm:text-sm">
             <div className="flex min-h-24 flex-col items-center justify-center border-2 border-dashed border-slate-500 p-2"><span>قلم</span><span>عرض: {displayDimension(input.objectWidthMm)}</span><span>ارتفاع: {displayDimension(input.objectHeightMm)}</span></div>
-            <div className="flex min-h-24 flex-col items-center justify-center border-x-4 border-y-2 border-(--farabak-ink-deep) bg-slate-100 p-2"><span>دهانه</span><span>عرض و ارتفاع: نیازمند منبع</span></div>
+            <div className="flex min-h-24 flex-col items-center justify-center border-x-4 border-y-2 border-(--farabak-ink-deep) bg-slate-100 p-2"><span>دهانه</span><span>عرض مفید و ارتفاع: نیازمند تأیید</span></div>
             <div className="flex min-h-24 flex-col items-center justify-center border-2 border-(--farabak-action-blue) p-2"><span>مسیر / محل</span><span>مسیر: {displayDimension(input.pathWidthMm)}</span><span>عرض نصب: {displayDimension(input.placementWidthMm)}</span></div>
           </div>
           <p className="mt-3 text-xs leading-6 text-slate-600">نمای شماتیک است و مقیاس واقعی را نشان نمی‌دهد. وضعیت: بررسی متخصص لازم است.</p>
         </figure>
+        <section className="mt-6" aria-labelledby="xray-candidates-title">
+          <h3 id="xray-candidates-title" className="font-bold text-(--farabak-ink-deep)">نتیجه برای مدل‌های فهرست‌شده</h3>
+          <ul className="mt-3 space-y-4">
+            {results.map(({ facts, result }) => <li key={facts.productId} className="border-r-2 border-(--farabak-action-blue) bg-white p-4">
+              <h4 className="font-bold"><Link className="text-(--farabak-action-blue) underline underline-offset-4" href={facts.href}><bdi dir="ltr">{facts.name}</bdi></Link> — {result.status === "does-not-fit" ? "عدم تطبیق ابعاد شناخته‌شده" : result.status === "fits" ? "ابعاد شناخته‌شده در محدوده است" : "نیازمند بررسی"}</h4>
+              <p className="mt-2 text-sm leading-7">عرض اعلام‌شدهٔ دهانه: {facts.tunnelWidthMm?.toLocaleString("fa-IR")} میلی‌متر (بیشینه در لبهٔ نوار؛ ابعاد مفید در ارتفاع قلم تأیید نشده)؛ ارتفاع دهانه در منبع نیامده است. ابعاد بدنه، عرض × ارتفاع × طول: {facts.outerWidthMm?.toLocaleString("fa-IR")} × {facts.outerHeightMm?.toLocaleString("fa-IR")} × {facts.outerLengthMm?.toLocaleString("fa-IR")} میلی‌متر.</p>
+              {result.passed.map((reason) => <p key={reason} className="mt-2 text-sm font-semibold">تطبیق ابعاد: {reason}</p>)}
+              {result.failed.map((reason) => <p key={reason} className="mt-2 text-sm font-semibold text-red-800">عدم تطبیق: {reason}</p>)}
+              {result.missing.map((reason) => <p key={reason} className="mt-2 text-sm">نیازمند بررسی: {reason}</p>)}
+              <p className="mt-3 text-xs text-slate-600">منبع: <a className="underline underline-offset-4" href={facts.sourceUrl} target="_blank" rel="noreferrer">صفحهٔ سازندهٔ <bdi dir="ltr">{facts.name}</bdi></a> · بررسی منبع: ۱۴۰۵/۰۸/۱۲</p>
+            </li>)}
+          </ul>
+          {results.length === 0 && <p className="mt-2 text-sm leading-7">هیچ مدل فهرست‌شده با ابعاد قابل استناد ثبت نشده است. اطلاعات محل را ثبت کنید تا به‌عنوان خلاصهٔ بازدید استفاده شود؛ ارزیابی دستگاه پس از دریافت مشخصات سازنده انجام می‌شود.</p>}
+        </section>
         <section className="mt-6" aria-labelledby="xray-measurements-title">
           <h3 id="xray-measurements-title" className="font-bold text-(--farabak-ink-deep)">اطلاعات واردشده</h3>
           <dl className="mt-3 divide-y divide-slate-200 border-y border-slate-200 text-sm">
