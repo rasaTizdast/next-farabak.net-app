@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowUpLeft, Camera, CircleDot, Presentation, ScanLine } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -7,106 +7,158 @@ import { PublicShell } from "@/components/public/PublicShell";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/support/tools" },
-  title: "ابزارهای انتخاب و برآورد تجهیزات | فرابک",
+  title: "ابزارهای برآورد تجهیزات و فضای نصب | فرابک",
   description:
-    "پیش از انتخاب تجهیزات، نیاز پروژه‌تان را برآورد کنید یا یک شرح پروژه روشن برای گفت‌وگو با کارشناسان فرابک آماده کنید.",
+    "ابزارهای تعاملی فرابک برای برآورد ظرفیت ذخیره‌سازی دوربین، بررسی اولیه تناسب دستگاه ایکس‌ری و برنامه‌ریزی تصویر اتاق جلسه.",
 };
 
 const tools = [
   {
-    category: "سامانه نظارت تصویری",
-    title: "برآورد فضای ذخیره‌سازی دوربین‌ها",
+    number: "01",
+    eyebrow: "سامانه نظارت تصویری",
+    title: "فضای ذخیره‌سازی دوربین",
     description:
-      "حجم تصویر، تعداد دوربین و مدت نگهداری را کنار هم بگذارید تا نیاز ذخیره‌سازی روشن شود.",
+      "تعداد دوربین، کیفیت تصویر و مدت نگهداری را وارد کنید؛ ظرفیت موردنیاز را زنده ببینید.",
+    outcome: "ظرفیت و تفکیک گروه‌ها",
     href: "/support/tools/cctv-storage",
+    icon: Camera,
+    accent: "border-t-cyan-500",
+    iconTone: "bg-cyan-50 text-cyan-800",
   },
   {
-    category: "بازرسی و کنترل تردد",
-    title: "بررسی اولیه تناسب دستگاه ایکس‌ری",
-    description: "ابعاد اشیا و شیوه عبور را مشخص کنید تا محدوده مناسب دستگاه‌های بازرسی را بسنجید.",
+    number: "02",
+    eyebrow: "بازرسی و کنترل تردد",
+    title: "تناسب اولیه دستگاه ایکس‌ری",
+    description:
+      "ابعاد قلم، مسیر عبور و فضای نصب را مرحله‌به‌مرحله ثبت کنید و موارد نیازمند بررسی را ببینید.",
+    outcome: "مقایسهٔ ابعاد منتشرشده",
     href: "/support/tools/xray-fit",
+    icon: ScanLine,
+    accent: "border-t-amber-500",
+    iconTone: "bg-amber-50 text-amber-800",
   },
   {
-    category: "تولید و ضبط تصویر",
-    title: "برآورد زمان ضبط Blackmagic",
-    description: "قالب ضبط و رسانه را وارد کنید تا برآوردی از زمان ضبط در دسترس داشته باشید.",
-    href: "/support/tools/blackmagic-record-time",
-  },
-  {
-    category: "جلسه و ارائه",
-    title: "برنامه‌ریزی نمایشگر اتاق جلسه",
+    number: "03",
+    eyebrow: "جلسه و ارائه",
+    title: "برنامه‌ریزی نمایش اتاق",
     description:
-      "اندازه اتاق و فاصله دید را بررسی کنید تا برای انتخاب نمایشگر اطلاعات اولیه داشته باشید.",
+      "ابعاد اتاق و جای نشستن را تغییر دهید؛ شماتیک تصویر و فاصلهٔ نصب را همان لحظه بررسی کنید.",
+    outcome: "پیش‌نمایش زندهٔ پروژکتور",
     href: "/support/tools/meeting-room",
-  },
-  {
-    category: "شرح نیاز پروژه",
-    title: "ساخت شرح پروژه",
-    description:
-      "پرسش‌های مرتبط با نوع پروژه را پاسخ دهید و یک برگه قابل چاپ برای گفت‌وگوی دقیق‌تر بسازید.",
-    href: "/support/tools/project-brief",
+    icon: Presentation,
+    accent: "border-t-violet-500",
+    iconTone: "bg-violet-50 text-violet-800",
   },
 ] as const;
 
 export default function ToolsPage() {
   return (
-    <PublicShell className="pt-6 pb-12 sm:pt-8 sm:pb-16">
+    <PublicShell className="pt-6 pb-14 sm:pt-8 sm:pb-20">
       <PublicBreadcrumbs
         breadcrumbs={["/", "/support", "/support/tools"]}
         labels={{ "/support/tools": "ابزارهای آنلاین" }}
       />
-      <header className="grid gap-6 border-b border-slate-200 py-7 sm:py-10 md:grid-cols-[1fr_auto] md:items-end">
-        <div className="max-w-4xl">
-          <p className="text-sm font-semibold text-(--farabak-action-blue)">
-            پیش از انتخاب تجهیزات
-          </p>
-          <h1 className="mt-3 text-3xl leading-[1.4] font-bold tracking-tight text-(--farabak-ink-deep) sm:text-4xl md:text-5xl">
-            نیاز پروژه را روشن‌تر ببینید
-          </h1>
-          <p className="mt-4 max-w-3xl text-base leading-8 text-(--farabak-ink-muted) sm:text-lg">
-            برای برآورد اولیه یا آماده‌کردن پرسش‌های پروژه، ابزاری را بر اساس کاری که می‌خواهید
-            انجام دهید انتخاب کنید. نتیجه‌ها نقطه شروع بررسی‌اند و جایگزین طراحی تخصصی نیستند.
+
+      <section className="relative mt-6 overflow-hidden rounded-2xl bg-[#071d35] text-white sm:mt-8">
+        <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-32 -left-12 size-80 rounded-full border border-white/10" />
+          <div className="absolute -top-22 -left-2 size-60 rounded-full border border-white/10" />
+          <div className="absolute bottom-0 left-0 h-px w-full bg-linear-to-r from-transparent via-cyan-300/50 to-transparent" />
+          <CircleDot
+            className="absolute top-1/2 left-[12%] size-24 -translate-y-1/2 text-cyan-200/15"
+            strokeWidth={1}
+          />
+        </div>
+        <div className="relative grid gap-9 px-6 py-9 sm:px-10 sm:py-12 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:p-14">
+          <div className="max-w-3xl">
+            <p className="flex items-center gap-2 text-sm font-semibold text-cyan-200">
+              <span className="size-1.5 rounded-full bg-cyan-300" />
+              ابزارهای تصمیم‌گیری فرابک
+            </p>
+            <h1 className="mt-4 text-3xl leading-[1.45] font-bold tracking-tight sm:text-4xl lg:text-5xl">
+              قبل از انتخاب، تصویر روشن‌تری بسازید.
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm leading-8 text-slate-300 sm:text-base">
+              اطلاعات پروژه را وارد کنید و برآورد را همان لحظه ببینید. هر ابزار یک کار مشخص را ساده
+              می‌کند و خروجی‌اش برای شروع گفت‌وگو با کارشناس آماده است.
+            </p>
+          </div>
+          <Link
+            href="/support"
+            className="inline-flex min-h-12 w-fit items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:outline-none"
+          >
+            بازگشت به پشتیبانی <ArrowLeft aria-hidden="true" className="size-4" />
+          </Link>
+          <div className="flex flex-wrap gap-2 border-t border-white/10 pt-5 text-xs font-medium text-slate-300 lg:col-span-2">
+            <span className="rounded-full bg-white/8 px-3 py-2">برآورد زنده</span>
+            <span className="rounded-full bg-white/8 px-3 py-2">ورودی‌های قابل ویرایش</span>
+            <span className="rounded-full bg-white/8 px-3 py-2">گزارش PDF برای هر ابزار</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-10 sm:mt-14" aria-labelledby="tools-list-heading">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-4 sm:mb-7">
+          <div>
+            <p className="text-xs font-bold tracking-wide text-(--farabak-action-blue)">
+              انتخاب ابزار
+            </p>
+            <h2
+              id="tools-list-heading"
+              className="mt-2 text-2xl font-bold text-(--farabak-ink-deep) sm:text-3xl"
+            >
+              از کجا شروع کنیم؟
+            </h2>
+          </div>
+          <p className="max-w-md text-sm leading-7 text-(--farabak-ink-muted)">
+            کاری را که می‌خواهید انجام دهید انتخاب کنید؛ برای شروع، همهٔ ابزارها به اطلاعات اولیه
+            نیاز دارند.
           </p>
         </div>
-        <Link
-          href="/support"
-          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-(--farabak-ink-deep) underline-offset-4 hover:text-(--farabak-action-blue) hover:underline focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue)"
-        >
-          بازگشت به پشتیبانی <ArrowLeft aria-hidden="true" className="size-4" />
-        </Link>
-      </header>
 
-      <nav aria-label="ابزارهای آنلاین" className="mt-2">
-        <ol className="divide-y divide-slate-200">
-          {tools.map((tool, index) => (
-            <li key={tool.href}>
+        <nav aria-label="ابزارهای آنلاین" className="grid gap-4 md:grid-cols-3">
+          {tools.map((tool) => {
+            const Icon = tool.icon;
+            return (
               <Link
+                key={tool.href}
                 href={tool.href}
-                className="group grid gap-3 py-6 transition-colors duration-150 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--farabak-action-blue) motion-reduce:transition-none sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:items-center sm:gap-5 sm:py-7"
+                className={`group flex min-h-80 flex-col rounded-xl border border-t-4 border-slate-200 ${tool.accent} bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:outline-none motion-reduce:transform-none motion-reduce:transition-none sm:p-6`}
               >
-                <span aria-hidden="true" className="font-mono text-sm text-slate-400" dir="ltr">
-                  {String(index + 1).padStart(2, "0")}
+                <div className="flex items-start justify-between gap-3">
+                  <span className={`grid size-12 place-items-center rounded-xl ${tool.iconTone}`}>
+                    <Icon aria-hidden="true" className="size-5" strokeWidth={1.8} />
+                  </span>
+                  <span dir="ltr" className="font-mono text-sm font-semibold text-slate-400">
+                    {tool.number}
+                  </span>
+                </div>
+                <span className="mt-6 text-xs font-bold text-(--farabak-action-blue)">
+                  {tool.eyebrow}
                 </span>
-                <span>
-                  <span className="text-xs font-semibold text-(--farabak-action-blue)">
-                    {tool.category}
-                  </span>
-                  <span className="mt-1 block text-xl font-bold text-(--farabak-ink-deep) group-hover:text-(--farabak-action-blue) sm:text-2xl">
-                    {tool.title}
-                  </span>
-                  <span className="mt-2 block max-w-3xl text-sm leading-7 text-(--farabak-ink-muted) sm:text-base">
-                    {tool.description}
-                  </span>
+                <span className="mt-2 text-xl leading-8 font-bold text-(--farabak-ink-deep) group-hover:text-(--farabak-action-blue)">
+                  {tool.title}
                 </span>
-                <ArrowLeft
-                  aria-hidden="true"
-                  className="hidden size-5 text-(--farabak-action-blue) transition-transform group-hover:-translate-x-1 motion-reduce:transition-none sm:block"
-                />
+                <span className="mt-2 text-sm leading-7 text-(--farabak-ink-muted)">
+                  {tool.description}
+                </span>
+                <span className="mt-auto flex items-center justify-between gap-3 border-t border-slate-100 pt-5 text-xs font-semibold text-slate-600">
+                  <span>{tool.outcome}</span>
+                  <ArrowUpLeft
+                    aria-hidden="true"
+                    className="size-4 text-(--farabak-action-blue) transition-transform group-hover:-translate-1 motion-reduce:transition-none"
+                  />
+                </span>
               </Link>
-            </li>
-          ))}
-        </ol>
-      </nav>
+            );
+          })}
+        </nav>
+      </section>
+
+      <p className="mt-7 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm leading-7 text-slate-600">
+        نتیجه‌ها برآورد اولیه بر پایهٔ اطلاعات واردشده‌اند؛ پیش از انتخاب نهایی، مشخصات پروژه و
+        شرایط محل را با کارشناس بررسی کنید.
+      </p>
     </PublicShell>
   );
 }
