@@ -30,6 +30,7 @@ const headerSubMenuData: MenuItem[] = [
         link: "/support/download-center",
       },
       { id: 4, title: "سوالات متداول", link: "/support/faq" },
+      { id: 5, title: "ابزارهای انتخاب تجهیزات", link: "/support/tools" },
     ],
   },
   {

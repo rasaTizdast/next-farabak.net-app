@@ -38,7 +38,10 @@ const Breadcrumb: React.FC<BreadcrumbProps> = async ({ breadcrumbs, labels }) =>
       <nav className="scrollbar-hide mb-5 w-full scrollbar-none overflow-x-auto rounded-lg bg-linear-to-l from-[#003262] via-[#0e6aff] to-[#1e90ff] p-4 text-sm text-white shadow-lg [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         <div className="flex min-w-max items-center space-x-2">
           {breadcrumbs.map((crumb, idx) => (
-            <div key={crumb} className="flex items-center whitespace-nowrap">
+            <div
+              key={crumb}
+              className={`items-center whitespace-nowrap ${idx < breadcrumbs.length - 2 ? "hidden sm:flex" : "flex"}`}
+            >
               {idx > 0 && (
                 <span className="mx-2 sm:mx-3" aria-hidden="true">
                   <IoIosArrowBack />
@@ -48,6 +51,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = async ({ breadcrumbs, labels }) =>
                 href={crumb}
                 className="text-white underline-offset-[6px] hover:underline"
                 aria-label={`Navigate to ${names[crumb]}`}
+                aria-current={idx === breadcrumbs.length - 1 ? "page" : undefined}
               >
                 {names[crumb] || "نامشخص"}
               </Link>

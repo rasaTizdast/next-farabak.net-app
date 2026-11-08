@@ -40,6 +40,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.8,
       },
       {
+        url: "https://farabak.net/support/tools",
+        lastModified: new Date(),
+        changeFrequency: "weekly",
+        priority: 0.7,
+      },
+      ...["cctv-storage", "xray-fit", "meeting-room"].map((tool) => ({
+        url: `https://farabak.net/support/tools/${tool}`,
+        lastModified: new Date(),
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+      })),
+      {
         url: "https://farabak.net/about-us",
         lastModified: new Date(),
         changeFrequency: "monthly",
@@ -73,6 +85,10 @@ function getPriority(url: string): number {
     return 0.7; // Subcategory pages
   } else if (url.match(/\/products\/[^\/]+\/[^\/]+\/[^\/]+$/)) {
     return 0.6; // Individual product pages
+  } else if (url === "https://farabak.net/support/tools") {
+    return 0.7; // Support tools index
+  } else if (url.includes("/support/tools/")) {
+    return 0.6; // Interactive support tools
   } else if (url.includes("/support/blog/")) {
     return 0.7; // Blog posts
   } else if (url.includes("/about-us/projects/")) {
