@@ -1,11 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { PiUserCircleDashedFill } from "react-icons/pi";
 
 import { useUser } from "@/context/UserContext";
 
-import UserDropDown from "../userDropDown/UserDropDown";
+const UserDropDown = dynamic(() => import("../userDropDown/UserDropDown"));
 
 const UserStatusIcon = () => {
   const router = useRouter();

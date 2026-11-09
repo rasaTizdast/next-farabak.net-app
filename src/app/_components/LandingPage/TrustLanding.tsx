@@ -327,7 +327,7 @@ function StoryChapter({ story, index }: { story: LandingStory; index: number }) 
                   alt={media.alt}
                   width={1536}
                   height={1024}
-                  quality={100}
+                  quality={75}
                   sizes="(max-width: 767px) calc(100vw - 48px), (max-width: 1200px) 50vw, 60vw"
                   className="size-full object-cover transition-transform duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.035]"
                 />
@@ -400,7 +400,7 @@ function BlackwonderRange() {
                 alt="مجموعه‌ای از تجهیزات نظارت صنعتی BlackWonder شامل دوربین‌ها، محفظه‌ها و متعلقات نصب"
                 width={1536}
                 height={1024}
-                quality={100}
+                quality={75}
                 sizes="(max-width: 1024px) 100vw, 52vw"
                 className="size-full object-cover"
               />
@@ -458,7 +458,7 @@ function Projects({
                         src={image}
                         alt={project.title}
                         fill
-                        quality={100}
+                        quality={75}
                         sizes={
                           index === 0
                             ? "(max-width: 1024px) 100vw, 58vw"
@@ -549,7 +549,7 @@ function Knowledge({ blogs }: Pick<HomepageData, "blogs">) {
                           ? "(max-width: 1024px) 100vw, 58vw"
                           : "(max-width: 1024px) 100vw, 25vw"
                       }
-                      quality={100}
+                      quality={75}
                       className="size-full object-cover transition-transform duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.035]"
                     />
                   </div>

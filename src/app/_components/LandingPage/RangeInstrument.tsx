@@ -141,10 +141,10 @@ export default function RangeInstrument({ items }: Props) {
                 alt={active.alt}
                 width={1536}
                 height={1024}
+                quality={75}
                 sizes="(max-width: 767px) calc(100vw - 48px), (max-width: 1200px) 50vw, 60vw"
                 loading="eager"
                 fetchPriority="high"
-                unoptimized
                 className="size-full object-cover"
               />
             </picture>

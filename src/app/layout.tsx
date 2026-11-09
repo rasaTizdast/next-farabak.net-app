@@ -31,15 +31,10 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl">
       <head>
-        {/* Preconnect to external domains for better performance */}
-        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        {/* These origins are not needed for first paint, so use DNS hints only. */}
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
-        {/* Preconnect to image CDN to speed up slider image fetch */}
         {process.env.LIARA_BUCKET_URL && (
-          <>
-            <link rel="preconnect" href={process.env.LIARA_BUCKET_URL} crossOrigin="anonymous" />
-            <link rel="dns-prefetch" href={process.env.LIARA_BUCKET_URL} />
-          </>
+          <link rel="dns-prefetch" href={process.env.LIARA_BUCKET_URL} />
         )}
 
         {/* Google Analytics Script - lazy load to reduce TBT */}
