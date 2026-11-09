@@ -37,10 +37,11 @@ describe("GET /api/invoice/retrieve", () => {
     vi.clearAllMocks();
   });
 
-  it("returns 404 when no cookie exists", async () => {
+  it("returns an empty invoice when no cookie exists", async () => {
     const req = makeGetRequest();
     const res = await GET(req);
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toMatchObject({ data: null });
   });
 
   it("returns 400 when token verification fails", async () => {

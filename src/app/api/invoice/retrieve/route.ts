@@ -12,9 +12,7 @@ const COOKIE_NAME = "invoiceData";
  *     tags: [invoice]
  *     responses:
  *       200:
- *         description: Returns the invoice data if available
- *       404:
- *         description: No invoice data found
+ *         description: Returns the invoice data, or null when no invoice exists
  *       400:
  *         description: Invalid or expired invoice data
  */
@@ -25,7 +23,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const token = request.cookies.get(COOKIE_NAME)?.value;
 
     if (!token) {
-      return NextResponse.json({ message: "No invoice data found", data: null }, { status: 404 });
+      return NextResponse.json({ message: "No invoice data found", data: null });
     }
 
     // Verify and decode the JWT
