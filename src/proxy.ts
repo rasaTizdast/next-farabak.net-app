@@ -79,17 +79,49 @@ async function hasProductPageData(check: Exclude<ProductPageCheck, "not-found" |
   return hasProductListingPage(check);
 }
 
-function notFoundResponse(method: string) {
+export function notFoundResponse(method: string) {
   const body =
     method === "HEAD"
       ? null
-      : '<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><title>صفحه پیدا نشد</title><main><h1>صفحه پیدا نشد</h1><p>صفحه مورد نظر در فهرست محصولات پیدا نشد.</p><a href="/products">مشاهده محصولات</a></main></html>';
+      : `<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, follow">
+  <title>صفحه پیدا نشد | فرابک</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #f7f9fc; color: #061a30; font-family: system-ui, sans-serif; }
+    header { padding: 1.25rem max(1.5rem, calc((100vw - 1100px) / 2)); border-bottom: 1px solid #dce5ef; background: #fff; }
+    header a { color: #061a30; font-size: 1.25rem; font-weight: 800; text-decoration: none; }
+    main { display: flex; min-height: calc(100vh - 78px); flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 3rem 1.5rem; text-align: center; }
+    img { display: block; width: min(100%, 700px); height: auto; }
+    h1 { margin: 0; font-size: clamp(1.5rem, 3vw, 2rem); }
+    p { margin: 0; line-height: 1.9; color: #526579; }
+    nav { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: .5rem; }
+    nav a { min-height: 44px; display: inline-flex; align-items: center; padding: .65rem 1.25rem; border-radius: .5rem; border: 1px solid #1265e8; color: #1265e8; font-weight: 700; text-decoration: none; }
+    nav a:first-child { background: #1265e8; color: #fff; }
+    a:focus-visible { outline: 3px solid #1265e8; outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <header><a href="/">فرابک</a></header>
+  <main>
+    <img src="/404.png" width="1366" height="666" alt="">
+    <h1>صفحه پیدا نشد</h1>
+    <p>صفحه مورد نظر در فهرست محصولات پیدا نشد.</p>
+    <nav aria-label="مسیرهای پیشنهادی"><a href="/products">مشاهده محصولات</a><a href="/contact-us">ارتباط با ما</a></nav>
+  </main>
+</body>
+</html>`;
 
   return new NextResponse(body, {
     status: 404,
     headers: {
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "no-store",
+      "X-Robots-Tag": "noindex",
       Vary: "Accept",
     },
   });

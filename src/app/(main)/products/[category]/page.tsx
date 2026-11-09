@@ -15,24 +15,7 @@ interface CategoryPageProps {
 export const generateMetadata = async (props: CategoryPageProps): Promise<Metadata> => {
   const params = await props.params;
   const categoryName = params.category;
-  let data: Awaited<ReturnType<typeof getProductsByCategory>>;
-
-  try {
-    data = await getProductsByCategory(categoryName, { page: 1, limit: 30 });
-  } catch (error) {
-    console.error(error);
-    return {
-      title: "دسته‌بندی یافت نشد!",
-      description: "دسته‌بندی مورد نظر یافت نشد!",
-      alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${categoryName}`,
-      },
-      robots: {
-        index: false,
-        follow: true,
-      },
-    };
-  }
+  const data = await getProductsByCategory(categoryName, { page: 1, limit: 30 });
 
   if (!data) notFound();
 

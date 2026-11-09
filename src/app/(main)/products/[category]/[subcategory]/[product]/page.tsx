@@ -21,81 +21,9 @@ export async function generateMetadata(props: ProductPageProps): Promise<Metadat
   const params = await props.params;
   const productSlug = params.product;
 
-  try {
-    const data = (await getProductBySlug(productSlug)) as any;
+  const data = (await getProductBySlug(productSlug)) as any;
 
-    if (!data) {
-      return {
-        title: "محصولی یافت نشد | فرابک",
-        description: "محصول مورد نظر یافت نشد.",
-        robots: {
-          index: false,
-          follow: true,
-        },
-      };
-    }
-
-    // Check if the product is not available and does not have a QR code key
-    if (!data.Available && !data.QrCode_key) {
-      return {
-        title: "محصولی یافت نشد | فرابک",
-        description: "محصول مورد نظر یافت نشد.",
-        robots: {
-          index: false,
-          follow: true,
-        },
-      };
-    }
-
-    // Check QR code conditions
-    if (data.QrCode_key) {
-      const { key: urlKey } = searchParams;
-
-      // If there's no key in the URL or the key in the URL doesn't match the product's QR code key
-      if (!urlKey || urlKey !== data.QrCode_key) {
-        return {
-          title: "محصولی یافت نشد | فرابک",
-          description: "محصول مورد نظر یافت نشد.",
-          robots: {
-            index: false,
-            follow: true,
-          },
-        };
-      }
-
-      // Check if the QR code has expired
-      await io();
-      const expiryDate = new Date(data.QrCode_expiryDays);
-      if (new Date() > expiryDate) {
-        return {
-          title: "محصولی یافت نشد | فرابک",
-          description: "محصول مورد نظر یافت نشد.",
-          robots: {
-            index: false,
-            follow: true,
-          },
-        };
-      }
-    }
-
-    return {
-      title: formatTitle(data.SEO_Title || data.Type, 60),
-      description: data.SEO_Description || data.Name,
-      openGraph: {
-        title: data.SEO_Title,
-        description: data.SEO_Description,
-        images: [`/productImages/${data.img2}`],
-      },
-      alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${data.subCategorySlug}/${params.product}`,
-      },
-      robots: {
-        index: true,
-        follow: true,
-      },
-    };
-  } catch (error: unknown) {
-    console.error(error);
+  if (!data) {
     return {
       title: "محصولی یافت نشد | فرابک",
       description: "محصول مورد نظر یافت نشد.",
@@ -105,6 +33,66 @@ export async function generateMetadata(props: ProductPageProps): Promise<Metadat
       },
     };
   }
+
+  // Check if the product is not available and does not have a QR code key
+  if (!data.Available && !data.QrCode_key) {
+    return {
+      title: "محصولی یافت نشد | فرابک",
+      description: "محصول مورد نظر یافت نشد.",
+      robots: {
+        index: false,
+        follow: true,
+      },
+    };
+  }
+
+  // Check QR code conditions
+  if (data.QrCode_key) {
+    const { key: urlKey } = searchParams;
+
+    // If there's no key in the URL or the key in the URL doesn't match the product's QR code key
+    if (!urlKey || urlKey !== data.QrCode_key) {
+      return {
+        title: "محصولی یافت نشد | فرابک",
+        description: "محصول مورد نظر یافت نشد.",
+        robots: {
+          index: false,
+          follow: true,
+        },
+      };
+    }
+
+    // Check if the QR code has expired
+    await io();
+    const expiryDate = new Date(data.QrCode_expiryDays);
+    if (new Date() > expiryDate) {
+      return {
+        title: "محصولی یافت نشد | فرابک",
+        description: "محصول مورد نظر یافت نشد.",
+        robots: {
+          index: false,
+          follow: true,
+        },
+      };
+    }
+  }
+
+  return {
+    title: formatTitle(data.SEO_Title || data.Type, 60),
+    description: data.SEO_Description || data.Name,
+    openGraph: {
+      title: data.SEO_Title,
+      description: data.SEO_Description,
+      images: [`/productImages/${data.img2}`],
+    },
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${data.subCategorySlug}/${params.product}`,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
 }
 
 export default async function ProductPage(props: ProductPageProps) {

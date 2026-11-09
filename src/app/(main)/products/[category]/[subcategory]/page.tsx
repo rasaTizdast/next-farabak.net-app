@@ -15,24 +15,7 @@ interface SubcategoryPageProps {
 export const generateMetadata = async (props: SubcategoryPageProps): Promise<Metadata> => {
   const params = await props.params;
   const { category, subcategory } = params;
-  let data: Awaited<ReturnType<typeof getProductsBySubcategory>>;
-
-  try {
-    data = await getProductsBySubcategory(subcategory, { page: 1, limit: 30 });
-  } catch (error) {
-    console.error(error);
-    return {
-      title: "دسته بندی یافت نشد!",
-      description: "دسته بندی مورد نظر یافت نشد!",
-      alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${category}/${subcategory}`,
-      },
-      robots: {
-        index: false,
-        follow: true,
-      },
-    };
-  }
+  const data = await getProductsBySubcategory(subcategory, { page: 1, limit: 30 });
 
   if (!data) notFound();
 

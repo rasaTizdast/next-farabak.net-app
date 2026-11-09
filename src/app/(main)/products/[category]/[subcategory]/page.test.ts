@@ -61,4 +61,14 @@ describe("subcategory metadata", () => {
       })
     ).rejects.toThrow();
   });
+
+  it("propagates a temporary data failure instead of emitting noindex metadata", async () => {
+    getProductsBySubcategory.mockRejectedValue(new Error("database unavailable"));
+
+    await expect(
+      generateMetadata({
+        params: Promise.resolve({ category: "x-ray", subcategory: "vehicle-truck" }),
+      })
+    ).rejects.toThrow("database unavailable");
+  });
 });

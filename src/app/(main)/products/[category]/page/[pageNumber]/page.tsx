@@ -21,24 +21,7 @@ export const generateMetadata = async (props: CategoryPageProps): Promise<Metada
   const categoryName = params.category;
   const pageNumber = parsePositivePageNumber(params.pageNumber);
   if (pageNumber === null) notFound();
-  let data: Awaited<ReturnType<typeof getProductsByCategory>>;
-
-  try {
-    data = await getProductsByCategory(categoryName, { page: pageNumber, limit: 30 });
-  } catch (error) {
-    console.error(error);
-    return {
-      title: "دسته بندی یافت نشد!",
-      description: "دسته بندی مورد نظر یافت نشد!",
-      alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}`,
-      },
-      robots: {
-        index: false,
-        follow: true,
-      },
-    };
-  }
+  const data = await getProductsByCategory(categoryName, { page: pageNumber, limit: 30 });
 
   if (!data) notFound();
 

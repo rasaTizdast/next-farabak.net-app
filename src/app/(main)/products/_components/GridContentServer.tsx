@@ -35,31 +35,26 @@ interface GridContentServerProps {
 async function loadProductFeed(apiUrl: string): Promise<ProductFeed> {
   let feed: ProductFeed | null = null;
 
-  try {
-    const url = new URL(apiUrl);
-    const page = Number(url.searchParams.get("page") || "1");
-    const limit = Number(url.searchParams.get("limit") || "30");
-    const pathname = url.pathname;
+  const url = new URL(apiUrl);
+  const page = Number(url.searchParams.get("page") || "1");
+  const limit = Number(url.searchParams.get("limit") || "30");
+  const pathname = url.pathname;
 
-    if (pathname.includes("/getAllProducts")) {
-      feed = (await getAllProducts({ page, limit })) as ProductFeed | null;
-    } else if (pathname.includes("/getProductsByCategory/")) {
-      const slug = pathname.split("/getProductsByCategory/")[1] || "";
-      feed = (await getProductsByCategory(slug, { page, limit })) as ProductFeed | null;
-    } else if (pathname.includes("/getProductsBySubcategory/")) {
-      const slug = pathname.split("/getProductsBySubcategory/")[1] || "";
-      feed = (await getProductsBySubcategory(slug, { page, limit })) as ProductFeed | null;
-    } else if (pathname.includes("/api/products/search")) {
-      feed = (await searchProducts(url.searchParams.get("q") || "", {
-        page,
-        limit,
-      })) as ProductFeed;
-    } else {
-      throw new Error(`Unsupported product feed URL: ${apiUrl}`);
-    }
-  } catch (error) {
-    console.error(error);
-    notFound();
+  if (pathname.includes("/getAllProducts")) {
+    feed = (await getAllProducts({ page, limit })) as ProductFeed | null;
+  } else if (pathname.includes("/getProductsByCategory/")) {
+    const slug = pathname.split("/getProductsByCategory/")[1] || "";
+    feed = (await getProductsByCategory(slug, { page, limit })) as ProductFeed | null;
+  } else if (pathname.includes("/getProductsBySubcategory/")) {
+    const slug = pathname.split("/getProductsBySubcategory/")[1] || "";
+    feed = (await getProductsBySubcategory(slug, { page, limit })) as ProductFeed | null;
+  } else if (pathname.includes("/api/products/search")) {
+    feed = (await searchProducts(url.searchParams.get("q") || "", {
+      page,
+      limit,
+    })) as ProductFeed;
+  } else {
+    throw new Error(`Unsupported product feed URL: ${apiUrl}`);
   }
 
   if (feed === null) {

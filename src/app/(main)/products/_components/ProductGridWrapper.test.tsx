@@ -45,6 +45,19 @@ const pageVariants = [
 ];
 
 describe("ProductGridWrapper JSON-LD HTML", () => {
+  it("does not invent collection items when page data was not provided", () => {
+    const html = renderToStaticMarkup(
+      <ProductGridWrapper
+        title="نتایج جستجو"
+        apiUrl="https://farabak.net/api/products/search?q=test&page=1&limit=30"
+        currentPage={1}
+      />
+    );
+
+    expect(html).not.toContain('type="application/ld+json"');
+    expect(html).not.toContain("30+");
+  });
+
   it.each(pageVariants)("renders one SSR collection script for $name", ({ props, expectedUrl }) => {
     const html = renderToStaticMarkup(
       <ProductGridWrapper

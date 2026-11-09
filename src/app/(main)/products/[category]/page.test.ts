@@ -58,4 +58,12 @@ describe("category metadata", () => {
       CategoryPage({ params: Promise.resolve({ category: "unknown-category" }) })
     ).rejects.toThrow();
   });
+
+  it("propagates a temporary data failure instead of emitting noindex metadata", async () => {
+    getProductsByCategory.mockRejectedValue(new Error("database unavailable"));
+
+    await expect(
+      generateMetadata({ params: Promise.resolve({ category: "x-ray" }) })
+    ).rejects.toThrow("database unavailable");
+  });
 });

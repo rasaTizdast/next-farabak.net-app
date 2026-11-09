@@ -85,6 +85,12 @@ export default async function ProductsPage(props: ProductsPageProps) {
           apiUrl={apiUrl}
           currentPage={currentPage}
           canonicalUrl={canonicalUrl}
+          collectionItems={pageData.data
+            .filter((product) => product.Available)
+            .map((product) => ({
+              name: product.Type?.trim() || product.Name?.trim() || null,
+              path: product.link,
+            }))}
         />
       </Suspense>
     </>

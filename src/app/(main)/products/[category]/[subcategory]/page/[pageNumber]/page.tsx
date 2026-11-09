@@ -25,24 +25,7 @@ export const generateMetadata = async (props: SubcategoryPageProps): Promise<Met
   const { subcategory } = params;
   const pageNumber = parsePositivePageNumber(params.pageNumber);
   if (pageNumber === null) notFound();
-  let data: Awaited<ReturnType<typeof getProductsBySubcategory>>;
-
-  try {
-    data = await getProductsBySubcategory(subcategory, { page: pageNumber, limit: 30 });
-  } catch (error) {
-    console.error(error);
-    return {
-      title: "زیر دسته بندی یافت نشد!",
-      description: "زیر دسته بندی مورد نظر یافت نشد!",
-      alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${params.subcategory}`,
-      },
-      robots: {
-        index: false,
-        follow: true,
-      },
-    };
-  }
+  const data = await getProductsBySubcategory(subcategory, { page: pageNumber, limit: 30 });
 
   if (!data) notFound();
 

@@ -24,52 +24,21 @@ function ProductCollectionStructuredData({
   ProductGridWrapperProps,
   "title" | "currentPage" | "categorySlug" | "subcategorySlug" | "canonicalUrl" | "collectionItems"
 >) {
-  if (collectionItems) {
-    const schema = buildProductCollectionSchema({
-      title: currentPage > 1 ? `${title} - صفحه ${currentPage} | فرابک` : `${title} | فرابک`,
-      canonicalUrl: canonicalUrl || "https://farabak.net/products",
-      products: collectionItems,
-    });
+  if (!collectionItems) return null;
 
-    return schema ? (
-      <script
-        id={`json-ld-product-grid-${categorySlug ?? "all"}-${subcategorySlug ?? "all"}-${currentPage}`}
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }}
-      />
-    ) : null;
-  }
+  const schema = buildProductCollectionSchema({
+    title: currentPage > 1 ? `${title} - صفحه ${currentPage} | فرابک` : `${title} | فرابک`,
+    canonicalUrl: canonicalUrl || "https://farabak.net/products",
+    products: collectionItems,
+  });
 
-  const url = canonicalUrl || `https://farabak.net/products?page=${currentPage}`;
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "CollectionPage",
-        "@id": url,
-        url,
-        name: `${title} - صفحه ${currentPage} | فرابک`,
-        description: `مجموعه‌ای از ${title} با کیفیت بالا و گارانتی معتبر از فرابک`,
-        isPartOf: { "@type": "WebSite", "@id": "https://farabak.net" },
-        about: { "@type": "Organization", "@id": "https://farabak.net" },
-        mainEntity: {
-          "@type": "ItemList",
-          name: title,
-          description: `مجموعه‌ای از ${title} شامل دوربین‌های مداربسته، سیستم‌های نظارتی و محصولات امنیتی`,
-          numberOfItems: "30+",
-        },
-        inLanguage: "fa-IR",
-      },
-    ],
-  };
-
-  return (
+  return schema ? (
     <script
       id={`json-ld-product-grid-${categorySlug ?? "all"}-${subcategorySlug ?? "all"}-${currentPage}`}
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }}
     />
-  );
+  ) : null;
 }
 
 export default function ProductGridWrapper({
