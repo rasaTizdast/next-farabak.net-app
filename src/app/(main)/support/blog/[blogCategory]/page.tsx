@@ -17,31 +17,17 @@ export async function generateMetadata(props: {
 }): Promise<Metadata> {
   const params = await props.params;
 
-  try {
-    const data = (await getBlogsByCategory(params.blogCategory)) as Blogs | null;
+  const data = (await getBlogsByCategory(params.blogCategory)) as Blogs | null;
 
-    if (!data || data.blogs.length === 0) {
-      return {
-        title: "صفحه یافت نشد | فرابک",
-        description: "صفحه مورد نظر یافت نشد",
-        robots: { index: false, follow: true },
-      };
-    }
+  if (!data || data.blogs.length === 0) notFound();
 
-    return {
-      title: `مقالات ${getCategoryName(data.blogs, params.blogCategory)} | فرابک`,
-      description: `مقالات آموزشی فرابک درباره ${getCategoryName(data.blogs, params.blogCategory)}.`,
-      alternates: {
-        canonical: `/support/blog/${encodeURIComponent(params.blogCategory)}`,
-      },
-    };
-  } catch {
-    return {
-      title: "صفحه یافت نشد | فرابک",
-      description: "صفحه مورد نظر یافت نشد",
-      robots: { index: false, follow: true },
-    };
-  }
+  return {
+    title: `مقالات ${getCategoryName(data.blogs, params.blogCategory)} | فرابک`,
+    description: `مقالات آموزشی فرابک درباره ${getCategoryName(data.blogs, params.blogCategory)}.`,
+    alternates: {
+      canonical: `/support/blog/${encodeURIComponent(params.blogCategory)}`,
+    },
+  };
 }
 
 type BlogCategory = {

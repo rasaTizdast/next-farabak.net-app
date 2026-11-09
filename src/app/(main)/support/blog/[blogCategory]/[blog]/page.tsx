@@ -152,16 +152,9 @@ const getBlog = async (
   searchParams: { key?: string },
   isAdmin: boolean = false
 ): Promise<BlogResponse | null> => {
-  let blogResponse: BlogResponse | null = null;
-
-  try {
-    const data = await getBlogBySlug(slug);
-    if (!data) return null;
-    blogResponse = mapBlogResponse(data);
-  } catch (error) {
-    console.error("Error fetching blog:", error);
-    return null;
-  }
+  const data = await getBlogBySlug(slug);
+  if (!data) return null;
+  const blogResponse = mapBlogResponse(data);
 
   if (isAdmin) {
     return blogResponse;
