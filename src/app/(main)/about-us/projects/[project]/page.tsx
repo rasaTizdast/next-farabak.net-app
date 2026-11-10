@@ -24,6 +24,13 @@ type ProjectProps = {
   video?: string;
 };
 
+function getProjectPageUrl(slug: string) {
+  return new URL(
+    `/about-us/projects/${encodeURIComponent(slug)}`,
+    process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net"
+  ).toString();
+}
+
 async function getProjectData(slug: string) {
   try {
     return await getProjectDataFromDataLayer(slug);
@@ -47,6 +54,9 @@ export const generateMetadata = async (props: ParamsType): Promise<Metadata> => 
   return {
     title: `${projectData.title} | فرابک`,
     description: `مشاهده پروژه ${projectData.title} | فرابک`,
+    alternates: {
+      canonical: getProjectPageUrl(params.project),
+    },
   };
 };
 
@@ -66,7 +76,7 @@ const ProjectPage = async (props: ParamsType) => {
   }
 
   const { title, date, images, largeDesc, location, video }: ProjectProps = projectData;
-  const pageUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/projects/${params.project}`;
+  const pageUrl = getProjectPageUrl(params.project);
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [

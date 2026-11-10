@@ -72,6 +72,29 @@ describe("Pagination (public)", () => {
     expect(hrefs).not.toContain("/products/x-ray/airport-luggage/page/1");
   });
 
+  it("links Previous from page two to the base listing on mobile and desktop", () => {
+    const { container } = render(
+      <Pagination
+        currentPage={2}
+        totalPages={3}
+        basePath="/products"
+        categorySlug="x-ray"
+        subcategorySlug="airport-luggage"
+      />
+    );
+    const mobile = container.querySelector(".sm\\:hidden") as HTMLElement;
+    const desktop = container.querySelector(".hidden.sm\\:flex") as HTMLElement;
+
+    expect(within(mobile).getByRole("link", { name: "قبلی" })).toHaveAttribute(
+      "href",
+      "/products/x-ray/airport-luggage"
+    );
+    expect(within(desktop).getByRole("link", { name: "قبلی" })).toHaveAttribute(
+      "href",
+      "/products/x-ray/airport-luggage"
+    );
+  });
+
   it("highlights current page in desktop", () => {
     const { container } = render(
       <Pagination currentPage={2} totalPages={5} basePath="/products" />

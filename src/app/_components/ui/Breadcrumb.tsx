@@ -16,18 +16,22 @@ const Breadcrumb: React.FC<BreadcrumbProps> = async ({ breadcrumbs, labels }) =>
   const names = { ...(await getBreadcrumbNames(breadcrumbs)), ...labels };
 
   // Prepare structured data for Schema.org
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net";
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: breadcrumbs.map((crumb, idx) => ({
-      "@type": "ListItem",
-      position: idx + 1,
-      item: {
-        "@id": `${process.env.NEXT_PUBLIC_BASE_URL}${crumb}`,
-        name: names[crumb],
-        url: `${process.env.NEXT_PUBLIC_BASE_URL}${crumb}`,
-      },
-    })),
+    itemListElement: breadcrumbs.map((crumb, idx) => {
+      const url = new URL(crumb, baseUrl).toString();
+      return {
+        "@type": "ListItem",
+        position: idx + 1,
+        item: {
+          "@id": url,
+          name: names[crumb],
+          url,
+        },
+      };
+    }),
   };
 
   const jsonLd = serializeJsonLd(structuredData);

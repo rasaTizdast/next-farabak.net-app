@@ -47,7 +47,7 @@ const BlogCover = ({
       width={width}
       height={height}
       sizes={sizes}
-      priority={priority}
+      fetchPriority={priority ? "high" : undefined}
       loading={priority ? undefined : "lazy"}
       className={`bg-(--farabak-paper) ${className ?? ""}`}
       onError={() => setFailed(true)}

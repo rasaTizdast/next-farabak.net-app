@@ -115,4 +115,35 @@ describe("getSitemapUrls product categories", () => {
     expect(urls).not.toContain("https://farabak.net/products/conference-hall/led-wall");
     expect(urls).not.toContain("https://farabak.net/products/conference-hall/conference-system");
   });
+
+  it("keeps empty and non-public blog categories out of the sitemap", async () => {
+    vi.mocked(prisma.blogs.findMany).mockResolvedValue([
+      {
+        slug: "what-is-x-ray-inspection",
+        BlogCategories: [{ Categories: { slug: "x-ray" } }],
+      },
+    ] as never);
+    vi.mocked(prisma.categories.findMany).mockResolvedValue([
+      { slug: "x-ray" },
+      { slug: "installing" },
+    ] as never);
+
+    const { urls } = await getSitemapUrls();
+
+    expect(urls).toContain("https://farabak.net/support/blog/x-ray");
+    expect(urls).toContain("https://farabak.net/support/blog/x-ray/what-is-x-ray-inspection");
+    expect(urls).not.toContain("https://farabak.net/support/blog/installing");
+    expect(prisma.blogs.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { status: "Published", QrCode_key: null },
+      })
+    );
+  });
+
+  it("uses the homepage URL spelling returned by the live canonical", async () => {
+    const { urls } = await getSitemapUrls();
+
+    expect(urls).toContain("https://farabak.net");
+    expect(urls).not.toContain("https://farabak.net/");
+  });
 });

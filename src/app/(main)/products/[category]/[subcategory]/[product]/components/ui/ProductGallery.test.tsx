@@ -28,6 +28,14 @@ describe("ProductGallery", () => {
     expect(image.parentElement).toHaveClass("aspect-video");
   });
 
+  it("prioritizes the visible product image and requests a viewport-sized variant", () => {
+    render(<ProductGallery title="دوربین شبکه‌ای" images={["/banner.webp"]} />);
+
+    const image = screen.getByRole("img", { name: "تصویر دوربین شبکه‌ای" });
+    expect(image).toHaveAttribute("fetchpriority", "high");
+    expect(image).toHaveAttribute("sizes", "(min-width: 1024px) 50vw, calc(100vw - 64px)");
+  });
+
   it("keeps the banner in the single outer media panel", () => {
     render(<ProductGallery title="دوربین شبکه‌ای" images={["/banner.webp"]} />);
 

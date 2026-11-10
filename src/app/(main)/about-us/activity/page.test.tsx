@@ -6,7 +6,6 @@ const { mockGetActivities } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/data/activities", () => ({ getActivities: mockGetActivities }));
-
 vi.mock("next/image", () => ({
   default: (props: React.ComponentProps<"img">) => <img {...props} alt={props.alt} />,
 }));
@@ -42,5 +41,15 @@ describe("ActivityPage", () => {
         .getByText("طراحی سامانه‌های نظارتی")
         .compareDocumentPosition(screen.getByRole("heading", { name: "گواهی‌نامه‌ها و افتخارات" }))
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it("leaves the breadcrumb trail to the visible shared breadcrumb component", async () => {
+    mockGetActivities.mockResolvedValue([]);
+    const { default: ActivityPage } = await import("./page");
+    const page = await ActivityPage();
+    const [structuredDataScript] = page.props.children;
+    const structuredData = JSON.parse(structuredDataScript.props.dangerouslySetInnerHTML.__html);
+
+    expect(structuredData.breadcrumb).toBeUndefined();
   });
 });

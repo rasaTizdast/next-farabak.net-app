@@ -1,7 +1,12 @@
 import { NextRequest } from "next/server";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
-const { hasProductDetailPage } = vi.hoisted(() => ({ hasProductDetailPage: vi.fn() }));
+const { hasBlogCategoryPage, hasProductDetailPage } = vi.hoisted(() => ({
+  hasBlogCategoryPage: vi.fn(),
+  hasProductDetailPage: vi.fn(),
+}));
+
+vi.mock("@/lib/data/blog-page-validation", () => ({ hasBlogCategoryPage }));
 
 vi.mock("@/lib/data/product-page-validation", () => ({
   hasProductDetailPage,
@@ -60,6 +65,18 @@ describe("canonical URL redirects", () => {
     expect(response.headers.get("Location")).toBe(
       "https://farabak.net/products?sort=recent&page=2"
     );
+  });
+
+  it.each([
+    "http://farabak.net/",
+    "http://farabak.net/products/x-ray",
+    "http://farabak.net/products/x-ray/airport-luggage/ctx-5800",
+    "http://farabak.net/support/blog/x-ray/what-is-x-ray-inspection",
+  ])("redirects the HTTP %s request directly to HTTPS", async (url) => {
+    const response = await proxy(new NextRequest(url));
+
+    expect(response.status).toBe(308);
+    expect(response.headers.get("Location")).toBe(url.replace(/^http:/, "https:"));
   });
 });
 
@@ -129,6 +146,31 @@ describe("product route 404 handling", () => {
       product: "Argus-2",
       key: null,
     });
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+  });
+});
+
+describe("blog category 404 handling", () => {
+  it("returns a real 404 for an empty blog category before the route starts streaming", async () => {
+    hasBlogCategoryPage.mockResolvedValue(false);
+    const request = new NextRequest("https://farabak.net/support/blog/installing");
+
+    const response = await proxy(request);
+
+    expect(hasBlogCategoryPage).toHaveBeenCalledWith("installing");
+    expect(response.headers.get("x-middleware-rewrite")).toBe(
+      "https://farabak.net/_product-listing-not-found"
+    );
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+  });
+
+  it("continues to the category route when published posts exist", async () => {
+    hasBlogCategoryPage.mockResolvedValue(true);
+    const request = new NextRequest("https://farabak.net/support/blog/x-ray");
+
+    const response = await proxy(request);
+
+    expect(hasBlogCategoryPage).toHaveBeenCalledWith("x-ray");
     expect(response.headers.get("x-middleware-next")).toBe("1");
   });
 });

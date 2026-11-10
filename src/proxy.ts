@@ -97,8 +97,13 @@ async function hasProductPageData(check: Exclude<ProductPageCheck, "not-found" |
   return check.type === "product" ? hasProductDetailPage(check) : hasProductListingPage(check);
 }
 
-function rewriteToProductNotFound(req: NextRequest) {
-  // An unmatched route renders app/not-found.tsx before a product loading boundary can send 200.
+async function hasBlogCategoryData(categorySlug: string) {
+  const { hasBlogCategoryPage } = await import("@/lib/data/blog-page-validation");
+  return hasBlogCategoryPage(categorySlug);
+}
+
+function rewriteToNotFound(req: NextRequest) {
+  // An unmatched route renders app/not-found.tsx before a route loading boundary can send 200.
   const unmatchedUrl = new URL("/_product-listing-not-found", req.url);
   return NextResponse.rewrite(unmatchedUrl, { headers: { "Cache-Control": "no-store" } });
 }
@@ -149,12 +154,20 @@ export async function proxy(req: ExtendedNextRequest) {
   const requestHost = forwardedHost || req.headers.get("host") || req.nextUrl.hostname;
   const requestHostname = requestHost.replace(/:\d+$/, "").toLowerCase();
   const isWwwHost = requestHostname === "www.farabak.net";
+  const isFarabakHost = isWwwHost || requestHostname === "farabak.net";
+  const forwardedProtocol = req.headers
+    .get("x-forwarded-proto")
+    ?.split(",", 1)[0]
+    ?.trim()
+    .replace(/:$/, "")
+    .toLowerCase();
+  const requestProtocol = forwardedProtocol || new URL(req.url).protocol.replace(/:$/, "");
   const canonicalUrl = new URL(req.url);
-  let shouldRedirect = isWwwHost;
+  let shouldRedirect = isWwwHost || (isFarabakHost && requestProtocol !== "https");
 
-  if (isWwwHost) {
+  if (isFarabakHost) {
     canonicalUrl.protocol = "https:";
-    canonicalUrl.hostname = "farabak.net";
+    canonicalUrl.hostname = isWwwHost ? "farabak.net" : requestHostname;
     canonicalUrl.port = "";
   }
 
@@ -207,13 +220,28 @@ export async function proxy(req: ExtendedNextRequest) {
   const isDocumentRequest = req.headers.get("RSC") !== "1";
   if (isDocumentRequest && (req.method === "GET" || req.method === "HEAD")) {
     const productPageCheck = getProductPageCheck(req);
-    if (productPageCheck === "not-found") return rewriteToProductNotFound(req);
+    if (productPageCheck === "not-found") return rewriteToNotFound(req);
 
     if (productPageCheck) {
       try {
-        if (!(await hasProductPageData(productPageCheck))) return rewriteToProductNotFound(req);
+        if (!(await hasProductPageData(productPageCheck))) return rewriteToNotFound(req);
       } catch {
         console.error("Product page validation failed before rendering.");
+      }
+    }
+
+    const blogCategorySegments = pathname.split("/").filter(Boolean);
+    if (
+      blogCategorySegments.length === 3 &&
+      blogCategorySegments[0] === "support" &&
+      blogCategorySegments[1] === "blog"
+    ) {
+      try {
+        if (!(await hasBlogCategoryData(blogCategorySegments[2]))) {
+          return rewriteToNotFound(req);
+        }
+      } catch {
+        console.error("Blog category validation failed before rendering.");
       }
     }
   }

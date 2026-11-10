@@ -29,64 +29,59 @@ export interface SitemapResult {
 }
 
 async function querySitemapUrls(): Promise<SitemapResult> {
-  const [products, categories, categoryContents, blogs, blogCategories, projects] =
-    await Promise.all([
-      prisma.product.findMany({
-        where: { Available: true },
-        include: {
-          Category: {
-            select: {
-              CategoryID: true,
-              Slug: true,
-            },
+  const [products, categories, categoryContents, blogs, projects] = await Promise.all([
+    prisma.product.findMany({
+      where: { Available: true },
+      include: {
+        Category: {
+          select: {
+            CategoryID: true,
+            Slug: true,
           },
         },
-      }),
+      },
+    }),
 
-      prisma.category.findMany({
-        where: { Available: true },
-        select: { CategoryID: true, Slug: true },
-      }),
+    prisma.category.findMany({
+      where: { Available: true },
+      select: { CategoryID: true, Slug: true },
+    }),
 
-      prisma.categoryContent.findMany({
-        where: { Available: true },
-        select: {
-          CategoryContentId: true,
-          Slug: true,
-          CategoryID: true,
-          Category: {
-            select: {
-              Slug: true,
-            },
+    prisma.categoryContent.findMany({
+      where: { Available: true },
+      select: {
+        CategoryContentId: true,
+        Slug: true,
+        CategoryID: true,
+        Category: {
+          select: {
+            Slug: true,
           },
         },
-      }),
+      },
+    }),
 
-      prisma.blogs.findMany({
-        where: { status: "Published" },
-        select: {
-          slug: true,
-          BlogCategories: {
-            select: {
-              Categories: {
-                select: {
-                  slug: true,
-                },
+    prisma.blogs.findMany({
+      where: { status: "Published", QrCode_key: null },
+      select: {
+        slug: true,
+        BlogCategories: {
+          select: {
+            Categories: {
+              select: {
+                slug: true,
               },
             },
           },
         },
-      }),
+      },
+    }),
 
-      prisma.categories.findMany({
-        select: { slug: true },
-      }),
-
-      prisma.projects.findMany({
-        where: { IsActive: true },
-        select: { Slug: true },
-      }),
-    ]);
+    prisma.projects.findMany({
+      where: { IsActive: true },
+      select: { Slug: true },
+    }),
+  ]);
 
   const productUrls = buildProductSitemapUrls(products, categories, categoryContents);
 
@@ -138,8 +133,15 @@ async function querySitemapUrls(): Promise<SitemapResult> {
     return [`https://farabak.net/support/blog/${blog.slug}`];
   });
 
-  const blogCategoryUrls = blogCategories.map(
-    (category) => `https://farabak.net/support/blog/${category.slug}`
+  const blogCategorySlugs = new Set(
+    blogs.flatMap((blog) =>
+      blog.BlogCategories.flatMap(({ Categories: category }) =>
+        category.slug?.trim() ? [category.slug.trim()] : []
+      )
+    )
+  );
+  const blogCategoryUrls = [...blogCategorySlugs].map(
+    (slug) => `https://farabak.net/support/blog/${slug}`
   );
 
   const projectUrls = projects.map(

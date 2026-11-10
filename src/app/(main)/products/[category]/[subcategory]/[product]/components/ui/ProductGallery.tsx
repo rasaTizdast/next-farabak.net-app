@@ -28,6 +28,8 @@ export default function ProductGallery({ title, images }: ProductGalleryProps) {
           width={1340}
           height={780}
           quality={75}
+          sizes="(min-width: 1024px) 50vw, calc(100vw - 64px)"
+          fetchPriority="high"
           loading="eager"
           className="size-full min-h-0 max-w-full min-w-0 flex-1 object-contain"
         />

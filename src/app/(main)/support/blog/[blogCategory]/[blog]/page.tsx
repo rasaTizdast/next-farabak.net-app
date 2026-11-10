@@ -339,7 +339,7 @@ export default async function BlogPage(props: {
               className="mx-auto mb-6 aspect-video w-full max-w-3xl rounded-xl object-cover"
               width={1200}
               height={630}
-              sizes="(min-width: 1024px) 65vw, 100vw"
+              sizes="(min-width: 1024px) 65vw, calc(100vw - 88px)"
               priority
             />
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-700 shadow-sm">

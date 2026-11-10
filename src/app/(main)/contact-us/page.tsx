@@ -206,10 +206,7 @@ export default function ContactUsPage() {
           role="status"
           aria-label="در حال بارگذاری تماس با فرابک"
         >
-          <PublicBreadcrumbs
-            breadcrumbs={["/", "/contact-us"]}
-            labels={{ "/contact-us": "تماس با ما" }}
-          />
+          <div aria-hidden="true" className="mb-5 h-12 w-full rounded-xl bg-slate-200/80" />
           <PageIntro title="ارتباط با فرابک" description="اطلاعات تماس در حال بارگذاری است." />
         </PublicShell>
       }

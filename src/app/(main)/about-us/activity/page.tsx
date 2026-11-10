@@ -37,29 +37,6 @@ const ActivityPage = async () => {
     name: "فعالیت های شرکت فرابک",
     description: "اطلاعات درباره فعالیت ها، خدمات و تخصص های شرکت فرابک",
     url: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/activity`,
-    breadcrumb: {
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "صفحه اصلی",
-          item: process.env.NEXT_PUBLIC_BASE_URL,
-        },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: "درباره ما",
-          item: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us`,
-        },
-        {
-          "@type": "ListItem",
-          position: 3,
-          name: "فعالیت های شرکت",
-          item: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/activity`,
-        },
-      ],
-    },
     isPartOf: {
       "@type": "WebSite",
       url: process.env.NEXT_PUBLIC_BASE_URL,

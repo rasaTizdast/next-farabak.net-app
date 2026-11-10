@@ -11,6 +11,8 @@ interface ImageWithFallbackProps {
   quality?: number;
   className?: string;
   loading?: "eager" | "lazy";
+  fetchPriority?: "high" | "low" | "auto";
+  sizes?: string;
   fallbackLabel?: string;
 }
 
@@ -22,6 +24,8 @@ export default function ImageWithFallback({
   quality,
   className,
   loading,
+  fetchPriority,
+  sizes,
   fallbackLabel = "تصویر محصول موجود نیست",
 }: ImageWithFallbackProps) {
   const [failed, setFailed] = useState(false);
@@ -49,7 +53,9 @@ export default function ImageWithFallback({
       width={width}
       height={height}
       quality={quality}
+      sizes={sizes}
       loading={loading}
+      fetchPriority={fetchPriority}
       className={className}
       onError={() => setFailed(true)}
     />
