@@ -144,14 +144,61 @@ const refreshAccessToken = async (refreshToken: string) => {
 export async function proxy(req: ExtendedNextRequest) {
   const pathname = req.nextUrl.pathname;
 
-  if (
-    pathname === "/products" &&
-    (req.method === "GET" || req.method === "HEAD") &&
-    req.nextUrl.searchParams.getAll("page").length === 1 &&
-    req.nextUrl.searchParams.get("page") === "1"
-  ) {
-    const canonicalUrl = new URL(req.url);
-    canonicalUrl.searchParams.delete("page");
+  const isDocumentMethod = req.method === "GET" || req.method === "HEAD";
+  const forwardedHost = req.headers.get("x-forwarded-host")?.split(",", 1)[0]?.trim();
+  const requestHost = forwardedHost || req.headers.get("host") || req.nextUrl.hostname;
+  const requestHostname = requestHost.replace(/:\d+$/, "").toLowerCase();
+  const isWwwHost = requestHostname === "www.farabak.net";
+  const canonicalUrl = new URL(req.url);
+  let shouldRedirect = isWwwHost;
+
+  if (isWwwHost) {
+    canonicalUrl.protocol = "https:";
+    canonicalUrl.hostname = "farabak.net";
+    canonicalUrl.port = "";
+  }
+
+  if (isDocumentMethod) {
+    const segments = pathname.split("/").filter(Boolean);
+
+    if (
+      pathname === "/products" &&
+      req.nextUrl.searchParams.getAll("page").length === 1 &&
+      req.nextUrl.searchParams.get("page") === "1"
+    ) {
+      canonicalUrl.searchParams.delete("page");
+      shouldRedirect = true;
+    } else if (
+      segments.length === 3 &&
+      segments[0] === "products" &&
+      segments[1] === "page" &&
+      segments[2] === "1"
+    ) {
+      canonicalUrl.pathname = "/products";
+      shouldRedirect = true;
+    } else if (
+      segments[0] === "products" &&
+      segments.length === 4 &&
+      segments[2] === "page" &&
+      segments[3] === "1"
+    ) {
+      canonicalUrl.pathname = `/products/${segments[1]}`;
+      shouldRedirect = true;
+    } else if (
+      segments[0] === "products" &&
+      segments.length === 5 &&
+      segments[3] === "page" &&
+      segments[4] === "1"
+    ) {
+      canonicalUrl.pathname = `/products/${segments[1]}/${segments[2]}`;
+      shouldRedirect = true;
+    } else if (pathname === "/products/x-ray/airport-luggage/ctx-9800") {
+      canonicalUrl.pathname = "/products/x-ray/airport-luggage/ctx-9800-dsi";
+      shouldRedirect = true;
+    }
+  }
+
+  if (shouldRedirect) {
     return NextResponse.redirect(canonicalUrl, 308);
   }
 

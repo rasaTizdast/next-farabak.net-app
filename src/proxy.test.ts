@@ -16,6 +16,53 @@ beforeAll(async () => {
   ({ proxy } = await import("./proxy"));
 });
 
+describe("canonical URL redirects", () => {
+  it.each([
+    [
+      "https://www.farabak.net/products?sort=recent&page=2",
+      "https://farabak.net/products?sort=recent&page=2",
+    ],
+    [
+      "https://www.farabak.net/products?page=1&sort=recent",
+      "https://farabak.net/products?sort=recent",
+    ],
+    [
+      "https://www.farabak.net/products/page/1?sort=recent",
+      "https://farabak.net/products?sort=recent",
+    ],
+    [
+      "https://www.farabak.net/products/x-ray/page/1?sort=recent",
+      "https://farabak.net/products/x-ray?sort=recent",
+    ],
+    [
+      "https://www.farabak.net/products/x-ray/airport-luggage/page/1?sort=recent",
+      "https://farabak.net/products/x-ray/airport-luggage?sort=recent",
+    ],
+    [
+      "https://www.farabak.net/products/x-ray/airport-luggage/ctx-9800?campaign=legacy",
+      "https://farabak.net/products/x-ray/airport-luggage/ctx-9800-dsi?campaign=legacy",
+    ],
+    ["https://farabak.net/products/page/1?sort=recent", "https://farabak.net/products?sort=recent"],
+  ])("redirects %s directly to %s", async (url, destination) => {
+    const response = await proxy(new NextRequest(url));
+
+    expect(response.status).toBe(308);
+    expect(response.headers.get("Location")).toBe(destination);
+  });
+
+  it("uses the forwarded public host when the app server receives an internal URL", async () => {
+    const request = new NextRequest("http://127.0.0.1:3000/products?sort=recent&page=2", {
+      headers: { "x-forwarded-host": "www.farabak.net:443" },
+    });
+    const response = await proxy(request);
+
+    expect(response.status).toBe(308);
+    expect(response.headers.get("Location")).toBe(
+      "https://farabak.net/products?sort=recent&page=2"
+    );
+  });
+});
+
 describe("product route 404 handling", () => {
   it.each(["GET", "HEAD"])(
     "rewrites an invalid product page to the App Router's unmatched route for %s",
