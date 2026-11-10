@@ -69,14 +69,14 @@ describe("main product structured data", () => {
     expect(product.manufacturer).toBeUndefined();
   });
 
-  it("uses the stored product description in Product JSON-LD", async () => {
+  it("uses the visible product subtitle in Product JSON-LD", async () => {
     const { schema } = await getRenderedProductSchema();
 
-    expect(schema["@graph"][0].description).toBe("توضیحات محصول");
+    expect(schema["@graph"][0].description).toBe("محصول با مشخصات قابل بررسی");
   });
 
-  it("omits Product JSON-LD description when no product description is available", async () => {
-    getProductBySlugMock.mockResolvedValue({ ...validProduct, Description: "   " });
+  it("omits database-only descriptions when the visible product subtitle duplicates the title", async () => {
+    getProductBySlugMock.mockResolvedValue({ ...validProduct, Name: "مدل ناشناخته" });
 
     const { schema } = await getRenderedProductSchema();
 

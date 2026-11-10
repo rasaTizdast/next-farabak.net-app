@@ -98,7 +98,6 @@ export default async function ProductDataWrapper({
   const brandToken = detectBrand(productData.Type);
   const productModel = productData.Type || productData.Name || "محصول فرابک";
   const productDescription = productData.Name?.trim();
-  const productSchemaDescription = productData.Description?.trim();
   const canonicalUrl = new URL(
     `/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
     process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net"
@@ -112,7 +111,9 @@ export default async function ProductDataWrapper({
         "@type": "Product",
         "@id": canonicalUrl,
         name: productModel,
-        ...(productSchemaDescription ? { description: productSchemaDescription } : {}),
+        ...(productDescription && productDescription !== productModel
+          ? { description: productDescription }
+          : {}),
         image: imageUrl,
         url: canonicalUrl,
         category: `${productData.categorySlug}/${productData.subCategorySlug}`,
