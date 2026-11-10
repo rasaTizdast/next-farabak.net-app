@@ -46,6 +46,27 @@ describe("product collection structured data", () => {
     expect(serialized).not.toMatch(/CCTV|مداربسته|سیستم‌های نظارتی|محصولات امنیتی/i);
   });
 
+  it("keeps canonical product routes and slug casing in collection items", () => {
+    const schema = buildProductCollectionSchema({
+      title: "محصولات فرابک",
+      canonicalUrl: "https://farabak.net/products",
+      products: [
+        { name: "CTX 9800 DSi", path: "x-ray/airport-luggage/ctx-9800-dsi" },
+        { name: "Argus 2", path: "reolink-cctv-camera/night-vision/Argus-2" },
+        {
+          name: "ATEM Micro Camera Panel",
+          path: "blackmagic/atem-production-switcher/atem-micro-camera-panel",
+        },
+      ],
+    });
+
+    expect(schema?.mainEntity.itemListElement.map(({ url }) => url)).toEqual([
+      "https://farabak.net/products/x-ray/airport-luggage/ctx-9800-dsi",
+      "https://farabak.net/products/reolink-cctv-camera/night-vision/Argus-2",
+      "https://farabak.net/products/blackmagic/atem-production-switcher/atem-micro-camera-panel",
+    ]);
+  });
+
   it("omits products with missing names or canonical product paths", () => {
     const schema = buildProductCollectionSchema({
       title: "محصولات ایکس‌ری | فرابک",

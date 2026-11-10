@@ -10,7 +10,7 @@ const models = [
   },
   {
     name: "CTX 9800 DSi",
-    productUrl: "/products/x-ray/airport-luggage/ctx-9800",
+    productUrl: "/products/x-ray/airport-luggage/ctx-9800-dsi",
     manufacturerUrl: "https://www.smithsdetection.com/products/ctx-9800-dsi/",
     throughput: "تا ۱٬۸۰۰ بسته در ساعت؛ سرعت نوار ۰٫۳ تا ۰٫۵ متر بر ثانیه",
     tunnelWidth: "۱۰۲۰ میلی‌متر",

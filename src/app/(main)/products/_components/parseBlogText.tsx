@@ -67,7 +67,7 @@ export function parseBlogTextToElements(text: string): React.ReactNode[] {
     }
     if (line.startsWith("# ")) {
       flushList(currentList);
-      elements.push(<h1 key={`h1-${k}`}>{renderInline(line.slice(2), `h1-${k}`)}</h1>);
+      elements.push(<h2 key={`h2-${k}`}>{renderInline(line.slice(2), `h2-${k}`)}</h2>);
       return;
     }
 

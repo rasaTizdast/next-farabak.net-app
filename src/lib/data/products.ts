@@ -71,8 +71,7 @@ function buildSubcategoryMap(subcategories: CategoryContent[]): SubcategoryFeedM
 
 function enrichFeedItem(
   product: ProductWithCategory,
-  subcategoryMap: SubcategoryFeedMap,
-  preferredSubcategorySlug?: string | null
+  subcategoryMap: SubcategoryFeedMap
 ): CategoryFeedItem {
   const categorySlug = product.Category?.Slug || null;
 
@@ -81,7 +80,9 @@ function enrichFeedItem(
     .filter((sub): sub is CategoryContent => sub !== undefined);
 
   const firstSubcategory = subcategories.length > 0 ? subcategories[0] : null;
-  const subCategorySlug = preferredSubcategorySlug || firstSubcategory?.Slug || null;
+  // CategoryContentId preserves the product's canonical subcategory first.
+  // Keep card URLs stable when the same product appears in another membership.
+  const subCategorySlug = firstSubcategory?.Slug || null;
 
   return {
     ...product,
@@ -491,9 +492,7 @@ async function queryProductsBySubcategory(
   const endIndex = Math.min(startIndex + limit, allProcessedProducts.length);
   const paginatedProducts = allProcessedProducts.slice(startIndex, endIndex);
 
-  const data = paginatedProducts.map((product) =>
-    enrichFeedItem(product, subcategoryMap, subCategory.Slug)
-  );
+  const data = paginatedProducts.map((product) => enrichFeedItem(product, subcategoryMap));
 
   const seoDetails = subCategory.SEO_CategoryContent
     ? {

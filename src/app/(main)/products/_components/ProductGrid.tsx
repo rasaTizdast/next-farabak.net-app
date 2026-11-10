@@ -92,7 +92,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
             return (
               <>
                 <ProductIntro title={title} showSearch={!categorySlug} />
-                <BlogContent text={topBlog} as="none" />
+                <BlogContent text={topBlog} />
               </>
             );
           }
@@ -131,7 +131,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
           if (!bottomBlog) return null;
           return (
             <div className="mt-10">
-              <BlogContent text={bottomBlog} as="h2" />
+              <BlogContent text={bottomBlog} />
             </div>
           );
         })()}

@@ -1,6 +1,5 @@
 import { getProductsByCategory, getProductsBySubcategory } from "@/lib/data/products";
 import { getUsdToRialRate } from "@/lib/data/usd2rial";
-import { getPriceValidUntil } from "@/utils/priceValidUntil";
 
 import SimilarProductsSlider from "./SimilarProductsSlider";
 
@@ -77,8 +76,6 @@ export default async function SimilarProducts({
 
   const { rate: usdRate } = await getUsdToRialRate();
 
-  const priceValidUntil = getPriceValidUntil();
-
   return (
     <section id="similar-products" className="mt-12">
       {(() => {
@@ -86,77 +83,23 @@ export default async function SimilarProducts({
           "@context": "https://schema.org",
           "@type": "ItemList",
           itemListElement: products.map((p, idx) => {
-            const rawPrice = Number(p.Price);
-            const rawDiscount = Number(p.Discount);
-            const hasValidPrice = Number.isFinite(rawPrice) && rawPrice > 0;
-            const hasValidDiscount =
-              Number.isFinite(rawDiscount) && rawDiscount > 0 && rawDiscount < rawPrice;
-            const finalPrice = hasValidDiscount ? rawPrice - rawDiscount : rawPrice;
+            const canonicalUrl = new URL(
+              `/products/${p.link.replace(/^\/+/, "")}`,
+              process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net"
+            ).toString();
 
             return {
               "@type": "ListItem",
               position: idx + 1,
-              item: {
-                "@type": "Product",
-                name: p.Type,
-                url: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${p.link}`,
-                image: `${process.env.LIARA_BUCKET_URL}/productImages/${p.img1}`,
-                sku: `FAR-${p.ProductId}`,
-                offers: {
-                  "@type": "Offer",
-                  price: String(hasValidPrice ? finalPrice : 0),
-                  priceCurrency: "IRR",
-                  priceValidUntil,
-                  hasMerchantReturnPolicy: {
-                    "@type": "MerchantReturnPolicy",
-                    applicableCountry: "IR",
-                    returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-                    merchantReturnDays: 7,
-                    returnMethod: "https://schema.org/ReturnByMail",
-                    returnFees: "https://schema.org/FreeReturn",
-                  },
-                  shippingDetails: [
-                    {
-                      "@type": "OfferShippingDetails",
-                      shippingDestination: {
-                        "@type": "DefinedRegion",
-                        addressCountry: "IR",
-                      },
-                      shippingRate: {
-                        "@type": "MonetaryAmount",
-                        value: "0",
-                        currency: "IRR",
-                      },
-                      deliveryTime: {
-                        "@type": "ShippingDeliveryTime",
-                        handlingTime: {
-                          "@type": "QuantitativeValue",
-                          minValue: 1,
-                          maxValue: 5,
-                          unitCode: "DAY",
-                        },
-                        transitTime: {
-                          "@type": "QuantitativeValue",
-                          minValue: 2,
-                          maxValue: 5,
-                          unitCode: "DAY",
-                        },
-                      },
-                    },
-                  ],
-                  availability: p.Available
-                    ? "https://schema.org/InStock"
-                    : "https://schema.org/OutOfStock",
-                  url: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${p.link}`,
-                },
-              },
+              name: p.Type?.trim() || p.productSlug,
+              url: canonicalUrl,
             };
           }),
         } as const;
         return (
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList).replace(/</g, "\\u003c") }}
           />
         );
       })()}

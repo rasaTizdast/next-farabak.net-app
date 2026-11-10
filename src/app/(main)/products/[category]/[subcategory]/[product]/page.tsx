@@ -5,6 +5,7 @@ import { Suspense } from "react";
 
 import { formatTitle } from "@/helpers/formatTitle";
 import { getProductBySlug } from "@/lib/data/products";
+import { getProductImageUrl } from "@/lib/seo/product-image-url";
 
 import ProductDataWrapper from "./components/ProductDataWrapper";
 import { ProductMainSkeleton } from "./components/ui/Skeletons";
@@ -77,16 +78,31 @@ export async function generateMetadata(props: ProductPageProps): Promise<Metadat
     }
   }
 
+  const title = formatTitle(data.SEO_Title || data.Type, 60);
+  const description = data.SEO_Description || data.Name;
+  const canonicalUrl = new URL(
+    `/products/${data.categorySlug}/${data.subCategorySlug}/${data.productSlug}`,
+    process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net"
+  ).toString();
+  const imageUrl = getProductImageUrl(data.img2);
+
   return {
-    title: formatTitle(data.SEO_Title || data.Type, 60),
-    description: data.SEO_Description || data.Name,
+    title,
+    description,
     openGraph: {
-      title: data.SEO_Title,
-      description: data.SEO_Description,
-      images: [`/productImages/${data.img2}`],
+      title,
+      description,
+      url: canonicalUrl,
+      images: [imageUrl],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [imageUrl],
     },
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${data.subCategorySlug}/${params.product}`,
+      canonical: canonicalUrl,
     },
     robots: {
       index: true,

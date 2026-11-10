@@ -16,6 +16,10 @@ describe("XRayModelComparison", () => {
     expect(document.body.textContent).toContain("۱٬۸۰۰");
     expect(document.querySelector('a[href="https://www.smithsdetection.com/products/ctx-5800/"]'));
     expect(
+      document.querySelector('a[href="/products/x-ray/airport-luggage/ctx-9800-dsi"]')?.textContent
+    ).toContain("CTX 9800 DSi");
+    expect(document.querySelector('a[href="/products/x-ray/airport-luggage/ctx-9800"]')).toBeNull();
+    expect(
       document.querySelector('a[href="https://www.smithsdetection.com/products/ctx-9800-dsi/"]')
     );
     expect(document.body.textContent).toContain("ظرفیت واقعی به پیکربندی");

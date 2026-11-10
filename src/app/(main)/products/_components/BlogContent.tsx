@@ -9,7 +9,10 @@ import { parseBlogTextToElements } from "./parseBlogText";
 interface BlogContentProps {
   html?: string; // legacy HTML input (will be wrapped)
   text?: string; // preferred text input
-  as?: "h1" | "h2" | "none";
+}
+
+function demoteBlogHeadings(htmlContent: string) {
+  return htmlContent.replace(/(<\/?\s*)h1(?=[\s>])/gi, "$1h2");
 }
 
 function _parseTextToElements(_text: string): React.ReactNode[] {
@@ -79,7 +82,7 @@ function _parseTextToElements(_text: string): React.ReactNode[] {
     }
     if (line.startsWith("# ")) {
       flushList(currentList);
-      elements.push(<h1 key={`h1-${k}`}>{renderInline(line.slice(2), `h1-${k}`)}</h1>);
+      elements.push(<h2 key={`h2-${k}`}>{renderInline(line.slice(2), `h2-${k}`)}</h2>);
       return;
     }
 
@@ -116,11 +119,15 @@ const TableScrollWrapper = ({ htmlContent }: { htmlContent: string }) => {
   const hasTables = /<table/i.test(htmlContent);
 
   if (!hasTables) {
-    return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }} />;
+    return (
+      <div
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(demoteBlogHeadings(htmlContent)) }}
+      />
+    );
   }
 
   // Wrap tables in scrollable divs with Tailwind classes
-  const wrappedContent = htmlContent
+  const wrappedContent = demoteBlogHeadings(htmlContent)
     .replace(
       /<table([^>]*)>/gi,
       '<div class="my-6 overflow-x-auto -webkit-overflow-scrolling-touch rounded-lg border border-neutral-800"><table$1 class="w-full border-collapse">'

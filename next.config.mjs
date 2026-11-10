@@ -65,6 +65,30 @@ const nextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/products/page/1",
+        destination: "/products",
+        permanent: true,
+      },
+      {
+        source: "/products/:category/page/1",
+        destination: "/products/:category",
+        permanent: true,
+      },
+      {
+        source: "/products/:category/:subcategory/page/1",
+        destination: "/products/:category/:subcategory",
+        permanent: true,
+      },
+      {
+        source: "/products/x-ray/airport-luggage/ctx-9800",
+        destination: "/products/x-ray/airport-luggage/ctx-9800-dsi",
+        permanent: true,
+      },
+    ];
+  },
   // Enable static optimization
   trailingSlash: false,
   // Optimize for production

@@ -152,6 +152,7 @@ const getBlog = async (
   searchParams: { key?: string },
   isAdmin: boolean = false
 ): Promise<BlogResponse | null> => {
+  await io();
   const data = await getBlogBySlug(slug);
   if (!data) return null;
   const blogResponse = mapBlogResponse(data);
@@ -174,7 +175,6 @@ const getBlog = async (
     }
 
     if (blog.QrCode_expiryDays) {
-      await io();
       const expiryDate = new Date(blog.QrCode_expiryDays);
       if (new Date() > expiryDate) {
         notFound();

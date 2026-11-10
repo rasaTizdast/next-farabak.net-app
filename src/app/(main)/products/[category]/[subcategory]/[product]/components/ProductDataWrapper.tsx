@@ -6,7 +6,7 @@ import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import SourcesList from "@/components/SourcesList";
 import { BRAND_LABELS, buildSourcesFor, detectBrand } from "@/helpers/sources";
 import { getProductBySlug } from "@/lib/data/products";
-import { getPriceValidUntil } from "@/utils/priceValidUntil";
+import { getProductImageUrl } from "@/lib/seo/product-image-url";
 
 import ClientInvoiceSection from "./ui/ClientInvoiceSection";
 import ProductBlog from "./ui/ProductBlog";
@@ -95,103 +95,48 @@ export default async function ProductDataWrapper({
     `/products/${productData.categorySlug}/${productData.subCategorySlug}`,
   ];
 
-  const rawPrice = Number(productData.Price);
-  const rawDiscount = Number(productData.Discount);
-  const hasValidPrice = Number.isFinite(rawPrice) && rawPrice > 0;
-  const hasValidDiscount =
-    Number.isFinite(rawDiscount) && rawDiscount > 0 && rawDiscount < rawPrice;
-  const finalPrice = hasValidDiscount ? rawPrice - rawDiscount : rawPrice;
-  const priceValidUntil = getPriceValidUntil();
-
   const brandToken = detectBrand(productData.Type);
-  const brandName = brandToken ? BRAND_LABELS[brandToken] : "فرابک";
   const productModel = productData.Type || productData.Name || "محصول فرابک";
   const productDescription = productData.Name?.trim();
-  const bucketUrl = process.env.LIARA_BUCKET_URL || process.env.NEXT_PUBLIC_LIARA_BUCKET_URL || "";
-  const imageUrl = (image: string | null) => {
-    if (!image) return null;
-    if (image.startsWith("http") || image.startsWith("/")) return image;
-    return `${bucketUrl}/productImages/${image}`;
-  };
+  const productSchemaDescription = productData.Description?.trim();
+  const canonicalUrl = new URL(
+    `/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
+    process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net"
+  ).toString();
+  const imageUrl = getProductImageUrl(productData.img2);
 
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "Product",
-        "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
-        name: productData.Type,
-        description: productData.Description,
-        image: imageUrl(productData.img2),
-        url: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
+        "@id": canonicalUrl,
+        name: productModel,
+        ...(productSchemaDescription ? { description: productSchemaDescription } : {}),
+        image: imageUrl,
+        url: canonicalUrl,
         category: `${productData.categorySlug}/${productData.subCategorySlug}`,
         model: productData.Type,
         sku: `FAR-${productData.ProductId}`,
-        brand: {
-          "@type": "Brand",
-          name: brandName,
-        },
-        manufacturer: {
-          "@type": "Organization",
-          "@id": "https://farabak.net",
-          name: "فرابک",
-          url: "https://farabak.net",
-        },
-        ...(hasValidPrice
+        ...(brandToken
           ? {
-              offers: {
-                "@type": "Offer",
-                price: String(finalPrice),
-                priceCurrency: "IRR",
-                priceValidUntil,
-                hasMerchantReturnPolicy: {
-                  "@type": "MerchantReturnPolicy",
-                  applicableCountry: "IR",
-                  returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-                  merchantReturnDays: 7,
-                  returnMethod: "https://schema.org/ReturnByMail",
-                },
-                shippingDetails: [
-                  {
-                    "@type": "OfferShippingDetails",
-                    shippingDestination: {
-                      "@type": "DefinedRegion",
-                      addressCountry: "IR",
-                    },
-                    shippingRate: {
-                      "@type": "MonetaryAmount",
-                      value: "0",
-                      currency: "IRR",
-                    },
-                    deliveryTime: {
-                      "@type": "ShippingDeliveryTime",
-                      handlingTime: {
-                        "@type": "QuantitativeValue",
-                        minValue: 1,
-                        maxValue: 5,
-                        unitCode: "DAY",
-                      },
-                      transitTime: {
-                        "@type": "QuantitativeValue",
-                        minValue: 2,
-                        maxValue: 5,
-                        unitCode: "DAY",
-                      },
-                    },
-                  },
-                ],
+              brand: {
+                "@type": "Brand",
+                name: BRAND_LABELS[brandToken],
               },
             }
           : {}),
         mainEntityOfPage: {
           "@type": "WebPage",
-          "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
+          "@id": canonicalUrl,
         },
       },
     ],
   };
 
-  const jsonLd = JSON.stringify(structuredData);
+  // Price is stored in USD and converted to an estimated Toman price at a live rate.
+  // The catalog has no stock or stable ISO-currency offer source, so do not claim an Offer.
+  const jsonLd = JSON.stringify(structuredData).replace(/</g, "\\u003c");
 
   return (
     <>
@@ -199,7 +144,7 @@ export default async function ProductDataWrapper({
       <Breadcrumb breadcrumbs={breadCrumbs} />
       <section aria-labelledby="product-dossier-title" className="py-4 md:py-8">
         <div className="grid items-stretch gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
-          <ProductGallery title={productModel} images={[imageUrl(productData.img2)]} />
+          <ProductGallery title={productModel} images={[imageUrl]} />
 
           <aside className="flex h-full flex-col rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-5 shadow-[0_18px_45px_rgba(6,26,48,0.08)] sm:p-7">
             <p className="text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
