@@ -128,40 +128,43 @@ describe("ProductGridWrapper JSON-LD HTML", () => {
     expect(html).not.toContain("30+");
   });
 
-  it.each(pageVariants)("renders one SSR collection script for $name", ({ props, expectedUrl }) => {
-    const html = renderToStaticMarkup(
-      <ProductGridWrapper
-        title="محصولات ایکس‌ری"
-        apiUrl="https://farabak.net/api/products/getProductsByCategory/x-ray?page=1&limit=30"
-        currentPage={1}
-        collectionItems={[{ name: "Smiths Detection HI-SCAN", path: "x-ray/airport/hi-scan" }]}
-        {...props}
-      />
-    );
-    const scripts = html.match(
-      /<script\b[^>]*type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/g
-    );
+  it.each(pageVariants)(
+    "renders one SSR collection script for $name",
+    ({ props, expectedUrl, expectedBreadcrumbs }) => {
+      const html = renderToStaticMarkup(
+        <ProductGridWrapper
+          title="محصولات ایکس‌ری"
+          apiUrl="https://farabak.net/api/products/getProductsByCategory/x-ray?page=1&limit=30"
+          currentPage={1}
+          collectionItems={[{ name: "Smiths Detection HI-SCAN", path: "x-ray/airport/hi-scan" }]}
+          {...props}
+        />
+      );
+      const scripts = html.match(
+        /<script\b[^>]*type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/g
+      );
 
-    expect(scripts).toHaveLength(1);
+      expect(scripts).toHaveLength(1);
 
-    const scriptContent = scripts?.[0]?.replace(/^<script[^>]*>/, "").replace(/<\/script>$/, "");
-    const schema = JSON.parse(scriptContent || "null");
-    expect(schema).toMatchObject({
-      "@type": "CollectionPage",
-      url: expectedUrl,
-      breadcrumb: {
-        "@type": "BreadcrumbList",
-        itemListElement: expectedBreadcrumbs,
-      },
-      mainEntity: {
-        "@type": "ItemList",
-        itemListElement: [
-          {
-            name: "Smiths Detection HI-SCAN",
-            url: "https://farabak.net/products/x-ray/airport/hi-scan",
-          },
-        ],
-      },
-    });
-  });
+      const scriptContent = scripts?.[0]?.replace(/^<script[^>]*>/, "").replace(/<\/script>$/, "");
+      const schema = JSON.parse(scriptContent || "null");
+      expect(schema).toMatchObject({
+        "@type": "CollectionPage",
+        url: expectedUrl,
+        breadcrumb: {
+          "@type": "BreadcrumbList",
+          itemListElement: expectedBreadcrumbs,
+        },
+        mainEntity: {
+          "@type": "ItemList",
+          itemListElement: [
+            {
+              name: "Smiths Detection HI-SCAN",
+              url: "https://farabak.net/products/x-ray/airport/hi-scan",
+            },
+          ],
+        },
+      });
+    }
+  );
 });
