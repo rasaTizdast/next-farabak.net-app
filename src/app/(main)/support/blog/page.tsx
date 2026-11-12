@@ -2,6 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { calculateReadingTime } from "@/app/(main)/support/blog/_components/blog-helpers";
 import BlogCategoryNav from "@/app/(main)/support/blog/_components/BlogCategoryNav";
@@ -12,6 +13,8 @@ import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 import { getBlogCategories } from "@/lib/data/blogCategories";
 import { getBlogs } from "@/lib/data/blogs";
+
+import { BlogListingSkeleton } from "./_components/BlogListingSkeleton";
 
 export const metadata: Metadata = {
   title: "بلاگ آموزشی فرابک | مقالات امنیتی",
@@ -211,7 +214,7 @@ const BlogLandingContent = ({
   );
 };
 
-const BlogLandingPage = async () => {
+async function BlogLandingData() {
   let blogData: Blogs | null = null;
   let categoryData: BlogCategory[] = [];
 
@@ -293,10 +296,16 @@ const BlogLandingPage = async () => {
       <BlogLandingContent blogs={blogData.blogs} categories={categoryData} />
     </>
   );
-};
+}
 
 function serializeJsonLd(data: unknown): string {
   return JSON.stringify(data).replace(/</g, "\\u003c");
 }
 
-export default BlogLandingPage;
+export default function BlogLandingPage() {
+  return (
+    <Suspense fallback={<BlogListingSkeleton />}>
+      <BlogLandingData />
+    </Suspense>
+  );
+}

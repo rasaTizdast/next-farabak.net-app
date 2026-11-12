@@ -8,6 +8,8 @@ import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 import { getContactInfo } from "@/lib/data/contactUs";
 
+import ContactUsLoading from "./ContactUsLoading";
+
 export const metadata: Metadata = {
   alternates: { canonical: "/contact-us" },
   title: "تماس با فرابک | آدرس و پشتیبانی",
@@ -198,19 +200,7 @@ const ContactUsContent = async () => {
 
 export default function ContactUsPage() {
   return (
-    <Suspense
-      fallback={
-        <PublicShell
-          as="main"
-          className="py-10"
-          role="status"
-          aria-label="در حال بارگذاری تماس با فرابک"
-        >
-          <div aria-hidden="true" className="mb-5 h-12 w-full rounded-xl bg-slate-200/80" />
-          <PageIntro title="ارتباط با فرابک" description="اطلاعات تماس در حال بارگذاری است." />
-        </PublicShell>
-      }
-    >
+    <Suspense fallback={<ContactUsLoading />}>
       <ContactUsContent />
     </Suspense>
   );

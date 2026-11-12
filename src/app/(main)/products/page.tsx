@@ -12,6 +12,7 @@ import {
   BreadcrumbSkeleton,
   CategorySliderSkeleton,
   ProductGridSkeleton,
+  ProductsPageSkeleton,
 } from "./_components/ProductListSkeletons";
 
 interface ProductsPageProps {
@@ -58,7 +59,7 @@ export const generateMetadata = async (props: ProductsPageProps): Promise<Metada
 
 const productsBreadcrumbs = ["/", "/products"];
 
-export default async function ProductsPage(props: ProductsPageProps) {
+async function ProductsPageContent(props: ProductsPageProps) {
   const searchParams = await props.searchParams;
   const currentPage = parseProductsQueryPage(searchParams.page);
   if (currentPage === null) notFound();
@@ -95,5 +96,13 @@ export default async function ProductsPage(props: ProductsPageProps) {
         />
       </Suspense>
     </>
+  );
+}
+
+export default function ProductsPage(props: ProductsPageProps) {
+  return (
+    <Suspense fallback={<ProductsPageSkeleton />}>
+      <ProductsPageContent {...props} />
+    </Suspense>
   );
 }

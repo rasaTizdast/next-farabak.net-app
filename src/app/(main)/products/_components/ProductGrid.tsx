@@ -58,6 +58,27 @@ const ProductIntro = ({ title, showSearch }: { title: string; showSearch: boolea
   />
 );
 
+const ProductIntroFallback = ({ title, showSearch }: { title: string; showSearch: boolean }) => (
+  <header aria-hidden="true" className="flex flex-col gap-5 py-8 md:gap-6 md:py-12" dir="rtl">
+    <p className="text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
+      کاتالوگ تجهیزات فرابک
+    </p>
+    <div className="flex flex-col gap-4 md:max-w-3xl">
+      <div className="text-3xl leading-tight font-bold tracking-tight text-(--farabak-ink-deep) md:text-5xl">
+        {title}
+      </div>
+      <p className="text-base leading-8 text-(--farabak-ink-muted)">
+        مدل‌ها و راهکارهای مناسب پروژه‌تان را با مشخصات روشن، تصویر واقعی محصول و مسیر ارتباط با
+        کارشناس پیدا کنید.
+      </p>
+    </div>
+    <div className="flex flex-wrap items-center gap-3">
+      {showSearch ? <Skeleton className="h-11 w-32 rounded-md" /> : null}
+      <Skeleton className="h-11 w-32 rounded-md" />
+    </div>
+  </header>
+);
+
 const ProductGrid: React.FC<ProductGridProps> = ({
   title,
   apiUrl,
@@ -85,7 +106,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
 
   return (
     <div className="w-full">
-      <Suspense fallback={<ProductIntro title={title} showSearch={!categorySlug} />}>
+      <Suspense fallback={<ProductIntroFallback title={title} showSearch={!categorySlug} />}>
         {(async () => {
           const { topBlog } = await blogsPromise;
           if (topBlog) {
@@ -109,7 +130,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
         })()}
       </Suspense>
 
-      <Suspense fallback={<ProductGridSkeleton />}>
+      <Suspense fallback={<ProductGridSkeleton showSearch={!categorySlug} />}>
         <Reveal>
           <GridContentServer
             apiUrl={apiUrl}

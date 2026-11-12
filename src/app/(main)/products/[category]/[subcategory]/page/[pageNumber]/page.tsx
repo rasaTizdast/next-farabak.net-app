@@ -8,7 +8,7 @@ import { parsePositivePageNumber } from "@/lib/pagination";
 import BreadcrumbWrapper from "../../../../_components/BreadcrumbWrapper";
 import {
   BreadcrumbSkeleton,
-  ProductGridSkeleton,
+  ProductListingSkeleton,
 } from "../../../../_components/ProductListSkeletons";
 import SubcategoryPageWrapper from "../../../../_components/SubcategoryPageWrapper";
 
@@ -74,7 +74,7 @@ export default async function SubcategoryPage(props: SubcategoryPageProps) {
       <Suspense fallback={<BreadcrumbSkeleton />}>
         <BreadcrumbWrapper breadcrumbs={breadcrumbs} />
       </Suspense>
-      <Suspense fallback={<ProductGridSkeleton />}>
+      <Suspense fallback={<ProductListingSkeleton showSearch={false} />}>
         <SubcategoryPageWrapper
           categoryName={category}
           subcategoryName={subcategory}

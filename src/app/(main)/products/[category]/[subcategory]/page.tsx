@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { getProductsBySubcategory } from "@/lib/data/products";
 
 import BreadcrumbWrapper from "../../_components/BreadcrumbWrapper";
-import { BreadcrumbSkeleton, ProductGridSkeleton } from "../../_components/ProductListSkeletons";
+import { BreadcrumbSkeleton, ProductListingSkeleton } from "../../_components/ProductListSkeletons";
 import SubcategoryPageWrapper from "../../_components/SubcategoryPageWrapper";
 
 interface SubcategoryPageProps {
@@ -57,7 +57,7 @@ export default async function SubcategoryPage(props: SubcategoryPageProps) {
       <Suspense fallback={<BreadcrumbSkeleton />}>
         <BreadcrumbWrapper breadcrumbs={breadcrumbs} />
       </Suspense>
-      <Suspense fallback={<ProductGridSkeleton />}>
+      <Suspense fallback={<ProductListingSkeleton showSearch={false} />}>
         <SubcategoryPageWrapper
           categoryName={category}
           subcategoryName={subcategory}

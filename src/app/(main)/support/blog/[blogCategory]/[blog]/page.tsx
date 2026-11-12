@@ -12,6 +12,7 @@ import { PublicShell } from "@/components/public/PublicShell";
 import { SITE_URL } from "@/constants/meta";
 import { getBlogBySlug, type BlogDetailData } from "@/lib/data/blogs";
 
+import ArticleTableOfContents from "../../_components/ArticleTableOfContents";
 import {
   addArticleHeadingAnchors,
   calculateReadingTime,
@@ -356,24 +357,10 @@ export default async function BlogPage(props: {
           </header>
 
           {articleHeadings.length > 0 ? (
-            <nav
-              aria-label="فهرست مقاله"
+            <ArticleTableOfContents
+              headings={articleHeadings}
               className="mb-8 rounded-xl bg-(--farabak-surface-blue) p-5 lg:hidden"
-            >
-              <p className="mb-3 text-sm font-bold text-(--farabak-ink-deep)">در این مقاله</p>
-              <ol className="space-y-2 text-sm">
-                {articleHeadings.map((heading) => (
-                  <li key={heading.id} className={heading.level === 3 ? "pr-4" : undefined}>
-                    <a
-                      href={"#" + heading.id}
-                      className="text-(--farabak-ink-muted) underline-offset-4 hover:text-(--farabak-action-blue) hover:underline"
-                    >
-                      {heading.text}
-                    </a>
-                  </li>
-                ))}
-              </ol>
-            </nav>
+            />
           ) : null}
 
           <div
@@ -389,24 +376,10 @@ export default async function BlogPage(props: {
 
         <aside className="sticky top-28 hidden space-y-4 lg:block">
           {articleHeadings.length > 0 ? (
-            <nav
-              aria-label="فهرست مقاله"
+            <ArticleTableOfContents
+              headings={articleHeadings}
               className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)]"
-            >
-              <p className="mb-3 text-sm font-bold text-(--farabak-ink-deep)">در این مقاله</p>
-              <ol className="space-y-3 text-sm">
-                {articleHeadings.map((heading) => (
-                  <li key={heading.id} className={heading.level === 3 ? "pr-4" : undefined}>
-                    <a
-                      href={"#" + heading.id}
-                      className="text-(--farabak-ink-muted) underline-offset-4 hover:text-(--farabak-action-blue) hover:underline"
-                    >
-                      {heading.text}
-                    </a>
-                  </li>
-                ))}
-              </ol>
-            </nav>
+            />
           ) : null}
           <ActionLink
             href={categorySlug ? "/support/blog/" + categorySlug : "/support/blog"}

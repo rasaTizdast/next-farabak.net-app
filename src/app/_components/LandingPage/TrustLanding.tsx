@@ -1,4 +1,4 @@
-import { ArrowDownLeft, ArrowLeft, ArrowUpLeft } from "lucide-react";
+import { ArrowLeft, ArrowUpLeft } from "lucide-react";
 import { io } from "next/cache";
 import Image from "next/image";
 import { Suspense } from "react";
@@ -13,8 +13,9 @@ import { landingStories, type LandingStory } from "@/content/landing-stories";
 import { getHomepageData, type HomepageData } from "@/lib/data/homepage";
 import { resolveHomepageImage } from "@/lib/homepage-proof";
 
+import EditorialHero from "./EditorialHero";
+import LandingEvidenceFallback from "./LandingEvidenceFallback";
 import LandingExperience from "./LandingExperience";
-import RangeInstrument from "./RangeInstrument";
 
 const focus =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2";
@@ -64,91 +65,6 @@ function SectionTitle({
         </ActionLink>
       )}
     </div>
-  );
-}
-
-function Hero() {
-  const items = landingStories.map((story) => {
-    const media = landingAssets[story.key];
-    return {
-      key: story.key,
-      categoryLabel: story.categoryLabel,
-      familyLabel: story.familyLabel,
-      title: story.title,
-      href: `#story-${story.key}`,
-      desktopSrc: media.desktopSrc,
-      mobileSrc: media.mobileSrc,
-      alt: media.alt,
-      mediaStatus: media.mediaStatus,
-      caption: media.caption,
-    };
-  });
-
-  return (
-    <section
-      className="overflow-hidden bg-[#061a30] py-10 text-white md:pt-16 lg:pt-20"
-      aria-labelledby="home-heading"
-    >
-      <PublicShell>
-        <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-12 2xl:gap-20">
-          <div className="relative z-1">
-            <h1
-              id="home-heading"
-              className="text-[clamp(2.5rem,6vw,6.1rem)] leading-[1.12] font-black tracking-tight"
-            >
-              <span className="block overflow-hidden pb-[0.08em]">
-                <span className="block whitespace-nowrap" data-reveal data-reveal-order="0">
-                  برای هر نگاه،
-                </span>
-              </span>
-              <span className="block overflow-hidden pb-[0.08em]">
-                <span className="block whitespace-nowrap" data-reveal data-reveal-order="1">
-                  انتخابی دقیق.
-                </span>
-              </span>
-            </h1>
-            <p
-              className="mt-6 max-w-[42ch] text-lg leading-9 text-[#d0dfeb] md:text-xl md:leading-10"
-              data-reveal
-              data-reveal-order="2"
-            >
-              فرابک برای بازرسی، نظارت و تولید تصویر، تجهیزات را از نیاز واقعی فضا و پروژه آغاز
-              می‌کند.
-            </p>
-            <div
-              className="mt-7 flex flex-wrap items-center gap-4"
-              data-reveal
-              data-reveal-order="3"
-            >
-              <a className={primaryAction} href="#range-select">
-                حوزه خود را انتخاب کنید
-                <ArrowDownLeft size={19} strokeWidth={1.5} aria-hidden="true" />
-              </a>
-              <Link
-                className={
-                  "inline-flex min-h-12 items-center gap-2 text-[15px] font-semibold text-white underline decoration-white/50 underline-offset-6 " +
-                  focus
-                }
-                href="/contact-us"
-              >
-                مشاوره پروژه
-                <ArrowLeft size={18} strokeWidth={1.4} aria-hidden="true" />
-              </Link>
-            </div>
-            <p className="mt-10 text-sm leading-7 text-[#b7cbdc]" data-reveal data-reveal-order="4">
-              ثبت‌شده از {digits(HISTORY_START_YEAR)} ·{" "}
-              <Link
-                className={"text-white underline underline-offset-4 " + focus}
-                href="/about-us/activity"
-              >
-                سابقه فرابک
-              </Link>
-            </p>
-          </div>
-          <RangeInstrument items={items} />
-        </div>
-      </PublicShell>
-    </section>
   );
 }
 
@@ -698,7 +614,7 @@ export default function TrustLanding() {
       >
         رفتن به حوزه‌ها
       </a>
-      <Hero />
+      <EditorialHero />
       <Evidence />
       <div id="product-stories">
         {landingStories.map((story, index) => (
@@ -706,14 +622,7 @@ export default function TrustLanding() {
         ))}
       </div>
       <BlackwonderRange />
-      <Suspense
-        fallback={
-          <>
-            <Projects projects={[]} publishedProjectCount={null} />
-            <Knowledge blogs={[]} />
-          </>
-        }
-      >
+      <Suspense fallback={<LandingEvidenceFallback />}>
         <LiveEvidence />
       </Suspense>
       <Support />

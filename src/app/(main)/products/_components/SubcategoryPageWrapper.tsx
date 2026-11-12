@@ -41,7 +41,7 @@ export default async function SubcategoryPageWrapper({
 
   return (
     <>
-      <Suspense fallback={<ProductGridSkeleton />}>
+      <Suspense fallback={<ProductGridSkeleton showSearch={false} />}>
         <ProductGridWrapper
           title={subCategoryTitle}
           apiUrl={apiUrl}

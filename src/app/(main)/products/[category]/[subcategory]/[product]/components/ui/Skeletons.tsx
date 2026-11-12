@@ -1,5 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
+import { BreadcrumbSkeleton } from "../../../../../_components/ProductListSkeletons";
+
 export function SkeletonFeatures() {
   return (
     <div className="space-y-3">
@@ -76,28 +78,41 @@ export function SkeletonFaq() {
 
 export function ProductMainSkeleton() {
   return (
-    <div className="space-y-8" role="status" aria-label="در حال بارگذاری محصول">
-      <div className="grid items-stretch gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
-        <div className="flex h-full min-h-52 flex-col rounded-2xl border border-(--farabak-ink-deep)/10 bg-(--farabak-paper) p-4 sm:min-h-80 sm:p-6 lg:min-h-96">
-          <Skeleton className="flex-1 rounded-xl" />
+    <div dir="rtl" role="status" aria-label="در حال بارگذاری محصول">
+      <div aria-hidden="true">
+        <BreadcrumbSkeleton />
+        <div className="grid items-stretch gap-8 py-4 md:py-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
+          <div className="flex aspect-video h-full min-w-0 flex-col rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-2 shadow-sm sm:p-6 lg:aspect-auto">
+            <Skeleton className="flex-1 rounded-xl" />
+          </div>
+          <div className="flex h-full flex-col rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-5 shadow-sm sm:p-7">
+            <p className="text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
+              پرونده فنی محصول
+            </p>
+            <Skeleton className="mt-4 h-10 w-3/4" />
+            <Skeleton className="mt-3 h-7 w-2/3" />
+            <div className="mt-5 grid grid-cols-2 gap-3 border-y border-(--farabak-ink-deep)/10 py-4">
+              {["کد محصول", "وضعیت"].map((label) => (
+                <div key={label}>
+                  <span className="block text-xs text-(--farabak-ink-muted)">{label}</span>
+                  <Skeleton className="mt-1 h-5 w-3/4 max-w-32" />
+                </div>
+              ))}
+            </div>
+            <div className="mt-5 border-t border-(--farabak-ink-deep)/10 pt-5">
+              <p className="mb-3 text-sm font-bold text-(--farabak-ink-deep)">ویژگی‌های کلیدی</p>
+              <SkeletonFeatures />
+            </div>
+            <div className="mt-5 space-y-3 border-t border-(--farabak-ink-deep)/10 pt-5">
+              <Skeleton className="h-6 w-1/3" />
+              <Skeleton className="h-11 w-full rounded-lg" />
+            </div>
+          </div>
         </div>
-        <div className="flex h-full flex-col rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-5 shadow-[0_18px_45px_rgba(6,26,48,0.08)] sm:p-7">
-          <div className="mb-2 max-w-full">
-            <Skeleton className="h-5 w-1/3" />
-            <Skeleton className="mt-8 h-7 w-3/4" />
-          </div>
-
-          <div className="mt-2 space-y-3">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-4 w-2/3" />
-          </div>
-          <div className="mt-auto space-y-3">
-            <Skeleton className="h-6 w-1/3 rounded-lg" />
-            <Skeleton className="h-10 w-full rounded-lg" />
-            <Skeleton className="h-12 w-full rounded-lg" />
-          </div>
+        <div className="my-8 flex h-13 items-center justify-center gap-2 overflow-hidden rounded-xl bg-(--farabak-ink-deep) p-1 sm:gap-4">
+          {Array.from({ length: 4 }, (_, index) => (
+            <Skeleton key={index} className="h-4 w-12 sm:w-20" />
+          ))}
         </div>
       </div>
     </div>

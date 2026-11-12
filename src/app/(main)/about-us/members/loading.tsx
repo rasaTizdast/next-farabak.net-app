@@ -1,9 +1,4 @@
-import {
-  BreadcrumbSkeleton,
-  ButtonSkeleton,
-  CardSkeleton,
-  LineSkeleton,
-} from "@/app/_components/ui/PageSkeletons";
+import { BreadcrumbSkeleton } from "@/app/_components/ui/PageSkeletons";
 import { PublicShell } from "@/components/public/PublicShell";
 
 export default function MembersLoading() {
@@ -14,19 +9,34 @@ export default function MembersLoading() {
       role="status"
       aria-label="در حال بارگذاری اعضا"
     >
-      <BreadcrumbSkeleton />
-      <div className="flex w-full flex-wrap items-stretch justify-evenly gap-8">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <CardSkeleton
-            key={i}
-            className="w-[20%] max-w-[300px] min-w-[300px] max-[768px]:min-w-[250px]"
-          >
-            <div className="h-[200px] w-full animate-pulse rounded-lg bg-gray-200" />
-            <div className="h-5 w-1/2 animate-pulse rounded bg-gray-200" />
-            <LineSkeleton className="w-2/3" />
-            <ButtonSkeleton />
-          </CardSkeleton>
-        ))}
+      <div aria-hidden="true">
+        <BreadcrumbSkeleton />
+        <header className="flex flex-col gap-5 py-6 md:gap-6 md:py-8">
+          <div className="skeleton-shimmer h-4 w-28 rounded-full" />
+          <div className="skeleton-shimmer h-10 w-full max-w-2xl rounded-2xl md:h-14" />
+          <div className="space-y-3">
+            <div className="skeleton-shimmer h-4 w-full max-w-3xl rounded-full" />
+            <div className="skeleton-shimmer h-4 w-4/5 max-w-2xl rounded-full" />
+          </div>
+          <div className="skeleton-shimmer h-11 w-40 rounded-xl" />
+        </header>
+
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <article
+              key={i}
+              className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_16px_36px_rgba(6,26,48,0.06)]"
+            >
+              <div className="skeleton-shimmer aspect-5/4 w-full" />
+              <div className="flex flex-1 flex-col p-6 sm:p-7">
+                <div className="skeleton-shimmer h-4 w-32 rounded-full" />
+                <div className="skeleton-shimmer mt-4 h-6 w-3/4 rounded-xl" />
+                <div className="skeleton-shimmer mt-3 h-4 w-2/3 rounded-full" />
+                <div className="skeleton-shimmer mt-6 h-11 w-full rounded-xl" />
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
     </PublicShell>
   );

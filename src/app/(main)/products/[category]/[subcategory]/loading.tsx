@@ -1,10 +1,10 @@
-import { BreadcrumbSkeleton, ProductGridSkeleton } from "../../_components/ProductListSkeletons";
+import { BreadcrumbSkeleton, ProductListingSkeleton } from "../../_components/ProductListSkeletons";
 
 export default function SubCategoryLoading() {
   return (
-    <div className="space-y-6" role="status" aria-label="در حال بارگذاری">
+    <div dir="rtl">
       <BreadcrumbSkeleton />
-      <ProductGridSkeleton />
+      <ProductListingSkeleton showSearch={false} />
     </div>
   );
 }

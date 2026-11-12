@@ -1,4 +1,4 @@
-import { ArrowUpRight, MapPin } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { io } from "next/cache";
 import { BsFillSignpostSplitFill } from "react-icons/bs";
 import { FaInstagram, FaPhoneSquare, FaWhatsapp } from "react-icons/fa";
@@ -6,6 +6,10 @@ import { FaInstagram, FaPhoneSquare, FaWhatsapp } from "react-icons/fa";
 import Link from "@/components/NoPrefetchLink";
 import { PublicShell } from "@/components/public/PublicShell";
 import { getContactInfo } from "@/lib/data/contactUs";
+
+const officeMapEmbedUrl =
+  "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1360.8932132644327!2d51.3555053!3d35.7813483!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3f8e07b684c2b9d5%3A0x703fbc3293eb71d6!2sFARABAK%20Head%20Office%20Company!5e0!3m2!1sen!2s!4v1711904970824!5m2!1sen!2s";
+const officeMapLink = "https://maps.app.goo.gl/uvDEdvrX8FNcsvpG8";
 
 const Footer = async () => {
   // Keep outage fallbacks out of the prerendered shell so later requests retry.
@@ -191,31 +195,28 @@ const Footer = async () => {
               </>
             )}
           </address>
-          <div className="relative flex min-h-52 flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-[radial-gradient(ellipse_at_15%_15%,rgba(18,101,232,0.3),transparent_52%),linear-gradient(135deg,#102b49,#071323)] px-6 py-8 text-center">
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,transparent_49.8%,rgba(148,185,224,0.1)_50%,transparent_50.3%),linear-gradient(25deg,transparent_49.8%,rgba(148,185,224,0.08)_50%,transparent_50.3%)]"
+          <div className="overflow-hidden rounded-2xl border border-white/15 bg-[#071323]">
+            <iframe
+              title="نقشه موقعیت دفتر مرکزی شرکت فرابک"
+              src={officeMapEmbedUrl}
+              sandbox="allow-scripts allow-same-origin allow-popups"
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              className="block h-52 w-full border-0 sm:h-56"
             />
-            <span className="relative grid size-14 place-items-center rounded-2xl border border-white/20 bg-white/10 text-cyan-200 shadow-[0_12px_32px_rgba(0,0,0,0.2)]">
-              <MapPin aria-hidden="true" className="size-7" />
-            </span>
-            <p className="relative mt-4 text-base font-bold text-white">دفتر مرکزی فرابک</p>
-            {address && (
-              <p className="relative mt-1 text-sm leading-7 text-slate-300">
-                نشانی و مسیر دسترسی را روی نقشه ببینید.
-              </p>
-            )}
-            {address && (
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+              <p className="text-sm font-bold text-white">دفتر مرکزی فرابک</p>
               <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address.address)}`}
+                href={officeMapLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="relative mt-4 inline-flex items-center gap-2 rounded-full border border-cyan-200/30 bg-cyan-100/10 px-4 py-2 text-sm font-semibold text-cyan-100 transition-colors hover:bg-cyan-100/20 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-200"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-200 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-200"
               >
                 مشاهده موقعیت روی نقشه
                 <ArrowUpRight aria-hidden="true" className="size-4" />
               </a>
-            )}
+            </div>
           </div>
         </div>
 

@@ -49,7 +49,7 @@ export default async function CategoryPageWrapper({
 
   return (
     <>
-      <Suspense fallback={<CategorySliderSkeleton />}>
+      <Suspense fallback={<CategorySliderSkeleton subcategories />}>
         <CategorySliderWrapper type="subcategories" categorySlug={categoryName} />
       </Suspense>
       <Suspense fallback={<ProductGridSkeleton />}>

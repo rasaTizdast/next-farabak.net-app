@@ -1,44 +1,39 @@
-import { BreadcrumbSkeleton } from "@/app/_components/ui/PageSkeletons";
-import { PublicShell } from "@/components/public/PublicShell";
+import {
+  LoadingBlock,
+  SupportIntroSkeleton,
+  SupportLoadingShell,
+} from "../../../_components/LoadingSkeletons";
 
 export default function BlogDetailLoading() {
   return (
-    <PublicShell
-      as="main"
-      className="animate-pulse py-10 sm:py-14 lg:py-16"
-      role="status"
-      aria-label="در حال بارگذاری مقاله"
-    >
-      <BreadcrumbSkeleton className="bg-slate-100 shadow-none" />
-      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
-        <article className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8 lg:p-12">
-          <header className="mb-10 space-y-5">
-            <div className="h-4 w-24 rounded-full bg-slate-100" />
-            <div className="h-12 w-full rounded-2xl bg-slate-200" />
-            <div className="h-12 w-4/5 rounded-2xl bg-slate-200" />
-            <div className="aspect-1200/630 w-full rounded-3xl bg-slate-100" />
-            <div className="h-5 w-2/3 rounded-full bg-slate-100" />
-          </header>
-          <div className="space-y-5">
-            {Array.from({ length: 14 }).map((_, i) => (
-              <div
-                key={i}
-                className={`h-4 rounded-full bg-slate-100 ${i % 4 === 0 ? "w-11/12" : i % 3 === 0 ? "w-10/12" : "w-full"}`}
-              />
-            ))}
+    <SupportLoadingShell label="در حال بارگذاری مقاله">
+      <SupportIntroSkeleton />
+
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)] sm:p-8 md:p-10">
+          <div className="mb-8 border-b border-slate-100 pb-8">
+            <LoadingBlock className="mx-auto mb-6 aspect-video w-full max-w-3xl rounded-xl" />
+            <LoadingBlock className="h-11 w-full rounded-xl" />
           </div>
-        </article>
-        <aside className="hidden space-y-4 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm lg:block">
-          <div className="h-5 w-28 rounded-full bg-slate-200" />
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-4 rounded-full bg-slate-100"
-              style={{ width: `${75 - i * 7}%` }}
-            />
-          ))}
-        </aside>
+          <LoadingBlock className="mb-8 h-32 rounded-xl bg-(--farabak-surface-blue) lg:hidden" />
+          <div className="mx-auto max-w-3xl space-y-4">
+            <LoadingBlock className="h-8 w-1/2" />
+            <LoadingBlock className="h-4 w-full" />
+            <LoadingBlock className="h-4 w-full" />
+            <LoadingBlock className="h-4 w-4/5" />
+          </div>
+        </div>
+
+        <div className="hidden space-y-4 lg:block">
+          <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.05)]">
+            <LoadingBlock className="h-5 w-24" />
+            <LoadingBlock className="h-5 w-full" />
+            <LoadingBlock className="h-5 w-4/5" />
+            <LoadingBlock className="h-5 w-3/4" />
+          </div>
+          <LoadingBlock className="h-11 w-full rounded-xl" />
+        </div>
       </div>
-    </PublicShell>
+    </SupportLoadingShell>
   );
 }

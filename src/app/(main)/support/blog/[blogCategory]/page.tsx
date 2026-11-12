@@ -2,6 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { calculateReadingTime } from "@/app/(main)/support/blog/_components/blog-helpers";
 import BlogCategoryNav from "@/app/(main)/support/blog/_components/BlogCategoryNav";
@@ -12,9 +13,11 @@ import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 import { getBlogsByCategory } from "@/lib/data/blogs";
 
-export async function generateMetadata(props: {
-  params: Promise<{ blogCategory: string }>;
-}): Promise<Metadata> {
+import { BlogListingSkeleton } from "../_components/BlogListingSkeleton";
+
+type BlogCategoryPageProps = { params: Promise<{ blogCategory: string }> };
+
+export async function generateMetadata(props: BlogCategoryPageProps): Promise<Metadata> {
   const params = await props.params;
 
   const data = (await getBlogsByCategory(params.blogCategory)) as Blogs | null;
@@ -196,7 +199,7 @@ const CategoryContent = ({ blogs, categorySlug }: { blogs: Blog[]; categorySlug:
   );
 };
 
-const BlogCategoryPage = async (props: { params: Promise<{ blogCategory: string }> }) => {
+async function BlogCategoryData(props: BlogCategoryPageProps) {
   const params = await props.params;
   let blogData: Blogs | null = null;
 
@@ -259,10 +262,16 @@ const BlogCategoryPage = async (props: { params: Promise<{ blogCategory: string 
       <CategoryContent blogs={blogData.blogs} categorySlug={params.blogCategory} />
     </>
   );
-};
+}
 
 function serializeJsonLd(data: unknown): string {
   return JSON.stringify(data).replace(/</g, "\\u003c");
 }
 
-export default BlogCategoryPage;
+export default function BlogCategoryPage({ params }: BlogCategoryPageProps) {
+  return (
+    <Suspense fallback={<BlogListingSkeleton category />}>
+      <BlogCategoryData params={params} />
+    </Suspense>
+  );
+}

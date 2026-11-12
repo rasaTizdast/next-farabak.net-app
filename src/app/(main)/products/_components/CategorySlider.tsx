@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 
-import SkeletonLoader from "@/app/_components/ui/SkeletonLoader";
 import { getAllCategories } from "@/lib/data/categories";
 
 import CategorySliderContent from "./CategorySliderContent";
+import { CategorySliderSkeleton } from "./ProductListSkeletons";
 
 interface CategorySliderItem {
   Name: string;
@@ -63,7 +63,7 @@ export default async function CategorySlider({ type, categorySlug }: CategorySli
   }
 
   return (
-    <Suspense fallback={<SkeletonLoader amount={8} />}>
+    <Suspense fallback={<CategorySliderSkeleton subcategories={type === "subcategories"} />}>
       <CategorySliderContent
         items={items}
         type={type === "subcategories" ? "subcategory" : "category"}

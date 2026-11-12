@@ -51,4 +51,29 @@ describe("ProductCard", () => {
     expect(screen.getByRole("heading", { level: 2, name: "تجهیزات امنیتی" })).toBeVisible();
     expect(screen.getByText("برای قیمت تماس بگیرید")).toBeVisible();
   });
+
+  it.each([
+    ["x-ray/airport-luggage/ctx-9800-dsi", "/products/x-ray/airport-luggage/ctx-9800-dsi"],
+    [
+      "reolink-cctv-camera/night-vision/Argus-2",
+      "/products/reolink-cctv-camera/night-vision/Argus-2",
+    ],
+    [
+      "blackmagic/atem-production-switcher/atem-micro-camera-panel",
+      "/products/blackmagic/atem-production-switcher/atem-micro-camera-panel",
+    ],
+  ])("links product path %s to its canonical route", (link, expectedHref) => {
+    render(
+      <ProductCard
+        product={{ ProductId: 10, Type: "Product", Available: true, link }}
+        usdRate={null}
+        isValidRate={false}
+      />
+    );
+
+    expect(screen.getByRole("link", { name: "مشاهده Product" })).toHaveAttribute(
+      "href",
+      expectedHref
+    );
+  });
 });
