@@ -1,12 +1,25 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 import { useUser } from "@/context/UserContext";
 import { useApiFetch } from "@/hooks/useApiFetch";
 
+import { SelectedProduct } from "./types";
+
+const faNumberFormatter = new Intl.NumberFormat("fa-IR");
+
+function formatNumber(num: number) {
+  return faNumberFormatter.format(num);
+}
+
 // Extended Product interface with additional properties
-interface ExtendedProduct extends Product {
+interface ExtendedProduct {
+  ProductId: number;
+  Type: string;
+  Price?: string;
+  Discount?: string;
+  quantity?: number;
   priceInRials: number;
   currentQuantity: number;
   selectedQuantity: number;
@@ -16,10 +29,10 @@ interface ExtendedProduct extends Product {
 
 interface ProductSelectionStepProps {
   branchId: number;
-  selectedProducts: any[];
-  setSelectedProducts: React.Dispatch<React.SetStateAction<any[]>>;
+  selectedProducts: SelectedProduct[];
+  setSelectedProducts: React.Dispatch<React.SetStateAction<SelectedProduct[]>>;
   usdToRialRate: number | null;
-  onUpdate: (products: any[], totalAmount: number) => void;
+  onUpdate: (products: SelectedProduct[], totalAmount: number) => void;
 }
 
 interface Product {
@@ -42,8 +55,8 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     loading,
     error,
   } = useApiFetch<Product[]>(branchId ? `/api/admin/branches/${branchId}/products` : null);
-  const [products, setProducts] = useState<ExtendedProduct[]>([]);
-  const [localSelectedProducts, setLocalSelectedProducts] = useState<any[]>([]);
+  const [localSelectedProducts, setLocalSelectedProducts] = useState<SelectedProduct[]>([]);
+  const prevSelectedRef = useRef(selectedProducts);
   const [manualExchangeRate, setManualExchangeRate] = useState<number | null>(null);
   const [rawInput, setRawInput] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"products" | "selected">("products");
@@ -51,33 +64,31 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
   const { isBranch } = useUser();
 
   // Determine which exchange rate to use (automatic or manual)
-  const effectiveRate = useMemo(() => {
-    // If automatic rate is valid, use it
+  const effectiveRate = (() => {
     if (usdToRialRate && !isNaN(usdToRialRate) && usdToRialRate > 0) {
       return usdToRialRate;
     }
-    // Otherwise use manual rate if it's set
     return manualExchangeRate;
-  }, [usdToRialRate, manualExchangeRate]);
+  })();
 
-  // Initialize local state from props on first render and when selectedProducts changes externally
+  // Sync local state from parent prop
   useEffect(() => {
-    setLocalSelectedProducts(selectedProducts);
+    if (prevSelectedRef.current !== selectedProducts) {
+      prevSelectedRef.current = selectedProducts;
+
+      setLocalSelectedProducts(selectedProducts);
+    }
   }, [selectedProducts]);
 
-  // This effect processes the raw products with the current exchange rate
-  // without triggering API calls
-  useEffect(() => {
-    if (!rawProducts || rawProducts.length === 0) return;
+  // Derive products display data from raw products + exchange rate + selections
+  const products = (() => {
+    if (!rawProducts || rawProducts.length === 0) return [];
 
-    const processedProducts = rawProducts.map((product: Product) => {
+    return rawProducts.map((product: Product) => {
       const price = product.Price ? parseFloat(product.Price) : 0;
       const discount = product.Discount ? parseFloat(product.Discount) : 0;
       const finalPrice = Math.max(0, price - discount);
-
       const priceInRials = effectiveRate ? finalPrice * effectiveRate : 0;
-
-      // Check if product is already selected
       const existingProduct = localSelectedProducts.find((p) => p.ProductId === product.ProductId);
 
       return {
@@ -88,127 +99,71 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
         isSelected: !!existingProduct,
         total_price: existingProduct ? existingProduct.quantity * priceInRials : 0,
       };
-    });
-
-    setProducts(processedProducts as ExtendedProduct[]);
-
-    // Update selected products with new prices based on new rate
-    if (effectiveRate && localSelectedProducts.length > 0) {
-      const updatedSelectedProducts = localSelectedProducts.map((product) => {
-        const originalProduct = rawProducts.find((p) => p.ProductId === product.ProductId);
-        if (!originalProduct) return product;
-
-        const price = originalProduct.Price ? parseFloat(originalProduct.Price) : 0;
-        const discount = originalProduct.Discount ? parseFloat(originalProduct.Discount) : 0;
-        const finalPrice = Math.max(0, price - discount);
-        const priceInRials = finalPrice * effectiveRate;
-
-        return {
-          ...product,
-          price: priceInRials,
-          total_price: product.quantity * priceInRials,
-        };
-      });
-
-      // Only update if prices have changed
-      const pricesChanged = updatedSelectedProducts.some(
-        (p, i) => p.price !== localSelectedProducts[i]?.price
-      );
-
-      if (pricesChanged) {
-        setLocalSelectedProducts(updatedSelectedProducts);
-        onUpdate(
-          updatedSelectedProducts,
-          updatedSelectedProducts.reduce((sum, p) => sum + p.total_price, 0)
-        );
-      }
-    }
-  }, [rawProducts, effectiveRate]);
+    }) as ExtendedProduct[];
+  })();
 
   // Filter products based on search term
-  const filteredProducts = useMemo(() => {
-    if (!searchTerm.trim()) return products;
-
-    return products.filter((product) =>
-      product.Type.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [products, searchTerm]);
+  const filteredProducts = !searchTerm.trim()
+    ? products
+    : products.filter((product) => product.Type.toLowerCase().includes(searchTerm.toLowerCase()));
 
   // Use memoized callback to avoid re-renders
-  const handleQuantityChange = useCallback(
-    (productId: number, quantity: number | null) => {
-      if (quantity === null || quantity < 0) return;
+  const handleQuantityChange = (productId: number, quantity: number | null) => {
+    if (quantity === null || quantity < 0) return;
 
-      // Find the product in our products list
-      const product = products.find((p) => p.ProductId === productId);
-      if (!product) return;
+    // Find the product in our products list
+    const product = products.find((p) => p.ProductId === productId);
+    if (!product) return;
 
-      setLocalSelectedProducts((prevSelected) => {
-        // Find if product is already in the selected list
-        const existingIndex = prevSelected.findIndex((p) => p.ProductId === productId);
+    setLocalSelectedProducts((prevSelected) => {
+      // Find if product is already in the selected list
+      const existingIndex = prevSelected.findIndex((p) => p.ProductId === productId);
 
-        const updatedProducts = [...prevSelected];
+      const updatedProducts = [...prevSelected];
 
-        if (quantity === 0) {
-          // Remove product if quantity is zero
-          if (existingIndex >= 0) {
-            updatedProducts.splice(existingIndex, 1);
-          }
-        } else {
-          // Calculate total price for this product
-          const totalPrice = product.priceInRials * quantity;
-
-          if (existingIndex >= 0) {
-            // Update existing product
-            updatedProducts[existingIndex] = {
-              ...updatedProducts[existingIndex],
-              quantity,
-              price: product.priceInRials,
-              total_price: totalPrice,
-            };
-          } else {
-            // Add new product
-            updatedProducts.push({
-              ProductId: product.ProductId,
-              // Use Type instead of Name as requested
-              Name: product.Type,
-              quantity,
-              price: product.priceInRials,
-              total_price: totalPrice,
-            });
-          }
+      if (quantity === 0) {
+        // Remove product if quantity is zero
+        if (existingIndex >= 0) {
+          updatedProducts.splice(existingIndex, 1);
         }
+      } else {
+        // Calculate total price for this product
+        const totalPrice = product.priceInRials * quantity;
 
-        // Calculate total amount
-        const totalAmount = updatedProducts.reduce((sum, p) => sum + p.total_price, 0);
+        if (existingIndex >= 0) {
+          // Update existing product
+          updatedProducts[existingIndex] = {
+            ...updatedProducts[existingIndex],
+            quantity,
+            price: product.priceInRials,
+            total_price: totalPrice,
+          };
+        } else {
+          // Add new product
+          updatedProducts.push({
+            ProductId: product.ProductId,
+            // Use Type instead of Name as requested
+            Name: product.Type,
+            quantity,
+            price: product.priceInRials,
+            total_price: totalPrice,
+          });
+        }
+      }
 
-        // Update parent component
-        setSelectedProducts(updatedProducts);
-        onUpdate(updatedProducts, totalAmount);
+      // Calculate total amount
+      const totalAmount = updatedProducts.reduce((sum, p) => sum + p.total_price, 0);
 
-        return updatedProducts;
-      });
+      // Update parent component
+      setSelectedProducts(updatedProducts);
+      onUpdate(updatedProducts, totalAmount);
 
-      // Also update the product in the products list for UI consistency without re-fetching
-      setProducts((prevProducts) => {
-        return prevProducts.map((p) => {
-          if (p.ProductId === productId) {
-            return {
-              ...p,
-              selectedQuantity: quantity,
-              isSelected: quantity > 0,
-              total_price: quantity > 0 ? p.priceInRials * quantity : 0,
-            };
-          }
-          return p;
-        });
-      });
-    },
-    [products, setSelectedProducts, onUpdate]
-  );
+      return updatedProducts;
+    });
+  };
 
   // Handle manual exchange rate change
-  const handleManualRateChange = useCallback((value: string) => {
+  const handleManualRateChange = (value: string) => {
     // Keep what the user types
     setRawInput(value);
 
@@ -221,17 +176,12 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
     } else {
       setManualExchangeRate(null);
     }
-  }, []);
-
-  // Format number with Persian digits (for later display, not during typing)
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat("fa-IR").format(num);
   };
 
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-white"></div>
+        <div className="size-10 animate-spin rounded-full border-b-2 border-white"></div>
       </div>
     );
   }
@@ -279,7 +229,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
               min={1}
               value={rawInput}
               onChange={(e) => handleManualRateChange(e.target.value)}
-              className="w-48 rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-48 rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
               placeholder="نرخ ارز را وارد کنید"
             />
 
@@ -291,7 +241,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
       {!effectiveRate ? (
         isBranch ? (
           <div className="mb-4 flex items-center rounded-md border border-red-800/30 bg-red-900/20 p-4 text-red-100">
-            <svg className="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="mr-2 size-5" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-1 9a1 1 0 100-2 1 1 0 000 2z"
@@ -302,7 +252,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
           </div>
         ) : (
           <div className="mb-4 flex items-center rounded-md border border-red-800/30 bg-red-900/20 p-4 text-red-100">
-            <svg className="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="mr-2 size-5" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-1 9a1 1 0 100-2 1 1 0 000 2z"
@@ -357,7 +307,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                   <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                       <svg
-                        className="h-4 w-4 text-gray-400"
+                        className="size-4 text-gray-400"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -374,7 +324,8 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                     </div>
                     <input
                       type="search"
-                      className="block w-full rounded-lg border border-gray-700 bg-gray-800 p-2.5 pl-10 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      aria-label="جستجوی محصول"
+                      className="block w-full rounded-lg border border-gray-700 bg-gray-800 p-2.5 pl-10 text-sm text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       placeholder="جستجوی محصول..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -385,7 +336,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                 {filteredProducts.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full overflow-hidden rounded-lg border border-gray-700 text-right text-sm text-gray-200">
-                      <thead className="bg-gray-800 text-xs uppercase text-gray-200">
+                      <thead className="bg-gray-800 text-xs text-gray-200 uppercase">
                         <tr>
                           <th scope="col" className="px-4 py-3">
                             نام محصول
@@ -446,6 +397,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                                   <div className="flex h-8 items-stretch overflow-hidden rounded-md border border-gray-700 bg-gray-800">
                                     <button
                                       type="button"
+                                      aria-label="کاهش تعداد"
                                       onClick={() => {
                                         const currentQuantity = selectedProduct?.quantity || 0;
                                         if (currentQuantity > 0) {
@@ -460,7 +412,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                                     >
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        className="h-3 w-3"
+                                        className="size-3"
                                         fill="none"
                                         viewBox="0 0 24 24"
                                         stroke="currentColor"
@@ -478,6 +430,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                                       min={0}
                                       max={product.currentQuantity}
                                       value={selectedProduct?.quantity || 0}
+                                      aria-label="تعداد محصول"
                                       onChange={(e) => {
                                         const inputValue = e.target.value
                                           ? parseInt(e.target.value)
@@ -489,10 +442,11 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                                         );
                                         handleQuantityChange(product.ProductId, validQuantity);
                                       }}
-                                      className="h-full w-10 border-0 bg-gray-950 text-center text-white [appearance:textfield] focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                      className="h-full w-10 [appearance:textfield] border-0 bg-gray-950 text-center text-white focus:ring-0 focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                     />
                                     <button
                                       type="button"
+                                      aria-label="افزایش تعداد"
                                       onClick={() => {
                                         const currentQuantity = selectedProduct?.quantity || 0;
                                         if (currentQuantity < product.currentQuantity) {
@@ -509,7 +463,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                                     >
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        className="h-3 w-3"
+                                        className="size-3"
                                         fill="none"
                                         viewBox="0 0 24 24"
                                         stroke="currentColor"
@@ -537,7 +491,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                 ) : (
                   <div className="flex flex-col items-center justify-center rounded-md border border-gray-700 bg-gray-800/50 p-6 text-gray-400">
                     <svg
-                      className="mb-3 h-12 w-12"
+                      className="mb-3 size-12"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -562,7 +516,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                 {localSelectedProducts.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full overflow-hidden rounded-lg border border-gray-700 text-right text-sm text-gray-200">
-                      <thead className="bg-gray-800 text-xs uppercase text-gray-200">
+                      <thead className="bg-gray-800 text-xs text-gray-200 uppercase">
                         <tr>
                           <th scope="col" className="px-6 py-3">
                             نام محصول
@@ -596,7 +550,7 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({
                 ) : (
                   <div className="flex flex-col items-center justify-center rounded-md border border-gray-700 bg-gray-800/50 p-6 text-gray-400">
                     <svg
-                      className="mb-3 h-12 w-12"
+                      className="mb-3 size-12"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"

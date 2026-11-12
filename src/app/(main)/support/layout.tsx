@@ -1,7 +1,5 @@
-import styles from "./SupportLayout.module.css";
-
 const SupportLayout = ({ children }: { children: React.ReactNode }) => {
-  return <main className={styles.main}>{children}</main>;
+  return <div className="w-full">{children}</div>;
 };
 
 export default SupportLayout;

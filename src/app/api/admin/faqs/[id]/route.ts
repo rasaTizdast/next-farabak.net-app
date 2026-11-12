@@ -1,10 +1,14 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 // GET: Fetch a specific FAQ by ID
 export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
+  if (auth instanceof NextResponse) return auth;
   try {
     const id = parseInt(params.id);
     if (isNaN(id)) {
@@ -28,7 +32,8 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
 // PUT: Update a specific FAQ
 export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
+  if (auth instanceof NextResponse) return auth;
   try {
     const id = parseInt(params.id);
     if (isNaN(id)) {
@@ -58,6 +63,7 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
       },
     });
 
+    revalidateTag(TAGS.faqs, "max");
     return NextResponse.json({ faq: updatedFaq }, { status: 200 });
   } catch (error) {
     console.error("Error updating FAQ:", error);
@@ -67,7 +73,8 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
 
 // DELETE: Delete a specific FAQ
 export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
+  if (auth instanceof NextResponse) return auth;
   try {
     const id = parseInt(params.id);
     if (isNaN(id)) {
@@ -88,6 +95,7 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
       where: { FaqDetailsid: id },
     });
 
+    revalidateTag(TAGS.faqs, "max");
     return NextResponse.json({ message: "FAQ deleted successfully" }, { status: 200 });
   } catch (error) {
     console.error("Error deleting FAQ:", error);

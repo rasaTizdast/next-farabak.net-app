@@ -1,14 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { FaRegTrashAlt, FaInfoCircle, FaArrowUp, FaArrowDown, FaCheckCircle } from "react-icons/fa";
+import { useCallback, useEffect, useState } from "react";
+import {
+  FaRegTrashAlt,
+  FaInfoCircle,
+  FaArrowUp,
+  FaArrowDown,
+  FaCheckCircle,
+  FaRedo,
+} from "react-icons/fa";
 
 import { useInvoice } from "@/context/InvoiceContext";
 import { useUser } from "@/context/UserContext";
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 
-import styles from "../../ProductPage.module.css";
+// Convert English digits to Persian digits
+const e2p = (s: string): string => s.replace(/\d/g, (d: string) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d)]);
+
+const MAX_RATE_ATTEMPTS = 3;
+const RATE_RETRY_BASE_DELAY_MS = 1200;
 
 interface Props {
   ProductId: number;
@@ -35,31 +46,40 @@ const ClientInvoiceSection = ({
   } = useInvoice();
   const { user, loading, isAdmin, isBranch } = useUser();
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
-  const [isFetchingRate, setIsFetchingRate] = useState(true);
+  const [rateStatus, setRateStatus] = useState<"loading" | "ready" | "error">("loading");
+
+  const loadExchangeRate = useCallback(async () => {
+    setRateStatus("loading");
+    for (let attempt = 1; attempt <= MAX_RATE_ATTEMPTS; attempt++) {
+      const rate = await fetchUsdToRialRate();
+      if (rate && Number.isFinite(rate) && rate > 0) {
+        setExchangeRate(rate);
+        setRateStatus("ready");
+        return;
+      }
+      if (attempt < MAX_RATE_ATTEMPTS) {
+        await new Promise((resolve) => setTimeout(resolve, RATE_RETRY_BASE_DELAY_MS * attempt));
+      }
+    }
+    setExchangeRate(null);
+    setRateStatus("error");
+  }, []);
 
   useEffect(() => {
-    const getExchangeRate = async () => {
-      setIsFetchingRate(true);
-      const rate = await fetchUsdToRialRate();
-      setExchangeRate(rate);
-      setIsFetchingRate(false);
-    };
-    getExchangeRate();
-  }, []);
+    loadExchangeRate();
+  }, [loadExchangeRate]);
 
   // Get the current quantity of the product in the invoice
   const currentQuantity = getProductQuantity(ProductId);
-
-  // Convert English digits to Persian digits
-  const e2p = (s: string): string => s.replace(/\d/g, (d: string) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d)]);
 
   // Convert price and discount to numbers
   const priceUsd = productPrice ? parseFloat(productPrice.replace(/,/g, "")) : 0;
   const discountUsd = productDiscount ? parseFloat(productDiscount.replace(/,/g, "")) : 0;
 
-  // Convert USD to Rial
-  const priceInRial = exchangeRate ? priceUsd * exchangeRate : null;
-  const discountInRial = exchangeRate && discountUsd > 0 ? discountUsd * exchangeRate : 0;
+  // Convert USD to Toman — floored so prices never show decimals
+  const priceInRial = exchangeRate ? Math.floor(priceUsd * exchangeRate) : null;
+  const discountInRial =
+    exchangeRate && discountUsd > 0 ? Math.floor(discountUsd * exchangeRate) : 0;
 
   // Calculate final price - if no discount, use original price
   const finalPrice = priceInRial && discountInRial > 0 ? priceInRial - discountInRial : priceInRial;
@@ -108,18 +128,19 @@ const ClientInvoiceSection = ({
     );
   };
 
-  // Handle cases where the product price is not available or fetching the exchange rate fails
-  if (!productPrice || +productPrice === 0 || exchangeRate === null) {
+  // Product has no price — it cannot be invoiced through the site at all
+  if (!productPrice || +productPrice === 0) {
     return (
-      <div className="my-6 flex w-full flex-col items-center justify-center gap-5 rounded-lg bg-blue-100 p-3 text-center">
-        <p className="text-lg font-bold text-blue-950">
-          {exchangeRate === null
-            ? "درحال دریافت نرخ تبدیل دلار به تومان..."
-            : "این محصول امکان ثبت فاکتور از طریق سایت ندارد، لطفا با بخش فروش تماس بگیرید."}
+      <div
+        role="alert"
+        className="my-6 flex w-full flex-col items-center justify-center gap-5 rounded-xl border border-(--farabak-action-blue)/20 bg-(--farabak-paper) p-4 text-center"
+      >
+        <p className="text-sm leading-7 font-bold text-(--farabak-ink-deep)">
+          این محصول امکان ثبت فاکتور از طریق سایت ندارد، لطفا با بخش فروش تماس بگیرید.
         </p>
         <Link
           href="tel:02177500008"
-          className="animate-fade-in rounded-lg bg-blue-600 px-4 py-2 text-base text-white transition-all hover:bg-blue-700 md:text-lg"
+          className="inline-flex min-h-11 items-center rounded-md bg-(--farabak-action-blue) px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-(--farabak-action-blue)/90 focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:outline-none md:text-base"
         >
           تماس با بخش فروش
         </Link>
@@ -127,10 +148,57 @@ const ClientInvoiceSection = ({
     );
   }
 
-  // Render loading state
-  if (loading || isFetchingRate) {
+  // Exchange rate is still being fetched (after client-side retries)
+  if (rateStatus === "loading") {
     return (
-      <div className="mt-6 flex w-full animate-pulse justify-center rounded-lg bg-gray-200 p-2 text-sm text-slate-800 sm:mt-0 md:text-base">
+      <div
+        role="status"
+        className="my-6 flex w-full animate-pulse flex-col items-center justify-center gap-2 rounded-xl border border-(--farabak-ink-deep)/10 bg-(--farabak-paper) p-4 text-center"
+      >
+        <p className="text-sm font-bold text-(--farabak-ink-deep)">
+          قیمت‌ها در حال بروزرسانی هستند...
+        </p>
+      </div>
+    );
+  }
+
+  // Exchange rate could not be retrieved after multiple attempts
+  if (rateStatus === "error" || exchangeRate === null) {
+    return (
+      <div
+        role="alert"
+        className="my-6 flex w-full flex-col items-center justify-center gap-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-center"
+      >
+        <p className="text-sm leading-7 font-bold text-amber-900">
+          دریافت قیمت‌ها با مشکل مواجه شد. لطفا دوباره تلاش کنید.
+        </p>
+        <div className="flex flex-col items-center gap-3 sm:flex-row">
+          <button
+            type="button"
+            onClick={loadExchangeRate}
+            className="inline-flex min-h-11 items-center gap-2 rounded-md bg-(--farabak-action-blue) px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-(--farabak-action-blue)/90 focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:outline-none md:text-base"
+          >
+            <FaRedo className="text-sm" />
+            <span>تلاش مجدد</span>
+          </button>
+          <Link
+            href="tel:02177500008"
+            className="inline-flex min-h-11 items-center rounded-md bg-(--farabak-action-blue) px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-(--farabak-action-blue)/90 focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:outline-none md:text-base"
+          >
+            تماس با بخش فروش
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Render user context loading state
+  if (loading) {
+    return (
+      <div
+        role="status"
+        className="mt-6 flex w-full animate-pulse justify-center rounded-xl bg-(--farabak-paper) p-3 text-sm text-(--farabak-ink-muted) sm:mt-0 md:text-base"
+      >
         درحال بارگذاری...
       </div>
     );
@@ -138,26 +206,22 @@ const ClientInvoiceSection = ({
 
   // Price display block - now with conditional rendering based on discount
   const priceBlock = (
-    <div
-      className={`flex ${styles.priceParent} my-6 max-w-full animate-fade-in flex-col gap-3 rounded-lg bg-blue-100 p-3`}
-    >
+    <div className="my-6 flex max-w-full flex-col items-center justify-between gap-3 rounded-xl border border-(--farabak-ink-deep)/10 bg-(--farabak-paper) p-4">
       {hasDiscount ? (
         // Show before/after prices with discount badge
         <>
           <div className="flex content-center items-center gap-2">
             قیمت قبلی:{" "}
-            <span className={`${styles.beforePrice} font-extralight text-gray-500 line-through`}>
+            <span className="font-extralight text-gray-500 line-through">
               {e2p(priceInRial?.toLocaleString() || "0")} تومان
             </span>
-            <span
-              className={`${styles.discount} rounded-lg bg-[#003262] px-2 py-1 text-xs font-semibold text-white lg:rounded-xl`}
-            >
+            <span className="rounded-full bg-(--farabak-ink-deep) px-2 py-1 text-xs font-semibold text-white">
               {e2p(discountPercentage?.toLocaleString() || "0")}%
             </span>
           </div>
           <div className="flex content-center items-center gap-2">
             قیمت جدید:{" "}
-            <span className="text-2xl font-black text-[#003262]">
+            <span className="text-2xl font-black text-(--farabak-ink-deep)">
               {e2p(finalPrice?.toLocaleString() || "0")} تومان
             </span>
           </div>
@@ -166,7 +230,7 @@ const ClientInvoiceSection = ({
         // Show only current price without discount styling
         <div className="flex content-center items-center gap-2">
           قیمت:{" "}
-          <span className="text-2xl font-black text-[#003262]">
+          <span className="text-2xl font-black text-(--farabak-ink-deep)">
             {e2p(finalPrice?.toLocaleString() || "0")} تومان
           </span>
         </div>
@@ -176,9 +240,9 @@ const ClientInvoiceSection = ({
 
   // Enhanced limits info with better design
   const limitsInfo = hasLimits && currentQuantity === 0 && (
-    <div className="mb-4 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 shadow-sm">
+    <div className="mb-4 rounded-xl border border-(--farabak-action-blue)/20 bg-(--farabak-paper) p-4">
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex-shrink-0">
+        <div className="mt-0.5 shrink-0">
           <FaInfoCircle className="text-lg text-blue-600" />
         </div>
         <div className="flex-1">
@@ -186,7 +250,7 @@ const ClientInvoiceSection = ({
           <div className="flex flex-col gap-2">
             {hasMinimum && (
               <div className="flex items-center gap-2 text-xs">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100">
+                <div className="flex size-6 items-center justify-center rounded-full bg-green-100">
                   <FaArrowDown className="text-xs text-green-600" />
                 </div>
                 <span className="text-slate-700">
@@ -199,7 +263,7 @@ const ClientInvoiceSection = ({
             )}
             {hasMaximum && (
               <div className="flex items-center gap-2 text-xs">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-100">
+                <div className="flex size-6 items-center justify-center rounded-full bg-orange-100">
                   <FaArrowUp className="text-xs text-orange-600" />
                 </div>
                 <span className="text-slate-700">
@@ -242,13 +306,7 @@ const ClientInvoiceSection = ({
       {hasMaximum && (
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
           <div
-            className={`h-full rounded-full transition-all duration-500 ${
-              isAtMaximum
-                ? "bg-gradient-to-r from-orange-500 to-red-500"
-                : progressPercentage > 75
-                  ? "bg-gradient-to-r from-yellow-400 to-orange-500"
-                  : "bg-gradient-to-r from-green-400 to-blue-500"
-            }`}
+            className="h-full rounded-full transition-[width,background-color] duration-500"
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
@@ -271,9 +329,9 @@ const ClientInvoiceSection = ({
   // Render for admin or branch users
   if (isAdmin || isBranch) {
     return (
-      <div className={styles.invoiceParent}>
+      <div className="w-full">
         {priceBlock}
-        <div className="my-6 flex w-full flex-col items-center justify-center gap-3 rounded-lg bg-blue-100 p-3 text-center">
+        <div className="my-6 flex flex-col items-center justify-center gap-3 rounded-lg bg-blue-100 p-3 text-center">
           <p className="text-lg font-bold text-blue-950">
             برای ثبت این محصول داخل فاکتور وارد پنل خود شوید و از آنجا انتخاب کنید
           </p>
@@ -281,7 +339,7 @@ const ClientInvoiceSection = ({
           {isAdmin && (
             <Link
               href="/admin/invoices"
-              className="animate-fade-in rounded-lg bg-blue-600 px-4 py-2 text-base text-white transition-all hover:bg-blue-700 md:text-lg"
+              className="animate-fade-in rounded-lg bg-blue-600 px-4 py-2 text-base text-white transition-colors hover:bg-blue-700 md:text-lg"
             >
               رفتن به پنل مدیریت
             </Link>
@@ -289,7 +347,7 @@ const ClientInvoiceSection = ({
           {isBranch && (
             <Link
               href="/admin/branches/my"
-              className="animate-fade-in rounded-lg bg-blue-600 px-4 py-2 text-base text-white transition-all hover:bg-blue-700 md:text-lg"
+              className="animate-fade-in rounded-lg bg-blue-600 px-4 py-2 text-base text-white transition-colors hover:bg-blue-700 md:text-lg"
             >
               رفتن به پنل شعبه
             </Link>
@@ -301,13 +359,13 @@ const ClientInvoiceSection = ({
 
   // Render for regular users (and guests)
   return (
-    <div className={styles.invoiceParent}>
+    <div className="w-full">
       {priceBlock}
 
       {!user ? (
         <Link
           href="/auth/login"
-          className="flex w-full justify-center rounded-lg bg-[#003262] p-2 text-sm text-white sm:mt-0 md:text-base"
+          className="bg-dark-blue flex w-full justify-center rounded-lg p-2 text-sm text-white sm:mt-0 md:text-base"
         >
           برای ثبت فاکتور وارد شوید
         </Link>
@@ -315,18 +373,16 @@ const ClientInvoiceSection = ({
         <>
           {limitsInfo}
           {activeLimitsInfo}
-          {currentQuantity > 0 && <p className={styles.invoiceText}>تعداد این محصول در فاکتور</p>}
-          <div className={styles.addToInvoice}>
+          {currentQuantity > 0 && (
+            <p className="text-[1.4rem] font-semibold">تعداد این محصول در فاکتور</p>
+          )}
+          <div className="flex w-full items-center justify-between">
             {currentQuantity > 0 ? (
-              <div className={styles.actions}>
+              <div className="flex gap-2">
                 {/* + button */}
                 <button
                   type="button"
-                  className={`${styles.action} origin-right transition-all ${
-                    !canIncrease
-                      ? "cursor-not-allowed bg-gray-300 opacity-50"
-                      : "hover:bg-green-600 hover:brightness-110"
-                  }`}
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-xl transition-colors hover:bg-(--farabak-paper) focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:outline-none"
                   onClick={() => handleQuantityChange(1)}
                   disabled={!canIncrease}
                   title={
@@ -336,24 +392,22 @@ const ClientInvoiceSection = ({
                   +
                 </button>
 
-                <div className={`${styles.invoiceAmount} text-lg font-bold`}>
-                  {e2p(currentQuantity.toString())}
-                </div>
+                <div className="text-[1.4rem] font-bold">{e2p(currentQuantity.toString())}</div>
 
                 {/* - button OR trash */}
                 {currentQuantity <= (hasMinimum ? minimumAmount! : 1) ? (
                   <button
                     type="button"
                     onClick={() => removeProductFromInvoice(ProductId)}
-                    className={`${styles.action} origin-left transition-all hover:bg-red-600 hover:brightness-110`}
-                    title="حذف کامل از فاکتور"
+                    className="inline-flex size-11 items-center justify-center rounded-md text-xl transition-colors hover:bg-red-50 hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:outline-none"
+                    aria-label="حذف کامل از فاکتور"
                   >
                     <FaRegTrashAlt />
                   </button>
                 ) : (
                   <button
                     type="button"
-                    className={`${styles.action} origin-left transition-all hover:bg-yellow-600 hover:brightness-110`}
+                    className="inline-flex size-11 items-center justify-center rounded-md text-xl transition-colors hover:bg-amber-50 hover:text-amber-700 focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:outline-none"
                     onClick={() => handleQuantityChange(-1)}
                     title="کاهش تعداد"
                   >
@@ -364,7 +418,7 @@ const ClientInvoiceSection = ({
             ) : (
               <button
                 type="button"
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#003262] p-3 text-sm text-white transition-all hover:bg-[#00244a] hover:shadow-lg sm:mt-0 md:text-base"
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-(--farabak-action-blue) p-3 text-sm font-semibold text-white transition-[background-color,box-shadow] hover:bg-(--farabak-action-blue)/90 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:outline-none sm:mt-0 md:text-base"
                 onClick={handleInitialAdd}
               >
                 <span>افزودن به فاکتور</span>
@@ -378,7 +432,7 @@ const ClientInvoiceSection = ({
           </div>
 
           {!!currentQuantity && (
-            <p className={styles.invoiceText2}>
+            <p className="text-[1.4rem] font-semibold">
               این محصول به
               <Link href="/dashboard/new-invoice"> فاکتور جدید </Link>
               شما اضافه شد

@@ -1,22 +1,22 @@
 "use client";
 
 import {
-  CheckCircleFilled,
-  CloseCircleFilled,
-  LoadingOutlined,
-  InfoCircleFilled,
-  PhoneFilled,
-  CalendarFilled,
-  ClockCircleFilled,
-  ArrowLeftOutlined,
-  ArrowRightOutlined,
-  TagOutlined,
-} from "@ant-design/icons";
-import { Button, Input, Card, Alert, Spin, Typography, Steps, Row, Col, Result } from "antd";
-import React, { useState } from "react";
+  ArrowLeft,
+  ArrowRight,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Info,
+  Loader2,
+  Phone,
+  Tag,
+  XCircle,
+} from "lucide-react";
+import React, { useState, useTransition } from "react";
 
-const { Title, Paragraph, Text } = Typography;
-const { Step } = Steps;
+import { cn } from "@/lib/utils";
+
+const faDateFormatter = new Intl.DateTimeFormat("fa-IR");
 
 type WarrantyResult = {
   status: "success" | "expired" | "already_requested";
@@ -30,74 +30,63 @@ type WarrantyResult = {
   error?: string;
 };
 
-async function searchWarranty(
-  warrantyCode: string,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setError: React.Dispatch<React.SetStateAction<string>>,
-  setResult: React.Dispatch<React.SetStateAction<WarrantyResult | null>>,
-  setCurrentStep: React.Dispatch<React.SetStateAction<number>>,
-  e: React.FormEvent
-) {
-  e.preventDefault();
-  setLoading(true);
-  setError("");
-
+function formatDate(dateString: string) {
   try {
-    const response = await fetch("/api/public/warranty-check", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ warrantycode: warrantyCode, checkOnly: true }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "خطا در بررسی گارانتی");
-    }
-
-    setResult(data);
-    setCurrentStep(1);
-  } catch (err) {
-    setError("خطا در بررسی گارانتی");
-  } finally {
-    setLoading(false);
+    const date = new Date(dateString);
+    return faDateFormatter.format(date);
+  } catch (error) {
+    console.error(error);
+    return dateString;
   }
 }
 
-async function confirmWarrantyRequest(
-  warrantyCode: string,
-  setConfirmLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setError: React.Dispatch<React.SetStateAction<string>>,
-  setResult: React.Dispatch<React.SetStateAction<WarrantyResult | null>>,
-  setCurrentStep: React.Dispatch<React.SetStateAction<number>>
-) {
-  setConfirmLoading(true);
+const secondaryButtonClass = cn(
+  "inline-flex min-h-11 min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-300 px-6 py-3 text-base font-medium text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2"
+);
 
-  try {
-    const response = await fetch("/api/public/warranty-check", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ warrantycode: warrantyCode, confirm: true }),
-    });
+const primaryButtonClass = cn(
+  "inline-flex min-h-11 min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-(--farabak-action-blue) px-6 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-(--farabak-action-blue)/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+);
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "خطا در ثبت درخواست گارانتی");
-    }
-
-    setResult(data);
-    setCurrentStep(2);
-  } catch (err) {
-    setError("خطا در ثبت درخواست گارانتی");
-  } finally {
-    setConfirmLoading(false);
-  }
-}
+const StepIndicator = ({
+  steps,
+  current,
+}: {
+  steps: { title: string; description: string }[];
+  current: number;
+}) => (
+  <div className="mb-8 flex items-start justify-between max-[576px]:[&_.step-description]:hidden">
+    {steps.map((step, index) => (
+      <div key={step.title} className="flex flex-1 flex-col items-center text-center">
+        <div className="flex w-full items-center">
+          {index > 0 && (
+            <div className={`h-0.5 flex-1 ${index <= current ? "bg-[#00bfff]" : "bg-gray-200"}`} />
+          )}
+          <div
+            className={`mx-1 flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors ${
+              index < current
+                ? "bg-[#00bfff] text-white"
+                : index === current
+                  ? "border-2 border-[#00bfff] text-[#00bfff]"
+                  : "border-2 border-gray-200 text-gray-400"
+            }`}
+          >
+            {index < current ? (
+              <CheckCircle2 className="size-5" />
+            ) : (
+              new Intl.NumberFormat("fa-IR").format(index + 1)
+            )}
+          </div>
+          {index < steps.length - 1 && (
+            <div className={`h-0.5 flex-1 ${index < current ? "bg-[#00bfff]" : "bg-gray-200"}`} />
+          )}
+        </div>
+        <div className="mt-2 font-medium text-gray-800">{step.title}</div>
+        <div className="step-description mt-0.5 text-xs text-gray-500">{step.description}</div>
+      </div>
+    ))}
+  </div>
+);
 
 const WarrantyTrackingPage = () => {
   const [warrantyCode, setWarrantyCode] = useState("");
@@ -107,29 +96,81 @@ const WarrantyTrackingPage = () => {
   const [result, setResult] = useState<WarrantyResult | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [, startTransition] = useTransition();
 
-  const handleSearchWarranty = async (e: React.FormEvent) => {
-    await searchWarranty(warrantyCode, setLoading, setError, setResult, setCurrentStep, e);
+  const searchWarranty = async () => {
+    if (!warrantyCode.trim()) {
+      setError("کد گارانتی را وارد کنید");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/public/warranty-check", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ warrantycode: warrantyCode, checkOnly: true }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "خطا در بررسی گارانتی");
+      }
+
+      startTransition(() => {
+        setResult(data);
+        setCurrentStep(1);
+        setLoading(false);
+      });
+    } catch {
+      setError("خطا در بررسی گارانتی");
+      setLoading(false);
+    }
+  };
+
+  const handleSearchWarranty = (e: React.FormEvent) => {
+    e.preventDefault();
+    void searchWarranty();
   };
 
   const handleConfirmRequest = async () => {
-    await confirmWarrantyRequest(warrantyCode, setConfirmLoading, setError, setResult, setCurrentStep);
+    setConfirmLoading(true);
+
+    try {
+      const response = await fetch("/api/public/warranty-check", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ warrantycode: warrantyCode, confirm: true }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "خطا در ثبت درخواست گارانتی");
+      }
+
+      startTransition(() => {
+        setResult(data);
+        setCurrentStep(2);
+        setConfirmLoading(false);
+      });
+    } catch {
+      setError("خطا در ثبت درخواست گارانتی");
+      setConfirmLoading(false);
+    }
   };
 
   const handleCancel = () => {
     // Reset and go back to first step
     setCurrentStep(0);
     setResult(null);
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return new Intl.DateTimeFormat("fa-IR").format(date);
-    } catch (error) {
-      console.error(error);
-      return dateString;
-    }
   };
 
   // Determine which steps to show based on result status
@@ -159,237 +200,216 @@ const WarrantyTrackingPage = () => {
   const stepsConfig = getStepsConfig();
 
   return (
-    <div className="warranty-page font-inherit w-full" style={{ direction: "rtl" }}>
+    <div dir="rtl" className={cn("warranty-page w-full")}>
       {loading ? (
         // Loading skeleton
-        <div className="mx-auto max-w-4xl">
+        <div className={cn("mx-auto max-w-4xl")} role="status" aria-live="polite">
+          <span className="sr-only">در حال بررسی گارانتی</span>
           <div className="mb-8 flex justify-center">
             <div className="w-full md:w-2/3 lg:w-1/2 xl:w-2/5">
               <div className="mx-auto mb-2 h-8 w-3/4 animate-pulse rounded-md bg-gray-200"></div>
               <div className="mx-auto mb-10 h-4 w-4/5 animate-pulse rounded-md bg-gray-100"></div>
 
               <div className="mb-8 flex justify-between">
-                <div className="h-16 w-1/3 animate-pulse rounded-full bg-blue-100"></div>
-                <div className="h-16 w-1/3 animate-pulse rounded-full bg-gray-100"></div>
-                <div className="h-16 w-1/3 animate-pulse rounded-full bg-gray-100"></div>
+                <div className={cn("h-16 w-1/3 animate-pulse rounded-full bg-blue-100")}></div>
+                <div className={cn("h-16 w-1/3 animate-pulse rounded-full bg-gray-100")}></div>
+                <div className={cn("h-16 w-1/3 animate-pulse rounded-full bg-gray-100")}></div>
               </div>
             </div>
           </div>
 
-          <div className="animate-pulse overflow-hidden rounded-lg border-0 bg-white shadow-lg">
-            <div className="p-8">
-              <div className="mb-4 h-6 w-1/3 rounded-md bg-gray-200"></div>
-              <div className="mb-6 h-4 w-2/3 rounded-md bg-gray-100"></div>
+          <div
+            className={cn("animate-pulse overflow-hidden rounded-lg border-0 bg-white shadow-lg")}
+          >
+            <div className={cn("p-8")}>
+              <div className={cn("mb-4 h-6 w-1/3 rounded-md bg-gray-200")}></div>
+              <div className={cn("mb-6 h-4 w-2/3 rounded-md bg-gray-100")}></div>
 
-              <div className="mb-6 flex gap-3">
-                <div className="h-12 w-full rounded-md bg-gray-100"></div>
-                <div className="h-12 w-24 rounded-md bg-blue-100"></div>
+              <div className={cn("mb-6 flex gap-3")}>
+                <div className={cn("h-12 w-full rounded-md bg-gray-100")}></div>
+                <div className={cn("h-12 w-24 rounded-md bg-blue-100")}></div>
               </div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="mx-auto max-w-4xl">
-          <Row justify="center" className="font-inherit mb-8">
-            <Col xs={24} md={18} lg={16} xl={14} className="font-inherit">
-              <Title level={2} className="font-inherit mb-2 text-center">
-                سامانه استعلام گارانتی محصولات
-              </Title>
-              <Paragraph className="font-inherit !mb-10 text-center text-gray-500">
-                با وارد کردن کد گارانتی محصول، از وضعیت و اعتبار گارانتی خود مطلع شوید
-              </Paragraph>
+        <div className={cn("mx-auto max-w-4xl")}>
+          <div className="mx-auto mb-8 max-w-xl md:max-w-2xl lg:max-w-3xl">
+            <h1
+              className={cn(
+                "mb-2 text-center text-2xl font-bold text-(--farabak-ink-deep) md:text-3xl"
+              )}
+            >
+              سامانه استعلام گارانتی محصولات
+            </h1>
+            <p className="mb-10 text-center text-gray-500">
+              با وارد کردن کد گارانتی محصول، از وضعیت و اعتبار گارانتی خود مطلع شوید
+            </p>
 
-              <Steps current={currentStep} className="warranty-steps font-inherit mb-8">
-                {stepsConfig.map((step, index) => (
-                  <Step
-                    key={index}
-                    title={step.title}
-                    description={step.description}
-                    className="font-inherit"
-                  />
-                ))}
-              </Steps>
-            </Col>
-          </Row>
+            <StepIndicator steps={stepsConfig} current={currentStep} />
+          </div>
 
-          <Card
-            className="font-inherit overflow-hidden rounded-lg border-0 shadow-lg"
-            bodyStyle={{ padding: "24px 32px" }}
+          <div
+            className={cn(
+              "overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] md:p-8"
+            )}
           >
             {currentStep === 0 && (
               <div className="mb-8">
-                <Title level={4} className="font-inherit mb-4">
+                <h2 className="mb-4 text-lg font-semibold text-(--farabak-ink-deep)">
                   بررسی وضعیت گارانتی
-                </Title>
-                <Paragraph className="font-inherit text-gray-500">
+                </h2>
+                <p id="warranty-code-help" className="text-(--farabak-ink-muted)">
                   لطفا کد گارانتی محصول خود را در کادر زیر وارد کنید
-                </Paragraph>
+                </p>
 
-                <form onSubmit={handleSearchWarranty} className="mb-6">
-                  <div className="flex gap-3">
-                    <Input
+                <form
+                  aria-label="استعلام گارانتی"
+                  onSubmit={handleSearchWarranty}
+                  className={cn("my-6")}
+                  aria-busy={loading}
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <label htmlFor="warranty-code" className="sr-only">
+                      کد گارانتی
+                    </label>
+                    <input
+                      id="warranty-code"
+                      type="text"
                       placeholder="کد گارانتی را وارد کنید"
                       value={warrantyCode}
                       onChange={(e) => setWarrantyCode(e.target.value)}
-                      style={{
-                        flex: 1,
-                        textAlign: "left",
-                        height: "46px",
-                        fontSize: "16px",
-                      }}
                       dir="ltr"
                       disabled={loading}
-                      size="large"
-                      className="font-inherit"
-                    />
-                    <Button
-                      type="primary"
-                      htmlType="submit"
-                      disabled={loading || !warrantyCode}
-                      style={{
-                        height: "46px",
-                        fontSize: "16px",
-                        minWidth: "120px",
-                      }}
-                      size="large"
-                      className="font-inherit"
-                    >
-                      {loading ? (
-                        <Spin indicator={<LoadingOutlined style={{ fontSize: 18 }} spin />} />
-                      ) : (
-                        "بررسی"
+                      aria-describedby={error ? "warranty-code-error" : "warranty-code-help"}
+                      aria-invalid={Boolean(error)}
+                      className={cn(
+                        "min-h-11 min-w-0 flex-1 rounded-lg border border-slate-300 px-4 py-3 text-left text-base transition-colors focus:border-(--farabak-action-blue) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue)/30 disabled:bg-slate-50"
                       )}
-                    </Button>
+                    />
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className={cn(primaryButtonClass, "w-full sm:w-auto")}
+                    >
+                      {loading ? <Loader2 className="size-5 animate-spin" /> : "بررسی"}
+                    </button>
                   </div>
                 </form>
 
                 {error && (
-                  <Alert
-                    message="خطا در بررسی گارانتی"
-                    description={error}
-                    type="error"
-                    showIcon
-                    icon={<CloseCircleFilled />}
-                    className="font-inherit mb-6"
-                  />
+                  <div
+                    id="warranty-code-error"
+                    role="alert"
+                    className="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-red-950"
+                  >
+                    <XCircle className="mt-0.5 size-5 shrink-0 text-red-500" />
+                    <div className="flex-1">
+                      <div className="font-medium">خطا در بررسی گارانتی</div>
+                      <div className="text-sm text-red-800">{error}</div>
+                      <button
+                        type="button"
+                        onClick={() => void searchWarranty()}
+                        className="mt-3 min-h-11 rounded-md px-0 text-sm font-semibold text-red-800 underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 focus-visible:outline-none"
+                      >
+                        دوباره تلاش کنید
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
 
             {currentStep === 1 && result && (
               <div className="mb-8">
-                <Title level={4} className="font-inherit mb-4">
-                  تایید اطلاعات گارانتی
-                </Title>
-                <Paragraph className="font-inherit mb-6 text-gray-500">
+                <h4 className="mb-4 text-lg font-semibold text-gray-900">تایید اطلاعات گارانتی</h4>
+                <p className="mb-6 text-gray-500">
                   لطفا اطلاعات گارانتی خود را بررسی کرده و در صورت صحت، درخواست بررسی را تایید کنید
-                </Paragraph>
+                </p>
 
                 {result.data && (
-                  <Card
-                    className="font-inherit mb-6 border-t border-gray-200"
-                    headStyle={{ borderBottom: "1px solid #f0f0f0" }}
-                  >
-                    <Row gutter={[16, 16]} className="font-inherit">
+                  <div className="mb-6 rounded-lg border-t border-gray-200 p-4 pt-6">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       {result.data.productType && (
-                        <Col span={24} className="font-inherit">
+                        <div className="sm:col-span-2">
                           <div className="flex items-center">
-                            <TagOutlined className="ml-2 text-indigo-500" />
+                            <Tag className="ml-2 size-4 text-indigo-500" />
                             <div>
-                              <div className="font-inherit text-sm text-gray-500">نام محصول:</div>
-                              <div className="font-inherit font-medium">
-                                {result.data.productType}
-                              </div>
+                              <div className="text-sm text-gray-500">نام محصول:</div>
+                              <div className="font-medium">{result.data.productType}</div>
                             </div>
                           </div>
-                        </Col>
+                        </div>
                       )}
 
-                      <Col span={12} className="font-inherit">
+                      <div>
                         <div className="flex items-center">
-                          <CalendarFilled className="ml-2 text-blue-500" />
+                          <Calendar className="ml-2 size-4 text-blue-500" />
                           <div>
-                            <div className="font-inherit text-sm text-gray-500">تاریخ شروع:</div>
-                            <div className="font-inherit font-medium">
-                              {formatDate(result.data.startDate)}
-                            </div>
+                            <div className="text-sm text-gray-500">تاریخ شروع:</div>
+                            <div className="font-medium">{formatDate(result.data.startDate)}</div>
                           </div>
                         </div>
-                      </Col>
+                      </div>
 
-                      <Col span={12} className="font-inherit">
+                      <div>
                         <div className="flex items-center">
-                          <CalendarFilled className="ml-2 text-purple-500" />
+                          <Calendar className="ml-2 size-4 text-purple-500" />
                           <div>
-                            <div className="font-inherit text-sm text-gray-500">تاریخ انقضا:</div>
-                            <div className="font-inherit font-medium">
-                              {formatDate(result.data.expiryDate)}
-                            </div>
+                            <div className="text-sm text-gray-500">تاریخ انقضا:</div>
+                            <div className="font-medium">{formatDate(result.data.expiryDate)}</div>
                           </div>
                         </div>
-                      </Col>
+                      </div>
 
-                      <Col span={12} className="font-inherit">
-                        <div className="flex items-center">
-                          <div className="ml-2">
-                            <span className="font-inherit text-sm text-gray-500">کد گارانتی:</span>
-                          </div>
-                          <div className="font-inherit font-medium text-gray-800">
-                            {warrantyCode}
-                          </div>
-                        </div>
-                      </Col>
+                      <div>
+                        <div className="text-sm text-gray-500">کد گارانتی:</div>
+                        <div className="font-medium text-gray-800">{warrantyCode}</div>
+                      </div>
 
-                      <Col span={12} className="font-inherit">
-                        <div className="flex items-center">
-                          <div className="ml-2">
-                            <span className="font-inherit text-sm text-gray-500">وضعیت:</span>
-                          </div>
-                          <div className="font-medium">
-                            {result.data.status === "Active" && (
-                              <span className="font-inherit flex items-center text-green-500">
-                                <CheckCircleFilled className="ml-1" /> فعال
-                              </span>
-                            )}
-                            {result.data.status === "Expired" && (
-                              <span className="font-inherit flex items-center text-red-500">
-                                <CloseCircleFilled className="ml-1" /> منقضی شده
-                              </span>
-                            )}
-                            {result.data.status === "Requested" && (
-                              <span className="font-inherit flex items-center text-amber-500">
-                                <ClockCircleFilled className="ml-1" /> درخواست بررسی
-                              </span>
-                            )}
-                          </div>
+                      <div>
+                        <div className="text-sm text-gray-500">وضعیت:</div>
+                        <div className="font-medium">
+                          {result.data.status === "Active" && (
+                            <span className="flex items-center text-green-600">
+                              <CheckCircle2 className="ml-1 size-4" /> فعال
+                            </span>
+                          )}
+                          {result.data.status === "Expired" && (
+                            <span className="flex items-center text-red-500">
+                              <XCircle className="ml-1 size-4" /> منقضی شده
+                            </span>
+                          )}
+                          {result.data.status === "Requested" && (
+                            <span className="flex items-center text-amber-500">
+                              <Clock className="ml-1 size-4" /> درخواست بررسی
+                            </span>
+                          )}
                         </div>
-                      </Col>
-                    </Row>
-                  </Card>
+                      </div>
+                    </div>
+                  </div>
                 )}
 
                 <div className="mt-8 flex justify-between">
-                  <Button
-                    onClick={handleCancel}
-                    style={{ minWidth: "120px" }}
-                    size="large"
-                    icon={<ArrowRightOutlined />}
-                    className="font-inherit"
-                  >
+                  <button type="button" onClick={handleCancel} className={secondaryButtonClass}>
+                    <ArrowRight className="size-4" />
                     بازگشت
-                  </Button>
+                  </button>
 
-                  <Button
-                    type="primary"
+                  <button
+                    type="button"
                     onClick={handleConfirmRequest}
-                    loading={confirmLoading}
-                    style={{ minWidth: "180px" }}
-                    size="large"
-                    icon={<ArrowLeftOutlined style={{ marginRight: 8 }} />}
-                    className="font-inherit"
+                    disabled={confirmLoading}
+                    className={cn(primaryButtonClass, "min-w-[180px]")}
                   >
+                    {confirmLoading ? (
+                      <Loader2 className="size-5 animate-spin" />
+                    ) : (
+                      <ArrowLeft className="size-4" />
+                    )}
                     تایید و ثبت درخواست
-                  </Button>
+                  </button>
                 </div>
               </div>
             )}
@@ -397,198 +417,99 @@ const WarrantyTrackingPage = () => {
             {currentStep === 2 && result && (
               <div className="mt-6">
                 {result.status === "success" && (
-                  <Result
-                    status="success"
-                    title={
-                      <span className="font-inherit">درخواست بررسی گارانتی با موفقیت ثبت شد</span>
-                    }
-                    subTitle={
-                      <div className="mt-4">
-                        <Paragraph className="font-inherit text-lg text-gray-500">
-                          اطلاعات گارانتی شما ثبت شده و کارشناسان ما در اسرع وقت با شماره{" "}
-                          {result.data?.customerPhone || "شما"} تماس خواهند گرفت.
-                        </Paragraph>
+                  <div className="py-6 text-center">
+                    <CheckCircle2 className="mx-auto mb-4 size-14 text-green-500" />
+                    <h3 className="mb-2 text-xl font-semibold text-gray-900">
+                      درخواست بررسی گارانتی با موفقیت ثبت شد
+                    </h3>
+                    <div className="mt-4">
+                      <p className="text-lg text-gray-500">
+                        اطلاعات گارانتی شما ثبت شده و کارشناسان ما در اسرع وقت با شماره{" "}
+                        {result.data?.customerPhone || "شما"} تماس خواهند گرفت.
+                      </p>
 
-                        <div className="mt-8 flex flex-col items-center justify-center gap-2 rounded-lg bg-blue-100 p-4 md:flex-row md:gap-8">
-                          <div className="flex items-center">
-                            <PhoneFilled className="ml-2 text-blue-500" />
-                            <Text className="font-inherit">در انتظار تماس کارشناسان</Text>
-                          </div>
-                          <div className="flex items-center">
-                            <ClockCircleFilled className="ml-2 text-green-500" />
-                            <Text className="font-inherit">زمان پاسخگویی: حداکثر 48 ساعت کاری</Text>
-                          </div>
+                      <div className="mt-8 flex flex-col items-center justify-center gap-2 rounded-lg bg-blue-100 p-4 md:flex-row md:gap-8">
+                        <div className="flex items-center">
+                          <Phone className="ml-2 size-4 text-blue-500" />
+                          <span>در انتظار تماس کارشناسان</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Clock className="ml-2 size-4 text-green-500" />
+                          <span>زمان پاسخگویی: حداکثر 48 ساعت کاری</span>
                         </div>
                       </div>
-                    }
-                    className="font-inherit"
-                  />
+                    </div>
+                  </div>
                 )}
 
                 {result.status === "expired" && (
-                  <Result
-                    status="error"
-                    title={<span className="font-inherit">گارانتی منقضی شده است</span>}
-                    subTitle={
-                      <div className="mt-2">
-                        <Paragraph className="font-inherit text-gray-500">
-                          متأسفانه مدت زمان گارانتی محصول شما به پایان رسیده است.
-                        </Paragraph>
-                      </div>
-                    }
-                    className="font-inherit"
-                  />
+                  <div className="py-6 text-center">
+                    <XCircle className="mx-auto mb-4 size-14 text-red-500" />
+                    <h3 className="mb-2 text-xl font-semibold text-gray-900">
+                      گارانتی منقضی شده است
+                    </h3>
+                    <div className="mt-2">
+                      <p className="text-gray-500">
+                        متأسفانه مدت زمان گارانتی محصول شما به پایان رسیده است.
+                      </p>
+                    </div>
+                  </div>
                 )}
 
                 {result.status === "already_requested" && (
-                  <Result
-                    status="info"
-                    title={<span className="font-inherit">درخواست قبلاً ثبت شده است</span>}
-                    icon={<InfoCircleFilled className="text-blue-500" />}
-                    subTitle={
-                      <div className="mt-4">
-                        <Paragraph className="font-inherit text-gray-500">
-                          درخواست بررسی گارانتی این محصول قبلاً ثبت شده است. کارشناسان ما به زودی با
-                          شما تماس خواهند گرفت.
-                        </Paragraph>
+                  <div className="py-6 text-center">
+                    <Info className="mx-auto mb-4 size-14 text-blue-500" />
+                    <h3 className="mb-2 text-xl font-semibold text-gray-900">
+                      درخواست قبلاً ثبت شده است
+                    </h3>
+                    <div className="mt-4">
+                      <p className="text-gray-500">
+                        درخواست بررسی گارانتی این محصول قبلاً ثبت شده است. کارشناسان ما به زودی با
+                        شما تماس خواهند گرفت.
+                      </p>
 
-                        <div className="mt-8 flex flex-col items-center justify-center gap-2 rounded-lg bg-blue-100 p-4 md:flex-row md:gap-8">
-                          <div className="flex items-center">
-                            <PhoneFilled className="ml-2 text-blue-500" />
-                            <Text className="font-inherit">در انتظار تماس کارشناسان</Text>
-                          </div>
-                          <div className="flex items-center">
-                            <ClockCircleFilled className="ml-2 text-green-500" />
-                            <Text className="font-inherit">زمان پاسخگویی: حداکثر 48 ساعت کاری</Text>
-                          </div>
+                      <div className="mt-8 flex flex-col items-center justify-center gap-2 rounded-lg bg-blue-100 p-4 md:flex-row md:gap-8">
+                        <div className="flex items-center">
+                          <Phone className="ml-2 size-4 text-blue-500" />
+                          <span>در انتظار تماس کارشناسان</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Clock className="ml-2 size-4 text-green-500" />
+                          <span>زمان پاسخگویی: حداکثر 48 ساعت کاری</span>
                         </div>
                       </div>
-                    }
-                    className="font-inherit"
-                  />
+                    </div>
+                  </div>
                 )}
 
                 <div className="flex justify-center">
-                  <Button
-                    htmlType="button"
+                  <button
+                    type="button"
                     onClick={() => {
                       setCurrentStep(0);
                       setWarrantyCode("");
                       setResult(null);
                     }}
-                    size="large"
-                    className="font-inherit mt-6"
+                    className={`${secondaryButtonClass} mt-6`}
                   >
                     بررسی گارانتی دیگر
-                  </Button>
+                  </button>
                 </div>
               </div>
             )}
-          </Card>
+          </div>
 
           <div className="mt-12 text-center text-gray-500">
-            <Paragraph className="font-inherit">
+            <p>
               جهت اطلاعات بیشتر با شماره{" "}
-              <Text strong className="contact-number cursor-pointer text-blue-500">
+              <span className="contact-number inline-block cursor-pointer font-bold text-blue-500 [direction:ltr] [unicode-bidi:plaintext]">
                 021-77500008
-              </Text>{" "}
+              </span>{" "}
               تماس بگیرید
-            </Paragraph>
+            </p>
           </div>
         </div>
       )}
-
-      <style jsx global>{`
-        .warranty-page {
-          font-family: "IranYekan", sans-serif;
-        }
-
-        .font-inherit {
-          font-family: inherit !important;
-        }
-
-        .warranty-steps .ant-steps-item-title {
-          font-weight: 500;
-          font-family: inherit !important;
-        }
-
-        .warranty-steps .ant-steps-item-description {
-          font-size: 12px;
-          font-family: inherit !important;
-        }
-
-        .ant-result-title {
-          font-size: 20px;
-          font-weight: 600;
-          font-family: inherit !important;
-        }
-
-        .ant-result-subtitle {
-          font-family: inherit !important;
-        }
-
-        .ant-card-head-title {
-          font-family: inherit !important;
-        }
-
-        .ant-typography {
-          font-family: inherit !important;
-        }
-
-        .ant-btn {
-          font-family: inherit !important;
-        }
-
-        .ant-input {
-          font-family: inherit !important;
-        }
-
-        .ant-alert-message,
-        .ant-alert-description {
-          font-family: inherit !important;
-        }
-
-        .contact-number {
-          unicode-bidi: plaintext;
-          direction: ltr;
-          display: inline-block;
-        }
-
-        .ant-result .ant-result-content {
-          font-family: inherit !important;
-        }
-
-        /* Add missing Ant Design component styles */
-        .ant-card,
-        .ant-card-body,
-        .ant-steps,
-        .ant-steps-item,
-        .ant-steps-item-container,
-        .ant-form,
-        .ant-form-item,
-        .ant-form-item-label,
-        .ant-form-item-control,
-        .ant-spin,
-        .ant-spin-text,
-        .ant-result,
-        .ant-result-icon,
-        .ant-col,
-        .ant-row,
-        .ant-paragraph {
-          font-family: inherit !important;
-        }
-
-        /* Target all Ant Design components */
-        [class*="ant-"] {
-          font-family: inherit !important;
-        }
-
-        @media (max-width: 576px) {
-          .ant-steps-horizontal:not(.ant-steps-label-vertical) .ant-steps-item-description {
-            display: none;
-          }
-        }
-      `}</style>
     </div>
   );
 };

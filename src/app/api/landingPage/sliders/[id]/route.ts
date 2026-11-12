@@ -1,4 +1,5 @@
 import { S3 } from "aws-sdk";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma"; // Adjust the import based on your Prisma setup
@@ -32,6 +33,8 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
     await prisma.sliders.delete({
       where: { id: parseInt(id) },
     });
+
+    revalidatePath("/");
 
     return NextResponse.json({ message: "اسلایدر با موفقیت حذف شد." });
   } catch (error) {

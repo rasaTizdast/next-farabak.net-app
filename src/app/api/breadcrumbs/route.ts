@@ -57,63 +57,60 @@ import { prisma } from "@/lib/prisma";
  *                   example: "An unexpected error occurred."
  */
 
+// Static routes (you can reuse your existing constants)
+const staticRoutes: Record<string, string> = {
+  "/": "صفحه اصلی",
+  "/products": "محصولات",
+
+  "/admin-panel": "پنل ادمین",
+  "/dashboard": "داشبورد",
+
+  "/about-us": "درباره ما",
+  "/about-us/projects": "گالری تصاویر پروژه‌ها",
+  "/about-us/members": "اعضای هیئت مدیره",
+
+  "/support": "پشتیبانی",
+  "/support/blog": "بلاگ",
+};
+
 export async function POST(request: Request) {
-  const { paths } = await request.json();
-
-  // Static routes (you can reuse your existing constants)
-  const staticRoutes: Record<string, string> = {
-    "/": "صفحه اصلی",
-    "/products": "محصولات",
-
-    "/admin-panel": "پنل ادمین",
-    "/dashboard": "داشبورد",
-
-    "/about-us": "درباره ما",
-    "/about-us/projects": "گالری تصاویر پروژه‌ها",
-    "/about-us/members": "اعضای هیئت مدیره",
-
-    "/support": "پشتیبانی",
-    "/support/blog": "بلاگ",
-  };
+  const { paths }: { paths: string[] } = await request.json();
 
   const results: Record<string, string> = {};
 
+  // Add static routes to results
   for (const path of paths) {
-    if (staticRoutes.hasOwnProperty(path)) {
+    if (path in staticRoutes) {
       results[path] = staticRoutes[path];
-      continue;
     }
+  }
 
-    const parts = path.split("/").filter(Boolean);
-    if (parts.length === 2 && parts[0] === "products") {
-      // It's a category
-      const slug = parts[1];
-      const category = await prisma.category.findFirst({
-        where: { Slug: slug, Available: true },
-        select: { Name: true },
-      });
+  const dynamicPaths = paths.filter((path) => !staticRoutes.hasOwnProperty(path));
 
-      if (category?.Name) {
-        results[path] = category.Name;
-      } else {
-        results[path] = "نامشخص";
+  const dynamicResults = await Promise.all(
+    dynamicPaths.map(async (path) => {
+      const parts = path.split("/").filter(Boolean);
+      if (parts.length === 2 && parts[0] === "products") {
+        const slug = parts[1];
+        const category = await prisma.category.findFirst({
+          where: { Slug: slug, Available: true },
+          select: { Name: true },
+        });
+        return { path, name: category?.Name || "نامشخص" };
+      } else if (parts.length === 3 && parts[0] === "products") {
+        const slug = parts[2];
+        const subCategory = await prisma.categoryContent.findFirst({
+          where: { Slug: slug, Available: true },
+          select: { Name: true },
+        });
+        return { path, name: subCategory?.Name || "نامشخص" };
       }
-    } else if (parts.length === 3 && parts[0] === "products") {
-      // It's a subcategory
-      const slug = parts[2];
-      const subCategory = await prisma.categoryContent.findFirst({
-        where: { Slug: slug, Available: true },
-        select: { Name: true },
-      });
+      return { path, name: "نامشخص" };
+    })
+  );
 
-      if (subCategory?.Name) {
-        results[path] = subCategory.Name;
-      } else {
-        results[path] = "نامشخص";
-      }
-    } else {
-      results[path] = "نامشخص";
-    }
+  for (const { path, name } of dynamicResults) {
+    results[path] = name;
   }
 
   return NextResponse.json(results);

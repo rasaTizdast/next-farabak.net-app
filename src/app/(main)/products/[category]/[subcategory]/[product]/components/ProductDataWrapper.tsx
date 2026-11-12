@@ -1,17 +1,18 @@
-import axios from "axios";
-import Image from "next/image";
+import { io } from "next/cache";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { getPriceValidUntil } from "@/utils/priceValidUntil";
-
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import SourcesList from "@/components/SourcesList";
+import { BRAND_LABELS, buildSourcesFor, detectBrand } from "@/helpers/sources";
+import { getProductBySlug } from "@/lib/data/products";
+import { getProductImageUrl } from "@/lib/seo/product-image-url";
 
-import styles from "../ProductPage.module.css";
 import ClientInvoiceSection from "./ui/ClientInvoiceSection";
 import ProductBlog from "./ui/ProductBlog";
 import ProductFaq from "./ui/ProductFaq";
 import ProductFeatures from "./ui/ProductFeatures";
+import ProductGallery from "./ui/ProductGallery";
 import ProductOverview from "./ui/ProductOverviewDetails";
 import ProductSpecs from "./ui/ProductSpecs";
 import ProductTabs from "./ui/ProductTabs";
@@ -29,7 +30,8 @@ interface ProductData {
   ProductId: number;
   Name: string;
   Type: string;
-  img2: string;
+  img1: string | null;
+  img2: string | null;
   Price: string;
   Discount: string;
   Description: string;
@@ -47,24 +49,22 @@ interface ProductData {
 
 async function getProduct(slug: string): Promise<ProductData | null> {
   try {
-    const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductBySlug/${slug}`
-    );
-
-    if (!res || !res.data) return null;
-
-    const product = res.data;
-    return product;
+    return (await getProductBySlug(slug)) as ProductData | null;
   } catch (error) {
     console.error(error);
     return null;
   }
 }
 
-export default async function ProductDataWrapper({ params, searchParams }: {
+export default async function ProductDataWrapper({
+  params,
+  searchParams,
+}: {
   params: { category: string; product: string };
   searchParams: { key: string };
 }) {
+  // QR expiry and price validity are request-time values, not static-shell data.
+  await io();
   const productData = await getProduct(params.product);
 
   if (!productData) {
@@ -95,212 +95,167 @@ export default async function ProductDataWrapper({ params, searchParams }: {
     `/products/${productData.categorySlug}/${productData.subCategorySlug}`,
   ];
 
-  const rawPrice = Number(productData.Price);
-  const rawDiscount = Number(productData.Discount);
-  const hasValidPrice = Number.isFinite(rawPrice) && rawPrice > 0;
-  const hasValidDiscount =
-    Number.isFinite(rawDiscount) && rawDiscount > 0 && rawDiscount < rawPrice;
-  const finalPrice = hasValidDiscount ? rawPrice - rawDiscount : rawPrice;
-  const priceValidUntil = getPriceValidUntil();
+  const brandToken = detectBrand(productData.Type);
+  const productModel = productData.Type || productData.Name || "محصول فرابک";
+  const productDescription = productData.Name?.trim();
+  const canonicalUrl = new URL(
+    `/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
+    process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net"
+  ).toString();
+  const imageUrl = getProductImageUrl(productData.img2, productData.img1);
 
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "Product",
-        "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
-        name: productData.Type,
-        description: productData.Description,
-        image: `${process.env.LIARA_BUCKET_URL}/productImages/${productData.img2}`,
-        url: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
+        "@id": canonicalUrl,
+        name: productModel,
+        ...(productDescription && productDescription !== productModel
+          ? { description: productDescription }
+          : {}),
+        image: imageUrl,
+        url: canonicalUrl,
         category: `${productData.categorySlug}/${productData.subCategorySlug}`,
         model: productData.Type,
         sku: `FAR-${productData.ProductId}`,
-        brand: {
-          "@type": "Brand",
-          name: "فرابک",
-        },
-        manufacturer: {
-          "@type": "Organization",
-          "@id": "https://farabak.net",
-          name: "فرابک",
-          url: "https://farabak.net",
-        },
-        ...(hasValidPrice
+        ...(brandToken
           ? {
-              offers: {
-                "@type": "Offer",
-                price: String(finalPrice),
-                priceCurrency: "IRR",
-                priceValidUntil,
-                hasMerchantReturnPolicy: {
-                  "@type": "MerchantReturnPolicy",
-                  applicableCountry: "IR",
-                  returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-                  merchantReturnDays: 7,
-                  returnMethod: "https://schema.org/ReturnByMail",
-                  returnFees: "https://schema.org/FreeReturn",
-                },
-                shippingDetails: [
-                  {
-                    "@type": "OfferShippingDetails",
-                    shippingDestination: {
-                      "@type": "DefinedRegion",
-                      addressCountry: "IR",
-                    },
-                    shippingRate: {
-                      "@type": "MonetaryAmount",
-                      value: "0",
-                      currency: "IRR",
-                    },
-                    deliveryTime: {
-                      "@type": "ShippingDeliveryTime",
-                      handlingTime: {
-                        "@type": "QuantitativeValue",
-                        minValue: 1,
-                        maxValue: 5,
-                        unitCode: "DAY",
-                      },
-                      transitTime: {
-                        "@type": "QuantitativeValue",
-                        minValue: 2,
-                        maxValue: 5,
-                        unitCode: "DAY",
-                      },
-                    },
-                  },
-                ],
-                availability: productData.Available
-                  ? "https://schema.org/InStock"
-                  : "https://schema.org/OutOfStock",
-                seller: {
-                  "@id": "https://farabak.net",
-                },
+              brand: {
+                "@type": "Brand",
+                name: BRAND_LABELS[brandToken],
               },
             }
           : {}),
         mainEntityOfPage: {
           "@type": "WebPage",
-          "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
+          "@id": canonicalUrl,
         },
-      },
-      {
-        "@type": "WebPage",
-        "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
-        url: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
-        name: productData.SEO_Title || productData.Type,
-        description: productData.SEO_Description || productData.Description,
-        isPartOf: {
-          "@type": "WebSite",
-          "@id": "https://farabak.net",
-        },
-        about: {
-          "@type": "Product",
-          "@id": `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
-        },
-        breadcrumb: {
-          "@type": "BreadcrumbList",
-          itemListElement: [
-            {
-              "@type": "ListItem",
-              position: 1,
-              name: "خانه",
-              item: "https://farabak.net",
-            },
-            {
-              "@type": "ListItem",
-              position: 2,
-              name: "محصولات",
-              item: "https://farabak.net/products",
-            },
-            {
-              "@type": "ListItem",
-              position: 3,
-              name: productData.categorySlug,
-              item: `https://farabak.net/products/${productData.categorySlug}`,
-            },
-            {
-              "@type": "ListItem",
-              position: 4,
-              name: productData.subCategorySlug,
-              item: `https://farabak.net/products/${productData.categorySlug}/${productData.subCategorySlug}`,
-            },
-            {
-              "@type": "ListItem",
-              position: 5,
-              name: productData.Type,
-              item: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
-            },
-          ],
-        },
-        inLanguage: "fa-IR",
       },
     ],
   };
 
+  // Price is stored in USD and converted to an estimated Toman price at a live rate.
+  // The catalog has no stock or stable ISO-currency offer source, so do not claim an Offer.
+  const jsonLd = JSON.stringify(structuredData).replace(/</g, "\\u003c");
+
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <Breadcrumb breadcrumbs={breadCrumbs} />
-      <section className={styles.head}>
-        <Image
-          src={`${process.env.LIARA_BUCKET_URL}/productImages/${productData.img2}`}
-          alt={productData.Type}
-          width={1340}
-          height={780}
-          quality={100}
-          priority
-          className={styles.productImage}
-        />
+      <section aria-labelledby="product-dossier-title" className="py-4 md:py-8">
+        <div className="grid items-stretch gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
+          <ProductGallery title={productModel} images={[imageUrl]} />
 
-        <div className={styles.desc}>
-          <div className={styles.descDetails}>
-            <div className={styles.details}>
-              <div>{productData.Type}</div>
-              <h1>{productData.Name}</h1>
+          <aside className="flex h-full flex-col rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-5 shadow-[0_18px_45px_rgba(6,26,48,0.08)] sm:p-7">
+            <p className="text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
+              پرونده فنی محصول
+            </p>
+            <h1
+              id="product-dossier-title"
+              className="mt-4 text-2xl leading-10 font-bold text-(--farabak-ink-deep) sm:text-3xl"
+            >
+              {productModel}
+            </h1>
+            {productDescription && productDescription !== productModel ? (
+              <p className="mt-3 text-sm leading-7 text-(--farabak-ink-muted)">
+                {productDescription}
+              </p>
+            ) : null}
+
+            <div className="mt-5 grid grid-cols-2 gap-3 border-y border-(--farabak-ink-deep)/10 py-4 text-sm">
+              <div>
+                <span className="block text-xs text-(--farabak-ink-muted)">کد محصول</span>
+                <span
+                  dir="ltr"
+                  className="mt-1 block font-mono font-semibold text-(--farabak-ink-deep)"
+                >
+                  <bdi>FAR-{productData.ProductId}</bdi>
+                </span>
+              </div>
+              <div>
+                <span className="block text-xs text-(--farabak-ink-muted)">وضعیت</span>
+                <span className="mt-1 block font-semibold text-(--farabak-action-blue)">
+                  قابل بررسی برای سفارش
+                </span>
+              </div>
             </div>
 
-            <Suspense fallback={<SkeletonFeatures />}>
-              <ProductFeatures productId={productData.ProductId} />
-            </Suspense>
-          </div>
+            <div className="mt-5 border-t border-(--farabak-ink-deep)/10 pt-5">
+              <p className="mb-3 text-sm font-bold text-(--farabak-ink-deep)">ویژگی‌های کلیدی</p>
+              <Suspense fallback={<SkeletonFeatures />}>
+                <ProductFeatures productId={productData.ProductId} />
+              </Suspense>
+            </div>
 
-          <ClientInvoiceSection
-            productPrice={productData.Price}
-            productDiscount={productData.Discount}
-            ProductId={productData.ProductId}
-            ProductName={productData.Type}
-            minimumAmount={productData.Minimum_Amount}
-            maximumAmount={productData.Maximum_Amount}
-          />
+            <div className="mt-auto border-t border-(--farabak-ink-deep)/10 pt-5">
+              <ClientInvoiceSection
+                ProductId={productData.ProductId}
+                ProductName={productData.Type}
+                productPrice={productData.Price}
+                productDiscount={productData.Discount}
+                minimumAmount={productData.Minimum_Amount}
+                maximumAmount={productData.Maximum_Amount}
+              />
+            </div>
+          </aside>
         </div>
       </section>
       <ProductTabs />
-      <section id="overview" className={styles.section}>
+      <section
+        id="overview"
+        aria-labelledby="overview-heading"
+        className="flex w-full scroll-mt-32 flex-col items-center gap-10"
+      >
+        <h2 id="overview-heading" className="sr-only">
+          توضیحات محصول
+        </h2>
         <Suspense fallback={<SkeletonOverview />}>
           <ProductOverview productId={productData.ProductId} />
         </Suspense>
       </section>
 
-      <section id="blog" className={styles.section}>
+      <section
+        id="blog"
+        aria-labelledby="blog-heading"
+        className="flex w-full scroll-mt-32 flex-col items-center gap-10"
+      >
+        <h2 id="blog-heading" className="sr-only">
+          توضیحات تکمیلی محصول
+        </h2>
         <Suspense fallback={<SkeletonBlog />}>
           <ProductBlog productBlog={productData.productBlog} />
         </Suspense>
       </section>
 
-      <section id="specs" className={`${styles.section} mt-8`}>
+      <section
+        id="specs"
+        aria-labelledby="specs-heading"
+        className="mt-10 flex w-full scroll-mt-32 flex-col items-center gap-10"
+      >
+        <h2 id="specs-heading" className="sr-only">
+          مشخصات محصول
+        </h2>
         <Suspense fallback={<SkeletonSpecs />}>
           <ProductSpecs productId={productData.ProductId} />
         </Suspense>
       </section>
 
-      <section id="faq" className={`${styles.section} mt-8`}>
+      <section
+        id="faq"
+        aria-labelledby="faq-heading"
+        className="flex w-full scroll-mt-32 flex-col items-center gap-10"
+      >
+        <h2 id="faq-heading" className="sr-only">
+          سوالات متداول محصول
+        </h2>
         <Suspense fallback={<SkeletonFaq />}>
           <ProductFaq productId={productData.ProductId} />
         </Suspense>
+      </section>
+
+      <section className="mt-8 flex w-full flex-col items-center">
+        <SourcesList sources={buildSourcesFor(productData.Type)} />
       </section>
 
       <div className="my-10 h-px w-full bg-gray-200" aria-hidden="true" />

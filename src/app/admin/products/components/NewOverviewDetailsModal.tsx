@@ -1,12 +1,14 @@
+"use client";
+
 import Image from "next/image";
-import React, { useState, useCallback } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-hot-toast";
 import { FiUpload } from "react-icons/fi";
 import { IoIosClose } from "react-icons/io";
 
 async function submitOverviewDetails(
-  items: any[],
+  items: OverviewDetailItem[],
   setIsSubmitting: (v: boolean) => void,
   onClose: () => void
 ) {
@@ -120,8 +122,6 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
     });
   };
 
-
-
   // Function to handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,16 +138,41 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
     await submitOverviewDetails(items, setIsSubmitting, onClose);
   };
 
+  const panelRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+
+  useEffect(() => {
+    panelRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-[51] flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity">
-      <div className="relative max-h-[90dvh] w-full max-w-6xl animate-fade-in overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg">
-        <h1 className="mb-6 text-center text-2xl font-bold">توضیحات محصول جدید</h1>
+    <div className="fixed inset-0 z-51 flex items-center justify-center bg-black/55 backdrop-blur-sm transition-opacity">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="animate-fade-in relative max-h-[90dvh] w-full max-w-6xl overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg focus:outline-none"
+      >
+        <h2 id={titleId} className="mb-6 text-center text-2xl font-bold">
+          توضیحات محصول جدید
+        </h2>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-6">
             {items.map((item, index) => (
               <ItemForm
-                key={index}
+                key={item.title + item.description}
                 item={item}
                 index={index}
                 isSubmitting={isSubmitting}
@@ -190,25 +215,29 @@ const NewOverviewDetailsModal = ({ onClose }: { onClose: () => void }) => {
           </div>
         </form>
 
-        <div
-          className="absolute right-4 top-4 cursor-pointer text-red-400 transition-all hover:text-red-500"
+        <button
+          type="button"
+          className="absolute top-4 right-4 cursor-pointer text-red-400 transition-colors hover:text-red-500"
           onClick={onClose}
+          aria-label="بستن"
         >
           <IoIosClose size={50} />
-        </div>
+        </button>
       </div>
     </div>
   );
 };
 
 // Create a separate component for each item form to safely use hooks
+type OverviewDetailItem = {
+  title: string;
+  description: string;
+  image: File | null;
+  preview: string;
+};
+
 type ItemFormProps = {
-  item: {
-    title: string;
-    description: string;
-    image: File | null;
-    preview: string;
-  };
+  item: OverviewDetailItem;
   index: number;
   isSubmitting: boolean;
   handleChange: (index: number, field: string, value: string) => void;
@@ -228,13 +257,10 @@ const ItemForm = ({
 }: ItemFormProps) => {
   // We can safely use hooks here because this component is rendered directly in the list
   // Not conditionally or in a loop inside the component
-  const onDrop = useCallback(
-    (acceptedFiles: File[]) => {
-      if (acceptedFiles.length === 0) return;
-      handleImageSelect(index, acceptedFiles[0]);
-    },
-    [index, handleImageSelect]
-  );
+  const onDrop = (acceptedFiles: File[]) => {
+    if (acceptedFiles.length === 0) return;
+    handleImageSelect(index, acceptedFiles[0]);
+  };
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
     onDrop,
@@ -248,17 +274,22 @@ const ItemForm = ({
       {showRemoveButton && (
         <button
           type="button"
+          aria-label="حذف آیتم"
           onClick={() => removeItem(index)}
-          className="absolute left-2 top-2 rounded-lg bg-red-500 hover:bg-red-600"
+          className="absolute top-2 left-2 rounded-lg bg-red-500 hover:bg-red-600"
         >
           <IoIosClose size={25} />
         </button>
       )}
 
       <div className="mb-4">
-        <label className="mb-2 block">عنوان</label>
+        <label htmlFor={`overview-title-${index}`} className="mb-2 block">
+          عنوان
+        </label>
         <input
+          id={`overview-title-${index}`}
           type="text"
+          aria-label="عنوان"
           value={item.title}
           onChange={(e) => handleChange(index, "title", e.target.value)}
           className="w-full rounded-md border border-gray-600 bg-gray-700 p-2 text-white"
@@ -268,8 +299,12 @@ const ItemForm = ({
       </div>
 
       <div className="mb-4">
-        <label className="mb-2 block">توضیحات</label>
+        <label htmlFor={`overview-desc-${index}`} className="mb-2 block">
+          توضیحات
+        </label>
         <textarea
+          id={`overview-desc-${index}`}
+          aria-label="توضیحات"
           value={item.description}
           onChange={(e) => handleChange(index, "description", e.target.value)}
           className="min-h-[100px] w-full rounded-md border border-gray-600 bg-gray-700 p-2 text-white"
@@ -279,7 +314,9 @@ const ItemForm = ({
       </div>
 
       <div className="mb-4">
-        <label className="mb-2 block">تصویر</label>
+        <label htmlFor={`overview-image-${index}`} className="mb-2 block">
+          تصویر
+        </label>
         <div
           {...getRootProps()}
           className={`cursor-pointer rounded-md border-2 border-dashed p-4 text-center transition-colors ${
@@ -321,7 +358,7 @@ const ItemForm = ({
               width={250}
               src={item.preview}
               alt="پیش‌نمایش"
-              className="h-full w-full object-contain"
+              className="size-full object-contain"
             />
           </div>
         )}

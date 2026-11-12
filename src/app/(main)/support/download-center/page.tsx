@@ -1,53 +1,196 @@
-export const dynamic = "force-dynamic";
-
+import {
+  ArrowLeft,
+  BookOpenText,
+  Download,
+  ExternalLink,
+  FileArchive,
+  MonitorDown,
+  Smartphone,
+} from "lucide-react";
 import { Metadata } from "next";
-import Link from "next/link";
 
-import styles from "./DownloadCenterPage.module.css";
+import { ActionLink } from "@/components/public/ActionLink";
+import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
+import { PublicShell } from "@/components/public/PublicShell";
 
 export const metadata: Metadata = {
-  title: "مرکز دانلود نرم‌افزار و آپدیت | فرابک",
+  alternates: { canonical: "/support/download-center" },
+  title: "مرکز دانلود اپلیکیشن و منابع رسمی | فرابک",
   description:
     "دانلود رایگان نرم‌افزار، راهنماها و بروزرسانی‌های محصولات ریولینک، بلک مجیک و دستگاه‌های ایکس‌ری از فرابک. دسترسی آسان برای کاربران خرید دوربین مداربسته و سیستم‌های امنیتی.",
   robots: {
-    index: true, // This sets the noindex directive
-    follow: true, // Allows crawling of links on the page if needed
+    index: true,
+    follow: true,
   },
 };
 
+const downloadGroups = [
+  {
+    id: "reolink",
+    eyebrow: "نظارت تصویری",
+    title: "اپ‌ها و کلاینت‌های رئولینک",
+    description:
+      "برای مشاهده زنده، بازپخش، تنظیمات و مدیریت دوربین‌ها، نسخه مناسب دستگاه خود را از منبع رسمی بگیرید.",
+    sourceHref: "https://reolink.com/us/software-and-manual/",
+    sourceLabel: "صفحه رسمی رئولینک",
+    items: [
+      {
+        title: "اپلیکیشن موبایل",
+        platform: "Android و iOS",
+        icon: Smartphone,
+        label: "دریافت اپ موبایل",
+      },
+      {
+        title: "کلاینت دسکتاپ",
+        platform: "Windows و macOS",
+        icon: MonitorDown,
+        label: "دریافت کلاینت دسکتاپ",
+      },
+    ],
+  },
+  {
+    id: "blackmagic",
+    eyebrow: "تولید ویدئو",
+    title: "نرم‌افزارهای Blackmagic Design",
+    description:
+      "نسخه‌های رسمی DaVinci Resolve و ابزارهای پشتیبانی Blackmagic را از صفحه اصلی سازنده دریافت کنید.",
+    sourceHref: "https://www.blackmagicdesign.com/event/davinciresolvedownload",
+    sourceLabel: "صفحه رسمی دانلود Blackmagic",
+    items: [
+      {
+        title: "DaVinci Resolve",
+        platform: "Windows، macOS، Linux و iPad",
+        icon: MonitorDown,
+        label: "دریافت DaVinci Resolve",
+      },
+      {
+        title: "مرکز پشتیبانی",
+        platform: "راهنما، آپدیت و یادداشت انتشار",
+        icon: BookOpenText,
+        href: "https://www.blackmagicdesign.com/support",
+        label: "مشاهده پشتیبانی",
+      },
+    ],
+  },
+  {
+    id: "farabak",
+    eyebrow: "خدمات فرابک",
+    title: "ابزارهای آنلاین مشتریان",
+    description:
+      "برای پیگیری خدمات و پیدا کردن راهنمای مناسب، از مسیرهای داخلی فرابک استفاده کنید.",
+    items: [
+      {
+        title: "پیگیری گارانتی",
+        platform: "ثبت و بررسی وضعیت گارانتی",
+        icon: FileArchive,
+        href: "/support/warranty-tracking",
+        label: "پیگیری گارانتی",
+      },
+      {
+        title: "راهنما و سوالات متداول",
+        platform: "مقالات آموزشی و پاسخ‌های سریع",
+        icon: BookOpenText,
+        href: "/support/faq",
+        label: "مشاهده راهنماها",
+      },
+    ],
+  },
+];
+
 const DownloadCenterPage = () => {
   return (
-    <section className={styles.downloadParent}>
-      <div className={styles.card}>
-        <h3>برنامه رئولینک</h3>
-        <div className={styles.details}>
-          <p>
-            با دانلود برنامه رئولینک شما میتوانید به سادگی دوربین های خود را کنترل، تنظیم و بررسی
-            کنید.
+    <PublicShell className="pt-6 pb-12 sm:pt-8 sm:pb-14">
+      <PublicBreadcrumbs
+        breadcrumbs={["/", "/support", "/support/download-center"]}
+        labels={{ "/support/download-center": "مرکز دانلود" }}
+      />
+      <header className="flex flex-col gap-5 py-6 md:gap-6 md:py-8">
+        <p className="text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
+          نرم‌افزار و راهنما
+        </p>
+        <div className="max-w-4xl">
+          <h1 className="text-3xl leading-tight font-bold tracking-tight text-(--farabak-ink-deep) md:text-5xl">
+            یک مرکز برای همه ابزارهای موردنیاز شما
+          </h1>
+          <p className="mt-4 max-w-3xl text-base leading-8 text-(--farabak-ink-muted) md:text-lg">
+            اپلیکیشن‌ها، کلاینت‌های دسکتاپ، ابزارهای تولید محتوا و مسیرهای خدمات آنلاین را بر اساس
+            برند و کاربرد پیدا کنید.
           </p>
-
-          <Link href="https://play.google.com/store/apps/details?id=com.mcu.reolink">
-            دریافت اپلیکیشن اندروید رئولینک
-          </Link>
-
-          <Link href="https://itunes.apple.com/us/app/reolink/id995927563?ls=1&mt=8">
-            دریافت اپلیکیشن IOS رئولینک
-          </Link>
-
-          <Link href="https://home-cdn.reolink.us/wp-content/uploads/2024/07/241029151721816955.6833.exe?download_name=reolink_setup_8168_0.exe">
-            دریافت اپلیکیشن Windows رئولینک
-          </Link>
-
-          <Link href="https://home-cdn.reolink.us/wp-content/uploads/2023/03/170224401679019880.5577.dmg?download_name=Reolink_Client_885.dmg">
-            دریافت اپلیکیشن Mac رئولینک
-          </Link>
-
-          <Link href="https://reolink.com/software-and-manual/" className={styles.linkText}>
-            دریافت جدید‌ترین نسخه اپلیکیشن برای Windows - Mac - IOS - Android از وبسایت رسمی رئولینک
-          </Link>
         </div>
+      </header>
+
+      <div className="space-y-6">
+        {downloadGroups.map((group) => (
+          <section
+            key={group.id}
+            aria-labelledby={`${group.id}-downloads`}
+            className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.06)]"
+          >
+            <div className="flex flex-col gap-3 border-b border-slate-100 p-5 md:flex-row md:items-end md:justify-between md:p-8">
+              <div>
+                <p className="text-sm font-semibold text-(--farabak-action-blue)">
+                  {group.eyebrow}
+                </p>
+                <h2
+                  id={`${group.id}-downloads`}
+                  className="mt-2 text-2xl font-bold text-(--farabak-ink-deep)"
+                >
+                  {group.title}
+                </h2>
+                <p className="mt-2 max-w-3xl leading-8 text-(--farabak-ink-muted)">
+                  {group.description}
+                </p>
+              </div>
+              {group.sourceHref ? (
+                <ActionLink
+                  href={group.sourceHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  variant="quiet"
+                  className="self-start px-0 md:self-auto"
+                >
+                  {group.sourceLabel} <ExternalLink aria-hidden="true" className="size-4" />
+                </ActionLink>
+              ) : null}
+            </div>
+            <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-6">
+              {group.items.map((download) => {
+                const Icon = download.icon;
+                const href = "href" in download ? download.href : group.sourceHref;
+                if (!href) return null;
+                return (
+                  <article
+                    key={download.title}
+                    className="flex min-h-36 flex-col justify-between rounded-xl border border-slate-200 bg-(--farabak-paper) p-4 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-(--farabak-action-blue)/40 hover:shadow-md"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white text-(--farabak-action-blue) shadow-sm">
+                        <Icon aria-hidden="true" className="size-5" />
+                      </span>
+                      <div>
+                        <h3 className="font-bold text-(--farabak-ink-deep)">{download.title}</h3>
+                        <p className="mt-1 text-sm leading-7 text-(--farabak-ink-muted)">
+                          {download.platform}
+                        </p>
+                      </div>
+                    </div>
+                    <ActionLink
+                      href={href}
+                      target={href?.startsWith("http") ? "_blank" : undefined}
+                      rel={href?.startsWith("http") ? "noreferrer" : undefined}
+                      className="mt-5 w-full sm:w-auto"
+                    >
+                      <Download aria-hidden="true" className="size-4" />
+                      {download.label} <ArrowLeft aria-hidden="true" className="size-4" />
+                    </ActionLink>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        ))}
       </div>
-    </section>
+    </PublicShell>
   );
 };
 

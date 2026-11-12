@@ -7,6 +7,7 @@ import { IoIosClose } from "react-icons/io";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 import SpecTemplateModal from "./SpecTemplateModal";
 
@@ -29,6 +30,7 @@ type SpecTemplateManagerProps = {
 
 const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTemplateSelect }) => {
   const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const panelRef = useModalA11y<HTMLDivElement>({ onClose, isOpen: !showTemplateModal });
   const [templateToEdit, setTemplateToEdit] = useState<SpecTemplate | null>(null);
 
   const {
@@ -88,14 +90,21 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
       )}
 
       <div
-        className="fixed inset-0 z-[55] flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 z-55 flex items-center justify-center bg-black/55 p-3 backdrop-blur-[2px]"
         onClick={(e) => e.stopPropagation()}
       >
         <div
-          className="relative max-h-[90vh] w-full max-w-3xl animate-fade-in overflow-y-auto rounded-xl bg-gray-800 p-6 text-white shadow-lg"
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="spec-template-manager-title"
+          tabIndex={-1}
+          className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-xl border border-slate-500 bg-gray-800 p-4 text-white shadow-xl sm:p-6"
           onClick={(e) => e.stopPropagation()}
         >
-          <h2 className="mb-6 text-center text-xl font-bold">مدیریت قالب‌های مشخصات</h2>
+          <h2 id="spec-template-manager-title" className="mb-6 text-center text-xl font-bold">
+            مدیریت قالب‌های مشخصات
+          </h2>
 
           <div className="mb-4 flex justify-end">
             <button
@@ -126,7 +135,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
                   key={template.SpecTemplateId}
                   className="flex items-center justify-between rounded-lg bg-gray-700 p-4"
                 >
-                  <div className="flex-grow">
+                  <div className="grow">
                     <h3 className="text-lg font-bold">{template.Name}</h3>
                     <p className="text-sm text-gray-400">
                       {template.Items && template.Items.length ? template.Items.length : 0} مورد
@@ -147,6 +156,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
                     </button>
                     <button
                       type="button"
+                      aria-label="ویرایش قالب"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -158,6 +168,7 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
                     </button>
                     <button
                       type="button"
+                      aria-label="حذف قالب"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -193,7 +204,8 @@ const SpecTemplateManager: React.FC<SpecTemplateManagerProps> = ({ onClose, onTe
 
           <button
             type="button"
-            className="absolute right-2 top-2 text-gray-400 hover:text-white"
+            aria-label="بستن"
+            className="absolute top-2 right-2 text-gray-400 hover:text-white"
             onClick={(e) => {
               e.stopPropagation();
               onClose();

@@ -1,12 +1,8 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { notFoundResponse, serverErrorResponse, unauthorizedResponse } from "@/lib/api-response";
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-export const dynamic = "force-dynamic";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
 /**
  * @swagger
@@ -24,61 +20,32 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
  *         description: Server error
  */
 export async function GET() {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+
+  // The userId can be stored under different keys in the payload
+  // Check common keys: userId, id, sub
+  const userId = auth.userId || (auth as any).id || (auth as any).sub;
+
+  if (!userId) {
+    return unauthorizedResponse("دسترسی غیرمجاز - اطلاعات کاربر معتبر نیست");
+  }
+
   try {
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("accessToken")?.value;
+    // Get branch for this user
+    const branch = await prisma.$queryRaw<Record<string, unknown>[]>`
+      SELECT "branchid", "name", "location" FROM "support"."branch"
+      WHERE "UserID" = ${Number(userId)}
+    `;
 
-    if (!accessToken) {
-      console.error("No access token found in cookies");
-      return NextResponse.json(
-        { error: "دسترسی غیرمجاز - لطفا وارد حساب کاربری خود شوید" },
-        { status: 401 }
-      );
+    if (!branch || branch.length === 0) {
+      return notFoundResponse("هیچ شعبه‌ای برای این کاربر یافت نشد");
     }
 
-    try {
-      // Verify and decode JWT
-      const { payload } = await jwtVerify(accessToken, new TextEncoder().encode(JWT_SECRET));
-
-      // The userId can be stored under different keys in the payload
-      // Check common keys: userId, id, sub
-      const userId = payload.userId || payload.id || payload.sub;
-
-      if (!userId) {
-        console.error("JWT payload missing userId:", payload);
-        return NextResponse.json(
-          { error: "دسترسی غیرمجاز - اطلاعات کاربر معتبر نیست" },
-          { status: 401 }
-        );
-      }
-
-      // Get branch for this user
-      const branch = await prisma.$queryRaw`
-        SELECT "branchid", "name", "location" FROM "support"."branch"
-        WHERE "UserID" = ${Number(userId)}
-      `;
-
-      if (!branch || (branch as any[]).length === 0) {
-        return NextResponse.json({ error: "هیچ شعبه‌ای برای این کاربر یافت نشد" }, { status: 404 });
-      }
-
-      // Return the first branch (users typically have only one branch)
-      return NextResponse.json(branch[0]);
-    } catch (tokenError) {
-      console.error("Token verification failed:", tokenError);
-      return NextResponse.json(
-        {
-          error: "دسترسی غیرمجاز - توکن نامعتبر است",
-          details: String(tokenError),
-        },
-        { status: 401 }
-      );
-    }
+    // Return the first branch (users typically have only one branch)
+    return NextResponse.json(branch[0]);
   } catch (error) {
     console.error("Error fetching user branch:", error);
-    return NextResponse.json(
-      { error: "خطا در بارگذاری اطلاعات شعبه", details: String(error) },
-      { status: 500 }
-    );
+    return serverErrorResponse("خطا در بارگذاری اطلاعات شعبه");
   }
 }

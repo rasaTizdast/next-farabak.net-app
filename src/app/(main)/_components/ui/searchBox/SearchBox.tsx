@@ -1,16 +1,14 @@
 "use client";
 
 import debounce from "lodash/debounce";
-import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { CgSearch } from "react-icons/cg";
 import { escape } from "validator";
 
+import Link from "@/components/NoPrefetchLink";
+import SmartImage from "@/components/ui/SmartImage";
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
-
-import styles from "./SearchBox.module.css";
 
 // Utility function to normalize Persian text
 const normalizePersianText = (text: string) => {
@@ -21,7 +19,7 @@ const normalizePersianText = (text: string) => {
     .replace(/ؤ/g, "و")
     .replace(/أ/g, "ا")
     .replace(/إ/g, "ا")
-    .replace(/\s+/g, " ") // Replace multiple spaces with a single space
+    .replace(/\s+/g, " ")
     .trim();
 };
 
@@ -32,7 +30,7 @@ const formatPriceWithRate = (price: number, exchangeRate: number | null): string
     return "برای دریافت قیمت تماس بگیرید";
   }
   const updatedPrice = price * exchangeRate;
-  return updatedPrice.toLocaleString("fa-IR") + " تومان";
+  return Math.floor(updatedPrice).toLocaleString("fa-IR") + " تومان";
 };
 
 // Types for the product and the API response
@@ -67,16 +65,14 @@ const debouncedSearchHandler = debounce(
         throw new Error("مشکلی در دریافت محصولات به وجود آمده است.");
       }
 
-      // Extract the data from the response, assuming API returns { products, pagination }
       const { data: products } = await response.json();
 
       const availableProducts = products.filter((product: Product) => product.Available);
 
-      // Set the results to the products data from the API response
       setResults(availableProducts);
     } catch (error) {
       console.error(error);
-      setResults([]); // If there's an error, return no results
+      setResults([]);
     } finally {
       setLoading(false);
     }
@@ -98,16 +94,23 @@ const SearchInput = ({
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
 }) => (
-  <div className={styles.search_input}>
+  <div className="flex w-full max-w-[1580px] items-center">
     <input
       type="text"
       placeholder="جستجو"
+      aria-label="جستجو"
       onChange={inputChangeHandler}
       value={searchValue}
       ref={inputRef}
       onKeyDown={onKeyDown}
+      className="h-[60px] flex-1 rounded-s-lg border-none bg-white ps-8 pe-4 text-sm focus:outline-none sm:text-base"
     />
-    <button type="button" onClick={onSearchClick} aria-label="جستجو">
+    <button
+      type="button"
+      onClick={onSearchClick}
+      aria-label="جستجو"
+      className="flex h-[60px] cursor-pointer items-center justify-center rounded-e-lg border-none bg-white px-8 py-4 text-[1.2rem]"
+    >
       <CgSearch />
     </button>
   </div>
@@ -120,28 +123,27 @@ const SearchResults = ({
   closeSearchBox,
   exchangeRate,
 }: {
-  searchResults: Product[]; // No longer allowing undefined, ensures it's always an array
+  searchResults: Product[];
   hasSearched: boolean;
   closeSearchBox: () => void;
   exchangeRate: number | null;
 }) => {
   return (
-    <div className={styles.results}>
-      {/* Display results only if there are search results */}
+    <div className="mt-8 flex size-full max-w-[1580px] flex-wrap justify-start gap-[1.2rem] text-center font-normal max-md:justify-evenly">
       {searchResults.length > 0 ? (
         searchResults.map((product) => (
           <Link
             key={product.productId}
             href={`/products/${product.link}`}
-            className={styles.result}
+            className="flex min-h-[150px] w-full max-w-[300px] min-w-[180px] flex-col items-center gap-4 rounded-[6px] bg-white p-4 sm:w-[calc(50%-0.6rem)] lg:w-1/4"
             onClick={() => {
               closeSearchBox();
             }}
           >
-            <Image
+            <SmartImage
               width={280}
               height={280}
-              quality={100}
+              quality={75}
               src={`${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/productImages/${product.img1}`}
               alt={product.Slug!}
             />
@@ -167,7 +169,7 @@ const SearchResults = ({
           </Link>
         ))
       ) : hasSearched ? (
-        <p style={{ color: "#fff", fontWeight: 600 }}>نتیجه ای یافت نشد، مجددا تلاش کنید.</p>
+        <p className="font-semibold text-white">نتیجه ای یافت نشد، مجددا تلاش کنید.</p>
       ) : null}
     </div>
   );
@@ -175,10 +177,7 @@ const SearchResults = ({
 
 // Component for rendering loading skeletons
 const LoadingSkeletons = () => (
-  <div
-    className="mt-8 grid w-full grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-    style={{ maxWidth: "calc(1900px - 20rem)" }}
-  >
+  <div className="mt-8 grid w-full max-w-[1580px] grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
     {Array.from({ length: 12 }).map((_, index) => (
       <div
         key={index}
@@ -224,10 +223,13 @@ const SearchBox = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  // Fetch exchange rate only once when the component mounts
   useEffect(() => {
-    // Define a function to fetch the exchange rate
-    fetchExchangeRate(exchangeRate, isExchangeRateLoading, setIsExchangeRateLoading, setExchangeRate);
+    fetchExchangeRate(
+      exchangeRate,
+      isExchangeRateLoading,
+      setIsExchangeRateLoading,
+      setExchangeRate
+    );
   }, [exchangeRate, isExchangeRateLoading]);
 
   const inputChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -273,22 +275,13 @@ const SearchBox = () => {
     }
   };
 
-  const closeSearchBox = useCallback(() => {
+  const closeSearchBox = () => {
     setSearchVis(false);
     setSearchValue("");
     setSearchResults([]);
     setIsLoading(false);
     setHasSearched(false);
-  }, []);
-
-  const handleClickOutside = useCallback(
-    (event: MouseEvent) => {
-      if (searchBoxRef.current && !searchBoxRef.current.contains(event.target as Node)) {
-        closeSearchBox();
-      }
-    },
-    [closeSearchBox]
-  );
+  };
 
   useEffect(() => {
     if (searchVis && inputRef.current) {
@@ -297,21 +290,32 @@ const SearchBox = () => {
   }, [searchVis]);
 
   useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(event.target as Node)) {
+        setSearchVis(false);
+        setSearchValue("");
+        setSearchResults([]);
+        setIsLoading(false);
+        setHasSearched(false);
+      }
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [handleClickOutside]);
+  }, []);
 
   return (
-    <div className={styles.search} ref={searchBoxRef}>
-      <CgSearch
-        className={styles.search_icon}
-        strokeWidth={1}
-        onClick={(event) => toggleSearchBox(event)}
-      />
+    <div className="md:ms-6" ref={searchBoxRef}>
+      <button type="button" onClick={(event) => toggleSearchBox(event)} aria-label="جستجو">
+        <CgSearch
+          className="relative inline-block cursor-pointer border-none text-[2rem] text-[#ddd] md:text-[2.5rem] lg:text-[1.6rem] xl:text-[1.8rem] 2xl:text-[2.5rem]"
+          strokeWidth={1}
+        />
+      </button>
       {searchVis && (
-        <div className={styles.search_box}>
+        <div className="absolute inset-x-0 top-full flex max-h-[75vh] w-full flex-col items-center overflow-y-auto bg-linear-to-r from-[#003e9b] via-[#0047b3] to-[#0056d8] px-6 pt-4 pb-12 shadow-[0_4px_20px_rgba(0,0,0,0.3)] min-[992px]:px-16 min-[1200px]:px-24 md:px-12 2xl:px-40">
           <SearchInput
             inputChangeHandler={inputChangeHandler}
             searchValue={searchValue}

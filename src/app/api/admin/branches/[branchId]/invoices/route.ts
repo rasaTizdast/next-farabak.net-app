@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
+import { notFoundResponse, serverErrorResponse } from "@/lib/api-response";
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { branchIdParamSchema, validateParams } from "@/lib/validation";
 
 /**
  * @swagger
@@ -23,28 +26,27 @@ import { prisma } from "@/lib/prisma";
  *         description: Server error
  */
 export async function GET(request: Request, props: { params: Promise<{ branchId: string }> }) {
-  const params = await props.params;
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
+  if (auth instanceof NextResponse) return auth;
+  const paramValidation = validateParams(params, branchIdParamSchema);
+  if ("error" in paramValidation) return paramValidation.error;
   try {
-    const branchId = parseInt(params.branchId);
-
-    if (isNaN(branchId)) {
-      return NextResponse.json({ error: "شناسه شعبه نامعتبر است" }, { status: 400 });
-    }
+    const branchId = paramValidation.data.branchId;
 
     // Check if branch exists
-    const branch = await prisma.$queryRaw`
+    const branch = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM "support"."branch" WHERE "branchid" = ${branchId}
     `;
 
-    if (!branch || (branch as any[]).length === 0) {
-      return NextResponse.json({ error: "شعبه مورد نظر یافت نشد" }, { status: 404 });
+    if (!branch || branch.length === 0) {
+      return notFoundResponse("شعبه مورد نظر یافت نشد");
     }
 
     // Get branch's user ID
-    const branchUserID = (branch as any[])[0].UserID;
+    const branchUserID = branch[0].UserID;
 
     // Get all invoices for this branch's user
-    const invoices = await prisma.$queryRaw`
+    const invoices = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT 
         i."Invoiceid", i."FactorGuid", i."Fullname", i."Phonenumber",
         i."UserId", i."TotalAmount", i."Checked", i."Date"
@@ -58,8 +60,8 @@ export async function GET(request: Request, props: { params: Promise<{ branchId:
 
     // Get details for each invoice
     const invoicesWithDetails = await Promise.all(
-      (invoices as any[]).map(async (invoice) => {
-        const details = await prisma.$queryRaw`
+      invoices.map(async (invoice) => {
+        const details = await prisma.$queryRaw<Record<string, unknown>[]>`
           SELECT 
             id."Invoice_Details", id."ProductId", id."quantity", 
             id."price", id."total_price",
@@ -74,8 +76,8 @@ export async function GET(request: Request, props: { params: Promise<{ branchId:
 
         // Get warranty info for each detail
         const detailsWithWarranty = await Promise.all(
-          (details as any[]).map(async (detail) => {
-            const warranty = await prisma.$queryRaw`
+          details.map(async (detail) => {
+            const warranty = await prisma.$queryRaw<Record<string, unknown>[]>`
               SELECT 
                 w."warrantyid", w."warrantycode", w."startdate", 
                 w."expirydate", w."status"
@@ -87,7 +89,7 @@ export async function GET(request: Request, props: { params: Promise<{ branchId:
 
             return {
               ...detail,
-              warranty: (warranty as any[]).length > 0 ? (warranty as any[])[0] : null,
+              warranty: warranty.length > 0 ? warranty[0] : null,
             };
           })
         );
@@ -102,6 +104,6 @@ export async function GET(request: Request, props: { params: Promise<{ branchId:
     return NextResponse.json(invoicesWithDetails);
   } catch (error) {
     console.error("Error fetching branch invoices:", error);
-    return NextResponse.json({ error: "خطا در بارگذاری فاکتورهای شعبه" }, { status: 500 });
+    return serverErrorResponse("خطا در بارگذاری فاکتورهای شعبه");
   }
 }

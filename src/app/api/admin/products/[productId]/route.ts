@@ -1,10 +1,21 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import {
+  errorResponse,
+  unauthorizedResponse,
+  notFoundResponse,
+  serverErrorResponse,
+} from "@/lib/api-response";
+import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET;
+import {
+  validateParams,
+  validateBody,
+  productIdParamSchema,
+  updateProductSchema,
+} from "@/lib/validation";
 
 /**
  * @swagger
@@ -33,81 +44,69 @@ const JWT_SECRET = process.env.JWT_SECRET;
  *       500:
  *         description: Internal server error.
  */
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
-
 export async function DELETE(
   req: Request,
   props: { params: Promise<{ productId: string }> }
 ): Promise<NextResponse> {
   const params = await props.params;
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
+    if (auth.role !== "Admin") {
+      return unauthorizedResponse("Unauthorized");
     }
 
-    const decoded = await verifyToken(token);
-    const userRole = decoded.role;
-
-    if (!userRole || userRole !== "Admin") {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    const { productId } = params;
-
-    if (!productId) {
-      return NextResponse.json({ message: "Product ID is required" }, { status: 400 });
-    }
+    const paramResult = validateParams(params, productIdParamSchema);
+    if ("error" in paramResult) return paramResult.error as NextResponse;
+    const productId = paramResult.data.productId;
 
     // Check if the product exists in the database
     const productExists = await prisma.product.findUnique({
-      where: { ProductId: parseInt(productId, 10) },
+      where: { ProductId: productId },
     });
 
     if (!productExists) {
-      return NextResponse.json({ message: "Product not found" }, { status: 404 });
+      return notFoundResponse("Product not found");
     }
 
     // Start a transaction to delete from multiple tables
     try {
       await prisma.$transaction([
         prisma.product.delete({
-          where: { ProductId: parseInt(productId, 10) },
+          where: { ProductId: productId },
         }),
         prisma.productOverview.deleteMany({
-          where: { ProductId: parseInt(productId, 10) },
+          where: { ProductId: productId },
         }),
         prisma.details_ProductOverviewDetails.deleteMany({
-          where: { productid: parseInt(productId, 10) },
+          where: { productid: productId },
         }),
         prisma.productSpecs.deleteMany({
-          where: { ProductId: parseInt(productId, 10) },
+          where: { ProductId: productId },
         }),
         prisma.fAQs.deleteMany({
-          where: { ProductId: parseInt(productId, 10) },
+          where: { ProductId: productId },
         }),
       ]);
 
+      revalidateTag(TAGS.products, "max");
+      revalidateTag(TAGS.categories, "max");
+      revalidateTag(TAGS.productOverview, "max");
+      revalidateTag(TAGS.productSpecs, "max");
+      revalidateTag(TAGS.faqs, "max");
+      revalidateTag(TAGS.sitemap, "max");
       return NextResponse.json(
         { message: "Product and related data removed successfully." },
         { status: 200 }
       );
     } catch (error) {
       console.error(error);
-      return NextResponse.json(
-        { message: "Failed to remove product and related data" },
-        { status: 500 }
-      );
+      return serverErrorResponse("Failed to remove product and related data");
     }
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ message: "An unexpected error occurred." }, { status: 500 });
+    return serverErrorResponse("An unexpected error occurred.");
   }
 }
 
@@ -261,72 +260,38 @@ export async function DELETE(
 
 export async function PATCH(request: Request, props: { params: Promise<{ productId: string }> }) {
   const params = await props.params;
-  const productId = parseInt(params.productId, 10);
-
-  if (isNaN(productId)) {
-    return NextResponse.json({ error: "Invalid product ID" }, { status: 400 });
-  }
+  const paramResult = validateParams(params, productIdParamSchema);
+  if ("error" in paramResult) return paramResult.error;
+  const productId = paramResult.data.productId;
 
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
+    if (auth.role !== "Admin") {
+      return unauthorizedResponse("Unauthorized");
     }
 
-    const decoded = await verifyToken(token);
-    const userRole = decoded.role;
-
-    if (!userRole || userRole !== "Admin") {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = await request.json();
-
-    // Allowable fields for update
-    const validFields = [
-      "Name",
-      "Type",
-      "Price",
-      "Discount",
-      "CategoryContentId",
-      "img1",
-      "img2",
-      "Available",
-      "Description",
-      "CategoryId",
-      "Slug",
-      "SEO_Title",
-      "SEO_Description",
-      "productBlog",
-      "Partner_Price",
-    ];
-
-    // Filter out only valid fields to update
-    const updateData = Object.keys(body).reduce(
-      (acc, key) => {
-        if (validFields.includes(key)) {
-          acc[key] = body[key];
-        }
-        return acc;
-      },
-      {} as Record<string, unknown>
-    );
+    const result = await validateBody(request, updateProductSchema);
+    if ("error" in result) return result.error;
+    const data = result.data;
 
     // If no valid fields are provided, return an error
-    if (Object.keys(updateData).length === 0) {
-      return NextResponse.json({ error: "No valid fields provided for update" }, { status: 400 });
+    if (Object.keys(data).length === 0) {
+      return errorResponse("No valid fields provided for update", 400);
     }
 
     const updatedProduct = await prisma.product.update({
       where: { ProductId: productId },
-      data: updateData,
+      data: data as Record<string, unknown>,
     });
 
+    revalidateTag(TAGS.products, "max");
+    revalidateTag(TAGS.categories, "max");
+    revalidateTag(TAGS.sitemap, "max");
     return NextResponse.json(updatedProduct);
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
+    return serverErrorResponse("Failed to update product");
   }
 }

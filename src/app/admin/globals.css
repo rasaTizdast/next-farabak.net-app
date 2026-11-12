@@ -1,0 +1,300 @@
+/* Portal z-index overrides for the admin panel.
+   These target elements rendered by AntD/zaman into React portals (outside the
+   component tree), so they cannot be reached with Tailwind descendant variants.
+*/
+
+/* Ensure the zaman DatePicker popover appears above AntD modals */
+.zaman-calendar,
+.zaman-cell,
+.zaman-calendar-popover,
+.zaman-calendar-container {
+  z-index: 3000 !important;
+}
+
+/* Make modals have lower z-index than the DatePicker popover */
+.ant-modal,
+.ant-modal-mask,
+.ant-modal-wrap {
+  z-index: 1000 !important;
+}
+
+/* Override any other styles that might interfere */
+.ant-picker-dropdown {
+  z-index: 3000 !important;
+}
+
+.ant-modal-title,
+.rtl-modal .ant-modal-header,
+.ant-alert-message,
+.ant-form-item-label > label {
+  text-align: right;
+}
+
+.rtl-modal .ant-modal-header {
+  margin-bottom: 10px;
+}
+
+.ant-modal-close {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  color: #e5e7eb !important;
+  background-color: #4b5563 !important;
+  border-radius: 12px !important;
+}
+
+.ant-modal-close:hover {
+  color: #ffffff !important;
+  background-color: #6b7280 !important;
+}
+
+.rtl-drawer .ant-drawer-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 16px 24px !important;
+}
+
+.rtl-drawer .ant-drawer-header-title {
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
+
+.rtl-drawer .ant-drawer-title {
+  text-align: right;
+}
+
+.rtl-drawer .ant-drawer-close {
+  margin-right: 0;
+  margin-left: 12px;
+}
+
+.ant-table-thead > tr > th,
+.ant-table-tbody > tr > td {
+  text-align: right;
+}
+
+.rtl-table .ant-table-container table {
+  direction: rtl;
+}
+
+.rtl-table .ant-table-pagination {
+  direction: ltr;
+}
+
+.enhanced-table .ant-table-thead > tr > th {
+  padding: 16px 12px !important;
+  font-weight: 600 !important;
+  border-color: #374151 !important;
+}
+
+.enhanced-table .ant-table-tbody > tr > td {
+  padding: 12px !important;
+  border-color: #374151 !important;
+  transition: background 0.2s ease;
+}
+
+.enhanced-table .ant-table-tbody > tr:nth-child(odd) {
+  background-color: #1f2937 !important;
+}
+
+.enhanced-table .ant-table-tbody > tr:nth-child(even) {
+  background-color: #1a2234 !important;
+}
+
+.enhanced-table .ant-table-tbody > tr.ant-table-row:hover > td {
+  background-color: #2d3748 !important;
+}
+
+.unread-invoice-row > td {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+}
+
+.unread-invoice-row:hover > td {
+  background-color: rgba(245, 158, 11, 0.25) !important;
+}
+
+.invoice-warranty-tabs .ant-tabs-tab {
+  padding: 10px 16px !important;
+  background-color: #1e293b !important;
+  border: 1px solid #374151 !important;
+  border-radius: 8px 8px 0 0 !important;
+  margin-inline-end: 15px !important;
+  transition: all 0.2s ease;
+}
+
+.invoice-warranty-tabs .ant-tabs-tab:hover {
+  background-color: #2b5194 !important;
+}
+
+.invoice-warranty-tabs .ant-tabs-tab-active {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+.invoice-warranty-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: white !important;
+  font-weight: 500;
+}
+
+.invoice-warranty-tabs .ant-tabs-content {
+  padding: 20px;
+  background-color: #1f2937;
+  border-radius: 0 0 8px 8px;
+}
+
+.invoice-warranty-tabs .ant-empty-description {
+  color: #e5e7eb !important;
+}
+
+.dark-button-secondary {
+  color: #e5e7eb !important;
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+}
+
+.dark-button-secondary:hover,
+.dark-button-secondary:focus {
+  color: #f9fafb !important;
+  background-color: #4b5563 !important;
+  border-color: #6b7280 !important;
+}
+
+.dark-input::placeholder,
+.dark-input-number input::placeholder,
+.dark-modal .ant-input::placeholder,
+.dark-modal .ant-input-affix-wrapper input::placeholder,
+.dark-modal .ant-input-number-input::placeholder {
+  color: #cbd5e1 !important;
+}
+
+.ant-modal-mask,
+.ant-drawer-mask {
+  background-color: rgb(2 8 23 / 58%) !important;
+  backdrop-filter: blur(2px);
+}
+
+.admin-shell :is(button, a, input, textarea, select):focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.admin-shell
+  :is(
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="password"],
+    input[type="search"],
+    input[type="url"],
+    textarea,
+    select
+  ):not(.ant-input):not(.ant-select-selection-search-input):not(.admin-products-search) {
+  border: 1px solid #8293aa;
+  border-radius: 8px;
+  color: #f8fafc;
+}
+
+.admin-shell :is(input, textarea):not(.admin-products-search)::placeholder {
+  color: #cbd5e1;
+  opacity: 1;
+}
+
+.admin-product-wizard
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+  min-height: 44px;
+  width: 100%;
+  border: 1px solid #8293aa;
+  border-radius: 8px;
+  background: #334155;
+  color: #f8fafc;
+  padding: 10px 12px;
+  font-size: 16px;
+}
+
+.admin-product-wizard :is(input, textarea)::placeholder {
+  color: #cbd5e1;
+  opacity: 1;
+}
+
+.admin-product-wizard :is(input, select, textarea):focus-visible {
+  border-color: #93c5fd;
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.admin-product-wizard :is(input, select, textarea)[aria-invalid="true"] {
+  border-color: #fca5a5;
+}
+
+.admin-product-wizard {
+  scrollbar-width: thin;
+  scrollbar-color: #64748b #1e293b;
+}
+
+body:has(.admin-shell) ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+body:has(.admin-shell) ::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #64748b;
+}
+
+body:has(.admin-shell) ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.admin-product-wizard::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-product-wizard::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #64748b;
+}
+
+@media (max-width: 767px) {
+  body:has([role="dialog"][aria-modal="true"]) #admin-sidebar-toggle {
+    display: none;
+  }
+}
+
+.admin-shell .glass-card {
+  border-color: #475569;
+  background: #1e293b;
+  backdrop-filter: none;
+}
+
+.admin-shell .glass-card::before {
+  display: none;
+}
+
+.admin-shell .glass-card:hover {
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell .glass-card,
+  .admin-product-wizard * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .admin-shell .glass-card:hover {
+    transform: none !important;
+  }
+}
+
+.ant-select-dropdown {
+  direction: rtl;
+  text-align: right;
+}
+
+.ant-form-item-explain-error {
+  color: #ef4444 !important;
+}

@@ -1,9 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
+import { prisma } from "@/lib/prisma";
 import { getCurrentJalaliDate } from "@/utils/jalaliDate";
-
-const prisma = new PrismaClient();
 
 /**
  * @swagger
@@ -59,11 +60,6 @@ export async function GET(req: Request, props: { params: Promise<{ blogId: strin
       orderBy: { order: "asc" },
     });
 
-    console.log(
-      `Fetched ${faqs.length} FAQs for blog ${blogId}:`,
-      faqs.map((f) => ({ id: f.id, order: f.order, question: f.question.substring(0, 30) + "..." }))
-    );
-
     return NextResponse.json({ faqs });
   } catch (error) {
     console.error("Error fetching blog FAQs:", error);
@@ -72,6 +68,11 @@ export async function GET(req: Request, props: { params: Promise<{ blogId: strin
 }
 
 export async function POST(req: Request, props: { params: Promise<{ blogId: string }> }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const params = await props.params;
   const blogId = parseInt(params.blogId);
 
@@ -96,8 +97,6 @@ export async function POST(req: Request, props: { params: Promise<{ blogId: stri
       return NextResponse.json({ message: "بلاگ مورد نظر یافت نشد" }, { status: 404 });
     }
 
-    console.log(`Creating FAQ for blog ${blogId} with order: ${order}`);
-
     const faq = await prisma.blogFAQs.create({
       data: {
         blog_id: blogId,
@@ -110,8 +109,7 @@ export async function POST(req: Request, props: { params: Promise<{ blogId: stri
       },
     });
 
-    console.log(`Created FAQ with ID ${faq.id} and order ${faq.order}`);
-
+    revalidateTag(TAGS.blogs, "max");
     return NextResponse.json({ faq }, { status: 201 });
   } catch (error) {
     console.error("Error creating FAQ:", error);

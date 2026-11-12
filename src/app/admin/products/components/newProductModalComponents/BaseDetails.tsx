@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 
+import { WizardState, WizardAction } from "../newProductModal/NewProductWizardContext";
+
 type Category = {
   CategoryID: number;
   Name: string;
@@ -7,11 +9,49 @@ type Category = {
 };
 
 type Props = {
-  state: any;
-  dispatch: React.Dispatch<any>;
+  state: WizardState;
+  dispatch: React.Dispatch<WizardAction>;
   categories: Category[];
   setErrors: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
 };
+
+function validateName(value: string) {
+  if (!value.trim()) return "نام محصول نمی‌تواند خالی باشد.";
+  if (value.length > 1000) return "نام محصول نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
+  return "";
+}
+
+function validateSlug(value: string) {
+  if (!value.trim()) return "شناسه محصول نمی‌تواند خالی باشد.";
+  if (value.length > 1200) return "شناسه محصول نمی‌تواند بیشتر از ۱۲۰۰ کاراکتر باشد.";
+  if (!/^[a-zA-Z0-9_-]+$/.test(value))
+    return "شناسه محصول فقط می‌تواند شامل حروف انگلیسی، اعداد، خط فاصله و زیرخط باشد.";
+  return "";
+}
+
+function validateSmallDesc(value: string) {
+  if (!value.trim()) return "توضیحات کوتاه نمی‌تواند خالی باشد.";
+  if (value.length > 1000) return "توضیحات کوتاه نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
+  return "";
+}
+
+function validateSeoTitle(value: string) {
+  if (!value.trim()) return "تیتر سئو نمی‌تواند خالی باشد.";
+  if (value.length > 60) return "تیتر سئو نمی‌تواند بیشتر از ۶۰ کاراکتر باشد.";
+  return "";
+}
+
+function validateSeoDesc(value: string) {
+  if (!value.trim()) return "توضیحات سئو نمی‌تواند خالی باشد.";
+  if (value.length > 4000) return "توضیحات سئو نمی‌تواند بیشتر از ۴۰۰۰ کاراکتر باشد.";
+  return "";
+}
+
+function validateKeywords(value: string) {
+  if (!value.trim()) return "کلمات کلیدی نمی‌تواند خالی باشد.";
+  if (value.length > 2000) return "کلمات کلیدی نمی‌تواند بیشتر از ۲۰۰۰ کاراکتر باشد.";
+  return "";
+}
 
 const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
   const [localErrors, setLocalErrors] = useState({
@@ -28,38 +68,6 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
   useEffect(() => {
     setErrors((prev) => ({ ...prev, ...localErrors }));
   }, [localErrors, setErrors]);
-
-  const validateName = (value: string) => {
-    if (!value.trim()) return "نام محصول نمی‌تواند خالی باشد.";
-    if (value.length > 1000) return "نام محصول نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
-    return "";
-  };
-
-  const validateSlug = (value: string) => {
-    if (!value.trim()) return "شناسه محصول نمی‌تواند خالی باشد.";
-    if (value.length > 1200) return "شناسه محصول نمی‌تواند بیشتر از ۱۲۰۰ کاراکتر باشد.";
-    if (!/^[a-zA-Z0-9_-]+$/.test(value))
-      return "شناسه محصول فقط می‌تواند شامل حروف انگلیسی، اعداد، خط فاصله و زیرخط باشد.";
-    return "";
-  };
-
-  const validateSmallDesc = (value: string) => {
-    if (!value.trim()) return "توضیحات کوتاه نمی‌تواند خالی باشد.";
-    if (value.length > 1000) return "توضیحات کوتاه نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
-    return "";
-  };
-
-  const validateSeoTitle = (value: string) => {
-    if (!value.trim()) return "تیتر سئو نمی‌تواند خالی باشد.";
-    if (value.length > 60) return "تیتر سئو نمی‌تواند بیشتر از ۶۰ کاراکتر باشد.";
-    return "";
-  };
-
-  const validateSeoDesc = (value: string) => {
-    if (!value.trim()) return "توضیحات سئو نمی‌تواند خالی باشد.";
-    if (value.length > 4000) return "توضیحات سئو نمی‌تواند بیشتر از ۴۰۰۰ کاراکتر باشد.";
-    return "";
-  };
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Allow decimal numbers with up to 2 decimal places
@@ -125,7 +133,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
 
     if (!isNaN(numericValue)) {
       // Additional validation for discount vs price
-      if (numericValue > state.price) {
+      if (numericValue > parseFloat(state.price || "0")) {
         setLocalErrors((prev) => ({
           ...prev,
           discount: "تخفیف نمیتواند بیشتر از قیمت باشد.",
@@ -164,12 +172,6 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
     if (field === "keywords") error = validateKeywords(value); // Added for keywords
 
     setLocalErrors((prev) => ({ ...prev, [field]: error }));
-  };
-
-  const validateKeywords = (value: string) => {
-    if (!value.trim()) return "کلمات کلیدی نمی‌تواند خالی باشد.";
-    if (value.length > 2000) return "کلمات کلیدی نمی‌تواند بیشتر از ۲۰۰۰ کاراکتر باشد.";
-    return "";
   };
 
   return (
@@ -262,7 +264,7 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
           زیر دسته بندی
           <div className="group relative">
             <span className="cursor-pointer text-gray-500 hover:text-blue-500">ℹ️</span>
-            <div className="absolute right-0 top-full z-40 mt-1 hidden w-64 rounded bg-gray-700 p-3 text-justify text-sm text-white shadow-2xl group-hover:block">
+            <div className="absolute top-full right-0 z-40 mt-1 hidden w-64 rounded bg-gray-700 p-3 text-justify text-sm text-white shadow-2xl group-hover:block">
               شما می‌توانید چندین زیر دسته‌بندی را انتخاب کنید. اولین زیر دسته‌بندی که انتخاب می‌شود
               به عنوان زیر دسته‌بندی اصلی محصول نشان داده می‌شود.
             </div>
@@ -492,8 +494,8 @@ const BaseDetails = ({ state, dispatch, categories, setErrors }: Props) => {
             state.keywords.split(" ").map((keyword: string, index: number) => (
               <button
                 type="button"
-                key={index}
-                className="flex animate-fade-in items-center gap-2 rounded-lg bg-green-700 px-4 py-1 transition-all hover:bg-red-700 hover:text-white"
+                key={keyword}
+                className="animate-fade-in flex items-center gap-2 rounded-lg bg-green-700 px-4 py-1 transition-colors hover:bg-red-700 hover:text-white"
                 onClick={() => {
                   const updatedKeywords = state.keywords
                     .split(" ")

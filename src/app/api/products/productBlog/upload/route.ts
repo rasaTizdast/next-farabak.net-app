@@ -1,6 +1,10 @@
 // app/api/products/productBlog/upload/route.ts
 import { S3 } from "aws-sdk";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
+
+import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 
 const s3 = new S3({
   accessKeyId: process.env.LIARA_ACCESS_KEY,
@@ -9,6 +13,12 @@ const s3 = new S3({
 });
 
 export async function POST(request: Request) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File;
@@ -44,6 +54,8 @@ export async function POST(request: Request) {
 
     const url = key;
 
+    revalidateTag(TAGS.products, "max");
+    revalidateTag(TAGS.categories, "max");
     return NextResponse.json({ url });
   } catch (error) {
     console.error("Upload error:", error);

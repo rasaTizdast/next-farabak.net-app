@@ -1,37 +1,19 @@
 import { Spin } from "antd";
 import { RotateCcw } from "lucide-react";
 import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import toast from "react-hot-toast";
 import { DatePicker } from "zaman";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { formatDateToISOString, persianToEnglishDigits } from "@/lib/validators";
 
 import { ExpandedInvoiceItem } from "./types";
 
-// Format a Date object to YYYY-MM-DD string
-const formatDateToISOString = (date: Date | null): string | null => {
-  if (!date) return null;
-  // Use a fixed timezone (Tehran) for consistency
-  const tehranDate = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Tehran" }));
-  return tehranDate.toISOString().split("T")[0];
-};
-
-// Parse Persian digits to English digits
-const persianToEnglishDigits = (str: string): string => {
-  let result = "";
-  for (let i = 0; i < str.length; i++) {
-    const charCode = str.charCodeAt(i);
-    if (charCode >= 1776 && charCode <= 1785) {
-      // Persian digits range
-      result += String.fromCharCode(charCode - 1728); // Convert to English digits
-    } else {
-      result += str.charAt(i);
-    }
-  }
-  return result;
-};
+const persianYearFormatter = new Intl.DateTimeFormat("fa-IR", { year: "numeric" });
+const persianMonthFormatter = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" });
+const persianDateFormatter = new Intl.DateTimeFormat("fa-IR");
 
 // Branch type definition
 interface Branch {
@@ -47,6 +29,9 @@ type BranchWarrantyManagementModalProps = {
   onClose: () => void;
   onSuccess: () => void;
 };
+
+type GenerateWarrantyRequest = { branchCode: string; yearMonth: string };
+type GenerateWarrantyResponse = { warrantyCode: string };
 
 async function generateWarrantyCodeForBranch(
   currentBranch: Branch | null,
@@ -68,7 +53,10 @@ async function generateWarrantyCodeForBranch(
       hasWarranty: boolean;
     }>
   >,
-  generateWarrantyMutate: any,
+  generateWarrantyMutate: (
+    url: string,
+    data?: GenerateWarrantyRequest
+  ) => Promise<GenerateWarrantyResponse | null>,
   branchId?: number
 ): Promise<string | null> {
   if (!branchId && !warrantyData.branchId) return null;
@@ -84,21 +72,20 @@ async function generateWarrantyCodeForBranch(
       return null;
     }
 
-    const branchCode =
-      selectedBranch.location || selectedBranch.name.substring(0, 2).toUpperCase();
+    const branchCode = selectedBranch.location || selectedBranch.name.substring(0, 2).toUpperCase();
 
     const date = new Date();
-    const persianYear = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(date);
+    const persianYear = persianYearFormatter.format(date);
     const yearStr = persianToEnglishDigits(persianYear);
     const yearNum = yearStr.slice(-3);
-    const persianMonth = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" }).format(date);
+    const persianMonth = persianMonthFormatter.format(date);
     const monthNum = persianToEnglishDigits(persianMonth);
     const yearMonth = yearNum + monthNum.padStart(2, "0");
 
-    const data = await generateWarrantyMutate(
-      "/api/admin/warranty/generate",
-      { branchCode, yearMonth }
-    );
+    const data = await generateWarrantyMutate("/api/admin/warranty/generate", {
+      branchCode,
+      yearMonth,
+    });
 
     if (data && data.warrantyCode) {
       setWarrantyData((prev) => ({
@@ -114,28 +101,9 @@ async function generateWarrantyCodeForBranch(
   } catch (error) {
     console.error("Error generating warranty code:", error);
 
-    if (currentBranch) {
-      const branchCode =
-        currentBranch.location || currentBranch.name.substring(0, 2).toUpperCase() || "FA";
-
-      const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const date = new Date();
-      const persianYear = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(date);
-      const persianMonth = new Intl.DateTimeFormat("fa-IR", { month: "2-digit" }).format(date);
-      const yearStr = persianToEnglishDigits(persianYear);
-      const monthStr = persianToEnglishDigits(persianMonth);
-      const yearNum = yearStr.slice(-3);
-      const yearMonth = yearNum + monthStr.padStart(2, "0");
-
-      const fallbackCode = `${branchCode}-${yearMonth}-${randomCode}`;
-
-      setWarrantyData((prev) => ({
-        ...prev,
-        warrantycode: fallbackCode,
-        hasWarranty: true,
-      }));
-      return fallbackCode;
-    }
+    // Never fabricate a warranty code locally: uniqueness/registration is
+    // guaranteed only by the server. Surface a blocking error instead.
+    toast.error("خطا در تولید کد گارانتی از سمت سرور. لطفاً دوباره تلاش کنید.");
     return null;
   }
 }
@@ -146,21 +114,26 @@ const BranchWarrantyManagementModal = ({
   onClose,
   onSuccess,
 }: BranchWarrantyManagementModalProps) => {
-  const { data: currentBranchData, error: branchError } = useApiFetch<Branch>(
-    "/api/admin/branches/current"
-  );
-  const { data: productCheckData, error: productCheckError } = useApiFetch<{ hasProduct: boolean }>(
+  const { data: currentBranchData } = useApiFetch<Branch>("/api/admin/branches/current");
+  const { data: productCheckData, loading: productCheckLoading } = useApiFetch<{
+    hasProduct: boolean;
+  }>(
     currentBranchData?.branchid
       ? `/api/admin/branches/check-product?branchId=${currentBranchData.branchid}&productId=${item.ProductId}&invoiceId=${invoiceId}`
       : null
   );
-  const { mutate: generateWarrantyMutate, loading: generatingCode } = useApiMutation<{ warrantyCode: string }>("post");
+  type GenerateWarrantyRequest = { branchCode: string; yearMonth: string };
+  type GenerateWarrantyResponse = { warrantyCode: string };
+
+  const { mutate: generateWarrantyMutate, loading: generatingCode } = useApiMutation<
+    GenerateWarrantyRequest,
+    GenerateWarrantyResponse
+  >("post");
   const { mutate: createWarrantyMutate, loading: submittingCreate } = useApiMutation("post");
 
-  const [loading, setLoading] = useState(true);
-  const [currentBranch, setCurrentBranch] = useState<Branch | null>(null);
-  const [branchHasProduct, setBranchHasProduct] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [nowTimestamp] = useState(() => Date.now());
+  const currentBranch = currentBranchData ?? null;
+  const branchHasProduct = productCheckData?.hasProduct ?? false;
   const [warrantyData, setWarrantyData] = useState<{
     warrantycode: string;
     startdate: string;
@@ -168,35 +141,115 @@ const BranchWarrantyManagementModal = ({
     status: string;
     branchId: number | null;
     hasWarranty: boolean;
-  }>({
-    warrantycode: "",
-    startdate: new Date().toISOString().split("T")[0],
-    expirydate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-    status: "Active",
-    branchId: null,
-    hasWarranty: false,
+  }>(() => {
+    const today = new Date().toISOString().split("T")[0];
+    const expiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    return {
+      warrantycode: "",
+      startdate: today,
+      expirydate: expiry,
+      status: "Active",
+      branchId: null,
+      hasWarranty: false,
+    };
   });
-  const [durationText, setDurationText] = useState<string | null>(null);
 
   // Use the print hook with ref for the warranty card area
   const componentRef = useRef<HTMLDivElement>(null);
+  const branchSyncedRef = useRef(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
-    if (currentBranchData) {
-      setCurrentBranch(currentBranchData);
+    panelRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  // Sync branchId from currentBranchData (one-time)
+  useEffect(() => {
+    if (currentBranchData && !branchSyncedRef.current) {
+      branchSyncedRef.current = true;
+
       setWarrantyData((prev) => ({ ...prev, branchId: currentBranchData.branchid }));
     }
   }, [currentBranchData]);
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => {
-    if (productCheckData !== null && productCheckData !== undefined) {
-      setBranchHasProduct(productCheckData.hasProduct);
-    }
-  }, [productCheckData]);
+  const generateWarrantyCode = useCallback(
+    async (branchId?: number): Promise<string | null> => {
+      return generateWarrantyCodeForBranch(
+        currentBranch,
+        warrantyData,
+        setWarrantyData,
+        generateWarrantyMutate,
+        branchId
+      );
+    },
+    [currentBranch, warrantyData, generateWarrantyMutate]
+  );
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
+  // Compute duration from dates
+  const durationText = useMemo(() => {
+    if (!warrantyData.startdate || !warrantyData.expirydate) return null;
+    try {
+      const start = new Date(warrantyData.startdate);
+      const end = new Date(warrantyData.expirydate);
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) return "خطا در محاسبه تاریخ";
+      if (start >= end) return "تاریخ پایان باید بعد از تاریخ شروع باشد";
+
+      const startYear = start.getFullYear();
+      const startMonth = start.getMonth();
+      const startDay = start.getDate();
+      const endYear = end.getFullYear();
+      const endMonth = end.getMonth();
+      const endDay = end.getDate();
+
+      let years = endYear - startYear;
+      let months = endMonth - startMonth;
+      let days = endDay - startDay;
+
+      if (days < 0) {
+        const lastDayOfLastMonth = new Date(endYear, endMonth, 0).getDate();
+        days += lastDayOfLastMonth;
+        months--;
+      }
+      if (months < 0) {
+        months += 12;
+        years--;
+      }
+
+      let durationStr = "";
+      if (years > 0) durationStr += `${years} سال `;
+      if (months > 0) durationStr += `${months} ماه `;
+      if (days > 0 || (years === 0 && months === 0)) durationStr += `${days} روز`;
+      return durationStr.trim();
+    } catch {
+      return "خطا در محاسبه مدت";
+    }
+  }, [warrantyData.startdate, warrantyData.expirydate]);
+
+  // Update status based on expiry date
+  const statusRef = useRef(warrantyData.status);
+  useEffect(() => {
+    if (warrantyData.expirydate) {
+      const cd = new Date();
+      const ed = new Date(warrantyData.expirydate);
+      const expectedStatus = ed < cd ? "Expired" : "Active";
+      if (warrantyData.status !== expectedStatus && statusRef.current !== expectedStatus) {
+        statusRef.current = expectedStatus;
+
+        setWarrantyData((p) => ({ ...p, status: expectedStatus }));
+      }
+    }
+  }, [warrantyData.expirydate, warrantyData.status]);
+
+  // Generate warranty code when dependencies become ready
   useEffect(() => {
     if (
       branchHasProduct &&
@@ -205,102 +258,13 @@ const BranchWarrantyManagementModal = ({
     ) {
       generateWarrantyCode(currentBranch.branchid);
     }
-  }, [branchHasProduct, currentBranch, warrantyData.warrantycode]);
+  }, [branchHasProduct, currentBranch, warrantyData.warrantycode, generateWarrantyCode]);
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => {
-    if (
-      (currentBranchData || branchError) &&
-      (productCheckData !== undefined || productCheckError)
-    ) {
-      setLoading(false);
-      setIsInitialized(true);
-    }
-  }, [currentBranchData, branchError, productCheckData, productCheckError]);
+  interface DatePickerValue {
+    value?: Date | number | string;
+  }
 
-  const generateWarrantyCode = async (branchId?: number): Promise<string | null> => {
-    return generateWarrantyCodeForBranch(currentBranch, warrantyData, setWarrantyData, generateWarrantyMutate, branchId);
-  };
-
-  // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => {
-    calculateDuration(new Date(warrantyData.startdate), new Date(warrantyData.expirydate));
-    const cd = new Date();
-    const ed = new Date(warrantyData.expirydate);
-    if (ed < cd) {
-      setWarrantyData((p) => ({ ...p, status: "Expired" }));
-    } else if (warrantyData.status === "Expired") {
-      setWarrantyData((p) => ({ ...p, status: "Active" }));
-    }
-  }, [warrantyData.startdate, warrantyData.expirydate]);
-
-  const calculateDuration = (startDate: Date | string | null, endDate: Date | string | null) => {
-    if (!startDate || !endDate) {
-      setDurationText(null);
-      return;
-    }
-
-    try {
-      const start = startDate instanceof Date ? startDate : new Date(startDate);
-      const end = endDate instanceof Date ? endDate : new Date(endDate);
-
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        setDurationText("خطا در محاسبه تاریخ");
-        return;
-      }
-
-      if (start >= end) {
-        setDurationText("تاریخ پایان باید بعد از تاریخ شروع باشد");
-        return;
-      }
-
-      // Use precise date math for duration calculation
-      const startYear = start.getFullYear();
-      const startMonth = start.getMonth();
-      const startDay = start.getDate();
-
-      const endYear = end.getFullYear();
-      const endMonth = end.getMonth();
-      const endDay = end.getDate();
-
-      // Calculate exact years, months, days
-      let years = endYear - startYear;
-      let months = endMonth - startMonth;
-      let days = endDay - startDay;
-
-      // Adjust for negative months or days
-      if (days < 0) {
-        // Get last month's total days to calculate how many days to borrow
-        const lastDayOfLastMonth = new Date(endYear, endMonth, 0).getDate();
-        days += lastDayOfLastMonth;
-        months--;
-      }
-
-      if (months < 0) {
-        months += 12;
-        years--;
-      }
-
-      // Format the duration string
-      let durationStr = "";
-      if (years > 0) {
-        durationStr += `${years} سال `;
-      }
-      if (months > 0) {
-        durationStr += `${months} ماه `;
-      }
-      if (days > 0 || (years === 0 && months === 0)) {
-        durationStr += `${days} روز`;
-      }
-
-      setDurationText(durationStr.trim());
-    } catch (error) {
-      console.error("Error calculating duration:", error);
-      setDurationText("خطا در محاسبه مدت");
-    }
-  };
-
-  const handleStartDateChange = (date: any) => {
+  const handleStartDateChange = (date: DatePickerValue) => {
     // Convert the date object provided by zaman DatePicker
     const formattedDate = date && date.value ? formatDateToISOString(new Date(date.value)) : null;
     setWarrantyData({
@@ -309,7 +273,7 @@ const BranchWarrantyManagementModal = ({
     });
   };
 
-  const handleEndDateChange = (date: any) => {
+  const handleEndDateChange = (date: DatePickerValue) => {
     // Convert the date object provided by zaman DatePicker
     const formattedDate = date && date.value ? formatDateToISOString(new Date(date.value)) : null;
     setWarrantyData({
@@ -353,7 +317,7 @@ const BranchWarrantyManagementModal = ({
   const isSubmitDisabled = () => {
     const disabled =
       submittingCreate ||
-      loading ||
+      productCheckLoading ||
       !warrantyData.warrantycode ||
       !branchHasProduct ||
       durationText?.includes("باید") ||
@@ -362,19 +326,24 @@ const BranchWarrantyManagementModal = ({
     return disabled;
   };
 
-  // If still loading or not initialized, show loading state
-  if (loading || !isInitialized || !currentBranch) {
+  // If the current branch has not loaded yet, show loading state
+  if (!currentBranch) {
     return (
       <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
         onClick={(e) => e.stopPropagation()}
       >
         <div
-          className="flex w-full max-w-md flex-col items-center justify-center rounded-lg bg-slate-900 p-8"
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="در حال بارگذاری فرم گارانتی"
+          tabIndex={-1}
+          className="flex w-full max-w-md flex-col items-center justify-center rounded-lg bg-slate-900 p-8 focus:outline-none"
           onClick={(e) => e.stopPropagation()}
         >
           <Spin size="large" />
-          <span className="mr-2 mt-4 text-white">در حال بارگذاری فرم گارانتی...</span>
+          <span className="mt-4 mr-2 text-white">در حال بارگذاری فرم گارانتی...</span>
         </div>
       </div>
     );
@@ -385,9 +354,22 @@ const BranchWarrantyManagementModal = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="w-full max-w-md rounded-lg bg-slate-900" onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="branch-warranty-management-title"
+        tabIndex={-1}
+        className="w-full max-w-md rounded-lg bg-slate-900 focus:outline-none"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="border-b border-slate-700 p-6">
-          <h2 className="text-center text-xl font-bold text-white">افزودن گارانتی جدید</h2>
+          <h2
+            id="branch-warranty-management-title"
+            className="text-center text-xl font-bold text-white"
+          >
+            افزودن گارانتی جدید
+          </h2>
         </div>
 
         {/* Main form view with ref for printing */}
@@ -396,7 +378,7 @@ const BranchWarrantyManagementModal = ({
             <div className="space-y-2 text-right">
               <label
                 htmlFor="productName"
-                className="no-print block text-sm font-medium text-gray-300"
+                className="block text-sm font-medium text-gray-300 print:hidden"
               >
                 محصول
               </label>
@@ -404,21 +386,28 @@ const BranchWarrantyManagementModal = ({
                 type="text"
                 id="productName"
                 readOnly
-                className="no-print w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70"
+                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70 print:hidden"
                 value={item.Name || `محصول #${item.ProductId}`}
                 disabled
               />
-              <div className="print-only">
+              <div className="hidden print:block">
                 <span className="font-semibold">محصول:</span>{" "}
                 {item.Name || `محصول #${item.ProductId}`}
               </div>
             </div>
 
-            <div className="no-print space-y-2 text-right">
-              <label className="block text-sm font-medium text-gray-300">شعبه مسئول گارانتی</label>
+            <div className="space-y-2 text-right print:hidden">
+              <label
+                htmlFor="warranty-branch-name"
+                className="block text-sm font-medium text-gray-300"
+              >
+                شعبه مسئول گارانتی
+              </label>
               <input
+                id="warranty-branch-name"
                 type="text"
                 readOnly
+                aria-label="شعبه مسئول گارانتی"
                 className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:opacity-70"
                 value={currentBranch?.name || ""}
                 disabled
@@ -440,16 +429,16 @@ const BranchWarrantyManagementModal = ({
             <div className="mt-4 space-y-2 text-right">
               <label
                 htmlFor="warrantycode"
-                className="no-print block text-sm font-medium text-gray-300"
+                className="block text-sm font-medium text-gray-300 print:hidden"
               >
                 کد گارانتی
               </label>
               {!branchHasProduct ? (
-                <p className="no-print mb-1 text-sm text-amber-400">
+                <p className="mb-1 text-sm text-amber-400 print:hidden">
                   شعبه شما این محصول را در موجودی ندارد
                 </p>
               ) : generatingCode ? (
-                <div className="no-print flex justify-center p-2">
+                <div className="flex justify-center p-2 print:hidden">
                   <Spin size="small" />
                 </div>
               ) : (
@@ -458,7 +447,7 @@ const BranchWarrantyManagementModal = ({
                     type="text"
                     id="warrantycode"
                     name="warrantycode"
-                    className="no-print w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:bg-slate-700"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-right text-white disabled:bg-slate-700 print:hidden"
                     value={warrantyData.warrantycode}
                     disabled
                     readOnly
@@ -467,22 +456,23 @@ const BranchWarrantyManagementModal = ({
                   <button
                     type="button"
                     onClick={() => generateWarrantyCode()}
-                    className="no-print rounded-lg bg-blue-700 px-2 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+                    aria-label="تولید مجدد کد گارانتی"
+                    className="rounded-lg bg-blue-700 px-2 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-600 print:hidden"
                     disabled={generatingCode || !branchHasProduct}
                   >
                     {generatingCode ? <Spin size="small" /> : <RotateCcw size={20} />}
                   </button>
                 </div>
               )}
-              <div className="print-only">
+              <div className="hidden print:block">
                 <span className="font-semibold">کد گارانتی:</span> {warrantyData.warrantycode}
               </div>
-              <div className="print-only">
+              <div className="hidden print:block">
                 <span className="font-semibold">شعبه مسئول:</span> {currentBranch?.name}
               </div>
             </div>
 
-            <div className="no-print mt-4 grid grid-cols-2 gap-4">
+            <div className="mt-4 grid grid-cols-2 gap-4 print:hidden">
               <div className="space-y-2 text-right">
                 <label htmlFor="startdate" className="block text-sm font-medium text-gray-300">
                   تاریخ شروع
@@ -493,7 +483,7 @@ const BranchWarrantyManagementModal = ({
                   round="x2"
                   accentColor="#226bff"
                   inputClass="w-full p-2 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-white text-right"
-                  className="z-[1000]"
+                  className="z-1000"
                   direction="rtl"
                   onChange={handleStartDateChange}
                 />
@@ -509,24 +499,24 @@ const BranchWarrantyManagementModal = ({
                   round="x2"
                   accentColor="#226bff"
                   inputClass="w-full p-2 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-white text-right"
-                  className="z-[1000]"
+                  className="z-1000"
                   direction="rtl"
                   onChange={handleEndDateChange}
                 />
               </div>
             </div>
 
-            <div className="print-only">
+            <div className="hidden print:block">
               <div className="flex items-center justify-between border-b border-gray-200 py-1">
                 <span className="font-semibold">تاریخ شروع:</span>
                 <span dir="ltr">
-                  {new Date(warrantyData.startdate).toLocaleDateString("fa-IR")}
+                  {persianDateFormatter.format(new Date(warrantyData.startdate))}
                 </span>
               </div>
               <div className="flex items-center justify-between border-b border-gray-200 py-1">
                 <span className="font-semibold">تاریخ انقضا:</span>
                 <span dir="ltr">
-                  {new Date(warrantyData.expirydate).toLocaleDateString("fa-IR")}
+                  {persianDateFormatter.format(new Date(warrantyData.expirydate))}
                 </span>
               </div>
               <div className="flex items-center justify-between py-1">
@@ -537,14 +527,14 @@ const BranchWarrantyManagementModal = ({
 
             {durationText && (
               <>
-                <div className="no-print mt-4 text-center">
+                <div className="mt-4 text-center print:hidden">
                   <span className="text-xs text-gray-300">وضعیت گارانتی: </span>
-                  {new Date(warrantyData.expirydate) < new Date() ? (
+                  {nowTimestamp && new Date(warrantyData.expirydate).getTime() < nowTimestamp ? (
                     <span className="text-xs text-red-400">منقضی شده</span>
                   ) : (
                     <span className="text-xs text-green-400">فعال</span>
                   )}
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-400">
                     {" "}
                     (تعیین اتوماتیک براساس تاریخ انقضا)
                   </span>
@@ -561,7 +551,7 @@ const BranchWarrantyManagementModal = ({
               </>
             )}
 
-            <div className="print-only mt-4 text-center">
+            <div className="mt-4 hidden text-center print:block">
               <Image
                 src="/Farabak_Logo.webp"
                 alt="Farabak Logo"
@@ -573,7 +563,7 @@ const BranchWarrantyManagementModal = ({
             </div>
           </form>
 
-          <div className="no-print flex justify-between gap-4 p-6">
+          <div className="flex justify-between gap-4 p-6 print:hidden">
             <div className="ml-auto flex gap-2">
               <button
                 type="button"
@@ -594,148 +584,6 @@ const BranchWarrantyManagementModal = ({
           </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        /* Print-only classes */
-        @media screen {
-          .print-only {
-            display: none !important;
-          }
-        }
-
-        @media print {
-          .print-only {
-            display: block !important;
-          }
-
-          .no-print {
-            display: none !important;
-          }
-
-          body,
-          .bg-slate-900 {
-            background-color: white !important;
-            color: black !important;
-          }
-
-          .border-slate-700,
-          .border-gray-700 {
-            border-color: #eee !important;
-          }
-
-          h1,
-          h2,
-          h3,
-          h4,
-          h5,
-          h6 {
-            color: black !important;
-          }
-
-          .text-red-600 {
-            color: #dc2626 !important;
-          }
-
-          .text-green-600 {
-            color: #16a34a !important;
-          }
-        }
-
-        /* Fix RTL issues for the select component */
-        .warranty-select .ant-select-selector {
-          background-color: #1e293b !important;
-          border-color: #334155 !important;
-          color: white !important;
-          height: 40px !important;
-          border-radius: 0.5rem !important;
-          display: flex;
-          align-items: center;
-          transition: all 0.3s ease;
-          text-align: right !important;
-          direction: rtl !important;
-        }
-
-        .warranty-select:hover .ant-select-selector {
-          border-color: #4b5563 !important;
-          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-        }
-
-        .warranty-select.ant-select-focused .ant-select-selector {
-          border-color: #3b82f6 !important;
-          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
-        }
-
-        .warranty-select .ant-select-selection-placeholder {
-          color: #94a3b8 !important;
-          text-align: right !important;
-          direction: rtl !important;
-          right: 12px !important;
-          left: auto !important;
-        }
-
-        .warranty-select .ant-select-selection-item {
-          color: white !important;
-          text-align: right !important;
-          padding-right: 12px !important;
-          direction: rtl !important;
-        }
-
-        .warranty-select .ant-select-arrow {
-          color: #94a3b8 !important;
-          right: auto !important;
-          left: 11px !important;
-        }
-
-        .warranty-select .ant-select-clear {
-          background-color: #1e293b !important;
-          color: #94a3b8 !important;
-          right: auto !important;
-          left: 11px !important;
-        }
-
-        .warranty-select-dropdown {
-          background-color: #1e293b !important;
-          border: 1px solid #334155 !important;
-          border-radius: 0.5rem !important;
-          direction: rtl !important;
-          text-align: right !important;
-        }
-
-        .warranty-select-dropdown .ant-select-item {
-          color: white !important;
-          text-align: right !important;
-          direction: rtl !important;
-          padding-right: 12px !important;
-        }
-
-        .warranty-select-dropdown
-          .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
-          background-color: #2d3748 !important;
-        }
-
-        .warranty-select-dropdown
-          .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
-          background-color: #3b82f6 !important;
-        }
-
-        /* Fix RTL for Zaman DatePicker component */
-        .zaman-input {
-          text-align: right !important;
-          direction: rtl !important;
-        }
-
-        @media print {
-          @page {
-            size: 3.5in 2in !important;
-            margin: 0 !important;
-          }
-
-          body {
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-        }
-      `}</style>
     </div>
   );
 };

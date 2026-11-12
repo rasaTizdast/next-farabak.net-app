@@ -1,12 +1,30 @@
+"use client";
+
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect } from "react";
 
 import PrintButton from "@/app/components/ui/PrintButton";
 import { usePrint } from "@/app/utils/usePrint";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 import { ExpandedInvoiceItem } from "./types";
 import WarrantyManagementModal from "./WarrantyManagementModal";
 import { AdminInvoice } from "../../type";
+
+const currencyFormatter = new Intl.NumberFormat("fa-IR");
+const dateFormatter = new Intl.DateTimeFormat("fa-IR", { timeZone: "Asia/Tehran" });
+
+function formatDateTime(isoString: string) {
+  const date = new Date(isoString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+
+  return `${year}/${month}/${day} | ${hours}:${minutes}:${seconds}`;
+}
 
 type Props = {
   invoice: AdminInvoice | null;
@@ -18,37 +36,15 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
   const [productNames, setProductNames] = useState<{ [key: string]: string }>({});
   const [selectedItem, setSelectedItem] = useState<ExpandedInvoiceItem | null>(null);
   const [refreshCounter, setRefreshCounter] = useState(0);
+  const [nowTimestamp] = useState(() => Date.now());
+  const panelRef = useModalA11y<HTMLDivElement>({ onClose, isOpen: !selectedItem });
 
-  // Use the print hook
   const { componentRef, handlePrint } = usePrint();
 
-  if (!invoice) return null;
-
-  // Helper function to format the date and time
-  const formatDateTime = (isoString: string) => {
-    const date = new Date(isoString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    const seconds = String(date.getSeconds()).padStart(2, "0");
-
-    return `${year}/${month}/${day} | ${hours}:${minutes}:${seconds}`;
-  };
-
-  // Refresh invoice data after warranty updates
-  const handleWarrantyUpdated = () => {
-    setRefreshCounter((prev) => prev + 1);
-    // Call parent's update function if provided
-    if (onWarrantyUpdate) {
-      onWarrantyUpdate();
-    }
-  };
-
-  // Fetch product names
+  // Fetch product names when invoice or refreshCounter changes
   useEffect(() => {
     const fetchProductNames = async () => {
+      setProductNames({});
       if (!invoice?.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) {
         return;
       }
@@ -78,10 +74,10 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
     };
 
     fetchProductNames();
-  }, [invoice, refreshCounter]);
+  }, [invoice, refreshCounter, setProductNames]);
 
-  const expandedItems = useMemo(() => {
-    if (!invoice.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) return [];
+  const expandedItems = (() => {
+    if (!invoice?.Invoice_Details || !Array.isArray(invoice.Invoice_Details)) return [];
 
     const items: ExpandedInvoiceItem[] = [];
     invoice.Invoice_Details.forEach((product) => {
@@ -128,7 +124,16 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
       }
     });
     return items;
-  }, [invoice.Invoice_Details, productNames, refreshCounter]);
+  })();
+
+  if (!invoice) return null;
+
+  const handleWarrantyUpdated = () => {
+    setRefreshCounter((prev) => prev + 1);
+    if (onWarrantyUpdate) {
+      onWarrantyUpdate();
+    }
+  };
 
   // Function to handle opening the warranty modal
   const handleManageWarranty = (item: ExpandedInvoiceItem) => {
@@ -159,11 +164,16 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
     }, 1000);
   };
 
-  if (!invoice) return null;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 backdrop-blur-sm sm:p-4">
-      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-slate-900">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="admin-invoice-details-title"
+        tabIndex={-1}
+        className="max-h-[calc(100dvh-1rem)] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-xl border border-slate-600 bg-slate-900 shadow-2xl focus:outline-none sm:max-h-[calc(100dvh-2rem)]"
+      >
         <div ref={componentRef} className="p-3 sm:p-6">
           <div className="text-gray-100">
             {/* Header */}
@@ -173,9 +183,12 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                 alt="Farabak Logo"
                 width={130}
                 height={130}
-                className="logo print-only mx-auto mb-5 mt-4 flex items-center justify-center"
+                className="logo print-only mx-auto mt-4 mb-5 hidden print:inline-block"
               />
-              <h2 className="text-center text-xl font-bold sm:text-2xl">
+              <h2
+                id="admin-invoice-details-title"
+                className="text-center text-xl font-bold sm:text-2xl"
+              >
                 جزئیات فاکتور
                 <br />
                 {invoice.FactorGuid}
@@ -214,7 +227,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
               {/* Products Table */}
               <div className="overflow-x-auto rounded-lg bg-slate-800">
                 <div className="invoice-table-container max-h-[500px] overflow-auto">
-                  <table className="w-full whitespace-nowrap text-xs sm:text-sm">
+                  <table className="w-full text-xs whitespace-nowrap sm:text-sm">
                     <thead className="sticky top-0 z-10 bg-slate-700">
                       <tr>
                         <th className="p-2 text-right font-medium text-gray-300 sm:p-4">
@@ -231,7 +244,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                     </thead>
                     <tbody className="divide-y divide-slate-700">
                       {expandedItems.length > 0 ? (
-                        expandedItems.map((item, index) => {
+                        expandedItems.map((item) => {
                           // Find all items with the same product ID
                           const sameProductItems = expandedItems.filter(
                             (i) => i.ProductId === item.ProductId
@@ -250,26 +263,25 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                               : "";
 
                           // Determine row class based on position in group
-                          let rowClass = "hover:bg-slate-750";
+                          let rowClass = "odd:bg-slate-800 even:bg-slate-900";
                           if (sameProductItems.length > 1) {
                             if (currentIndex === 0) {
-                              rowClass += " first-group-item";
+                              rowClass +=
+                                " [&>td]:!border-b-0 [&>td]:!pb-2 [&>td:first-child]:!rounded-tl-[3px]";
                             } else if (currentIndex === sameProductItems.length - 1) {
-                              rowClass += " last-group-item";
+                              rowClass +=
+                                " [&>td]:!border-t-0 [&>td]:!pt-2 [&>td:first-child]:!rounded-bl-[3px]";
                             } else {
-                              rowClass += " middle-group-item";
+                              rowClass += " [&>td]:!border-y-0 [&>td]:!py-2";
                             }
                           }
 
                           // Add product-specific color class
                           const colorIndex = getProductColorIndex(item.ProductId);
-                          rowClass += ` product-color-${getColorNameByIndex(colorIndex)}`;
+                          rowClass += ` [&>td:first-child]:!border-l-[3px] ${colorBorderByIndex[getColorNameByIndex(colorIndex)]}`;
 
                           return (
-                            <tr
-                              key={`${item.ProductId}-${item.itemNumber || index}`}
-                              className={rowClass}
-                            >
+                            <tr key={`${item.ProductId}-${item.itemNumber}`} className={rowClass}>
                               <td className="p-2 sm:p-4">
                                 {isFirstOccurrence ? (
                                   <div className="flex items-start gap-2">
@@ -288,7 +300,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                                   </div>
                                 ) : null}
                               </td>
-                              <td className="p-2 sm:p-4">{item.price.toLocaleString("fa")}</td>
+                              <td className="p-2 sm:p-4">{currencyFormatter.format(item.price)}</td>
                               <td className="p-2 sm:p-4">
                                 {item.individualWarranty ? (
                                   <div className="flex flex-col gap-1">
@@ -310,21 +322,22 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                                         item.individualWarranty.expirydate && (
                                           <div className="text-gray-500">
                                             اعتبار:{" "}
-                                            {new Date(
-                                              item.individualWarranty.startdate
-                                            ).toLocaleDateString("fa-IR")}{" "}
+                                            {dateFormatter.format(
+                                              new Date(item.individualWarranty.startdate)
+                                            )}{" "}
                                             تا{" "}
                                             <span
                                               className={
-                                                new Date(item.individualWarranty.expirydate) <
-                                                new Date()
+                                                new Date(
+                                                  item.individualWarranty.expirydate
+                                                ).getTime() < nowTimestamp
                                                   ? "text-red-400"
                                                   : "text-gray-400"
                                               }
                                             >
-                                              {new Date(
-                                                item.individualWarranty.expirydate
-                                              ).toLocaleDateString("fa-IR")}
+                                              {dateFormatter.format(
+                                                new Date(item.individualWarranty.expirydate)
+                                              )}
                                             </span>
                                           </div>
                                         )}
@@ -347,7 +360,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                           );
                         })
                       ) : (
-                        <tr>
+                        <tr className="odd:bg-slate-800 even:bg-slate-900">
                           <td colSpan={4} className="p-2 text-center sm:p-4">
                             هیچ محصولی در این فاکتور وجود ندارد
                           </td>
@@ -364,11 +377,15 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
                 <span className="flex items-center gap-1 text-green-400">
                   <span>
                     {invoice.Invoice_Details && Array.isArray(invoice.Invoice_Details)
-                      ? invoice.Invoice_Details.reduce(
-                          (sum, product) => sum + product.total_price,
-                          0
-                        ).toLocaleString("fa")
-                      : invoice.TotalAmount?.toLocaleString("fa") || "0"}
+                      ? currencyFormatter.format(
+                          invoice.Invoice_Details.reduce(
+                            (sum, product) => sum + product.total_price,
+                            0
+                          )
+                        )
+                      : invoice.TotalAmount
+                        ? currencyFormatter.format(invoice.TotalAmount)
+                        : "0"}
                   </span>
                   <span>تومان</span>
                 </span>
@@ -383,7 +400,7 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
           <button
             type="button"
             onClick={onClose}
-            className="w-full rounded-lg bg-slate-700 px-4 py-2 text-sm text-gray-100 transition-colors duration-200 hover:bg-slate-600 sm:w-auto sm:px-6 sm:text-base"
+            className="min-h-11 w-full rounded-lg bg-slate-700 px-4 py-2 text-sm text-gray-100 transition-colors duration-200 hover:bg-slate-600 sm:w-auto sm:px-6 sm:text-base"
           >
             بستن
           </button>
@@ -399,179 +416,30 @@ const AdminInvoiceDetailsModal = ({ invoice, onClose, onWarrantyUpdate }: Props)
           onSuccess={handleWarrantyUpdated}
         />
       )}
-
-      {/* Add styles for product grouping */}
-      <style jsx>{`
-        /* Clean group styling */
-        .first-group-item td {
-          border-bottom-width: 0 !important;
-          padding-bottom: 8px !important;
-        }
-
-        .middle-group-item td {
-          border-top-width: 0 !important;
-          border-bottom-width: 0 !important;
-          padding-top: 8px !important;
-          padding-bottom: 8px !important;
-        }
-
-        .last-group-item td {
-          border-top-width: 0 !important;
-          padding-top: 8px !important;
-        }
-
-        /* Group row backgrounds */
-        tr:nth-child(odd) {
-          background-color: #1e293b !important;
-        }
-
-        tr:nth-child(even) {
-          background-color: #0f172a !important;
-        }
-
-        /* Product color indicators */
-        .product-color-blue td:first-child {
-          border-left: 3px solid #3b82f6 !important;
-        }
-
-        .product-color-green td:first-child {
-          border-left: 3px solid #10b981 !important;
-        }
-
-        .product-color-purple td:first-child {
-          border-left: 3px solid #8b5cf6 !important;
-        }
-
-        .product-color-orange td:first-child {
-          border-left: 3px solid #f59e0b !important;
-        }
-
-        .product-color-pink td:first-child {
-          border-left: 3px solid #ec4899 !important;
-        }
-
-        .product-color-cyan td:first-child {
-          border-left: 3px solid #06b6d4 !important;
-        }
-
-        .product-color-red td:first-child {
-          border-left: 3px solid #ef4444 !important;
-        }
-
-        .product-color-lime td:first-child {
-          border-left: 3px solid #84cc16 !important;
-        }
-
-        /* Badge colors for quantity */
-        .bg-color-blue {
-          background-color: #3b82f6 !important;
-        }
-
-        .bg-color-green {
-          background-color: #10b981 !important;
-        }
-
-        .bg-color-purple {
-          background-color: #8b5cf6 !important;
-        }
-
-        .bg-color-orange {
-          background-color: #f59e0b !important;
-        }
-
-        .bg-color-pink {
-          background-color: #ec4899 !important;
-        }
-
-        .bg-color-cyan {
-          background-color: #06b6d4 !important;
-        }
-
-        .bg-color-red {
-          background-color: #ef4444 !important;
-        }
-
-        .bg-color-lime {
-          background-color: #84cc16 !important;
-        }
-
-        /* Round corners for first and last items */
-        .first-group-item td:first-child {
-          border-top-left-radius: 3px;
-        }
-
-        .last-group-item td:first-child {
-          border-bottom-left-radius: 3px;
-        }
-
-        /* Ensure header stays on top */
-        thead {
-          position: sticky;
-          top: 0;
-          z-index: 10;
-        }
-
-        /* Print-specific styles */
-        @media print {
-          .no-print {
-            display: none !important;
-          }
-
-          .print-only {
-            display: inline-block !important;
-          }
-
-          body {
-            background-color: white;
-            color: black;
-          }
-
-          .bg-slate-900,
-          .bg-slate-800,
-          .bg-slate-700 {
-            background-color: white !important;
-            color: black !important;
-          }
-
-          .text-gray-100,
-          .text-gray-300,
-          .text-gray-400 {
-            color: #333 !important;
-          }
-
-          /* Invoice table specific styles */
-          .invoice-table-container {
-            max-height: none !important;
-            height: auto !important;
-            overflow: visible !important;
-          }
-
-          /* Remove height limits and overflow restrictions when printing */
-          .overflow-auto,
-          .overflow-x-auto {
-            overflow: visible !important;
-            max-height: none !important;
-          }
-
-          /* Ensure table rows don't break across pages */
-          tr {
-            page-break-inside: avoid;
-          }
-
-          /* Ensure proper spacing between table rows in print */
-          td,
-          th {
-            padding: 8px !important;
-          }
-        }
-
-        /* Add class to hide logo in normal view */
-        .print-only {
-          display: none;
-        }
-      `}</style>
     </div>
   );
+};
+
+const colorBorderByIndex: Record<string, string> = {
+  blue: "[&>td:first-child]:!border-blue-500",
+  green: "[&>td:first-child]:!border-emerald-500",
+  purple: "[&>td:first-child]:!border-violet-500",
+  orange: "[&>td:first-child]:!border-amber-500",
+  pink: "[&>td:first-child]:!border-pink-500",
+  cyan: "[&>td:first-child]:!border-cyan-500",
+  red: "[&>td:first-child]:!border-red-500",
+  lime: "[&>td:first-child]:!border-lime-500",
+};
+
+const colorBgByIndex: Record<string, string> = {
+  blue: "!bg-blue-500",
+  green: "!bg-emerald-500",
+  purple: "!bg-violet-500",
+  orange: "!bg-amber-500",
+  pink: "!bg-pink-500",
+  cyan: "!bg-cyan-500",
+  red: "!bg-red-500",
+  lime: "!bg-lime-500",
 };
 
 // Function to get color index for product ID
@@ -598,7 +466,7 @@ const getProductColorIndex = (productId: string | number): number => {
 // Function to deterministically assign a color class based on product ID
 const getProductColor = (productId: string | number): string => {
   const colorIndex = getProductColorIndex(productId);
-  return `bg-color-${getColorNameByIndex(colorIndex)}`;
+  return colorBgByIndex[getColorNameByIndex(colorIndex)];
 };
 
 // Get color name by index

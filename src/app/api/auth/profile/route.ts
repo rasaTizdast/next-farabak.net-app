@@ -1,16 +1,10 @@
-import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { serverErrorResponse, unauthorizedResponse } from "@/lib/api-response";
+import { verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
+import { profileUpdateSchema, validateBody } from "@/lib/validation";
 
 /**
  * @swagger
@@ -20,26 +14,27 @@ async function verifyToken(token: string) {
  *     tags: [auth]
  *     responses:
  *       200:
- *         description: Successfully retrieved user profile.
+ *         description: Successfully retrieved user profile, or null if unauthenticated.
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 userId:
- *                   type: string
- *                 firstName:
- *                   type: string
- *                 lastName:
- *                   type: string
- *                 email:
- *                   type: string
- *                 phoneNumber:
- *                   type: string
- *       401:
- *         description: Unauthorized access.
- *       500:
- *         description: Internal server error.
+ *                 user:
+ *                   oneOf:
+ *                     - type: object
+ *                       properties:
+ *                         userId:
+ *                           type: string
+ *                         firstName:
+ *                           type: string
+ *                         lastName:
+ *                           type: string
+ *                         email:
+ *                           type: string
+ *                         phoneNumber:
+ *                           type: string
+ *                     - type: "null"
  *
  *   patch:
  *     summary: Update the authenticated user's profile.
@@ -79,20 +74,26 @@ async function verifyToken(token: string) {
  *       500:
  *         description: Internal server error.
  */
-export async function GET(): Promise<NextResponse> {
+export async function GET(): Promise<Response> {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json({ message: "توکن احراز هویت الزامی است" }, { status: 401 });
+      return NextResponse.json({ user: null });
     }
 
     // Verify the token
-    const decoded = await verifyToken(token);
+    let decoded;
+    try {
+      decoded = await verifyToken(token);
+    } catch {
+      // Invalid or expired token means the visitor is simply logged out
+      return NextResponse.json({ user: null });
+    }
 
     const user = await prisma.client.findUnique({
-      where: { UserID: decoded.userId as number },
+      where: { UserID: parseInt(decoded.userId, 10) },
       select: {
         UserID: true,
         Username: true,
@@ -105,54 +106,44 @@ export async function GET(): Promise<NextResponse> {
     });
 
     if (!user) {
-      return NextResponse.json({ message: "کاربر یافت نشد" }, { status: 404 });
+      return NextResponse.json({ user: null });
     }
 
     return NextResponse.json({
-      userId: user.UserID,
-      username: user.Username,
-      firstName: user.FirstName,
-      lastName: user.LastName,
-      email: user.Email,
-      phoneNumber: user.PhoneNumber,
-      role: user.Role,
+      user: {
+        userId: user.UserID,
+        username: user.Username,
+        firstName: user.FirstName,
+        lastName: user.LastName,
+        email: user.Email,
+        phoneNumber: user.PhoneNumber,
+        role: user.Role,
+      },
     });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
+    return serverErrorResponse("خطای داخلی سرور");
   }
 }
 
-export async function PATCH(request: Request): Promise<NextResponse> {
+export async function PATCH(request: Request): Promise<Response> {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
     if (!token) {
-      return NextResponse.json({ message: "توکن احراز هویت الزامی است" }, { status: 401 });
+      return unauthorizedResponse("توکن احراز هویت الزامی است");
     }
 
     // Use jose to verify the token
     const decoded = await verifyToken(token);
 
-    const updates: {
-      firstName?: string;
-      lastName?: string;
-      phoneNumber?: string;
-      email?: string;
-      city?: string;
-      job?: string;
-    } = await request.json();
-
-    if (Object.keys(updates).length === 0) {
-      return NextResponse.json(
-        { message: "هیچ داده‌ای برای به‌روزرسانی ارائه نشده است" },
-        { status: 400 }
-      );
-    }
+    const result = await validateBody(request, profileUpdateSchema);
+    if ("error" in result) return result.error;
+    const updates = result.data;
 
     await prisma.client.update({
-      where: { UserID: decoded.userId as number },
+      where: { UserID: parseInt(decoded.userId, 10) },
       data: {
         FirstName: updates.firstName,
         LastName: updates.lastName,
@@ -166,6 +157,6 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     return NextResponse.json({ message: "پروفایل با موفقیت به‌روزرسانی شد" });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
+    return serverErrorResponse("خطای داخلی سرور");
   }
 }

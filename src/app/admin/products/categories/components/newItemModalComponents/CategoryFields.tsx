@@ -1,5 +1,16 @@
 import { useState } from "react";
 
+// Regex patterns
+const regexPatterns = {
+  Name: /^[a-zA-Z0-9-\u0600-\u06FF\s_\u200C\u002D\u2013\u2014]{0,1000}$/, // Persian, English, numbers, up to 1000 characters
+  Slug: /^[a-z0-9-]{0,200}$/, // Lowercase English, numbers, and dashes only, up to 200 characters
+};
+
+const errorMessages = {
+  Name: "نام باید حروف فارسی یا انگلیسی و حداکثر ۱۰۰۰ کاراکتر باشد.",
+  Slug: "شناسه فقط باید حروف انگلیسی کوچک، اعداد و خط تیره باشد و حداکثر ۲۰۰ کاراکتر باشد.",
+};
+
 const CategoryFields = ({
   name,
   slug,
@@ -8,6 +19,7 @@ const CategoryFields = ({
   setSlug,
   setAvailable,
   editable = true,
+  headingLevel = "h2",
 }: {
   name: string;
   slug: string;
@@ -16,19 +28,9 @@ const CategoryFields = ({
   setSlug: React.Dispatch<React.SetStateAction<string>>;
   setAvailable: React.Dispatch<React.SetStateAction<boolean>>;
   editable?: boolean;
+  headingLevel?: "h2" | "h3";
 }) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  // Regex patterns
-  const regexPatterns = {
-    Name: /^[a-zA-Z0-9-\u0600-\u06FF\s_\u200C\u002D\u2013\u2014]{0,1000}$/, // Persian, English, numbers, up to 1000 characters
-    Slug: /^[a-z0-9-]{0,200}$/, // Lowercase English, numbers, and dashes only, up to 200 characters
-  };
-
-  const errorMessages = {
-    Name: "نام باید حروف فارسی یا انگلیسی و حداکثر ۱۰۰۰ کاراکتر باشد.",
-    Slug: "شناسه فقط باید حروف انگلیسی کوچک، اعداد و خط تیره باشد و حداکثر ۲۰۰ کاراکتر باشد.",
-  };
 
   // Handle input change with validation
   const handleInputChange = (field: string, value: string) => {
@@ -51,55 +53,84 @@ const CategoryFields = ({
 
   // Handle slug input: convert spaces to dashes
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    value = value.replace(/\s+/g, "-").toLowerCase(); // Replace spaces with dashes
+    const value = e.target.value.replace(/\s+/g, "-").toLowerCase();
+    if (!regexPatterns.Slug.test(value)) {
+      setErrors((prev) => ({ ...prev, Slug: errorMessages.Slug }));
+    } else {
+      setErrors((prev) => ({ ...prev, Slug: "" }));
+    }
     setSlug(value);
   };
 
   return (
-    <div>
+    <section aria-label="مشخصات دسته‌بندی">
+      {headingLevel === "h3" ? (
+        <h3 className="mb-4 text-base font-semibold text-gray-200">مشخصات دسته‌بندی</h3>
+      ) : (
+        <h2 className="mb-4 text-base font-semibold text-gray-200">مشخصات دسته‌بندی</h2>
+      )}
       {/* Category Name */}
       <div className="mb-4">
-        <label className="block text-sm font-medium">نام دسته‌بندی</label>
+        <label htmlFor="category-name" className="block text-sm font-medium">
+          نام دسته‌بندی
+        </label>
         <input
+          id="category-name"
           type="text"
+          aria-label="نام دسته‌بندی"
           value={name}
           onChange={(e) => handleInputChange("Name", e.target.value)}
           disabled={!editable}
-          className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-500"
+          className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-500"
           placeholder="نام دسته‌بندی را وارد کنید"
         />
-        {errors.Name && <p className="text-sm text-red-500">{errors.Name}</p>}
+        {errors.Name && (
+          <p role="alert" aria-live="polite" className="text-sm text-red-500">
+            {errors.Name}
+          </p>
+        )}
       </div>
 
       {/* Slug */}
       <div className="mb-4">
-        <label className="block text-sm font-medium">شناسه (Slug)</label>
+        <label htmlFor="category-slug" className="block text-sm font-medium">
+          شناسه (Slug)
+        </label>
         <input
+          id="category-slug"
           type="text"
+          aria-label="شناسه"
           value={slug}
           onChange={handleSlugChange} // Use the space-to-dash handler
           disabled={!editable}
-          className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-500"
+          className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-500"
           placeholder="شناسه دسته‌بندی"
         />
-        {errors.Slug && <p className="text-sm text-red-500">{errors.Slug}</p>}
+        {errors.Slug && (
+          <p role="alert" aria-live="polite" className="text-sm text-red-500">
+            {errors.Slug}
+          </p>
+        )}
       </div>
 
       {/* Availability */}
       <div className="mb-4">
-        <label className="block text-sm font-medium">فعال (قابل نمایش)</label>
+        <label htmlFor="category-available" className="block text-sm font-medium">
+          فعال (قابل نمایش)
+        </label>
         <select
+          id="category-available"
+          aria-label="فعال"
           value={available ? "true" : "false"}
           onChange={(e) => setAvailable(e.target.value === "true")}
           disabled={!editable}
-          className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:text-slate-300"
+          className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-400 disabled:text-slate-300"
         >
           <option value="true">بله</option>
           <option value="false">خیر</option>
         </select>
       </div>
-    </div>
+    </section>
   );
 };
 

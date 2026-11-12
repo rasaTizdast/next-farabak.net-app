@@ -1,5 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 // GET /api/products/grades - Get all grades for a product
@@ -66,6 +68,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    revalidateTag(TAGS.products, "max");
     return NextResponse.json(newGrade, { status: 201 });
   } catch (error) {
     console.error("Error creating product grade:", error);

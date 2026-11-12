@@ -1,5 +1,6 @@
 // Server component to render blog TEXT with Tailwind prose styles and schema.org
 // Supports: headings (#, ##, ###), paragraphs, unordered/ordered lists, and links [text](url)
+import DOMPurify from "isomorphic-dompurify";
 import Link from "next/link";
 import React from "react";
 
@@ -8,7 +9,10 @@ import { parseBlogTextToElements } from "./parseBlogText";
 interface BlogContentProps {
   html?: string; // legacy HTML input (will be wrapped)
   text?: string; // preferred text input
-  as?: "h1" | "h2" | "none";
+}
+
+function demoteBlogHeadings(htmlContent: string) {
+  return htmlContent.replace(/(<\/?\s*)h1(?=[\s>])/gi, "$1h2");
 }
 
 function _parseTextToElements(_text: string): React.ReactNode[] {
@@ -45,7 +49,7 @@ function _parseTextToElements(_text: string): React.ReactNode[] {
         <Link
           key={`${key}-lnk-${start}`}
           href={href}
-          className="mx-1 inline-block rounded-full border border-blue-800/40 bg-blue-900/30 px-3 py-1 text-blue-100 no-underline transition-all hover:bg-blue-900"
+          className="mx-1 inline-block rounded-full border border-blue-800/40 bg-blue-900/30 px-3 py-1 text-blue-100 no-underline transition-colors hover:bg-blue-900"
         >
           {label}
         </Link>
@@ -56,27 +60,29 @@ function _parseTextToElements(_text: string): React.ReactNode[] {
     return <>{parts}</>;
   };
 
-  lines.forEach((raw, i) => {
+  lines.forEach((raw) => {
     const line = raw.trimEnd();
     if (!line.trim()) {
       flushList(currentList);
       return;
     }
 
+    const k = line.slice(0, 40).replace(/[^\w\u0600-\u06FF]/g, "");
+
     // Headings
     if (line.startsWith("### ")) {
       flushList(currentList);
-      elements.push(<h3 key={`h3-${i}`}>{renderInline(line.slice(4), `h3-${i}`)}</h3>);
+      elements.push(<h3 key={`h3-${k}`}>{renderInline(line.slice(4), `h3-${k}`)}</h3>);
       return;
     }
     if (line.startsWith("## ")) {
       flushList(currentList);
-      elements.push(<h2 key={`h2-${i}`}>{renderInline(line.slice(3), `h2-${i}`)}</h2>);
+      elements.push(<h2 key={`h2-${k}`}>{renderInline(line.slice(3), `h2-${k}`)}</h2>);
       return;
     }
     if (line.startsWith("# ")) {
       flushList(currentList);
-      elements.push(<h1 key={`h1-${i}`}>{renderInline(line.slice(2), `h1-${i}`)}</h1>);
+      elements.push(<h2 key={`h2-${k}`}>{renderInline(line.slice(2), `h2-${k}`)}</h2>);
       return;
     }
 
@@ -85,7 +91,7 @@ function _parseTextToElements(_text: string): React.ReactNode[] {
       const content = line.replace(/^\d+\.\s+/, "");
       if (currentList.type && currentList.type !== "ol") flushList(currentList);
       currentList.type = "ol";
-      currentList.items.push(<li key={`oli-${i}`}>{renderInline(content, `oli-${i}`)}</li>);
+      currentList.items.push(<li key={`oli-${k}`}>{renderInline(content, `oli-${k}`)}</li>);
       return;
     }
 
@@ -94,13 +100,13 @@ function _parseTextToElements(_text: string): React.ReactNode[] {
       const content = line.replace(/^(\-|\*)\s+/, "");
       if (currentList.type && currentList.type !== "ul") flushList(currentList);
       currentList.type = "ul";
-      currentList.items.push(<li key={`uli-${i}`}>{renderInline(content, `uli-${i}`)}</li>);
+      currentList.items.push(<li key={`uli-${k}`}>{renderInline(content, `uli-${k}`)}</li>);
       return;
     }
 
     // Paragraph
     flushList(currentList);
-    elements.push(<p key={`p-${i}`}>{renderInline(line, `p-${i}`)}</p>);
+    elements.push(<p key={`p-${k}`}>{renderInline(line, `p-${k}`)}</p>);
   });
 
   flushList(currentList);
@@ -113,11 +119,15 @@ const TableScrollWrapper = ({ htmlContent }: { htmlContent: string }) => {
   const hasTables = /<table/i.test(htmlContent);
 
   if (!hasTables) {
-    return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+    return (
+      <div
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(demoteBlogHeadings(htmlContent)) }}
+      />
+    );
   }
 
   // Wrap tables in scrollable divs with Tailwind classes
-  const wrappedContent = htmlContent
+  const wrappedContent = demoteBlogHeadings(htmlContent)
     .replace(
       /<table([^>]*)>/gi,
       '<div class="my-6 overflow-x-auto -webkit-overflow-scrolling-touch rounded-lg border border-neutral-800"><table$1 class="w-full border-collapse">'
@@ -126,8 +136,8 @@ const TableScrollWrapper = ({ htmlContent }: { htmlContent: string }) => {
 
   return (
     <div
-      className="[&_table]:m-0 [&_table_p]:m-0 [&_td]:whitespace-nowrap [&_td]:border [&_td]:border-neutral-800 [&_td]:bg-blue-900/30 [&_td]:!px-0 [&_td]:py-3 [&_td]:text-right [&_td]:text-neutral-300 [&_td_p]:px-2 [&_th]:whitespace-nowrap [&_th]:border [&_th]:border-neutral-800 [&_th]:bg-blue-900/60 [&_th]:px-2 [&_th]:py-3 [&_th]:text-right [&_th]:font-semibold [&_th]:text-neutral-100"
-      dangerouslySetInnerHTML={{ __html: wrappedContent }}
+      className="[&_table]:m-0 [&_table_p]:m-0 [&_td]:border [&_td]:border-neutral-800 [&_td]:bg-blue-900/30 [&_td]:px-0! [&_td]:py-3 [&_td]:text-right [&_td]:whitespace-nowrap [&_td]:text-neutral-300 [&_td_p]:px-2 [&_th]:border [&_th]:border-neutral-800 [&_th]:bg-blue-900/60 [&_th]:px-2 [&_th]:py-3 [&_th]:text-right [&_th]:font-semibold [&_th]:whitespace-nowrap [&_th]:text-neutral-100"
+      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(wrappedContent) }}
     />
   );
 };
@@ -150,7 +160,7 @@ const BlogContent = async ({ html, text }: BlogContentProps) => {
     <section className="mx-auto mb-5 w-full rounded-xl border border-gray-900 bg-gray-800 p-3 shadow-sm backdrop-blur sm:p-5 md:p-7">
       <article
         dir="rtl"
-        className="prose prose-neutral prose-invert max-w-none overflow-hidden break-words leading-relaxed [word-break:break-word] prose-headings:scroll-mt-24 prose-h1:text-2xl prose-h1:font-extrabold prose-h1:leading-tight prose-h2:mt-6 prose-h2:text-xl prose-h2:leading-tight prose-p:text-sm prose-p:leading-relaxed prose-a:inline-block prose-a:rounded-lg prose-a:border prose-a:border-blue-800/40 prose-a:bg-blue-900/30 prose-a:px-2 prose-a:py-1 prose-a:text-sm prose-a:text-blue-100 prose-a:no-underline prose-img:h-auto prose-img:max-w-full sm:prose-h1:text-3xl sm:prose-h2:mt-8 sm:prose-h2:text-2xl sm:prose-p:text-[15px] sm:prose-a:px-3 md:prose-p:text-base"
+        className="prose prose-neutral prose-invert prose-headings:scroll-mt-24 prose-h1:text-2xl prose-h1:font-extrabold prose-h1:leading-tight prose-h2:mt-6 prose-h2:text-xl prose-h2:leading-tight prose-p:text-sm prose-p:leading-relaxed prose-a:inline-block prose-a:rounded-lg prose-a:border prose-a:border-blue-800/40 prose-a:bg-blue-900/30 prose-a:px-2 prose-a:py-1 prose-a:text-sm prose-a:text-blue-100 prose-a:no-underline prose-img:h-auto prose-img:max-w-full sm:prose-h1:text-3xl sm:prose-h2:mt-8 sm:prose-h2:text-2xl sm:prose-p:text-[15px] sm:prose-a:px-3 md:prose-p:text-base max-w-none overflow-hidden leading-relaxed wrap-break-word [word-break:break-word]"
       >
         {content}
       </article>

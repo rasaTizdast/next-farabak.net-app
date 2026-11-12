@@ -1,6 +1,9 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+
+import { getProductsByCategory } from "@/lib/data/products";
+import { parsePositivePageNumber } from "@/lib/pagination";
 
 import BreadcrumbWrapper from "../../../_components/BreadcrumbWrapper";
 import CategoryPageWrapper from "../../../_components/CategoryPageWrapper";
@@ -16,77 +19,44 @@ interface CategoryPageProps {
 export const generateMetadata = async (props: CategoryPageProps): Promise<Metadata> => {
   const params = await props.params;
   const categoryName = params.category;
+  const pageNumber = parsePositivePageNumber(params.pageNumber);
+  if (pageNumber === null) notFound();
+  const data = await getProductsByCategory(categoryName, { page: pageNumber, limit: 30 });
 
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsByCategory/${categoryName}?page=1&limit=1`,
-      { next: { revalidate: 60 } }
-    );
+  if (!data) notFound();
 
-    if (!res || !res.ok) {
-      return {
-        title: "دسته بندی یافت نشد!",
-        description: "دسته بندی مورد نظر یافت نشد!",
-        robots: {
-          index: false,
-          follow: true,
-        },
-      };
-    }
+  const { seoDetails } = data;
+  const canonicalUrl =
+    pageNumber === 1
+      ? `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}`
+      : `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/page/${pageNumber}`;
 
-    const data = await res.json();
-    if (!data.seoDetails) {
-      return {
-        title: "دسته بندی یافت نشد!",
-        description: "دسته بندی مورد نظر یافت نشد!",
-        robots: {
-          index: false,
-          follow: true,
-        },
-      };
-    }
-
-    const { seoDetails } = data;
-
-    const canonicalUrl =
-      params.pageNumber === "1"
-        ? `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}`
-        : `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/page/${params.pageNumber}`;
-
-    return {
-      title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${categoryName}`,
-      description: seoDetails.SEO_Description || `محصولات دسته‌بندی ${categoryName}`,
-      alternates: {
-        canonical: canonicalUrl,
-      },
-      robots: {
-        index: true,
-        follow: true,
-      },
-    };
-  } catch (error) {
-    console.error(error);
-    return {
-      title: "دسته بندی یافت نشد!",
-      description: "دسته بندی مورد نظر یافت نشد!",
-      robots: {
-        index: false,
-        follow: true,
-      },
-    };
-  }
+  return {
+    title: seoDetails?.SEO_Title || `محصولات دسته‌بندی ${categoryName}`,
+    description: seoDetails?.SEO_Description || `محصولات دسته‌بندی ${categoryName}`,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
 };
 
 export default async function CategoryPage(props: CategoryPageProps) {
   const params = await props.params;
   const categoryName = params.category;
-  const currentPage = parseInt(params.pageNumber || "1", 10);
+  const currentPage = parsePositivePageNumber(params.pageNumber);
+  if (currentPage === null) notFound();
   const limit = 30;
+  const pageData = await getProductsByCategory(categoryName, { page: currentPage, limit });
+  if (!pageData) notFound();
 
   const canonicalUrl =
-    params.pageNumber === "1"
+    currentPage === 1
       ? `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}`
-      : `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/page/${params.pageNumber}`;
+      : `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/page/${currentPage}`;
 
   const breadcrumbs = ["/", "/products", `/products/${categoryName}`];
 

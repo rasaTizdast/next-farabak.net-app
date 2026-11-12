@@ -1,6 +1,9 @@
+"use client";
+
 import { useState } from "react";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 type Filters = {
   category: string;
@@ -53,20 +56,30 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
   // Get the current subcategories for the selected category
   const subCategories = getSubCategories(tempFilters.category);
 
+  const panelRef = useModalA11y<HTMLDivElement>({ onClose: () => setShowFilterModal(false) });
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity">
-      <div className="relative w-full max-w-lg animate-fade-in rounded-xl bg-gray-800 p-6 text-white shadow-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-3 backdrop-blur-[2px]">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="اعمال فیلترها"
+        tabIndex={-1}
+        className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto overscroll-contain rounded-xl border border-slate-500 bg-gray-800 p-5 text-white shadow-2xl focus:outline-none sm:p-6"
+      >
         {/* Close Button */}
         <button
           type="button"
           onClick={() => setShowFilterModal(false)}
-          className="absolute right-4 top-4 text-gray-400 transition hover:text-white"
+          aria-label="بستن"
+          className="absolute top-4 right-4 text-gray-400 transition hover:text-white"
         >
           ✕
         </button>
 
         {isLoading ? (
-          <div className="animate-pulse space-y-6">
+          <div className="animate-pulse space-y-6" role="status" aria-label="در حال بارگذاری">
             <div className="mx-auto h-8 w-32 rounded-lg bg-gray-600"></div>
             <div className="space-y-4">
               <div className="h-10 w-full rounded-lg bg-gray-600"></div>
@@ -84,8 +97,11 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
 
             {/* Categories Dropdown */}
             <div className="mb-4">
-              <label className="mb-2 block font-medium text-gray-300">دسته‌بندی</label>
+              <label htmlFor="filter-category" className="mb-2 block font-medium text-gray-300">
+                دسته‌بندی
+              </label>
               <select
+                id="filter-category"
                 value={tempFilters.category}
                 onChange={(e) => {
                   setTempFilters({
@@ -94,7 +110,8 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
                     subCategory: "", // Reset subCategory when category changes
                   });
                 }}
-                className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="دسته‌بندی"
+                className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
               >
                 <option value="">انتخاب کنید</option>
                 {categories.map((category) => (
@@ -107,8 +124,11 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
 
             {/* Subcategories Dropdown */}
             <div className="mb-4">
-              <label className="mb-2 block font-medium text-gray-300">زیر دسته‌بندی</label>
+              <label htmlFor="filter-subcategory" className="mb-2 block font-medium text-gray-300">
+                زیر دسته‌بندی
+              </label>
               <select
+                id="filter-subcategory"
                 value={tempFilters.subCategory}
                 onChange={(e) =>
                   setTempFilters({
@@ -116,7 +136,8 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
                     subCategory: e.target.value,
                   })
                 }
-                className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="زیر دسته‌بندی"
+                className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 disabled={!tempFilters.category} // Disable if no category is selected
               >
                 <option value="">انتخاب کنید</option>
@@ -130,8 +151,11 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
 
             {/* Availability Dropdown */}
             <div className="mb-4">
-              <label className="mb-2 block font-medium text-gray-300">وضعیت موجودی</label>
+              <label htmlFor="filter-available" className="mb-2 block font-medium text-gray-300">
+                وضعیت موجودی
+              </label>
               <select
+                id="filter-available"
                 value={tempFilters.available === null ? "" : tempFilters.available.toString()}
                 onChange={(e) =>
                   setTempFilters({
@@ -140,7 +164,8 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
                       e.target.value === "" ? null : e.target.value === "true" ? true : false,
                   })
                 }
-                className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="وضعیت موجودی"
+                className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
               >
                 <option value="">همه</option>
                 <option value="true">موجود</option>

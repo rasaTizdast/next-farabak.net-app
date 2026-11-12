@@ -1,4 +1,4 @@
-// ***********************************************************
+﻿// ***********************************************************
 // This example support/e2e.ts is processed and
 // loaded automatically before your test files.
 //
@@ -10,8 +10,14 @@
 // 'supportFile' configuration option.
 //
 // You can read more here:
-// https://on.cypress.io/configuration
+// https://on.cypress.org/configuration
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
 import "./commands";
+// Import api-stubs for test infrastructure
+import { stubAllApiRoutes } from "./api-stubs";
+
+beforeEach(() => {
+  stubAllApiRoutes();
+});

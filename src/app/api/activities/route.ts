@@ -1,5 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -29,16 +31,14 @@ import { prisma } from "@/lib/prisma";
  *         description: Master activity updated
  */
 
-export const dynamic = "force-dynamic";
-
 type DetailsActivity = {
-  id: number;
-  activityID: number;
+  id?: number;
+  activityID?: number;
   description: string;
 };
 
 type MasterActivity = {
-  id: number;
+  id?: number;
   title: string;
   Details_activity: DetailsActivity[]; // Use `Details_activity` instead of `details`
 };
@@ -58,71 +58,54 @@ export async function PUT(req: NextRequest) {
       throw new Error("The data is not in the expected format.");
     }
 
-    // Fetch all existing activities from the database
-    const existingActivities = await prisma.master_activity.findMany({
-      include: { Details_activity: true },
-    });
-
-    // Identify activities that have been deleted in the frontend
-    const deletedActivities = existingActivities.filter(
-      (existingActivity: MasterActivity) =>
-        !updatedActivities.some(
-          (updatedActivity: MasterActivity) => updatedActivity.id === existingActivity.id
-        )
-    );
-
-    // Delete associated Details_activity records first
-    for (const deletedActivity of deletedActivities) {
-      await prisma.details_activity.deleteMany({
-        where: { activityID: deletedActivity.id },
+    await prisma.$transaction(async (tx) => {
+      const existingActivities = await tx.master_activity.findMany({
+        include: { Details_activity: true },
       });
-    }
+      const deletedActivities = existingActivities.filter(
+        (existingActivity) =>
+          !updatedActivities.some((updatedActivity) => updatedActivity.id === existingActivity.id)
+      );
 
-    // Delete the Master_activity records
-    for (const deletedActivity of deletedActivities) {
-      await prisma.master_activity.delete({
-        where: { id: deletedActivity.id },
-      });
-    }
+      for (const activity of deletedActivities) {
+        await tx.details_activity.deleteMany({ where: { activityID: activity.id } });
+        await tx.master_activity.delete({ where: { id: activity.id } });
+      }
 
-    // Handle updates and creations
-    for (const activity of updatedActivities) {
-      let masterActivity;
-      if (activity.id) {
-        // Update existing Master_activity
-        masterActivity = await prisma.master_activity.update({
-          where: { id: activity.id },
-          data: { title: activity.title },
-        });
-      } else {
-        // Create new Master_activity
-        masterActivity = await prisma.master_activity.create({
-          data: {
-            title: activity.title,
+      for (const activity of updatedActivities) {
+        const masterActivity = activity.id
+          ? await tx.master_activity.update({
+              where: { id: activity.id },
+              data: { title: activity.title },
+            })
+          : await tx.master_activity.create({ data: { title: activity.title } });
+        const detailIds = activity.Details_activity.flatMap((detail) =>
+          detail.id ? [detail.id] : []
+        );
+
+        await tx.details_activity.deleteMany({
+          where: {
+            activityID: masterActivity.id,
+            ...(detailIds.length > 0 ? { id: { notIn: detailIds } } : {}),
           },
         });
-      }
 
-      // Handle the Details_activity for the master activity
-      for (const detail of activity.Details_activity) {
-        if (detail.id) {
-          // Update existing Details_activity
-          await prisma.details_activity.update({
-            where: { id: detail.id },
-            data: { description: detail.description },
-          });
-        } else {
-          // Create new Details_activity
-          await prisma.details_activity.create({
-            data: {
-              activityID: masterActivity.id, // Link it to the master activity
-              description: detail.description,
-            },
-          });
+        for (const detail of activity.Details_activity) {
+          if (detail.id) {
+            await tx.details_activity.update({
+              where: { id: detail.id },
+              data: { description: detail.description },
+            });
+          } else {
+            await tx.details_activity.create({
+              data: { activityID: masterActivity.id, description: detail.description },
+            });
+          }
         }
       }
-    }
+    });
 
+    revalidateTag(TAGS.activities, "max");
     return NextResponse.json({ message: "Updated successfully" }, { status: 200 });
   } catch (error) {
     console.error(error);

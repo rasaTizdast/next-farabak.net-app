@@ -1,0 +1,139 @@
+"use client";
+
+import React from "react";
+
+import { useNewProductWizard } from "../NewProductWizardContext";
+
+const steps = [
+  { id: "baseDetails", label: "جزئیات پایه" },
+  { id: "productOverview", label: "بررسی محصول" },
+  { id: "overviewDetails", label: "توضیحات محصول" },
+  { id: "productBlog", label: "مقاله محصول" },
+  { id: "specs", label: "مشخصات" },
+  { id: "faq", label: "سوالات متداول" },
+  { id: "preview", label: "پیش‌نمایش" },
+] as const;
+
+type StepId = (typeof steps)[number]["id"];
+
+export function StepNavigation() {
+  const { openSections, actions, errors, hasSubmitted } = useNewProductWizard();
+
+  const getStepStatus = (stepId: StepId) => {
+    if (!hasSubmitted) {
+      return openSections[stepId] ? "active" : "pending";
+    }
+    const sectionErrors = getSectionErrors(stepId);
+    if (sectionErrors.length > 0) return "error";
+    if (openSections[stepId]) return "active";
+    return "pending";
+  };
+
+  const getSectionErrors = (stepId: StepId): string[] => {
+    switch (stepId) {
+      case "baseDetails":
+        return [
+          "name",
+          "slug",
+          "categoryID",
+          "subCategoryID",
+          "price",
+          "discount",
+          "smallDesc",
+          "bannerImage",
+          "transparentImage",
+          "SEO_Title",
+          "SEO_Description",
+          "keywords",
+        ].filter((f) => errors[f]);
+      case "productOverview":
+        return Object.keys(errors).filter((k) => k === "features" || k.startsWith("features-"));
+      case "overviewDetails":
+        return Object.keys(errors).filter((k) => k.startsWith("overviewDetails-"));
+      case "productBlog":
+        return errors.productBlog ? ["productBlog"] : [];
+      case "specs":
+        return Object.keys(errors).filter((k) => k.startsWith("specs-"));
+      case "faq":
+        return Object.keys(errors).filter(
+          (k) => k.startsWith("faq-") || k.includes("-question-") || k.includes("-answer-")
+        );
+      case "preview":
+        return [];
+      default:
+        return [];
+    }
+  };
+
+  return (
+    <nav
+      className="sticky top-0 z-10 mb-6 flex gap-2 overflow-x-auto overscroll-x-contain rounded-lg border border-slate-600 bg-slate-800/95 p-2 shadow-md"
+      aria-label="مراحل ساخت محصول"
+    >
+      {steps.map((step, index) => {
+        const status = getStepStatus(step.id);
+        const isActive = openSections[step.id] && status !== "error";
+        const hasError = status === "error";
+
+        return (
+          <button
+            key={step.id}
+            type="button"
+            aria-label={`مرحله ${index + 1}: ${step.label}${hasError ? "، دارای خطا" : ""}`}
+            onClick={() => {
+              actions.setOpenSections({ [step.id]: true });
+              // Close other sections
+              Object.keys(openSections).forEach((key) => {
+                if (key !== step.id) {
+                  actions.setOpenSections({ [key]: false });
+                }
+              });
+              // The section only becomes visible after the state update above,
+              // so scroll once React has re-rendered.
+              requestAnimationFrame(() => {
+                document.getElementById(`wizard-section-${step.id}`)?.scrollIntoView({
+                  behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                    ? "instant"
+                    : "smooth",
+                  block: "start",
+                });
+              });
+            }}
+            className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none ${
+              isActive
+                ? "bg-blue-600 text-white"
+                : hasError
+                  ? "bg-red-500 text-white"
+                  : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+            }`}
+            aria-current={isActive ? "step" : undefined}
+          >
+            <span
+              className={`flex size-5 items-center justify-center rounded-full text-xs ${
+                isActive
+                  ? "bg-white text-blue-600"
+                  : hasError
+                    ? "bg-white text-red-500"
+                    : "bg-gray-700 text-gray-400"
+              }`}
+            >
+              {hasError ? (
+                <svg className="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              ) : (
+                index + 1
+              )}
+            </span>
+            <span>{step.label}</span>
+          </button>
+        );
+      })}
+    </nav>
+  );
+}

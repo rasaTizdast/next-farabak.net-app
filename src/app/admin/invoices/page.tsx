@@ -1,13 +1,11 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { SearchOutlined } from "@ant-design/icons";
 import { Input, Button, Select } from "antd";
 import jalaali from "jalali-moment";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
+import { adminColors } from "@/constants/adminColors";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
@@ -18,6 +16,184 @@ import DeleteInvoiceModal from "./components/ui/DeleteInvoiceModal";
 import { AdminInvoice } from "./type";
 
 const { Option } = Select;
+
+// --- Pure helpers (module scope) ---
+
+function calculateTimeRemaining(dateString: string) {
+  if (!dateString) return { hours: 0, minutes: 0, isExpired: true };
+
+  try {
+    let creationDate;
+
+    if (dateString.includes("T")) {
+      const [datePart, timePart] = dateString.split("T");
+      const [year, month, day] = datePart.split("-").map(Number);
+      const [hour, minute, second] = timePart.split(":").map(Number);
+
+      creationDate = jalaali()
+        .jYear(year)
+        .jMonth(month - 1)
+        .jDate(day)
+        .hour(hour)
+        .minute(minute)
+        .second(second || 0);
+    } else if (dateString.includes("-")) {
+      const parts = dateString.split(/[- :]/);
+      if (parts[0].length === 4) {
+        const year = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1;
+        const day = parseInt(parts[2]);
+
+        creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
+
+        if (parts.length >= 6) {
+          creationDate.hour(parseInt(parts[3] || "0"));
+          creationDate.minute(parseInt(parts[4] || "0"));
+          creationDate.second(parseInt(parts[5] || "0"));
+        }
+      } else {
+        const day = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1;
+        const year = parseInt(parts[2]);
+
+        creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
+
+        if (parts.length >= 6) {
+          creationDate.hour(parseInt(parts[3] || "0"));
+          creationDate.minute(parseInt(parts[4] || "0"));
+          creationDate.second(parseInt(parts[5] || "0"));
+        }
+      }
+    } else {
+      return { hours: 0, minutes: 0, isExpired: true };
+    }
+
+    const now = jalaali();
+    const expiryDate = creationDate.clone().add(48, "hours");
+
+    if (now.isAfter(expiryDate)) {
+      return { hours: 0, minutes: 0, isExpired: true };
+    }
+
+    const diffHours = expiryDate.diff(now, "hours");
+    const diffMinutes = expiryDate.diff(now, "minutes") % 60;
+
+    return { hours: diffHours, minutes: diffMinutes, isExpired: false };
+  } catch (error) {
+    console.error("Error parsing date:", dateString, error);
+    return { hours: 0, minutes: 0, isExpired: true };
+  }
+}
+
+function formatPersianDate(dateString: string) {
+  try {
+    let creationDate;
+
+    if (dateString.includes("T")) {
+      const [datePart, timePart] = dateString.split("T");
+      const [year, month, day] = datePart.split("-").map(Number);
+      const [hour, minute, second] = timePart.split(":").map(Number);
+
+      creationDate = jalaali()
+        .jYear(year)
+        .jMonth(month - 1)
+        .jDate(day)
+        .hour(hour)
+        .minute(minute)
+        .second(second || 0);
+    } else if (dateString.includes("-")) {
+      const parts = dateString.split(/[- :]/);
+      if (parts[0].length === 4) {
+        const year = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1;
+        const day = parseInt(parts[2]);
+
+        creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
+
+        if (parts.length >= 6) {
+          creationDate.hour(parseInt(parts[3] || "0"));
+          creationDate.minute(parseInt(parts[4] || "0"));
+          creationDate.second(parseInt(parts[5] || "0"));
+        }
+      } else {
+        const day = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1;
+        const year = parseInt(parts[2]);
+
+        creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
+
+        if (parts.length >= 6) {
+          creationDate.hour(parseInt(parts[3] || "0"));
+          creationDate.minute(parseInt(parts[4] || "0"));
+          creationDate.second(parseInt(parts[5] || "0"));
+        }
+      }
+    } else {
+      return dateString;
+    }
+
+    return creationDate.locale("fa").format("YYYY/MM/DD HH:mm:ss");
+  } catch (error) {
+    console.error("Error formatting date:", dateString, error);
+    return dateString;
+  }
+}
+
+function getTimeRemainingText(dateString: string, checked: boolean) {
+  if (!dateString) return "تاریخ نامشخص";
+
+  try {
+    const { hours, minutes, isExpired } = calculateTimeRemaining(dateString);
+
+    if (isExpired) {
+      return checked ? "تائید شده قبل از انقضا" : "منقضی شده";
+    } else if (hours >= 24) {
+      const days = Math.floor(hours / 24);
+      const remainingHours = hours % 24;
+      return `${days} روز و ${remainingHours} ساعت مانده`;
+    } else {
+      return `${hours} ساعت و ${minutes} دقیقه مانده`;
+    }
+  } catch (error) {
+    console.error("Error parsing date:", dateString, error);
+    return `خطا در تاریخ: ${dateString}`;
+  }
+}
+
+function getTimeRemainingClass(dateString: string, checked: boolean) {
+  if (checked) return "";
+
+  const { hours, isExpired } = calculateTimeRemaining(dateString);
+
+  if (isExpired) {
+    return "line-through text-gray-400";
+  } else if (hours < 6) {
+    return "text-red-500 font-bold";
+  } else if (hours < 12) {
+    return "text-yellow-500 font-bold";
+  } else {
+    return "text-green-500";
+  }
+}
+
+async function refreshInvoiceAfterWarrantyUpdate(
+  selectedInvoice: AdminInvoice,
+  setSelectedInvoice: React.Dispatch<React.SetStateAction<AdminInvoice | null>>,
+  setInvoices: React.Dispatch<React.SetStateAction<AdminInvoice[]>>
+) {
+  try {
+    const response = await fetch(`/api/admin/invoices/${selectedInvoice.Invoiceid}`);
+    if (response.ok) {
+      const updatedInvoice = await response.json();
+      setSelectedInvoice(updatedInvoice);
+      setInvoices((prev) =>
+        prev.map((inv) => (inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv))
+      );
+    }
+  } catch (error) {
+    console.error("Failed to refresh invoice data:", error);
+  }
+}
 
 const AdminInvoicesPage = () => {
   const [invoices, setInvoices] = useState<AdminInvoice[]>([]);
@@ -30,7 +206,9 @@ const AdminInvoicesPage = () => {
   const [searchMode, setSearchMode] = useState<"basic" | "warranty">("basic");
   const [isCheckingWarranties, setIsCheckingWarranties] = useState(false);
 
-  const { mutate: checkWarrantyMutate } = useApiMutation<{ updatedCount: number }>("post");
+  const { mutate: checkWarrantyMutate } = useApiMutation<undefined, { updatedCount: number }>(
+    "post"
+  );
   const { mutate: updateStatusMutate } = useApiMutation("patch");
   const { mutate: deleteInvoiceMutate } = useApiMutation("delete");
 
@@ -41,19 +219,20 @@ const AdminInvoicesPage = () => {
     refetch,
   } = useApiFetch<AdminInvoice[]>("/api/admin/invoices");
 
-  // Sync API data on first load (render-body setState is safe and avoids effect cascade)
-  const initialSyncDone = useRef(false);
-  if (invoicesData && !initialSyncDone.current) {
-    initialSyncDone.current = true;
-    setInvoices(invoicesData);
-  }
+  // Sync API data when invoices are fetched
+  const prevInvoicesData = useRef(invoicesData);
+  useEffect(() => {
+    if (invoicesData && prevInvoicesData.current !== invoicesData) {
+      prevInvoicesData.current = invoicesData;
+
+      setInvoices(invoicesData);
+    }
+  }, [invoicesData]);
 
   // Check and update warranty status
   const checkWarrantyStatus = async () => {
     setIsCheckingWarranties(true);
-    const data = await checkWarrantyMutate(
-      "/api/admin/warranty/check-status"
-    );
+    const data = await checkWarrantyMutate("/api/admin/warranty/check-status");
     if (data) {
       const updatedCount = data.updatedCount || 0;
       if (updatedCount > 0) {
@@ -68,193 +247,8 @@ const AdminInvoicesPage = () => {
     setIsCheckingWarranties(false);
   };
 
-  // Calculate time remaining before invoice expires (48 hours after creation)
-  const calculateTimeRemaining = (dateString: string) => {
-    if (!dateString) return { hours: 0, minutes: 0, isExpired: true };
-
-    try {
-      let creationDate;
-
-      // Handle ISO format Jalali date (e.g., "1404-04-09T18:13:49")
-      if (dateString.includes("T")) {
-        const [datePart, timePart] = dateString.split("T");
-        const [year, month, day] = datePart.split("-").map(Number);
-        const [hour, minute, second] = timePart.split(":").map(Number);
-
-        creationDate = jalaali()
-          .jYear(year)
-          .jMonth(month - 1) // Convert to 0-based month
-          .jDate(day)
-          .hour(hour)
-          .minute(minute)
-          .second(second || 0);
-      }
-      // Handle other possible formats
-      else if (dateString.includes("-")) {
-        const parts = dateString.split(/[- :]/);
-        // Check if year is first (YYYY-MM-DD)
-        if (parts[0].length === 4) {
-          const year = parseInt(parts[0]);
-          const month = parseInt(parts[1]) - 1;
-          const day = parseInt(parts[2]);
-
-          creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
-
-          // Add time if available
-          if (parts.length >= 6) {
-            creationDate.hour(parseInt(parts[3] || "0"));
-            creationDate.minute(parseInt(parts[4] || "0"));
-            creationDate.second(parseInt(parts[5] || "0"));
-          }
-        }
-        // Day first format (DD-MM-YYYY)
-        else {
-          const day = parseInt(parts[0]);
-          const month = parseInt(parts[1]) - 1;
-          const year = parseInt(parts[2]);
-
-          creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
-
-          // Add time if available
-          if (parts.length >= 6) {
-            creationDate.hour(parseInt(parts[3] || "0"));
-            creationDate.minute(parseInt(parts[4] || "0"));
-            creationDate.second(parseInt(parts[5] || "0"));
-          }
-        }
-      } else {
-        return { hours: 0, minutes: 0, isExpired: true };
-      }
-
-      // Set the current time for comparison
-      const now = jalaali();
-
-      // Calculate expiry (48 hours after creation)
-      const expiryDate = creationDate.clone().add(48, "hours");
-
-      // Check if expired
-      if (now.isAfter(expiryDate)) {
-        return { hours: 0, minutes: 0, isExpired: true };
-      }
-
-      // Calculate time difference
-      const diffHours = expiryDate.diff(now, "hours");
-      const diffMinutes = expiryDate.diff(now, "minutes") % 60;
-
-      return {
-        hours: diffHours,
-        minutes: diffMinutes,
-        isExpired: false,
-      };
-    } catch (error) {
-      console.error("Error parsing date:", dateString, error);
-      return { hours: 0, minutes: 0, isExpired: true };
-    }
-  };
-
-  // Format date to Persian
-  const formatPersianDate = (dateString: string) => {
-    try {
-      let creationDate;
-
-      // Handle ISO format Jalali date (e.g., "1404-04-09T18:13:49")
-      if (dateString.includes("T")) {
-        const [datePart, timePart] = dateString.split("T");
-        const [year, month, day] = datePart.split("-").map(Number);
-        const [hour, minute, second] = timePart.split(":").map(Number);
-
-        creationDate = jalaali()
-          .jYear(year)
-          .jMonth(month - 1) // Convert to 0-based month
-          .jDate(day)
-          .hour(hour)
-          .minute(minute)
-          .second(second || 0);
-      }
-      // Handle other possible formats
-      else if (dateString.includes("-")) {
-        const parts = dateString.split(/[- :]/);
-        // Check if year is first (YYYY-MM-DD)
-        if (parts[0].length === 4) {
-          const year = parseInt(parts[0]);
-          const month = parseInt(parts[1]) - 1;
-          const day = parseInt(parts[2]);
-
-          creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
-
-          // Add time if available
-          if (parts.length >= 6) {
-            creationDate.hour(parseInt(parts[3] || "0"));
-            creationDate.minute(parseInt(parts[4] || "0"));
-            creationDate.second(parseInt(parts[5] || "0"));
-          }
-        }
-        // Day first format (DD-MM-YYYY)
-        else {
-          const day = parseInt(parts[0]);
-          const month = parseInt(parts[1]) - 1;
-          const year = parseInt(parts[2]);
-
-          creationDate = jalaali().jYear(year).jMonth(month).jDate(day);
-
-          // Add time if available
-          if (parts.length >= 6) {
-            creationDate.hour(parseInt(parts[3] || "0"));
-            creationDate.minute(parseInt(parts[4] || "0"));
-            creationDate.second(parseInt(parts[5] || "0"));
-          }
-        }
-      } else {
-        return dateString; // Return original if format not recognized
-      }
-
-      // Return Persian formatted date
-      return creationDate.locale("fa").format("YYYY/MM/DD HH:mm:ss");
-    } catch (error) {
-      console.error("Error formatting date:", dateString, error);
-      return dateString;
-    }
-  };
-
-  const getTimeRemainingText = (dateString: string, checked: boolean) => {
-    if (!dateString) return "تاریخ نامشخص";
-
-    try {
-      const { hours, minutes, isExpired } = calculateTimeRemaining(dateString);
-
-      if (isExpired) {
-        return checked ? "تائید شده قبل از انقضا" : "منقضی شده";
-      } else if (hours >= 24) {
-        const days = Math.floor(hours / 24);
-        const remainingHours = hours % 24;
-        return `${days} روز و ${remainingHours} ساعت مانده`;
-      } else {
-        return `${hours} ساعت و ${minutes} دقیقه مانده`;
-      }
-    } catch (error) {
-      console.error("Error parsing date:", dateString, error);
-      return `خطا در تاریخ: ${dateString}`;
-    }
-  };
-
-  const getTimeRemainingClass = (dateString: string, checked: boolean) => {
-    if (checked) return ""; // If already checked, no special styling
-
-    const { hours, isExpired } = calculateTimeRemaining(dateString);
-
-    if (isExpired) {
-      return "line-through text-gray-400";
-    } else if (hours < 6) {
-      return "text-red-500 font-bold";
-    } else if (hours < 12) {
-      return "text-yellow-500 font-bold";
-    } else {
-      return "text-green-500";
-    }
-  };
-
   // Filter invoices based on search text
-  const filteredInvoices = useMemo(() => {
+  const filteredInvoices = (() => {
     if (!searchText.trim()) return invoices;
 
     const lowerCaseSearch = searchText.toLowerCase();
@@ -279,26 +273,7 @@ const AdminInvoicesPage = () => {
         invoice.Fullname.toLowerCase().includes(lowerCaseSearch) ||
         invoice.Phonenumber.includes(searchText)
     );
-  }, [searchText, searchMode, invoices]);
-
-  async function refreshInvoiceAfterWarrantyUpdate(
-    selectedInvoice: AdminInvoice,
-    setSelectedInvoice: React.Dispatch<React.SetStateAction<AdminInvoice | null>>,
-    setInvoices: React.Dispatch<React.SetStateAction<AdminInvoice[]>>
-  ) {
-    try {
-      const response = await fetch(`/api/admin/invoices/${selectedInvoice.Invoiceid}`);
-      if (response.ok) {
-        const updatedInvoice = await response.json();
-        setSelectedInvoice(updatedInvoice);
-        setInvoices((prev) =>
-          prev.map((inv) => (inv.Invoiceid === updatedInvoice.Invoiceid ? updatedInvoice : inv))
-        );
-      }
-    } catch (error) {
-      console.error("Failed to refresh invoice data:", error);
-    }
-  }
+  })();
 
   // Handler to update invoice status
   const handleStatusChange = async (Invoiceid: string, status: boolean) => {
@@ -311,6 +286,7 @@ const AdminInvoicesPage = () => {
     } else {
       toast.error("آپدیت فاکتور با شکست مواجه شد");
     }
+    return Boolean(result);
   };
 
   // Handler to delete an invoice
@@ -322,6 +298,7 @@ const AdminInvoicesPage = () => {
     } else {
       toast.error("حذف فاکتور با شکست مواجه شد");
     }
+    return Boolean(result);
   };
 
   const handlePhoneNumberClick = (invoice: AdminInvoice) => {
@@ -339,7 +316,7 @@ const AdminInvoicesPage = () => {
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-xl font-bold sm:text-2xl">مدیریت فاکتورها</h1>
-          <p className="text-sm text-gray-400">از اینجا می‌توانید فاکتورهای فروش را مدیریت کنید</p>
+          <p className="text-sm text-gray-300">از اینجا می‌توانید فاکتورهای فروش را مدیریت کنید</p>
         </div>
 
         {/* Search and Warranty Check Controls */}
@@ -347,11 +324,11 @@ const AdminInvoicesPage = () => {
           // Search UI skeleton during loading
           <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
             <div className="flex w-full items-center sm:w-96">
-              <div className="h-[32px] w-[105px] animate-pulse rounded-r-md bg-gray-800"></div>
-              <div className="h-[32px] flex-1 animate-pulse bg-gray-800"></div>
-              <div className="h-[32px] w-[32px] animate-pulse rounded-l-md bg-blue-700"></div>
+              <div className="h-[32px] w-[105px] animate-pulse rounded-r-md bg-gray-800 motion-reduce:animate-none"></div>
+              <div className="h-[32px] flex-1 animate-pulse bg-gray-800 motion-reduce:animate-none"></div>
+              <div className="size-[32px] animate-pulse rounded-l-md bg-blue-700 motion-reduce:animate-none"></div>
             </div>
-            <div className="h-[32px] w-full animate-pulse rounded-md bg-blue-700 sm:w-[120px]"></div>
+            <div className="h-[32px] w-full animate-pulse rounded-md bg-blue-700 motion-reduce:animate-none sm:w-[120px]"></div>
           </div>
         ) : (
           <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
@@ -362,12 +339,12 @@ const AdminInvoicesPage = () => {
                 onChange={(value) => {
                   setSearchMode(value);
                 }}
-                className="search-select"
-                popupClassName="bg-gray-800 text-white"
-                style={{
-                  width: "105px",
-                  color: "white",
-                  height: "32px",
+                aria-label="نوع جستجوی فاکتورها"
+                className="search-select h-11 w-[105px] [&_.ant-select-selector]:rounded-l-none! [&_.ant-select-selector]:rounded-r-md! [&_.ant-select-selector]:border-slate-400! [&_.ant-select-selector]:bg-slate-800! [&_.ant-select-selector]:text-white! [&.ant-select-focused_.ant-select-selector]:border-blue-300! [&.ant-select-focused_.ant-select-selector]:shadow-none! [&.ant-select:hover_.ant-select-selector]:border-slate-300!"
+                classNames={{
+                  popup: {
+                    root: "!bg-gray-800 !text-white !border !border-gray-600 [&_.ant-select-item]:!text-white",
+                  },
                 }}
               >
                 <Option value="basic" className="bg-gray-800 text-white">
@@ -380,6 +357,8 @@ const AdminInvoicesPage = () => {
 
               {/* Search Input - Middle */}
               <Input
+                autoComplete="off"
+                aria-label="جستجوی فاکتورها"
                 placeholder={
                   searchMode === "warranty"
                     ? "جستجو در کدهای گارانتی..."
@@ -389,37 +368,10 @@ const AdminInvoicesPage = () => {
                 onChange={(e) => {
                   setSearchText(e.target.value);
                 }}
-                className="search-input"
+                className="search-input h-11! flex-1! rounded-l-md! rounded-r-none! border-slate-400! text-white! focus:z-2"
                 style={{
-                  backgroundColor: "#1e293b",
-                  color: "white",
-                  borderColor: "#384152",
-                  height: "32px",
+                  backgroundColor: adminColors.panelInner,
                   direction: "rtl",
-                  borderRadius: "0",
-                  flex: 1,
-                }}
-              />
-
-              {/* Search Button - Left side */}
-              <Button
-                icon={<SearchOutlined style={{ fontSize: "14px" }} />}
-                type="primary"
-                onClick={() => {
-                  // Search is handled by the useMemo filter
-                }}
-                className="search-button"
-                style={{
-                  width: "32px",
-                  height: "32px",
-                  borderTopLeftRadius: "0.375rem",
-                  borderBottomLeftRadius: "0.375rem",
-                  borderTopRightRadius: "0",
-                  borderBottomRightRadius: "0",
-                  padding: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
                 }}
               />
             </div>
@@ -428,8 +380,7 @@ const AdminInvoicesPage = () => {
               htmlType="button"
               onClick={checkWarrantyStatus}
               loading={isCheckingWarranties}
-              className="w-full border-blue-800 bg-blue-700 px-3 text-white hover:bg-blue-600 sm:w-auto"
-              style={{ height: "32px" }}
+              className="min-h-11 w-full border-blue-800 bg-blue-700 px-3 text-white hover:bg-blue-600 sm:w-auto"
             >
               بررسی گارانتی‌ها
             </Button>
@@ -437,9 +388,14 @@ const AdminInvoicesPage = () => {
         )}
       </div>
 
-      <div className="w-full overflow-auto rounded-lg bg-gray-800 shadow-md">
+      <div
+        className="w-full overflow-auto rounded-lg bg-gray-800 shadow-md"
+        role="region"
+        aria-label="فهرست فاکتورهای فروش"
+        tabIndex={0}
+      >
         {loading ? (
-          <table className="w-full table-auto border-collapse whitespace-nowrap text-gray-100">
+          <table className="w-full min-w-176 table-auto border-collapse whitespace-nowrap text-gray-100">
             <thead className="bg-slate-900 uppercase">
               <tr>
                 <th scope="col" className="px-6 py-3">
@@ -463,7 +419,7 @@ const AdminInvoicesPage = () => {
               {Array.from({ length: 15 }).map((_, index) => (
                 <tr
                   key={index}
-                  className={`animate-pulse ${index % 2 === 0 ? "bg-slate-700" : "bg-slate-800"}`}
+                  className={`animate-pulse motion-reduce:animate-none ${index % 2 === 0 ? "bg-slate-700" : "bg-slate-800"}`}
                 >
                   <td className="w-full px-6 py-4">
                     <div className="h-4 w-full rounded bg-slate-600"></div>
@@ -487,12 +443,16 @@ const AdminInvoicesPage = () => {
             </tbody>
           </table>
         ) : error ? (
-          <div className="p-4 text-red-500">خطا: {error}</div>
+          <div className="p-4 text-red-300" role="alert">
+            خطا: {error}
+          </div>
         ) : filteredInvoices.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">هیچ فاکتوری با این مشخصات یافت نشد</div>
+          <div className="p-8 text-center text-gray-400" role="status">
+            هیچ فاکتوری با این مشخصات یافت نشد
+          </div>
         ) : (
           <>
-            <table className="w-full table-auto border-collapse whitespace-nowrap text-gray-100">
+            <table className="w-full min-w-176 table-auto border-collapse whitespace-nowrap text-gray-100">
               <thead className="bg-slate-900 uppercase">
                 <tr>
                   <th scope="col" className="px-6 py-3">
@@ -538,12 +498,12 @@ const AdminInvoicesPage = () => {
                           {getTimeRemainingText(invoice.Date, invoice.Checked)}
                         </span>
                         <div
-                          className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                          className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                           dir="ltr"
                         >
                           {formatPersianDate(invoice.Date)}
                           <svg
-                            className="absolute left-0 top-full h-2 w-full text-gray-800"
+                            className="absolute top-full left-0 h-2 w-full text-gray-800"
                             x="0px"
                             y="0px"
                             viewBox="0 0 255 255"
@@ -559,27 +519,27 @@ const AdminInvoicesPage = () => {
                       <button
                         type="button"
                         onClick={() => handleViewInvoice(invoice)}
-                        className="flex items-center justify-center rounded-lg bg-blue-700 px-2 py-1 text-white transition-all hover:bg-blue-600"
+                        className="flex items-center justify-center rounded-lg bg-blue-700 px-2 py-1 text-white transition-colors hover:bg-blue-600"
                       >
                         مشاهده فاکتور
                       </button>
                       <button
                         type="button"
-                        className="flex items-center justify-center rounded-lg bg-green-700 px-2 py-1 text-white transition-all hover:bg-green-600"
+                        className="flex items-center justify-center rounded-lg bg-green-700 px-2 py-1 text-white transition-colors hover:bg-green-600"
                         onClick={() => handlePhoneNumberClick(invoice)}
                       >
                         تماس با مشتری
                       </button>
                       <button
                         type="button"
-                        className="flex items-center justify-center rounded-lg bg-orange-700 px-2 py-1 text-white transition-all hover:bg-orange-600"
+                        className="flex items-center justify-center rounded-lg bg-orange-700 px-2 py-1 text-white transition-colors hover:bg-orange-600"
                         onClick={() => setStatusModalInvoice(invoice)}
                       >
                         تغییر وضعیت
                       </button>
                       <button
                         type="button"
-                        className="flex items-center justify-center rounded-lg bg-red-700 px-2 py-1 text-white transition-all hover:bg-red-600"
+                        className="flex items-center justify-center rounded-lg bg-red-700 px-2 py-1 text-white transition-colors hover:bg-red-600"
                         onClick={() => setDeleteModalInvoice(invoice)}
                       >
                         حذف فاکتور
@@ -626,80 +586,6 @@ const AdminInvoicesPage = () => {
           </>
         )}
       </div>
-
-      <style jsx global>{`
-        /* Styles for search input */
-        .search-input.ant-input {
-          color: white !important;
-        }
-
-        .search-input.ant-input::placeholder {
-          color: #cbd5e1 !important;
-          opacity: 1 !important;
-        }
-
-        .search-input.ant-input:hover {
-          background-color: #1e293b !important;
-          border-color: #4b5563 !important;
-        }
-
-        .search-input.ant-input:focus,
-        .search-input.ant-input-focused {
-          background-color: #1e293b !important;
-          border-color: #3b82f6 !important;
-          box-shadow: none !important;
-          z-index: 2;
-        }
-
-        .search-button {
-          background-color: #3b82f6 !important;
-          border-color: #3b82f6 !important;
-        }
-
-        .search-button:hover {
-          background-color: #2563eb !important;
-          border-color: #2563eb !important;
-        }
-
-        .search-select.ant-select .ant-select-selector {
-          border-radius: 0 0.375rem 0.375rem 0 !important;
-          background-color: #1e293b !important;
-          border-color: #384152 !important;
-          color: white !important;
-        }
-
-        .search-select.ant-select:hover .ant-select-selector {
-          border-color: #4b5563 !important;
-        }
-
-        .search-select.ant-select-focused .ant-select-selector {
-          border-color: #3b82f6 !important;
-          box-shadow: none !important;
-        }
-
-        .ant-select-dropdown {
-          background-color: #1f2937 !important;
-          border: 1px solid #4b5563 !important;
-        }
-
-        .ant-select-item {
-          color: white !important;
-        }
-
-        .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
-          background-color: #374151 !important;
-        }
-
-        .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
-          background-color: #3b82f6 !important;
-        }
-
-        .ant-btn-icon {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-      `}</style>
     </div>
   );
 };

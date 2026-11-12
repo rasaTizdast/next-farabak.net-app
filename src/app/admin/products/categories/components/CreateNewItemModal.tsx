@@ -1,9 +1,35 @@
-import { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-hot-toast";
-import axios from "axios";
 
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
+
+type CreateCategoryBody = {
+  type: string;
+  data: {
+    name: string;
+    slug: string;
+    available: boolean;
+    parentCategoryId: number | null;
+    seoTitle: string;
+    seoDescription: string;
+    seoKeywords: string[];
+    topBlog: string;
+    bottomBlog: string;
+    banner: string | undefined;
+  };
+};
+
+type CreateCategoryResponse = {
+  success: boolean;
+};
+
+type CreateMutateFn = (
+  url: string,
+  data: CreateCategoryBody
+) => Promise<CreateCategoryResponse | null>;
 
 import CategoryBlogEditor from "./CategoryBlogEditor";
 import { Category } from "../types/types";
@@ -44,7 +70,7 @@ async function doCreateItem(
     fn: () => Promise<T>,
     opts?: { retries?: number; baseDelayMs?: number }
   ) => Promise<T>,
-  createMutate: any,
+  createMutate: CreateMutateFn,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
   setError: React.Dispatch<React.SetStateAction<string | null>>,
   setName: React.Dispatch<React.SetStateAction<string>>,
@@ -57,21 +83,21 @@ async function doCreateItem(
   setKeywordInput: React.Dispatch<React.SetStateAction<string>>,
   setTopBlog: React.Dispatch<React.SetStateAction<string>>,
   setBottomBlog: React.Dispatch<React.SetStateAction<string>>,
-  setBannerFile: React.Dispatch<React.SetStateAction<File | null>>,
+  setBannerFile: (v: File | null) => void,
   setBannerPreview: React.Dispatch<React.SetStateAction<string>>,
-  setBannerCleared: React.Dispatch<React.SetStateAction<boolean>>,
+  setBannerCleared: (v: boolean) => void,
   onClose: () => void,
   refetchCategories: () => void
 ) {
   setLoading(true);
   try {
-    const result: any = {
+    const result: CreateCategoryBody = {
       type: activeTab,
       data: {
         name,
         slug,
         available,
-        parentCategoryId: activeTab === "Subcategory" ? parentCategoryId : null,
+        parentCategoryId: activeTab === "Subcategory" ? (parentCategoryId ?? null) : null,
         seoTitle,
         seoDescription,
         seoKeywords,
@@ -88,12 +114,14 @@ async function doCreateItem(
           : {
               type: "categoryBanner",
               contentType: bannerFile.type,
-              categorySlug:
-                categories.find((c) => c.CategoryID === parentCategoryId)?.Slug || slug,
+              categorySlug: categories.find((c) => c.CategoryID === parentCategoryId)?.Slug || slug,
               subcategorySlug: slug,
             };
 
-      const presignRes = await withRetry401(() => axios.post("/api/s3/upload", payload)) as any;
+      type PresignResponse = { uploadUrl: string; key: string };
+      const presignRes = await withRetry401(() =>
+        axios.post<PresignResponse>("/api/s3/upload", payload)
+      );
       const presign = presignRes.data;
       await axios.put(presign.uploadUrl, bannerFile, {
         headers: { "Content-Type": bannerFile.type },
@@ -146,6 +174,58 @@ async function doCreateItem(
   }
 }
 
+async function withRetry401<T>(
+  requestFn: () => Promise<T>,
+  options: { retries?: number; baseDelayMs?: number } = {}
+): Promise<T> {
+  const { retries = 3, baseDelayMs = 300 } = options;
+  let lastError: unknown;
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      return await requestFn();
+    } catch (error: unknown) {
+      lastError = error;
+      const axiosError = error as { response?: { status?: number } };
+      if (axiosError.response?.status === 401 && attempt < retries - 1) {
+        await new Promise((r) => setTimeout(r, baseDelayMs * (attempt + 1)));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw lastError as Error;
+}
+
+type FormData = {
+  name: string;
+  slug: string;
+  available: boolean;
+  parentCategoryId: number | undefined;
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string[];
+  keywordInput: string;
+  error: string | null;
+  topBlog: string;
+  bottomBlog: string;
+  bannerPreview: string;
+};
+
+const initialFormState: FormData = {
+  name: "",
+  slug: "",
+  available: true,
+  parentCategoryId: undefined,
+  seoTitle: "",
+  seoDescription: "",
+  seoKeywords: [],
+  keywordInput: "",
+  error: null,
+  topBlog: "",
+  bottomBlog: "",
+  bannerPreview: "",
+};
+
 const CreateNewItemModal = ({
   isOpen,
   onClose,
@@ -158,62 +238,68 @@ const CreateNewItemModal = ({
   categories: Category[];
 }) => {
   const [activeTab, setActiveTab] = useState("Category");
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [available, setAvailable] = useState(true);
-  const [parentCategoryId, setParentCategoryId] = useState<number | undefined>(undefined);
-  const [seoTitle, setSeoTitle] = useState("");
-  const [seoDescription, setSeoDescription] = useState("");
-  const [seoKeywords, setSeoKeywords] = useState<string[]>([]);
-  const [keywordInput, setKeywordInput] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { mutate: createMutate } = useApiMutation("post");
-  const [topBlog, setTopBlog] = useState("");
-  const [bottomBlog, setBottomBlog] = useState("");
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [bannerPreview, setBannerPreview] = useState<string>("");
-  const [bannerCleared, setBannerCleared] = useState<boolean>(false);
+  const { mutate: createMutate } = useApiMutation<CreateCategoryBody, CreateCategoryResponse>(
+    "post"
+  );
+  const bannerFileRef = useRef<File | null>(null);
+  const bannerClearedRef = useRef<boolean>(false);
 
-  // Retry helper for 401 errors
-  const withRetry401 = async <T,>(
-    requestFn: () => Promise<T>,
-    options: { retries?: number; baseDelayMs?: number } = {}
-  ): Promise<T> => {
-    const { retries = 3, baseDelayMs = 300 } = options;
-    let lastError: unknown;
-    for (let attempt = 0; attempt < retries; attempt++) {
-      try {
-        return await requestFn();
-      } catch (error: any) {
-        lastError = error;
-        if (error?.response?.status === 401 && attempt < retries - 1) {
-          await new Promise((r) => setTimeout(r, baseDelayMs * (attempt + 1)));
-          continue;
-        }
-        throw error;
-      }
-    }
-    throw lastError as Error;
-  };
+  const [form, setForm] = useState<FormData>(initialFormState);
+  const {
+    name,
+    slug,
+    available,
+    parentCategoryId,
+    seoTitle,
+    seoDescription,
+    seoKeywords,
+    keywordInput,
+    error,
+    topBlog,
+    bottomBlog,
+    bannerPreview,
+  } = form;
 
+  // Create properly typed setter functions for form fields
+  function makeSetter<K extends keyof FormData>(
+    field: K
+  ): React.Dispatch<React.SetStateAction<FormData[K]>> {
+    return (v) =>
+      setForm((prev) => ({
+        ...prev,
+        [field]:
+          typeof v === "function" ? (v as (prev: FormData[K]) => FormData[K])(prev[field]) : v,
+      }));
+  }
+  const setName = makeSetter("name");
+  const setSlug = makeSetter("slug");
+  const setAvailable = makeSetter("available");
+  const setParentCategoryId = makeSetter("parentCategoryId");
+  const setSeoTitle = makeSetter("seoTitle");
+  const setSeoDescription = makeSetter("seoDescription");
+  const setSeoKeywords = makeSetter("seoKeywords");
+  const setKeywordInput = makeSetter("keywordInput");
+  const setError = makeSetter("error");
+  const setTopBlog = makeSetter("topBlog");
+  const setBottomBlog = makeSetter("bottomBlog");
+  const setBannerPreview = makeSetter("bannerPreview");
+  const resetForm = useCallback(() => setForm(initialFormState), [setForm]);
+
+  const resetGuard = useRef(false);
   // Reset the form fields when the modal is opened (when `isOpen` changes)
   useEffect(() => {
-    setName("");
-    setSlug("");
-    setAvailable(true);
-    setParentCategoryId(undefined);
-    setSeoTitle("");
-    setSeoDescription("");
-    setSeoKeywords([]);
-    setKeywordInput("");
-    setError(null); // Clear any previous error messages
-    setTopBlog("");
-    setBottomBlog("");
-    setBannerFile(null);
-    setBannerPreview("");
-    setBannerCleared(false);
-  }, [isOpen, activeTab]); // Trigger the effect when `isOpen` changes
+    if (!isOpen) {
+      resetGuard.current = false;
+      return;
+    }
+    if (resetGuard.current) return;
+    resetGuard.current = true;
+
+    resetForm();
+    bannerFileRef.current = null;
+    bannerClearedRef.current = false;
+  }, [isOpen, activeTab, resetForm]);
 
   const addKeyword = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && keywordInput.trim() && !seoKeywords.includes(keywordInput.trim())) {
@@ -229,6 +315,11 @@ const CreateNewItemModal = ({
   const handleSubmit = async () => {
     if (name.trim() === "") {
       setError("نام نمی‌تواند خالی باشد.");
+      return;
+    }
+
+    if (isSubmitDisabled()) {
+      setError("لطفاً فیلدهای مشخص‌شده را اصلاح کنید و دوباره تلاش کنید.");
       return;
     }
 
@@ -254,8 +345,8 @@ const CreateNewItemModal = ({
       seoKeywords,
       topBlog,
       bottomBlog,
-      bannerFile,
-      bannerCleared,
+      bannerFileRef.current,
+      bannerClearedRef.current,
       activeTab,
       categories,
       withRetry401,
@@ -272,57 +363,291 @@ const CreateNewItemModal = ({
       setKeywordInput,
       setTopBlog,
       setBottomBlog,
-      setBannerFile,
+      (v: File | null) => {
+        bannerFileRef.current = v;
+      },
       setBannerPreview,
-      setBannerCleared,
+      (v: boolean) => {
+        bannerClearedRef.current = v;
+      },
       onClose,
       refetchCategories
     );
   };
 
   const isSubmitDisabled = () => {
+    const validName = /^[a-zA-Z0-9-\u0600-\u06FF\s_\u200C\u002D\u2013\u2014]{1,1000}$/.test(name);
+    const validSlug = /^[a-z0-9-]{1,200}$/.test(slug);
+    const validSeo =
+      seoTitle.length <= 50 &&
+      seoDescription.length <= 4000 &&
+      seoKeywords.join(",").length <= 4000;
+
     if (activeTab === "Category") {
       return (
-        name.trim() === "" ||
-        slug.trim() === "" ||
+        !validName ||
+        !validSlug ||
         seoTitle.trim() === "" ||
-        seoDescription.trim() === ""
+        seoDescription.trim() === "" ||
+        !validSeo
       );
     } else if (activeTab === "Subcategory") {
-      return name.trim() === "" || slug.trim() === "" || !parentCategoryId;
+      return !validName || !validSlug || !parentCategoryId || !validSeo;
     }
     return false;
   };
 
   // Dropzone for banner upload
-  const onDrop = useCallback((accepted: File[]) => {
-    if (accepted.length > 0) {
-      const file = accepted[0];
-      setBannerFile(file);
-      setBannerPreview(URL.createObjectURL(file));
-    }
-  }, []);
+  const onDrop = useCallback(
+    (accepted: File[]) => {
+      if (accepted.length > 0) {
+        const file = accepted[0];
+        bannerFileRef.current = file;
+        setForm((previous) => ({
+          ...previous,
+          error: null,
+          bannerPreview: URL.createObjectURL(file),
+        }));
+      }
+    },
+    [setForm]
+  );
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
     onDrop,
     accept: { "image/*": [] },
+    maxSize: 2 * 1024 * 1024,
+    onDropRejected: () => setError("حجم تصویر باید حداکثر ۲ مگابایت باشد و فرمت آن تصویر باشد."),
     maxFiles: 1,
     multiple: false,
   });
 
-  return (
-    <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-lg ${
-        !isOpen ? "hidden" : ""
-      }`}
+  useEffect(() => {
+    return () => {
+      if (bannerPreview) URL.revokeObjectURL(bannerPreview);
+    };
+  }, [bannerPreview]);
+
+  return isOpen ? (
+    <CreateNewItemModalPanel
+      isOpen={isOpen}
+      onClose={onClose}
+      isSaving={loading}
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
     >
-      <div className="w-full max-w-3xl animate-fade-in">
-        <div className="rtl flex justify-center gap-6">
+      <div className="max-h-[90dvh] overflow-y-scroll overscroll-contain rounded-2xl bg-gray-800 p-6 pr-9 text-white shadow-xl">
+        {activeTab === "Category" ? (
+          <CategoryFields
+            name={name}
+            slug={slug}
+            available={available}
+            setName={setName}
+            setSlug={setSlug}
+            setAvailable={setAvailable}
+            editable={true}
+            headingLevel="h2"
+          />
+        ) : (
+          <div>
+            <div className="mb-4">
+              <label htmlFor="parent-category" className="block text-sm font-medium">
+                دسته‌بندی اصلی
+              </label>
+              <select
+                id="parent-category"
+                aria-label="دسته‌بندی اصلی"
+                value={parentCategoryId ?? ""}
+                onChange={(e) => setParentCategoryId(Number(e.target.value))}
+                className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              >
+                <option value="" disabled>
+                  انتخاب دسته‌بندی
+                </option>
+                {categories.map((category) => (
+                  <option key={category.CategoryID} value={category.CategoryID}>
+                    {category.Name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <CategoryFields
+              name={name}
+              slug={slug}
+              available={available}
+              setName={setName}
+              setSlug={setSlug}
+              setAvailable={setAvailable}
+              editable={parentCategoryId !== undefined}
+              headingLevel="h2"
+            />
+          </div>
+        )}
+
+        <SeoFields
+          seoTitle={seoTitle}
+          seoDescription={seoDescription}
+          seoKeywords={seoKeywords}
+          setSeoTitle={setSeoTitle}
+          setSeoDescription={setSeoDescription}
+          keywordInput={keywordInput}
+          setKeywordInput={setKeywordInput}
+          addKeyword={addKeyword}
+          removeKeyword={removeKeyword}
+          editable={activeTab === "Category" || parentCategoryId !== undefined}
+        />
+
+        <div className="mt-6 rounded-md bg-gray-900 p-4">
+          <div className="mb-6">
+            <label htmlFor="category-banner" className="mb-2 block text-sm font-medium">
+              تصویر بنر
+            </label>
+            <div
+              {...getRootProps()}
+              className={`cursor-pointer rounded-md border-2 border-dashed p-4 text-center transition-colors ${
+                isDragActive
+                  ? "border-blue-400 bg-blue-900/20"
+                  : isDragReject
+                    ? "border-red-400 bg-red-900/20"
+                    : "border-gray-600 hover:border-blue-400 hover:bg-blue-900/10"
+              } ${bannerPreview ? "border-green-500" : ""}`}
+            >
+              <input {...getInputProps({ id: "category-banner", name: "banner" })} />
+              {bannerPreview ? (
+                <div className="space-y-2">
+                  <p className="text-green-400">تصویر انتخاب شد</p>
+                  <p className="text-xs text-gray-400">
+                    اندازه پیشنهادی: 1920x600 (16:5) | حداکثر 2MB
+                  </p>
+                </div>
+              ) : isDragActive ? (
+                <p>فایل را اینجا رها کنید ...</p>
+              ) : isDragReject ? (
+                <p className="text-red-400">فقط فایل تصویر مجاز است!</p>
+              ) : (
+                <div className="space-y-2">
+                  <p>برای انتخاب تصویر کلیک کنید یا تصویر را به اینجا بکشید</p>
+                  <p className="text-xs text-gray-400">
+                    اندازه پیشنهادی: 1920x600 (16:5) | حداکثر 2MB
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {bannerPreview && (
+              <div
+                className="relative mt-4 w-full overflow-hidden rounded-md bg-gray-700"
+                style={{ aspectRatio: "16/5" }}
+              >
+                <img src={bannerPreview} alt="پیش‌نمایش بنر" className="size-full object-cover" />
+              </div>
+            )}
+            {bannerPreview && (
+              <div className="mt-3 flex justify-end">
+                <button
+                  type="button"
+                  className="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
+                  onClick={() => {
+                    bannerFileRef.current = null;
+                    setBannerPreview("");
+                    bannerClearedRef.current = true;
+                  }}
+                >
+                  حذف بنر
+                </button>
+              </div>
+            )}
+          </div>
+
+          <CategoryBlogEditor
+            label="متن بالای صفحه"
+            value={topBlog}
+            onChange={setTopBlog}
+            placeholder="متن یا جدول دلخواه برای بالای صفحه دسته/زیردسته"
+          />
+          <CategoryBlogEditor
+            label="متن پایین صفحه"
+            value={bottomBlog}
+            onChange={setBottomBlog}
+            placeholder="متن یا جدول دلخواه برای پایین صفحه دسته/زیردسته"
+          />
+        </div>
+
+        {error && (
+          <div role="alert" aria-live="polite" className="mt-4 text-sm text-red-500">
+            {error}
+          </div>
+        )}
+        <div className="mt-5 flex items-center justify-between">
           <button
             type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="rounded-xl bg-white px-6 py-3 font-medium text-gray-700"
+          >
+            انصراف
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isSubmitDisabled() || loading} // Disable the button if loading
+            className={`rounded-xl px-6 py-3 font-medium text-white disabled:cursor-not-allowed disabled:bg-gray-400 ${
+              loading ? "cursor-not-allowed bg-blue-400" : "bg-blue-500"
+            }`}
+          >
+            {loading
+              ? "در حال ثبت" // Add a loading spinner or any other indicator
+              : "ثبت"}
+          </button>
+        </div>
+      </div>
+    </CreateNewItemModalPanel>
+  ) : null;
+};
+
+function CreateNewItemModalPanel({
+  isOpen,
+  onClose,
+  isSaving,
+  activeTab,
+  setActiveTab,
+  children,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  isSaving: boolean;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  children: React.ReactNode;
+}) {
+  const panelRef = useModalA11y<HTMLDivElement>({
+    onClose,
+    isOpen,
+    shouldCloseOnEscape: () => !isSaving,
+  });
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={activeTab === "Category" ? "دسته‌بندی جدید" : "زیردسته‌بندی جدید"}
+        tabIndex={-1}
+        className="animate-fade-in w-full max-w-3xl px-4 focus:outline-none sm:px-0"
+      >
+        <div className="rtl flex justify-center gap-6" role="tablist" aria-label="نوع آیتم جدید">
+          <button
+            type="button"
+            role="tab"
+            disabled={isSaving}
+            aria-selected={activeTab === "Category"}
             data-testid="newCategoryButton"
             onClick={() => setActiveTab("Category")}
-            className={`rounded-t-xl px-6 py-3 font-medium transition-all ${
+            className={`rounded-t-xl px-6 py-3 font-medium transition-colors ${
               activeTab === "Category"
                 ? "bg-gray-800 text-gray-200"
                 : "bg-blue-800 text-white hover:animate-pulse"
@@ -332,9 +657,12 @@ const CreateNewItemModal = ({
           </button>
           <button
             type="button"
+            role="tab"
+            disabled={isSaving}
+            aria-selected={activeTab === "Subcategory"}
             data-testid="newSubCategoryButton"
             onClick={() => setActiveTab("Subcategory")}
-            className={`rounded-t-xl px-6 py-3 font-medium transition-all ${
+            className={`rounded-t-xl px-6 py-3 font-medium transition-colors ${
               activeTab === "Subcategory"
                 ? "bg-gray-800 text-gray-200"
                 : "bg-blue-800 text-white hover:animate-pulse"
@@ -344,166 +672,10 @@ const CreateNewItemModal = ({
           </button>
         </div>
 
-        <div className="max-h-[90dvh] overflow-y-scroll rounded-2xl bg-gray-800 p-6 pr-9 text-white shadow-xl">
-          {activeTab === "Category" ? (
-            <CategoryFields
-              name={name}
-              slug={slug}
-              available={available}
-              setName={setName}
-              setSlug={setSlug}
-              setAvailable={setAvailable}
-              editable={true}
-            />
-          ) : (
-            <div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">دسته‌بندی اصلی</label>
-                <select
-                  value={parentCategoryId ?? ""}
-                  onChange={(e) => setParentCategoryId(Number(e.target.value))}
-                  className="mt-2 w-full rounded-md border bg-gray-700 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="" disabled>
-                    انتخاب دسته‌بندی
-                  </option>
-                  {categories.map((category) => (
-                    <option key={category.CategoryID} value={category.CategoryID}>
-                      {category.Name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <CategoryFields
-                name={name}
-                slug={slug}
-                available={available}
-                setName={setName}
-                setSlug={setSlug}
-                setAvailable={setAvailable}
-                editable={parentCategoryId !== undefined}
-              />
-            </div>
-          )}
-
-          <SeoFields
-            seoTitle={seoTitle}
-            seoDescription={seoDescription}
-            seoKeywords={seoKeywords}
-            setSeoTitle={setSeoTitle}
-            setSeoDescription={setSeoDescription}
-            keywordInput={keywordInput}
-            setKeywordInput={setKeywordInput}
-            addKeyword={addKeyword}
-            removeKeyword={removeKeyword}
-            editable={activeTab === "Category" || parentCategoryId !== undefined}
-          />
-
-          <div className="mt-6 rounded-md bg-gray-900 p-4">
-            <div className="mb-6">
-              <label className="mb-2 block text-sm font-medium">تصویر بنر</label>
-              <div
-                {...getRootProps()}
-                className={`cursor-pointer rounded-md border-2 border-dashed p-4 text-center transition-colors ${
-                  isDragActive
-                    ? "border-blue-400 bg-blue-900/20"
-                    : isDragReject
-                      ? "border-red-400 bg-red-900/20"
-                      : "border-gray-600 hover:border-blue-400 hover:bg-blue-900/10"
-                } ${bannerPreview ? "border-green-500" : ""}`}
-              >
-                <input {...getInputProps()} />
-                {bannerPreview ? (
-                  <div className="space-y-2">
-                    <p className="text-green-400">تصویر انتخاب شد</p>
-                    <p className="text-xs text-gray-400">
-                      اندازه پیشنهادی: 1920x600 (16:5) | حداکثر 2MB
-                    </p>
-                  </div>
-                ) : isDragActive ? (
-                  <p>فایل را اینجا رها کنید ...</p>
-                ) : isDragReject ? (
-                  <p className="text-red-400">فقط فایل تصویر مجاز است!</p>
-                ) : (
-                  <div className="space-y-2">
-                    <p>برای انتخاب تصویر کلیک کنید یا تصویر را به اینجا بکشید</p>
-                    <p className="text-xs text-gray-400">
-                      اندازه پیشنهادی: 1920x600 (16:5) | حداکثر 2MB
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {bannerPreview && (
-                <div
-                  className="relative mt-4 w-full overflow-hidden rounded-md bg-gray-700"
-                  style={{ aspectRatio: "16/5" }}
-                >
-                  <img
-                    src={bannerPreview}
-                    alt="پیش‌نمایش بنر"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              )}
-              {bannerPreview && (
-                <div className="mt-3 flex justify-end">
-                  <button
-                    type="button"
-                    className="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
-                    onClick={() => {
-                      setBannerFile(null);
-                      setBannerPreview("");
-                      setBannerCleared(true);
-                    }}
-                  >
-                    حذف بنر
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <CategoryBlogEditor
-              label="متن بالای صفحه"
-              value={topBlog}
-              onChange={setTopBlog}
-              placeholder="متن یا جدول دلخواه برای بالای صفحه دسته/زیردسته"
-            />
-            <CategoryBlogEditor
-              label="متن پایین صفحه"
-              value={bottomBlog}
-              onChange={setBottomBlog}
-              placeholder="متن یا جدول دلخواه برای پایین صفحه دسته/زیردسته"
-            />
-          </div>
-
-          {error && <div className="mt-4 text-sm text-red-500">{error}</div>}
-          <div className="mt-5 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl bg-white px-6 py-3 font-medium text-gray-700"
-            >
-              انصراف
-            </button>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={isSubmitDisabled() || loading} // Disable the button if loading
-              className={`rounded-xl bg-blue-500 px-6 py-3 font-medium text-white disabled:cursor-not-allowed disabled:bg-gray-400 ${
-                loading ? "cursor-not-allowed" : ""
-              }`}
-            >
-              {loading
-                ? "در حال ثبت" // Add a loading spinner or any other indicator
-                : "ثبت"}
-            </button>
-          </div>
-        </div>
+        {children}
       </div>
     </div>
   );
-};
+}
 
 export default CreateNewItemModal;

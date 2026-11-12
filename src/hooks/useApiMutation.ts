@@ -1,6 +1,6 @@
 "use client";
 import axios from "axios";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 
 type MutationMethod = "post" | "put" | "patch" | "delete";
 
@@ -22,8 +22,16 @@ async function executeMutation<TResponse, TData>(
       return null;
     }
     return response.data as TResponse;
-  } catch (e: any) {
-    const message = e?.response?.data?.message || e?.message || "خطا در عملیات";
+  } catch (e: unknown) {
+    const error = e as {
+      response?: { data?: { error?: string; message?: string } };
+      message?: string;
+    };
+    const message =
+      error?.response?.data?.error ||
+      error?.response?.data?.message ||
+      error?.message ||
+      "خطا در عملیات";
     setError(message);
     return null;
   } finally {
@@ -31,31 +39,33 @@ async function executeMutation<TResponse, TData>(
   }
 }
 
-type UseApiMutationResult<TData, TResponse> = {
-  mutate: TData extends undefined
+export type UseApiMutationResult<TBody, TResponse> = {
+  mutate: TBody extends undefined
     ? (url: string) => Promise<TResponse | null>
-    : (url: string, data?: TData) => Promise<TResponse | null>;
+    : (url: string, data?: TBody) => Promise<TResponse | null>;
   loading: boolean;
   error: string | null;
   reset: () => void;
 };
 
-export function useApiMutation<TResponse = any, TData = any>(
+export function useApiMutation<TBody = unknown, TResponse = unknown>(
   method: MutationMethod = "post"
-): UseApiMutationResult<TData, TResponse> {
+): UseApiMutationResult<TBody, TResponse> {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const reset = useCallback(() => {
+  const reset = () => {
     setError(null);
-  }, []);
+  };
 
-  const mutate = useCallback(
-    async (url: string, data?: TData): Promise<TResponse | null> => {
-      return executeMutation<TResponse, TData>(method, url, data, setLoading, setError);
-    },
-    [method]
-  );
+  const mutate = async (url: string, data?: TBody): Promise<TResponse | null> => {
+    return executeMutation<TResponse, TBody>(method, url, data, setLoading, setError);
+  };
 
-  return { mutate: mutate as any, loading, error, reset };
+  return {
+    mutate: mutate as unknown as UseApiMutationResult<TBody, TResponse>["mutate"],
+    loading,
+    error,
+    reset,
+  };
 }

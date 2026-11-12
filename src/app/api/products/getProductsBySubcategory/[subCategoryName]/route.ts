@@ -190,7 +190,7 @@ export async function GET(req: Request, props: { params: Promise<{ subCategoryNa
     const categoryIds = Object.keys(productsByCategory).sort((a, b) => Number(a) - Number(b));
 
     for (const categoryId of categoryIds) {
-      const productsInCategory = productsByCategory[categoryId];
+      const productsInCategory = productsByCategory[Number(categoryId)];
 
       // Sort products by ProductId descending (newest first)
       const sortedProducts = productsInCategory.sort(

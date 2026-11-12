@@ -1,6 +1,5 @@
 describe("Product Edit Test", () => {
   const adminUrl = "http://localhost:3000/admin/products";
-  const loginUrl = "http://localhost:3000/auth/login";
 
   const originalNameStartsWith = "Test Product for E2E";
   const editedType = "Edited Name - Updated Detailed Description";
@@ -15,16 +14,7 @@ describe("Product Edit Test", () => {
     "Keep the product clean and follow the updated manual guidelines for longevity.";
 
   beforeEach(() => {
-    cy.visit(loginUrl);
-    cy.get('[data-testid="username-input"]').type("FarabakAdmin");
-    cy.get('[data-testid="password-input"]').type("F@rabak@dmin1007066");
-    cy.get('[data-testid="submit-button"]').click();
-
-    cy.wait(15000);
-    cy.url().should("include", "/admin");
-    cy.get("body").should("not.contain", "Error fetching user data");
-
-    cy.wait(5000);
+    cy.login("admin");
     cy.visit(adminUrl);
     cy.url().should("include", "/admin/products");
   });

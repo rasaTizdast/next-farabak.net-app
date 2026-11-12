@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" role="img" aria-labelledby="title desc">
+  <title id="title">موقعیت دفتر مرکزی فرابک</title>
+  <desc id="desc">نقشه‌ای گرافیکی با نشانگر موقعیت دفتر مرکزی فرابک</desc>
+  <defs>
+    <linearGradient id="background" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#0b477c" />
+      <stop offset="1" stop-color="#061a30" />
+    </linearGradient>
+    <pattern id="streets" width="90" height="90" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
+      <path d="M0 18H90M0 66H90M18 0V90M66 0V90" fill="none" stroke="#8bd8ff" stroke-opacity=".14" stroke-width="3" />
+      <path d="M0 42H90M42 0V90" fill="none" stroke="#8bd8ff" stroke-opacity=".07" stroke-width="12" />
+    </pattern>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#001a34" flood-opacity=".35" />
+    </filter>
+  </defs>
+  <rect width="900" height="520" rx="28" fill="url(#background)" />
+  <rect x="22" y="22" width="856" height="476" rx="20" fill="url(#streets)" />
+  <path d="M-20 360C120 300 200 390 320 320S560 170 920 250" fill="none" stroke="#00bfff" stroke-opacity=".26" stroke-width="30" />
+  <path d="M-20 360C120 300 200 390 320 320S560 170 920 250" fill="none" stroke="#bdefff" stroke-opacity=".34" stroke-width="4" />
+  <g filter="url(#shadow)" transform="translate(450 240)">
+    <path d="M0-74c-38 0-68 30-68 68 0 52 68 126 68 126S68 46 68-6c0-38-30-68-68-68Z" fill="#1265e8" />
+    <circle cy="-7" r="24" fill="#fff" />
+    <circle cy="-7" r="10" fill="#1265e8" />
+  </g>
+  <rect x="292" y="386" width="316" height="68" rx="18" fill="#fff" fill-opacity=".96" />
+  <text x="450" y="416" text-anchor="middle" fill="#061a30" font-family="Arial, sans-serif" font-size="22" font-weight="700">دفتر مرکزی فرابک</text>
+  <text x="450" y="440" text-anchor="middle" fill="#52657d" font-family="Arial, sans-serif" font-size="14">سعادت‌آباد، تهران</text>
+</svg>

@@ -1,9 +1,9 @@
-import styles from "./ProductsLayout.module.css";
+import { publicShellClasses } from "@/components/public/PublicShell";
 
 const ProductsLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <main className={styles.main}>
-      <section className={styles.section}>{children}</section>
+    <main className="w-full py-4">
+      <section className={publicShellClasses}>{children}</section>
     </main>
   );
 };

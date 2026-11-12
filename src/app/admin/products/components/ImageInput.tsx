@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ImageInputProps {
   label: string;
@@ -10,9 +10,21 @@ interface ImageInputProps {
 const ImageInput: React.FC<ImageInputProps> = ({ label, imageUrl, onChange }) => {
   const [preview, setPreview] = useState(() => imageUrl);
 
+  // Show the current image if the product's image changes (e.g. switching products)
+  useEffect(() => {
+    setPreview(imageUrl);
+  }, [imageUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if (!file.type.startsWith("image/")) return;
       setPreview(URL.createObjectURL(file)); // Preview the new image
       onChange(file); // Call the onChange callback
     }
@@ -29,12 +41,12 @@ const ImageInput: React.FC<ImageInputProps> = ({ label, imageUrl, onChange }) =>
           quality={100}
           src={preview}
           alt="آپلود تصویر"
-          className="h-full w-full rounded-lg bg-gray-900 object-contain transition-all"
+          className="size-full rounded-lg bg-gray-900 object-contain transition-colors"
         />
 
         {/* Hover overlay */}
-        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black bg-opacity-50 opacity-0 transition-all duration-300 hover:opacity-100">
-          <label className="cursor-pointer rounded-md bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-700">
+        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 opacity-0 transition-opacity duration-300 hover:opacity-100">
+          <label className="cursor-pointer rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700">
             آپلود عکس
             <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
           </label>

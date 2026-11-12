@@ -35,7 +35,7 @@ async function fetchUserContext(
   try {
     setLoading(true);
     const response = await axios.get("/api/auth/profile");
-    setUser(response.data);
+    setUser(response.data?.user ?? null);
   } catch (error) {
     if (
       error instanceof AxiosError &&
@@ -74,7 +74,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isBranch = user?.role.toLowerCase() === "branch";
   const userFullName = `${user?.firstName || ""} ${user?.lastName || ""}`;
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
     updateUserContext();
   }, []);

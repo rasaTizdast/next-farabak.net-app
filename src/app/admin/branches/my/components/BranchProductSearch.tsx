@@ -4,6 +4,7 @@ import { SearchOutlined, ShopOutlined } from "@ant-design/icons";
 import { Button, Table, Empty, Spin, message, Select, Card, Alert, Tag } from "antd";
 import { useState } from "react";
 
+import { adminColors } from "@/constants/adminColors";
 import { useApiFetch } from "@/hooks/useApiFetch";
 
 import { Product } from "../../components/types";
@@ -36,9 +37,7 @@ async function branchProductSearch(
     setSearchLoading(true);
     setSearchPerformed(true);
 
-    const response = await fetch(
-      `/api/admin/branches/product-stock?productId=${selectedProduct}`
-    );
+    const response = await fetch(`/api/admin/branches/product-stock?productId=${selectedProduct}`);
     if (!response.ok) {
       throw new Error("Failed to search branches");
     }
@@ -47,18 +46,23 @@ async function branchProductSearch(
     let processedData: BranchProduct[] = [];
 
     if (Array.isArray(data)) {
-      processedData = data
-        .filter((branch) => branch && branch.branchid && branch.name)
-        .map((branch) => ({
-          branchid: branch.branchid,
-          branchName: branch.name,
-          location: branch.location,
-          ProductId: selectedProduct,
-          ProductType: products.find((p) => p.ProductId === selectedProduct)?.Type || "",
-          quantity: branch.quantity || 0,
-        }));
+      processedData = data.reduce<BranchProduct[]>((acc, branch) => {
+        if (branch && branch.branchid && branch.name) {
+          acc.push({
+            branchid: branch.branchid,
+            branchName: branch.name,
+            location: branch.location,
+            ProductId: selectedProduct,
+            ProductType: products.find((p) => p.ProductId === selectedProduct)?.Type || "",
+            quantity: branch.quantity || 0,
+          });
+        }
+        return acc;
+      }, []);
     } else if (data && Array.isArray(data.branches)) {
-      processedData = data.branches.filter((branch) => branch && branch.branchid);
+      processedData = data.branches.filter(
+        (branch: Record<string, unknown>) => branch && branch.branchid
+      );
     }
 
     setBranchProducts(processedData);
@@ -128,12 +132,12 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
         title="جستجوی محصول در شعبه‌های دیگر"
         className="h-full border-0 bg-gray-800"
         headStyle={{
-          backgroundColor: "#19202b",
+          backgroundColor: adminColors.panelAlt,
           color: "white",
-          borderBottom: "1px solid #374151",
+          borderBottom: `1px solid ${adminColors.border}`,
         }}
         bodyStyle={{
-          backgroundColor: "#19202b",
+          backgroundColor: adminColors.panelAlt,
           padding: "16px",
           display: "flex",
           flexDirection: "column",
@@ -151,16 +155,23 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
 
         <div className="mb-4 flex flex-col gap-3">
           <div>
-            <label className="mb-2 block text-gray-300">انتخاب محصول</label>
+            <label htmlFor="branch-product-search" className="mb-2 block text-gray-300">
+              انتخاب محصول
+            </label>
             <Select
+              id="branch-product-search"
               showSearch
               placeholder="محصول مورد نظر را انتخاب کنید"
               optionFilterProp="children"
               onChange={(value) => setSelectedProduct(value)}
               value={selectedProduct}
               loading={productsLoading}
-              className="w-full border-gray-600 bg-gray-700 text-white"
-              popupClassName="custom-dropdown enhanced-dropdown"
+              className="w-full border-gray-600 bg-gray-700 text-white [&_.ant-select-selector]:min-h-11!"
+              classNames={{
+                popup: {
+                  root: "custom-dropdown enhanced-dropdown !bg-gray-800 !border !border-gray-600 !rounded-lg !shadow-[0_8px_16px_rgba(0,0,0,0.5)] !overflow-hidden !max-h-[400px] !py-1.5 [&_.ant-select-item]:!text-white [&_.ant-select-item]:!bg-gray-800 [&_.ant-select-item]:!px-3 [&_.ant-select-item]:!py-2.5 [&_.ant-select-item]:!my-0.5 [&_.ant-select-item]:!mx-1.5 [&_.ant-select-item]:!rounded [&_.ant-select-item-option-active]:!bg-slate-700 [&_.ant-empty-description]:!text-gray-200",
+                },
+              }}
               filterOption={(input, option) =>
                 (option?.label?.toString() || "").toLowerCase().includes(input.toLowerCase())
               }
@@ -177,7 +188,7 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
               onClick={handleSearch}
               loading={searchLoading}
               icon={<SearchOutlined />}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="min-h-11 w-full bg-blue-600 hover:bg-blue-700"
             >
               جستجو در شعبه‌ها
             </Button>
@@ -186,7 +197,7 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
 
         {/* Results section */}
         {searchPerformed && (
-          <div className="mt-2 flex-grow overflow-auto">
+          <div className="mt-2 grow overflow-auto">
             <div className="mb-3 border-t border-gray-600 pt-4">
               <div className="mb-3 flex items-center">
                 <ShopOutlined className="ml-2 text-blue-400" />
@@ -210,7 +221,7 @@ const BranchProductSearch: React.FC<BranchProductSearchProps> = ({ isTabActive }
                   columns={columns}
                   rowKey="branchid"
                   pagination={{ pageSize: 5, size: "small" }}
-                  className="branch-result-table enhanced-table rtl-table"
+                  className="branch-result-table enhanced-table rtl-table [&_.ant-pagination-next]:rotate-180 [&_.ant-pagination-prev]:rotate-180 [&_.ant-table-pagination]:my-4!"
                   size="small"
                   scroll={{ x: 500 }}
                 />

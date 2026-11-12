@@ -1,3 +1,5 @@
+import { ColumnType } from "antd/es/table";
+
 export interface Branch {
   branchid: number;
   name: string;
@@ -25,6 +27,8 @@ export interface Product {
   Discount?: string;
   quantity: number;
 }
+
+export type ProductColumn = ColumnType<Product>;
 
 export interface Invoice {
   Invoiceid: number;
@@ -62,19 +66,18 @@ export interface Warranty {
   status: string;
 }
 
+const persianDateFormatter = new Intl.DateTimeFormat("fa-IR", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+
 // Function to convert to Persian date
 export const toPersianDate = (dateString: string) => {
   try {
     const date = new Date(dateString);
 
-    // Format date to Persian (fa-IR)
-    const formatter = new Intl.DateTimeFormat("fa-IR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-
-    return formatter.format(date);
+    return persianDateFormatter.format(date);
   } catch (error) {
     console.error(error);
     return "تاریخ نامشخص";

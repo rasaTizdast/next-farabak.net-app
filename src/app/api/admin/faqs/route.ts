@@ -1,9 +1,14 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 // GET: Fetch all FAQs
 export async function GET() {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const faqs = await prisma.faqDetails.findMany({
       orderBy: {
@@ -42,6 +47,8 @@ export async function GET() {
 
 // POST: Create a new FAQ
 export async function POST(req: NextRequest) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
   try {
     const body = await req.json();
     const { Q, A, Available } = body;
@@ -60,6 +67,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    revalidateTag(TAGS.faqs, "max");
     return NextResponse.json({ faq: newFaq }, { status: 201 });
   } catch (error) {
     // More detailed error logging

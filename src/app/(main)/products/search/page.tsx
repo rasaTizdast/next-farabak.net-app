@@ -1,5 +1,3 @@
-export const dynamic = "force-dynamic";
-
 import { Metadata } from "next";
 import { Suspense } from "react";
 
@@ -24,6 +22,8 @@ export async function generateMetadata(props: SearchPageProps): Promise<Metadata
   };
 }
 
+const searchBreadcrumbs = ["/", "/products", "/products/search"];
+
 export default async function SearchPage(props: SearchPageProps) {
   const searchParams = await props.searchParams;
   const query = searchParams.q || "";
@@ -32,12 +32,10 @@ export default async function SearchPage(props: SearchPageProps) {
   const limit = 0;
   const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/search?q=${encodeURIComponent(query)}&page=${currentPage}&limit=${limit}`;
 
-  const breadcrumbs = ["/", "/products", "/products/search"];
-
   return (
-    <>
+    <div dir="rtl">
       <Suspense fallback={<BreadcrumbSkeleton />}>
-        <BreadcrumbWrapper breadcrumbs={breadcrumbs} />
+        <BreadcrumbWrapper breadcrumbs={searchBreadcrumbs} />
       </Suspense>
       <Suspense fallback={<ProductGridSkeleton />}>
         <ProductGridWrapper
@@ -46,6 +44,6 @@ export default async function SearchPage(props: SearchPageProps) {
           currentPage={currentPage}
         />
       </Suspense>
-    </>
+    </div>
   );
 }

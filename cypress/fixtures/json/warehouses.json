@@ -1,0 +1,9 @@
+﻿[
+  {
+    "id": 1,
+    "name": "Example Warehouse",
+    "code": "EX-WH01",
+    "isActive": true,
+    "capacity": 1000
+  }
+]

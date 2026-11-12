@@ -17,13 +17,13 @@ const CreateNewItem = ({ refetchCategories, isLoading, categories }: Props) => {
 
   return (
     <div className="flex w-full justify-center">
-      <div className="w-full max-w-[1800px]">
+      <div className="w-full">
         {isLoading ? (
           <div className="h-[50px] w-full max-w-64 animate-pulse rounded-xl bg-gray-300 p-3 shadow-lg"></div>
         ) : (
           <button
             type="button"
-            className="text-md rounded-xl bg-blue-300 p-3 shadow-lg transition-all hover:bg-blue-400"
+            className="text-md rounded-xl bg-blue-300 p-3 shadow-lg transition-colors hover:bg-blue-400"
             onClick={openModalHandler}
           >
             ساخت دسته‌بندی یا زیردسته‌بندی جدید

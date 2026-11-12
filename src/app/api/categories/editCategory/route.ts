@@ -1,16 +1,9 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/lib/prisma"; // Assuming prisma is set up in this path
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
+import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -61,17 +54,10 @@ async function verifyToken(token: string) {
  */
 
 export async function PATCH(req: Request) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value;
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
 
-  if (!token) {
-    return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
-  }
-
-  const decoded = await verifyToken(token);
-  const userRole = decoded.role;
-
-  if (!userRole || userRole !== "Admin") {
+  if (auth.role !== "Admin") {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
@@ -125,6 +111,9 @@ export async function PATCH(req: Request) {
         include: { SEO_Category: true },
       });
 
+      revalidateTag(TAGS.categories, "max");
+      revalidateTag(TAGS.products, "max");
+      revalidateTag(TAGS.sitemap, "max");
       return NextResponse.json({
         message: "Category updated successfully",
         data: updatedCategory,
@@ -171,6 +160,9 @@ export async function PATCH(req: Request) {
         include: { SEO_CategoryContent: true },
       });
 
+      revalidateTag(TAGS.categories, "max");
+      revalidateTag(TAGS.products, "max");
+      revalidateTag(TAGS.sitemap, "max");
       return NextResponse.json({
         message: "Subcategory updated successfully",
         data: updatedSubcategory,

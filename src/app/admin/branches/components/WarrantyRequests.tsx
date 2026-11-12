@@ -14,6 +14,18 @@ import { useState, useEffect, useCallback } from "react";
 const { Text } = Typography;
 const { confirm } = Modal;
 
+const faDateFormatter = new Intl.DateTimeFormat("fa-IR");
+
+function formatDate(dateString: string) {
+  try {
+    const date = new Date(dateString);
+    return faDateFormatter.format(date);
+  } catch (error) {
+    console.error(error);
+    return dateString;
+  }
+}
+
 interface WarrantyRequest {
   warrantyid: number;
   warrantycode: string;
@@ -39,7 +51,9 @@ async function fetchWarrantyRequests(
   lastFetchTime: number,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
   setRequests: React.Dispatch<React.SetStateAction<WarrantyRequest[]>>,
-  setPagination: React.Dispatch<React.SetStateAction<{ current: number; pageSize: number; total: number; totalPages: number }>>,
+  setPagination: React.Dispatch<
+    React.SetStateAction<{ current: number; pageSize: number; total: number; totalPages: number }>
+  >,
   setDataFetched: React.Dispatch<React.SetStateAction<boolean>>,
   setLastFetchTime: React.Dispatch<React.SetStateAction<number>>,
   setError: React.Dispatch<React.SetStateAction<string>>
@@ -67,9 +81,11 @@ async function fetchWarrantyRequests(
     });
     setDataFetched(true);
     setLastFetchTime(now);
-  } catch (err: any) {
+    setError("");
+  } catch (err: unknown) {
     console.error("[Client] Error fetching warranty requests:", err);
-    setError(err.message || "خطا در دریافت درخواست‌های گارانتی");
+    const error = err as { message?: string };
+    setError(error.message || "خطا در دریافت درخواست‌های گارانتی");
   } finally {
     setLoading(false);
   }
@@ -90,7 +106,20 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
 
   const fetchRequests = useCallback(
     async (page: number = 1, pageSize: number = 10, force: boolean = false) => {
-      await fetchWarrantyRequests(page, pageSize, force, isTabActive, dataFetched, lastFetchTime, setLoading, setRequests, setPagination, setDataFetched, setLastFetchTime, setError);
+      await fetchWarrantyRequests(
+        page,
+        pageSize,
+        force,
+        isTabActive,
+        dataFetched,
+        lastFetchTime,
+        setLoading,
+        setRequests,
+        setPagination,
+        setDataFetched,
+        setLastFetchTime,
+        setError
+      );
     },
     [isTabActive, dataFetched, lastFetchTime]
   );
@@ -112,9 +141,9 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
       okType: "primary",
       cancelText: "لغو",
       onOk: async () => {
+        setLoading(true);
         try {
-          setLoading(true);
-          const response = await fetch("/api/admin/warranty/requests", {
+          const res = await fetch("/api/admin/warranty/requests", {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
@@ -125,28 +154,17 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
             }),
           });
 
-          if (!response.ok) {
-            throw new Error("خطا در به‌روزرسانی وضعیت گارانتی");
+          if (!res.ok) {
+            console.error("[Client] Error resolving warranty request:", res.statusText);
+            return;
           }
 
-          // Refresh the list after successful update
-          fetchRequests(pagination.current, pagination.pageSize, true);
-        } catch (error) {
-          console.error("[Client] Error resolving warranty request:", error);
+          await fetchRequests(pagination.current, pagination.pageSize, true);
+        } finally {
           setLoading(false);
         }
       },
     });
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return new Intl.DateTimeFormat("fa-IR").format(date);
-    } catch (error) {
-      console.error(error);
-      return dateString;
-    }
   };
 
   const handlePaginationChange = (page: number, pageSize?: number) => {
@@ -181,7 +199,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
       title: "مشتری",
       key: "customer",
       className: "font-medium",
-      render: (_, record: WarrantyRequest) => (
+      render: (_: unknown, record: WarrantyRequest) => (
         <div>
           <div className="mb-1 flex items-center">
             <UserOutlined className="ml-1 text-blue-500" />
@@ -221,7 +239,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
       dataIndex: "status",
       className: "font-medium text-center",
       render: () => (
-        <Tag color="gold" className="px-3 py-1">
+        <Tag color="gold" className="m-0! px-3 py-1 text-center!">
           درخواست بررسی
         </Tag>
       ),
@@ -230,7 +248,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
       title: "عملیات",
       key: "actions",
       className: "text-center",
-      render: (_, record: WarrantyRequest) => (
+      render: (_: unknown, record: WarrantyRequest) => (
         <Button
           htmlType="button"
           type="primary"
@@ -303,7 +321,9 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
               dataSource={requests}
               pagination={false}
               rowKey="warrantyid"
-              className="warranty-requests-table"
+              scroll={{ x: "max-content" }}
+              className="warranty-requests-table [&_.ant-table]:bg-gray-800! [&_.ant-table]:text-white! [&_.ant-table-tbody>tr.ant-table-row:hover>td]:bg-gray-700! [&_.ant-table-tbody>tr>td]:border-gray-700! [&_.ant-table-tbody>tr>td]:transition-colors [&_.ant-table-thead>tr>th]:bg-[#263244]! [&_.ant-table-thead>tr>th]:text-center! [&_.ant-table-thead>tr>th]:font-semibold! [&_.ant-table-thead>tr>th]:text-white!"
+              rowClassName={() => "odd:!bg-gray-800 even:!bg-[#263144]"}
             />
           </div>
 
@@ -314,7 +334,7 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
                 pageSize={pagination.pageSize}
                 total={pagination.total}
                 onChange={handlePaginationChange}
-                className="custom-pagination"
+                className="custom-pagination [&_.ant-pagination-item-active]:border-blue-600! [&_.ant-pagination-item-active]:bg-blue-600! [&_.ant-pagination-item-active>a]:text-white!"
                 showSizeChanger
                 showQuickJumper
                 pageSizeOptions={["10", "20", "50"]}
@@ -323,51 +343,6 @@ export default function WarrantyRequests({ isTabActive = true }: WarrantyRequest
           )}
         </>
       )}
-
-      <style jsx global>{`
-        .warranty-requests-table .ant-table {
-          background-color: #1f2937;
-          color: white;
-        }
-
-        .warranty-requests-table .ant-table-thead > tr > th {
-          background-color: #263244;
-          color: white;
-          text-align: center;
-          font-weight: 600;
-        }
-
-        .warranty-requests-table .ant-table-tbody > tr > td {
-          border-color: #374151;
-          transition: background 0.2s;
-        }
-
-        .warranty-requests-table .ant-table-tbody > tr:nth-child(odd) {
-          background-color: #1f2937;
-        }
-
-        .warranty-requests-table .ant-table-tbody > tr:nth-child(even) {
-          background-color: #263144;
-        }
-
-        .warranty-requests-table .ant-table-tbody > tr.ant-table-row:hover > td {
-          background-color: #374151;
-        }
-
-        .custom-pagination .ant-pagination-item-active {
-          background-color: #2563eb;
-          border-color: #2563eb;
-        }
-
-        .custom-pagination .ant-pagination-item-active a {
-          color: white;
-        }
-
-        .ant-tag {
-          margin: 0;
-          text-align: center;
-        }
-      `}</style>
     </div>
   );
 }

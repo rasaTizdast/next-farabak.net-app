@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 
@@ -20,25 +20,35 @@ const SortableHeader = ({
   sortKey: SortKey;
   sortConfig: { key: SortKey; direction: "ascending" | "descending" };
   onSort: (key: SortKey) => void;
-}) => (
-  <th
-    className="px-6 py-3 text-gray-300 transition-colors hover:text-gray-100"
-    onClick={() => onSort(sortKey)}
-  >
-    <div className="flex items-center justify-center gap-2">
-      {children}
-      {sortConfig.key === sortKey &&
-        (sortConfig.direction === "ascending" ? (
-          <FaSortUp aria-label="Sort ascending" />
-        ) : (
-          <FaSortDown aria-label="Sort descending" />
-        ))}
-      {sortConfig.key !== sortKey && <FaSort className="text-gray-400" />}
-    </div>
-  </th>
-);
+}) => {
+  const sortDirection =
+    sortConfig.key === sortKey
+      ? sortConfig.direction === "ascending"
+        ? "ascending"
+        : "descending"
+      : "none";
 
-const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTableProps) => {
+  return (
+    <th scope="col" aria-sort={sortDirection} className="px-4 py-3">
+      <button
+        type="button"
+        className="flex min-h-11 w-full items-center justify-center gap-2 rounded px-2 text-gray-300 transition-colors hover:text-gray-100 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
+        onClick={() => onSort(sortKey)}
+      >
+        {children}
+        {sortConfig.key === sortKey &&
+          (sortConfig.direction === "ascending" ? (
+            <FaSortUp aria-hidden="true" />
+          ) : (
+            <FaSortDown aria-hidden="true" />
+          ))}
+        {sortConfig.key !== sortKey && <FaSort aria-hidden="true" className="text-gray-400" />}
+      </button>
+    </th>
+  );
+};
+
+const CategoryTable = ({ categories, isLoading, error, refetchCategories }: CategoryTableProps) => {
   const [sortConfig, setSortConfig] = useState<{
     key: SortKey;
     direction: "ascending" | "descending";
@@ -51,11 +61,12 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
 
   const [deleteItem, setDeleteItem] = useState<Category | Subcategory | null>(null);
   const [confirmationText, setConfirmationText] = useState(""); // State for the confirmation input
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { mutate: deleteMutate } = useApiMutation("delete");
 
   // Sorting function
-  const sortedCategories = useMemo(() => {
+  const sortedCategories = (() => {
     if (!categories.length) return [];
     return categories.toSorted((a, b) => {
       const key = sortConfig.key;
@@ -67,7 +78,7 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
       }
       return 0;
     });
-  }, [categories, sortConfig]);
+  })();
 
   const handleSort = (key: SortKey) => {
     setSortConfig((prevConfig) => ({
@@ -101,13 +112,14 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
   };
 
   const handleModalClose = () => {
+    if (isDeleting) return;
     setIsEditModalOpen(false); // Close the edit modal
     setIsDeleteModalOpen(false); // Close the delete modal
     setConfirmationText(""); // Clear the confirmation text
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteItem) return;
+    if (!deleteItem || isDeleting) return;
     // Check if the user typed the correct name
     if (confirmationText !== deleteItem.Name) {
       toast.error("نام وارد شده صحیح نیست. لطفاً دوباره تلاش کنید.");
@@ -121,101 +133,135 @@ const CategoryTable = ({ categories, isLoading, refetchCategories }: CategoryTab
       subCategoryId: !isCategoryItem ? deleteItem.CategoryContentId.toString() : undefined,
     };
 
-    const result = await deleteMutate("/api/categories/delete", requestBody);
-    if (result) {
-      toast.success(
-        `${isCategoryItem ? "دسته‌بندی" : "زیرمجموعه"} با موفقیت حذف شد، و محصولات مرتبط پاک شدند.`
-      );
-      refetchCategories();
-      setDeleteItem(null);
-      setIsDeleteModalOpen(false);
-      setConfirmationText("");
-    } else {
+    setIsDeleting(true);
+    try {
+      const result = await deleteMutate("/api/categories/delete", requestBody);
+      if (result) {
+        toast.success(
+          `${isCategoryItem ? "دسته‌بندی" : "زیرمجموعه"} با موفقیت حذف شد، و محصولات مرتبط پاک شدند.`
+        );
+        refetchCategories();
+        setDeleteItem(null);
+        setIsDeleteModalOpen(false);
+        setConfirmationText("");
+      } else {
+        toast.error("خطا در حذف، لطفاً دوباره تلاش کنید.");
+      }
+    } catch {
       toast.error("خطا در حذف، لطفاً دوباره تلاش کنید.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
     <>
-      <div className="mt-10 flex flex-col items-center p-4">
-        <div className="w-full max-w-[1800px] overflow-auto rounded-lg">
-          <table className="w-full table-auto border-collapse border-spacing-0 overflow-hidden whitespace-nowrap rounded-xl text-center text-xs text-gray-100 lg:text-sm">
-            <thead className="bg-slate-900 uppercase text-gray-100">
-              <tr>
-                <SortableHeader sortKey="Name" sortConfig={sortConfig} onSort={handleSort}>
-                  دسته بندی
-                </SortableHeader>
-                <SortableHeader sortKey="Slug" sortConfig={sortConfig} onSort={handleSort}>
-                  شناسه
-                </SortableHeader>
-                <SortableHeader sortKey="Available" sortConfig={sortConfig} onSort={handleSort}>
-                  وضعیت
-                </SortableHeader>
-                <th scope="col" className="px-6 py-3">
-                  عملیات
-                </th>
+      <div
+        role="region"
+        className="w-full overflow-x-auto rounded-lg focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
+        tabIndex={0}
+        aria-label="جدول دسته‌بندی‌ها؛ برای مشاهده ستون‌های بیشتر پیمایش افقی کنید"
+      >
+        <table
+          aria-label="دسته‌بندی‌ها و زیردسته‌بندی‌ها"
+          className="w-full min-w-208 table-auto border-collapse border-spacing-0 overflow-hidden rounded-xl text-center text-xs whitespace-nowrap text-gray-100 lg:text-sm"
+          aria-busy={isLoading}
+        >
+          <thead className="bg-slate-900 text-gray-100 uppercase">
+            <tr>
+              <SortableHeader sortKey="Name" sortConfig={sortConfig} onSort={handleSort}>
+                دسته بندی
+              </SortableHeader>
+              <SortableHeader sortKey="Slug" sortConfig={sortConfig} onSort={handleSort}>
+                شناسه
+              </SortableHeader>
+              <SortableHeader sortKey="Available" sortConfig={sortConfig} onSort={handleSort}>
+                وضعیت
+              </SortableHeader>
+              <th scope="col" className="px-6 py-3">
+                عملیات
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              [...Array(20)].map((_, index) => (
+                <tr key={index} className="motion-safe:animate-pulse motion-reduce:animate-none">
+                  <td className="bg-slate-700 px-6 py-4"></td>
+                  <td className="bg-slate-700 px-6 py-4"></td>
+                  <td className="bg-slate-700 px-6 py-4"></td>
+                  <td className="bg-slate-700 px-6 py-4"></td>
+                </tr>
+              ))
+            ) : error ? (
+              <tr key="category-load-error">
+                <td colSpan={4} className="px-6 py-10 text-center" role="alert" aria-live="polite">
+                  <p>دریافت دسته‌بندی‌ها با خطا روبه‌رو شد.</p>
+                  <button
+                    type="button"
+                    onClick={refetchCategories}
+                    className="mt-3 min-h-11 rounded bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
+                  >
+                    تلاش دوباره
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {isLoading
-                ? [...Array(20)].map((_, index) => (
-                    <tr key={index} className="animate-pulse">
-                      <td className="bg-slate-700 px-6 py-4"></td>
-                      <td className="bg-slate-700 px-6 py-4"></td>
-                      <td className="bg-slate-700 px-6 py-4"></td>
-                      <td className="bg-slate-700 px-6 py-4"></td>
-                    </tr>
-                  ))
-                : sortedCategories.map((category, index) => (
-                    <React.Fragment key={category.CategoryID}>
-                      <CategoryRow
-                        key={category.CategoryID}
-                        category={category}
+            ) : sortedCategories.length === 0 ? (
+              <tr key="category-empty-state">
+                <td colSpan={4} className="px-6 py-10 text-center text-gray-300" role="status">
+                  هنوز دسته‌بندی‌ای ایجاد نشده است.
+                </td>
+              </tr>
+            ) : (
+              sortedCategories.map((category, index) => (
+                <React.Fragment key={category.CategoryID}>
+                  <CategoryRow
+                    key={category.CategoryID}
+                    category={category}
+                    onDeleteClick={handleDeleteClick}
+                    onEditClick={handleEditClick}
+                    onToggleExpand={handleToggleExpand}
+                    expandedCategories={expandedCategories}
+                    index={index}
+                  />
+                  {expandedCategories.has(category.CategoryID) &&
+                    category.Subcategories.map((subcategory, subIndex) => (
+                      <SubcategoryRow
+                        key={subcategory.CategoryContentId}
+                        subcategory={subcategory}
                         onDeleteClick={handleDeleteClick}
                         onEditClick={handleEditClick}
-                        onToggleExpand={handleToggleExpand}
-                        expandedCategories={expandedCategories}
-                        index={index}
+                        subIndex={subIndex}
                       />
-                      {expandedCategories.has(category.CategoryID) &&
-                        category.Subcategories.map((subcategory, subIndex) => (
-                          <SubcategoryRow
-                            key={subcategory.CategoryContentId}
-                            subcategory={subcategory}
-                            onDeleteClick={handleDeleteClick}
-                            onEditClick={handleEditClick}
-                            subIndex={subIndex}
-                          />
-                        ))}
-                    </React.Fragment>
-                  ))}
-            </tbody>
-          </table>
+                    ))}
+                </React.Fragment>
+              ))
+            )}
+          </tbody>
+        </table>
 
-          {/* Edit Modal */}
-          <EditModal
-            isOpen={isEditModalOpen}
-            item={editCategory}
-            onClose={handleModalClose}
-            // onSave={handleItemUpdate}
-            onChange={(updatedFields) =>
-              setEditCategory((prev) => ({ ...prev!, ...updatedFields }))
-            }
-            refetchCategories={refetchCategories}
-            setIsEditModalOpen={setIsEditModalOpen}
-            setEditCategory={setEditCategory}
-          />
+        {/* Edit Modal */}
+        <EditModal
+          isOpen={isEditModalOpen}
+          item={editCategory}
+          onClose={handleModalClose}
+          // onSave={handleItemUpdate}
+          onChange={(updatedFields) => setEditCategory((prev) => ({ ...prev!, ...updatedFields }))}
+          refetchCategories={refetchCategories}
+          setIsEditModalOpen={setIsEditModalOpen}
+          setEditCategory={setEditCategory}
+        />
 
-          {/* Delete Modal */}
-          <DeleteConfirmationModal
-            isOpen={isDeleteModalOpen}
-            item={deleteItem}
-            onDeleteConfirm={handleDeleteConfirm}
-            onClose={handleModalClose}
-            confirmationText={confirmationText}
-            setConfirmationText={setConfirmationText}
-          />
-        </div>
+        {/* Delete Modal */}
+        <DeleteConfirmationModal
+          isOpen={isDeleteModalOpen}
+          item={deleteItem}
+          onDeleteConfirm={handleDeleteConfirm}
+          onClose={handleModalClose}
+          confirmationText={confirmationText}
+          setConfirmationText={setConfirmationText}
+          isDeleting={isDeleting}
+        />
       </div>
     </>
   );

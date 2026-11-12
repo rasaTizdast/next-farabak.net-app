@@ -1,5 +1,10 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
+
+import { OG_IMAGE_PATH } from "@/constants/meta";
+import { getAllProducts } from "@/lib/data/products";
+import { parsePositivePageNumber } from "@/lib/pagination";
 
 import BreadcrumbWrapper from "../../_components/BreadcrumbWrapper";
 import CategorySliderWrapper from "../../_components/CategorySliderWrapper";
@@ -16,12 +21,22 @@ interface ProductsPageProps {
 
 export const generateMetadata = async (props: ProductsPageProps): Promise<Metadata> => {
   const params = await props.params;
-  const currentPage = parseInt(params.pageNumber || "1", 10);
+  const currentPage = parsePositivePageNumber(params.pageNumber);
+
+  if (currentPage === null) notFound();
+
+  let pageExists = true;
+  try {
+    pageExists = (await getAllProducts({ page: currentPage, limit: 30 })) !== null;
+  } catch {
+    // A temporary data-source failure must not turn a valid route into noindex.
+  }
+  if (!pageExists) notFound();
 
   const canonicalUrl =
-    params.pageNumber === "1"
+    currentPage === 1
       ? `${process.env.NEXT_PUBLIC_BASE_URL}/products`
-      : `${process.env.NEXT_PUBLIC_BASE_URL}/products/page/${params.pageNumber}`;
+      : `${process.env.NEXT_PUBLIC_BASE_URL}/products/page/${currentPage}`;
 
   return {
     title: `تمامی محصولات - صفحه ${currentPage} | فرابک`,
@@ -29,34 +44,39 @@ export const generateMetadata = async (props: ProductsPageProps): Promise<Metada
     openGraph: {
       title: `تمامی محصولات - صفحه ${currentPage} | فرابک`,
       description: `با مرور در صفحه ${currentPage} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
+      images: [OG_IMAGE_PATH],
     },
     alternates: {
-      canonical: canonicalUrl,
+      canonical: pageExists ? canonicalUrl : `${process.env.NEXT_PUBLIC_BASE_URL}/products`,
     },
     robots: {
-      index: true,
+      index: pageExists,
       follow: true,
     },
   };
 };
 
+const pageNumberBreadcrumbs = ["/", "/products"];
+
 export default async function ProductsPage(props: ProductsPageProps) {
   const params = await props.params;
-  const currentPage = parseInt(params.pageNumber, 10);
+  const currentPage = parsePositivePageNumber(params.pageNumber);
+  if (currentPage === null) notFound();
+
   const limit = 30;
+  const pageData = await getAllProducts({ page: currentPage, limit });
+  if (!pageData) notFound();
 
   const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getAllProducts?page=${currentPage}&limit=${limit}`;
   const canonicalUrl =
-    params.pageNumber === "1"
+    currentPage === 1
       ? `${process.env.NEXT_PUBLIC_BASE_URL}/products`
-      : `${process.env.NEXT_PUBLIC_BASE_URL}/products/page/${params.pageNumber}`;
-
-  const breadcrumbs = ["/", "/products"];
+      : `${process.env.NEXT_PUBLIC_BASE_URL}/products/page/${currentPage}`;
 
   return (
     <>
       <Suspense fallback={<BreadcrumbSkeleton />}>
-        <BreadcrumbWrapper breadcrumbs={breadcrumbs} />
+        <BreadcrumbWrapper breadcrumbs={pageNumberBreadcrumbs} />
       </Suspense>
       <Suspense fallback={<CategorySliderSkeleton />}>
         <CategorySliderWrapper type="categories" />
@@ -67,6 +87,12 @@ export default async function ProductsPage(props: ProductsPageProps) {
           apiUrl={apiUrl}
           currentPage={currentPage}
           canonicalUrl={canonicalUrl}
+          collectionItems={pageData.data
+            .filter((product) => product.Available)
+            .map((product) => ({
+              name: product.Type?.trim() || product.Name?.trim() || null,
+              path: product.link,
+            }))}
         />
       </Suspense>
     </>

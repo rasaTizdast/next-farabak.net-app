@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { BiTrash, BiEdit, BiPlus, BiCheck, BiX, BiMenu } from "react-icons/bi";
 
@@ -23,10 +23,15 @@ interface FaqManagerProps {
   onClose: () => void;
 }
 
+interface UpdateFaqResponse {
+  faq: FaqItem;
+  success: boolean;
+}
+
 async function doUpdateFaqOrder(
   updatedFaqs: FaqItem[],
   originalFaqs: FaqItem[],
-  updateFaq: (url: string, body: any) => Promise<any>,
+  updateFaq: (url: string, body: FaqItem) => Promise<UpdateFaqResponse | null>,
   fetchFaqs: () => void,
   setFaqs: (faqs: FaqItem[]) => void
 ) {
@@ -39,7 +44,7 @@ async function doUpdateFaqOrder(
     const results = await Promise.all(
       faqsToUpdate.map(async (faq) => {
         if (faq.id) {
-          return updateFaq(`/api/blogs/faqs/${faq.id}`, { order: faq.order });
+          return updateFaq(`/api/blogs/faqs/${faq.id}`, faq);
         }
         return null;
       })
@@ -58,6 +63,11 @@ async function doUpdateFaqOrder(
   }
 }
 
+const handleDragOver = (e: React.DragEvent) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+};
+
 const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
   const [editingFaq, setEditingFaq] = useState<number | null>(null);
@@ -66,9 +76,12 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
     loading: isLoading,
     refetch: fetchFaqs,
   } = useApiFetch<any>(blogId ? `/api/blogs/manage/${blogId}/faqs` : null);
-  const { mutate: createFaq } = useApiMutation("post");
-  const { mutate: updateFaq } = useApiMutation("put");
-  const { mutate: deleteFaq } = useApiMutation("delete");
+  const { mutate: createFaq } = useApiMutation<
+    { question: string; answer: string; order: number; available: boolean },
+    { faq: FaqItem }
+  >("post");
+  const { mutate: updateFaq } = useApiMutation<FaqItem, UpdateFaqResponse>("put");
+  const { mutate: deleteFaq } = useApiMutation<undefined, { success: boolean }>("delete");
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [newFaq, setNewFaq] = useState<FaqItem>({
     question: "",
@@ -80,14 +93,6 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
   useEffect(() => {
     if (faqsData) {
       const items = faqsData.faqs || [];
-      console.log(
-        "Fetched FAQs from database:",
-        items.map((f: any) => ({
-          id: f.id,
-          order: f.order,
-          question: f.question.substring(0, 30) + "...",
-        }))
-      );
       setFaqs(items);
     }
   }, [faqsData]);
@@ -106,15 +111,6 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
     // Calculate the next order value - get the maximum order from current FAQs
     const maxOrder = faqs.length > 0 ? Math.max(...faqs.map((faq) => faq.order || 0)) : -1;
     const nextOrder = maxOrder + 1;
-    console.log(
-      "Creating new FAQ with order:",
-      nextOrder,
-      "Max order in current FAQs:",
-      maxOrder,
-      "Current FAQs:",
-      faqs.map((f) => ({ id: f.id, order: f.order }))
-    );
-
     const res = await createFaq(`/api/blogs/manage/${blogId}/faqs`, {
       ...newFaq,
       order: nextOrder,
@@ -129,7 +125,7 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
   };
 
   const handleUpdateFaq = async (faqId: number, updatedFaq: FaqItem) => {
-    const data = (await updateFaq(`/api/blogs/faqs/${faqId}`, updatedFaq)) as any;
+    const data = await updateFaq(`/api/blogs/faqs/${faqId}`, updatedFaq);
     if (data) {
       setFaqs(faqs.map((faq) => (faq.id === faqId ? data.faq : faq)));
       setEditingFaq(null);
@@ -158,11 +154,6 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
     e.dataTransfer.effectAllowed = "move";
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  };
-
   const handleDrop = async (e: React.DragEvent, targetFaqId: number) => {
     e.preventDefault();
 
@@ -189,13 +180,6 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
       ...faq,
       order: index,
     }));
-
-    console.log("Reordering FAQs:", {
-      draggedItem,
-      targetFaqId,
-      oldOrder: faqs.map((f) => ({ id: f.id, order: f.order })),
-      newOrder: updatedFaqs.map((f) => ({ id: f.id, order: f.order })),
-    });
 
     // Update UI immediately
     setFaqs(updatedFaqs);
@@ -229,8 +213,11 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
           <h3 className="mb-4 text-lg font-semibold">افزودن سوال جدید</h3>
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium">سوال</label>
+              <label htmlFor="new-faq-question" className="mb-1 block text-sm font-medium">
+                سوال
+              </label>
               <input
+                id="new-faq-question"
                 type="text"
                 value={newFaq.question}
                 onChange={(e) => setNewFaq({ ...newFaq, question: e.target.value })}
@@ -241,8 +228,11 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
               <span className="text-xs text-gray-400">{newFaq.question.length}/400 کاراکتر</span>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">پاسخ</label>
+              <label htmlFor="new-faq-answer" className="mb-1 block text-sm font-medium">
+                پاسخ
+              </label>
               <textarea
+                id="new-faq-answer"
                 value={newFaq.answer}
                 onChange={(e) => setNewFaq({ ...newFaq, answer: e.target.value })}
                 placeholder="پاسخ خود را وارد کنید..."
@@ -284,7 +274,7 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
           </div>
           {isLoading ? (
             <div className="py-8 text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
+              <div className="inline-block size-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
               <p className="mt-2 text-gray-400">در حال بارگذاری...</p>
             </div>
           ) : faqs.length === 0 ? (
@@ -294,10 +284,10 @@ const FaqManager: React.FC<FaqManagerProps> = ({ blogId, onClose }) => {
           ) : (
             faqs
               .toSorted((a, b) => a.order - b.order)
-              .map((faq, index) => (
+              .map((faq) => (
                 <div
-                  key={faq.id || index}
-                  className={`cursor-move rounded-lg bg-gray-700 p-4 transition-all duration-200 ${
+                  key={faq.id}
+                  className={`cursor-move rounded-lg bg-gray-700 p-4 transition-[background-color,box-shadow,transform,opacity] duration-200 ${
                     draggedItem === faq.id
                       ? "scale-95 opacity-50 shadow-lg"
                       : "hover:bg-gray-600 hover:shadow-md"
@@ -419,8 +409,11 @@ const EditFaqForm: React.FC<EditFaqFormProps> = ({ faq, onSave, onCancel }) => {
   return (
     <div className="space-y-4">
       <div>
-        <label className="mb-1 block text-sm font-medium">سوال</label>
+        <label htmlFor="edit-faq-question" className="mb-1 block text-sm font-medium">
+          سوال
+        </label>
         <input
+          id="edit-faq-question"
           type="text"
           value={editedFaq.question}
           onChange={(e) => setEditedFaq({ ...editedFaq, question: e.target.value })}
@@ -430,8 +423,11 @@ const EditFaqForm: React.FC<EditFaqFormProps> = ({ faq, onSave, onCancel }) => {
         <span className="text-xs text-gray-400">{editedFaq.question.length}/400 کاراکتر</span>
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium">پاسخ</label>
+        <label htmlFor="edit-faq-answer" className="mb-1 block text-sm font-medium">
+          پاسخ
+        </label>
         <textarea
+          id="edit-faq-answer"
           value={editedFaq.answer}
           onChange={(e) => setEditedFaq({ ...editedFaq, answer: e.target.value })}
           className="h-24 w-full rounded-lg border border-gray-600 bg-gray-600 px-4 py-2 focus:border-blue-500 focus:outline-none"

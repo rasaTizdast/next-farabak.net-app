@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import "./globals.css";
 import Script from "next/script";
 import { Suspense } from "react";
 
+import { defaultMetadata } from "@/constants/meta";
 import { InvoiceProvider } from "@/context/InvoiceContext";
 import { UserProvider } from "@/context/UserContext";
 
+import "./globals.css";
 import { AnalyticsProvider } from "./providers/AnalyticsProvider";
+import { WebVitalsProvider } from "./providers/WebVitalsProvider";
 
 // Importing the custom iran yekan font
 const iranYekanFont = localFont({
@@ -19,16 +21,7 @@ const iranYekanFont = localFont({
   fallback: ["system-ui", "arial"], // Fallback fonts
 });
 
-export const metadata: Metadata = {
-  title: "خرید محصولات نظارتی و امنیتی با گارانتی معتبر | فرابک",
-  description:
-    "فرابک ارائه‌دهنده انواع محصولات نظارتی و امنیتی شامل دوربین مداربسته ریولینک با گارانتی معتبر، تضمین اصالت کالا و خدمات پس از فروش حرفه‌ای.",
-  openGraph: {
-    title: "خرید محصولات نظارتی و امنیتی با گارانتی معتبر | فرابک",
-    description:
-      "فرابک ارائه‌دهنده انواع محصولات نظارتی و امنیتی شامل دوربین مداربسته ریولینک با گارانتی معتبر، تضمین اصالت کالا و خدمات پس از فروش حرفه‌ای.",
-  },
-};
+export const metadata: Metadata = defaultMetadata;
 
 export default function RootLayout({
   children,
@@ -38,25 +31,11 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl">
       <head>
-        {/* Preconnect to external domains for better performance */}
-        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        {/* These origins are not needed for first paint, so use DNS hints only. */}
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
-        {/* Preconnect to image CDN to speed up slider image fetch */}
         {process.env.LIARA_BUCKET_URL && (
-          <>
-            <link rel="preconnect" href={process.env.LIARA_BUCKET_URL} crossOrigin="anonymous" />
-            <link rel="dns-prefetch" href={process.env.LIARA_BUCKET_URL} />
-          </>
+          <link rel="dns-prefetch" href={process.env.LIARA_BUCKET_URL} />
         )}
-
-        {/* Preload only essential font; load others via font-face to reduce FCP cost */}
-        <link
-          rel="preload"
-          href="/fonts/IRANYekanXVF.woff"
-          as="font"
-          type="font/woff"
-          crossOrigin="anonymous"
-        />
 
         {/* Google Analytics Script - lazy load to reduce TBT */}
         <Script
@@ -78,6 +57,7 @@ export default function RootLayout({
             {children}
             <Suspense fallback={null}>
               <AnalyticsProvider />
+              <WebVitalsProvider />
             </Suspense>
           </InvoiceProvider>
         </UserProvider>

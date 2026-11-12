@@ -3,11 +3,15 @@
 import React, { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useUser } from "@/context/UserContext";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
-
-export const dynamic = "force-dynamic";
 
 type Client = {
   UserID: number;
@@ -21,6 +25,7 @@ const SettingsPage = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [searchResults, setSearchResults] = useState<Client[]>([]);
   const [selectedUser, setSelectedUser] = useState<Client | null>(null);
+  const [adminToDemote, setAdminToDemote] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Password change states
@@ -29,16 +34,20 @@ const SettingsPage = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
 
-  const { logout } = useUser();
+  const { logout, user } = useUser();
 
   const { data: adminsData, refetch: refetchAdmins } =
     useApiFetch<Client[]>("/api/admin/users/admins");
   const admins = adminsData || [];
 
-  const { mutate: searchUsersMutate } = useApiMutation("post");
-  const { mutate: makeAdminMutate } = useApiMutation("post");
-  const { mutate: demoteAdminMutate } = useApiMutation("post");
-  const { mutate: changePasswordMutate } = useApiMutation("patch");
+  const { mutate: searchUsersMutate } = useApiMutation<{ phoneNumber: string }, Client[]>("post");
+  const { mutate: makeAdminMutate } = useApiMutation<Record<string, unknown>, { UserID: number }>(
+    "post"
+  );
+  const { mutate: demoteAdminMutate } = useApiMutation<Record<string, unknown>, { UserID: number }>(
+    "post"
+  );
+  const { mutate: changePasswordMutate } = useApiMutation<Record<string, unknown>>("patch");
 
   const handlePasswordChange = async () => {
     // Validation
@@ -78,208 +87,291 @@ const SettingsPage = () => {
   };
 
   const handleSearch = async () => {
-    if (!phoneNumber) {
+    const normalizedPhoneNumber = phoneNumber.trim();
+    setSearchResults([]);
+    setSelectedUser(null);
+    if (!normalizedPhoneNumber) {
       toast.error("لطفاً شماره تلفن را وارد کنید.");
       return;
     }
 
     setLoading(true);
+    try {
+      const data = await searchUsersMutate("/api/admin/users", {
+        phoneNumber: normalizedPhoneNumber,
+      });
 
-    const data = await searchUsersMutate("/api/admin/users", { phoneNumber });
-
-    if (data) {
-      if (data.length === 0) {
-        toast.error("کاربری با این شماره تلفن یافت نشد.");
+      if (data) {
+        if (data.length === 0) {
+          toast.error("کاربری با این شماره تلفن یافت نشد.");
+        } else {
+          setSearchResults(data);
+        }
       } else {
-        setSearchResults(data);
+        toast.error("خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.");
       }
-    } else {
-      toast.error("خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const handleMakeAdmin = async () => {
     if (selectedUser) {
       setLoading(true);
+      try {
+        const data = await makeAdminMutate("/api/admin/users", { userId: selectedUser.UserID });
 
-      const data = await makeAdminMutate("/api/admin/users", { userId: selectedUser.UserID });
-
-      if (data?.UserID) {
-        toast.success("کاربر با موفقیت ادمین شد!");
-        setSearchResults([]);
-        setSelectedUser(null);
-        setPhoneNumber("");
-        refetchAdmins();
-      } else {
-        toast.error("خطا در بروزرسانی نقش کاربر.");
+        if (data?.UserID) {
+          toast.success("کاربر با موفقیت ادمین شد!");
+          setSearchResults([]);
+          setSelectedUser(null);
+          setPhoneNumber("");
+          refetchAdmins();
+        } else {
+          toast.error("خطا در بروزرسانی نقش کاربر.");
+        }
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     }
   };
 
   const handleDemoteAdmin = async (userId: number) => {
-    setLoading(true);
-
-    const data = await demoteAdminMutate("/api/admin/users/admins", { userId });
-
-    if (data?.UserID) {
-      toast.success("کاربر با موفقیت به کاربر عادی تبدیل شد!");
-      refetchAdmins();
-    } else {
-      toast.error("خطا در بروزرسانی نقش کاربر.");
+    if (Number(user?.userId) === userId) {
+      toast.error("نقش حساب فعلی را نمی‌توانید تغییر دهید.");
+      setAdminToDemote(null);
+      return;
     }
+    setLoading(true);
+    try {
+      const data = await demoteAdminMutate("/api/admin/users/admins", { userId });
 
-    setLoading(false);
+      if (data?.UserID) {
+        toast.success("کاربر با موفقیت به کاربر عادی تبدیل شد!");
+        setAdminToDemote(null);
+        refetchAdmins();
+      } else {
+        toast.error("خطا در بروزرسانی نقش کاربر.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <>
+    <main aria-labelledby="settings-title">
       <Toaster position="bottom-center" />
-      <div className="flex w-full max-w-[1800px] flex-col items-center overflow-auto rounded-lg bg-gray-800 p-6 text-gray-100">
-        <h1 className="mb-6 text-2xl font-bold">تنظیمات</h1>
+      <div className="flex w-full flex-col overflow-auto rounded-lg border border-slate-700 bg-gray-800 p-4 text-gray-100 sm:p-6">
+        <div className="w-full">
+          <h1 id="settings-title" className="mb-6 text-2xl font-bold">
+            تنظیمات
+          </h1>
 
-        {/* Main Grid Layout */}
-        <div className="grid w-full max-w-4xl grid-cols-1 gap-6 md:grid-cols-2">
-          {/* Password Change Section */}
-          <div className="rounded-lg bg-gray-700 p-6 shadow-md">
-            <h2 className="mb-4 text-lg font-semibold">تغییر رمز عبور</h2>
-            <div className="flex flex-col space-y-4">
-              <input
-                type="password"
-                placeholder="رمز عبور فعلی"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="password"
-                placeholder="رمز عبور جدید"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="password"
-                placeholder="تکرار رمز عبور جدید"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                type="button"
-                onClick={handlePasswordChange}
-                disabled={changingPassword}
-                className="rounded-lg bg-green-500 p-2 text-white transition-colors hover:bg-green-600 disabled:bg-green-300"
+          {/* Main Grid Layout */}
+          <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2">
+            {/* Password Change Section */}
+            <div className="rounded-lg border border-slate-500 bg-gray-700 p-4 shadow-md sm:p-6">
+              <h2 className="mb-4 text-lg font-semibold">تغییر رمز عبور</h2>
+              <form
+                className="flex flex-col space-y-4"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void handlePasswordChange();
+                }}
               >
-                {changingPassword ? "در حال تغییر رمز عبور..." : "تغییر رمز عبور"}
-              </button>
-            </div>
-          </div>
-
-          {/* Search Section */}
-          <div className="rounded-lg bg-gray-700 p-6 shadow-md">
-            <h2 className="mb-4 text-lg font-semibold">مدیریت کاربران</h2>
-
-            {/* Phone Number Input */}
-            <div className="flex flex-col space-y-4">
-              <input
-                type="text"
-                placeholder="شماره تلفن کاربر را وارد کنید"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                className="w-full rounded-lg bg-gray-600 p-2 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-
-              {/* Search Button */}
-              <button
-                type="button"
-                onClick={handleSearch}
-                disabled={loading}
-                className="rounded-lg bg-blue-500 p-2 text-white transition-colors hover:bg-blue-600 disabled:bg-blue-300"
-              >
-                {loading ? "در حال جستجو..." : "جستجو"}
-              </button>
+                <label className="flex flex-col gap-2">
+                  رمز عبور فعلی
+                  <input
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="min-h-11 w-full rounded-lg border border-slate-400 bg-gray-800 px-3 py-2 text-white focus-visible:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
+                  />
+                </label>
+                <label className="flex flex-col gap-2">
+                  رمز عبور جدید
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    minLength={6}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="min-h-11 w-full rounded-lg border border-slate-400 bg-gray-800 px-3 py-2 text-white focus-visible:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
+                  />
+                </label>
+                <label className="flex flex-col gap-2">
+                  تکرار رمز عبور جدید
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    minLength={6}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="min-h-11 w-full rounded-lg border border-slate-400 bg-gray-800 px-3 py-2 text-white focus-visible:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
+                  />
+                </label>
+                <button
+                  type="submit"
+                  disabled={changingPassword}
+                  className="rounded-lg bg-green-600 p-2 text-white transition-colors hover:bg-green-700 focus-visible:ring-2 focus-visible:ring-green-300 focus-visible:outline-none disabled:bg-green-800 disabled:text-gray-300 motion-reduce:transition-none"
+                >
+                  {changingPassword ? "در حال تغییر رمز عبور..." : "تغییر رمز عبور"}
+                </button>
+              </form>
             </div>
 
-            {/* Search Results */}
-            {searchResults.length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-md mb-2 font-semibold">نتایج جستجو:</h3>
+            {/* Search Section */}
+            <div className="rounded-lg border border-slate-500 bg-gray-700 p-4 shadow-md sm:p-6">
+              <h2 className="mb-4 text-lg font-semibold">مدیریت کاربران</h2>
+
+              {/* Phone Number Input */}
+              <form
+                className="flex flex-col space-y-4"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void handleSearch();
+                }}
+              >
+                <label className="flex flex-col gap-2">
+                  شماره تلفن کاربر
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    required
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="min-h-11 w-full rounded-lg border border-slate-400 bg-gray-800 px-3 py-2 text-white focus-visible:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
+                  />
+                </label>
+
+                {/* Search Button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="rounded-lg bg-blue-600 p-2 text-white transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none disabled:bg-blue-800 disabled:text-gray-300 motion-reduce:transition-none"
+                >
+                  {loading ? "در حال جستجو..." : "جستجو"}
+                </button>
+              </form>
+
+              {/* Search Results */}
+              {searchResults.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="mb-2 text-base font-semibold">نتایج جستجو:</h3>
+                  <ul className="space-y-2">
+                    {searchResults.map((user) => (
+                      <li
+                        key={user.UserID}
+                        className="flex items-center justify-between rounded-lg bg-gray-600 p-2"
+                      >
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            name="selectedUser"
+                            value={user.UserID}
+                            onChange={() => setSelectedUser(user)}
+                            className="ml-2"
+                          />
+                          <span>
+                            {user.FirstName} {user.LastName} ({user.PhoneNumber})
+                          </span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Make Admin Button */}
+                  {selectedUser && (
+                    <button
+                      type="button"
+                      onClick={handleMakeAdmin}
+                      disabled={loading}
+                      className="mt-4 w-full rounded-lg bg-green-600 p-2 text-white transition-colors hover:bg-green-700 disabled:bg-green-800 disabled:text-gray-300"
+                    >
+                      {loading ? "در حال پردازش..." : "تبدیل به ادمین"}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Admins Section */}
+            <div className="rounded-lg border border-slate-500 bg-gray-700 p-4 shadow-md sm:p-6 md:col-span-2">
+              <h2 className="mb-4 text-lg font-semibold">لیست ادمین‌ها</h2>
+
+              {admins.length === 0 ? (
+                <p className="text-right text-gray-300" role="status">
+                  هیچ ادمینی یافت نشد.
+                </p>
+              ) : (
                 <ul className="space-y-2">
-                  {searchResults.map((user) => (
+                  {admins.map((admin) => (
                     <li
-                      key={user.UserID}
+                      key={admin.UserID}
                       className="flex items-center justify-between rounded-lg bg-gray-600 p-2"
                     >
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          name="selectedUser"
-                          value={user.UserID}
-                          onChange={() => setSelectedUser(user)}
-                          className="ml-2"
-                        />
-                        <span>
-                          {user.FirstName} {user.LastName} ({user.PhoneNumber})
+                      <div className="text-right">
+                        <p>
+                          {admin.FirstName} {admin.LastName}
+                        </p>
+                        <p className="text-sm text-gray-300">{admin.PhoneNumber}</p>
+                      </div>
+                      {Number(user?.userId) === admin.UserID ? (
+                        <span className="rounded-lg bg-gray-500 px-3 py-2 text-sm text-gray-100">
+                          حساب فعلی
                         </span>
-                      </label>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setAdminToDemote(admin.UserID)}
+                          disabled={loading}
+                          className="rounded-lg bg-red-600 p-2 text-white transition-colors hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:outline-none disabled:bg-red-800 disabled:text-gray-300 motion-reduce:transition-none"
+                        >
+                          {loading ? "در حال پردازش..." : "تبدیل به کاربر عادی"}
+                        </button>
+                      )}
                     </li>
                   ))}
                 </ul>
-
-                {/* Make Admin Button */}
-                {selectedUser && (
-                  <button
-                    type="button"
-                    onClick={handleMakeAdmin}
-                    disabled={loading}
-                    className="mt-4 w-full rounded-lg bg-green-500 p-2 text-white transition-colors hover:bg-green-600 disabled:bg-green-300"
-                  >
-                    {loading ? "در حال پردازش..." : "تبدیل به ادمین"}
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Admins Section */}
-          <div className="rounded-lg bg-gray-700 p-6 shadow-md md:col-span-2">
-            <h2 className="mb-4 text-lg font-semibold">لیست ادمین‌ها</h2>
-
-            {admins.length === 0 ? (
-              <p className="text-right text-gray-400">هیچ ادمینی یافت نشد.</p>
-            ) : (
-              <ul className="space-y-2">
-                {admins.map((admin) => (
-                  <li
-                    key={admin.UserID}
-                    className="flex items-center justify-between rounded-lg bg-gray-600 p-2"
-                  >
-                    <div className="text-right">
-                      <p>
-                        {admin.FirstName} {admin.LastName}
-                      </p>
-                      <p className="text-sm text-gray-400">{admin.PhoneNumber}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleDemoteAdmin(admin.UserID)}
-                      disabled={loading}
-                      className="rounded-lg bg-red-500 p-2 text-white transition-colors hover:bg-red-600 disabled:bg-red-300"
-                    >
-                      {loading ? "در حال پردازش..." : "تبدیل به کاربر عادی"}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </>
+      {adminToDemote !== null && (
+        <AlertDialog open onOpenChange={(open) => !open && !loading && setAdminToDemote(null)}>
+          <AlertDialogContent className="border border-slate-500 bg-gray-800 text-gray-100 shadow-2xl">
+            <AlertDialogTitle className="mb-3 text-start">تبدیل نقش ادمین</AlertDialogTitle>
+            <AlertDialogDescription className="mb-6 text-start text-gray-300">
+              این کار دسترسی مدیریتی این کاربر را حذف می‌کند. ادامه می‌دهید؟
+            </AlertDialogDescription>
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setAdminToDemote(null)}
+                disabled={loading}
+                className="rounded-lg bg-gray-600 px-4 py-2 text-white hover:bg-gray-500 disabled:opacity-60"
+              >
+                انصراف
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDemoteAdmin(adminToDemote)}
+                disabled={loading}
+                className="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:opacity-60"
+              >
+                {loading ? "در حال پردازش..." : "تأیید و ادامه"}
+              </button>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </main>
   );
 };
 

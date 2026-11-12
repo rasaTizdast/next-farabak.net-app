@@ -1,11 +1,22 @@
 import { NextResponse } from "next/server";
 
+import { errorResponse, notFoundResponse, serverErrorResponse } from "@/lib/api-response";
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  assignWarehouseProductSchema,
+  validateBody,
+  validateParams,
+  warehouseIdParamSchema,
+} from "@/lib/validation";
 
 export async function GET(request: Request, props: { params: Promise<{ warehouseId: string }> }) {
-  const params = await props.params;
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
+  if (auth instanceof NextResponse) return auth;
   try {
-    const warehouseId = parseInt(params.warehouseId);
+    const paramValidation = validateParams(params, warehouseIdParamSchema);
+    if ("error" in paramValidation) return paramValidation.error;
+    const warehouseId = paramValidation.data.warehouseId;
 
     const products = await prisma.warehouseproduct.findMany({
       where: {
@@ -40,46 +51,49 @@ export async function GET(request: Request, props: { params: Promise<{ warehouse
     return NextResponse.json(formattedProducts);
   } catch (error) {
     console.error("Error fetching warehouse products:", error);
-    return NextResponse.json({ error: "خطا در دریافت محصولات انبار" }, { status: 500 });
+    return serverErrorResponse("خطا در دریافت محصولات انبار");
   }
 }
 
 export async function POST(request: Request, props: { params: Promise<{ warehouseId: string }> }) {
-  const params = await props.params;
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
+  if (auth instanceof NextResponse) return auth;
   try {
-    const warehouseId = parseInt(params.warehouseId);
-    const { productId, quantity, ProductGradeId } = await request.json();
+    const paramValidation = validateParams(params, warehouseIdParamSchema);
+    if ("error" in paramValidation) return paramValidation.error;
+    const warehouseId = paramValidation.data.warehouseId;
 
-    if (!productId || quantity === undefined) {
-      return NextResponse.json({ error: "شناسه محصول و تعداد الزامی است" }, { status: 400 });
-    }
+    const bodyValidation = await validateBody(request, assignWarehouseProductSchema);
+    if ("error" in bodyValidation) return bodyValidation.error;
+
+    const { productId, quantity, ProductGradeId } = bodyValidation.data;
 
     if (ProductGradeId) {
-      const gradeResult = await prisma.$queryRaw`
+      const gradeResult = await prisma.$queryRaw<Record<string, unknown>[]>`
         SELECT * FROM "support"."ProductGrade" 
         WHERE "ProductGradeId" = ${ProductGradeId} 
         AND "ProductId" = ${productId}
       `;
-      if ((gradeResult as any[]).length === 0) {
-        return NextResponse.json({ error: "گرید محصول معتبر نیست" }, { status: 400 });
+      if (gradeResult.length === 0) {
+        return errorResponse("گرید محصول معتبر نیست", 400);
       }
     }
 
-    const warehouseResult = await prisma.$queryRaw`
+    const warehouseResult = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM "support"."warehouse" WHERE "warehouseid" = ${warehouseId}
     `;
-    if ((warehouseResult as any[]).length === 0) {
-      return NextResponse.json({ error: "انبار یافت نشد" }, { status: 404 });
+    if (warehouseResult.length === 0) {
+      return notFoundResponse("انبار یافت نشد");
     }
 
-    const productResult = await prisma.$queryRaw`
+    const productResult = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM "support"."Product" WHERE "ProductId" = ${productId}
     `;
-    if ((productResult as any[]).length === 0) {
-      return NextResponse.json({ error: "محصول یافت نشد" }, { status: 404 });
+    if (productResult.length === 0) {
+      return notFoundResponse("محصول یافت نشد");
     }
 
-    const existing = await prisma.$queryRaw`
+    const existing = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT * FROM "support"."warehouseproduct"
       WHERE "warehouseid" = ${warehouseId} 
       AND "ProductId" = ${productId}
@@ -90,8 +104,8 @@ export async function POST(request: Request, props: { params: Promise<{ warehous
       )
     `;
 
-    if ((existing as any[]).length > 0) {
-      const updated = await prisma.$queryRaw`
+    if (existing.length > 0) {
+      const updated = await prisma.$queryRaw<Record<string, unknown>[]>`
         UPDATE "support"."warehouseproduct"
         SET "quantity" = "quantity" + ${quantity}
         WHERE "warehouseid" = ${warehouseId} 
@@ -103,10 +117,10 @@ export async function POST(request: Request, props: { params: Promise<{ warehous
         )
         RETURNING *
       `;
-      return NextResponse.json((updated as any[])[0], { status: 200 });
+      return NextResponse.json(updated[0], { status: 200 });
     }
 
-    const inserted = await prisma.$queryRaw`
+    const inserted = await prisma.$queryRaw<Record<string, unknown>[]>`
       INSERT INTO "support"."warehouseproduct" ("warehouseid", "ProductId", "quantity", "ProductGradeId")
       VALUES (
         ${warehouseId}, 
@@ -116,9 +130,9 @@ export async function POST(request: Request, props: { params: Promise<{ warehous
       )
       RETURNING *
     `;
-    return NextResponse.json((inserted as any[])[0], { status: 201 });
+    return NextResponse.json(inserted[0], { status: 201 });
   } catch (error) {
     console.error("Error adding product to warehouse:", error);
-    return NextResponse.json({ error: "خطا در افزودن محصول به انبار" }, { status: 500 });
+    return serverErrorResponse("خطا در افزودن محصول به انبار");
   }
 }

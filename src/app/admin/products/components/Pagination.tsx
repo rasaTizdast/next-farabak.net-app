@@ -19,7 +19,7 @@ const Pagination = ({ pagination, setPagination }: Props) => {
         disabled={currentPage === 1}
         className={`rounded-lg px-4 py-2 ${
           currentPage === 1 ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-        } text-white transition-all`}
+        } text-white transition-colors`}
       >
         قبلی
       </button>
@@ -43,7 +43,7 @@ const Pagination = ({ pagination, setPagination }: Props) => {
         disabled={currentPage === totalPages}
         className={`rounded-lg px-4 py-2 ${
           currentPage === totalPages ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-        } text-white transition-all`}
+        } text-white transition-colors`}
       >
         بعدی
       </button>

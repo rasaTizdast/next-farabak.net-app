@@ -1,7 +1,5 @@
 // app/products/[category]/[product]/components/ProductSpecs.tsx
-import axios from "axios";
-
-import styles from "./ProductSpecs.module.css";
+import { getProductSpecsByProductId } from "@/lib/data/productSpecs";
 
 interface Spec {
   productSpecsId: number;
@@ -11,12 +9,8 @@ interface Spec {
 
 async function getProductSpecs(productId: number) {
   try {
-    const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductSpecsByProductId?productId=${productId}`
-    );
-
-    if (!res) throw new Error("Failed to fetch specs");
-    return res.data.data;
+    const { data } = await getProductSpecsByProductId(productId);
+    return data as unknown as Spec[];
   } catch (error) {
     console.error(error);
     return [];
@@ -27,26 +21,36 @@ export default async function ProductSpecs({ productId }: { productId: number })
   const specsData = await getProductSpecs(productId);
 
   if (!specsData || specsData.length === 0) {
-    return (
-      <div className="mt-6 flex w-full justify-center rounded-lg bg-gray-200 py-4 text-sm font-semibold text-slate-800 sm:mt-0 md:text-base">
-        مشخصاتی برای این محصول ثبت نشده است
-      </div>
-    );
+    return null;
   }
 
   return (
-    <div className={styles.specsParent}>
-      <h3>مشخصات محصول</h3>
-      <div className={styles.specs}>
-        {specsData.map((item: Spec, index: number) => (
-          <div
-            className={`${index % 2 ? styles.oddSpec : styles.evenSpec} ${styles.spec}`}
-            key={index}
-          >
-            <div className={styles.key}>{item.Title}</div>
-            <div className={styles.value}>{item.Description}</div>
-          </div>
-        ))}
+    <div
+      data-product-section-content
+      className="mx-auto flex w-full max-w-[1580px] flex-col rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-5 shadow-[0_18px_45px_rgba(6,26,48,0.06)] sm:p-7"
+    >
+      <h3 className="mb-5 text-start text-xl font-bold text-(--farabak-ink-deep) max-[576px]:mb-4">
+        مشخصات محصول
+      </h3>
+      <div
+        role="region"
+        aria-label="جدول مشخصات محصول"
+        tabIndex={0}
+        className="overflow-x-auto rounded-xl border border-(--farabak-ink-deep)/10 focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:outline-none"
+      >
+        <div className="min-w-136">
+          {specsData.map((item: Spec, index: number) => (
+            <div
+              key={`spec-${item.productSpecsId}-${item.Title}-${item.Description}`}
+              className={`${index % 2 ? "bg-slate-50" : "bg-(--farabak-paper)"} grid grid-cols-[minmax(12rem,0.7fr)_minmax(18rem,1fr)] gap-8 px-5 py-4 text-start text-sm sm:text-base`}
+            >
+              <div className="font-semibold text-(--farabak-ink-deep)">{item.Title}</div>
+              <div className="whitespace-pre-wrap text-(--farabak-ink-muted)">
+                {item.Description}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

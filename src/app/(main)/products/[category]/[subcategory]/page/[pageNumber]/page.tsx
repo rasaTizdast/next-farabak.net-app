@@ -1,9 +1,15 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { getProductsBySubcategory } from "@/lib/data/products";
+import { parsePositivePageNumber } from "@/lib/pagination";
+
 import BreadcrumbWrapper from "../../../../_components/BreadcrumbWrapper";
-import { BreadcrumbSkeleton, ProductGridSkeleton } from "../../../../_components/ProductListSkeletons";
+import {
+  BreadcrumbSkeleton,
+  ProductListingSkeleton,
+} from "../../../../_components/ProductListSkeletons";
 import SubcategoryPageWrapper from "../../../../_components/SubcategoryPageWrapper";
 
 interface SubcategoryPageProps {
@@ -17,77 +23,44 @@ interface SubcategoryPageProps {
 export const generateMetadata = async (props: SubcategoryPageProps): Promise<Metadata> => {
   const params = await props.params;
   const { subcategory } = params;
+  const pageNumber = parsePositivePageNumber(params.pageNumber);
+  if (pageNumber === null) notFound();
+  const data = await getProductsBySubcategory(subcategory, { page: pageNumber, limit: 30 });
 
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsBySubcategory/${subcategory}?page=1&limit=1`,
-      { next: { revalidate: 60 } }
-    );
+  if (!data) notFound();
 
-    if (!res || !res.ok) {
-      return {
-        title: "زیر دسته بندی یافت نشد!",
-        description: "زیر دسته بندی مورد نظر یافت نشد!",
-        robots: {
-          index: false,
-          follow: true,
-        },
-      };
-    }
+  const { seoDetails } = data;
+  const canonicalUrl =
+    pageNumber === 1
+      ? `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${params.subcategory}`
+      : `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${params.subcategory}/page/${pageNumber}`;
 
-    const data = await res.json();
-    if (!data.seoDetails) {
-      return {
-        title: "زیر دسته بندی یافت نشد!",
-        description: "زیر دسته بندی مورد نظر یافت نشد!",
-        robots: {
-          index: false,
-          follow: true,
-        },
-      };
-    }
-
-    const { seoDetails } = data;
-
-    const canonicalUrl =
-      params.pageNumber === "1"
-        ? `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${params.subcategory}`
-        : `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${params.subcategory}/page/${params.pageNumber}`;
-
-    return {
-      title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${subcategory} | فرابک`,
-      description: seoDetails.SEO_Description || `محصولات دسته‌بندی ${subcategory}`,
-      alternates: {
-        canonical: canonicalUrl,
-      },
-      robots: {
-        index: true,
-        follow: true,
-      },
-    };
-  } catch (error) {
-    console.error(error);
-    return {
-      title: "زیر دسته بندی یافت نشد!",
-      description: "زیر دسته بندی مورد نظر یافت نشد!",
-      robots: {
-        index: false,
-        follow: true,
-      },
-    };
-  }
+  return {
+    title: seoDetails?.SEO_Title || `محصولات دسته‌بندی ${subcategory} | فرابک`,
+    description: seoDetails?.SEO_Description || `محصولات دسته‌بندی ${subcategory}`,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
 };
 
 export default async function SubcategoryPage(props: SubcategoryPageProps) {
   const params = await props.params;
   const { category, subcategory } = params;
-  const currentPage = parseInt(params.pageNumber || "1", 10);
+  const currentPage = parsePositivePageNumber(params.pageNumber);
+  if (currentPage === null) notFound();
   const limit = 30;
+  const pageData = await getProductsBySubcategory(subcategory, { page: currentPage, limit });
+  if (!pageData) notFound();
 
   const canonicalUrl =
-    params.pageNumber === "1"
+    currentPage === 1
       ? `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${params.subcategory}`
-      : `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${params.subcategory}/page/${params.pageNumber}`;
+      : `${process.env.NEXT_PUBLIC_BASE_URL}/products/${params.category}/${params.subcategory}/page/${currentPage}`;
 
   const breadcrumbs = [
     "/",
@@ -101,7 +74,7 @@ export default async function SubcategoryPage(props: SubcategoryPageProps) {
       <Suspense fallback={<BreadcrumbSkeleton />}>
         <BreadcrumbWrapper breadcrumbs={breadcrumbs} />
       </Suspense>
-      <Suspense fallback={<ProductGridSkeleton />}>
+      <Suspense fallback={<ProductListingSkeleton showSearch={false} />}>
         <SubcategoryPageWrapper
           categoryName={category}
           subcategoryName={subcategory}

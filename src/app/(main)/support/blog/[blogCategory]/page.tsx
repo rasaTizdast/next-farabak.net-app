@@ -1,199 +1,277 @@
+import { ArrowLeft } from "lucide-react";
 import { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import React from "react";
+import { Suspense } from "react";
 
-import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import { calculateReadingTime } from "@/app/(main)/support/blog/_components/blog-helpers";
+import BlogCategoryNav from "@/app/(main)/support/blog/_components/BlogCategoryNav";
+import { ActionLink } from "@/components/public/ActionLink";
+import BlogCover from "@/components/public/BlogCover";
+import { PageIntro } from "@/components/public/PageIntro";
+import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
+import { PublicShell } from "@/components/public/PublicShell";
+import { getBlogsByCategory } from "@/lib/data/blogs";
 
-export async function generateMetadata(props: {
-  params: Promise<{ blogCategory: string }>;
-}): Promise<Metadata> {
+import { BlogListingSkeleton } from "../_components/BlogListingSkeleton";
+
+type BlogCategoryPageProps = { params: Promise<{ blogCategory: string }> };
+
+export async function generateMetadata(props: BlogCategoryPageProps): Promise<Metadata> {
   const params = await props.params;
 
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/category/${params.blogCategory}`,
-      {
-        next: { revalidate: 60 },
-      }
-    );
+  const data = (await getBlogsByCategory(params.blogCategory)) as Blogs | null;
 
-    if (!response.ok || !response) {
-      return {
-        title: "صفحه یافت نشد | فرابک",
-        description: "صفحه مورد نظر یافت نشد",
-        robots: {
-          index: false,
-          follow: true,
-        },
-      };
-    }
+  if (!data || data.blogs.length === 0) notFound();
 
-    const data = await response.json();
-
-    if (!data || data.blogs.length === 0) {
-      return {
-        title: "صفحه یافت نشد | فرابک",
-        description: "صفحه مورد نظر یافت نشد",
-        robots: {
-          index: false,
-          follow: true,
-        },
-      };
-    }
-
-    return {
-      title: "مشاهده تمامی بلاگ‌‌ها | فرابک",
-      description: "شما در این صفحه میتوانید تمامی بلاگ‌های فرابک را مشاهده کنید.",
-    };
-  } catch {
-    return {
-      title: "صفحه یافت نشد | فرابک",
-      description: "صفحه مورد نظر یافت نشد",
-      robots: {
-        index: false,
-        follow: true,
-      },
-    };
-  }
+  return {
+    title: `مقالات ${getCategoryName(data.blogs, params.blogCategory)} | فرابک`,
+    description: `مقالات آموزشی فرابک درباره ${getCategoryName(data.blogs, params.blogCategory)}.`,
+    alternates: {
+      canonical: `/support/blog/${encodeURIComponent(params.blogCategory)}`,
+    },
+  };
 }
 
-type Blogs = {
-  blogs: {
-    id: number;
-    title: string;
-    SEO_Title: string;
-    slug: string;
-    created_at: string;
-    status: string;
-    views_count: number;
-    content: string;
-    author: string;
-    SEO_description: string;
-    image: string;
-    image_alt: string;
-    categories: {
-      name: string;
-      slug: string;
-    }[];
-    comments: number;
-    likes: number;
-  }[];
+type BlogCategory = {
+  id: number;
+  name: string | null;
+  slug: string | null;
 };
 
-// Server-side fetch function
-const fetchBlogs = async (categorySlug: string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/blogs/category/${categorySlug}`,
-    {
-      next: { revalidate: 60 }, // Optional: revalidate every 60 seconds for ISR
-    }
+type Blog = {
+  id: number;
+  title: string;
+  SEO_Title: string;
+  slug: string;
+  created_at: string;
+  status: string;
+  views_count: number;
+  content: string;
+  author: string;
+  SEO_description: string;
+  image: string;
+  image_alt: string;
+  categories: BlogCategory[];
+  comments: number;
+  likes: number;
+};
+
+type Blogs = { blogs: Blog[] };
+
+const getCategoryName = (blogs: Blog[], categorySlug: string) =>
+  blogs
+    .find((blog) => blog.categories.some((category) => category.slug === categorySlug))
+    ?.categories.find((category) => category.slug === categorySlug)?.name ??
+  categorySlug.replace(/-/g, " ");
+
+const getBlogHref = (blog: Blog, categorySlug: string) =>
+  `/support/blog/${categorySlug}/${blog.slug}`;
+
+const CategoryContent = ({ blogs, categorySlug }: { blogs: Blog[]; categorySlug: string }) => {
+  const [featuredBlog, ...otherBlogs] = blogs;
+  const categories = Array.from(
+    new Map(
+      blogs
+        .flatMap((blog) => blog.categories)
+        .filter((category) => category.slug)
+        .map((category) => [category.slug, category])
+    ).values()
   );
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch blogs");
-  }
-
-  return response.json();
-};
-
-const BlogContent = ({ blogs, categorySlug }: { blogs: Blogs; categorySlug: string }) => {
-  const categoryDisplay = categorySlug.replace(/-/g, " ");
+  const categoryName = getCategoryName(blogs, categorySlug);
 
   return (
-    <div className="w-full">
-      {/* Latest Blog */}
-      <div className="mb-10 mt-5">
-        <h1 className="mb-5 text-right text-3xl font-extrabold text-gray-800 md:text-4xl">
-          جدیدترین بلاگ ({categoryDisplay})
-        </h1>
+    <PublicShell className="pt-6 pb-12 sm:pt-8 sm:pb-14">
+      <PublicBreadcrumbs
+        breadcrumbs={["/", "/support", "/support/blog", `/support/blog/${categorySlug}`]}
+        labels={{ [`/support/blog/${categorySlug}`]: categoryName }}
+      />
+      <PageIntro
+        eyebrow="راهنماهای تخصصی"
+        title={categoryName}
+        description="یادداشت‌ها و آموزش‌های مرتبط با این دسته‌بندی را یکجا بخوانید و برای مطالعه جزئیات هر موضوع وارد صفحه مقاله شوید."
+        actions={
+          <ActionLink href="/support/blog" variant="secondary">
+            بازگشت به همه مقالات <ArrowLeft aria-hidden="true" className="size-4" />
+          </ActionLink>
+        }
+      />
+
+      <section aria-label="دسته‌بندی مقالات" className="mb-8">
+        <BlogCategoryNav categories={categories} currentSlug={categorySlug} />
+      </section>
+
+      <section aria-labelledby="category-feature-heading">
+        <div className="mb-4">
+          <p className="text-sm font-semibold text-(--farabak-action-blue)">آخرین نوشته</p>
+          <h2
+            id="category-feature-heading"
+            className="mt-2 text-2xl font-bold text-(--farabak-ink-deep) md:text-3xl"
+          >
+            منتخب این دسته‌بندی
+          </h2>
+        </div>
         <Link
-          href={`/support/blog/${blogs.blogs[0].categories[0].slug}/${blogs.blogs[0].slug}`}
-          className="relative block overflow-hidden rounded-lg shadow-lg transition-transform hover:scale-[1.02]"
+          href={getBlogHref(featuredBlog, categorySlug)}
+          className="group grid overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.06)] focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:outline-none md:grid-cols-[1.15fr_0.85fr]"
         >
-          <Image
-            src={`${process.env.LIARA_BUCKET_URL}/${blogs.blogs[0].image}`}
-            alt={blogs.blogs[0].image_alt}
-            className="h-96 w-full rounded-lg object-cover"
-            width={1920}
-            height={1000}
-            quality={100}
-            priority
-          />
-          <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black via-transparent to-transparent p-6 text-white">
-            <h2 className="mb-2 text-2xl font-bold md:text-3xl">{blogs.blogs[0].title}</h2>
-            <p className="text-sm text-gray-300">
-              تاریخ: {new Date(blogs.blogs[0].created_at).toLocaleDateString("fa-IR")}
-            </p>
+          <div className="relative aspect-video overflow-hidden md:aspect-auto md:min-h-96">
+            <BlogCover
+              src={
+                featuredBlog.image ? `${process.env.LIARA_BUCKET_URL}/${featuredBlog.image}` : null
+              }
+              alt={featuredBlog.image_alt}
+              width={1920}
+              height={1080}
+              priority
+              sizes="(min-width: 768px) 58vw, 100vw"
+              className="size-full bg-(--farabak-paper) object-cover"
+            />
+          </div>
+          <div className="flex flex-col justify-center p-6 md:p-10">
+            <h3 className="text-2xl leading-tight font-bold text-(--farabak-ink-deep) md:text-3xl">
+              {featuredBlog.title}
+            </h3>
+            <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600 shadow-sm">
+              {featuredBlog.author ? <span>{featuredBlog.author}</span> : null}
+              {featuredBlog.author ? <span aria-hidden="true">•</span> : null}
+              <time dateTime={featuredBlog.created_at}>
+                {new Date(featuredBlog.created_at).toLocaleDateString("fa-IR")}
+              </time>
+              <span aria-hidden="true">•</span>
+              <span>{calculateReadingTime(featuredBlog.content)} دقیقه مطالعه</span>
+            </div>
+            <span className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-(--farabak-action-blue)">
+              مطالعه مقاله <ArrowLeft aria-hidden="true" className="size-4" />
+            </span>
           </div>
         </Link>
-      </div>
+      </section>
 
-      {/* Other Blogs */}
-      <h2 className="mb-5 text-right text-3xl font-extrabold text-gray-800 md:text-4xl">
-        سایر بلاگ‌ها
-      </h2>
-      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        {blogs.blogs.map((blog) => (
-          <Link
-            key={blog.id}
-            href={`/support/blog/${blog.categories[0].slug}/${blog.slug}`}
-            className="block rounded-lg border border-gray-200 bg-white shadow-lg transition-all hover:scale-[1.02] hover:shadow-2xl"
-          >
-            <div className="overflow-hidden rounded-t-lg">
-              <Image
-                src={`${process.env.LIARA_BUCKET_URL}/${blog.image}`}
-                alt={blog.image_alt}
-                className="h-48 w-full object-cover transition-transform hover:scale-110"
-                width={1920}
-                height={1000}
-                quality={100}
-              />
-            </div>
-            <div className="p-5">
-              <h3 className="mb-2 text-lg font-semibold text-gray-800">{blog.title}</h3>
-              <p className="text-sm text-gray-500">
-                تاریخ: {new Date(blog.created_at).toLocaleDateString("fa")}
-              </p>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </div>
+      {otherBlogs.length > 0 ? (
+        <section aria-labelledby="category-articles-heading" className="mt-8">
+          <div className="mb-5">
+            <p className="text-sm font-semibold text-(--farabak-action-blue)">مقالات مرتبط</p>
+            <h2
+              id="category-articles-heading"
+              className="mt-2 text-2xl font-bold text-(--farabak-ink-deep) md:text-3xl"
+            >
+              سایر مقالات این دسته‌بندی
+            </h2>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {otherBlogs.map((blog) => (
+              <Link
+                key={blog.id}
+                href={getBlogHref(blog, categorySlug)}
+                className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.05)] transition-[border-color,box-shadow] duration-300 hover:border-(--farabak-action-blue)/40 hover:shadow-[0_24px_70px_rgba(6,26,48,0.28)] focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:outline-none"
+              >
+                <div className="relative aspect-video overflow-hidden">
+                  <BlogCover
+                    src={blog.image ? `${process.env.LIARA_BUCKET_URL}/${blog.image}` : null}
+                    alt={blog.image_alt}
+                    width={960}
+                    height={540}
+                    sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
+                    className="size-full bg-(--farabak-paper) object-cover"
+                  />
+                </div>
+                <div className="flex flex-1 flex-col p-5">
+                  <h3 className="text-lg leading-8 font-bold text-(--farabak-ink-deep)">
+                    {blog.title}
+                  </h3>
+                  <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl bg-slate-50 px-3 py-2.5 text-xs text-slate-600 shadow-sm">
+                    {blog.author ? <span>{blog.author}</span> : null}
+                    {blog.author ? <span aria-hidden="true">•</span> : null}
+                    <time dateTime={blog.created_at}>
+                      {new Date(blog.created_at).toLocaleDateString("fa-IR")}
+                    </time>
+                    <span aria-hidden="true">•</span>
+                    <span>{calculateReadingTime(blog.content)} دقیقه مطالعه</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
+    </PublicShell>
   );
 };
 
-const BlogLandingPage = async (props: { params: Promise<{ blogCategory: string }> }) => {
+async function BlogCategoryData(props: BlogCategoryPageProps) {
   const params = await props.params;
   let blogData: Blogs | null = null;
 
-  // Fetch blogs
   try {
-    const { blogCategory } = params;
-    blogData = await fetchBlogs(blogCategory);
-
-    // If no blogs are found for the given category, trigger the notFound page
-    if (!blogData || blogData.blogs.length === 0) {
-      notFound();
-    }
-  } catch (error) {
-    console.error("Error fetching blog data:", error);
-    notFound(); // Trigger the notFound page on error
-  }
-
-  const breadCrumbs = ["/", "/support", "/support/blog"];
-
-  if (+!blogData?.blogs?.length < 0) {
+    blogData = (await getBlogsByCategory(params.blogCategory)) as Blogs;
+  } catch {
     notFound();
   }
 
-  return (
-    <div className="max-w-[1580px]">
-      <Breadcrumb breadcrumbs={breadCrumbs} />
-      <BlogContent blogs={blogData || { blogs: [] }} categorySlug={params.blogCategory} />
-    </div>
-  );
-};
+  if (!blogData?.blogs?.length) notFound();
 
-export default BlogLandingPage;
+  const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
+  const blogIndexUrl = `${siteUrl}/support/blog`;
+  const categoryUrl = `${blogIndexUrl}/${params.blogCategory}`;
+  const categoryName = getCategoryName(blogData.blogs, params.blogCategory);
+
+  const categoryItemList = blogData.blogs
+    .flatMap((blog) => {
+      const blogCategorySlug = blog.categories?.[0]?.slug;
+      if (!blogCategorySlug) return [];
+      const postUrl = `${blogIndexUrl}/${blogCategorySlug}/${blog.slug}`;
+      return [
+        {
+          "@type": "ListItem",
+          url: postUrl,
+          item: {
+            "@type": "BlogPosting",
+            "@id": `${postUrl}#blogPosting`,
+            headline: blog.title,
+            url: postUrl,
+            datePublished: blog.created_at,
+            image: blog.image ? `${process.env.LIARA_BUCKET_URL}/${blog.image}` : undefined,
+            author: { "@type": "Person", name: blog.author },
+          },
+        },
+      ];
+    })
+    .map((listItem, index) => ({ ...listItem, position: index + 1 }));
+
+  const structuredData = serializeJsonLd({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": ["WebPage", "CollectionPage"],
+        "@id": `${categoryUrl}#collection`,
+        url: categoryUrl,
+        name: `مقالات دسته‌بندی ${categoryName} | فرابک`,
+        description: `جدیدترین مقالات و آموزش‌های بلاگ فرابک درباره ${categoryName}.`,
+        inLanguage: "fa-IR",
+        isPartOf: { "@id": `${blogIndexUrl}#blog` },
+        mainEntity: { "@id": `${categoryUrl}#itemlist` },
+      },
+      { "@type": "ItemList", "@id": `${categoryUrl}#itemlist`, itemListElement: categoryItemList },
+    ],
+  });
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: structuredData }} />
+      <CategoryContent blogs={blogData.blogs} categorySlug={params.blogCategory} />
+    </>
+  );
+}
+
+function serializeJsonLd(data: unknown): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}
+
+export default function BlogCategoryPage({ params }: BlogCategoryPageProps) {
+  return (
+    <Suspense fallback={<BlogListingSkeleton category />}>
+      <BlogCategoryData params={params} />
+    </Suspense>
+  );
+}

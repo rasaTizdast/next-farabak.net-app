@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import type { TableColumnsType } from "antd";
 
-import { ButtonBase, TableBase } from "./ui";
+import { Button } from "@/components/ui/antd/Button";
+import { DataTable } from "@/components/ui/antd/DataTable";
 
 type Warehouse = {
   warehouseid: number;
@@ -35,71 +36,72 @@ export default function WarehousesTable({
   onProducts: (w: Warehouse) => void;
   isSearching?: boolean;
 }) {
-  const columns = useMemo(
-    () => [
-      { title: "نام", dataIndex: "name", key: "name" },
-      { title: "مکان", dataIndex: "location", key: "location" },
-      { title: "تعداد محصولات", dataIndex: "productCount", key: "productCount" },
-      { title: "تعداد کل", dataIndex: "totalQuantity", key: "totalQuantity" },
-      ...(isSearching
-        ? [
-            {
-              title: "تعداد این محصول",
-              key: "specificProductQuantity",
-              render: (_: any, record: Warehouse) => (
-                <span
-                  className={
-                    (record.specificProductQuantity || 0) > 0
-                      ? "rounded bg-green-900/40 px-2 py-0.5 text-green-200"
-                      : "text-gray-300"
-                  }
-                >
-                  {(record.specificProductQuantity ?? 0) > 0
-                    ? `${record.specificProductQuantity} عدد`
-                    : "ناموجود"}
-                </span>
-              ),
-            },
-          ]
-        : []),
-      {
-        title: "عملیات",
-        key: "actions",
-        render: (_: any, record: Warehouse) => (
-          <div className="flex gap-2">
-            <ButtonBase
-              onClick={() => onEdit(record)}
-              className="flex items-center gap-2 !bg-amber-600 hover:!bg-amber-700"
-              variant="primary"
-            >
-              ویرایش
-            </ButtonBase>
-            <ButtonBase
-              onClick={() => onDelete(record)}
-              className="flex items-center gap-2"
-              variant="danger"
-            >
-              حذف
-            </ButtonBase>
-            <ButtonBase
-              onClick={() => onProducts(record)}
-              className="flex items-center gap-2"
-              variant="primary"
-            >
-              محصولات
-            </ButtonBase>
-          </div>
-        ),
-      },
-    ],
-    [onEdit, onDelete, onProducts, isSearching]
-  );
+  const columns: TableColumnsType<Warehouse> = [
+    { title: "نام", dataIndex: "name", key: "name" },
+    { title: "مکان", dataIndex: "location", key: "location" },
+    { title: "تعداد محصولات", dataIndex: "productCount", key: "productCount" },
+    { title: "تعداد کل", dataIndex: "totalQuantity", key: "totalQuantity" },
+    ...(isSearching
+      ? [
+          {
+            title: "تعداد این محصول",
+            key: "specificProductQuantity",
+            render: (_: unknown, record: Warehouse) => (
+              <span
+                className={
+                  (record.specificProductQuantity || 0) > 0
+                    ? "rounded bg-green-900/40 px-2 py-0.5 text-green-200"
+                    : "text-gray-300"
+                }
+              >
+                {(record.specificProductQuantity ?? 0) > 0
+                  ? `${record.specificProductQuantity} عدد`
+                  : "ناموجود"}
+              </span>
+            ),
+          },
+        ]
+      : []),
+    {
+      title: "عملیات",
+      key: "actions",
+      render: (_: unknown, record: Warehouse) => (
+        <div className="flex gap-2">
+          <Button
+            variant="primary"
+            onClick={() => onEdit(record)}
+            aria-label={`ویرایش انبار ${record.name}`}
+            className="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
+          >
+            ویرایش
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => onDelete(record)}
+            aria-label={`حذف انبار ${record.name}`}
+            className="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:outline-none"
+          >
+            حذف
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => onProducts(record)}
+            aria-label={`مشاهده محصولات انبار ${record.name}`}
+            className="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none"
+          >
+            محصولات
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <TableBase
-      data={items}
+    <DataTable<Warehouse>
+      dataSource={items}
       rowKey={(r) => r.warehouseid}
-      columns={columns as any}
+      columns={columns}
+      scroll={{ x: 680 }}
       loading={loading}
       pagination={{ current: page, pageSize: 20, total, onChange: (p) => onPageChange(p) }}
     />

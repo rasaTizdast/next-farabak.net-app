@@ -1,8 +1,8 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
-
-export const dynamic = "force-dynamic";
 
 // GET handler to fetch contact us data
 export async function GET() {
@@ -35,7 +35,11 @@ export async function GET() {
 // PUT handler to update contact us data
 export async function PUT(req: NextRequest) {
   try {
-    const body = await req.json();
+    const body: {
+      address?: { id: number; address?: string; postal_code?: string; alt_text?: string };
+      emails?: { id: number; title?: string; address?: string }[];
+      phone_numbers?: { id: number; number?: string }[];
+    } = await req.json();
     const { address, emails, phone_numbers } = body;
 
     // Use a transaction to ensure all updates are applied together
@@ -43,11 +47,11 @@ export async function PUT(req: NextRequest) {
       // Update address
       if (address) {
         await tx.address.update({
-          where: { id: address.id },
+          where: { id: Number(address.id) },
           data: {
-            address: address.address,
-            postal_code: address.postal_code,
-            alt_text: address.alt_text,
+            address: address.address ?? "",
+            postal_code: Number(address.postal_code),
+            alt_text: address.alt_text ?? "",
           },
         });
       }
@@ -82,6 +86,7 @@ export async function PUT(req: NextRequest) {
       }
     });
 
+    revalidateTag(TAGS.contactUs, "max");
     return NextResponse.json({ message: "اطلاعات با موفقیت به‌روزرسانی شد." });
   } catch (error) {
     console.error("Error updating contact us data:", error);

@@ -1,58 +1,51 @@
 import Link from "next/link";
 import { IoIosArrowBack } from "react-icons/io";
 
+import { getBreadcrumbNames } from "@/lib/data/breadcrumbs";
+import { serializeJsonLd } from "@/lib/seo/json-ld";
+
 type BreadcrumbItem = string;
 
 interface BreadcrumbProps {
   breadcrumbs: BreadcrumbItem[];
+  labels?: Record<string, string>;
 }
 
-async function fetchBreadcrumbNames(paths: string[]): Promise<Record<string, string>> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/breadcrumbs`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ paths }),
-    // Force server-side fetch in App Router
-    next: { revalidate: 0 }, // Prevent caching for dynamic data
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch breadcrumb names");
-  }
-
-  return response.json();
-}
-
-const Breadcrumb: React.FC<BreadcrumbProps> = async ({ breadcrumbs }) => {
-  const names = await fetchBreadcrumbNames(breadcrumbs);
+const Breadcrumb: React.FC<BreadcrumbProps> = async ({ breadcrumbs, labels }) => {
+  // getBreadcrumbNames throws on DB error — keep the prior throw-on-error behavior.
+  const names = { ...(await getBreadcrumbNames(breadcrumbs)), ...labels };
 
   // Prepare structured data for Schema.org
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net";
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: breadcrumbs.map((crumb, idx) => ({
-      "@type": "ListItem",
-      position: idx + 1,
-      item: {
-        "@id": `${process.env.NEXT_PUBLIC_BASE_URL}${crumb}`,
-        name: names[crumb],
-        url: `${process.env.NEXT_PUBLIC_BASE_URL}${crumb}`,
-      },
-    })),
+    itemListElement: breadcrumbs.map((crumb, idx) => {
+      const url = new URL(crumb, baseUrl).toString();
+      return {
+        "@type": "ListItem",
+        position: idx + 1,
+        item: {
+          "@id": url,
+          name: names[crumb],
+          url,
+        },
+      };
+    }),
   };
+
+  const jsonLd = serializeJsonLd(structuredData);
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
-      <nav className="scrollbar-hide mb-5 w-full overflow-x-auto rounded-lg bg-gradient-to-l from-[#003262] via-[#0e6aff] to-[#1e90ff] p-4 text-sm text-white shadow-lg [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
+      <nav className="scrollbar-hide mb-5 w-full scrollbar-none overflow-x-auto rounded-lg bg-linear-to-l from-[#003262] via-[#0e6aff] to-[#1e90ff] p-4 text-sm text-white shadow-lg [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         <div className="flex min-w-max items-center space-x-2">
           {breadcrumbs.map((crumb, idx) => (
-            <div key={idx} className="flex items-center whitespace-nowrap">
+            <div
+              key={crumb}
+              className={`items-center whitespace-nowrap ${idx < breadcrumbs.length - 2 ? "hidden sm:flex" : "flex"}`}
+            >
               {idx > 0 && (
                 <span className="mx-2 sm:mx-3" aria-hidden="true">
                   <IoIosArrowBack />
@@ -62,6 +55,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = async ({ breadcrumbs }) => {
                 href={crumb}
                 className="text-white underline-offset-[6px] hover:underline"
                 aria-label={`Navigate to ${names[crumb]}`}
+                aria-current={idx === breadcrumbs.length - 1 ? "page" : undefined}
               >
                 {names[crumb] || "نامشخص"}
               </Link>

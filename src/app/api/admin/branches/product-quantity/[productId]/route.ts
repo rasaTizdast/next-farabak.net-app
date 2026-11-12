@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
+import { serverErrorResponse } from "@/lib/api-response";
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { branchProductQuerySchema, validateParams } from "@/lib/validation";
 
 /**
  * @swagger
@@ -21,18 +24,21 @@ import { prisma } from "@/lib/prisma";
  *         description: Server error
  */
 export async function GET(request: Request, props: { params: Promise<{ productId: string }> }) {
-  const params = await props.params;
+  const [params, auth] = await Promise.all([props.params, requireAuth()]);
+  if (auth instanceof NextResponse) return auth;
+  const paramValidation = validateParams(params, branchProductQuerySchema);
+  if ("error" in paramValidation) return paramValidation.error;
   try {
-    const productId = parseInt(params.productId);
+    const productId = paramValidation.data.productId;
 
     // Get the total quantity of the product across all branches
-    const result = await prisma.$queryRaw`
+    const result = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT COALESCE(SUM("quantity"), 0) as "totalQuantity"
       FROM "support"."branchproduct"
       WHERE "ProductId" = ${productId}
     `;
 
-    const totalQuantity = (result as any[])[0]?.totalQuantity || 0;
+    const totalQuantity = (result[0]?.totalQuantity as number) || 0;
 
     return NextResponse.json({
       productId,
@@ -40,6 +46,6 @@ export async function GET(request: Request, props: { params: Promise<{ productId
     });
   } catch (error) {
     console.error("Error getting product quantity:", error);
-    return NextResponse.json({ error: "خطا در دریافت تعداد محصول" }, { status: 500 });
+    return serverErrorResponse("خطا در دریافت تعداد محصول");
   }
 }

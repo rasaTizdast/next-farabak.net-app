@@ -1,5 +1,5 @@
 import { QRCodeCanvas } from "qrcode.react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
 import { IoIosClose } from "react-icons/io";
 
@@ -14,6 +14,28 @@ type Props = {
   refetchBlogs: () => void;
 };
 
+function generateUniqueKey() {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
+function calculateExpiryTimestamp(days: number | null) {
+  if (!days) return null;
+  const now = new Date();
+  now.setDate(now.getDate() + days);
+  return now.toISOString();
+}
+
+const downloadQrCode = () => {
+  const canvas = document.querySelector("canvas");
+  if (canvas) {
+    const url = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "qrcode.png";
+    a.click();
+  }
+};
+
 const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [expiryDays, setExpiryDays] = useState<number | null>(2);
@@ -26,45 +48,7 @@ const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
     setUniqueQrCodeDetails(null);
   };
 
-  const generateUniqueKey = () => {
-    return (
-      Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-    );
-  };
-
-  const calculateExpiryTimestamp = (days: number | null) => {
-    if (!days) return null;
-    const now = new Date();
-    now.setDate(now.getDate() + days);
-    return now.toISOString();
-  };
-
-  useEffect(() => {
-    if (blog) {
-      fetchUniqueQrCodeDetails();
-    }
-  }, [blog]);
-
-  const fetchUniqueQrCodeDetails = async () => {
-    if (!blog || !blog.QrCode_key || !blog.QrCode_expiryDays) {
-      return;
-    }
-
-    const expiryDate = new Date(blog.QrCode_expiryDays);
-    const currentDate = new Date();
-    const isExpired = currentDate > expiryDate;
-
-    if (isExpired) {
-      await deleteUniqueQrCode();
-    } else {
-      setUniqueQrCodeDetails({
-        qrCodeUrl: `${process.env.NEXT_PUBLIC_BASE_URL}${blog.link}?key=${blog.QrCode_key}`,
-        expiryDate,
-      });
-    }
-  };
-
-  const deleteUniqueQrCode = async () => {
+  const deleteUniqueQrCode = useCallback(async () => {
     if (!blog) return;
 
     try {
@@ -87,7 +71,29 @@ const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
       console.error(error);
       toast.error("خطایی در ارتباط با سرور رخ داده است.");
     }
-  };
+  }, [blog, onClose, refetchBlogs]);
+
+  // Fetch QR code details when blog data is available (one-time)
+  useEffect(() => {
+    if (blog && blog.QrCode_key && blog.QrCode_expiryDays) {
+      (async () => {
+        const expiryDate = new Date(blog.QrCode_expiryDays as string);
+        const currentDate = new Date();
+        const isExpired = currentDate > expiryDate;
+
+        if (isExpired) {
+          await deleteUniqueQrCode();
+        } else {
+          const remainingDays = Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 3600 * 24));
+          setUniqueQrCodeDetails({
+            qrCodeUrl: `${process.env.NEXT_PUBLIC_BASE_URL}${blog.link}?key=${blog.QrCode_key}`,
+            expiryDate,
+            remainingDays,
+          });
+        }
+      })();
+    }
+  }, [blog, deleteUniqueQrCode]);
 
   const generateUniqueQrCode = async () => {
     if (!blog) return;
@@ -123,32 +129,21 @@ const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
     }
   };
 
-  const downloadQrCode = () => {
-    const canvas = document.querySelector("canvas");
-    if (canvas) {
-      const url = canvas.toDataURL("image/png");
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "qrcode.png";
-      a.click();
-    }
-  };
-
   if (!blog) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm transition-opacity"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm transition-opacity"
       dir="rtl"
     >
-      <div className="relative max-h-[90dvh] w-full max-w-2xl animate-fade-in overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg">
+      <div className="animate-fade-in relative max-h-[90dvh] w-full max-w-2xl overflow-y-scroll rounded-xl bg-gray-800 p-6 text-white shadow-lg">
         <button
           type="button"
           onClick={() => {
             onClose(false);
             resetState();
           }}
-          className="absolute right-4 top-4 text-red-400 transition-all hover:text-red-500"
+          className="absolute top-4 right-4 text-red-400 transition-colors hover:text-red-500"
           aria-label="بستن"
         >
           <IoIosClose size={50} />
@@ -171,10 +166,14 @@ const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
 
         {/* Unique QR Code */}
         <div className="flex flex-col gap-4">
-          <label className="mb-2 block text-gray-400">مدت زمان اعتبار (روز):</label>
+          <label htmlFor="qr-expiry" className="mb-2 block text-gray-400">
+            مدت زمان اعتبار (روز):
+          </label>
           <select
+            id="qr-expiry"
             value={expiryDays || ""}
             onChange={(e) => setExpiryDays(e.target.value === "" ? null : parseInt(e.target.value))}
+            aria-label="مدت زمان اعتبار کد QR"
             className="rounded bg-gray-700 px-4 py-2"
           >
             <option value="1">۱ روز</option>
@@ -226,11 +225,9 @@ const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
             </p>
             <p className="mt-2 text-gray-500">
               <strong>مدت اعتبار باقی‌مانده:</strong>{" "}
-              {isNaN(uniqueQrCodeDetails.expiryDate)
+              {isNaN(uniqueQrCodeDetails.expiryDate) || uniqueQrCodeDetails.remainingDays == null
                 ? "بدون تاریخ انقضا"
-                : `${Math.ceil(
-                    (uniqueQrCodeDetails.expiryDate.getTime() - Date.now()) / (1000 * 3600 * 24)
-                  )} روز`}
+                : `${uniqueQrCodeDetails.remainingDays} روز`}
             </p>
             <div className="flex w-full gap-5">
               <button
@@ -254,7 +251,7 @@ const BlogQrCodeModal = ({ onClose, blog, refetchBlogs }: Props) => {
       </div>
 
       {showConfirmModal && (
-        <div className="z-60 fixed inset-0 flex items-center justify-center backdrop-blur-sm">
+        <div className="fixed inset-0 z-60 flex items-center justify-center backdrop-blur-sm">
           <div className="w-full max-w-md rounded-xl bg-gray-700 p-6 text-gray-200 shadow-lg md:max-w-lg">
             <h2 className="mb-4 text-center text-lg font-bold 2xl:mb-7 2xl:text-2xl">
               هشدار: ایجاد لینک یکتا

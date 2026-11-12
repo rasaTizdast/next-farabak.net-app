@@ -13,8 +13,8 @@ export type Product = {
   SEO_Title: string;
   SEO_Description: string;
   link: string;
-  img1: File | null;
-  img2: File | null;
+  img1: string | null;
+  img2: string | null;
   CategoryContentId: string;
   CategoryContentIds: {
     CategoryContentId: number;
@@ -36,6 +36,7 @@ export type Overview = {
   Property3: string;
   Property4: string;
   isChanged: boolean;
+  [key: string]: unknown;
 };
 
 export type OverviewDetail = {

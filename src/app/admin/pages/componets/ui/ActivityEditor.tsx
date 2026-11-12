@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa"; // Icons for expand/collapse
 import { IoIosCloseCircle } from "react-icons/io";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 type ActivityEditModalProps = {
   onClose: () => void;
@@ -23,7 +24,7 @@ type Activity = {
 };
 
 const SkeletonLoader = () => (
-  <div className="space-y-4">
+  <div className="space-y-4" role="status" aria-label="در حال بارگذاری">
     {[...Array(4)].map((_, index) => (
       <div key={index} className="animate-pulse rounded-lg bg-gray-600 p-4">
         <div className="mb-4 h-6 w-1/2 rounded bg-gray-500"></div>
@@ -39,20 +40,26 @@ const SkeletonLoader = () => (
 );
 
 const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
+  const panelRef = useModalA11y<HTMLDivElement>({
+    onClose,
+    shouldCloseOnEscape: () => !document.activeElement?.closest("input, textarea, select"),
+  });
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set<number>());
 
-  const { data: activitiesData } = useApiFetch("/api/activities");
-  const { mutate: saveActivities, loading: isSaving } = useApiMutation("put");
+  const initializedRef = useRef(false);
+  const { data: activitiesData } = useApiFetch<Activity[]>("/api/activities");
+  const { mutate: saveActivities } = useApiMutation("put");
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
+  const isFetching = !activitiesData;
+
   useEffect(() => {
-    if (activitiesData) {
+    if (activitiesData && !initializedRef.current) {
+      initializedRef.current = true;
+
       setActivities(activitiesData);
       setExpandedSections(new Set<number>(activitiesData.map((_: Activity, i: number) => i)));
-      setIsFetching(false);
     }
   }, [activitiesData]);
 
@@ -113,41 +120,53 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    const updatedActivities = activities.map((activity) => ({
-      id: activity.id,
-      title: activity.title,
-      details: activity.Details_activity.map((detail) => ({
-        id: detail.id || undefined,
-        description: detail.description,
-      })),
-    }));
+    try {
+      const updatedActivities = activities.map((activity) => ({
+        id: activity.id,
+        title: activity.title,
+        Details_activity: activity.Details_activity.map((detail) => ({
+          id: detail.id || undefined,
+          description: detail.description,
+        })),
+      }));
 
-    const res = await saveActivities("/api/activities", updatedActivities);
-    if (res) {
-      toast.success("فعالیت با موفقیت آپدیت شد!");
-    } else {
-      toast.error("آپدیت فعالیت به مشکل خورد!");
+      const res = await saveActivities("/api/activities", updatedActivities);
+      if (res) {
+        toast.success("فعالیت با موفقیت آپدیت شد!");
+      } else {
+        toast.error("آپدیت فعالیت به مشکل خورد!");
+      }
+    } finally {
+      setIsLoading(false);
+      onClose();
     }
-    setIsLoading(false);
-    onClose();
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 shadow-lg backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-3 backdrop-blur-[2px]">
       <div
-        className="relative max-h-[95dvh] w-full max-w-7xl overflow-auto rounded-lg bg-gray-700 p-6 text-gray-200 shadow-lg"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="activity-editor-title"
+        tabIndex={-1}
+        className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-7xl overflow-auto overscroll-contain rounded-xl border border-slate-500 bg-gray-700 p-4 text-gray-100 shadow-2xl sm:p-6"
         dir="rtl"
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Updated Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute left-4 top-4 rounded-full p-2 text-red-500 hover:text-red-600"
+          className="absolute top-4 left-4 rounded-full p-2 text-red-500 hover:text-red-600"
+          aria-label="بستن"
         >
           <IoIosCloseCircle size={40} />
         </button>
 
-        <h2 className="mb-10 text-center text-xl font-bold">ویرایش فعالیت‌ها</h2>
+        <h2 id="activity-editor-title" className="mb-10 text-center text-xl font-bold">
+          ویرایش فعالیت‌ها
+        </h2>
         {isFetching ? ( // Show skeleton while fetching data
           <SkeletonLoader />
         ) : (
@@ -165,7 +184,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                       value={activity.title}
                       onChange={(e) => handleUpdateActivity(activityIndex, "title", e.target.value)}
                       placeholder="عنوان فعالیت"
-                      className="mb-2 w-full rounded-lg bg-gray-600 p-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="mb-2 w-full rounded-lg bg-gray-600 p-2 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     />
                   </label>
                   {/* Expand/Collapse Button */}
@@ -173,6 +192,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                     type="button"
                     onClick={() => toggleSection(activityIndex)}
                     className="mb-3 p-2 pl-0 text-gray-100 hover:text-blue-500"
+                    aria-label={expandedSections.has(activityIndex) ? "بستن بخش" : "باز کردن بخش"}
                   >
                     {expandedSections.has(activityIndex) ? (
                       <FaChevronUp size={20} />
@@ -184,7 +204,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                 <button
                   type="button"
                   onClick={() => handleDeleteSection(activityIndex)}
-                  className="mb-3 mt-1 rounded-lg bg-red-500 p-2 text-gray-100 hover:bg-red-600"
+                  className="mt-1 mb-3 rounded-lg bg-red-500 p-2 text-gray-100 hover:bg-red-600"
                 >
                   حذف فعالیت
                 </button>
@@ -205,7 +225,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                               handleUpdateDetail(activityIndex, detailIndex, e.target.value)
                             }
                             placeholder="توضیحات فعالیت"
-                            className="w-full rounded-lg bg-gray-600 p-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full rounded-lg bg-gray-600 p-2 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                           />
                         </label>
                         <button
@@ -247,7 +267,7 @@ const ActivityEditor: React.FC<ActivityEditModalProps> = ({ onClose }) => {
                 disabled={isLoading}
                 className={`${
                   isLoading ? "bg-gray-500" : "bg-green-600 hover:bg-green-700"
-                } mt-4 rounded-lg px-4 py-2 text-white transition-all`}
+                } mt-4 rounded-lg px-4 py-2 text-white transition-colors`}
               >
                 {isLoading ? "در حال ارسال..." : "ثبت تغییرات"}
               </button>

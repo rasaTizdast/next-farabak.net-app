@@ -1,0 +1,16 @@
+﻿[
+  {
+    "id": 1,
+    "invoiceNumber": "INV-001",
+    "customerName": "Test Customer",
+    "totalAmount": 1000,
+    "status": "pending",
+    "items": [
+      {
+        "productId": 1,
+        "quantity": 2,
+        "price": 500
+      }
+    ]
+  }
+]

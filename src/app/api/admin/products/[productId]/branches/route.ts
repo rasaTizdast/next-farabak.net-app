@@ -1,56 +1,28 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { errorResponse, serverErrorResponse } from "@/lib/api-response";
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
-export const dynamic = "force-dynamic";
-
-// Helper function to verify the JWT token
-async function verifyToken() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const secret = new TextEncoder().encode(JWT_SECRET);
-    const { payload } = await jwtVerify(token, secret);
-    return payload;
-  } catch (error) {
-    console.error("Token verification failed:", error);
-    return null;
-  }
-}
+import { validateParams, productIdParamSchema } from "@/lib/validation";
 
 export async function GET(request: Request, props: { params: Promise<{ productId: string }> }) {
   const params = await props.params;
   try {
-    // Verify authentication
-    const tokenPayload = await verifyToken();
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!tokenPayload) {
-      return NextResponse.json({ error: "احراز هویت الزامی است" }, { status: 401 });
-    }
-
-    // Get user role and ID from token
-    const userRole = tokenPayload.role;
-    const userId = tokenPayload.sub;
+    const userRole = auth.role;
+    const userId = auth.userId;
 
     // Only Admin or Branch users can search branches
     if (userRole !== "Admin" && userRole !== "Branch") {
-      return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
+      return errorResponse("دسترسی غیرمجاز", 403);
     }
 
     // Get product ID from params
-    const productId = Number(params.productId);
-    if (isNaN(productId)) {
-      return NextResponse.json({ error: "شناسه محصول نامعتبر است" }, { status: 400 });
-    }
+    const paramResult = validateParams(params, productIdParamSchema);
+    if ("error" in paramResult) return paramResult.error;
+    const productId = paramResult.data.productId;
 
     // For branch users, get their branch ID
     let currentBranchId: number | undefined = undefined;
@@ -100,6 +72,6 @@ export async function GET(request: Request, props: { params: Promise<{ productId
     });
   } catch (error) {
     console.error("Error searching branches for product:", error);
-    return NextResponse.json({ error: "خطا در جستجوی شعبه‌ها" }, { status: 500 });
+    return serverErrorResponse("خطا در جستجوی شعبه‌ها");
   }
 }

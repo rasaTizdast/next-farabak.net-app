@@ -2,32 +2,25 @@ import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 import { NextResponse } from "next/server";
 
+import { errorResponse, serverErrorResponse } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma"; // Ensure you have a prisma client instance
+import { signupSchema, validateBody } from "@/lib/validation";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "your_refresh_token_secret";
+const JWT_SECRET = process.env.JWT_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error("Missing JWT_SECRET environment variable");
+}
+if (!REFRESH_TOKEN_SECRET) {
+  throw new Error("Missing REFRESH_TOKEN_SECRET environment variable");
+}
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { username, firstName, lastName, phoneNumber, email, city, job, password } = body;
-
-    // Validate required fields
-    if (
-      !username ||
-      !firstName ||
-      !lastName ||
-      !phoneNumber ||
-      !email ||
-      !city ||
-      !job ||
-      !password
-    ) {
-      return NextResponse.json(
-        { message: "لطفا تمام فیلدهای ضروری را تکمیل کنید" },
-        { status: 400 }
-      );
-    }
+    const result = await validateBody(request, signupSchema);
+    if ("error" in result) return result.error;
+    const { username, firstName, lastName, phoneNumber, email, city, job, password } = result.data;
 
     // Check if the username or email already exists
     const existingUser = await prisma.client.findFirst({
@@ -37,10 +30,7 @@ export async function POST(request: Request) {
     });
 
     if (existingUser) {
-      return NextResponse.json(
-        { message: "این نام کاربری یا ایمیل قبلاً ثبت شده است" },
-        { status: 400 }
-      );
+      return errorResponse("این نام کاربری یا ایمیل قبلاً ثبت شده است", 400);
     }
 
     // Hash the password
@@ -109,6 +99,6 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ message: "خطای داخلی سرور رخ داده است" }, { status: 500 });
+    return serverErrorResponse("خطای داخلی سرور رخ داده است");
   }
 }

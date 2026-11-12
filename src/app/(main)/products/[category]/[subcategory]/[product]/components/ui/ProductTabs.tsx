@@ -1,59 +1,85 @@
 "use client";
 
-import styles from "../../ProductPage.module.css";
+import { useEffect, useRef, useState } from "react";
 
-// Scroll function with offset
-function scrollToSection(id: string) {
-  const element = document.getElementById(id);
-  const navHeight = document.querySelector<HTMLElement>(".productTabs")?.offsetHeight || 140; // Default to 70px if not found
+const HEADER_GAP = 12;
 
-  if (element) {
-    const yOffset = -navHeight - 10; // Offset by nav height + some margin
-    const yPosition = element.getBoundingClientRect().top + window.scrollY + yOffset;
-
-    window.scrollTo({
-      top: yPosition,
-      behavior: "smooth",
-    });
-  }
-}
+const tabs = [
+  { id: "overview", label: "توضیحات" },
+  { id: "blog", label: "توضیحات تکمیلی" },
+  { id: "specs", label: "مشخصات" },
+  { id: "faq", label: "سوالات" },
+] as const;
+type ProductTab = (typeof tabs)[number];
 
 const ProductTabs = () => {
+  const navRef = useRef<HTMLElement | null>(null);
+  const [stickyTop, setStickyTop] = useState<number | null>(null);
+  const [visibleTabs, setVisibleTabs] = useState<ProductTab[]>([...tabs]);
+
+  useEffect(() => {
+    const updateVisibleTabs = () => {
+      setVisibleTabs(
+        tabs.filter((tab) => document.querySelector(`#${tab.id} [data-product-section-content]`))
+      );
+    };
+
+    updateVisibleTabs();
+    const observer = new MutationObserver(updateVisibleTabs);
+    observer.observe(document.getElementById("main-content") ?? document.body, {
+      childList: true,
+      subtree: true,
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const header = document.querySelector("header");
+    if (!header) return;
+
+    const measureHeader = () => setStickyTop(header.offsetHeight + HEADER_GAP);
+    measureHeader();
+    const observer = new ResizeObserver(measureHeader);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
+
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (!element) return;
+
+    const headerHeight = document.querySelector("header")?.offsetHeight ?? 0;
+    const navHeight = navRef.current?.offsetHeight ?? 0;
+    const yOffset = -(headerHeight + HEADER_GAP + navHeight + 8);
+    const yPosition = element.getBoundingClientRect().top + window.scrollY + yOffset;
+
+    window.scrollTo({ top: yPosition, behavior: "smooth" });
+  };
+
+  if (visibleTabs.length === 0) return null;
+
   return (
-    <nav className={styles.productTabs}>
-      <ul>
-        <li>
-          <button
-            type="button"
-            className={styles.navButton}
-            onClick={() => scrollToSection("overview")}
-          >
-            توضیحات
-          </button>
-        </li>
-        <li>
-          <button
-            type="button"
-            className={styles.navButton}
-            onClick={() => scrollToSection("blog")}
-          >
-            توضیحات تکمیلی
-          </button>
-        </li>
-        <li>
-          <button
-            type="button"
-            className={styles.navButton}
-            onClick={() => scrollToSection("specs")}
-          >
-            مشخصات
-          </button>
-        </li>
-        <li>
-          <button type="button" className={styles.navButton} onClick={() => scrollToSection("faq")}>
-            سوالات
-          </button>
-        </li>
+    <nav
+      ref={navRef}
+      aria-label="بخش‌های محصول"
+      style={stickyTop !== null ? { top: `${stickyTop}px` } : undefined}
+      className="sticky z-5 mx-auto my-8 w-full overflow-x-auto rounded-xl border border-white/10 bg-(--farabak-ink-deep)/95 shadow-[0_12px_30px_rgba(6,26,48,0.14)] backdrop-blur-md"
+    >
+      <ul className="flex min-w-max items-center justify-center gap-1 p-1 sm:gap-2">
+        {visibleTabs.map((tab) => (
+          <li key={tab.id}>
+            <a
+              href={`#${tab.id}`}
+              onClick={(event) => {
+                event.preventDefault();
+                scrollToSection(tab.id);
+              }}
+              className="inline-flex min-h-11 items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:ring-offset-(--farabak-ink-deep) focus-visible:outline-none sm:px-5"
+            >
+              {tab.label}
+            </a>
+          </li>
+        ))}
       </ul>
     </nav>
   );

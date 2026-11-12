@@ -1,9 +1,17 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 // Generate or Update QR Code
 export async function POST(request: Request) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const { blogId, qrCodeKey, qrCodeExpiryDays } = await request.json();
 
@@ -20,6 +28,7 @@ export async function POST(request: Request) {
       },
     });
 
+    revalidateTag(TAGS.blogs, "max");
     return NextResponse.json(updatedBlog, { status: 200 });
   } catch (error) {
     console.error("خطا در ایجاد کد QR:", error);
@@ -29,6 +38,11 @@ export async function POST(request: Request) {
 
 // Delete QR Code
 export async function DELETE(request: Request) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const { blogId } = await request.json();
 
@@ -45,6 +59,7 @@ export async function DELETE(request: Request) {
       },
     });
 
+    revalidateTag(TAGS.blogs, "max");
     return NextResponse.json(updatedBlog, { status: 200 });
   } catch (error) {
     console.error("خطا در حذف کد QR:", error);

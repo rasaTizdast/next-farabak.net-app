@@ -5,15 +5,87 @@ type ProjectEditModalProps = {
   onClose: () => void;
 };
 
-import { useCallback, useEffect, useState } from "react";
+type ProjectMedia = {
+  MediaType: string;
+  MediaURL: string;
+};
+
+type ProjectApiResponse = {
+  project: {
+    ProjectID: number;
+    Title: string;
+    Description: string;
+    Slug: string;
+    IsActive: boolean;
+    date: string;
+    city: string;
+    Main_img_URL: string | null;
+  };
+  media: ProjectMedia[];
+};
+
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { BiTrash } from "react-icons/bi";
 import { DatePicker } from "zaman";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
+import { generateSlug } from "@/utils/generateSlug";
+
+// Update your file removal to handle both existing and new files
+const removeFile = (setter: Function, files: (File | string)[], index: number) => {
+  const newFiles = files.filter((_, i) => i !== index);
+  setter(newFiles);
+};
+
+function usePreviewUrls(files: (File | string)[]) {
+  const [urls, setUrls] = useState<Map<File, string>>(new Map());
+
+  useEffect(() => {
+    setUrls((prevUrls) => {
+      const newUrls = new Map<File, string>();
+      for (const file of files) {
+        if (file instanceof File) {
+          const existing = prevUrls.get(file);
+          if (existing) {
+            newUrls.set(file, existing);
+          } else {
+            newUrls.set(file, URL.createObjectURL(file));
+          }
+        }
+      }
+      for (const [file, url] of prevUrls) {
+        if (!newUrls.has(file)) {
+          URL.revokeObjectURL(url);
+        }
+      }
+      return newUrls;
+    });
+    return () => {
+      setUrls((currentUrls) => {
+        for (const url of currentUrls.values()) {
+          URL.revokeObjectURL(url);
+        }
+        return new Map<File, string>();
+      });
+    };
+  }, [files]);
+
+  return (file: File | string) => {
+    if (typeof file === "string") {
+      return `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${file}`;
+    }
+    return urls.get(file) ?? "";
+  };
+}
 
 const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
+  const panelRef = useModalA11y<HTMLDivElement>({
+    onClose,
+    shouldCloseOnEscape: () => !document.activeElement?.closest("input, textarea, select"),
+  });
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -22,20 +94,28 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
     date: "",
     city: "",
   });
-  const [mainImage, setMainImage] = useState<File | null>(null);
-  const [detailImages, setDetailImages] = useState<File[]>([]);
-  const [videos, setVideos] = useState<File[]>([]);
+  const [mainImage, setMainImage] = useState<File | string | null>(null);
+  const [detailImages, setDetailImages] = useState<(File | string)[]>([]);
+  const [videos, setVideos] = useState<(File | string)[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const allMediaFiles = [...(mainImage ? [mainImage] : []), ...detailImages, ...videos] as (
+    File | string
+  )[];
+  const getPreviewUrl = usePreviewUrls(allMediaFiles);
+
   const projectUrl = id ? `/api/projects/${id}` : null;
-  const { data: projectData, loading: projectLoading } = useApiFetch(projectUrl);
+  const { data: projectData, loading: projectLoading } =
+    useApiFetch<ProjectApiResponse>(projectUrl);
   const isLoading = projectUrl ? projectLoading || !projectData : false;
   const { mutate: saveProjectMutate } = useApiMutation("put");
+  const initializedRef = useRef(false);
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
-    if (projectData) {
+    if (projectData && !initializedRef.current) {
+      initializedRef.current = true;
+
       setFormData({
         title: projectData.project.Title,
         description: projectData.project.Description,
@@ -46,10 +126,16 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
       });
       setMainImage(projectData.project.Main_img_URL);
       setDetailImages(
-        projectData.media.filter((m: any) => m.MediaType === "image").map((m: any) => m.MediaURL)
+        projectData.media.reduce((acc: string[], m: ProjectMedia) => {
+          if (m.MediaType === "image") acc.push(m.MediaURL);
+          return acc;
+        }, [])
       );
       setVideos(
-        projectData.media.filter((m: any) => m.MediaType === "video").map((m: any) => m.MediaURL)
+        projectData.media.reduce((acc: string[], m: ProjectMedia) => {
+          if (m.MediaType === "video") acc.push(m.MediaURL);
+          return acc;
+        }, [])
       );
     }
   }, [projectData]);
@@ -95,47 +181,48 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
     }
 
     setIsSubmitting(true);
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("projectId", id?.toString() || "");
+      formDataToSend.append("title", formData.title);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("slug", formData.slug);
+      formDataToSend.append("isActive", formData.isActive.toString());
+      formDataToSend.append("date", formData.date);
+      formDataToSend.append("city", formData.city);
 
-    const formDataToSend = new FormData();
-    formDataToSend.append("projectId", id?.toString() || "");
-    formDataToSend.append("title", formData.title);
-    formDataToSend.append("description", formData.description);
-    formDataToSend.append("slug", formData.slug);
-    formDataToSend.append("isActive", formData.isActive.toString());
-    formDataToSend.append("date", formData.date);
-    formDataToSend.append("city", formData.city);
-
-    if (typeof mainImage === "string") {
-      formDataToSend.append("existingMainImage", mainImage);
-    } else if (mainImage) {
-      formDataToSend.append("mainImage", mainImage);
-    }
-
-    detailImages.forEach((item) => {
-      if (typeof item === "string") {
-        formDataToSend.append("existingDetailImages", item);
-      } else {
-        formDataToSend.append("detailImages", item);
+      if (typeof mainImage === "string") {
+        formDataToSend.append("existingMainImage", mainImage);
+      } else if (mainImage) {
+        formDataToSend.append("mainImage", mainImage);
       }
-    });
 
-    videos.forEach((item) => {
-      if (typeof item === "string") {
-        formDataToSend.append("existingVideos", item);
+      detailImages.forEach((item) => {
+        if (typeof item === "string") {
+          formDataToSend.append("existingDetailImages", item);
+        } else {
+          formDataToSend.append("detailImages", item);
+        }
+      });
+
+      videos.forEach((item) => {
+        if (typeof item === "string") {
+          formDataToSend.append("existingVideos", item);
+        } else {
+          formDataToSend.append("videos", item);
+        }
+      });
+
+      const res = await saveProjectMutate(`/api/projects/${id}`, formDataToSend);
+
+      if (res) {
+        onClose();
       } else {
-        formDataToSend.append("videos", item);
+        setErrors((prev) => ({ ...prev, form: "خطا در ذخیره پروژه." }));
       }
-    });
-
-    const res = await saveProjectMutate(`/api/projects/${id}`, formDataToSend);
-
-    if (res) {
-      onClose();
-    } else {
-      setErrors((prev) => ({ ...prev, form: "خطا در ذخیره پروژه." }));
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   };
 
   // Main image dropzone
@@ -200,50 +287,27 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
     maxFiles: 3,
   });
 
-  // Update your file removal to handle both existing and new files
-  const removeFile = (setter: Function, files: (File | string)[], index: number) => {
-    const newFiles = files.filter((_, i) => i !== index);
-    setter(newFiles);
-  };
-
-  // Update your preview logic to handle both URLs and Files
-  const getPreviewUrl = (file: File | string) => {
-    return typeof file === "string"
-      ? `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${file}`
-      : URL.createObjectURL(file);
-  };
-
-  const generateSlug = (title: string) => {
-    return (
-      title
-        // Convert to lowercase
-        .toLowerCase()
-        // Remove non-alphanumeric characters except spaces and hyphens
-        .replace(/[^a-z0-9\s-]/g, "")
-        // Replace multiple spaces with a single space
-        .replace(/\s+/g, " ")
-        // Replace spaces with hyphens
-        .replace(/\s/g, "-")
-        // Remove consecutive hyphens
-        .replace(/-+/g, "-")
-        // Trim leading and trailing spaces
-        .trim()
-    );
-  };
-
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-      <div className="max-h-[95vh] w-full max-w-4xl overflow-auto rounded-xl bg-gray-800 p-6 text-gray-100 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-3 backdrop-blur-[2px]">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-project-title"
+        tabIndex={-1}
+        className="max-h-[calc(100dvh-1.5rem)] w-full max-w-4xl overflow-auto overscroll-contain rounded-xl border border-slate-500 bg-gray-800 p-4 text-gray-100 shadow-2xl sm:p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
         {isLoading ? (
-          <div className="animate-pulse space-y-6">
+          <div className="animate-pulse space-y-6" role="status" aria-label="در حال بارگذاری">
             {/* Header Skeleton */}
             <div className="mb-6 flex items-center justify-between">
               <div className="h-8 w-48 rounded bg-gray-700" />
-              <div className="h-8 w-8 rounded-full bg-gray-700" />
+              <div className="size-8 rounded-full bg-gray-700" />
             </div>
 
             {/* Text Inputs Skeleton */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i}>
                   <div className="mb-2 h-4 w-24 rounded bg-gray-700" />
@@ -255,7 +319,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
             {/* Active Toggle Skeleton */}
             <div className="flex items-center gap-2">
               <div className="h-4 w-32 rounded bg-gray-700" />
-              <div className="h-4 w-4 rounded bg-gray-700" />
+              <div className="size-4 rounded bg-gray-700" />
             </div>
 
             {/* Main Image Skeleton */}
@@ -268,7 +332,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
             <div>
               <div className="mb-3 h-4 w-56 rounded bg-gray-700" />
               <div className="h-32 rounded-lg bg-gray-700" />
-              <div className="mt-4 grid grid-cols-4 gap-4">
+              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="h-32 rounded-lg bg-gray-700" />
                 ))}
@@ -279,7 +343,7 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
             <div>
               <div className="mb-3 h-4 w-56 rounded bg-gray-700" />
               <div className="h-32 rounded-lg bg-gray-700" />
-              <div className="mt-4 grid grid-cols-3 gap-4">
+              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
                 {[1].map((i) => (
                   <div key={i} className="h-32 rounded-lg bg-gray-700" />
                 ))}
@@ -302,10 +366,13 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
           <>
             {/* Header */}
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold">ساخت پروژه جدید</h2>
+              <h2 id="edit-project-title" className="text-xl font-bold sm:text-2xl">
+                ویرایش پروژه
+              </h2>
               <button
                 type="button"
                 onClick={onClose}
+                aria-label="بستن"
                 className="rounded-full p-2 transition-colors hover:bg-gray-700"
               >
                 ✕
@@ -315,42 +382,56 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
             {/* Form */}
             <div className="space-y-6">
               {/* Text Inputs */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-2 block font-medium">تیتر پروژه *</label>
+                  <label htmlFor="project-title" className="mb-2 block font-medium">
+                    تیتر پروژه *
+                  </label>
                   <input
+                    id="project-title"
                     name="title"
                     value={formData.title}
                     onChange={handleInputChange}
+                    aria-label="تیتر پروژه"
                     className="w-full rounded-lg bg-gray-700 p-2 outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {errors.title && <p className="mt-1 text-sm text-red-400">{errors.title}</p>}
                 </div>
 
                 <div>
-                  <label className="mb-2 block font-medium">شناسه *</label>
+                  <label htmlFor="project-slug" className="mb-2 block font-medium">
+                    شناسه *
+                  </label>
                   <input
+                    id="project-slug"
                     name="slug"
                     value={generateSlug(formData.slug)}
                     onChange={handleInputChange}
+                    aria-label="شناسه پروژه"
                     className="w-full rounded-lg bg-gray-700 p-2 outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {errors.slug && <p className="mt-1 text-sm text-red-400">{errors.slug}</p>}
                 </div>
 
                 <div>
-                  <label className="mb-2 block font-medium">شهر *</label>
+                  <label htmlFor="project-city" className="mb-2 block font-medium">
+                    شهر *
+                  </label>
                   <input
+                    id="project-city"
                     name="city"
                     value={formData.city}
                     onChange={handleInputChange}
+                    aria-label="شهر پروژه"
                     className="w-full rounded-lg bg-gray-700 p-2 outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {errors.city && <p className="mt-1 text-sm text-red-400">{errors.city}</p>}
                 </div>
 
                 <div>
-                  <label className="mb-2 block font-medium">تاریخ *</label>
+                  <label htmlFor="project-date" className="mb-2 block font-medium">
+                    تاریخ *
+                  </label>
                   <DatePicker
                     defaultValue={formData.date}
                     onChange={(e) => handleDateChange(e.value)}
@@ -366,12 +447,16 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
 
               {/* Active Toggle */}
               <div className="flex items-center gap-2">
-                <label className="font-medium">پروژه فعال باشد</label>
+                <label htmlFor="project-isActive" className="font-medium">
+                  پروژه فعال باشد
+                </label>
                 <input
+                  id="project-isActive"
                   type="checkbox"
                   checked={formData.isActive}
                   onChange={handleCheckboxChange}
-                  className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-600"
+                  aria-label="پروژه فعال باشد"
+                  className="size-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-600"
                 />
               </div>
 
@@ -393,7 +478,8 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
                       <button
                         type="button"
                         onClick={() => setMainImage(null)}
-                        className="absolute right-1 top-1 rounded-lg bg-red-500 p-2 opacity-0 transition-all hover:bg-red-600 group-hover:opacity-100"
+                        aria-label="حذف عکس اصلی"
+                        className="absolute top-1 right-1 rounded-lg bg-red-500 p-2 opacity-0 transition-[opacity,background-color] group-hover:opacity-100 hover:bg-red-600"
                       >
                         <BiTrash size={20} />
                       </button>
@@ -422,23 +508,28 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
                   </p>
                   {errors.details && <p className="mt-2 text-sm text-red-400">{errors.details}</p>}
                 </div>
-                <div className="mt-4 grid grid-cols-4 gap-4">
-                  {detailImages.map((file, index) => (
-                    <div key={index} className="group relative">
-                      <img
-                        src={getPreviewUrl(file)}
-                        alt={`Detail ${index + 1}`}
-                        className="h-32 w-full rounded-lg object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeFile(setDetailImages, detailImages, index)}
-                        className="absolute right-1 top-1 rounded-lg bg-red-500 p-2 opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
-                      >
-                        <BiTrash size={20} />
-                      </button>
-                    </div>
-                  ))}
+                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  {detailImages.map((file, index) => {
+                    const isFile = file instanceof File;
+                    const key = isFile ? file.name + file.size : String(file) + index;
+                    return (
+                      <div key={key} className="group relative">
+                        <img
+                          src={getPreviewUrl(file)}
+                          alt={`Detail ${index + 1}`}
+                          className="h-32 w-full rounded-lg object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeFile(setDetailImages, detailImages, index)}
+                          aria-label="حذف تصویر"
+                          className="absolute top-1 right-1 rounded-lg bg-red-500 p-2 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-600"
+                        >
+                          <BiTrash size={20} />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -457,32 +548,41 @@ const NewProject: React.FC<ProjectEditModalProps> = ({ id, onClose }) => {
                   </p>
                   {errors.videos && <p className="mt-2 text-sm text-red-400">{errors.videos}</p>}
                 </div>
-                <div className="mt-4 grid grid-cols-3 gap-4">
-                  {videos.map((file, index) => (
-                    <div key={index} className="group relative rounded-lg bg-gray-700 p-3">
-                      <video className="h-32 w-full rounded-lg object-cover">
-                        <source src={getPreviewUrl(file)} />
-                      </video>
-                      <button
-                        type="button"
-                        onClick={() => removeFile(setVideos, videos, index)}
-                        className="absolute right-1 top-1 rounded-lg bg-red-500 p-2 opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
-                      >
-                        <BiTrash size={20} />
-                      </button>
-                    </div>
-                  ))}
+                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  {videos.map((file, index) => {
+                    const isFile = file instanceof File;
+                    const key = isFile ? file.name + file.size : String(file) + index;
+                    return (
+                      <div key={key} className="group relative rounded-lg bg-gray-700 p-3">
+                        <video className="h-32 w-full rounded-lg object-cover">
+                          <source src={getPreviewUrl(file)} />
+                        </video>
+                        <button
+                          type="button"
+                          onClick={() => removeFile(setVideos, videos, index)}
+                          aria-label="حذف ویدیو"
+                          className="absolute top-1 right-1 rounded-lg bg-red-500 p-2 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-600"
+                        >
+                          <BiTrash size={20} />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Description */}
               <div>
-                <label className="mb-2 block font-medium">توضیحات *</label>
+                <label htmlFor="project-description" className="mb-2 block font-medium">
+                  توضیحات *
+                </label>
                 <textarea
+                  id="project-description"
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
                   rows={4}
+                  aria-label="توضیحات پروژه"
                   className="w-full rounded-lg bg-gray-700 p-2 outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 {errors.description && (

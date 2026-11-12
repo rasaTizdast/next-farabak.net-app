@@ -1,5 +1,5 @@
-import { getPriceValidUntil } from "@/utils/priceValidUntil";
-import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+import { getProductsByCategory, getProductsBySubcategory } from "@/lib/data/products";
+import { getUsdToRialRate } from "@/lib/data/usd2rial";
 
 import SimilarProductsSlider from "./SimilarProductsSlider";
 
@@ -23,13 +23,12 @@ type ApiProduct = {
   Discount: string | null;
 };
 
-async function fetchJson<T>(url: string): Promise<T | null> {
+async function fetchFeed(loader: () => Promise<{ data: unknown[] } | null>): Promise<ApiProduct[]> {
   try {
-    const res = await fetch(url, { next: { revalidate: 60 } });
-    if (!res.ok) return null;
-    return (await res.json()) as T;
+    const result = await loader();
+    return ((result?.data || []) as ApiProduct[]).filter((p) => Boolean(p.Available));
   } catch {
-    return null;
+    return [];
   }
 }
 
@@ -43,18 +42,10 @@ export default async function SimilarProducts({
 }: SimilarProductsProps) {
   const desiredCount = Math.max(1, Math.min(12, limit));
 
-  const subQs = new URLSearchParams({ page: "1", limit: String(desiredCount) }).toString();
-  const subUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsBySubcategory/${encodeURIComponent(
-    subCategorySlug
-  )}?${subQs}`;
-
-  const catQs = new URLSearchParams({ page: "1", limit: String(desiredCount * 2) }).toString();
-  const catUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsByCategory/${encodeURIComponent(
-    categorySlug
-  )}?${catQs}`;
-
-  const subData = await fetchJson<{ data: ApiProduct[] }>(subUrl);
-  let products: ApiProduct[] = (subData?.data || []).filter((p) => Boolean(p.Available));
+  const subData = await fetchFeed(() =>
+    getProductsBySubcategory(subCategorySlug, { page: 1, limit: desiredCount })
+  );
+  let products: ApiProduct[] = subData;
 
   // Exclude the current product
   products = products.filter(
@@ -62,10 +53,15 @@ export default async function SimilarProducts({
   );
 
   if (products.length < desiredCount) {
-    const catData = await fetchJson<{ data: ApiProduct[] }>(catUrl);
-    const catProducts = (catData?.data || [])
-      .filter((p) => Boolean(p.Available))
-      .filter((p) => p.ProductId !== currentProductId && p.productSlug !== currentProductSlug);
+    const catData = await fetchFeed(() =>
+      getProductsByCategory(categorySlug, { page: 1, limit: desiredCount * 2 })
+    );
+    const catProducts = catData.filter(
+      (p) =>
+        Boolean(p.Available) &&
+        p.ProductId !== currentProductId &&
+        p.productSlug !== currentProductSlug
+    );
 
     const seen = new Set(products.map((p) => p.ProductId));
     for (const p of catProducts) {
@@ -78,9 +74,7 @@ export default async function SimilarProducts({
 
   if (products.length === 0) return null;
 
-  const usdRate = await fetchUsdToRialRate();
-
-  const priceValidUntil = getPriceValidUntil();
+  const { rate: usdRate } = await getUsdToRialRate();
 
   return (
     <section id="similar-products" className="mt-12">
@@ -89,77 +83,23 @@ export default async function SimilarProducts({
           "@context": "https://schema.org",
           "@type": "ItemList",
           itemListElement: products.map((p, idx) => {
-            const rawPrice = Number(p.Price);
-            const rawDiscount = Number(p.Discount);
-            const hasValidPrice = Number.isFinite(rawPrice) && rawPrice > 0;
-            const hasValidDiscount =
-              Number.isFinite(rawDiscount) && rawDiscount > 0 && rawDiscount < rawPrice;
-            const finalPrice = hasValidDiscount ? rawPrice - rawDiscount : rawPrice;
+            const canonicalUrl = new URL(
+              `/products/${p.link.replace(/^\/+/, "")}`,
+              process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net"
+            ).toString();
 
             return {
               "@type": "ListItem",
               position: idx + 1,
-              item: {
-                "@type": "Product",
-                name: p.Type,
-                url: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${p.link}`,
-                image: `${process.env.LIARA_BUCKET_URL}/productImages/${p.img1}`,
-                sku: `FAR-${p.ProductId}`,
-                offers: {
-                  "@type": "Offer",
-                  price: String(hasValidPrice ? finalPrice : 0),
-                  priceCurrency: "IRR",
-                  priceValidUntil,
-                  hasMerchantReturnPolicy: {
-                    "@type": "MerchantReturnPolicy",
-                    applicableCountry: "IR",
-                    returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-                    merchantReturnDays: 7,
-                    returnMethod: "https://schema.org/ReturnByMail",
-                    returnFees: "https://schema.org/FreeReturn",
-                  },
-                  shippingDetails: [
-                    {
-                      "@type": "OfferShippingDetails",
-                      shippingDestination: {
-                        "@type": "DefinedRegion",
-                        addressCountry: "IR",
-                      },
-                      shippingRate: {
-                        "@type": "MonetaryAmount",
-                        value: "0",
-                        currency: "IRR",
-                      },
-                      deliveryTime: {
-                        "@type": "ShippingDeliveryTime",
-                        handlingTime: {
-                          "@type": "QuantitativeValue",
-                          minValue: 1,
-                          maxValue: 5,
-                          unitCode: "DAY",
-                        },
-                        transitTime: {
-                          "@type": "QuantitativeValue",
-                          minValue: 2,
-                          maxValue: 5,
-                          unitCode: "DAY",
-                        },
-                      },
-                    },
-                  ],
-                  availability: p.Available
-                    ? "https://schema.org/InStock"
-                    : "https://schema.org/OutOfStock",
-                  url: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${p.link}`,
-                },
-              },
+              name: p.Type?.trim() || p.productSlug,
+              url: canonicalUrl,
             };
           }),
         } as const;
         return (
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList).replace(/</g, "\\u003c") }}
           />
         );
       })()}

@@ -8,6 +8,7 @@
 
 # testing
 /coverage
+coverage-report.txt
 
 # next.js
 /.next/
@@ -27,15 +28,15 @@ yarn-error.log*
 
 # env files
 .env*
+cypress.env.json
 
 # vercel
 .vercel
-
-# skills.sh project-level skill files
-.skills/
-skills-lock.json
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
+
+.mimocode/
+.husky/_/

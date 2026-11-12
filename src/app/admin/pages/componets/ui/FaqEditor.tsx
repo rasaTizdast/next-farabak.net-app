@@ -1,15 +1,22 @@
 "use client";
 
 import { Input, Button, Modal, Table, Tooltip, Space, Badge } from "antd";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
 
+import { adminColors } from "@/constants/adminColors";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 const { TextArea } = Input;
+
+function truncateText(text: string | null, maxLength: number) {
+  if (!text) return "";
+  return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+}
 
 interface FaqEditorProps {
   onClose: () => void;
@@ -26,8 +33,8 @@ interface FAQ {
 
 const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const panelRef = useModalA11y<HTMLDivElement>({ onClose, isOpen: !modalVisible });
   const [editingFaq, setEditingFaq] = useState<FAQ | null>(null);
   const [formData, setFormData] = useState({
     Q: "",
@@ -35,16 +42,19 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
     Available: true, // Always true
   });
 
-  const { data: faqsData } = useApiFetch("/api/admin/faqs");
+  const { data: faqsData } = useApiFetch<{ faqs: FAQ[] }>("/api/admin/faqs");
   const { mutate: deleteFaqMutate } = useApiMutation("delete");
   const { mutate: saveFaqMutate } = useApiMutation("post");
   const { mutate: updateFaqMutate } = useApiMutation("put");
+  const initializedRef = useRef(false);
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
+  const loading = !faqsData;
+
   useEffect(() => {
-    if (faqsData) {
+    if (faqsData && !initializedRef.current) {
+      initializedRef.current = true;
+
       setFaqs(faqsData.faqs);
-      setLoading(false);
     }
   }, [faqsData]);
 
@@ -120,17 +130,14 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
       toast.success(editingFaq ? "سوال با موفقیت بروزرسانی شد" : "سوال جدید با موفقیت ایجاد شد");
       setModalVisible(false);
       const fetchRes = await fetch("/api/admin/faqs");
+      if (!fetchRes.ok) {
+        throw new Error(`HTTP ${fetchRes.status}`);
+      }
       const data = await fetchRes.json();
       setFaqs(data.faqs);
     } else {
       toast.error("خطا در ذخیره سوال");
     }
-  };
-
-  // Function to truncate text
-  const truncateText = (text: string | null, maxLength: number) => {
-    if (!text) return "";
-    return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
   };
 
   // Count FAQs
@@ -164,18 +171,20 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
       title: "عملیات",
       key: "action",
       width: 150,
-      render: (_: any, record: FAQ) => (
+      render: (_: unknown, record: FAQ) => (
         <Space size="middle">
           <Button
             type="text"
             icon={<FaEdit size={16} />}
             onClick={() => handleEdit(record)}
+            aria-label="ویرایش سوال"
             className="text-blue-400 hover:text-blue-300"
           />
           <Button
             type="text"
             icon={<FaTrash size={16} />}
             onClick={() => handleDelete(record.FaqDetailsid)}
+            aria-label="حذف سوال"
             className="text-red-400 hover:text-red-300"
           />
         </Space>
@@ -184,17 +193,28 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4">
-      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-gray-700 bg-gray-800 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="faq-editor-title"
+        tabIndex={-1}
+        className="flex max-h-[calc(100dvh-2rem)] w-full max-w-3xl flex-col overflow-hidden overscroll-contain rounded-xl border border-slate-500 bg-gray-800 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between border-b border-gray-700 bg-gray-900 p-4">
           <div>
-            <h2 className="text-xl font-bold text-gray-100">مدیریت سوالات متداول</h2>
+            <h2 id="faq-editor-title" className="text-xl font-bold text-gray-100">
+              مدیریت سوالات متداول
+            </h2>
             <p className="mt-1 text-sm text-gray-400">{totalFaqsCount} سوال موجود</p>
           </div>
           <Button
             type="text"
             icon={<IoMdClose size={24} />}
             onClick={onClose}
+            aria-label="بستن"
             className="text-gray-400 hover:text-gray-200"
           />
         </div>
@@ -203,7 +223,11 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-semibold text-gray-200">لیست سوالات متداول</h3>
-              <Badge count={totalFaqsCount} showZero style={{ backgroundColor: "#1668dc" }} />
+              <Badge
+                count={totalFaqsCount}
+                showZero
+                style={{ backgroundColor: adminColors.info }}
+              />
             </div>
             <Button
               type="primary"
@@ -222,7 +246,7 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
             loading={loading}
             pagination={false} // No pagination
             scroll={{ x: "max-content", y: "calc(100vh - 300px)" }}
-            className="dark-table"
+            className="dark-table [&_.ant-table-cell-scrollbar]:shadow-none!"
             locale={{
               emptyText: <span className="text-gray-400">سوالی موجود نیست</span>,
             }}
@@ -238,19 +262,19 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
         onCancel={() => setModalVisible(false)}
         footer={null}
         width={600}
-        className="dark-modal"
+        className="dark-modal [&_.ant-btn]:border-gray-600! [&_.ant-btn]:bg-gray-700! [&_.ant-btn]:text-gray-200! hover:[&_.ant-btn]:border-gray-500! hover:[&_.ant-btn]:bg-gray-600! [&_.ant-btn-primary]:border-blue-600! [&_.ant-btn-primary]:bg-blue-600! hover:[&_.ant-btn-primary]:border-blue-700! hover:[&_.ant-btn-primary]:bg-blue-700! [&_.ant-input-affix-wrapper-focused]:shadow-[0_0_0_2px_rgba(59,130,246,0.2)]! [&_.ant-input-affix-wrapper:focus]:shadow-[0_0_0_2px_rgba(59,130,246,0.2)]! [&_.ant-input-affix-wrapper:hover]:border-gray-500! [&_.ant-input-focused]:shadow-[0_0_0_2px_rgba(59,130,246,0.2)]! [&_.ant-input-number-input::placeholder]:text-gray-400! [&_.ant-input-textarea-show-count::after]:text-gray-200! [&_.ant-input::placeholder]:text-gray-400! [&_.ant-input:focus]:shadow-[0_0_0_2px_rgba(59,130,246,0.2)]! [&_.ant-input:hover]:border-gray-500! [&_.ant-modal-body]:p-0! [&_.ant-modal-content]:bg-transparent! [&_.ant-modal-content]:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]! [&_.ant-select-selector:hover]:border-gray-500!"
         closeIcon={null}
         centered
         styles={{
           content: {
-            backgroundColor: "#111827", // bg-gray-900
+            backgroundColor: adminColors.panelDeep, // bg-gray-900
             borderRadius: "0.75rem",
-            border: "1px solid #374151", // border-gray-700
+            border: `1px solid ${adminColors.border}`, // border-gray-700
             padding: 0,
             overflow: "hidden",
           },
           mask: {
-            backgroundColor: "rgba(0, 0, 0, 0.7)",
+            backgroundColor: "rgba(2, 8, 23, 0.58)",
           },
         }}
       >
@@ -263,26 +287,33 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
 
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-gray-300">سوال</label>
+              <label htmlFor="faq-question" className="mb-1 block text-gray-300">
+                سوال
+              </label>
               <Input
+                id="faq-question"
                 name="Q"
                 value={formData.Q}
                 onChange={handleInputChange}
                 placeholder="سوال را وارد کنید"
                 maxLength={500}
                 showCount
+                aria-label="سوال"
                 className="border-gray-600 bg-gray-700 text-gray-200 placeholder-gray-400"
                 style={{
-                  backgroundColor: "#1F2937",
-                  borderColor: "#4B5563",
-                  color: "#E5E7EB",
+                  backgroundColor: adminColors.panel,
+                  borderColor: adminColors.borderLight,
+                  color: adminColors.textLight,
                 }}
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-gray-300">پاسخ</label>
+              <label htmlFor="faq-answer" className="mb-1 block text-gray-300">
+                پاسخ
+              </label>
               <TextArea
+                id="faq-answer"
                 name="A"
                 value={formData.A}
                 onChange={handleInputChange}
@@ -290,11 +321,12 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
                 maxLength={1000}
                 showCount
                 rows={6}
+                aria-label="پاسخ"
                 className="resize-none border-gray-600 bg-gray-700 text-gray-200 placeholder-gray-400"
                 style={{
-                  backgroundColor: "#1F2937",
-                  borderColor: "#4B5563",
-                  color: "#E5E7EB",
+                  backgroundColor: adminColors.panel,
+                  borderColor: adminColors.borderLight,
+                  color: adminColors.textLight,
                 }}
               />
             </div>
@@ -319,105 +351,6 @@ const FaqEditor: React.FC<FaqEditorProps> = ({ onClose }) => {
           </div>
         </div>
       </Modal>
-
-      {/* Add global styles for antd dark mode */}
-      <style jsx global>{`
-        .dark-table .ant-table {
-          background-color: #1f2937 !important;
-          color: #e5e7eb !important;
-        }
-
-        .dark-table .ant-table-thead > tr > th {
-          background-color: #111827 !important;
-          color: #e5e7eb !important;
-          border-bottom: 1px solid #374151 !important;
-        }
-
-        .dark-table .ant-table-tbody > tr > td {
-          border-bottom: 1px solid #374151 !important;
-          color: #e5e7eb !important;
-        }
-
-        .dark-table .ant-table-tbody > tr:hover > td {
-          background-color: #374151 !important;
-        }
-
-        .dark-table .ant-empty-description {
-          color: #9ca3af !important;
-        }
-
-        .dark-table .ant-table-cell-scrollbar {
-          box-shadow: none !important;
-        }
-
-        .dark-modal .ant-input-affix-wrapper:focus,
-        .dark-modal .ant-input-affix-wrapper-focused,
-        .dark-modal .ant-input:focus,
-        .dark-modal .ant-input-focused {
-          border-color: #3b82f6 !important;
-          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
-        }
-
-        .dark-modal .ant-modal-content {
-          background-color: transparent !important;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
-        }
-
-        .dark-modal .ant-modal-body {
-          padding: 0 !important;
-        }
-
-        .dark-modal .ant-input,
-        .dark-modal .ant-input-number,
-        .dark-modal .ant-input-affix-wrapper,
-        .dark-modal .ant-select-selector,
-        .dark-modal .ant-input-number-input,
-        .dark-modal .ant-select-selection-search-input,
-        .dark-modal .ant-select-selection-item,
-        .dark-modal .ant-select-selection-placeholder,
-        .dark-modal .ant-input-textarea-show-count::after {
-          background-color: #374151 !important;
-          border-color: #4b5563 !important;
-          color: #e5e7eb !important;
-        }
-
-        .dark-modal .ant-input::placeholder,
-        .dark-modal .ant-input-affix-wrapper input::placeholder,
-        .dark-modal .ant-input-number-input::placeholder {
-          color: #9ca3af !important;
-        }
-
-        .dark-modal .ant-input:hover,
-        .dark-modal .ant-input-affix-wrapper:hover,
-        .dark-modal .ant-select-selector:hover {
-          border-color: #6b7280 !important;
-        }
-
-        .dark-modal .ant-btn {
-          background-color: #374151;
-          border-color: #4b5563;
-          color: #e5e7eb;
-        }
-
-        .dark-modal .ant-btn:hover,
-        .dark-modal .ant-btn:focus {
-          background-color: #4b5563;
-          border-color: #6b7280;
-          color: #f9fafb;
-        }
-
-        .dark-modal .ant-btn-primary {
-          background-color: #2563eb;
-          border-color: #2563eb;
-          color: white;
-        }
-
-        .dark-modal .ant-btn-primary:hover,
-        .dark-modal .ant-btn-primary:focus {
-          background-color: #1d4ed8;
-          border-color: #1d4ed8;
-        }
-      `}</style>
     </div>
   );
 };

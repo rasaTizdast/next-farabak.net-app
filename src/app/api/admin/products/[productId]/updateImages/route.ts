@@ -1,16 +1,16 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/lib/prisma"; // Ensure Prisma client is configured correctly
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
+import { unauthorizedResponse, serverErrorResponse } from "@/lib/api-response";
+import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
+import { prisma } from "@/lib/prisma";
+import {
+  validateParams,
+  validateBody,
+  productIdParamSchema,
+  updateProductImagesSchema,
+} from "@/lib/validation";
 
 /**
  * @swagger
@@ -94,41 +94,28 @@ async function verifyToken(token: string) {
 
 export async function PATCH(request: Request, props: { params: Promise<{ productId: string }> }) {
   const params = await props.params;
-  const productId = parseInt(params.productId, 10);
 
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
+    if (auth.role !== "Admin") {
+      return unauthorizedResponse("Unauthorized");
     }
 
-    const decoded = await verifyToken(token);
-    const userRole = decoded.role;
+    const paramResult = validateParams(params, productIdParamSchema);
+    if ("error" in paramResult) return paramResult.error;
+    const productId = paramResult.data.productId;
 
-    if (!userRole || userRole !== "Admin") {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    // Validate input
-    if (!productId) {
-      return NextResponse.json({ error: "Product ID is required." }, { status: 400 });
-    }
-
-    // Parse the request body
-    const { img1, img2 } = await request.json();
-    if (!img1 && !img2) {
-      return NextResponse.json(
-        { error: "At least one of 'img1' or 'img2' is required to update." },
-        { status: 400 }
-      );
-    }
+    // Validate the request body
+    const result = await validateBody(request, updateProductImagesSchema);
+    if ("error" in result) return result.error;
+    const data = result.data;
 
     // Build update data object dynamically
     const updateData: { img1?: string; img2?: string } = {};
-    if (img1) updateData.img1 = img1;
-    if (img2) updateData.img2 = img2;
+    if (data.img1 !== undefined) updateData.img1 = data.img1;
+    if (data.img2 !== undefined) updateData.img2 = data.img2;
 
     // Update the product images in the database
     const updatedProduct = await prisma.product.update({
@@ -136,12 +123,14 @@ export async function PATCH(request: Request, props: { params: Promise<{ product
       data: updateData,
     });
 
+    revalidateTag(TAGS.products, "max");
+    revalidateTag(TAGS.categories, "max");
     return NextResponse.json({
       message: "Product images updated successfully.",
       product: updatedProduct,
     });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Failed to update product images." }, { status: 500 });
+    return serverErrorResponse("Failed to update product images.");
   }
 }

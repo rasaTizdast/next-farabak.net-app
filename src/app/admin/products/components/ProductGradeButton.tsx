@@ -16,8 +16,9 @@ const ProductGradeButton = ({ product, refetchProducts }: Props) => {
     <>
       <button
         type="button"
+        aria-label="مدیریت گرید‌های محصول"
         onClick={() => setIsModalOpen(true)}
-        className="rounded-lg bg-indigo-600 p-2 transition-all hover:bg-indigo-700"
+        className="rounded-lg bg-indigo-600 p-2 transition-colors hover:bg-indigo-700"
         title="مدیریت گرید‌های محصول"
       >
         <FaLayerGroup size={20} color="#fff" />

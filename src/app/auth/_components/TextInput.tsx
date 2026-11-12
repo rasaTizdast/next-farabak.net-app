@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import {
   Controller,
@@ -9,18 +11,16 @@ import {
 } from "react-hook-form";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
-import styles from "./TextInput.module.css";
-
 // Define Prop types
 type Props<T extends FieldValues> = {
   name: keyof T;
   label: string;
   placeholder: string;
-  control: Control<T>; // Control is now typed with T, the form data type
-  errors: FieldErrors<T>; // FieldErrors is typed with T to correctly reference the structure of form errors
-  rules?: object; // Optional rules, these can be made more strict based on your form schema
-  autoComplete?: string; // Optional autocomplete value
-  type?: "text" | "password" | "email" | "tel"; // Specify only allowed types
+  control: Control<T>;
+  errors: FieldErrors<T>;
+  rules?: object;
+  autoComplete?: string;
+  type?: "text" | "password" | "email" | "tel";
 };
 
 const TextInput = <T extends FieldValues>({
@@ -30,24 +30,27 @@ const TextInput = <T extends FieldValues>({
   control,
   errors,
   rules,
-  autoComplete = "off", // Default value for autoComplete
-  type = "text", // Default value for type
+  autoComplete = "off",
+  type = "text",
   ...rest
 }: Props<T>) => {
   const { watch } = useFormContext();
-  const value = watch(name as string); // Explicitly cast it to string
+  const value = watch(name as string);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleTogglePassword = () => {
     setShowPassword((prevShowPassword) => !prevShowPassword);
   };
 
+  const hasError = !!errors[name];
+  const hasValue = !!value;
+
   return (
-    <div className={styles.form_group}>
-      <label htmlFor={String(name)} className={styles.label}>
+    <div className="flex w-full flex-col gap-2">
+      <label htmlFor={String(name)} className="text-base font-bold">
         {label}
       </label>
-      <div className={styles.input_wrapper}>
+      <div className="relative">
         <Controller
           name={name as Path<T>}
           control={control}
@@ -58,11 +61,17 @@ const TextInput = <T extends FieldValues>({
               {...field}
               type={type === "password" && showPassword ? "text" : type}
               id={String(name)}
+              aria-invalid={hasError}
+              aria-describedby={hasError ? `${String(name)}-error` : undefined}
               placeholder={placeholder}
               value={value ?? ""}
-              className={`${
-                errors[name] ? styles.not_valid : value ? styles.valid : ""
-              } ${styles.input} `}
+              className={`w-full rounded-lg border border-[#c7c7c7] bg-white p-[14px] text-start text-[14px] font-medium transition-colors duration-300 outline-none ${
+                hasError
+                  ? "border-[#e74c3c] text-[#e74c3c] placeholder:font-light placeholder:text-[#e74c3c]"
+                  : hasValue
+                    ? "border-[#2ecc71] text-[#03af4b]"
+                    : ""
+              }`}
               {...rest}
             />
           )}
@@ -70,7 +79,7 @@ const TextInput = <T extends FieldValues>({
         {type === "password" && (
           <button
             type="button"
-            className={styles.password_toggle_icon}
+            className="absolute inset-e-[15px] top-1/2 -translate-y-1/2 cursor-pointer rounded p-1 text-[1.2rem] text-gray-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none motion-reduce:transition-none"
             onClick={handleTogglePassword}
             aria-label={showPassword ? "مخفی کردن رمز" : "نمایش رمز"}
           >
@@ -78,7 +87,15 @@ const TextInput = <T extends FieldValues>({
           </button>
         )}
       </div>
-      {errors[name] && <p className={styles.error}>{errors[name]?.message as string}</p>}
+      {hasError && (
+        <p
+          id={`${String(name)}-error`}
+          role="alert"
+          className="mt-1 text-[0.875rem] text-[#e74c3c]"
+        >
+          {errors[name]?.message as string}
+        </p>
+      )}
     </div>
   );
 };

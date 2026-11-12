@@ -10,8 +10,8 @@ import {
 } from "@ant-design/icons";
 import { Card, Spin, Alert, Statistic, Row, Col, Typography, Empty, Button } from "antd";
 
+import { adminColors } from "@/constants/adminColors";
 import { useApiFetch } from "@/hooks/useApiFetch";
-import { useEffect } from "react";
 
 const { Title, Text } = Typography;
 
@@ -81,7 +81,7 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
   }
 
   return (
-    <div className="warranty-stats-wrapper space-y-6 rounded-lg border border-gray-800 bg-gray-900 p-6 shadow-xl">
+    <div className="warranty-stats-wrapper space-y-6 rounded-lg border border-gray-800 bg-gray-900 p-6 shadow-xl [&_.ant-card-head]:bg-gray-800/90! [&_.ant-statistic-content-value-int]:text-[2rem]!">
       {/* Refresh Button */}
       <div className="mb-2 flex justify-end">
         <Button
@@ -105,10 +105,10 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
         <>
           {/* Total Statistics Summary - Row Layout */}
           <Card
-            className="mb-6 border-0 shadow-lg"
-            style={{ backgroundColor: "#121f3b", borderColor: "#374151" }}
+            className="mb-6 overflow-hidden border-0 shadow-lg"
+            style={{ backgroundColor: adminColors.panelDarker, borderColor: adminColors.border }}
             title={
-              <Title level={4} className="!text-white">
+              <Title level={4} className="text-white!">
                 آمار کلی گارانتی‌ها
               </Title>
             }
@@ -116,39 +116,39 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
             <Row gutter={[16, 16]} justify="center">
               <Col xs={24} md={8}>
                 <Card
-                  className="h-full border-0 text-center"
-                  style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
+                  className="h-full overflow-hidden border-0 text-center"
+                  style={{ backgroundColor: adminColors.panel, borderColor: adminColors.border }}
                 >
                   <Statistic
                     title={<Text className="text-gray-300">گارانتی‌های فعال</Text>}
                     value={totalStats.active}
-                    valueStyle={{ color: "#10B981", fontWeight: "bold" }}
+                    valueStyle={{ color: adminColors.success, fontWeight: "bold" }}
                     prefix={<CheckCircleOutlined />}
                   />
                 </Card>
               </Col>
               <Col xs={24} md={8}>
                 <Card
-                  className="h-full border-0 text-center"
-                  style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
+                  className="h-full overflow-hidden border-0 text-center"
+                  style={{ backgroundColor: adminColors.panel, borderColor: adminColors.border }}
                 >
                   <Statistic
                     title={<Text className="text-gray-300">گارانتی‌های منقضی شده</Text>}
                     value={totalStats.expired}
-                    valueStyle={{ color: "#EF4444", fontWeight: "bold" }}
+                    valueStyle={{ color: adminColors.danger, fontWeight: "bold" }}
                     prefix={<CloseCircleOutlined />}
                   />
                 </Card>
               </Col>
               <Col xs={24} md={8}>
                 <Card
-                  className="h-full border-0 text-center"
-                  style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
+                  className="h-full overflow-hidden border-0 text-center"
+                  style={{ backgroundColor: adminColors.panel, borderColor: adminColors.border }}
                 >
                   <Statistic
                     title={<Text className="text-gray-300">درخواست‌های بررسی</Text>}
                     value={totalStats.requested}
-                    valueStyle={{ color: "#F59E0B", fontWeight: "bold" }}
+                    valueStyle={{ color: adminColors.warning, fontWeight: "bold" }}
                     prefix={<SyncOutlined spin />}
                   />
                 </Card>
@@ -169,9 +169,9 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
                     </Text>
                   </div>
                 }
-                className="border-0 shadow-md"
-                style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
-                headStyle={{ borderBottom: "1px solid #374151" }}
+                className="overflow-hidden border-0 shadow-md"
+                style={{ backgroundColor: adminColors.panel, borderColor: adminColors.border }}
+                headStyle={{ borderBottom: `1px solid ${adminColors.border}` }}
               >
                 <div className="grid grid-cols-3 gap-2">
                   <div className="text-center">
@@ -194,54 +194,6 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
           </div>
         </>
       )}
-
-      <style jsx global>{`
-        .warranty-stats-wrapper {
-          font-family: inherit !important;
-        }
-
-        .warranty-stats-wrapper * {
-          font-family: inherit !important;
-        }
-
-        .ant-card-head-title,
-        .ant-statistic-title {
-          color: #e5e7eb !important;
-        }
-
-        .ant-statistic-content-value-int {
-          font-size: 2rem;
-        }
-
-        .ant-card {
-          border-radius: 8px;
-          overflow: hidden;
-        }
-
-        .ant-card-head {
-          background-color: rgba(31, 41, 55, 0.9);
-        }
-
-        /* Fix font-family issues */
-        .ant-card,
-        .ant-card-head,
-        .ant-card-head-title,
-        .ant-card-body,
-        .ant-statistic,
-        .ant-statistic-title,
-        .ant-statistic-content,
-        .ant-typography,
-        .ant-spin,
-        .ant-alert {
-          font-family: inherit !important;
-        }
-
-        /* Ensure numeric values also use the right font */
-        .ant-statistic-content-value-int,
-        .ant-statistic-content-value-decimal {
-          font-family: inherit !important;
-        }
-      `}</style>
     </div>
   );
 }

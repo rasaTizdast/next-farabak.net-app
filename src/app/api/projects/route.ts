@@ -1,7 +1,10 @@
 // app/api/projects/route.ts
 import { S3 } from "aws-sdk";
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
 
 const s3 = new S3({
@@ -45,12 +48,19 @@ export async function GET() {
   }
 }
 
+const requiredFields = ["title", "description", "slug", "date", "city", "mainImage"];
+
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   try {
     const formData = await request.formData();
 
     // Validate required fields
-    const requiredFields = ["title", "description", "slug", "date", "city", "mainImage"];
     for (const field of requiredFields) {
       if (!formData.get(field)) {
         return NextResponse.json({ error: `فیلد ${field} الزامی است` }, { status: 400 });
@@ -139,6 +149,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    revalidateTag(TAGS.projects, "max");
+    revalidateTag(TAGS.sitemap, "max");
     return NextResponse.json(project, { status: 201 });
   } catch (error) {
     console.error("Error creating project:", error);

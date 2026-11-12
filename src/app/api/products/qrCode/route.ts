@@ -1,5 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma"; // Adjust the path based on your project structure
 
 export async function POST(req: NextRequest) {
@@ -27,6 +29,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    revalidateTag(TAGS.products, "max");
+    revalidateTag(TAGS.categories, "max");
     return NextResponse.json(
       {
         message: "QR Code details updated successfully",
@@ -63,6 +67,8 @@ export async function DELETE(req: NextRequest) {
       },
     });
 
+    revalidateTag(TAGS.products, "max");
+    revalidateTag(TAGS.categories, "max");
     return NextResponse.json(
       {
         message: "QR Code details removed successfully",

@@ -1,9 +1,10 @@
 import axios from "axios";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
 
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 import CategoryBlogEditor from "./CategoryBlogEditor";
 import { Category, Subcategory } from "../types/types";
@@ -27,6 +28,45 @@ function parseSeoKeywords(value: string): string[] {
   return [];
 }
 
+async function withRetry401<T>(
+  requestFn: () => Promise<T>,
+  options: { retries?: number; baseDelayMs?: number } = {}
+): Promise<T> {
+  const { retries = 3, baseDelayMs = 300 } = options;
+  let lastError: unknown;
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      return await requestFn();
+    } catch (error) {
+      lastError = error;
+      if (axios.isAxiosError(error) && error.response?.status === 401 && attempt < retries - 1) {
+        await new Promise((r) => setTimeout(r, baseDelayMs * (attempt + 1)));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw lastError as Error;
+}
+
+// Regex patterns
+const regexPatterns = {
+  Name: /^[a-zA-Z0-9-\u0600-\u06FF\s_\u200C\u002D\u2013\u2014]{0,1000}$/, // Persian, English, numbers, up to 1000 characters
+  Slug: /^[a-z0-9-]{0,200}$/, // Lowercase English, numbers, and dashes only, up to 200 characters
+  SEO_Title: /^.{0,50}$/, // Any character, up to 50 characters
+  SEO_Description: /^.{0,4000}$/, // Any character, up to 4000 characters
+  SEO_Keywords: /^.{0,4000}$/, // Any character, up to 4000 characters (no commas restriction)
+};
+
+// Persian error messages
+const errorMessages = {
+  Name: "نام باید حروف فارسی یا انگلیسی و حداکثر ۱۰۰۰ کاراکتر باشد.",
+  Slug: "شناسه فقط باید حروف انگلیسی کوچک، اعداد و خط تیره باشد و حداکثر ۲۰۰ کاراکتر باشد.",
+  SEO_Title: "عنوان سئو باید حداکثر ۵۰ کاراکتر باشد.",
+  SEO_Description: "توضیحات سئو باید حداکثر ۴۰۰۰ کاراکتر باشد.",
+  SEO_Keywords: "کلمه کلیدی نمی‌تواند شامل کاما باشد و حداکثر ۴۰۰۰ کاراکتر باشد.",
+};
+
 const EditModal: React.FC<EditModalProps> = ({
   isOpen,
   item,
@@ -39,60 +79,46 @@ const EditModal: React.FC<EditModalProps> = ({
 }) => {
   const [keywordInput, setKeywordInput] = useState("");
   const [seoKeywords, setSeoKeywords] = useState<string[]>([]);
-  const [errors, setErrors] = useState<Record<string, string>>({}); // Store errors for all fields
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSaving, setIsSaving] = useState(false);
   const [topBlog, setTopBlog] = useState<string>("");
   const [bottomBlog, setBottomBlog] = useState<string>("");
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const bannerFileRef = useRef<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string>("");
-  const [bannerDeleteRequested, setBannerDeleteRequested] = useState<boolean>(false);
+  const bannerDeleteRequestedRef = useRef<boolean>(false);
   const { mutate: editMutate } = useApiMutation("patch");
   const { mutate: deleteS3Mutate } = useApiMutation("delete");
 
-  // Retry helper for 401 errors
-  const withRetry401 = async <T,>(
-    requestFn: () => Promise<T>,
-    options: { retries?: number; baseDelayMs?: number } = {}
-  ): Promise<T> => {
-    const { retries = 3, baseDelayMs = 300 } = options;
-    let lastError: unknown;
-    for (let attempt = 0; attempt < retries; attempt++) {
-      try {
-        return await requestFn();
-      } catch (error) {
-        lastError = error;
-        if (axios.isAxiosError(error) && error.response?.status === 401 && attempt < retries - 1) {
-          await new Promise((r) => setTimeout(r, baseDelayMs * (attempt + 1)));
-          continue;
-        }
-        throw error;
-      }
-    }
-    throw lastError as Error;
-  };
+  const itemKey = item ? ((item as any).CategoryID ?? (item as any).CategoryContentId) : null;
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
-    if (!item) return;
-    if (item.SEO_Details) {
-      const sd = item.SEO_Details;
-      let k: string[] = [];
-      if (Array.isArray(sd.SEO_Keywords)) k = sd.SEO_Keywords;
-      else if (typeof sd.SEO_Keywords === "string") {
-        k = parseSeoKeywords(sd.SEO_Keywords);
+    if (isOpen && item) {
+      setErrors({});
+      setKeywordInput("");
+      if (item.SEO_Details) {
+        const sd = item.SEO_Details;
+        let k: string[] = [];
+        if (Array.isArray(sd.SEO_Keywords)) k = sd.SEO_Keywords;
+        else if (typeof sd.SEO_Keywords === "string") {
+          k = parseSeoKeywords(sd.SEO_Keywords);
+        }
+        setSeoKeywords(k);
       }
-      setSeoKeywords(k);
+      setTopBlog((item as any).TopBlog || "");
+      setBottomBlog((item as any).BottomBlog || "");
+      bannerFileRef.current = null;
+      bannerDeleteRequestedRef.current = false;
+      const b = (item as any).Banner as string | undefined;
+      setBannerPreview(b ? `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${b}` : "");
     }
-    setTopBlog((item as any).TopBlog || "");
-    setBottomBlog((item as any).BottomBlog || "");
-    const b = (item as any).Banner as string | undefined;
-    setBannerPreview(b ? `${process.env.NEXT_PUBLIC_LIARA_BUCKET_URL}/${b}` : "");
-  }, [item]);
+  }, [isOpen, itemKey]);
 
   // Banner drop handlers MUST be declared before any conditional return to avoid hook order changes
+  // onDrop uses component state (bannerFileRef, setBannerPreview) so it cannot be moved to module scope
   const onDrop = useCallback((accepted: File[]) => {
     if (accepted.length > 0) {
       const f = accepted[0];
-      setBannerFile(f);
+      bannerFileRef.current = f;
       setBannerPreview(URL.createObjectURL(f));
     }
   }, []);
@@ -100,9 +126,18 @@ const EditModal: React.FC<EditModalProps> = ({
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
     onDrop,
     accept: { "image/*": [] },
+    maxSize: 2 * 1024 * 1024,
+    onDropRejected: () => toast.error("حجم تصویر باید حداکثر ۲ مگابایت باشد و فرمت آن تصویر باشد."),
     maxFiles: 1,
     multiple: false,
   });
+
+  // useEffect uses component state (bannerPreview) so it cannot be moved to module scope
+  useEffect(() => {
+    return () => {
+      if (bannerPreview) URL.revokeObjectURL(bannerPreview);
+    };
+  }, [bannerPreview]);
 
   if (!isOpen || !item) return null;
 
@@ -112,26 +147,8 @@ const EditModal: React.FC<EditModalProps> = ({
     SEO_Keywords: [],
   };
 
-  // Regex patterns
-  const regexPatterns = {
-    Name: /^[a-zA-Z0-9-\u0600-\u06FF\s_-\u200C]{0,1000}$/, // Persian, English, numbers, up to 1000 characters
-    Slug: /^[a-z0-9-]{0,200}$/, // Lowercase English, numbers, and dashes only, up to 200 characters
-    SEO_Title: /^.{0,60}$/, // Any character, up to 50 characters
-    SEO_Description: /^.{0,160}$/, // Any character, up to 4000 characters
-    SEO_Keywords: /^.{0,4000}$/, // Any character, up to 4000 characters (no commas restriction)
-  };
-
-  // Persian error messages
-  const errorMessages = {
-    Name: "نام باید حروف فارسی یا انگلیسی و حداکثر ۱۰۰۰ کاراکتر باشد.",
-    Slug: "شناسه فقط باید حروف انگلیسی کوچک، اعداد و خط تیره باشد و حداکثر ۲۰۰ کاراکتر باشد.",
-    SEO_Title: "عنوان سئو باید حداکثر ۵۰ کاراکتر باشد.",
-    SEO_Description: "توضیحات سئو باید حداکثر ۴۰۰۰ کاراکتر باشد.",
-    SEO_Keywords: "کلمه کلیدی نمی‌تواند شامل کاما باشد و حداکثر ۴۰۰۰ کاراکتر باشد.",
-  };
-
   // Generic input change handler
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: unknown) => {
     // Clear input and errors if value is empty
     if (value === "") {
       setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -148,17 +165,19 @@ const EditModal: React.FC<EditModalProps> = ({
 
     // Handle Available field separately
     if (field === "Available") {
-      value = value === "true"; // Convert the string to a boolean
+      onChange({ Available: typeof value === "string" ? value === "true" : Boolean(value) });
+      return;
     }
 
     // Slug auto-correction: replace spaces with dashes and lowercase
-    if (field === "Slug") {
-      value = value.replace(/\s+/g, "-").toLowerCase();
+    let processedValue: string | boolean | unknown = value;
+    if (field === "Slug" && typeof value === "string") {
+      processedValue = value.replace(/\s+/g, "-").toLowerCase();
     }
 
     // Validate input using regex patterns
     const pattern = regexPatterns[field as keyof typeof regexPatterns];
-    if (pattern && !pattern.test(value)) {
+    if (pattern && typeof processedValue === "string" && !pattern.test(processedValue)) {
       setErrors((prev) => ({
         ...prev,
         [field]: errorMessages[field as keyof typeof errorMessages] || "خطای نامشخص",
@@ -170,10 +189,10 @@ const EditModal: React.FC<EditModalProps> = ({
     // Update fields, handling SEO fields separately
     if (["SEO_Title", "SEO_Description"].includes(field)) {
       onChange({
-        SEO_Details: { ...seoDetails, [field]: value },
+        SEO_Details: { ...seoDetails, [field]: processedValue },
       });
     } else {
-      onChange({ [field]: value });
+      onChange({ [field]: processedValue });
     }
   };
   // Handle adding a new keyword
@@ -206,8 +225,20 @@ const EditModal: React.FC<EditModalProps> = ({
   const validateAllFields = () => {
     const validationErrors: Record<string, string> = {};
 
+    if (!regexPatterns.Name.test(item.Name || "")) {
+      validationErrors.Name = errorMessages.Name;
+    }
     if (!regexPatterns.Slug.test(item.Slug || "")) {
       validationErrors.Slug = errorMessages.Slug;
+    }
+    if (!regexPatterns.SEO_Title.test(seoDetails.SEO_Title || "")) {
+      validationErrors.SEO_Title = errorMessages.SEO_Title;
+    }
+    if (!regexPatterns.SEO_Description.test(seoDetails.SEO_Description || "")) {
+      validationErrors.SEO_Description = errorMessages.SEO_Description;
+    }
+    if (!regexPatterns.SEO_Keywords.test(seoKeywords.join(","))) {
+      validationErrors.SEO_Keywords = errorMessages.SEO_Keywords;
     }
 
     setErrors(validationErrors);
@@ -215,22 +246,23 @@ const EditModal: React.FC<EditModalProps> = ({
   };
 
   const handleItemUpdate = async (updatedItem: Category | Subcategory) => {
+    setIsSaving(true);
     const isCategory = "CategoryID" in updatedItem && !("CategoryContentId" in updatedItem);
     const endpoint = `/api/categories/editCategory`;
     // Upload banner if selected
     let bannerKey: string | undefined = undefined;
     const existingKey = (item as any).Banner as string | undefined;
-    if (bannerFile) {
+    if (bannerFileRef.current) {
       try {
         const payloadForUpload = isCategory
           ? {
               type: "categoryBanner",
-              contentType: bannerFile.type,
+              contentType: bannerFileRef.current.type,
               categorySlug: updatedItem.Slug,
             }
           : {
               type: "categoryBanner",
-              contentType: bannerFile.type,
+              contentType: bannerFileRef.current.type,
               categorySlug:
                 (updatedItem as any).ParentSlug ||
                 (updatedItem as any).CategorySlug ||
@@ -240,13 +272,15 @@ const EditModal: React.FC<EditModalProps> = ({
         const { data: presign } = await withRetry401(() =>
           axios.post(`/api/s3/upload`, payloadForUpload)
         );
-        await axios.put(presign.uploadUrl, bannerFile, {
-          headers: { "Content-Type": bannerFile.type },
+        await axios.put(presign.uploadUrl, bannerFileRef.current, {
+          headers: { "Content-Type": bannerFileRef.current.type },
         });
         bannerKey = presign.key;
       } catch (e) {
         console.error(e);
         toast.error("خطا در آپلود بنر");
+        setIsSaving(false);
+        return;
       }
     }
 
@@ -259,7 +293,10 @@ const EditModal: React.FC<EditModalProps> = ({
           Available: updatedItem.Available,
           TopBlog: topBlog || null,
           BottomBlog: bottomBlog || null,
-          Banner: bannerDeleteRequested && !bannerKey ? null : (bannerKey ?? existingKey ?? null),
+          Banner:
+            bannerDeleteRequestedRef.current && !bannerKey
+              ? null
+              : (bannerKey ?? existingKey ?? null),
           SEO_Details: {
             SEO_Title: updatedItem.SEO_Details.SEO_Title,
             SEO_Description: updatedItem.SEO_Details.SEO_Description,
@@ -275,7 +312,10 @@ const EditModal: React.FC<EditModalProps> = ({
           Available: updatedItem.Available,
           TopBlog: topBlog || null,
           BottomBlog: bottomBlog || null,
-          Banner: bannerDeleteRequested && !bannerKey ? null : (bannerKey ?? existingKey ?? null),
+          Banner:
+            bannerDeleteRequestedRef.current && !bannerKey
+              ? null
+              : (bannerKey ?? existingKey ?? null),
           SEO_Details: {
             SEO_Title: updatedItem.SEO_Details.SEO_Title,
             SEO_Description: updatedItem.SEO_Details.SEO_Description,
@@ -283,25 +323,31 @@ const EditModal: React.FC<EditModalProps> = ({
           },
         };
 
-    const result = await editMutate(endpoint, payload);
-    if (result) {
-      if (bannerDeleteRequested && existingKey && !bannerKey) {
-        await deleteS3Mutate("/api/s3/delete", { type: "categoryBanner", key: existingKey });
+    try {
+      const result = await editMutate(endpoint, payload);
+      if (result) {
+        if (bannerDeleteRequestedRef.current && existingKey && !bannerKey) {
+          await deleteS3Mutate("/api/s3/delete", { type: "categoryBanner", key: existingKey });
+        }
+        toast.success("تغییرات با موفقیت اعمال شدند!");
+        refetchCategories();
+        setEditCategory(null);
+        setIsEditModalOpen(false);
+      } else {
+        toast.error("خطا در بروزرسانی، لطفا مجددا تلاش کنید.");
       }
-      toast.success("تغییرات با موفقیت اعمال شدند!");
-      refetchCategories();
-      setEditCategory(null);
-      setIsEditModalOpen(false);
-    } else {
+    } catch {
       toast.error("خطا در بروزرسانی، لطفا مجددا تلاش کنید.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
   // Handle save with validation
-  const handleSave = () => {
-    if (!validateAllFields()) return;
+  const handleSave = async () => {
+    if (isSaving || !validateAllFields()) return;
 
-    handleItemUpdate({
+    await handleItemUpdate({
       ...item,
       SEO_Details: {
         ...seoDetails,
@@ -320,19 +366,23 @@ const EditModal: React.FC<EditModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-      <div className="max-h-[95dvh] w-[60dvw] overflow-y-scroll rounded-lg bg-gray-800 p-6 pr-8 text-white shadow-lg">
-        <h3 className="mb-4 text-center text-xl">ویرایش</h3>
+    <EditModalPanel isOpen={isOpen} onClose={handleClose} title="ویرایش" isSaving={isSaving}>
+      <div className="max-h-[95dvh] w-full max-w-[60dvw] overflow-y-scroll rounded-lg bg-gray-800 p-6 pr-8 text-white shadow-lg max-md:max-w-[calc(100vw-2rem)]">
+        <h2 className="mb-4 text-center text-xl">ویرایش</h2>
         {/* Name Field */}
         <div className="mb-4">
-          <label className="mb-2 block text-sm">نام</label>
+          <label htmlFor="edit-category-name" className="mb-2 block text-sm">
+            نام
+          </label>
           <input
+            id="edit-category-name"
             type="text"
+            aria-label="نام"
             value={item.Name || ""}
             onChange={(e) => handleInputChange("Name", e.target.value)}
             className={`w-full border bg-gray-700 p-2 ${
               errors.Name ? "border-red-500" : "border-gray-900"
-            } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none`}
             placeholder="نام را وارد کنید"
           />
           {errors.Name && <p className="text-sm text-red-500">{errors.Name}</p>}
@@ -340,7 +390,9 @@ const EditModal: React.FC<EditModalProps> = ({
 
         {/* Banner Field */}
         <div className="mb-4">
-          <label className="mb-2 block text-sm">بنر</label>
+          <label htmlFor="edit-category-banner" className="mb-2 block text-sm">
+            بنر
+          </label>
           <div
             {...getRootProps()}
             className={`cursor-pointer rounded-md border-2 border-dashed p-4 text-center transition-colors ${
@@ -351,7 +403,7 @@ const EditModal: React.FC<EditModalProps> = ({
                   : "border-gray-600 hover:border-blue-400 hover:bg-blue-900/10"
             } ${bannerPreview ? "border-green-500" : ""}`}
           >
-            <input {...getInputProps()} />
+            <input {...getInputProps({ id: "edit-category-banner", name: "banner" })} />
             {bannerPreview ? (
               <div className="space-y-2">
                 <p className="text-green-400">تصویر انتخاب شد</p>
@@ -377,7 +429,7 @@ const EditModal: React.FC<EditModalProps> = ({
               className="relative mt-4 w-full overflow-hidden rounded-md bg-gray-700"
               style={{ aspectRatio: "16/5" }}
             >
-              <img src={bannerPreview} alt="پیش‌نمایش بنر" className="h-full w-full object-cover" />
+              <img src={bannerPreview} alt="پیش‌نمایش بنر" className="size-full object-cover" />
             </div>
           )}
           {bannerPreview && (
@@ -386,8 +438,8 @@ const EditModal: React.FC<EditModalProps> = ({
                 type="button"
                 className="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
                 onClick={() => {
-                  setBannerDeleteRequested(true);
-                  setBannerFile(null);
+                  bannerDeleteRequestedRef.current = true;
+                  bannerFileRef.current = null;
                   setBannerPreview("");
                   onChange({ Banner: null } as any);
                 }}
@@ -400,27 +452,35 @@ const EditModal: React.FC<EditModalProps> = ({
 
         {/* Slug Field */}
         <div className="mb-4">
-          <label className="mb-2 block text-sm">شناسه</label>
+          <label htmlFor="edit-category-slug" className="mb-2 block text-sm">
+            شناسه
+          </label>
           <input
+            id="edit-category-slug"
             type="text"
+            aria-label="شناسه"
             value={item.Slug}
             onChange={(e) => handleInputChange("Slug", e.target.value)}
             className={`w-full border bg-gray-700 p-2 ${
               errors.Slug ? "border-red-500" : "border-gray-900"
-            } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none`}
           />
           {errors.Slug && <p className="text-sm text-red-500">{errors.Slug}</p>}
         </div>
 
         {/* Available Field */}
         <div className="mb-4">
-          <label className="mb-2 block text-sm">فعال</label>
+          <label htmlFor="edit-category-available" className="mb-2 block text-sm">
+            فعال
+          </label>
           <select
+            id="edit-category-available"
+            aria-label="فعال"
             value={item.Available ? "true" : "false"} // Convert boolean to string for select value
             onChange={(e) => handleInputChange("Available", e.target.value)}
             className={`w-full border bg-gray-700 p-2 ${
               errors.Slug ? "border-red-500" : "border-gray-900"
-            } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none`}
           >
             <option value="true">بله</option>
             <option value="false">خیر</option>
@@ -430,14 +490,18 @@ const EditModal: React.FC<EditModalProps> = ({
 
         {/* SEO Title Field */}
         <div className="mb-4">
-          <label className="mb-2 block text-sm">عنوان سئو</label>
+          <label htmlFor="edit-seo-title" className="mb-2 block text-sm">
+            عنوان سئو
+          </label>
           <input
+            id="edit-seo-title"
             type="text"
+            aria-label="عنوان سئو"
             value={seoDetails.SEO_Title || ""} // Ensure fallback to an empty string
             onChange={(e) => handleInputChange("SEO_Title", e.target.value)}
             className={`w-full border bg-gray-700 p-2 ${
               errors.SEO_Title ? "border-red-500" : "border-gray-900"
-            } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none`}
             placeholder="عنوان سئو را وارد کنید"
           />
           {errors.SEO_Title && <p className="text-sm text-red-500">{errors.SEO_Title}</p>}
@@ -445,13 +509,17 @@ const EditModal: React.FC<EditModalProps> = ({
 
         {/* SEO Description Field */}
         <div className="mb-4">
-          <label className="mb-2 block text-sm">توضیحات سئو</label>
+          <label htmlFor="edit-seo-description" className="mb-2 block text-sm">
+            توضیحات سئو
+          </label>
           <textarea
+            id="edit-seo-description"
+            aria-label="توضیحات سئو"
             value={seoDetails.SEO_Description || ""} // Ensure fallback to an empty string
             onChange={(e) => handleInputChange("SEO_Description", e.target.value)}
             className={`w-full border bg-gray-700 p-3 ${
               errors.SEO_Description ? "border-red-500" : "border-gray-900"
-            } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none`}
             rows={3}
             placeholder="توضیحات سئو را وارد کنید"
           />
@@ -462,26 +530,30 @@ const EditModal: React.FC<EditModalProps> = ({
 
         {/* SEO Keywords Field */}
         <div className="mb-4">
-          <label className="mb-2 block text-sm">کلمات کلیدی سئو</label>
+          <label htmlFor="edit-seo-keywords" className="mb-2 block text-sm">
+            کلمات کلیدی سئو
+          </label>
           <input
+            id="edit-seo-keywords"
             type="text"
+            aria-label="کلمات کلیدی سئو"
             value={keywordInput}
             onChange={(e) => setKeywordInput(e.target.value)}
             onKeyDown={addKeyword}
             placeholder="کلمه کلیدی را وارد کنید و Enter بزنید"
             className={`w-full border bg-gray-700 p-2 ${
               errors.SEO_Keywords ? "border-red-500" : "border-gray-900"
-            } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none`}
           />
 
           {errors.SEO_Keywords && <p className="text-sm text-red-500">{errors.SEO_Keywords}</p>}
 
-          <div className="mb-10 mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 mb-10 flex flex-wrap gap-2">
             {seoKeywords.map((keyword: string) => (
               <button
                 type="button"
                 key={keyword}
-                className="flex animate-fade-in items-center gap-2 rounded-lg bg-green-700 px-4 py-1 transition-all hover:bg-red-700 hover:text-white"
+                className="animate-fade-in flex items-center gap-2 rounded-lg bg-green-700 px-4 py-1 transition-colors hover:bg-red-700 hover:text-white"
                 onClick={() => removeKeyword(keyword)}
               >
                 {keyword}
@@ -508,6 +580,7 @@ const EditModal: React.FC<EditModalProps> = ({
           <button
             type="button"
             onClick={handleClose}
+            disabled={isSaving}
             className="rounded bg-gray-50 px-4 py-2 text-black hover:bg-gray-100"
           >
             بستن
@@ -515,14 +588,52 @@ const EditModal: React.FC<EditModalProps> = ({
           <button
             type="button"
             onClick={handleSave}
+            disabled={isSaving}
             className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
-            ذخیره تغییرات
+            {isSaving ? "در حال ذخیره…" : "ذخیره تغییرات"}
           </button>
         </div>
       </div>
-    </div>
+    </EditModalPanel>
   );
 };
+
+function EditModalPanel({
+  isOpen,
+  onClose,
+  title,
+  isSaving,
+  children,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  isSaving: boolean;
+  children: React.ReactNode;
+}) {
+  const panelRef = useModalA11y<HTMLDivElement>({
+    onClose,
+    isOpen,
+    shouldCloseOnEscape: () => !isSaving,
+  });
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        tabIndex={-1}
+        className="flex w-full items-center justify-center px-4 focus:outline-none sm:px-0"
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export default EditModal;

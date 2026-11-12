@@ -1,18 +1,9 @@
 import moment from "jalali-moment";
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
 
 /**
  * Generate a shorter unique GUID for invoices
@@ -95,19 +86,9 @@ async function generateShortGuid(): Promise<string> {
  */
 export async function GET(): Promise<NextResponse> {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
-
-    if (!token) {
-      return NextResponse.json({ message: "توکن احراز هویت مورد نیاز است" }, { status: 401 });
-    }
-
-    const decoded = await verifyToken(token);
-    const userId = decoded.userId;
-
-    if (!userId) {
-      return NextResponse.json({ message: "دسترسی غیرمجاز" }, { status: 401 });
-    }
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
+    const userId = parseInt(auth.userId, 10);
 
     // Fetch invoices and their details
     const invoices = await prisma.invoice.findMany({
@@ -283,15 +264,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "اطلاعات درخواست نامعتبر است" }, { status: 400 });
     }
 
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
-
-    if (!token) {
-      return NextResponse.json({ message: "توکن احراز هویت مورد نیاز است" }, { status: 401 });
-    }
-
-    const decoded = await verifyToken(token);
-    const userId = decoded.userId as number;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
+    const userId = Number(auth.userId);
 
     // Generate shorter, unique GUID
     const FactorGuid = await generateShortGuid();
@@ -382,15 +357,9 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const { FactorGuid } = await request.json();
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
-
-    if (!token) {
-      return NextResponse.json({ message: "توکن احراز هویت مورد نیاز است" }, { status: 401 });
-    }
-
-    const decoded = await verifyToken(token);
-    const userId = decoded.userId;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
+    const userId = parseInt(auth.userId, 10);
 
     if (!FactorGuid || !userId) {
       return NextResponse.json({ message: "اطلاعات درخواست نامعتبر است" }, { status: 400 });

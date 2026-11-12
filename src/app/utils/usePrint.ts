@@ -1,3 +1,4 @@
+import DOMPurify from "isomorphic-dompurify";
 import { useRef } from "react";
 
 export interface PrintOptions {
@@ -349,20 +350,22 @@ export const usePrint = () => {
       </script>
     `;
 
+    const safeTitle = DOMPurify.sanitize(printTitle || document.title);
+
     if (stickerMode) {
       // For sticker, create a minimal, tightly controlled document
       printWindow.document.write(`
         <!DOCTYPE html>
         <html dir="rtl">
           <head>
-            <title>${printTitle || document.title}</title>
+            <title>${safeTitle}</title>
             ${styleLinks}
             ${customFontStyle}
             ${printStyles}
             ${printScript}
           </head>
           <body style="margin:0;padding:0;overflow:hidden;width:3.5in;height:2in;font-family:var(--font-iran-yekan);">
-            ${componentRef.current.innerHTML}
+            ${DOMPurify.sanitize(componentRef.current.innerHTML)}
           </body>
         </html>
       `);
@@ -372,14 +375,14 @@ export const usePrint = () => {
         <!DOCTYPE html>
         <html dir="rtl">
           <head>
-            <title>${printTitle || document.title}</title>
+            <title>${safeTitle}</title>
             ${styleLinks}
             ${customFontStyle}
             ${printStyles}
             ${printScript}
           </head>
           <body style="font-family:var(--font-iran-yekan);">
-            ${content.outerHTML}
+            ${DOMPurify.sanitize(content.outerHTML)}
           </body>
         </html>
       `);

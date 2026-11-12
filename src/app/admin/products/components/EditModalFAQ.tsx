@@ -1,5 +1,6 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from "react";
-import toast from "react-hot-toast";
 import { FaTrashAlt } from "react-icons/fa";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
@@ -9,15 +10,33 @@ type FAQItem = {
   answer: string;
 };
 
+type FAQApiResponse = {
+  FAQsId: number;
+  Title: string;
+  Description: string;
+};
+
 type Props = {
   productId: number;
   setFaqs: (faqs: FAQItem[]) => void;
 };
 
+function validateField(field: string, value: string) {
+  let error = "";
+  if (field === "question") {
+    if (!value.trim()) error = "سوال نمی‌تواند خالی باشد.";
+    else if (value.length > 1000) error = "سوال نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
+  } else if (field === "answer") {
+    if (!value.trim()) error = "پاسخ نمی‌تواند خالی باشد.";
+    else if (value.length > 3000) error = "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
+  }
+  return error;
+}
+
 const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
   const [localFaqs, setLocalFaqs] = useState<FAQItem[]>([]);
   const hasFetched = useRef(false);
-  const { data: faqsResponse, loading: isLoading } = useApiFetch<any>(
+  const { data: faqsResponse, loading: isLoading } = useApiFetch<FAQApiResponse[]>(
     productId ? `/api/faqs/product/${productId}` : null
   );
   const [localErrors, setLocalErrors] = useState<{ [key: string]: string }>({});
@@ -28,10 +47,13 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
   useEffect(() => {
     if (faqsResponse && !hasFetched.current) {
       hasFetched.current = true;
-      const mappedFaqs = (Array.isArray(faqsResponse) ? faqsResponse : []).map((faq: any) => ({
-        question: faq.Title,
-        answer: faq.Description,
-      }));
+      const mappedFaqs = (Array.isArray(faqsResponse) ? faqsResponse : []).map(
+        (faq: FAQApiResponse) => ({
+          question: faq.Title,
+          answer: faq.Description,
+        })
+      );
+
       setLocalFaqs(mappedFaqs);
       setFaqs(mappedFaqs);
       const initialErrors: { [key: string]: string } = {};
@@ -42,18 +64,6 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
       setLocalErrors(initialErrors);
     }
   }, [faqsResponse, setFaqs]);
-
-  const validateField = (field: string, value: string) => {
-    let error = "";
-    if (field === "question") {
-      if (!value.trim()) error = "سوال نمی‌تواند خالی باشد.";
-      else if (value.length > 1000) error = "سوال نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.";
-    } else if (field === "answer") {
-      if (!value.trim()) error = "پاسخ نمی‌تواند خالی باشد.";
-      else if (value.length > 3000) error = "پاسخ نمی‌تواند بیشتر از ۳۰۰۰ کاراکتر باشد.";
-    }
-    return error;
-  };
 
   // Helper to determine if we should show an error for a field
   const shouldShowError = (field: string, index: number): boolean => {
@@ -156,7 +166,7 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
 
       {isLoading ? (
         <div className="py-8 text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-blue-500 motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+          <div className="inline-block size-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-blue-500 motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
           <p className="mt-2">در حال بارگذاری سوالات متداول...</p>
         </div>
       ) : (
@@ -169,7 +179,7 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
               <button
                 type="button"
                 onClick={handleAddFAQ}
-                className="rounded-md bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-700"
+                className="rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
               >
                 افزودن اولین سوال
               </button>
@@ -177,13 +187,17 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
           ) : (
             <div className="mb-4 space-y-4">
               {localFaqs.map((faq, index) => (
-                <div key={index} className="rounded-md bg-gray-800 p-4 shadow-md">
+                <div
+                  key={faq.question + faq.answer}
+                  className="rounded-md bg-gray-800 p-4 shadow-md"
+                >
                   <div className="mb-3 flex items-center gap-4">
                     <div className="flex flex-1 flex-col">
                       <input
                         type="text"
                         value={faq.question}
                         onChange={(e) => handleFAQChange(index, "question", e.target.value)}
+                        aria-label={`سوال ${index + 1}`}
                         className={`w-full rounded-md border bg-gray-700 p-2 ${
                           shouldShowError("question", index) ? "border-red-500" : "border-gray-600"
                         } text-white`}
@@ -198,7 +212,8 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
                     <button
                       type="button"
                       onClick={() => handleRemoveFAQ(index)}
-                      className="text-red-500 transition-all hover:text-red-600"
+                      aria-label="حذف سوال"
+                      className="text-red-500 transition-colors hover:text-red-600"
                     >
                       <FaTrashAlt size={18} />
                     </button>
@@ -207,6 +222,7 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
                     <textarea
                       value={faq.answer}
                       onChange={(e) => handleFAQChange(index, "answer", e.target.value)}
+                      aria-label={`پاسخ ${index + 1}`}
                       className={`w-full rounded-md border bg-gray-700 p-2 ${
                         shouldShowError("answer", index) ? "border-red-500" : "border-gray-600"
                       } min-h-[100px] text-white`}
@@ -225,7 +241,7 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
             <button
               type="button"
               onClick={handleAddFAQ}
-              className="w-full rounded-md bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-700"
+              className="w-full rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
             >
               افزودن سوال جدید
             </button>

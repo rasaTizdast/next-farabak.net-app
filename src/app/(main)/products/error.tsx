@@ -1,20 +1,30 @@
 "use client";
 
-export default function ProductsError({ error, reset }: { error: Error; reset: () => void }) {
+import { ActionLink } from "@/components/public/ActionLink";
+
+export default function ProductsError({ reset }: { error: Error; reset: () => void }) {
   return (
-    <div className="flex min-h-[400px] flex-col items-center justify-center px-4 text-center">
-      <div className="mb-6 text-6xl">⚠️</div>
-      <h2 className="mb-3 text-xl font-bold text-gray-800">خطا در دریافت محصولات</h2>
-      <p className="mb-6 max-w-md text-sm text-gray-500">
-        {error.message || "متأسفانه در دریافت لیست محصولات خطایی رخ داده است."}
+    <section className="flex min-h-[50vh] flex-col items-center justify-center gap-5 px-5 py-16 text-center">
+      <p className="text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
+        کاتالوگ فرابک
       </p>
-      <button
-        type="button"
-        onClick={reset}
-        className="rounded-lg bg-[#00bfff] px-8 py-3 text-white transition-colors hover:bg-[#318ce7]"
-      >
-        تلاش مجدد
-      </button>
-    </div>
+      <h1 className="text-3xl font-bold text-(--farabak-ink-deep)">دریافت محصولات ممکن نشد</h1>
+      <p className="max-w-md text-base leading-8 text-(--farabak-ink-muted)">
+        در ارتباط با کاتالوگ مشکلی پیش آمد. دوباره تلاش کنید یا برای انتخاب تجهیزات با کارشناسان ما
+        در ارتباط باشید.
+      </p>
+      <div className="flex flex-wrap justify-center gap-3">
+        <button
+          type="button"
+          onClick={reset}
+          className="inline-flex min-h-11 items-center justify-center rounded-md bg-(--farabak-action-blue) px-4 py-2 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 focus-visible:outline-none"
+        >
+          تلاش مجدد
+        </button>
+        <ActionLink href="/contact-us" variant="secondary">
+          ارتباط با کارشناسان
+        </ActionLink>
+      </div>
+    </section>
   );
 }

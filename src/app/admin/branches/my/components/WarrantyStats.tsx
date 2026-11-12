@@ -3,6 +3,7 @@
 import { LoadingOutlined, ReloadOutlined } from "@ant-design/icons";
 import { Card, Spin, Alert, Typography, Empty } from "antd";
 
+import { adminColors } from "@/constants/adminColors";
 import { useApiFetch } from "@/hooks/useApiFetch";
 
 const { Title, Text } = Typography;
@@ -75,17 +76,17 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
   }
 
   return (
-    <div className="warranty-stats-wrapper space-y-6 rounded-lg border border-gray-800 bg-gray-900 p-6 shadow-xl">
+    <div className="warranty-stats-wrapper space-y-6 rounded-lg border border-gray-800 bg-gray-900 p-4 shadow-xl sm:p-6 [&_.ant-card-head]:bg-gray-800/90!">
       {/* Total Statistics Summary - Row Layout */}
 
       {/* Detailed breakdown for each period */}
       {statistics.length > 0 && (
         <Card
-          className="border-0 shadow-md"
-          style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
+          className="overflow-hidden border-0 shadow-md"
+          style={{ backgroundColor: adminColors.panel, borderColor: adminColors.border }}
           title={
             <div className="flex items-center justify-between">
-              <Title level={5} className="!text-white">
+              <Title level={2} className="text-lg text-white!">
                 جزئیات آماری شعبه {statistics[0].branch_name}
               </Title>
               <button
@@ -98,7 +99,7 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
             </div>
           }
         >
-          <div className="grid grid-cols-3 gap-6 text-center">
+          <div className="grid grid-cols-1 gap-6 text-center sm:grid-cols-2 lg:grid-cols-3">
             <div>
               <Text className="mb-2 block text-gray-300">گارانتی‌های فعال</Text>
               <Text className="block text-3xl font-bold text-green-500">
@@ -120,54 +121,6 @@ export default function WarrantyStats({ isTabActive = true }: WarrantyStatsProps
           </div>
         </Card>
       )}
-
-      <style jsx global>{`
-        .warranty-stats-wrapper {
-          font-family: inherit !important;
-        }
-
-        .warranty-stats-wrapper * {
-          font-family: inherit !important;
-        }
-
-        .ant-card-head-title,
-        .ant-statistic-title {
-          color: #e5e7eb !important;
-        }
-
-        .ant-statistic-content-value-int {
-          font-size: 2rem;
-        }
-
-        .ant-card {
-          border-radius: 8px;
-          overflow: hidden;
-        }
-
-        .ant-card-head {
-          background-color: rgba(31, 41, 55, 0.9);
-        }
-
-        /* Fix font-family issues */
-        .ant-card,
-        .ant-card-head,
-        .ant-card-head-title,
-        .ant-card-body,
-        .ant-statistic,
-        .ant-statistic-title,
-        .ant-statistic-content,
-        .ant-typography,
-        .ant-spin,
-        .ant-alert {
-          font-family: inherit !important;
-        }
-
-        /* Ensure numeric values also use the right font */
-        .ant-statistic-content-value-int,
-        .ant-statistic-content-value-decimal {
-          font-family: inherit !important;
-        }
-      `}</style>
     </div>
   );
 }

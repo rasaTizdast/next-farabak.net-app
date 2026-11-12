@@ -16,13 +16,13 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ productCount, totalQuantity }
       style={{ direction: "rtl" }}
     >
       <div className="flex items-center justify-between gap-2">
-        <div className="whitespace-nowrap text-sm">{productCount} نوع محصول</div>
+        <div className="text-sm whitespace-nowrap">{productCount} نوع محصول</div>
         {productCount > 0 ? (
-          <div className="whitespace-nowrap rounded-md bg-blue-800/70 px-2 py-0.5 text-xs text-blue-100">
+          <div className="rounded-md bg-blue-800/70 px-2 py-0.5 text-xs whitespace-nowrap text-blue-100">
             {totalQuantity} عدد
           </div>
         ) : (
-          <div className="whitespace-nowrap rounded-md bg-yellow-800/70 px-2 py-0.5 text-xs text-yellow-100">
+          <div className="rounded-md bg-yellow-800/70 px-2 py-0.5 text-xs whitespace-nowrap text-yellow-100">
             بدون موجودی
           </div>
         )}

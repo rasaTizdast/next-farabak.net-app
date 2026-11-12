@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { Overview } from "../types";
 
@@ -12,20 +12,29 @@ type Props = {
 const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
   const [existingOverviews, setExistingOverviews] = useState<string[]>([]);
 
+  // Fetch overview data on mount
   useEffect(() => {
     axios.get(`/api/productOverview/getProductOverview/${+ProductId}`).then((data) => {
       SetOverviews(data.data);
-      // Initialize existingOverviews with non-empty properties
-      const overviews = data.data;
+    });
+  }, [ProductId, SetOverviews]);
+
+  const overviewsInitGuard = useRef(false);
+  // Initialize existingOverviews from overviews prop (one-time)
+  useEffect(() => {
+    if (overviews && !overviewsInitGuard.current) {
+      overviewsInitGuard.current = true;
       const nonEmptyOverviews = [
         overviews.Property1,
         overviews.Property2,
         overviews.Property3,
         overviews.Property4,
       ].filter(Boolean);
-      setExistingOverviews(nonEmptyOverviews);
-    });
-  }, []);
+      if (nonEmptyOverviews.length > 0) {
+        setExistingOverviews(nonEmptyOverviews);
+      }
+    }
+  }, [overviews]);
 
   const inputHandler = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -71,7 +80,7 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
 
     // Update the overviews state
     if (overviews) {
-      const updatedOverviews = { ...overviews, isChanged: true };
+      const updatedOverviews = { ...overviews, isChanged: true } as Record<string, unknown>;
       // Reset all properties
       ["Property1", "Property2", "Property3", "Property4"].forEach((prop) => {
         updatedOverviews[prop] = "";
@@ -80,7 +89,7 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
       newOverviews.forEach((value, idx) => {
         updatedOverviews[`Property${idx + 1}`] = value;
       });
-      SetOverviews(updatedOverviews);
+      SetOverviews(updatedOverviews as Overview);
     }
   };
 
@@ -89,12 +98,14 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
       <h3 className="mb-2 font-bold">ویژگی‌های محصول</h3>
 
       {existingOverviews.map((overview, index) => (
-        <div key={index} className="flex items-center gap-2">
-          <label className="block flex-1">
+        <div key={overview} className="flex items-center gap-2">
+          <label htmlFor={`property-${index + 1}`} className="block flex-1">
             <input
+              id={`property-${index + 1}`}
               type="text"
               name={`Property${index + 1}`}
-              value={overviews?.[`Property${index + 1}`] || ""}
+              aria-label={`ویژگی ${index + 1}`}
+              value={(overviews?.[`Property${index + 1}`] as string) || ""}
               onChange={inputHandler}
               className="mt-2 w-full rounded border border-gray-800 bg-gray-700 p-2"
               placeholder={`ویژگی ${index + 1} محصول را وارد کنید`}

@@ -1,0 +1,255 @@
+.menu {
+  --bm-w: 340px;
+  --bm-ink: #061a30;
+  --bm-accent: #1265e8;
+  --bm-line: #cbd5e1;
+  --bm-font: 14px;
+  --bm-row: 42px;
+  --bm-indent: 38px;
+  --bm-line-w: 1.5;
+  --bm-draw: 360ms;
+  --bm-fold: 260ms;
+  --bm-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --bm-muted: color-mix(in srgb, var(--bm-ink) 68%, transparent);
+
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-width: min(var(--bm-w), 100%);
+  flex-direction: column;
+  padding-inline-start: 14px;
+  color: var(--bm-ink);
+  font-family: inherit;
+  font-size: var(--bm-font);
+  line-height: 1.35;
+}
+
+.menu,
+.menu * {
+  box-sizing: border-box;
+}
+
+.menu::before {
+  position: absolute;
+  inset-block: 8px 0;
+  inset-inline-start: 0;
+  width: 2px;
+  border-radius: 1px;
+  background: linear-gradient(to bottom, var(--bm-line) 0%, var(--bm-line) 72%, transparent 100%);
+  content: "";
+}
+
+.marker {
+  position: absolute;
+  inset-block-start: -1px;
+  inset-inline-start: 0;
+  z-index: 1;
+  width: 2px;
+  height: 16px;
+  border-radius: 1px;
+  background: var(--bm-accent);
+  opacity: 0;
+  transition:
+    inset-block-start 220ms var(--bm-ease-out),
+    opacity 150ms ease;
+}
+
+.marker[data-on] {
+  opacity: 1;
+}
+
+.sections,
+.children {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.section {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.headerRow {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 2px;
+}
+
+.head {
+  display: block;
+  min-width: 0;
+  flex: 1;
+  margin: 0;
+  padding-block: 8px;
+  border-radius: 4px;
+  color: var(--bm-muted);
+  font-size: calc(var(--bm-font) + 1px);
+  font-weight: 600;
+  text-align: start;
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+
+.section[data-open] .head,
+.head[data-active] {
+  color: var(--bm-ink);
+}
+
+.head:focus-visible,
+.item:focus-visible,
+.toggle:focus-visible {
+  outline: 2px solid var(--bm-accent);
+  outline-offset: 3px;
+}
+
+.toggle {
+  display: inline-flex;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--bm-muted);
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.toggleIcon {
+  width: 16px;
+  height: 16px;
+  transition: transform var(--bm-fold) var(--bm-ease-out);
+}
+
+.section[data-open] .toggleIcon {
+  transform: rotate(180deg);
+}
+
+.body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--bm-fold) var(--bm-ease-out);
+}
+
+.section[data-open] .body {
+  grid-template-rows: 1fr;
+}
+
+.fold {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.tree {
+  position: relative;
+  min-width: 0;
+  padding-block: 6px;
+}
+
+.lines {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  overflow: visible;
+  opacity: 0;
+  pointer-events: none;
+  transform: scaleX(-1);
+  transform-origin: center;
+  transition: opacity 180ms ease;
+}
+
+.section[data-open] .lines {
+  opacity: 1;
+  transition-delay: 80ms;
+}
+
+.base,
+.reach {
+  fill: none;
+  stroke-width: var(--bm-line-w);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.base {
+  stroke: var(--bm-line);
+}
+
+.reach {
+  stroke: var(--bm-accent);
+  transition: stroke-dashoffset var(--bm-draw) var(--bm-ease-out);
+}
+
+.children {
+  position: relative;
+  gap: 0;
+}
+
+.child {
+  min-width: 0;
+}
+
+.item {
+  display: flex;
+  min-width: 0;
+  min-height: var(--bm-row);
+  align-items: center;
+  gap: 8px;
+  padding-block: 5px;
+  padding-inline-start: var(--bm-indent);
+  border-radius: 4px;
+  color: var(--bm-muted);
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+
+.item[data-active] {
+  color: var(--bm-accent);
+  font-weight: 600;
+}
+
+.icon {
+  display: inline-flex;
+  flex: none;
+}
+
+.label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .head:hover,
+  .item:hover {
+    color: var(--bm-ink);
+  }
+
+  .toggle:hover {
+    background: color-mix(in srgb, var(--bm-accent) 9%, transparent);
+    color: var(--bm-accent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marker,
+  .toggleIcon,
+  .body,
+  .lines,
+  .reach,
+  .head,
+  .item,
+  .toggle {
+    transition: none;
+  }
+}

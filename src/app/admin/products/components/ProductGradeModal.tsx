@@ -4,6 +4,7 @@ import { FaTimes } from "react-icons/fa";
 
 import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 import { Product } from "../types";
 import GradeList from "./GradeList";
@@ -21,6 +22,7 @@ type GradeForm = {
 };
 
 const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
+  const panelRef = useModalA11y<HTMLDivElement>({ onClose });
   const [formData, setFormData] = useState<GradeForm>({
     grade: "",
     price: 0,
@@ -79,13 +81,23 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
   const isValidRate = usdRate && !isNaN(usdRate) && usdRate > 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black bg-opacity-50 p-4">
-      <div className="min-w-[450px] rounded-lg bg-slate-800 p-6 text-white shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-3 backdrop-blur-[2px]">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="product-grade-title"
+        tabIndex={-1}
+        className="max-h-[calc(100dvh-1.5rem)] w-full max-w-xl overflow-y-auto overscroll-contain rounded-xl border border-slate-500 bg-slate-800 p-4 text-white shadow-xl sm:p-6"
+      >
         <div className="mb-6 flex items-center justify-between">
-          <h3 className="text-2xl font-bold">مدیریت گرید‌های محصول</h3>
+          <h3 id="product-grade-title" className="text-xl font-bold sm:text-2xl">
+            مدیریت گرید‌های محصول
+          </h3>
           <button
             type="button"
             onClick={onClose}
+            aria-label="بستن"
             className="rounded-full bg-slate-700 p-2 transition-colors hover:bg-slate-600"
           >
             <FaTimes />
@@ -119,7 +131,7 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
                     </span>
                     <span className="text-gray-400">/</span>
                     <span className="font-medium text-white">
-                      {(Number(product.Price) * usdRate!).toLocaleString("fa-IR")} تومان
+                      {Math.floor(Number(product.Price) * usdRate!).toLocaleString("fa-IR")} تومان
                     </span>
                   </div>
                 </div>
@@ -132,7 +144,8 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
                       </span>
                       <span className="text-gray-400">/</span>
                       <span className="font-medium text-white">
-                        {(Number(product.Discount) * usdRate!).toLocaleString("fa-IR")} تومان
+                        {Math.floor(Number(product.Discount) * usdRate!).toLocaleString("fa-IR")}{" "}
+                        تومان
                       </span>
                     </div>
                   </div>
@@ -146,52 +159,64 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
         <form onSubmit={handleSubmit} className="mb-6 space-y-4">
           <div className="space-y-3">
             <div>
-              <label className="mb-2 block text-sm text-gray-300">
+              <label htmlFor="grade-letter" className="mb-2 block text-sm text-gray-300">
                 گرید (فقط حروف انگلیسی مجاز است)
               </label>
               <input
+                id="grade-letter"
                 type="text"
                 name="grade"
+                aria-label="گرید"
                 value={formData.grade}
                 onChange={handleInputChange}
                 maxLength={1}
-                className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-[border-color,box-shadow] focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 placeholder="مثال: A"
               />
             </div>
 
             <div>
-              <label className="mb-2 block text-sm text-gray-300">قیمت (دلار)</label>
+              <label htmlFor="grade-price" className="mb-2 block text-sm text-gray-300">
+                قیمت (دلار)
+              </label>
               <input
+                id="grade-price"
                 type="number"
                 name="price"
+                aria-label="قیمت"
                 value={formData.price}
                 onChange={handleInputChange}
                 min="0"
                 step="0.01"
-                className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-[border-color,box-shadow] focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
               {isValidRate && formData.price > 0 && (
                 <span className="mt-2 block text-sm text-gray-400">
-                  معادل {(Number(formData.price) * usdRate!).toLocaleString("fa-IR")} تومان
+                  معادل {Math.floor(Number(formData.price) * usdRate!).toLocaleString("fa-IR")}{" "}
+                  تومان
                 </span>
               )}
             </div>
 
             <div>
-              <label className="mb-2 block text-sm text-gray-300">تخفیف (دلار)</label>
+              <label htmlFor="grade-discount" className="mb-2 block text-sm text-gray-300">
+                تخفیف (دلار)
+              </label>
               <input
+                id="grade-discount"
                 type="number"
                 name="discount"
+                aria-label="تخفیف"
                 value={formData.discount}
                 onChange={handleInputChange}
                 min="0"
                 step="0.01"
-                className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-md border border-slate-600 bg-slate-700/50 p-3 text-white transition-[border-color,box-shadow] focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
               {isValidRate && formData.discount > 0 && (
                 <span className="mt-2 block text-sm text-gray-400">
-                  معادل {(Number(formData.discount) * usdRate!).toLocaleString("fa-IR")} تومان
+                  معادل {Math.floor(Number(formData.discount) * usdRate!).toLocaleString("fa-IR")}{" "}
+                  تومان
                 </span>
               )}
             </div>
@@ -200,7 +225,7 @@ const ProductGradeModal = ({ product, onClose, refetchProducts }: Props) => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-md bg-blue-600 p-3 font-medium text-white transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-md bg-blue-600 p-3 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? "در حال ثبت..." : "افزودن گرید"}
           </button>

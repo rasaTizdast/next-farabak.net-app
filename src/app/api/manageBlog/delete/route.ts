@@ -1,6 +1,10 @@
 // app/api/manageBlog/delete/route.ts
 import { S3 } from "aws-sdk";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
+
+import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 
 const s3 = new S3({
   accessKeyId: process.env.LIARA_ACCESS_KEY,
@@ -9,6 +13,11 @@ const s3 = new S3({
 });
 
 export async function DELETE(request: Request) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const { key } = await request.json();
 
@@ -19,6 +28,7 @@ export async function DELETE(request: Request) {
       })
       .promise();
 
+    revalidateTag(TAGS.blogs, "max");
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Delete error:", error);

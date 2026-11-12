@@ -1,23 +1,29 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
 
-import styles from "./not-found.module.css";
+import { ActionLink } from "@/components/public/ActionLink";
+import { ErrorPage } from "@/components/ui/ErrorPage";
 
 export const metadata: Metadata = {
   robots: {
-    index: false, // prevents indexing of 404 pages
-    follow: true, // usually keep "follow" so bots still crawl links on the 404 page
+    index: false,
+    follow: true,
   },
 };
 
 const NotFound = () => {
   return (
-    <div className={styles.nf_cont}>
-      <h1>محصولی یافت نشد !!!</h1>
-      <Link href="/">برگشت به صفحه اصلی</Link>
-      <Image src="/404.png" alt="تصویر ۴۰۴" width={1366} height={666} quality={100} />
-    </div>
+    <ErrorPage
+      statusCode={404}
+      title="محصولی یافت نشد"
+      message="این مدل یا صفحه دیگر در دسترس نیست. از کاتالوگ محصولات شروع کنید یا برای راهنمایی با ما تماس بگیرید."
+    >
+      <div className="flex flex-wrap justify-center gap-3">
+        <ActionLink href="/products">بازگشت به کاتالوگ</ActionLink>
+        <ActionLink href="/contact-us" variant="secondary">
+          ارتباط با کارشناسان
+        </ActionLink>
+      </div>
+    </ErrorPage>
   );
 };
 

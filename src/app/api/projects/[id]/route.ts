@@ -1,7 +1,10 @@
 // app/api/projects/[id]/route.ts
 import { S3 } from "aws-sdk";
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
 
 const s3 = new S3({
@@ -10,7 +13,22 @@ const s3 = new S3({
   endpoint: process.env.LIARA_ENDPOINT,
 });
 
+const deleteFile = async (key: string) => {
+  await s3
+    .deleteObject({
+      Bucket: process.env.LIARA_BUCKET_NAME!,
+      Key: key,
+    })
+    .promise();
+};
+
 export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const params = await props.params;
   try {
     const formData = await request.formData();
@@ -58,15 +76,6 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       return key;
     };
 
-    const deleteFile = async (key: string) => {
-      await s3
-        .deleteObject({
-          Bucket: process.env.LIARA_BUCKET_NAME!,
-          Key: key,
-        })
-        .promise();
-    };
-
     // Handle main image
     let mainImageKey = formData.get("existingMainImage") as string;
     const newMainImage = formData.get("mainImage") as File | null;
@@ -78,6 +87,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
 
     // Handle detail images
     const existingDetails = formData.getAll("existingDetailImages") as string[];
+    const existingDetailsSet = new Set(existingDetails);
     const newDetails = formData.getAll("detailImages") as File[];
     const finalDetails = [...existingDetails];
 
@@ -89,7 +99,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
 
     // Find removed detail images
     const removedDetails = existingProject.ProjectMedia.reduce((acc: string[], m) => {
-      if (m.MediaType === "image" && !existingDetails.includes(m.MediaURL)) {
+      if (m.MediaType === "image" && !existingDetailsSet.has(m.MediaURL)) {
         acc.push(m.MediaURL);
       }
       return acc;
@@ -97,6 +107,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
 
     // Handle videos
     const existingVideos = formData.getAll("existingVideos") as string[];
+    const existingVideosSet = new Set(existingVideos);
     const newVideos = formData.getAll("videos") as File[];
     const finalVideos = [...existingVideos];
 
@@ -108,7 +119,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
 
     // Find removed videos
     const removedVideos = existingProject.ProjectMedia.reduce((acc: string[], m) => {
-      if (m.MediaType === "video" && !existingVideos.includes(m.MediaURL)) {
+      if (m.MediaType === "video" && !existingVideosSet.has(m.MediaURL)) {
         acc.push(m.MediaURL);
       }
       return acc;
@@ -155,6 +166,8 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       ],
     });
 
+    revalidateTag(TAGS.projects, "max");
+    revalidateTag(TAGS.sitemap, "max");
     return NextResponse.json(updatedProject, { status: 200 });
   } catch (error) {
     console.error("Error updating project:", error);
@@ -252,6 +265,8 @@ export async function DELETE(request: NextRequest, props: { params: Promise<{ id
       where: { ProjectID: projectId },
     });
 
+    revalidateTag(TAGS.projects, "max");
+    revalidateTag(TAGS.sitemap, "max");
     return NextResponse.json(
       { message: "پروژه و تمام فایل های مرتبط با موفقیت حذف شدند" },
       { status: 200 }

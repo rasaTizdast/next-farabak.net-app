@@ -2,7 +2,12 @@ import React from "react";
 
 const LoadingSkeleton: React.FC = () => {
   return (
-    <div className="space-y-6 rounded-lg bg-gray-950 p-4 text-white sm:p-6" dir="rtl">
+    <div
+      className="space-y-6 rounded-lg bg-gray-950 p-4 text-white sm:p-6"
+      dir="rtl"
+      role="status"
+      aria-label="در حال بارگذاری"
+    >
       {/* Header section */}
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
@@ -73,29 +78,11 @@ const LoadingSkeleton: React.FC = () => {
         <div className="flex justify-end border-t border-gray-700 bg-gray-800 p-4">
           <div className="flex space-x-1 rtl:space-x-reverse">
             {[1, 2, 3].map((item) => (
-              <div key={item} className="mx-1 h-8 w-8 animate-pulse rounded-md bg-gray-700"></div>
+              <div key={item} className="mx-1 size-8 animate-pulse rounded-md bg-gray-700"></div>
             ))}
           </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes skeletonPulse {
-          0% {
-            opacity: 0.6;
-          }
-          50% {
-            opacity: 0.8;
-          }
-          100% {
-            opacity: 0.6;
-          }
-        }
-
-        .animate-pulse {
-          animation: skeletonPulse 1.5s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   );
 };

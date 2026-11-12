@@ -1,32 +1,50 @@
 import { Suspense } from "react";
 
-import SkeletonLoader from "@/app/_components/ui/SkeletonLoader";
+import { getAllCategories } from "@/lib/data/categories";
 
 import CategorySliderContent from "./CategorySliderContent";
+import { CategorySliderSkeleton } from "./ProductListSkeletons";
+
+interface CategorySliderItem {
+  Name: string;
+  Slug: string;
+  Banner?: string;
+  Link?: string;
+}
 
 interface CategorySliderProps {
   type: "categories" | "subcategories";
   categorySlug?: string;
 }
 
-async function fetchCategoriesData(type: "categories" | "subcategories", categorySlug?: string) {
+async function fetchCategoriesData(
+  type: "categories" | "subcategories",
+  categorySlug?: string
+): Promise<CategorySliderItem[]> {
   try {
-    const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/getAll`;
-    const res = await fetch(apiUrl, { next: { revalidate: 60 } });
-
-    if (!res.ok) {
-      return [];
-    }
-
-    const allCategories = await res.json();
+    const allCategories = await getAllCategories();
 
     // Filter categories/subcategories based on type
     if (type === "categories") {
-      return allCategories.filter((cat: any) => cat.Available !== false);
+      return allCategories
+        .filter((cat) => cat.Available !== false)
+        .map((cat) => ({
+          Name: cat.Name || "",
+          Slug: cat.Slug || "",
+          Banner: cat.Banner ?? undefined,
+          Link: cat.Link,
+        }));
     } else if (type === "subcategories" && categorySlug) {
-      const category = allCategories.find((cat: any) => cat.Slug === categorySlug);
+      const category = allCategories.find((cat) => cat.Slug === categorySlug);
       if (category && category.Subcategories) {
-        return category.Subcategories.filter((subcat: any) => subcat.Available !== false);
+        return category.Subcategories.filter((subcat) => subcat.Available !== false).map(
+          (subcat) => ({
+            Name: subcat.Name || "",
+            Slug: subcat.Slug || "",
+            Banner: subcat.Banner ?? undefined,
+            Link: subcat.Link,
+          })
+        );
       }
     }
 
@@ -45,8 +63,11 @@ export default async function CategorySlider({ type, categorySlug }: CategorySli
   }
 
   return (
-    <Suspense fallback={<SkeletonLoader amount={8} />}>
-      <CategorySliderContent items={items} />
+    <Suspense fallback={<CategorySliderSkeleton subcategories={type === "subcategories"} />}>
+      <CategorySliderContent
+        items={items}
+        type={type === "subcategories" ? "subcategory" : "category"}
+      />
     </Suspense>
   );
 }

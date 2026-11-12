@@ -1,16 +1,11 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { errorResponse, unauthorizedResponse, serverErrorResponse } from "@/lib/api-response";
+import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
+import { validateBody, createProductSchema } from "@/lib/validation";
 
 /**
  * @swagger
@@ -157,88 +152,50 @@ async function verifyToken(token: string) {
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
+    if (auth.role !== "Admin") {
+      return unauthorizedResponse("Unauthorized");
     }
 
-    const decoded = await verifyToken(token);
-    const userRole = decoded.role;
-
-    if (!userRole || userRole !== "Admin") {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = await request.json();
-
-    const {
-      Type,
-      Slug,
-      Description,
-      CategoryId,
-      CategoryContentId,
-      Available,
-      Price,
-      Discount,
-      Name,
-      img1 = "",
-      img2 = "",
-      SEO_Title,
-      SEO_Description,
-      productBlog = "",
-    } = body;
-
-    if (
-      !Type ||
-      !Slug ||
-      !Description ||
-      !CategoryId ||
-      !CategoryContentId ||
-      Available === undefined ||
-      !Price ||
-      !Discount ||
-      !Name ||
-      !SEO_Title ||
-      !SEO_Description
-    ) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
+    const result = await validateBody(request, createProductSchema);
+    if ("error" in result) return result.error;
+    const data = result.data;
 
     const existingProduct = await prisma.product.findFirst({
-      where: { Slug, Type },
+      where: { Slug: data.Slug, Type: data.Type },
     });
 
     if (existingProduct) {
-      return NextResponse.json(
-        { error: "A product with the same slug and type already exists" },
-        { status: 400 }
-      );
+      return errorResponse("A product with the same slug and type already exists", 400);
     }
 
     const newProduct = await prisma.product.create({
       data: {
-        Type,
-        Slug,
-        Description,
-        CategoryId,
-        CategoryContentId,
-        Available: Available || true,
-        Price: Price || "0",
-        Discount: Discount || "0",
-        Name,
-        img1,
-        img2,
-        SEO_Title: SEO_Title || Type,
-        SEO_Description: SEO_Description || Name,
-        productBlog: productBlog,
+        Type: data.Type,
+        Slug: data.Slug,
+        Description: data.Description,
+        CategoryId: data.CategoryId,
+        CategoryContentId: data.CategoryContentId,
+        Available: data.Available,
+        Price: data.Price || "0",
+        Discount: data.Discount || "0",
+        Name: data.Name,
+        img1: data.img1,
+        img2: data.img2,
+        SEO_Title: data.SEO_Title || data.Type,
+        SEO_Description: data.SEO_Description || data.Name,
+        productBlog: data.productBlog,
       },
     });
 
+    revalidateTag(TAGS.products, "max");
+    revalidateTag(TAGS.categories, "max");
+    revalidateTag(TAGS.sitemap, "max");
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return serverErrorResponse("Internal Server Error");
   }
 }

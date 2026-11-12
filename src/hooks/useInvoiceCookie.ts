@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 import { InvoiceData } from "@/utils/invoiceJwt";
 
@@ -37,7 +37,7 @@ export function useInvoiceCookie() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const saveInvoiceToCookie = async (invoiceData: Omit<InvoiceData, "timestamp">) => {
+  const saveInvoiceToCookie = useCallback(async (invoiceData: Omit<InvoiceData, "timestamp">) => {
     setIsLoading(true);
     setError(null);
     const result = await apiFetch("/api/invoice/save", {
@@ -48,25 +48,25 @@ export function useInvoiceCookie() {
     if (!result) setError("Failed to save invoice data");
     setIsLoading(false);
     return result;
-  };
+  }, []);
 
-  const getInvoiceFromCookie = async () => {
+  const getInvoiceFromCookie = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     const result = await apiFetchData<InvoiceData>("/api/invoice/retrieve");
     if (!result) setError("Failed to retrieve invoice data");
     setIsLoading(false);
     return result;
-  };
+  }, []);
 
-  const clearInvoiceCookie = async () => {
+  const clearInvoiceCookie = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     const result = await apiFetch("/api/invoice/clear", { method: "POST" });
     if (!result) setError("Failed to clear invoice data");
     setIsLoading(false);
     return result;
-  };
+  }, []);
 
   return { saveInvoiceToCookie, getInvoiceFromCookie, clearInvoiceCookie, isLoading, error };
 }

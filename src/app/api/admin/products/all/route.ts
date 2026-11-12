@@ -1,18 +1,8 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { unauthorizedResponse, notFoundResponse, serverErrorResponse } from "@/lib/api-response";
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
-
-export const dynamic = "force-dynamic";
 
 /**
  * @swagger
@@ -36,25 +26,15 @@ export const dynamic = "force-dynamic";
  */
 export async function GET() {
   try {
-    // Get the access token from cookies
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json({ error: "Authorization token required" }, { status: 401 });
-    }
-
-    // Verify and decode the token
-    const decoded = await verifyToken(token);
-    const userRole = decoded.role;
+    const userRole = auth.role;
 
     // Only admin and branch users can access this endpoint
     if (!userRole || (userRole !== "Admin" && userRole !== "Branch")) {
-      return NextResponse.json(
-        {
-          error: "Unauthorized: Only admin and branch users can access this endpoint",
-        },
-        { status: 401 }
+      return unauthorizedResponse(
+        "Unauthorized: Only admin and branch users can access this endpoint"
       );
     }
 
@@ -97,10 +77,7 @@ export async function GET() {
     }
 
     if (products.length === 0) {
-      return new NextResponse(JSON.stringify({ error: "No products found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
+      return notFoundResponse("No products found");
     }
 
     // Check first few products structure
@@ -122,6 +99,6 @@ export async function GET() {
     return NextResponse.json(response);
   } catch (error) {
     console.error("[PRODUCTS-ALL-API] Error fetching all products:", error);
-    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
+    return serverErrorResponse("Failed to fetch products");
   }
 }

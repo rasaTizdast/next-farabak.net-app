@@ -1,19 +1,10 @@
 // app/api/admin/users/route.ts
-import { PrismaClient } from "@prisma/client";
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/lib/prisma"; // Assuming you have a prisma client setup
-
-const JWT_SECRET = process.env.JWT_SECRET;
-const prismaClient = new PrismaClient();
-
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
+import { errorResponse, serverErrorResponse } from "@/lib/api-response";
+import { requireAuth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { userSearchSchema, validateBody } from "@/lib/validation";
 
 /**
  * @swagger
@@ -42,27 +33,27 @@ async function verifyToken(token: string) {
  *         description: Bad request - Invalid parameters
  */
 export async function POST(request: Request) {
-  const { phoneNumber, userId } = await request.json();
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role?.toLowerCase() !== "admin") return errorResponse("Forbidden", 403);
 
-  const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value;
+  const bodyValidation = await validateBody(request, userSearchSchema);
+  if ("error" in bodyValidation) return bodyValidation.error;
 
-  if (!token) {
-    return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
-  }
-
-  const decoded = await verifyToken(token);
-  const userRole = decoded.role;
-
-  if (!userRole || userRole !== "Admin") {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
+  const { phoneNumber, userId } = bodyValidation.data;
 
   if (phoneNumber) {
     // Search for the user by phone number
     const users = await prisma.client.findMany({
       where: {
         PhoneNumber: phoneNumber,
+      },
+      select: {
+        UserID: true,
+        FirstName: true,
+        LastName: true,
+        PhoneNumber: true,
+        Role: true,
       },
     });
     return NextResponse.json(users);
@@ -81,7 +72,7 @@ export async function POST(request: Request) {
     return NextResponse.json(updatedUser);
   }
 
-  return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  return errorResponse("Invalid request", 400);
 }
 
 /**
@@ -96,9 +87,13 @@ export async function POST(request: Request) {
  *         description: Server error
  */
 export async function GET() {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role?.toLowerCase() !== "admin") return errorResponse("Forbidden", 403);
+
   try {
     // Get all users with left join to check if they have branches
-    const usersWithBranches = await prismaClient.$queryRaw`
+    const usersWithBranches = await prisma.$queryRaw<Record<string, unknown>[]>`
       SELECT 
         c."UserID", 
         c."Username", 
@@ -129,6 +124,6 @@ export async function GET() {
     return NextResponse.json(cleanedUsers);
   } catch (error) {
     console.error("Error fetching users:", error);
-    return NextResponse.json({ error: "خطا در بارگذاری کاربران" }, { status: 500 });
+    return serverErrorResponse("خطا در بارگذاری کاربران");
   }
 }

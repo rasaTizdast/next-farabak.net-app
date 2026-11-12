@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 
 type State = {
@@ -11,6 +11,13 @@ type Props = {
   setErrors: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
 };
 
+function validateField(value: string) {
+  let error = "";
+  if (!value.trim()) error = "ویژگی نمی‌تواند خالی باشد.";
+  else if (value.length > 300) error = "ویژگی نمی‌تواند بیشتر از ۳۰۰ کاراکتر باشد.";
+  return error;
+}
+
 const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
   const [localFeatures, setLocalFeatures] = useState<string[]>(() => state.features);
   const [localErrors, setLocalErrors] = useState<{ [key: string]: string }>({});
@@ -18,7 +25,7 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
   // Enhanced error reporting to parent component
   useEffect(() => {
     // Format errors with proper prefixes for parent component
-    const formattedErrors = {};
+    const formattedErrors: Record<string, string> = {};
 
     // Add feature-specific errors
     Object.entries(localErrors).forEach(([key, value]) => {
@@ -60,28 +67,25 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
     });
   }, [localErrors, localFeatures, setErrors]);
 
+  const overviewInitGuard = useRef(false);
   // Initialize validation on component mount and when features change from parent
   useEffect(() => {
-    setLocalFeatures(state.features);
+    if (!overviewInitGuard.current) {
+      overviewInitGuard.current = true;
 
-    // Validate all features
-    const initialErrors = {};
-    state.features.forEach((feature, index) => {
-      const error = validateField(feature);
-      if (error) {
-        initialErrors[`feature-${index}`] = error;
-      }
-    });
+      setLocalFeatures(state.features);
 
-    setLocalErrors(initialErrors);
+      const initialErrors: Record<string, string> = {};
+      state.features.forEach((feature, index) => {
+        const error = validateField(feature);
+        if (error) {
+          initialErrors[`feature-${index}`] = error;
+        }
+      });
+
+      setLocalErrors(initialErrors);
+    }
   }, [state.features]);
-
-  const validateField = (value: string) => {
-    let error = "";
-    if (!value.trim()) error = "ویژگی نمی‌تواند خالی باشد.";
-    else if (value.length > 300) error = "ویژگی نمی‌تواند بیشتر از ۳۰۰ کاراکتر باشد.";
-    return error;
-  };
 
   const handleFeatureChange = (index: number, value: string) => {
     const error = validateField(value);
@@ -114,7 +118,7 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
     dispatch({ type: "SET_FEATURES", features: updatedFeatures });
 
     // Remove error for deleted feature and reindex remaining errors
-    const newErrors = {};
+    const newErrors: Record<string, string> = {};
     Object.entries(localErrors).forEach(([key, value]) => {
       const match = key.match(/feature-(\d+)/);
       if (match) {
@@ -133,7 +137,7 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
     <div className="mb-6 p-4">
       <div className={`${localFeatures.length ? "mb-10 flex flex-col gap-5" : ""}`}>
         {localFeatures.map((feature, index) => (
-          <div key={index} className="flex items-center gap-4">
+          <div key={feature} className="flex items-center gap-4">
             <input
               type="text"
               data-testid={`product-feature-${index}`}
@@ -151,7 +155,8 @@ const ProductOverview = ({ state, dispatch, setErrors }: Props) => {
               type="button"
               data-testid={`remove-feature-${index}`}
               onClick={() => handleFeatureRemove(index)}
-              className="text-red-500 transition-all hover:text-red-600"
+              aria-label="حذف ویژگی"
+              className="text-red-500 transition-colors hover:text-red-600"
             >
               <FaTrashAlt size={20} />
             </button>

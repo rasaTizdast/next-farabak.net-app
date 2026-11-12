@@ -1,6 +1,8 @@
 import { jwtVerify, SignJWT } from "jose"; // Using jose for JWT handling
 import { NextResponse } from "next/server";
 
+import { errorResponse, serverErrorResponse, unauthorizedResponse } from "@/lib/api-response";
+
 /**
  * Interface for the decoded token payload.
  */
@@ -10,8 +12,15 @@ interface DecodedToken {
   role: string;
 }
 
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "your_refresh_token_secret";
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+const REFRESH_TOKEN_SECRET_ENV = process.env.REFRESH_TOKEN_SECRET;
+const JWT_SECRET_ENV = process.env.JWT_SECRET;
+
+if (!JWT_SECRET_ENV) {
+  throw new Error("Missing JWT_SECRET environment variable");
+}
+if (!REFRESH_TOKEN_SECRET_ENV) {
+  throw new Error("Missing REFRESH_TOKEN_SECRET environment variable");
+}
 
 // Token expiration times (in seconds)
 const ACCESS_TOKEN_EXPIRATION = 15 * 60; // 15 minutes
@@ -139,7 +148,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     if (!refreshToken) {
-      return NextResponse.json({ message: "توکن بازیابی الزامی است" }, { status: 400 });
+      return errorResponse("توکن بازیابی الزامی است", 400);
     }
 
     // Decode the refresh token using jose
@@ -147,10 +156,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     try {
       decodedToken = await verifyToken(
         refreshToken,
-        new TextEncoder().encode(REFRESH_TOKEN_SECRET)
+        new TextEncoder().encode(REFRESH_TOKEN_SECRET_ENV)
       );
     } catch (error) {
-      return NextResponse.json({ message: (error as Error).message }, { status: 401 });
+      return unauthorizedResponse((error as Error).message);
     }
 
     // Generate a new access token
@@ -162,7 +171,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
       .setExpirationTime("15m")
-      .sign(new TextEncoder().encode(JWT_SECRET));
+      .sign(new TextEncoder().encode(JWT_SECRET_ENV));
 
     // Set the new access token as an HTTP-only cookie
     const response = NextResponse.json({
@@ -185,6 +194,6 @@ export async function POST(request: Request): Promise<NextResponse> {
     return response;
   } catch (error) {
     console.error("خطا در بازیابی توکن:", error);
-    return NextResponse.json({ message: "خطای داخلی سرور", success: false }, { status: 500 });
+    return serverErrorResponse("خطای داخلی سرور");
   }
 }

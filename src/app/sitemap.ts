@@ -1,20 +1,11 @@
-export const dynamic = "force-dynamic";
-
 import { MetadataRoute } from "next";
+
+import { getSitemapUrls } from "@/lib/data/sitemap";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
-    // Fetch all URLs from our enhanced API endpoint
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/sitemap`,
-      { next: { revalidate: 3600 } } // Revalidate every 1 hour (3600 seconds)
-    );
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch sitemap data: ${response.status}`);
-    }
-
-    const { urls } = await response.json();
+    // Fetch all URLs from the data layer (same enhanced list as /api/sitemap)
+    const { urls } = await getSitemapUrls();
 
     // Map all URLs to the sitemap format
     const sitemapEntries: MetadataRoute.Sitemap = urls.map((url: string) => ({
@@ -49,6 +40,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.8,
       },
       {
+        url: "https://farabak.net/support/tools",
+        lastModified: new Date(),
+        changeFrequency: "weekly",
+        priority: 0.7,
+      },
+      ...["cctv-storage", "xray-fit", "meeting-room"].map((tool) => ({
+        url: `https://farabak.net/support/tools/${tool}`,
+        lastModified: new Date(),
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+      })),
+      {
         url: "https://farabak.net/about-us",
         lastModified: new Date(),
         changeFrequency: "monthly",
@@ -59,6 +62,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: new Date(),
         changeFrequency: "monthly",
         priority: 0.7,
+      },
+      {
+        url: "https://farabak.net/privacy",
+        lastModified: new Date(),
+        changeFrequency: "yearly",
+        priority: 0.3,
       },
     ];
   }
@@ -76,6 +85,10 @@ function getPriority(url: string): number {
     return 0.7; // Subcategory pages
   } else if (url.match(/\/products\/[^\/]+\/[^\/]+\/[^\/]+$/)) {
     return 0.6; // Individual product pages
+  } else if (url === "https://farabak.net/support/tools") {
+    return 0.7; // Support tools index
+  } else if (url.includes("/support/tools/")) {
+    return 0.6; // Interactive support tools
   } else if (url.includes("/support/blog/")) {
     return 0.7; // Blog posts
   } else if (url.includes("/about-us/projects/")) {

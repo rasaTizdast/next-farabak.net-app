@@ -1,9 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
+import { prisma } from "@/lib/prisma";
 import { getCurrentJalaliDate } from "@/utils/jalaliDate";
-
-const prisma = new PrismaClient();
 
 /**
  * @swagger
@@ -46,6 +47,11 @@ const prisma = new PrismaClient();
  */
 
 export async function PUT(req: Request, props: { params: Promise<{ faqId: string }> }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const params = await props.params;
   const faqId = parseInt(params.faqId);
 
@@ -76,6 +82,7 @@ export async function PUT(req: Request, props: { params: Promise<{ faqId: string
       },
     });
 
+    revalidateTag(TAGS.blogs, "max");
     return NextResponse.json({ faq });
   } catch (error) {
     console.error("Error updating FAQ:", error);
@@ -87,6 +94,11 @@ export async function PUT(req: Request, props: { params: Promise<{ faqId: string
 }
 
 export async function DELETE(req: Request, props: { params: Promise<{ faqId: string }> }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  if (auth.role !== "Admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const params = await props.params;
   const faqId = parseInt(params.faqId);
 
@@ -99,6 +111,7 @@ export async function DELETE(req: Request, props: { params: Promise<{ faqId: str
       where: { id: faqId },
     });
 
+    revalidateTag(TAGS.blogs, "max");
     return NextResponse.json({ message: "FAQ با موفقیت حذف شد" });
   } catch (error) {
     console.error("Error deleting FAQ:", error);

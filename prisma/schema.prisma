@@ -405,7 +405,7 @@ model BlogFAQs {
 model Details_activity {
   id              Int             @id @default(autoincrement())
   activityID      Int
-  description     String          @db.VarChar(400)
+  description     String          @db.Text
   Master_activity Master_activity @relation(fields: [activityID], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@schema("company_activity")

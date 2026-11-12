@@ -1,37 +1,47 @@
-/// <reference types="cypress" />
-// ***********************************************
-// This example commands.ts shows you how to
-// create various custom commands and overwrite
-// existing commands.
-//
-// For more comprehensive examples of custom
-// commands please read more here:
-// https://on.cypress.io/custom-commands
-// ***********************************************
-//
-//
-// -- This is a parent command --
-// Cypress.Commands.add('login', (email, password) => { ... })
-//
-//
-// -- This is a child command --
-// Cypress.Commands.add('drag', { prevSubject: 'element'}, (subject, options) => { ... })
-//
-//
-// -- This is a dual command --
-// Cypress.Commands.add('dismiss', { prevSubject: 'optional'}, (subject, options) => { ... })
-//
-//
-// -- This will overwrite an existing command --
-// Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
-//
-// declare global {
-//   namespace Cypress {
-//     interface Chainable {
-//       login(email: string, password: string): Chainable<void>
-//       drag(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       dismiss(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       visit(originalFn: CommandOriginalFn, url: string, options: Partial<VisitOptions>): Chainable<Element>
-//     }
-//   }
-// }
+﻿/// <reference types="cypress" />
+
+Cypress.Commands.add("loginStubbed", () => {
+  cy.intercept("POST", "/api/auth/login", (req) => {
+    req.reply({
+      fixture: "json/users.json",
+    });
+  }).as("stubLogin");
+
+  cy.visit("/auth/login");
+  cy.get('[data-testid="username-input"]').type("admin");
+  cy.get('[data-testid="password-input"]').type("admin123");
+  cy.get('[data-testid="submit-button"]').click();
+  cy.url({ timeout: 60000 }).should("include", "/admin");
+});
+
+Cypress.Commands.add("login", (role: "admin" | "user" = "admin") => {
+  const username =
+    role === "admin"
+      ? Cypress.env("adminUsername") || "FarabakAdmin"
+      : Cypress.env("userUsername") || "rasarasa";
+  const password = role === "admin" ? Cypress.env("adminPassword") : Cypress.env("userPassword");
+  const expectedRedirect = role === "admin" ? "/admin" : "/dashboard";
+
+  if (!password) {
+    throw new Error(
+      `Missing Cypress env var for ${role} password. Set CYPRESS_${role.toUpperCase()}_PASSWORD.`
+    );
+  }
+
+  cy.visit("/auth/login");
+  cy.get('[data-testid="username-input"]').type(username);
+  cy.get('[data-testid="password-input"]').type(password);
+  cy.get('[data-testid="submit-button"]').click();
+  cy.url({ timeout: 60000 }).should("include", expectedRedirect);
+});
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      login(role?: "admin" | "user"): Chainable;
+      loginStubbed(): Chainable;
+    }
+  }
+}
+
+export {};

@@ -1,6 +1,7 @@
 import { S3 } from "aws-sdk";
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma"; // Adjust the import to your Prisma setup
 
 /**
@@ -100,6 +101,11 @@ const s3 = new S3({
 
 export async function DELETE(req: Request): Promise<NextResponse> {
   try {
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
+    if (auth.role !== "Admin") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
     const body = await req.json();
     const { type, productId, imageKey, productImageType, key } = body as {
       type: string;

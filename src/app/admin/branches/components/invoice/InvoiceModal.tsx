@@ -11,6 +11,7 @@ import { Branch, Invoice } from "../types";
 import CustomerInfoStep from "./steps/CustomerInfoStep";
 import ProductSelectionStep from "./steps/ProductSelectionStep";
 import ReviewStep from "./steps/ReviewStep";
+import { SelectedProduct, ProductWithWarranty } from "./steps/types";
 import WarrantyStep from "./steps/WarrantyStep";
 
 interface InvoiceModalProps {
@@ -22,10 +23,10 @@ interface InvoiceModalProps {
 
 async function submitInvoice(
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  productsWithWarranty: any[],
+  productsWithWarranty: ProductWithWarranty[],
   invoice: Partial<Invoice>,
   branch: Branch,
-  createInvoiceMutate: any,
+  createInvoiceMutate: (url: string, data: unknown) => Promise<unknown>,
   onSuccess?: () => void,
   handleClose?: () => void
 ) {
@@ -74,6 +75,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
   const [currentStep, setCurrentStep] = useState(0);
   const [usdToRialRate, setUsdToRialRate] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [modalWidth, setModalWidth] = useState(1000);
   const [invoice, setInvoice] = useState<Partial<Invoice>>({
     Fullname: "",
     Phonenumber: "",
@@ -82,42 +84,48 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
     Checked: true,
     Date: moment().locale("fa").format("YYYY-MM-DDTHH:mm:ss"),
   });
-  const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
-  const [productsWithWarranty, setProductsWithWarranty] = useState<any[]>([]);
-
-  // Reset all state when modal becomes visible or is closed
-  useEffect(() => {
-    const resetForm = () => {
-      setCurrentStep(0);
-      setInvoice({
-        Fullname: "",
-        Phonenumber: "",
-        UserId: branch?.UserID,
-        TotalAmount: 0,
-        Checked: true,
-        Date: moment().locale("fa").format("YYYY-MM-DDTHH:mm:ss"),
-      });
-      setSelectedProducts([]);
-      setProductsWithWarranty([]);
-    };
-
-    if (visible) {
-      // Only fetch exchange rate when modal opens
-      getExchangeRate();
-    } else {
-      // Reset form data when modal closes
-      resetForm();
-    }
-  }, [visible, branch?.UserID]);
+  const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
+  const [productsWithWarranty, setProductsWithWarranty] = useState<ProductWithWarranty[]>([]);
 
   const getExchangeRate = async () => {
     const rate = await fetchUsdToRialRate();
     setUsdToRialRate(rate);
   };
 
+  const resetForm = () => {
+    setCurrentStep(0);
+    setInvoice({
+      Fullname: "",
+      Phonenumber: "",
+      UserId: branch?.UserID,
+      TotalAmount: 0,
+      Checked: true,
+      Date: moment().locale("fa").format("YYYY-MM-DDTHH:mm:ss"),
+    });
+    setSelectedProducts([]);
+    setProductsWithWarranty([]);
+  };
+
+  const handleAfterOpenChange = (open: boolean) => {
+    if (open) {
+      getExchangeRate();
+    } else {
+      resetForm();
+    }
+  };
+
   const handleClose = () => {
     onClose();
   };
+
+  useEffect(() => {
+    const updateWidth = () => {
+      setModalWidth(window.innerWidth < 768 ? window.innerWidth - 32 : 1000);
+    };
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
 
   const steps = [
     {
@@ -164,9 +172,22 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
   ];
 
   const handleNext = () => {
-    if (currentStep === 0 && (!invoice.Fullname || !invoice.Phonenumber)) {
-      message.error("لطفا تمام اطلاعات خریدار را وارد کنید");
-      return;
+    if (currentStep === 0) {
+      if (!invoice.Fullname?.trim() || !invoice.Phonenumber?.trim()) {
+        message.error("لطفا تمام اطلاعات خریدار را وارد کنید");
+        return;
+      }
+      // Normalize Persian/Arabic digits before validating (same rule as the input: ^09\d{9}$)
+      const normalizedPhone = invoice.Phonenumber.replace(/[۰-۹]/g, (d) =>
+        String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+      ).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+      if (!/^09\d{9}$/.test(normalizedPhone)) {
+        message.error("شماره تماس معتبر نیست (مثال: 09123456789)");
+        return;
+      }
+      if (normalizedPhone !== invoice.Phonenumber) {
+        setInvoice({ ...invoice, Phonenumber: normalizedPhone });
+      }
     }
 
     if (currentStep === 1 && selectedProducts.length === 0) {
@@ -182,6 +203,39 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
   };
 
   const handleSubmit = async () => {
+    // Guard against stale/incomplete warranty data before submitting:
+    // every selected unit must have exactly one row, and every warranty row
+    // with hasWarranty must carry a server-issued code + valid dates.
+    for (const product of selectedProducts) {
+      const rows = productsWithWarranty.filter((p) => p.ProductId === product.ProductId);
+      if (rows.length !== product.quantity) {
+        message.error(
+          `تعداد ردیف‌های گارانتی محصول «${product.Name || product.ProductId}» با تعداد انتخاب‌شده هم‌خوانی ندارد. لطفاً به مرحله گارانتی بازگردید.`
+        );
+        return;
+      }
+    }
+    const stale = productsWithWarranty.filter(
+      (p) => !selectedProducts.some((s) => s.ProductId === p.ProductId)
+    );
+    if (stale.length > 0) {
+      message.error(
+        "اطلاعات گارانتی با محصولات انتخاب‌شده هم‌خوانی ندارد. لطفاً به مرحله گارانتی بازگردید."
+      );
+      return;
+    }
+    const missingCode = productsWithWarranty.some(
+      (item) =>
+        item.warranty?.hasWarranty &&
+        (!item.warranty.warrantycode || !item.warranty.startdate || !item.warranty.expirydate)
+    );
+    if (missingCode) {
+      message.error(
+        "برخی کدهای گارانتی تولید نشده‌اند. لطفاً به مرحله گارانتی بازگردید و دوباره تلاش کنید."
+      );
+      return;
+    }
+
     await submitInvoice(
       setIsLoading,
       productsWithWarranty,
@@ -198,16 +252,20 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
       title="ایجاد فاکتور جدید"
       open={visible}
       onCancel={handleClose}
-      width={1000}
+      width={modalWidth}
       footer={null}
       maskClosable={true}
-      destroyOnClose={true}
+      destroyOnHidden={true}
+      afterOpenChange={handleAfterOpenChange}
       style={{ direction: "rtl" }}
-      className="invoice-modal"
+      className="invoice-modal [&_.ant-modal-header]:mb-5! [&_.ant-modal-header]:pb-2.5!"
       modalRender={(modal) => <div className="overflow-hidden rounded-lg bg-gray-900">{modal}</div>}
     >
       <div className="rounded-lg bg-gray-800 p-4 text-white">
-        <Steps current={currentStep} className="custom-dark-steps mb-8">
+        <Steps
+          current={currentStep}
+          className="custom-dark-steps mb-8 [&_.ant-steps-item-active_.ant-steps-item-icon]:border-blue-500! [&_.ant-steps-item-active_.ant-steps-item-icon]:bg-blue-600! [&_.ant-steps-item-active_.ant-steps-item-title]:text-white! [&_.ant-steps-item-finish_.ant-steps-item-icon]:border-blue-500! [&_.ant-steps-item-finish_.ant-steps-item-icon]:bg-[#0035c5]! [&_.ant-steps-item-finish_.ant-steps-item-title]:text-blue-400! [&_.ant-steps-item-icon]:border-gray-600! [&_.ant-steps-item-icon]:bg-gray-700! [&_.ant-steps-item-title]:text-gray-400! [&_.ant-steps-item-title::after]:bg-[#465266]!"
+        >
           {steps.map((step) => (
             <Steps.Step key={step.title} title={step.title} />
           ))}
@@ -226,7 +284,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
               قبلی
             </Button>
           )}
-          <div className="flex-grow"></div>
+          <div className="grow"></div>
           {currentStep < steps.length - 1 ? (
             <Button
               htmlType="button"
@@ -251,175 +309,6 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ visible, onClose, branch, o
           )}
         </div>
       </div>
-
-      <style jsx global>{`
-        .invoice-modal .ant-modal-content {
-          background-color: #1f2937;
-          color: white;
-        }
-
-        .invoice-modal .ant-modal-header {
-          background-color: #1f2937;
-          border-bottom: 1px solid #374151;
-          color: white;
-          padding-bottom: 10px;
-          margin-bottom: 20px;
-        }
-
-        .invoice-modal .ant-modal-title {
-          color: white;
-        }
-
-        .invoice-modal .ant-modal-close {
-          color: #9ca3af;
-        }
-
-        .invoice-modal .ant-modal-close:hover {
-          color: white;
-        }
-
-        .invoice-modal .ant-steps-item-title {
-          color: #9ca3af !important;
-        }
-
-        .invoice-modal .ant-steps-item-title:after {
-          background-color: #465266 !important;
-        }
-
-        .invoice-modal .ant-steps-item-active .ant-steps-item-title {
-          color: white !important;
-        }
-
-        .invoice-modal .ant-steps-item-finish .ant-steps-item-title {
-          color: #60a5fa !important;
-        }
-
-        .custom-dark-steps .ant-steps-item-icon {
-          background-color: #374151 !important;
-          border-color: #4b5563 !important;
-        }
-
-        .custom-dark-steps .ant-steps-item-active .ant-steps-item-icon {
-          background-color: #2563eb !important;
-          border-color: #3b82f6 !important;
-        }
-
-        .custom-dark-steps .ant-steps-item-finish .ant-steps-item-icon {
-          background-color: #0035c5 !important;
-          border-color: #3b82f6 !important;
-        }
-
-        /* Ensure the DatePicker appears above the modal */
-        .zaman-calendar,
-        .zaman-cell,
-        .zaman-calendar-popover,
-        .zaman-calendar-container {
-          z-index: 3000 !important;
-        }
-
-        /* Make modals have lower z-index than DatePicker popover */
-        .ant-modal {
-          z-index: 1000;
-        }
-
-        .ant-modal-mask {
-          z-index: 1000;
-        }
-
-        .ant-modal-wrap {
-          z-index: 1000;
-        }
-
-        /* Override any other styles that might interfere */
-        .ant-picker-dropdown {
-          z-index: 3000 !important;
-        }
-
-        /* Style for dark tables across all steps */
-        .custom-dark-table .ant-table {
-          background-color: #111827;
-          color: white;
-        }
-
-        .custom-dark-table .ant-table-thead > tr > th {
-          background-color: #1f2937;
-          color: white;
-          border-bottom: 1px solid #374151;
-        }
-
-        .custom-dark-table .ant-table-tbody > tr > td {
-          border-bottom: 1px solid #374151;
-          color: white;
-        }
-
-        .custom-dark-table .ant-table-tbody > tr.dark-table-row:hover > td {
-          background-color: #2d3748;
-        }
-
-        .dark-table-row {
-          background-color: #111827;
-        }
-
-        /* Fix the tabs styling to match the overall UI */
-        .custom-dark-tabs .ant-tabs-nav {
-          margin-bottom: 16px;
-        }
-
-        .custom-dark-tabs .ant-tabs-tab {
-          background-color: #1e293b !important;
-          border-color: #334155 !important;
-          border-radius: 8px 8px 0 0 !important;
-          padding: 8px 16px !important;
-          margin-right: 8px !important;
-          transition: all 0.2s ease;
-          color: #b5bdca;
-          opacity: 0.8;
-        }
-
-        .custom-dark-tabs .ant-tabs-tab:hover {
-          background-color: #263244 !important;
-          opacity: 1;
-        }
-
-        .custom-dark-tabs .ant-tabs-tab-active {
-          background-color: #19202b !important;
-          opacity: 1;
-        }
-
-        .custom-dark-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
-          color: white !important;
-          font-weight: 500;
-        }
-
-        .custom-dark-tabs .ant-tabs-content {
-          background-color: #19202b;
-          padding: 16px;
-          border-radius: 0 8px 8px 8px;
-        }
-
-        .custom-dark-tabs .ant-tabs-ink-bar {
-          display: none;
-        }
-
-        .custom-dark-tabs .ant-tabs-nav:before {
-          border-bottom: 1px solid #334155;
-        }
-
-        .custom-dark-tabs .ant-tabs-nav-list {
-          display: flex;
-          gap: 4px;
-        }
-
-        .custom-dark-tabs .ant-empty-description {
-          color: white !important;
-        }
-
-        .custom-dark-table .ant-table-container {
-          border: 1px solid #374151;
-          border-radius: 8px;
-          overflow: hidden;
-        }
-      `}</style>
     </Modal>
   );
 };

@@ -4,17 +4,28 @@ import { useRef, useState } from "react";
 
 import CategoryCard from "./CategoryCard";
 
-interface CategorySliderContentProps {
-  items: any[];
+interface SliderItem {
+  Name: string;
+  Slug: string;
+  Banner?: string;
+  Link?: string;
 }
 
-export default function CategorySliderContent({ items }: CategorySliderContentProps) {
+interface CategorySliderContentProps {
+  items: SliderItem[];
+  type?: "category" | "subcategory";
+}
+
+export default function CategorySliderContent({
+  items,
+  type = "category",
+}: CategorySliderContentProps) {
   const sliderRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(true);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState(0);
-  const [scrollStart, setScrollStart] = useState(0);
+  const dragStartRef = useRef(0);
+  const scrollStartRef = useRef(0);
 
   const checkScroll = () => {
     if (sliderRef.current) {
@@ -51,20 +62,20 @@ export default function CategorySliderContent({ items }: CategorySliderContentPr
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
-    setDragStart(e.clientX);
+    dragStartRef.current = e.clientX;
     if (sliderRef.current) {
-      setScrollStart(sliderRef.current.scrollLeft);
+      scrollStartRef.current = sliderRef.current.scrollLeft;
     }
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !sliderRef.current) return;
 
-    const diff = e.clientX - dragStart;
+    const diff = e.clientX - dragStartRef.current;
 
     // In RTL, dragging right (positive diff) should scroll left (more negative)
     // Dragging left (negative diff) should scroll right (towards 0)
-    sliderRef.current.scrollLeft = scrollStart - diff;
+    sliderRef.current.scrollLeft = scrollStartRef.current - diff;
   };
 
   const handleMouseUp = () => {
@@ -77,81 +88,113 @@ export default function CategorySliderContent({ items }: CategorySliderContentPr
   };
 
   return (
-    <div className="flex items-center gap-2 pb-10 md:gap-4">
-      {/* Right Button (Previous in RTL) */}
-      <button
-        type="button"
-        onClick={() => scroll("right")}
-        disabled={!canScrollRight}
-        className="order-1 hidden h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white shadow-md transition-all duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-30 mobile:flex"
-        aria-label="قبلی"
-      >
-        <svg
-          className="h-5 w-5 text-blue-600"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          {/* Arrow pointing right for RTL (previous) */}
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-
-      {/* Slider Container */}
-      <div
-        ref={sliderRef}
-        onScroll={checkScroll}
-        onLoad={checkScroll}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
-        className="scrollbar-hide order-2 flex cursor-grab gap-3 overflow-x-auto scroll-smooth active:cursor-grabbing md:gap-4"
-        style={{
-          scrollBehavior: isDragging ? "auto" : "smooth",
-          scrollbarWidth: "none",
-          msOverflowStyle: "none",
-          direction: "rtl",
-          userSelect: "none",
-        }}
-      >
-        {items.map((item: any) => (
-          <CategoryCard
-            key={item.Slug}
-            name={item.Name}
-            slug={item.Slug}
-            banner={item.Banner}
-            link={item.Link || `#`}
-            type={undefined}
-          />
-        ))}
+    <section aria-labelledby="product-category-nav" className="pb-8 md:pb-10">
+      <div className="mb-3 flex items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
+            انتخاب سریع
+          </p>
+          <h2
+            id="product-category-nav"
+            className="mt-1 text-lg font-bold text-(--farabak-ink-deep)"
+          >
+            {type === "subcategory" ? "مرور زیر دسته‌بندی‌ها" : "مرور دسته‌بندی‌ها"}
+          </h2>
+        </div>
+        <span className="hidden text-xs text-(--farabak-ink-muted) sm:inline">
+          برای دیدن گزینه‌های بیشتر حرکت دهید
+        </span>
       </div>
-
-      {/* Left Button (Next in RTL) */}
-      <button
-        type="button"
-        onClick={() => scroll("left")}
-        disabled={!canScrollLeft}
-        className="order-3 hidden h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white shadow-md transition-all duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-30 mobile:flex"
-        aria-label="بعدی"
-      >
-        <svg
-          className="h-5 w-5 text-blue-600"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+      <div className="flex items-center gap-2 md:gap-4">
+        {/* Right Button (Previous in RTL) */}
+        <button
+          type="button"
+          onClick={() => scroll("right")}
+          disabled={!canScrollRight}
+          className="order-1 hidden size-10 shrink-0 items-center justify-center rounded-full border border-(--farabak-ink-deep)/10 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-30 md:flex"
+          aria-label="قبلی"
         >
-          {/* Arrow pointing left for RTL (next) */}
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
+          <svg
+            className="size-5 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            {/* Arrow pointing right for RTL (previous) */}
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
 
-      {/* Add CSS for hiding scrollbar */}
-      <style>{`
+        {/* Slider Container */}
+        <div
+          ref={sliderRef}
+          role="region"
+          aria-label={type === "subcategory" ? "لیست زیر دسته‌بندی‌ها" : "لیست دسته‌بندی‌ها"}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowLeft")
+              sliderRef.current?.scrollBy({ left: -200, behavior: "smooth" });
+            if (e.key === "ArrowRight")
+              sliderRef.current?.scrollBy({ left: 200, behavior: "smooth" });
+          }}
+          onScroll={checkScroll}
+          onLoad={checkScroll}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          className="scrollbar-hide order-2 flex min-w-0 cursor-grab gap-3 overflow-x-auto scroll-smooth active:cursor-grabbing md:gap-4"
+          style={{
+            scrollBehavior: isDragging ? "auto" : "smooth",
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+            direction: "rtl",
+            userSelect: "none",
+          }}
+        >
+          {items.map((item: SliderItem) => (
+            <CategoryCard
+              key={item.Slug}
+              name={item.Name}
+              slug={item.Slug}
+              banner={item.Banner}
+              link={item.Link || `#`}
+              type={type}
+            />
+          ))}
+        </div>
+
+        {/* Left Button (Next in RTL) */}
+        <button
+          type="button"
+          onClick={() => scroll("left")}
+          disabled={!canScrollLeft}
+          className="order-3 hidden size-10 shrink-0 items-center justify-center rounded-full border border-(--farabak-ink-deep)/10 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-30 md:flex"
+          aria-label="بعدی"
+        >
+          <svg
+            className="size-5 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            {/* Arrow pointing left for RTL (next) */}
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </button>
+
+        {/* Add CSS for hiding scrollbar */}
+        <style>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }
       `}</style>
-    </div>
+      </div>
+    </section>
   );
 }

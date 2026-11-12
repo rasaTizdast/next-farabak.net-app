@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { serverErrorResponse } from "@/lib/api-response";
+
 /**
  * @swagger
  * /api/auth/logout:
@@ -42,6 +44,6 @@ export async function POST(): Promise<NextResponse> {
     return response;
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
+    return serverErrorResponse("خطای داخلی سرور");
   }
 }

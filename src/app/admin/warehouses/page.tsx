@@ -1,18 +1,18 @@
 "use client";
 
-// Custom lightweight UI replacing antd components
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 
+import { AutoComplete } from "@/components/ui/antd/AutoComplete";
+import { Button } from "@/components/ui/antd/Button";
+import { Input } from "@/components/ui/antd/Input";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 import ProductsModal from "./components/ProductsModal";
-import { AutoCompleteBase, ButtonBase, InputBase } from "./components/ui";
 import WarehouseFormModal from "./components/WarehouseFormModal";
 import WarehousesTable from "./components/WarehousesTable";
-import Styles from "./styles";
 
 type Warehouse = {
   warehouseid: number;
@@ -30,18 +30,34 @@ type Product = {
   Type: string | null;
 };
 
+type WarehouseApiItem = {
+  warehouseid: number;
+  name: string;
+  location: string | null;
+  createdat: string | null;
+  productCount: number;
+  totalQuantity: number;
+  specificProductQuantity?: number;
+  specific_product_quantity?: number;
+  productSpecificQuantity?: number;
+  product_specific_quantity?: number;
+  productQuantity?: number;
+  product_quantity?: number;
+  quantity?: number | string;
+};
+
 async function doFetchWarehouses(
   searchProductId: string | undefined,
   page: number,
   q: string,
   setLoading: (v: boolean) => void,
-  setItems: (items: any[]) => void,
+  setItems: (items: Warehouse[]) => void,
   setTotal: (total: number) => void,
   notify: (type: "success" | "error" | "warning", text: string) => void
 ) {
   setLoading(true);
   try {
-    const params: Record<string, any> = {
+    const params: Record<string, unknown> = {
       page: searchProductId ? 1 : page,
       limit: searchProductId ? 100 : 20,
       q: q || undefined,
@@ -51,9 +67,13 @@ async function doFetchWarehouses(
       params.productId = searchProductId;
     }
 
-    const res = await axios.get("/api/admin/warehouses", { params });
+    const res = await axios.get<{
+      items?: WarehouseApiItem[];
+      data?: WarehouseApiItem[];
+      total: number;
+    }>("/api/admin/warehouses", { params });
     const rawItems = res.data.items || res.data.data || [];
-    const normalized = (Array.isArray(rawItems) ? rawItems : []).map((it: any) => {
+    const normalized = (Array.isArray(rawItems) ? rawItems : []).map((it: WarehouseApiItem) => {
       const possible =
         it?.specificProductQuantity ??
         it?.specific_product_quantity ??
@@ -62,10 +82,10 @@ async function doFetchWarehouses(
         it?.productQuantity ??
         it?.product_quantity ??
         it?.quantity;
-      const qty = typeof possible === "string" ? parseInt(possible) : possible;
+      const qty = (typeof possible === "string" ? parseInt(possible) : possible) ?? 0;
       return {
         ...it,
-        specificProductQuantity: Number.isFinite(qty) && qty >= 0 ? qty : undefined,
+        specificProductQuantity: Number.isFinite(qty) && qty >= 0 ? qty : 0,
       } as Warehouse;
     });
     setItems(normalized);
@@ -91,7 +111,6 @@ function WarehousesPageContent() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [q, setQ] = useState("");
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -101,7 +120,10 @@ function WarehousesPageContent() {
   const [formLocation, setFormLocation] = useState<string | undefined>(undefined);
 
   const { mutate: saveWarehouseMutate } = useApiMutation();
+  const { mutate: updateWarehouseMutate } = useApiMutation("put");
   const { mutate: deleteWarehouseMutate } = useApiMutation("delete");
+
+  const toastIdRef = useRef(0);
 
   const [productModal, setProductModal] = useState<{
     open: boolean;
@@ -113,15 +135,37 @@ function WarehousesPageContent() {
   const [toasts, setToasts] = useState<
     { id: number; type: "success" | "error" | "warning"; text: string }[]
   >([]);
-  const notify = (type: "success" | "error" | "warning", text: string) => {
-    const id = Date.now();
+  const notify = useCallback((type: "success" | "error" | "warning", text: string) => {
+    toastIdRef.current += 1;
+    const id = toastIdRef.current;
     setToasts((t) => [...t, { id, type, text }]);
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3000);
-  };
+  }, []);
 
-  const fetchWarehouses = async (searchProductId?: string) => {
-    await doFetchWarehouses(searchProductId, page, q, setLoading, setItems, setTotal, notify);
-  };
+  // Refs for values read inside the stable callback
+  const pageRef = useRef(page);
+  const qRef = useRef(q);
+  useEffect(() => {
+    pageRef.current = page;
+  }, [page]);
+  useEffect(() => {
+    qRef.current = q;
+  }, [q]);
+
+  const fetchWarehouses = useCallback(
+    async (searchProductId?: string) => {
+      await doFetchWarehouses(
+        searchProductId,
+        pageRef.current,
+        qRef.current,
+        setLoading,
+        setItems,
+        setTotal,
+        notify
+      );
+    },
+    [notify]
+  );
 
   const searchProductInWarehouses = async (searchProductId: number) => {
     await fetchWarehouses(String(searchProductId));
@@ -150,35 +194,28 @@ function WarehousesPageContent() {
     }
   };
 
-  const { data: allProductsRaw } = useApiFetch<Product[]>("/api/admin/products/all");
+  const { data: allProductsRaw } = useApiFetch<Product[] | { data: Product[] }>(
+    "/api/admin/products/all"
+  );
+  const allProducts = Array.isArray(allProductsRaw) ? allProductsRaw : (allProductsRaw?.data ?? []);
 
-  useEffect(() => {
-    if (allProductsRaw) {
-      const products = Array.isArray(allProductsRaw) ? allProductsRaw : [];
-      setAllProducts(products);
-      if (productId && !selectedProduct) {
-        const urlProduct = products.find((p: Product) => p.ProductId === parseInt(productId));
-        if (urlProduct) {
-          setSelectedProduct(urlProduct);
-          setSearchQuery(urlProduct.Type || "");
-        }
-      }
+  // Initialize selectedProduct and searchQuery from URL params
+  if (productId && !selectedProduct && allProducts.length > 0) {
+    const urlProduct = allProducts.find((p: Product) => p.ProductId === parseInt(productId));
+    if (urlProduct) {
+      setSelectedProduct(urlProduct);
+      setSearchQuery(urlProduct.Type || "");
     }
-  }, [allProductsRaw, productId]);
+  }
 
+  // Fetch warehouses when selectedProduct, page, or q changes
   useEffect(() => {
-    const fetchData = async () => {
-      if (selectedProduct) {
-        await fetchWarehouses(String(selectedProduct.ProductId));
-      } else if (q) {
-        await fetchWarehouses();
-      } else {
-        await fetchWarehouses();
-      }
-    };
-
-    fetchData();
-  }, [selectedProduct, page, q]);
+    if (selectedProduct) {
+      fetchWarehouses(String(selectedProduct.ProductId));
+    } else {
+      fetchWarehouses();
+    }
+  }, [selectedProduct, page, q, fetchWarehouses]);
 
   const openCreate = () => {
     setEditing(null);
@@ -201,7 +238,7 @@ function WarehousesPageContent() {
     }
     const payload = { name: trimmedName, location: trimmedLocation };
     const res = editing
-      ? await saveWarehouseMutate(`/api/admin/warehouses/${editing.warehouseid}`, payload)
+      ? await updateWarehouseMutate(`/api/admin/warehouses/${editing.warehouseid}`, payload)
       : await saveWarehouseMutate(`/api/admin/warehouses`, payload);
     if (res) {
       notify("success", editing ? "انبار با موفقیت بروزرسانی شد" : "انبار با موفقیت ایجاد شد");
@@ -212,15 +249,21 @@ function WarehousesPageContent() {
     }
   };
   const deleteWarehouse = async (wh: Warehouse) => {
-    await deleteWarehouseMutate(`/api/admin/warehouses/${wh.warehouseid}`);
+    const result = await deleteWarehouseMutate(`/api/admin/warehouses/${wh.warehouseid}`);
+    if (!result) {
+      notify("error", "خطا در حذف انبار");
+      return false;
+    }
     fetchWarehouses();
+    return true;
   };
   const confirmAndDeleteWarehouse = async (wh: Warehouse) => {
     const ok =
       typeof window !== "undefined" ? window.confirm("آیا از حذف این انبار اطمینان دارید؟") : true;
     if (ok) {
-      await deleteWarehouse(wh);
-      notify("success", "انبار با موفقیت حذف شد");
+      if (await deleteWarehouse(wh)) {
+        notify("success", "انبار با موفقیت حذف شد");
+      }
     }
   };
 
@@ -233,7 +276,7 @@ function WarehousesPageContent() {
   return (
     <div
       className="space-y-6 rounded-lg bg-gray-950 p-4 text-white sm:p-6"
-      style={{ direction: "rtl" }}
+      style={{ direction: "rtl", marginTop: "16px" }}
     >
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
@@ -243,17 +286,22 @@ function WarehousesPageContent() {
           </p>
         </div>
         <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-center">
-          <div className="flex items-center gap-2">
-            <InputBase
-              placeholder="جستجو نام انبار"
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              placeholder="جستجوی نام انبار…"
+              autoComplete="off"
+              aria-label="جستجوی نام انبار"
               value={q}
-              onChange={(e) => setQ((e.target as HTMLInputElement).value)}
-              className="w-64"
+              onChange={(e) => {
+                setQ(e.target.value);
+                setPage(1);
+              }}
+              className="min-h-11 w-full sm:w-64"
             />
             <button
               type="button"
               onClick={openCreate}
-              className="inline-flex items-center gap-2 whitespace-nowrap rounded bg-emerald-600 px-4 py-1 text-white transition-all hover:bg-emerald-700"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 whitespace-nowrap text-white transition-colors hover:bg-emerald-700"
             >
               <span className="text-lg">＋</span>
               ایجاد انبار
@@ -262,14 +310,28 @@ function WarehousesPageContent() {
         </div>
       </div>
 
-      <div className="mb-4">
-        <AutoCompleteBase
+      <div className="mb-4 rounded-lg border border-slate-700 bg-slate-800 p-3 sm:p-4">
+        <label
+          htmlFor="warehouse-product-search"
+          className="mb-2 block text-sm font-medium text-slate-100"
+        >
+          یافتن محصول در انبارها
+        </label>
+        <AutoComplete
+          id="warehouse-product-search"
           value={searchQuery}
           onChange={handleProductSearch}
-          placeholder="جستجوی محصول در انبارها"
-          options={allProducts
-            .filter((p) => p.Type?.toLowerCase().includes(searchQuery.toLowerCase()))
-            .map((p) => ({ value: p.Type || "", label: p.Type, productId: String(p.ProductId) }))}
+          placeholder="نام محصول را وارد کنید…"
+          aria-label="یافتن محصول در انبارها"
+          className="w-full"
+          options={allProducts.reduce<
+            { value: string; label: string | undefined; productId: string }[]
+          >((acc, p) => {
+            if (p.Type?.toLowerCase().includes(searchQuery.toLowerCase())) {
+              acc.push({ value: p.Type || "", label: p.Type, productId: String(p.ProductId) });
+            }
+            return acc;
+          }, [])}
           onSelect={(value) => {
             setSearchQuery(value);
             const found = allProducts.find((x) => (x.Type || "") === value);
@@ -283,7 +345,8 @@ function WarehousesPageContent() {
         {selectedProduct && (
           <div className="mt-2 rounded bg-blue-900/30 p-2 text-sm text-blue-100">
             جستجو برای محصول: {selectedProduct.Type}
-            <ButtonBase
+            <Button
+              variant="secondary"
               className="mr-2 text-xs"
               onClick={() => {
                 setSearchQuery("");
@@ -293,22 +356,29 @@ function WarehousesPageContent() {
               }}
             >
               پاک کردن
-            </ButtonBase>
+            </Button>
+          </div>
+        )}
+        {(!selectedProduct || searchQuery.trim()) && (
+          <div className="mt-2 text-sm text-gray-400" role="status" aria-live="polite">
+            {total} انبار یافت شد
           </div>
         )}
       </div>
 
-      <WarehousesTable
-        items={items}
-        loading={loading}
-        page={page}
-        total={total}
-        onPageChange={(p) => setPage(p)}
-        onEdit={openEdit}
-        onDelete={confirmAndDeleteWarehouse}
-        onProducts={openProducts}
-        isSearching={!!selectedProduct}
-      />
+      <section aria-label="فهرست انبارها">
+        <WarehousesTable
+          items={items}
+          loading={loading}
+          page={page}
+          total={total}
+          onPageChange={(p) => setPage(p)}
+          onEdit={openEdit}
+          onDelete={confirmAndDeleteWarehouse}
+          onProducts={openProducts}
+          isSearching={!!selectedProduct}
+        />
+      </section>
 
       <WarehouseFormModal
         open={isModalOpen}
@@ -336,7 +406,7 @@ function WarehousesPageContent() {
       />
 
       {/* Toasts */}
-      <div className="pointer-events-none fixed left-1/2 top-4 z-50 flex w-[300px] -translate-x-1/2 flex-col gap-2">
+      <div className="pointer-events-none fixed top-4 left-1/2 z-50 flex w-[300px] -translate-x-1/2 flex-col gap-2">
         {toasts.map((t) => (
           <div
             key={t.id}
@@ -352,7 +422,6 @@ function WarehousesPageContent() {
           </div>
         ))}
       </div>
-      <Styles />
     </div>
   );
 }

@@ -1,14 +1,14 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { ChevronDown, ChevronUp, Plus, Eye, FileText } from "lucide-react";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { FaEdit } from "react-icons/fa";
 import { IoQrCode } from "react-icons/io5";
 import { MdDeleteForever } from "react-icons/md";
+
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 import ActivityEditor from "./componets/ui/ActivityEditor";
 import BlogEditModal from "./componets/ui/BlogEditModal";
@@ -21,6 +21,60 @@ import NewMember from "./componets/ui/newPage/NewMember";
 import NewProject from "./componets/ui/newPage/NewProject";
 import ProjectEditor from "./componets/ui/ProjectEditor";
 import BlogQrCodeModal from "./componets/ui/QrCodeModal";
+
+// Skeleton Loading Component
+function renderSkeleton() {
+  return (
+    <div className="mx-auto w-full px-3 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8">
+      <div className="mb-6 h-8 w-40 animate-pulse rounded-lg bg-gray-700 sm:mb-8 sm:h-10 sm:w-48" />
+
+      <div className="space-y-2 sm:space-y-3">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div key={index} className="rounded-lg border border-gray-700 bg-gray-800 sm:rounded-xl">
+            {/* Main Row */}
+            <div className="p-3 sm:p-4 lg:p-6">
+              <div className="flex items-center justify-between gap-2 sm:gap-4">
+                <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 lg:gap-4">
+                  <div className="size-10 shrink-0 animate-pulse rounded-lg bg-gray-700 sm:size-12 lg:size-14" />
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1.5 h-4 w-32 animate-pulse rounded bg-gray-700 sm:mb-2 sm:h-5 sm:w-48" />
+                    <div className="h-3 w-24 animate-pulse rounded bg-gray-700 sm:w-32" />
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                  <div className="size-9 animate-pulse rounded-lg bg-gray-700 sm:h-10 sm:w-20 lg:w-24" />
+                  <div className="size-9 animate-pulse rounded-lg bg-gray-700 sm:h-10 sm:w-20 lg:w-24" />
+                  <div className="size-9 animate-pulse rounded-lg bg-gray-700 sm:h-10" />
+                </div>
+              </div>
+            </div>
+
+            {/* Expanded Content (show on some) */}
+            {index % 3 === 0 && (
+              <div className="border-t border-gray-700 bg-gray-800/50 p-2 sm:p-3 lg:p-4">
+                <div className="space-y-1.5 sm:space-y-2">
+                  {Array.from({ length: 2 }).map((_, subIndex) => (
+                    <div
+                      key={subIndex}
+                      className="flex items-center justify-between rounded-lg bg-gray-700/50 p-2.5 sm:p-3 lg:p-4"
+                    >
+                      <div className="h-3.5 w-28 animate-pulse rounded bg-gray-600 sm:h-4 sm:w-40" />
+                      <div className="flex gap-1.5 sm:gap-2">
+                        <div className="size-8 animate-pulse rounded bg-gray-600 sm:size-9" />
+                        <div className="size-8 animate-pulse rounded bg-gray-600 sm:size-9" />
+                        <div className="size-8 animate-pulse rounded bg-gray-600 sm:size-9" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 type PageRow = {
   name: string;
@@ -39,7 +93,68 @@ type SubPage = {
   QrCode_expiryDays?: string;
 };
 
-async function doDeleteItem(type: string, id: number, fetchPageData: () => void) {
+function DeletePageDialog({
+  itemName,
+  isDeleting,
+  onCancel,
+  onConfirm,
+}: {
+  itemName: string;
+  isDeleting: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const panelRef = useModalA11y<HTMLDivElement>({
+    onClose: onCancel,
+    shouldCloseOnEscape: () => !isDeleting,
+  });
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !isDeleting) onCancel();
+      }}
+    >
+      <div
+        ref={panelRef}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="delete-page-title"
+        aria-describedby="delete-page-description"
+        tabIndex={-1}
+        className="w-full max-w-md rounded-xl border border-gray-700 bg-gray-900 p-5 text-white shadow-2xl focus:outline-none sm:p-6"
+      >
+        <h2 id="delete-page-title" className="text-lg font-semibold">
+          حذف صفحه
+        </h2>
+        <p id="delete-page-description" className="mt-3 text-sm leading-6 text-gray-300">
+          آیا از حذف «{itemName}» مطمئن هستید؟ این عملیات قابل بازگشت نیست.
+        </p>
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            disabled={isDeleting}
+            onClick={onCancel}
+            className="min-h-11 rounded-lg bg-gray-700 px-5 text-sm font-medium text-white transition-colors hover:bg-gray-600 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
+          >
+            انصراف
+          </button>
+          <button
+            type="button"
+            disabled={isDeleting}
+            onClick={onConfirm}
+            className="min-h-11 rounded-lg bg-red-700 px-5 text-sm font-medium text-white transition-colors hover:bg-red-600 focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
+          >
+            {isDeleting ? "در حال حذف..." : "حذف"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+async function doDeleteItem(type: string, id: number, fetchPageData: () => Promise<void>) {
   try {
     let endpoint = "";
 
@@ -67,14 +182,17 @@ async function doDeleteItem(type: string, id: number, fetchPageData: () => void)
 
     if (response.ok) {
       toast.success("عملیات حذف با موفقیت انجام شد");
-      fetchPageData();
+      await fetchPageData();
+      return true;
     } else {
       const errorData = await response.json();
       toast.error(`خطا در حذف: ${errorData.error || "خطای ناشناخته"}`);
+      return false;
     }
   } catch (error) {
     console.error("Error deleting item:", error);
     toast.error("خطا در ارتباط با سرور");
+    return false;
   }
 }
 
@@ -82,6 +200,13 @@ const AdminPageManager: React.FC = () => {
   const [rowNames, setRowNames] = useState<PageRow[]>([]);
   const [subPages, setSubPages] = useState<Record<string, SubPage[]>>({});
   const [loading, setLoading] = useState(true);
+  const [pageError, setPageError] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    type: string;
+    id: number;
+    name: string;
+  } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [isQrCodeModalOpen, setIsQrCodeModalOpen] = useState(false);
   const [qrCodeBlog, setQrCodeBlog] = useState<{
@@ -91,22 +216,24 @@ const AdminPageManager: React.FC = () => {
     QrCode_expiryDays?: string;
   } | null>(null);
 
-  const fetchPageData = () => {
-    fetch("/api/admin/pages")
-      .then((res) => res.json())
-      .then((data) => {
-        setRowNames(data.rowNames);
-        setSubPages(data.subPages);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
-  };
+  const fetchPageData = useCallback(async () => {
+    setPageError(false);
+    try {
+      const response = await fetch("/api/admin/pages");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      setRowNames(data.rowNames);
+      setSubPages(data.subPages);
+    } catch {
+      setPageError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    fetchPageData();
-  }, []);
+    void fetchPageData();
+  }, [fetchPageData]);
 
   const [expanded, setExpanded] = useState<string | null>(null);
   const [editorConfig, setEditorConfig] = useState<{
@@ -176,8 +303,12 @@ const AdminPageManager: React.FC = () => {
     }
   };
 
-  const deleteItem = async (type: string, id: number) => {
-    await doDeleteItem(type, id, fetchPageData);
+  const deleteItem = async () => {
+    if (!deleteTarget || isDeleting) return;
+    setIsDeleting(true);
+    const deleted = await doDeleteItem(deleteTarget.type, deleteTarget.id, fetchPageData);
+    setIsDeleting(false);
+    if (deleted) setDeleteTarget(null);
   };
 
   const handleQrCodeModal = (blog: {
@@ -190,83 +321,52 @@ const AdminPageManager: React.FC = () => {
     setQrCodeBlog(blog);
   };
 
-  // Skeleton Loading Component
-  const renderSkeleton = () => {
-    return (
-      <div className="mx-auto w-full px-3 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8">
-        <div className="mb-6 h-8 w-40 animate-pulse rounded-lg bg-gray-700 sm:mb-8 sm:h-10 sm:w-48" />
-
-        <div className="space-y-2 sm:space-y-3">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <div
-              key={index}
-              className="rounded-lg border border-gray-700 bg-gray-800 sm:rounded-xl"
-            >
-              {/* Main Row */}
-              <div className="p-3 sm:p-4 lg:p-6">
-                <div className="flex items-center justify-between gap-2 sm:gap-4">
-                  <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 lg:gap-4">
-                    <div className="h-10 w-10 flex-shrink-0 animate-pulse rounded-lg bg-gray-700 sm:h-12 sm:w-12 lg:h-14 lg:w-14" />
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-1.5 h-4 w-32 animate-pulse rounded bg-gray-700 sm:mb-2 sm:h-5 sm:w-48" />
-                      <div className="h-3 w-24 animate-pulse rounded bg-gray-700 sm:w-32" />
-                    </div>
-                  </div>
-                  <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
-                    <div className="h-9 w-9 animate-pulse rounded-lg bg-gray-700 sm:h-10 sm:w-20 lg:w-24" />
-                    <div className="h-9 w-9 animate-pulse rounded-lg bg-gray-700 sm:h-10 sm:w-20 lg:w-24" />
-                    <div className="h-9 w-9 animate-pulse rounded-lg bg-gray-700 sm:h-10" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Expanded Content (show on some) */}
-              {index % 3 === 0 && (
-                <div className="border-t border-gray-700 bg-gray-800/50 p-2 sm:p-3 lg:p-4">
-                  <div className="space-y-1.5 sm:space-y-2">
-                    {Array.from({ length: 2 }).map((_, subIndex) => (
-                      <div
-                        key={subIndex}
-                        className="flex items-center justify-between rounded-lg bg-gray-700/50 p-2.5 sm:p-3 lg:p-4"
-                      >
-                        <div className="h-3.5 w-28 animate-pulse rounded bg-gray-600 sm:h-4 sm:w-40" />
-                        <div className="flex gap-1.5 sm:gap-2">
-                          <div className="h-8 w-8 animate-pulse rounded bg-gray-600 sm:h-9 sm:w-9" />
-                          <div className="h-8 w-8 animate-pulse rounded bg-gray-600 sm:h-9 sm:w-9" />
-                          <div className="h-8 w-8 animate-pulse rounded bg-gray-600 sm:h-9 sm:w-9" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <>
       <Toaster position="bottom-center" />
       {loading ? (
         renderSkeleton()
       ) : (
-        <div className="mx-auto w-full px-3 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8">
+        <main
+          className="mx-auto w-full px-3 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8"
+          aria-labelledby="pages-title"
+        >
+          {pageError && (
+            <div
+              role="alert"
+              className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-800 bg-red-950/50 p-4 text-sm text-red-100"
+            >
+              <span>بارگذاری صفحات انجام نشد. اتصال را بررسی و دوباره تلاش کنید.</span>
+              <button
+                type="button"
+                onClick={() => void fetchPageData()}
+                className="min-h-10 rounded-md bg-red-800 px-4 font-medium text-white transition hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:outline-none"
+              >
+                تلاش دوباره
+              </button>
+            </div>
+          )}
           {/* Header */}
           <div className="mb-6 sm:mb-8">
-            <h1 className="mb-1 text-2xl font-bold text-white sm:mb-2 sm:text-3xl lg:text-4xl">
+            <h1
+              id="pages-title"
+              className="mb-1 text-2xl font-bold text-white sm:mb-2 sm:text-3xl lg:text-4xl"
+            >
               مدیریت صفحات
             </h1>
             <p className="text-sm text-gray-400 sm:text-base">مدیریت و ویرایش صفحات وب‌سایت</p>
+            <p role="status" aria-live="polite" className="mt-3 text-sm text-gray-300">
+              {rowNames.length > 0
+                ? `${rowNames.length} گروه محتوایی آماده مدیریت است.`
+                : "گروه محتوایی برای نمایش وجود ندارد."}
+            </p>
           </div>
 
           {/* Empty State */}
-          {rowNames.length === 0 && (
+          {rowNames.length === 0 && !pageError && (
             <div className="py-12 text-center sm:py-16">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-800 sm:h-20 sm:w-20">
-                <FileText className="h-8 w-8 text-gray-600 sm:h-10 sm:w-10" />
+              <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-gray-800 sm:size-20">
+                <FileText className="size-8 text-gray-600 sm:size-10" />
               </div>
               <h3 className="mb-2 text-lg font-semibold text-gray-300 sm:text-xl">
                 هیچ صفحه‌ای یافت نشد
@@ -278,11 +378,11 @@ const AdminPageManager: React.FC = () => {
           )}
 
           {/* Page Rows */}
-          <div className="space-y-2 sm:space-y-3">
-            {rowNames.map((row, index) => (
+          <section className="space-y-2 sm:space-y-3" aria-label="گروه‌های محتوایی قابل انتشار">
+            {rowNames.map((row) => (
               <div
-                key={index}
-                className="overflow-hidden rounded-lg border border-gray-700 bg-gray-800 transition-all duration-200 hover:border-gray-600 hover:shadow-lg sm:rounded-xl"
+                key={row.link}
+                className="overflow-hidden rounded-lg border border-gray-700 bg-gray-800 transition-[border-color,box-shadow] duration-200 hover:border-gray-600 hover:shadow-lg sm:rounded-xl"
               >
                 {/* Main Row */}
                 <div className="p-3 sm:p-4 lg:p-6">
@@ -290,8 +390,8 @@ const AdminPageManager: React.FC = () => {
                     {/* Left Section - Info */}
                     <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 lg:gap-4">
                       {/* Icon */}
-                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-sky-800 shadow-md sm:h-12 sm:w-12 lg:h-14 lg:w-14">
-                        <FileText className="h-5 w-5 text-white sm:h-6 sm:w-6 lg:h-7 lg:w-7" />
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-blue-500 to-sky-800 shadow-md sm:size-12 lg:size-14">
+                        <FileText className="size-5 text-white sm:size-6 lg:size-7" />
                       </div>
 
                       {/* Page Info */}
@@ -301,10 +401,10 @@ const AdminPageManager: React.FC = () => {
                         </h2>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 sm:gap-3 sm:text-sm">
                           <span className="flex items-center gap-1 whitespace-nowrap">
-                            <span className="h-1.5 w-1.5 rounded-full bg-blue-500 sm:h-2 sm:w-2" />
+                            <span className="size-1.5 rounded-full bg-blue-500 sm:size-2" />
                             {row.pages} صفحه
                           </span>
-                          <span className="xs:inline hidden text-gray-600">•</span>
+                          <span className="xs:inline hidden text-gray-300">•</span>
                           <span className="whitespace-nowrap">
                             {row.multiPage ? "چند صفحه‌ای" : "تک صفحه‌ای"}
                           </span>
@@ -313,14 +413,15 @@ const AdminPageManager: React.FC = () => {
                     </div>
 
                     {/* Right Section - Actions */}
-                    <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
+                    <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
                       {/* View Button */}
                       <Link
                         href={row.link}
                         target="_blank"
-                        className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-gray-700 px-2.5 py-2 text-xs font-medium text-gray-200 shadow-sm transition-all hover:bg-gray-600 hover:shadow-md active:bg-gray-500 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
+                        aria-label={`مشاهده ${row.name}`}
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-lg bg-gray-700 px-2.5 py-2 text-xs font-medium text-gray-200 shadow-sm transition-[background-color,box-shadow] hover:bg-gray-600 hover:shadow-md active:bg-gray-500 sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
                       >
-                        <Eye className="sm:w-4.5 sm:h-4.5 h-4 w-4 flex-shrink-0 lg:h-5 lg:w-5" />
+                        <Eye className="size-4 shrink-0 sm:size-4.5 lg:size-5" />
                         <span className="hidden md:inline">مشاهده</span>
                       </Link>
 
@@ -328,10 +429,11 @@ const AdminPageManager: React.FC = () => {
                       {!row.multiPage && (
                         <button
                           type="button"
-                          className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md active:bg-blue-800 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
+                          aria-label={`ویرایش ${row.name}`}
+                          className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-[background-color,box-shadow] hover:bg-blue-700 hover:shadow-md active:bg-blue-800 sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
                           onClick={() => openEditor(row.editorType)}
                         >
-                          <FaEdit className="sm:w-4.5 sm:h-4.5 h-4 w-4 flex-shrink-0 lg:h-5 lg:w-5" />
+                          <FaEdit className="size-4 shrink-0 sm:size-4.5 lg:size-5" />
                           <span className="hidden md:inline">ویرایش</span>
                         </button>
                       )}
@@ -340,10 +442,11 @@ const AdminPageManager: React.FC = () => {
                       {row.multiPage && (
                         <button
                           type="button"
-                          className="inline-flex min-w-[36px] items-center justify-center gap-1.5 rounded-lg bg-green-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-all hover:bg-green-700 hover:shadow-md active:bg-green-800 sm:min-w-[40px] sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
+                          aria-label={`افزودن ${row.name}`}
+                          className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-lg bg-green-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm transition-[background-color,box-shadow] hover:bg-green-700 hover:shadow-md active:bg-green-800 sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm lg:px-4"
                           onClick={() => openNewPageBuilder(row.newType)}
                         >
-                          <Plus className="sm:w-4.5 sm:h-4.5 h-4 w-4 flex-shrink-0 lg:h-5 lg:w-5" />
+                          <Plus className="size-4 shrink-0 sm:size-4.5 lg:size-5" />
                           <span className="hidden md:inline">افزودن</span>
                         </button>
                       )}
@@ -353,17 +456,17 @@ const AdminPageManager: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => toggleExpand(row.link)}
-                          className={`flex min-w-[36px] items-center justify-center rounded-lg p-2 shadow-sm transition-all hover:shadow-md sm:min-w-[40px] sm:p-2.5 ${
+                          className={`flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 shadow-sm transition-shadow hover:shadow-md sm:p-2.5 ${
                             expanded === row.link
                               ? "bg-blue-600 text-white"
                               : "bg-gray-700 text-gray-200 hover:bg-gray-600 active:bg-gray-500"
                           }`}
-                          aria-label={expanded === row.link ? "بستن" : "باز کردن"}
+                          aria-label={`${expanded === row.link ? "بستن" : "باز کردن"} ${row.name}`}
                         >
                           {expanded === row.link ? (
-                            <ChevronUp className="w-4.5 h-4.5 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
+                            <ChevronUp className="size-4.5 sm:size-5 lg:size-6" />
                           ) : (
-                            <ChevronDown className="w-4.5 h-4.5 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
+                            <ChevronDown className="size-4.5 sm:size-5 lg:size-6" />
                           )}
                         </button>
                       )}
@@ -373,66 +476,72 @@ const AdminPageManager: React.FC = () => {
 
                 {/* Expanded SubPages */}
                 {row.multiPage && expanded === row.link && (
-                  <div className="animate-in slide-in-from-top-2 border-t border-gray-700 bg-gray-800/50 duration-200">
+                  <div className="animate-in slide-in-from-top-2 border-t border-gray-700 bg-gray-800/50 transition-[opacity,transform] duration-200">
                     <div className="space-y-1.5 p-2 sm:space-y-2 sm:p-3 lg:p-4">
                       {subPages[row.link]?.length === 0 ? (
                         <div className="py-6 text-center sm:py-8">
-                          <p className="text-sm text-gray-500">هیچ صفحه فرعی وجود ندارد</p>
+                          <p className="text-sm text-gray-300">هیچ صفحه فرعی وجود ندارد</p>
                         </div>
                       ) : (
                         subPages[row.link]?.map((subPage) => (
                           <div
                             key={subPage.id}
-                            className="group flex items-center justify-between rounded-lg bg-gray-700/50 p-2.5 transition-all hover:bg-gray-700 active:bg-gray-600 sm:p-3 lg:p-4"
+                            className="group flex items-center justify-between rounded-lg bg-gray-700/50 p-2.5 transition-colors hover:bg-gray-700 active:bg-gray-600 sm:p-3 lg:p-4"
                           >
                             {/* SubPage Name */}
                             <div className="flex min-w-0 flex-1 items-center gap-2 pr-2 sm:gap-3">
-                              <div className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-blue-400 sm:h-2 sm:w-2" />
+                              <div className="size-1.5 shrink-0 rounded-full bg-blue-400 sm:size-2" />
                               <h3 className="truncate text-sm font-medium text-gray-200 sm:text-base">
                                 {subPage.name}
                               </h3>
                             </div>
 
                             {/* SubPage Actions */}
-                            <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
+                            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
                               {/* View */}
                               <Link
                                 href={subPage.link}
                                 target="_blank"
-                                className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg bg-gray-600 p-2 text-gray-200 shadow-sm transition-all hover:bg-gray-500 hover:shadow active:bg-gray-400 sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5"
+                                className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg bg-gray-600 p-2 text-gray-200 shadow-sm transition-[background-color,box-shadow] hover:bg-gray-500 hover:shadow active:bg-gray-400 sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5"
                                 title="مشاهده"
                                 aria-label="مشاهده صفحه"
                               >
-                                <Eye className="sm:w-4.5 sm:h-4.5 h-4 w-4 lg:h-5 lg:w-5" />
+                                <Eye className="size-4 sm:size-4.5 lg:size-5" />
                               </Link>
 
                               {/* Edit */}
                               <button
                                 type="button"
-                                className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg bg-blue-600 p-2 text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow active:bg-blue-800 sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5"
+                                className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg bg-blue-600 p-2 text-white shadow-sm transition-[background-color,box-shadow] hover:bg-blue-700 hover:shadow active:bg-blue-800 sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5"
                                 onClick={() => openEditor(row.editorType, subPage.id)}
                                 title="ویرایش"
                                 aria-label="ویرایش صفحه"
                               >
-                                <FaEdit className="sm:w-4.5 sm:h-4.5 h-4 w-4 lg:h-5 lg:w-5" />
+                                <FaEdit className="size-4 sm:size-4.5 lg:size-5" />
                               </button>
 
                               {/* Delete */}
                               <button
                                 type="button"
-                                className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg bg-red-600 p-2 text-white shadow-sm transition-all hover:bg-red-700 hover:shadow active:bg-red-800 sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5"
-                                onClick={() => deleteItem(row.editorType, subPage.id)}
+                                className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg bg-red-600 p-2 text-white shadow-sm transition-[background-color,box-shadow] hover:bg-red-700 hover:shadow active:bg-red-800 sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5"
+                                onClick={() =>
+                                  setDeleteTarget({
+                                    type: row.editorType,
+                                    id: subPage.id,
+                                    name: subPage.name,
+                                  })
+                                }
                                 title="حذف"
                                 aria-label="حذف صفحه"
                               >
-                                <MdDeleteForever className="w-4.5 h-4.5 lg:w-5.5 lg:h-5.5 sm:h-5 sm:w-5" />
+                                <MdDeleteForever className="size-4.5 sm:size-5 lg:size-5.5" />
                               </button>
 
                               {/* QR Code (Blog only) */}
                               {row.editorType === "blog" && (
                                 <button
                                   type="button"
-                                  className={`flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg p-2 shadow-sm transition-all hover:shadow sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5 ${
+                                  className={`flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg p-2 shadow-sm transition-shadow hover:shadow sm:min-h-[40px] sm:min-w-[40px] sm:p-2.5 ${
                                     subPage.QrCode_key
                                       ? "bg-violet-600 hover:bg-violet-700 active:bg-violet-800"
                                       : "bg-violet-500 hover:bg-violet-600 active:bg-violet-700"
@@ -448,7 +557,7 @@ const AdminPageManager: React.FC = () => {
                                   title="QR Code"
                                   aria-label="مدیریت QR Code"
                                 >
-                                  <IoQrCode className="w-4.5 h-4.5 lg:w-5.5 lg:h-5.5 sm:h-5 sm:w-5" />
+                                  <IoQrCode className="size-4.5 sm:size-5 lg:size-5.5" />
                                 </button>
                               )}
                             </div>
@@ -460,8 +569,8 @@ const AdminPageManager: React.FC = () => {
                 )}
               </div>
             ))}
-          </div>
-        </div>
+          </section>
+        </main>
       )}
 
       {isQrCodeModalOpen && (
@@ -473,6 +582,14 @@ const AdminPageManager: React.FC = () => {
       )}
       {renderEditor()}
       {renderNewPageBuilder()}
+      {deleteTarget && (
+        <DeletePageDialog
+          itemName={deleteTarget.name}
+          isDeleting={isDeleting}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={() => void deleteItem()}
+        />
+      )}
     </>
   );
 };

@@ -3,9 +3,9 @@
 import { message } from "antd";
 import axios from "axios";
 import Link from "next/link";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 
-import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+import { useApiFetch } from "@/hooks/useApiFetch";
 
 type ProductRow = {
   ProductId: number;
@@ -13,6 +13,30 @@ type ProductRow = {
   Price: number;
   Discount: number;
   Partner_Price?: string | null;
+  link: string;
+};
+
+const partnerPricePattern = /^(?:\d+\.?\d*|\.\d+)$/;
+
+function normalizePartnerPriceInput(value: string) {
+  return value
+    .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
+    .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
+    .replace(/٫/g, ".");
+}
+
+function calcOriginal(p: ProductRow) {
+  const price = p.Price || 0;
+  const discount = p.Discount || 0;
+  return Math.max(price - discount, 0);
+}
+
+type ProductApiResponse = {
+  ProductId: number;
+  Type: string;
+  Price: number | null;
+  Discount: number | null;
+  Partner_Price: string | null;
   link: string;
 };
 
@@ -24,8 +48,11 @@ async function fetchPartnerPrices(
 ) {
   try {
     setLoading(true);
-    const res = await axios.get("/api/admin/products", { params: { limit: 500 } });
-    const rows = (res.data?.data || []).map((p: any) => ({
+    setError(null);
+    const res = await axios.get<{ data: ProductApiResponse[] }>("/api/admin/products", {
+      params: { limit: 500 },
+    });
+    const rows = (res.data?.data || []).map((p: ProductApiResponse) => ({
       ProductId: p.ProductId,
       Type: p.Type,
       Price: Number(p.Price ?? 0),
@@ -39,8 +66,8 @@ async function fetchPartnerPrices(
       initial[r.ProductId] = r.Partner_Price ?? "";
     });
     setPartnerValues(initial);
-  } catch (e: any) {
-    setError(e?.message || "خطا در دریافت اطلاعات");
+  } catch (e: unknown) {
+    setError(e instanceof Error ? e.message : "خطا در دریافت اطلاعات");
   } finally {
     setLoading(false);
   }
@@ -49,25 +76,17 @@ async function fetchPartnerPrices(
 async function updatePartnerPrice(
   productId: number,
   partnerPrice: string,
-  inputRefs: React.MutableRefObject<Record<number, HTMLInputElement | null>>,
   setUpdatingId: React.Dispatch<React.SetStateAction<number | null>>,
   fetchData: () => Promise<void>
 ) {
   const trimmed = partnerPrice.trim();
-  if (trimmed !== "" && (isNaN(Number(trimmed)) || Number(trimmed) < 0)) {
-    if (inputRefs.current[productId]) {
-      inputRefs.current[productId]!.classList.add("ring-2", "ring-red-500");
-      setTimeout(
-        () => inputRefs.current[productId]?.classList.remove("ring-2", "ring-red-500"),
-        1000
-      );
-    }
+  if (trimmed !== "" && (!partnerPricePattern.test(trimmed) || !Number.isFinite(Number(trimmed)))) {
     message.error("ورودی نامعتبر است. فقط عدد و اعشار مجاز است.");
     return;
   }
   try {
     setUpdatingId(productId);
-    await axios.patch(`/api/admin/products/${productId}`, { Partner_Price: partnerPrice });
+    await axios.patch(`/api/admin/products/${productId}`, { Partner_Price: trimmed });
     await fetchData();
     message.success("قیمت همکار با موفقیت ذخیره شد.");
   } catch (e) {
@@ -85,58 +104,44 @@ export default function AdminPartnerPricesPage() {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [keyword, setKeyword] = useState("");
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
-  const [usdRate, setUsdRate] = useState<number | null>(null);
   const [sortKey, setSortKey] = useState<"Type" | "Original" | "Partner">("Type");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
   const pageSize = 20;
-  const inputRefs = useRef<Record<number, HTMLInputElement | null>>({});
   const [partnerValues, setPartnerValues] = useState<Record<number, string>>({});
 
   const fetchData = async () => {
     await fetchPartnerPrices(setLoading, setData, setPartnerValues, setError);
   };
 
-  // eslint-disable-next-line react-compiler/set-state-in-effect
   useEffect(() => {
     fetchData();
   }, []);
 
-  async function loadUsdRate() {
-    try {
-      const rate = await fetchUsdToRialRate();
-      if (rate && rate > 0) setUsdRate(rate);
-    } catch {}
-  }
-
-  // eslint-disable-next-line react-compiler/set-state-in-effect
-  useEffect(() => {
-    loadUsdRate();
-  }, []);
+  const { data: usdRateData } = useApiFetch<{ rate: number | null }>("/api/exchangeRate");
+  const usdRate = usdRateData?.rate ?? null;
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedKeyword(keyword), 300);
     return () => clearTimeout(t);
   }, [keyword]);
 
-  const filtered = useMemo(() => {
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedKeyword]);
+
+  const filtered = (() => {
     const q = debouncedKeyword.trim().toLowerCase();
     if (!q) return data;
     return data.filter((r) => r.Type.toLowerCase().includes(q));
-  }, [data, debouncedKeyword]);
-
-  const calcOriginal = (p: ProductRow) => {
-    const price = p.Price || 0;
-    const discount = p.Discount || 0;
-    return Math.max(price - discount, 0);
-  };
+  })();
 
   const formatRial = (usd: number) => {
     if (!usdRate) return "-";
-    return (usd * usdRate).toLocaleString("fa-IR") + " تومان";
+    return Math.floor(usd * usdRate).toLocaleString("fa-IR") + " تومان";
   };
 
-  const sorted = useMemo(() => {
+  const sorted = (() => {
     const copy = [...filtered];
     copy.sort((a, b) => {
       let va: number | string = "";
@@ -156,13 +161,13 @@ export default function AdminPartnerPricesPage() {
       return 0;
     });
     return copy;
-  }, [filtered, sortKey, sortDir]);
+  })();
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
-  const paged = useMemo(() => {
+  const paged = (() => {
     const start = (page - 1) * pageSize;
     return sorted.slice(start, start + pageSize);
-  }, [sorted, page]);
+  })();
 
   const setSort = (key: typeof sortKey) => {
     if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -173,16 +178,20 @@ export default function AdminPartnerPricesPage() {
   };
 
   const handleUpdate = async (productId: number, partnerPrice: string) => {
-    await updatePartnerPrice(productId, partnerPrice, inputRefs, setUpdatingId, fetchData);
+    await updatePartnerPrice(productId, partnerPrice, setUpdatingId, fetchData);
   };
 
   return (
-    <div className="mx-auto max-w-[1400px] text-white">
+    <div className="w-full text-white">
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-bold">قیمت‌های همکار</h1>
         <input
-          placeholder="جستجو نام محصول..."
-          className="w-full rounded-md bg-slate-700 px-3 py-2 text-sm outline-none placeholder:text-gray-300 md:w-80"
+          type="search"
+          name="product-search"
+          autoComplete="off"
+          placeholder="جستجوی نام محصول…"
+          aria-label="جستجوی محصول"
+          className="min-h-11 w-full rounded-md border border-slate-500 bg-slate-700 px-3 py-2 text-base text-white placeholder:text-slate-300 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none md:w-80"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
         />
@@ -195,25 +204,57 @@ export default function AdminPartnerPricesPage() {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-lg bg-slate-700">
-        <table className="w-full table-auto text-sm">
+      <div
+        className="overflow-x-auto rounded-lg bg-slate-700"
+        role="region"
+        aria-label="فهرست قیمت‌های همکار"
+        tabIndex={0}
+      >
+        <table className="w-full min-w-176 table-auto text-sm">
           <thead className="sticky top-0 z-10 bg-slate-800 text-gray-100">
             <tr>
-              <th className="cursor-pointer px-4 py-3" onClick={() => setSort("Type")}>
-                نام محصول {sortKey === "Type" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+              <th
+                aria-sort={
+                  sortKey === "Type" ? (sortDir === "asc" ? "ascending" : "descending") : "none"
+                }
+                className="px-4 py-3"
+              >
+                <button
+                  type="button"
+                  className="cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400"
+                  onClick={() => setSort("Type")}
+                >
+                  نام محصول {sortKey === "Type" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                </button>
               </th>
               <th
-                className="cursor-pointer px-4 py-3 text-center"
-                onClick={() => setSort("Original")}
+                aria-sort={
+                  sortKey === "Original" ? (sortDir === "asc" ? "ascending" : "descending") : "none"
+                }
+                className="px-4 py-3 text-center"
               >
-                قیمت اصلی با تخفیف
-                {sortKey === "Original" ? (sortDir === "asc" ? " ▲" : " ▼") : ""}
+                <button
+                  type="button"
+                  className="cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400"
+                  onClick={() => setSort("Original")}
+                >
+                  قیمت اصلی با تخفیف
+                  {sortKey === "Original" ? (sortDir === "asc" ? " ▲" : " ▼") : ""}
+                </button>
               </th>
               <th
-                className="cursor-pointer px-4 py-3 text-center"
-                onClick={() => setSort("Partner")}
+                aria-sort={
+                  sortKey === "Partner" ? (sortDir === "asc" ? "ascending" : "descending") : "none"
+                }
+                className="px-4 py-3 text-center"
               >
-                قیمت همکار {sortKey === "Partner" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                <button
+                  type="button"
+                  className="cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-400"
+                  onClick={() => setSort("Partner")}
+                >
+                  قیمت همکار {sortKey === "Partner" ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                </button>
               </th>
               <th className="px-4 py-3 text-center">لینک محصول</th>
             </tr>
@@ -221,21 +262,45 @@ export default function AdminPartnerPricesPage() {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-gray-200">
-                  در حال بارگذاری...
+                <td
+                  colSpan={4}
+                  role="status"
+                  aria-live="polite"
+                  className="px-4 py-6 text-center text-gray-200"
+                >
+                  در حال بارگذاری…
                 </td>
               </tr>
             )}
             {!loading && error && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-red-300">
-                  {error}
+                <td
+                  colSpan={4}
+                  role="alert"
+                  aria-live="polite"
+                  className="px-4 py-6 text-center text-red-300"
+                >
+                  <div className="flex flex-col items-center gap-3">
+                    <span>{error}</span>
+                    <button
+                      type="button"
+                      onClick={fetchData}
+                      className="rounded-md bg-slate-800 px-3 py-2 text-white hover:bg-slate-900 focus-visible:ring-2 focus-visible:ring-blue-400"
+                    >
+                      تلاش مجدد
+                    </button>
+                  </div>
                 </td>
               </tr>
             )}
             {!loading && !error && filtered.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-gray-300">
+                <td
+                  colSpan={4}
+                  role="status"
+                  aria-live="polite"
+                  className="px-4 py-6 text-center text-gray-300"
+                >
                   آیتمی یافت نشد
                 </td>
               </tr>
@@ -250,7 +315,7 @@ export default function AdminPartnerPricesPage() {
                       const price = p.Price;
                       const discount = p.Discount;
                       if (!price || price === 0) {
-                        return <span className="italic text-gray-300">بدون قیمت</span>;
+                        return <span className="text-gray-300 italic">بدون قیمت</span>;
                       }
                       if (discount && discount > 0) {
                         const originalUsd = price;
@@ -280,28 +345,37 @@ export default function AdminPartnerPricesPage() {
                   <td className="px-4 py-3 text-center">
                     <div className="inline-flex items-center gap-2">
                       <input
-                        ref={(el: HTMLInputElement | null) => {
-                          inputRefs.current[p.ProductId] = el;
-                          return undefined as unknown as void;
-                        }}
                         value={partnerValues[p.ProductId] ?? ""}
+                        name={`partner-price-${p.ProductId}`}
+                        aria-label={`قیمت همکار برای ${p.Type}`}
                         inputMode="decimal"
-                        pattern="[0-9]*[.]?[0-9]*"
+                        autoComplete="off"
+                        aria-invalid={
+                          (partnerValues[p.ProductId] ?? "") !== "" &&
+                          (!partnerPricePattern.test(partnerValues[p.ProductId] ?? "") ||
+                            Number(partnerValues[p.ProductId]) < 0)
+                        }
                         onChange={(e) => {
-                          const raw = e.currentTarget.value;
-                          const cleaned = raw.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
-                          setPartnerValues((prev) => ({ ...prev, [p.ProductId]: cleaned }));
+                          const value = normalizePartnerPriceInput(e.currentTarget.value);
+                          setPartnerValues((prev) => ({
+                            ...prev,
+                            [p.ProductId]: value,
+                          }));
                         }}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             const target = e.target as HTMLInputElement;
-                            if ((partnerValues[p.ProductId] ?? "") !== target.value) {
+                            if (
+                              updatingId === null &&
+                              String(p.Partner_Price ?? "") !== target.value
+                            ) {
                               handleUpdate(p.ProductId, target.value);
                             }
                           }
                         }}
-                        className="w-36 rounded-md bg-slate-800 px-2 py-1 text-center outline-none"
-                        placeholder="قیمت همکار به دلار"
+                        className="w-36 rounded-md bg-slate-800 px-2 py-1 text-center outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                        placeholder="قیمت به دلار…"
+                        disabled={updatingId !== null}
                       />
                       <span className="text-sm text-gray-200">
                         {partnerValues[p.ProductId]
@@ -310,20 +384,22 @@ export default function AdminPartnerPricesPage() {
                       </span>
                       <button
                         type="button"
-                        disabled={updatingId === p.ProductId}
+                        aria-label={`${updatingId === p.ProductId ? "در حال ذخیره قیمت برای" : "ذخیره قیمت برای"} ${p.Type}`}
+                        aria-busy={updatingId === p.ProductId}
+                        disabled={updatingId !== null}
                         onClick={() => {
-                          const val = inputRefs.current[p.ProductId]?.value ?? "";
+                          const val = partnerValues[p.ProductId] ?? "";
                           if (String(p.Partner_Price ?? "") !== val) {
                             handleUpdate(p.ProductId, val);
                           }
                         }}
-                        className={`rounded-md px-3 py-1 ${
+                        className={`rounded-md px-3 py-1 focus-visible:ring-2 focus-visible:ring-blue-400 ${
                           updatingId === p.ProductId
                             ? "bg-gray-500"
                             : "bg-blue-600 hover:bg-blue-700"
                         }`}
                       >
-                        {updatingId === p.ProductId ? "در حال ذخیره..." : "ذخیره"}
+                        {updatingId === p.ProductId ? "در حال ذخیره…" : "ذخیره"}
                       </button>
                     </div>
                   </td>
@@ -331,7 +407,8 @@ export default function AdminPartnerPricesPage() {
                     <Link
                       href={`/products/${p.link}`}
                       target="_blank"
-                      className="inline-flex items-center justify-center rounded-md bg-emerald-600 px-3 py-1 text-white transition-colors hover:bg-emerald-700"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center rounded-md bg-emerald-600 px-3 py-1 text-white transition-colors hover:bg-emerald-700 focus-visible:ring-2 focus-visible:ring-blue-400"
                     >
                       مشاهده محصول
                     </Link>
@@ -348,7 +425,7 @@ export default function AdminPartnerPricesPage() {
             <div className="flex gap-2">
               <button
                 type="button"
-                className="rounded-md bg-slate-800 px-3 py-1 disabled:opacity-50"
+                className="rounded-md bg-slate-800 px-3 py-1 focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50"
                 disabled={page === 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
               >
@@ -356,7 +433,7 @@ export default function AdminPartnerPricesPage() {
               </button>
               <button
                 type="button"
-                className="rounded-md bg-slate-800 px-3 py-1 disabled:opacity-50"
+                className="rounded-md bg-slate-800 px-3 py-1 focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50"
                 disabled={page === totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               >

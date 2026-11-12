@@ -1,3 +1,5 @@
+import { Product } from "@/app/admin/products/types";
+
 export interface WarrantyCode {
   code: string;
   startdate: string;
@@ -28,7 +30,7 @@ export interface InvoiceDetail {
   price: number;
   total_price: number;
   warranty?: Warranty | null;
-  product?: any;
+  product?: Product | null;
   Name?: string; // Product name from join
   Type?: string; // Product type field
 }

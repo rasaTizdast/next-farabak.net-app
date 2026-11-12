@@ -49,10 +49,11 @@
  */
 
 import { S3 } from "aws-sdk";
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 // Ensure S3 bucket name is always a string
@@ -64,13 +65,6 @@ const s3 = new S3({
   secretAccessKey: process.env.LIARA_SECRET_KEY,
   endpoint: process.env.LIARA_ENDPOINT,
 });
-
-// JWT verification function
-async function verifyToken(token: string) {
-  const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-  const { payload } = await jwtVerify(token, secret);
-  return payload;
-}
 
 // Type definition for overview details
 type OverviewDetail = {
@@ -85,18 +79,10 @@ type OverviewDetail = {
 
 export async function POST(req: Request) {
   try {
-    // Verify admin token
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value;
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json({ message: "Authorization token required" }, { status: 401 });
-    }
-
-    const decoded = await verifyToken(token);
-    const userRole = decoded.role;
-
-    if (!userRole || userRole !== "Admin") {
+    if (auth.role !== "Admin") {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -111,67 +97,68 @@ export async function POST(req: Request) {
     }
 
     // Process each overview detail and create records individually
-    const savedDetails: any[] = [];
+    const savedDetails = await Promise.all(
+      overviewDetails.map(async (detail) => {
+        // Validate required fields
+        if (!detail.title || !detail.description || !detail.image) {
+          throw new Error("Missing required fields in overview detail");
+        }
 
-    for (const detail of overviewDetails) {
-      // Validate required fields
-      if (!detail.title || !detail.description || !detail.image) {
-        throw new Error("Missing required fields in overview detail");
-      }
+        // Get filename from the request or generate a unique name if not provided
+        const fileName =
+          detail.image.fileName ||
+          `image-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
 
-      // Get filename from the request or generate a unique name if not provided
-      const fileName =
-        detail.image.fileName ||
-        `image-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+        // Sanitize filename
+        const sanitizedFileName = fileName
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9.]+/g, "-")
+          .replace(/^-+|-+$/g, "");
 
-      // Sanitize filename
-      const sanitizedFileName = fileName
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9.]+/g, "-")
-        .replace(/^-+|-+$/g, "");
+        // Generate key for S3 upload
+        const fileExtension = detail.image.contentType.split("/")[1];
+        const key = `overview-details-images/${sanitizedFileName}.${fileExtension}`;
 
-      // Generate key for S3 upload
-      const fileExtension = detail.image.contentType.split("/")[1];
-      const key = `overview-details-images/${sanitizedFileName}.${fileExtension}`;
+        // Convert base64 to buffer
+        const imageBuffer = Buffer.from(detail.image.base64, "base64");
 
-      // Convert base64 to buffer
-      const imageBuffer = Buffer.from(detail.image.base64, "base64");
+        // Upload to S3
+        const uploadParams = {
+          Bucket: BUCKET_NAME,
+          Key: key,
+          Body: imageBuffer,
+          ContentType: detail.image.contentType,
+        };
 
-      // Upload to S3
-      const uploadParams = {
-        Bucket: BUCKET_NAME,
-        Key: key,
-        Body: imageBuffer,
-        ContentType: detail.image.contentType,
-      };
-
-      // Upload to S3 and wait for the result
-      await new Promise<AWS.S3.ManagedUpload.SendData>((resolve, reject) => {
-        s3.upload(uploadParams, (err, data) => {
-          if (err) reject(err);
-          else resolve(data);
+        // Upload to S3 and wait for the result
+        await new Promise<AWS.S3.ManagedUpload.SendData>((resolve, reject) => {
+          s3.upload(uploadParams, (err: Error, data: AWS.S3.ManagedUpload.SendData) => {
+            if (err) reject(err);
+            else resolve(data);
+          });
         });
-      });
 
-      // Create the record in the database and let the database handle the auto-incrementing id
-      const savedDetail = await prisma.master_ProductOverviewDetails.create({
-        data: {
-          Title: detail.title,
-          Description: detail.description,
-          Img: `/${key.substring(key.indexOf("/") + 1)}`, // Remove parent folder from path
-        },
-      });
+        // Create the record in the database and let the database handle the auto-incrementing id
+        const savedDetail = await prisma.master_ProductOverviewDetails.create({
+          data: {
+            Title: detail.title,
+            Description: detail.description,
+            Img: `/${key.substring(key.indexOf("/") + 1)}`,
+          },
+        });
 
-      // Update the record to set ProductOverviewDetailsId to match the auto-generated id
-      const updatedDetail = await prisma.master_ProductOverviewDetails.update({
-        where: { id: savedDetail.id },
-        data: { ProductOverviewDetailsId: savedDetail.id },
-      });
+        // Update the record to set ProductOverviewDetailsId to match the auto-generated id
+        const updatedDetail = await prisma.master_ProductOverviewDetails.update({
+          where: { id: savedDetail.id },
+          data: { ProductOverviewDetailsId: savedDetail.id },
+        });
 
-      savedDetails.push(updatedDetail);
-    }
+        return updatedDetail;
+      })
+    );
 
+    revalidateTag(TAGS.productOverview, "max");
     return NextResponse.json(
       {
         message: "Overview details uploaded successfully",

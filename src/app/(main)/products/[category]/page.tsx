@@ -1,13 +1,12 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { getProductsByCategory } from "@/lib/data/products";
+
 import BreadcrumbWrapper from "../_components/BreadcrumbWrapper";
 import CategoryPageWrapper from "../_components/CategoryPageWrapper";
-import {
-  BreadcrumbSkeleton,
-  CategoryPageSkeleton,
-} from "../_components/ProductListSkeletons";
+import { BreadcrumbSkeleton, CategoryPageSkeleton } from "../_components/ProductListSkeletons";
 
 interface CategoryPageProps {
   params: Promise<{ category: string }>;
@@ -16,60 +15,22 @@ interface CategoryPageProps {
 export const generateMetadata = async (props: CategoryPageProps): Promise<Metadata> => {
   const params = await props.params;
   const categoryName = params.category;
+  const data = await getProductsByCategory(categoryName, { page: 1, limit: 30 });
 
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsByCategory/${categoryName}?page=1&limit=1`,
-      { next: { revalidate: 60 } }
-    );
+  if (!data) notFound();
 
-    if (!res || !res.ok) {
-      return {
-        title: categoryName,
-        description: `محصولات دسته‌بندی ${categoryName}`,
-        robots: {
-          index: true,
-          follow: true,
-        },
-      };
-    }
-
-    const data = await res.json();
-    if (!data.seoDetails) {
-      return {
-        title: categoryName,
-        description: `محصولات دسته‌بندی ${categoryName}`,
-        robots: {
-          index: true,
-          follow: true,
-        },
-      };
-    }
-
-    const { seoDetails } = data;
-
-    return {
-      title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${categoryName}`,
-      description: seoDetails.SEO_Description || `محصولات دسته‌بندی ${categoryName}`,
-      alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${categoryName}`,
-      },
-      robots: {
-        index: true,
-        follow: true,
-      },
-    };
-  } catch (error) {
-    console.error(error);
-    return {
-      title: "دسته‌بندی یافت نشد!",
-      description: "دسته‌بندی مورد نظر یافت نشد!",
-      robots: {
-        index: false,
-        follow: true,
-      },
-    };
-  }
+  const { seoDetails } = data;
+  return {
+    title: seoDetails?.SEO_Title || `محصولات دسته‌بندی ${categoryName}`,
+    description: seoDetails?.SEO_Description || `محصولات دسته‌بندی ${categoryName}`,
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${categoryName}`,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
 };
 
 export default async function CategoryPage(props: CategoryPageProps) {
@@ -77,12 +38,14 @@ export default async function CategoryPage(props: CategoryPageProps) {
   const categoryName = params.category;
   const currentPage = 1;
   const limit = 30;
+  const categoryData = await getProductsByCategory(categoryName, { page: currentPage, limit });
+  if (!categoryData) notFound();
 
   const canonicalUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/products/${categoryName}`;
   const breadcrumbs = ["/", "/products", `/products/${categoryName}`];
 
   return (
-    <>
+    <div dir="rtl">
       <Suspense fallback={<BreadcrumbSkeleton />}>
         <BreadcrumbWrapper breadcrumbs={breadcrumbs} />
       </Suspense>
@@ -94,6 +57,6 @@ export default async function CategoryPage(props: CategoryPageProps) {
           canonicalUrl={canonicalUrl}
         />
       </Suspense>
-    </>
+    </div>
   );
 }

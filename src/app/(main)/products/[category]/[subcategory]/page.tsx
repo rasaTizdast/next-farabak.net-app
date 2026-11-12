@@ -1,9 +1,11 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { getProductsBySubcategory } from "@/lib/data/products";
+
 import BreadcrumbWrapper from "../../_components/BreadcrumbWrapper";
-import { BreadcrumbSkeleton, ProductGridSkeleton } from "../../_components/ProductListSkeletons";
+import { BreadcrumbSkeleton, ProductListingSkeleton } from "../../_components/ProductListSkeletons";
 import SubcategoryPageWrapper from "../../_components/SubcategoryPageWrapper";
 
 interface SubcategoryPageProps {
@@ -13,60 +15,22 @@ interface SubcategoryPageProps {
 export const generateMetadata = async (props: SubcategoryPageProps): Promise<Metadata> => {
   const params = await props.params;
   const { category, subcategory } = params;
+  const data = await getProductsBySubcategory(subcategory, { page: 1, limit: 30 });
 
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsBySubcategory/${subcategory}?page=1&limit=1`,
-      { next: { revalidate: 60 } }
-    );
+  if (!data) notFound();
 
-    if (!res || !res.ok) {
-      return {
-        title: subcategory,
-        description: "دسته بندی مورد نظر یافت نشد!",
-        robots: {
-          index: false,
-          follow: true,
-        },
-      };
-    }
-
-    const data = await res.json();
-    if (!data.seoDetails) {
-      return {
-        title: subcategory,
-        description: "دسته بندی مورد نظر یافت نشد!",
-        robots: {
-          index: false,
-          follow: true,
-        },
-      };
-    }
-
-    const { seoDetails } = data;
-
-    return {
-      title: seoDetails.SEO_Title || `محصولات دسته‌بندی ${subcategory} | فرابک`,
-      description: seoDetails.SEO_Description || `محصولات دسته‌بندی ${subcategory}`,
-      alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${category}/${subcategory}`,
-      },
-      robots: {
-        index: true,
-        follow: true,
-      },
-    };
-  } catch (error) {
-    console.error(error);
-    return {
-      title: "دسته بندی یافت نشد!",
-      description: "دسته بندی مورد نظر یافت نشد!",
-      robots: {
-        index: false,
-        follow: true,
-      },
-    };
-  }
+  const { seoDetails } = data;
+  return {
+    title: seoDetails?.SEO_Title || `محصولات دسته‌بندی ${subcategory} | فرابک`,
+    description: seoDetails?.SEO_Description || `محصولات دسته‌بندی ${subcategory}`,
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${category}/${subcategory}`,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
 };
 
 export default async function SubcategoryPage(props: SubcategoryPageProps) {
@@ -74,6 +38,11 @@ export default async function SubcategoryPage(props: SubcategoryPageProps) {
   const { category, subcategory } = params;
   const currentPage = 1;
   const limit = 30;
+  const subcategoryData = await getProductsBySubcategory(subcategory, {
+    page: currentPage,
+    limit,
+  });
+  if (!subcategoryData) notFound();
 
   const canonicalUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/products/${category}/${subcategory}`;
   const breadcrumbs = [
@@ -84,11 +53,11 @@ export default async function SubcategoryPage(props: SubcategoryPageProps) {
   ];
 
   return (
-    <>
+    <div dir="rtl">
       <Suspense fallback={<BreadcrumbSkeleton />}>
         <BreadcrumbWrapper breadcrumbs={breadcrumbs} />
       </Suspense>
-      <Suspense fallback={<ProductGridSkeleton />}>
+      <Suspense fallback={<ProductListingSkeleton showSearch={false} />}>
         <SubcategoryPageWrapper
           categoryName={category}
           subcategoryName={subcategory}
@@ -97,6 +66,6 @@ export default async function SubcategoryPage(props: SubcategoryPageProps) {
           canonicalUrl={canonicalUrl}
         />
       </Suspense>
-    </>
+    </div>
   );
 }

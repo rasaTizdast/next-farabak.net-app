@@ -1,10 +1,12 @@
+"use client";
+
 import axios from "axios";
 import Link from "next/link";
-import React, { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useId } from "react";
 import { FaExternalLinkAlt, FaSort, FaSortUp, FaSortDown, FaTimes } from "react-icons/fa";
 import { IoQrCode } from "react-icons/io5";
 
-import { fetchUsdToRialRate } from "@/helpers/Usd2RialRate";
+import { useApiFetch } from "@/hooks/useApiFetch";
 
 import ProductEditModal from "./ProductEditModal";
 import ProductGradeButton from "./ProductGradeButton";
@@ -39,7 +41,11 @@ async function fetchProductQuantity(
   loadingQuantities: Record<number, boolean>,
   productQuantities: Record<number, { branches: number; warehouses: number; timestamp: number }>,
   setLoadingQuantities: React.Dispatch<React.SetStateAction<Record<number, boolean>>>,
-  setProductQuantities: React.Dispatch<React.SetStateAction<Record<number, { branches: number; warehouses: number; timestamp: number }>>>
+  setProductQuantities: React.Dispatch<
+    React.SetStateAction<
+      Record<number, { branches: number; warehouses: number; timestamp: number }>
+    >
+  >
 ) {
   if (loadingQuantities[productId]) return;
 
@@ -82,22 +88,96 @@ const SortableHeader = ({
   sortKey: SortKey;
   sortConfig: SortConfig;
   onSort: (key: SortKey) => void;
-}) => (
-  <th scope="col" className="cursor-pointer select-none px-6 py-3" onClick={() => onSort(sortKey)}>
-    <div className="flex items-center justify-center gap-2">
-      {children}
-      {sortConfig.key === sortKey ? (
-        sortConfig.direction === "ascending" ? (
-          <FaSortUp aria-label="Sort ascending" />
+}) => {
+  const sortDirection =
+    sortConfig.key === sortKey
+      ? sortConfig.direction === "ascending"
+        ? "ascending"
+        : "descending"
+      : "none";
+
+  return (
+    <th
+      scope="col"
+      aria-sort={sortDirection}
+      className="cursor-pointer px-6 py-3 select-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+      onClick={() => onSort(sortKey)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") onSort(sortKey);
+      }}
+      tabIndex={0}
+    >
+      <div className="flex items-center justify-center gap-2">
+        {children}
+        {sortConfig.key === sortKey ? (
+          sortConfig.direction === "ascending" ? (
+            <FaSortUp aria-hidden="true" />
+          ) : (
+            <FaSortDown aria-hidden="true" />
+          )
         ) : (
-          <FaSortDown aria-label="Sort descending" />
-        )
-      ) : (
-        <FaSort className="text-gray-400" aria-label="Sort" />
-      )}
+          <FaSort aria-hidden="true" className="text-gray-400" />
+        )}
+      </div>
+    </th>
+  );
+};
+
+const SubCategoriesPanel = ({
+  onClose,
+  name,
+  subCategories,
+}: {
+  onClose: () => void;
+  name: string;
+  subCategories: string[];
+}) => {
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    panelRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  const labelledById = useId();
+
+  return (
+    <div
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={labelledById}
+      tabIndex={-1}
+      className="w-11/12 max-w-lg rounded-lg bg-gray-700 p-6 text-white focus:outline-none"
+    >
+      <h3 id={labelledById} className="mb-4 text-xl font-semibold">
+        زیر دسته‌بندی‌های محصول: {name}
+      </h3>
+      <ul className="space-y-2">
+        {subCategories.map((subCategory) => (
+          <li key={subCategory} className="rounded-lg bg-gray-800 p-2 text-white">
+            {subCategory}
+          </li>
+        ))}
+      </ul>
+      <button
+        type="button"
+        onClick={onClose}
+        className="mt-8 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-800 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none"
+      >
+        بستن
+      </button>
     </div>
-  </th>
-);
+  );
+};
 
 const ProductsTable = ({
   isLoading,
@@ -108,6 +188,7 @@ const ProductsTable = ({
   refetchProducts,
 }: Props) => {
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
+  const selectedProductsSet = useMemo(() => new Set(selectedProducts), [selectedProducts]);
   const [productQuantities, setProductQuantities] = useState<
     Record<number, { branches: number; warehouses: number; timestamp: number }>
   >({});
@@ -128,27 +209,14 @@ const ProductsTable = ({
   const [isQrCodeModalOpen, setIsQrCodeModalOpen] = useState(false);
   const [qrCodeProduct, setQrCodeProduct] = useState<Product | null>(null);
 
-  const [usdRate, setUsdRate] = useState<number | null>(null);
-  async function loadUsdRate() {
-    try {
-      const rate = await fetchUsdToRialRate();
-      setUsdRate(rate);
-    } catch (error) {
-      console.error("Failed to fetch USD rate:", error);
-      setUsdRate(null);
-    }
-  }
-
-  // Fetch the rate when the component mounts
-  useEffect(() => {
-    loadUsdRate();
-  }, []);
+  const { data: usdRateData } = useApiFetch<{ rate: number | null }>("/api/exchangeRate");
+  const usdRate = usdRateData?.rate ?? null;
 
   // Check if the USD rate is valid
   const isValidRate = usdRate && !isNaN(usdRate) && usdRate > 0;
 
   // Sorting function
-  const sortedProducts = useMemo(() => {
+  const sortedProducts = (() => {
     if (!products.length) return [];
 
     // If no sorting is selected, return products in their original order
@@ -177,7 +245,7 @@ const ProductsTable = ({
       }
       return 0;
     });
-  }, [products, sortConfig]);
+  })();
 
   // Handle sorting
   const handleSort = (key: SortKey) => {
@@ -255,12 +323,21 @@ const ProductsTable = ({
   };
 
   const fetchProductBranchQuantity = async (productId: number) => {
-    fetchProductQuantity(productId, loadingQuantities, productQuantities, setLoadingQuantities, setProductQuantities);
+    fetchProductQuantity(
+      productId,
+      loadingQuantities,
+      productQuantities,
+      setLoadingQuantities,
+      setProductQuantities
+    );
   };
 
   if (notFound) {
     return (
-      <div className="w-full animate-fade-in rounded-lg bg-blue-600 p-5 text-center text-white shadow-lg transition-all">
+      <div
+        className="w-full rounded-lg bg-slate-800 p-6 text-center text-slate-100 shadow-lg"
+        role="status"
+      >
         محصولی یافت نشد
       </div>
     );
@@ -268,14 +345,22 @@ const ProductsTable = ({
 
   return (
     <>
-      <div className="w-full max-w-[1800px] overflow-x-auto rounded-xl">
+      <p className="mb-2 text-xs text-slate-300 md:hidden">
+        برای دیدن قیمت، موجودی و عملیات، جدول را به چپ بکشید.
+      </p>
+      <div
+        className="w-full overflow-x-auto rounded-xl"
+        role="region"
+        aria-label="جدول محصولات؛ برای دیدن همه ستون‌ها به صورت افقی پیمایش کنید"
+        tabIndex={0}
+      >
         {/* Sort reset bar */}
         {sortConfig.key !== null && (
           <div className="flex justify-end rounded-t-xl bg-blue-600 p-2">
             <button
               type="button"
               onClick={resetSorting}
-              className="flex items-center gap-1 rounded-lg bg-blue-800 px-3 py-1 text-xs text-white transition-all hover:bg-blue-900"
+              className="flex items-center gap-1 rounded-lg bg-blue-800 px-3 py-1 text-xs text-white transition-colors hover:bg-blue-900 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none"
             >
               <FaTimes size={10} />
               <span>حذف مرتب‌سازی</span>
@@ -290,7 +375,7 @@ const ProductsTable = ({
               <button
                 type="button"
                 onClick={() => handleBulkAction("delete")}
-                className="rounded-lg bg-red-600 px-3 py-1 text-xs text-white transition-all hover:bg-red-700"
+                className="rounded-lg bg-red-600 px-3 py-1 text-xs text-white transition-colors hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:outline-none motion-reduce:transition-none"
               >
                 حذف محصولات
               </button>
@@ -298,16 +383,26 @@ const ProductsTable = ({
           </div>
         )}
         <table
-          className="w-full table-auto border-separate border-spacing-0 whitespace-nowrap text-center text-xs text-gray-300 lg:text-sm"
+          className="w-full table-auto border-separate border-spacing-0 text-center text-xs whitespace-nowrap text-gray-300 lg:text-sm"
           data-testid="products-table"
         >
-          <thead className="bg-slate-800 uppercase text-gray-100">
+          <thead className="bg-slate-800 text-gray-100 uppercase">
             <tr>
               <th scope="col" className="w-12 px-6 py-3">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 text-indigo-600 transition-all duration-150 ease-in-out"
-                  checked={selectedProducts.length === sortedProducts.length}
+                  aria-label="انتخاب همه محصولات"
+                  className="size-4 text-indigo-600 transition-colors duration-150 ease-in-out"
+                  checked={
+                    sortedProducts.length > 0 && selectedProducts.length === sortedProducts.length
+                  }
+                  ref={(el) => {
+                    if (el) {
+                      el.indeterminate =
+                        selectedProducts.length > 0 &&
+                        selectedProducts.length < sortedProducts.length;
+                    }
+                  }}
                   onChange={handleSelectAll}
                   disabled={isLoading}
                 />
@@ -344,13 +439,14 @@ const ProductsTable = ({
                     key={product.ProductId}
                     className={`${
                       index % 2 === 0 ? "bg-slate-700" : "bg-slate-600"
-                    } transition-all hover:bg-slate-900`}
+                    } transition-colors hover:bg-slate-900 motion-reduce:transition-none`}
                   >
                     <td className="px-6 py-4">
                       <input
                         type="checkbox"
-                        className="h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
-                        checked={selectedProducts.includes(product.ProductId)}
+                        aria-label={`انتخاب ${product.Type}`}
+                        className="size-4 text-indigo-600 transition duration-150 ease-in-out"
+                        checked={selectedProductsSet.has(product.ProductId)}
                         onChange={() => handleSelectProduct(product.ProductId)}
                       />
                     </td>
@@ -366,22 +462,22 @@ const ProductsTable = ({
                               subCategories: product.CategoryContentIds.map((sub) => sub.Name),
                             })
                           }
-                          className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-700"
+                          className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none"
                         >
                           مشاهده
                         </button>
                       ) : (
-                        <span>{product.CategoryContentIds?.[0]?.Name || "No Subcategories"}</span>
+                        <span>{product.CategoryContentIds?.[0]?.Name || "بدون زیردسته‌بندی"}</span>
                       )}
                     </td>
 
                     <td className="px-6 py-4">{product.productSlug}</td>
                     <td className="group relative cursor-help px-6 py-4">
-                      <span className="absolute bottom-full left-1/2 -mb-3 -translate-x-1/2 whitespace-nowrap rounded bg-blue-900 px-2 py-1 text-xs font-extralight text-white opacity-0 transition-opacity group-hover:opacity-100">
+                      <span className="absolute bottom-full left-1/2 -mb-3 -translate-x-1/2 rounded bg-blue-900 px-2 py-1 text-xs font-extralight whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100">
                         قیمت دلار:{" "}
                         {isValidRate ? (
                           <span className="font-normal">
-                            {usdRate?.toLocaleString("fa-IR")} تومان
+                            {Math.floor(usdRate!).toLocaleString("fa-IR")} تومان
                           </span>
                         ) : (
                           <span className="font-normal text-yellow-300">خطا در دریافت نرخ ارز</span>
@@ -390,23 +486,24 @@ const ProductsTable = ({
                       {product.Price === null ||
                       product.Price === undefined ||
                       +product.Price === 0 ? (
-                        <span className="italic text-gray-400">بدون قیمت</span>
+                        <span className="text-gray-400 italic">بدون قیمت</span>
                       ) : !isValidRate ? (
                         <span className="font-medium text-yellow-300">خطا در دریافت نرخ ارز</span>
                       ) : product.Discount && +product.Discount > 0 ? (
                         <div className="flex flex-col items-center">
                           <span className="text-red-400 line-through">
-                            {(+product.Price * usdRate!).toLocaleString("fa-IR") + " تومان"}
+                            {Math.floor(+product.Price * usdRate!).toLocaleString("fa-IR") +
+                              " تومان"}
                           </span>
                           <span className="font-semibold text-green-400">
-                            {((+product.Price - +product.Discount) * usdRate!).toLocaleString(
-                              "fa-IR"
-                            ) + " تومان"}
+                            {Math.floor(
+                              (+product.Price - +product.Discount) * usdRate!
+                            ).toLocaleString("fa-IR") + " تومان"}
                           </span>
                         </div>
                       ) : (
                         <span className="text-white">
-                          {(+product.Price * usdRate!).toLocaleString("fa-IR") + " تومان"}
+                          {Math.floor(+product.Price * usdRate!).toLocaleString("fa-IR") + " تومان"}
                         </span>
                       )}
                     </td>
@@ -432,10 +529,11 @@ const ProductsTable = ({
                       <div className="flex justify-center gap-2">
                         <button
                           type="button"
+                          aria-label="کد QR"
                           onClick={() => qrCodeModalHandler(product)}
                           className={`${product.QrCode_Key ? "bg-violet-800" : "bg-sky-600"} ${
                             product.QrCode_Key ? "hover:bg-violet-900" : "hover:bg-sky-700"
-                          } rounded-lg p-2 transition-all`}
+                          } rounded-lg p-2 transition-colors focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:outline-none motion-reduce:transition-none`}
                         >
                           <IoQrCode size={20} color="#fff" />
                         </button>
@@ -449,7 +547,8 @@ const ProductsTable = ({
                         <button
                           type="button"
                           onClick={() => handleEditProduct(product)}
-                          className="rounded-lg bg-yellow-600 px-2 py-1 text-white transition-all hover:bg-yellow-700"
+                          aria-label={`ویرایش ${product.Type}`}
+                          className="rounded-lg bg-yellow-600 px-2 py-1 text-white transition-colors hover:bg-yellow-700 focus-visible:ring-2 focus-visible:ring-yellow-300 focus-visible:outline-none motion-reduce:transition-none"
                         >
                           ویرایش
                         </button>
@@ -464,7 +563,8 @@ const ProductsTable = ({
                               name: product.Type,
                             });
                           }}
-                          className="rounded-lg bg-red-600 px-2 py-1 text-white transition-all hover:bg-red-700"
+                          aria-label={`حذف ${product.Type}`}
+                          className="rounded-lg bg-red-600 px-2 py-1 text-white transition-colors hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:outline-none motion-reduce:transition-none"
                           data-testid="delete-product-button"
                         >
                           حذف
@@ -473,7 +573,8 @@ const ProductsTable = ({
                         <Link
                           href={`/products/${product.link}`}
                           target="_blank"
-                          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-2 py-1 text-white transition-all hover:bg-emerald-700"
+                          aria-label={`مشاهده ${product.Type}`}
+                          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-2 py-1 text-white transition-colors hover:bg-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:outline-none motion-reduce:transition-none"
                         >
                           مشاهده
                           <FaExternalLinkAlt size={12} />
@@ -485,26 +586,12 @@ const ProductsTable = ({
           </tbody>
         </table>
         {activeSubCategories && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-            <div className="w-11/12 max-w-lg rounded-lg bg-gray-700 p-6 text-white">
-              <h3 className="mb-4 text-xl font-semibold">
-                زیر دسته‌بندی‌های محصول: {activeSubCategories.name}
-              </h3>
-              <ul className="space-y-2">
-                {activeSubCategories.subCategories.map((subCategory, idx) => (
-                  <li key={idx} className="rounded-lg bg-gray-800 p-2 text-white">
-                    {subCategory}
-                  </li>
-                ))}
-              </ul>
-              <button
-                type="button"
-                onClick={() => setActiveSubCategories(null)}
-                className="mt-8 rounded-lg bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-800"
-              >
-                بستن
-              </button>
-            </div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <SubCategoriesPanel
+              onClose={() => setActiveSubCategories(null)}
+              name={activeSubCategories.name}
+              subCategories={activeSubCategories.subCategories}
+            />
           </div>
         )}
       </div>
