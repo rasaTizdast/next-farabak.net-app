@@ -30,7 +30,7 @@ function Overview({
   const imageUrl = getOverviewImageUrl(img);
 
   return (
-    <div className="bg-(--farabak-ink-deep) mx-auto flex w-full max-w-[1580px] flex-col items-center rounded-2xl p-6 shadow-[0_18px_45px_rgba(6,26,48,0.12)] sm:p-10">
+    <div className="mx-auto flex w-full max-w-[1580px] flex-col items-center rounded-2xl bg-(--farabak-ink-deep) p-6 shadow-[0_18px_45px_rgba(6,26,48,0.12)] sm:p-10">
       <div className="mb-8 flex max-w-3xl flex-col items-center gap-4 text-white">
         {title && <h3 className="mb-2 text-center text-2xl font-bold sm:text-3xl">{title}</h3>}
         {description && (

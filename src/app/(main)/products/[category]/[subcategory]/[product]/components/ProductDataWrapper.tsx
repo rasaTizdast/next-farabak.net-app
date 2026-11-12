@@ -147,48 +147,48 @@ export default async function ProductDataWrapper({
         <div className="grid items-stretch gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
           <ProductGallery title={productModel} images={[imageUrl]} />
 
-          <aside className="border-(--farabak-ink-deep)/10 flex h-full flex-col rounded-2xl border bg-white p-5 shadow-[0_18px_45px_rgba(6,26,48,0.08)] sm:p-7">
-            <p className="text-(--farabak-action-blue) text-sm font-semibold tracking-[0.12em]">
+          <aside className="flex h-full flex-col rounded-2xl border border-(--farabak-ink-deep)/10 bg-white p-5 shadow-[0_18px_45px_rgba(6,26,48,0.08)] sm:p-7">
+            <p className="text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
               پرونده فنی محصول
             </p>
             <h1
               id="product-dossier-title"
-              className="text-(--farabak-ink-deep) mt-4 text-2xl font-bold leading-10 sm:text-3xl"
+              className="mt-4 text-2xl leading-10 font-bold text-(--farabak-ink-deep) sm:text-3xl"
             >
               {productModel}
             </h1>
             {productDescription && productDescription !== productModel ? (
-              <p className="text-(--farabak-ink-muted) mt-3 text-sm leading-7">
+              <p className="mt-3 text-sm leading-7 text-(--farabak-ink-muted)">
                 {productDescription}
               </p>
             ) : null}
 
-            <div className="border-(--farabak-ink-deep)/10 mt-5 grid grid-cols-2 gap-3 border-y py-4 text-sm">
+            <div className="mt-5 grid grid-cols-2 gap-3 border-y border-(--farabak-ink-deep)/10 py-4 text-sm">
               <div>
-                <span className="text-(--farabak-ink-muted) block text-xs">کد محصول</span>
+                <span className="block text-xs text-(--farabak-ink-muted)">کد محصول</span>
                 <span
                   dir="ltr"
-                  className="text-(--farabak-ink-deep) mt-1 block font-mono font-semibold"
+                  className="mt-1 block font-mono font-semibold text-(--farabak-ink-deep)"
                 >
                   <bdi>FAR-{productData.ProductId}</bdi>
                 </span>
               </div>
               <div>
-                <span className="text-(--farabak-ink-muted) block text-xs">وضعیت</span>
-                <span className="text-(--farabak-action-blue) mt-1 block font-semibold">
+                <span className="block text-xs text-(--farabak-ink-muted)">وضعیت</span>
+                <span className="mt-1 block font-semibold text-(--farabak-action-blue)">
                   قابل بررسی برای سفارش
                 </span>
               </div>
             </div>
 
-            <div className="border-(--farabak-ink-deep)/10 mt-5 border-t pt-5">
-              <p className="text-(--farabak-ink-deep) mb-3 text-sm font-bold">ویژگی‌های کلیدی</p>
+            <div className="mt-5 border-t border-(--farabak-ink-deep)/10 pt-5">
+              <p className="mb-3 text-sm font-bold text-(--farabak-ink-deep)">ویژگی‌های کلیدی</p>
               <Suspense fallback={<SkeletonFeatures />}>
                 <ProductFeatures productId={productData.ProductId} />
               </Suspense>
             </div>
 
-            <div className="border-(--farabak-ink-deep)/10 mt-auto border-t pt-5">
+            <div className="mt-auto border-t border-(--farabak-ink-deep)/10 pt-5">
               <ClientInvoiceSection
                 ProductId={productData.ProductId}
                 ProductName={productData.Type}
