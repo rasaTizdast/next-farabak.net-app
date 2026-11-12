@@ -81,4 +81,26 @@ describe("product page metadata", () => {
     expect(metadata.openGraph?.images).toEqual(["https://farabak.net/Farabak_Logo.webp"]);
     expect(metadata.twitter?.images).toEqual(["https://farabak.net/Farabak_Logo.webp"]);
   });
+
+  it("uses the verified product thumbnail when the catalog banner image is missing", async () => {
+    getProductBySlugMock.mockResolvedValue({
+      ...product,
+      img1: "blackmagic-2110-ip-converter-3x3g/blackmagic-2110-ip-converter-3x3g-mini.png",
+      img2: "blackmagic-2110-ip-converter-3x3g/blackmagic-2110-ip-converter-3x3g-banner.jpg",
+    });
+
+    const metadata = await generateMetadata({
+      params: Promise.resolve({
+        category: "blackmagic",
+        subcategory: "broadcast-convertor",
+        product: "blackmagic-2110-ip-converter-3x3g",
+      }),
+      searchParams: Promise.resolve({ key: "" }),
+    });
+    const imageUrl =
+      "https://farabaks3.storage.c2.liara.space/productImages/blackmagic-2110-ip-converter-3x3g/blackmagic-2110-ip-converter-3x3g-mini.png";
+
+    expect(metadata.openGraph?.images).toEqual([imageUrl]);
+    expect(metadata.twitter?.images).toEqual([imageUrl]);
+  });
 });

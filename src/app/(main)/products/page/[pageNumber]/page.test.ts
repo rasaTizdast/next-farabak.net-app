@@ -38,5 +38,6 @@ describe("global product pagination metadata", () => {
 
     expect(metadata.robots).toMatchObject({ index: true, follow: true });
     expect(metadata.alternates?.canonical).toBe("https://farabak.net/products/page/2");
+    expect(metadata.openGraph?.images).toEqual(["/opengraph-image.webp"]);
   });
 });

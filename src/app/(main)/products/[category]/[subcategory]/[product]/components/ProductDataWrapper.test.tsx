@@ -83,6 +83,20 @@ describe("main product structured data", () => {
     expect(schema["@graph"][0].description).toBeUndefined();
   });
 
+  it("uses the verified thumbnail for Product JSON-LD when the 2110 banner is missing", async () => {
+    getProductBySlugMock.mockResolvedValue({
+      ...validProduct,
+      img1: "blackmagic-2110-ip-converter-3x3g/blackmagic-2110-ip-converter-3x3g-mini.png",
+      img2: "blackmagic-2110-ip-converter-3x3g/blackmagic-2110-ip-converter-3x3g-banner.jpg",
+    });
+
+    const { schema } = await getRenderedProductSchema();
+
+    expect(schema["@graph"][0].image).toBe(
+      "https://farabaks3.storage.c2.liara.space/productImages/blackmagic-2110-ip-converter-3x3g/blackmagic-2110-ip-converter-3x3g-mini.png"
+    );
+  });
+
   it("escapes markup characters in database text before embedding JSON-LD", async () => {
     getProductBySlugMock.mockResolvedValue({
       ...validProduct,

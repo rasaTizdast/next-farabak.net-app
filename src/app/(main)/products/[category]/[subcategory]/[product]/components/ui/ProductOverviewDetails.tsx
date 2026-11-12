@@ -5,6 +5,19 @@ import {
   type ProductOverviewDetailItem,
 } from "@/lib/data/productOverview";
 
+function getOverviewImageUrl(image: string | null): string | null {
+  let imagePath = image?.trim() ?? "";
+  let bucketUrl =
+    (process.env.LIARA_BUCKET_URL || process.env.NEXT_PUBLIC_LIARA_BUCKET_URL)?.trim() ?? "";
+
+  while (imagePath.startsWith("/")) imagePath = imagePath.slice(1);
+  while (bucketUrl.endsWith("/")) bucketUrl = bucketUrl.slice(0, -1);
+
+  if (!imagePath || !bucketUrl) return null;
+
+  return new URL(imagePath, bucketUrl + "/overview-details-images/").toString();
+}
+
 function Overview({
   title,
   description,
@@ -14,18 +27,20 @@ function Overview({
   description: string | null;
   img: string | null;
 }) {
+  const imageUrl = getOverviewImageUrl(img);
+
   return (
-    <div className="mx-auto flex w-full max-w-[1580px] flex-col items-center rounded-2xl bg-(--farabak-ink-deep) p-6 shadow-[0_18px_45px_rgba(6,26,48,0.12)] sm:p-10">
+    <div className="bg-(--farabak-ink-deep) mx-auto flex w-full max-w-[1580px] flex-col items-center rounded-2xl p-6 shadow-[0_18px_45px_rgba(6,26,48,0.12)] sm:p-10">
       <div className="mb-8 flex max-w-3xl flex-col items-center gap-4 text-white">
         {title && <h3 className="mb-2 text-center text-2xl font-bold sm:text-3xl">{title}</h3>}
         {description && (
           <p className="text-center text-sm leading-8 text-slate-200 sm:text-base">{description}</p>
         )}
       </div>
-      {img && (
+      {imageUrl && (
         <div className="relative aspect-video w-full max-w-[900px] overflow-hidden rounded-xl bg-white/5 shadow-[0_4px_10px_5px_rgba(255,255,255,0.1)]">
           <SmartImage
-            src={`${process.env.LIARA_BUCKET_URL}/overview-details-images${img}`}
+            src={imageUrl}
             alt={title || "Product image"}
             width={1920}
             height={1080}

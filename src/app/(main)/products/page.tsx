@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { OG_IMAGE_PATH } from "@/constants/meta";
 import { getAllProducts } from "@/lib/data/products";
 import { parsePositivePageNumber } from "@/lib/pagination";
 
@@ -46,6 +47,7 @@ export const generateMetadata = async (props: ProductsPageProps): Promise<Metada
     openGraph: {
       title: `لیست محصولات - صفحه ${currentPage} | فرابک`,
       description: `تمامی محصولات فرابک: دوربین مداربسته ریولینک، محصولات بلک مجیک، گیت‌های کنترل تردد و دستگاه‌های ایکس‌ری با قیمت رقابتی و گارانتی. جستجو و خرید آسان تجهیزات نظارتی حرفه‌ای.`,
+      images: [OG_IMAGE_PATH],
     },
     alternates: {
       canonical: pageExists ? canonicalUrl : `${process.env.NEXT_PUBLIC_BASE_URL}/products`,

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { OG_IMAGE_PATH } from "@/constants/meta";
 import { getAllProducts } from "@/lib/data/products";
 import { parsePositivePageNumber } from "@/lib/pagination";
 
@@ -43,6 +44,7 @@ export const generateMetadata = async (props: ProductsPageProps): Promise<Metada
     openGraph: {
       title: `تمامی محصولات - صفحه ${currentPage} | فرابک`,
       description: `با مرور در صفحه ${currentPage} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
+      images: [OG_IMAGE_PATH],
     },
     alternates: {
       canonical: pageExists ? canonicalUrl : `${process.env.NEXT_PUBLIC_BASE_URL}/products`,

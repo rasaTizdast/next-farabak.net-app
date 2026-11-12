@@ -84,7 +84,7 @@ export async function generateMetadata(props: ProductPageProps): Promise<Metadat
     `/products/${data.categorySlug}/${data.subCategorySlug}/${data.productSlug}`,
     process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net"
   ).toString();
-  const imageUrl = getProductImageUrl(data.img2);
+  const imageUrl = getProductImageUrl(data.img2, data.img1);
 
   return {
     title,

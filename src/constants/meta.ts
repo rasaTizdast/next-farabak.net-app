@@ -35,8 +35,8 @@ export const defaultMetadata: Metadata = {
     images: [
       {
         url: OG_IMAGE_PATH,
-        width: 1200,
-        height: 630,
+        width: 2066,
+        height: 182,
         alt: `${SITE_NAME} | فروشگاه محصولات نظارتی و امنیتی`,
       },
     ],

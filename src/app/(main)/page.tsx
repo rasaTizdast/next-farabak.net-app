@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import TrustLanding from "@/app/_components/LandingPage/TrustLanding";
 import Schema from "@/components/Schema";
+import { OG_IMAGE_PATH } from "@/constants/meta";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net";
 
@@ -18,6 +19,7 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "فرابک",
     locale: "fa_IR",
+    images: [OG_IMAGE_PATH],
   },
 };
 
