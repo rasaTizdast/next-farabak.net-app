@@ -65,6 +65,7 @@ export default async function CategoryPageWrapper({
               name: product.Type?.trim() || product.Name?.trim() || null,
               path: product.link,
             }))}
+          breadcrumbCategoryTitle={categoryTitle}
         />
       </Suspense>
     </>

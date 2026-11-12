@@ -1,6 +1,10 @@
 import { serializeJsonLd } from "@/lib/seo/json-ld";
 
-import { buildProductCollectionSchema, type CollectionProduct } from "./product-collection-schema";
+import {
+  buildProductCollectionSchema,
+  type CollectionBreadcrumb,
+  type CollectionProduct,
+} from "./product-collection-schema";
 import ProductGrid from "./ProductGrid";
 
 interface ProductGridWrapperProps {
@@ -11,6 +15,8 @@ interface ProductGridWrapperProps {
   subcategorySlug?: string;
   canonicalUrl?: string;
   collectionItems?: CollectionProduct[];
+  breadcrumbCategoryTitle?: string;
+  breadcrumbSubcategoryTitle?: string;
 }
 
 function ProductCollectionStructuredData({
@@ -20,15 +26,46 @@ function ProductCollectionStructuredData({
   subcategorySlug,
   canonicalUrl,
   collectionItems,
+  breadcrumbCategoryTitle,
+  breadcrumbSubcategoryTitle,
 }: Pick<
   ProductGridWrapperProps,
-  "title" | "currentPage" | "categorySlug" | "subcategorySlug" | "canonicalUrl" | "collectionItems"
+  | "title"
+  | "currentPage"
+  | "categorySlug"
+  | "subcategorySlug"
+  | "canonicalUrl"
+  | "collectionItems"
+  | "breadcrumbCategoryTitle"
+  | "breadcrumbSubcategoryTitle"
 >) {
   if (!collectionItems) return null;
+
+  const breadcrumbs: CollectionBreadcrumb[] = [
+    { name: "خانه", path: "/" },
+    { name: "محصولات", path: "/products" },
+  ];
+
+  if (categorySlug) {
+    breadcrumbs.push({
+      name: breadcrumbCategoryTitle || categorySlug,
+      path: `/products/${categorySlug}`,
+    });
+  }
+  if (subcategorySlug && categorySlug) {
+    breadcrumbs.push({
+      name: breadcrumbSubcategoryTitle || subcategorySlug,
+      path: `/products/${categorySlug}/${subcategorySlug}`,
+    });
+  }
+  if (currentPage > 1 && canonicalUrl) {
+    breadcrumbs.push({ name: `صفحه ${currentPage}`, path: canonicalUrl });
+  }
 
   const schema = buildProductCollectionSchema({
     title: currentPage > 1 ? `${title} - صفحه ${currentPage} | فرابک` : `${title} | فرابک`,
     canonicalUrl: canonicalUrl || "https://farabak.net/products",
+    breadcrumbs,
     products: collectionItems,
   });
 
@@ -49,6 +86,8 @@ export default function ProductGridWrapper({
   subcategorySlug,
   canonicalUrl,
   collectionItems,
+  breadcrumbCategoryTitle,
+  breadcrumbSubcategoryTitle,
 }: ProductGridWrapperProps) {
   return (
     <>
@@ -59,6 +98,8 @@ export default function ProductGridWrapper({
         subcategorySlug={subcategorySlug}
         canonicalUrl={canonicalUrl}
         collectionItems={collectionItems}
+        breadcrumbCategoryTitle={breadcrumbCategoryTitle}
+        breadcrumbSubcategoryTitle={breadcrumbSubcategoryTitle}
       />
       <ProductGrid
         title={title}

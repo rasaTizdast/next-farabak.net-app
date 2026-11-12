@@ -5,6 +5,11 @@ export interface CollectionProduct {
   path: string | null | undefined;
 }
 
+export interface CollectionBreadcrumb {
+  name: string;
+  path: string;
+}
+
 function absoluteSiteUrl(path: string): string | null {
   try {
     const url = new URL(path, SITE_ORIGIN);
@@ -27,10 +32,12 @@ function canonicalPageUrl(value: string): string | null {
 export function buildProductCollectionSchema({
   title,
   canonicalUrl,
+  breadcrumbs,
   products,
 }: {
   title: string;
   canonicalUrl: string;
+  breadcrumbs: CollectionBreadcrumb[];
   products: CollectionProduct[];
 }) {
   const pageUrl = canonicalPageUrl(canonicalUrl);
@@ -69,6 +76,22 @@ export function buildProductCollectionSchema({
     "@id": pageUrl,
     url: pageUrl,
     name: title,
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: breadcrumbs.flatMap((breadcrumb, index) => {
+        const item = absoluteSiteUrl(breadcrumb.path);
+        return item
+          ? [
+              {
+                "@type": "ListItem",
+                position: index + 1,
+                name: breadcrumb.name,
+                item,
+              },
+            ]
+          : [];
+      }),
+    },
     mainEntity: {
       "@type": "ItemList",
       "@id": `${pageUrl}#itemlist`,

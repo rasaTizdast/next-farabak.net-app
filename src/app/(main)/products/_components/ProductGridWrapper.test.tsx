@@ -11,8 +11,19 @@ const pageVariants = [
     props: {
       categorySlug: "x-ray",
       canonicalUrl: "https://farabak.net/products/x-ray",
+      breadcrumbCategoryTitle: "ایکس‌ری",
     },
     expectedUrl: "https://farabak.net/products/x-ray",
+    expectedBreadcrumbs: [
+      { "@type": "ListItem", position: 1, name: "خانه", item: "https://farabak.net/" },
+      { "@type": "ListItem", position: 2, name: "محصولات", item: "https://farabak.net/products" },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: "ایکس‌ری",
+        item: "https://farabak.net/products/x-ray",
+      },
+    ],
   },
   {
     name: "category page two",
@@ -20,8 +31,25 @@ const pageVariants = [
       categorySlug: "x-ray",
       currentPage: 2,
       canonicalUrl: "https://farabak.net/products/x-ray/page/2",
+      breadcrumbCategoryTitle: "ایکس‌ری",
     },
     expectedUrl: "https://farabak.net/products/x-ray/page/2",
+    expectedBreadcrumbs: [
+      { "@type": "ListItem", position: 1, name: "خانه", item: "https://farabak.net/" },
+      { "@type": "ListItem", position: 2, name: "محصولات", item: "https://farabak.net/products" },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: "ایکس‌ری",
+        item: "https://farabak.net/products/x-ray",
+      },
+      {
+        "@type": "ListItem",
+        position: 4,
+        name: "صفحه 2",
+        item: "https://farabak.net/products/x-ray/page/2",
+      },
+    ],
   },
   {
     name: "subcategory root",
@@ -29,8 +57,26 @@ const pageVariants = [
       categorySlug: "x-ray",
       subcategorySlug: "airport-luggage",
       canonicalUrl: "https://farabak.net/products/x-ray/airport-luggage",
+      breadcrumbCategoryTitle: "ایکس‌ری",
+      breadcrumbSubcategoryTitle: "بار فرودگاهی",
     },
     expectedUrl: "https://farabak.net/products/x-ray/airport-luggage",
+    expectedBreadcrumbs: [
+      { "@type": "ListItem", position: 1, name: "خانه", item: "https://farabak.net/" },
+      { "@type": "ListItem", position: 2, name: "محصولات", item: "https://farabak.net/products" },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: "ایکس‌ری",
+        item: "https://farabak.net/products/x-ray",
+      },
+      {
+        "@type": "ListItem",
+        position: 4,
+        name: "بار فرودگاهی",
+        item: "https://farabak.net/products/x-ray/airport-luggage",
+      },
+    ],
   },
   {
     name: "subcategory page two",
@@ -39,8 +85,32 @@ const pageVariants = [
       subcategorySlug: "airport-luggage",
       currentPage: 2,
       canonicalUrl: "https://farabak.net/products/x-ray/airport-luggage/page/2",
+      breadcrumbCategoryTitle: "ایکس‌ری",
+      breadcrumbSubcategoryTitle: "بار فرودگاهی",
     },
     expectedUrl: "https://farabak.net/products/x-ray/airport-luggage/page/2",
+    expectedBreadcrumbs: [
+      { "@type": "ListItem", position: 1, name: "خانه", item: "https://farabak.net/" },
+      { "@type": "ListItem", position: 2, name: "محصولات", item: "https://farabak.net/products" },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: "ایکس‌ری",
+        item: "https://farabak.net/products/x-ray",
+      },
+      {
+        "@type": "ListItem",
+        position: 4,
+        name: "بار فرودگاهی",
+        item: "https://farabak.net/products/x-ray/airport-luggage",
+      },
+      {
+        "@type": "ListItem",
+        position: 5,
+        name: "صفحه 2",
+        item: "https://farabak.net/products/x-ray/airport-luggage/page/2",
+      },
+    ],
   },
 ];
 
@@ -79,6 +149,10 @@ describe("ProductGridWrapper JSON-LD HTML", () => {
     expect(schema).toMatchObject({
       "@type": "CollectionPage",
       url: expectedUrl,
+      breadcrumb: {
+        "@type": "BreadcrumbList",
+        itemListElement: expectedBreadcrumbs,
+      },
       mainEntity: {
         "@type": "ItemList",
         itemListElement: [

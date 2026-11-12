@@ -5,10 +5,17 @@ import { serializeJsonLd } from "@/lib/seo/json-ld";
 import { buildProductCollectionSchema } from "./product-collection-schema";
 
 describe("product collection structured data", () => {
+  const breadcrumbs = [
+    { name: "خانه", path: "/" },
+    { name: "محصولات", path: "/products" },
+    { name: "Blackmagic Design", path: "/products/blackmagic" },
+  ];
+
   it("describes the collection and only the provided real product names and URLs", () => {
     const schema = buildProductCollectionSchema({
       title: "Blackmagic Design | فرابک",
       canonicalUrl: "https://farabak.net/products/blackmagic",
+      breadcrumbs,
       products: [
         { name: "Blackmagic PYXIS 12K", path: "blackmagic/camera/pyxis-12k" },
         { name: "ATEM Television Studio HD8", path: "blackmagic/switcher/atem-hd8" },
@@ -37,7 +44,26 @@ describe("product collection structured data", () => {
         ],
       },
     });
-    expect(schema).not.toHaveProperty("breadcrumb");
+    expect(schema).toMatchObject({
+      breadcrumb: {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "خانه", item: "https://farabak.net/" },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "محصولات",
+            item: "https://farabak.net/products",
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: "Blackmagic Design",
+            item: "https://farabak.net/products/blackmagic",
+          },
+        ],
+      },
+    });
 
     const serialized = JSON.stringify(schema);
     expect(serialized).not.toMatch(
@@ -50,6 +76,7 @@ describe("product collection structured data", () => {
     const schema = buildProductCollectionSchema({
       title: "محصولات فرابک",
       canonicalUrl: "https://farabak.net/products",
+      breadcrumbs: breadcrumbs.slice(0, 2),
       products: [
         { name: "CTX 9800 DSi", path: "x-ray/airport-luggage/ctx-9800-dsi" },
         { name: "Argus 2", path: "reolink-cctv-camera/night-vision/Argus-2" },
@@ -71,6 +98,7 @@ describe("product collection structured data", () => {
     const schema = buildProductCollectionSchema({
       title: "محصولات ایکس‌ری | فرابک",
       canonicalUrl: "/products/x-ray",
+      breadcrumbs: [...breadcrumbs.slice(0, 2), { name: "ایکس‌ری", path: "/products/x-ray" }],
       products: [
         { name: "", path: "x-ray/airport/ctx-5800" },
         { name: "مدل بدون مسیر کامل", path: "x-ray//broken" },
@@ -93,6 +121,7 @@ describe("product collection structured data", () => {
     const schema = buildProductCollectionSchema({
       title: "X-ray </script><script>alert(1)</script>",
       canonicalUrl: "https://farabak.net/products/x-ray",
+      breadcrumbs: [...breadcrumbs.slice(0, 2), { name: "ایکس‌ری", path: "/products/x-ray" }],
       products: [{ name: "Model </script>", path: "x-ray/airport/model" }],
     });
     const serialized = serializeJsonLd(schema);

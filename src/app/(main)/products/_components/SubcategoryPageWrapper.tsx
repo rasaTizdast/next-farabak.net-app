@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { getProductsBySubcategory, getSubCategoryName } from "@/lib/data/products";
+import { getCategoryName, getProductsBySubcategory, getSubCategoryName } from "@/lib/data/products";
 
 import ProductGridWrapper from "./ProductGridWrapper";
 import { ProductGridSkeleton } from "./ProductListSkeletons";
@@ -25,6 +25,15 @@ async function fetchSubcategoryData(subcategoryName: string) {
   }
 }
 
+async function fetchCategoryData(categoryName: string) {
+  try {
+    const result = await getCategoryName(categoryName);
+    return result?.categoryName ?? categoryName;
+  } catch {
+    return categoryName;
+  }
+}
+
 export default async function SubcategoryPageWrapper({
   categoryName,
   subcategoryName,
@@ -32,8 +41,9 @@ export default async function SubcategoryPageWrapper({
   limit,
   canonicalUrl,
 }: SubcategoryPageWrapperProps) {
-  const [subCategoryTitle, subcategoryProducts] = await Promise.all([
+  const [subCategoryTitle, categoryTitle, subcategoryProducts] = await Promise.all([
     fetchSubcategoryData(subcategoryName),
+    fetchCategoryData(categoryName),
     getProductsBySubcategory(subcategoryName, { page: currentPage, limit }).catch(() => null),
   ]);
 
@@ -55,6 +65,8 @@ export default async function SubcategoryPageWrapper({
               name: product.Type?.trim() || product.Name?.trim() || null,
               path: product.link,
             }))}
+          breadcrumbCategoryTitle={categoryTitle}
+          breadcrumbSubcategoryTitle={subCategoryTitle}
         />
       </Suspense>
     </>
