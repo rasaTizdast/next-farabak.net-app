@@ -16,11 +16,17 @@ export function assessScannerFit(input: SiteFitInput, facts: ScannerFitFacts): F
       if (input.clearanceMm === null) {
         missing.push("فاصله آزاد موردنیاز برای عبور شیء وارد نشده است");
       } else if (facts.tunnelWidthIsMaximumAtConveyorEdge) {
-        missing.push(`${label}: بیشینهٔ عرض در لبهٔ نوار ثبت شده است؛ دهانهٔ مفید برای این شیء در ارتفاع آن تأیید نشده است`);
+        missing.push(
+          `${label}: بیشینهٔ عرض در لبهٔ نوار ثبت شده است؛ دهانهٔ مفید برای این شیء در ارتفاع آن تأیید نشده است`
+        );
       } else if (object + input.clearanceMm < opening) {
-        passed.push(`${label}: ${object + input.clearanceMm} میلی‌متر با فاصله آزاد، کمتر از ${opening} میلی‌متر`);
+        passed.push(
+          `${label}: ${object + input.clearanceMm} میلی‌متر با فاصله آزاد، کمتر از ${opening} میلی‌متر`
+        );
       } else {
-        failed.push(`${label}: ${object + input.clearanceMm} میلی‌متر با فاصله آزاد، کمتر از ${opening} میلی‌متر نیست`);
+        failed.push(
+          `${label}: ${object + input.clearanceMm} میلی‌متر با فاصله آزاد، کمتر از ${opening} میلی‌متر نیست`
+        );
       }
     }
   }
@@ -38,9 +44,13 @@ export function assessScannerFit(input: SiteFitInput, facts: ScannerFitFacts): F
       if (input.handlingClearanceMm === null) {
         missing.push("فضای جابه‌جایی هنگام تحویل وارد نشده است");
       } else if (machine + input.handlingClearanceMm <= route) {
-        passed.push(`${label}: ${machine + input.handlingClearanceMm} میلی‌متر در محدوده ${route} میلی‌متر`);
+        passed.push(
+          `${label}: ${machine + input.handlingClearanceMm} میلی‌متر در محدوده ${route} میلی‌متر`
+        );
       } else {
-        failed.push(`${label}: ${machine + input.handlingClearanceMm} میلی‌متر بیشتر از محدوده ${route} میلی‌متر`);
+        failed.push(
+          `${label}: ${machine + input.handlingClearanceMm} میلی‌متر بیشتر از محدوده ${route} میلی‌متر`
+        );
       }
     }
   }
@@ -58,9 +68,13 @@ export function assessScannerFit(input: SiteFitInput, facts: ScannerFitFacts): F
       if (input.handlingClearanceMm === null) {
         missing.push("فضای جابه‌جایی/نصب دستگاه وارد نشده است");
       } else if (machine + input.handlingClearanceMm <= site) {
-        passed.push(`${label}: ${machine + input.handlingClearanceMm} میلی‌متر در محدوده ${site} میلی‌متر`);
+        passed.push(
+          `${label}: ${machine + input.handlingClearanceMm} میلی‌متر در محدوده ${site} میلی‌متر`
+        );
       } else {
-        failed.push(`${label}: ${machine + input.handlingClearanceMm} میلی‌متر بیشتر از محدوده ${site} میلی‌متر`);
+        failed.push(
+          `${label}: ${machine + input.handlingClearanceMm} میلی‌متر بیشتر از محدوده ${site} میلی‌متر`
+        );
       }
     }
   }
@@ -69,9 +83,13 @@ export function assessScannerFit(input: SiteFitInput, facts: ScannerFitFacts): F
   return { status, passed, failed, missing: [...new Set(missing)] };
 }
 
-export function compareDimension(required: number | null, available: number | null, clearance: number | null) {
+export function compareDimension(
+  required: number | null,
+  available: number | null,
+  clearance: number | null
+) {
   if (required === null || available === null || clearance === null) return "needs-review" as const;
-  return required + clearance < available ? "fits" as const : "does-not-fit" as const;
+  return required + clearance < available ? ("fits" as const) : ("does-not-fit" as const);
 }
 
 export function describeFlowRequirement(requiredItemsPerHour: number | null): string {

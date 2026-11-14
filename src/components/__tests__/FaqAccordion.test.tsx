@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 
 import FaqAccordion from "../FaqAccordion";
 
@@ -24,16 +24,29 @@ describe("FaqAccordion", () => {
 
   it("shows answer when FAQ is clicked", () => {
     render(<FaqAccordion faqs={mockFaqs} />);
-    fireEvent.click(screen.getByText("What is this?"));
-    expect(screen.getByText("It is a test FAQ.")).toBeDefined();
+    const question = screen.getByRole("button", { name: "What is this?" });
+    expect(question).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByText("It is a test FAQ.")).not.toBeVisible();
+
+    fireEvent.click(question);
+
+    const panel = screen.getByRole("region", { name: "What is this?" });
+    expect(question).toHaveAttribute("aria-expanded", "true");
+    expect(panel).toBeVisible();
+    expect(panel).toHaveTextContent("It is a test FAQ.");
   });
 
   it("hides answer when FAQ is clicked again", () => {
     render(<FaqAccordion faqs={mockFaqs} />);
-    fireEvent.click(screen.getByText("What is this?"));
-    expect(screen.getByText("It is a test FAQ.")).toBeDefined();
-    fireEvent.click(screen.getByText("What is this?"));
-    expect(screen.queryByText("It is a test FAQ.")).toBeNull();
+    const question = screen.getByRole("button", { name: "What is this?" });
+    fireEvent.click(question);
+    const panel = screen.getByRole("region", { name: "What is this?" });
+
+    fireEvent.click(question);
+
+    expect(question).toHaveAttribute("aria-expanded", "false");
+    expect(panel).toHaveAttribute("hidden");
+    expect(panel).not.toBeVisible();
   });
 
   it("filters FAQs based on search query", () => {

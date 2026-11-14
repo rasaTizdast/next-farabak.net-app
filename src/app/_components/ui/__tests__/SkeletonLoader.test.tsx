@@ -4,23 +4,18 @@ import { describe, it, expect } from "vitest";
 import SkeletonLoader from "../SkeletonLoader";
 
 describe("SkeletonLoader (CategorySliderLoader)", () => {
-  it("renders default 6 skeleton items", () => {
-    const { container } = render(<SkeletonLoader />);
-    const items = container.querySelectorAll(".animate-pulse");
-    // 6 items + 2 button skeletons = 8, but we check the slider items specifically
-    expect(items.length).toBeGreaterThanOrEqual(6);
-  });
+  it.each([
+    { amount: undefined, expected: 6 },
+    { amount: 3, expected: 3 },
+    { amount: 1, expected: 1 },
+  ])("renders $expected slider placeholders when amount is $amount", ({ amount, expected }) => {
+    const { container } = render(<SkeletonLoader amount={amount} />);
+    const items = container.querySelectorAll(".scrollbar-hide > *");
 
-  it("renders custom amount of skeleton items", () => {
-    const { container } = render(<SkeletonLoader amount={3} />);
-    const items = container.querySelectorAll(".animate-pulse");
-    expect(items.length).toBeGreaterThanOrEqual(3);
-  });
-
-  it("renders with 1 item", () => {
-    const { container } = render(<SkeletonLoader amount={1} />);
-    const items = container.querySelectorAll(".animate-pulse");
-    expect(items.length).toBeGreaterThanOrEqual(1);
+    expect(items).toHaveLength(expected);
+    for (const item of items) {
+      expect(item.querySelector(".skeleton-shimmer")).toBeInTheDocument();
+    }
   });
 
   it("renders a scrollbar hide style element", () => {

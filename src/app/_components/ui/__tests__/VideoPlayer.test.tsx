@@ -10,9 +10,9 @@ describe("VideoPlayer", () => {
     expect(video).toBeDefined();
   });
 
-  it("renders the heading text", () => {
+  it("renders an accessible heading for the project video", () => {
     render(<VideoPlayer url="https://example.com/video.mp4" />);
-    expect(screen.getByText("کلیپ معرفی پروژه")).toBeDefined();
+    expect(screen.getByRole("heading", { name: "ویدیوی ثبت‌شده پروژه" })).toBeInTheDocument();
   });
 
   it("passes the url to the source element", () => {

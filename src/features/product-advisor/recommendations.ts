@@ -52,7 +52,8 @@ function ruleEvidence(
       : {
           matched: [],
           tradeoffs: [
-            rule.tradeoff ?? `نیاز «${rule.evidenceLabel}» در نام یا دسته‌بندی ثبت‌شده تأیید نشده است.`,
+            rule.tradeoff ??
+              `نیاز «${rule.evidenceLabel}» در نام یا دسته‌بندی ثبت‌شده تأیید نشده است.`,
           ],
           unknown: [],
           sourceLabels: [],

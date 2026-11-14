@@ -32,5 +32,12 @@ export type CctvStorageResult = {
 };
 
 export type CameraGroupFieldErrors = Partial<
-  Record<"cameraCount" | "averageBitrateMbps" | "recordingHoursPerDay" | "retentionDays" | "motionDutyCycle", string>
+  Record<
+    | "cameraCount"
+    | "averageBitrateMbps"
+    | "recordingHoursPerDay"
+    | "retentionDays"
+    | "motionDutyCycle",
+    string
+  >
 >;
