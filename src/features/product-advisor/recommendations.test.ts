@@ -86,13 +86,17 @@ describe("recommendProducts", () => {
       ],
     };
 
-    const result = recommendProducts(definition, [
-      { ...products[0], productId: 3, name: "ATEM Mini Pro", model: "ATEM Mini Pro" },
-      { ...products[0], productId: 4, name: "DeckLink 8K Pro", model: "DeckLink 8K Pro" },
-    ], [
-      { questionId: "workflow", value: "live" },
-      { questionId: "form-factor", value: "compact" },
-    ]);
+    const result = recommendProducts(
+      definition,
+      [
+        { ...products[0], productId: 3, name: "ATEM Mini Pro", model: "ATEM Mini Pro" },
+        { ...products[0], productId: 4, name: "DeckLink 8K Pro", model: "DeckLink 8K Pro" },
+      ],
+      [
+        { questionId: "workflow", value: "live" },
+        { questionId: "form-factor", value: "compact" },
+      ]
+    );
 
     expect(result.mode).toBe("ranked");
     expect(result.candidates[0]?.product.productId).toBe(3);

@@ -131,11 +131,36 @@ export const advisorCategoryDefinitions: Record<string, AdvisorCategoryDefinitio
       ],
     ],
     [
-      catalogRule("environment", "hazardous", ["ضد انفجار", "atex", "zone", "explosion"], "برای محیط پرخطر ثبت شده است"),
-      catalogRule("environment", "industrial", ["حرارتی", "thermal", "دوربین", "camera"], "برای پایش صنعتی ثبت شده است"),
-      catalogRule("scene", "area", ["ptz", "حرارتی", "thermal", "x36c"], "برای پوشش محوطه ثبت شده است"),
-      catalogRule("scene", "point", ["ماژول", "module", "x36c", "sgc-ex-sh"], "برای پایش نقطه‌ای ثبت شده است"),
-      catalogRule("detail", "high", ["زوم", "zoom", "حرارتی", "thermal", "x36c"], "جزئیات یا زوم پیشرفته در نام محصول ثبت شده است"),
+      catalogRule(
+        "environment",
+        "hazardous",
+        ["ضد انفجار", "atex", "zone", "explosion"],
+        "برای محیط پرخطر ثبت شده است"
+      ),
+      catalogRule(
+        "environment",
+        "industrial",
+        ["حرارتی", "thermal", "دوربین", "camera"],
+        "برای پایش صنعتی ثبت شده است"
+      ),
+      catalogRule(
+        "scene",
+        "area",
+        ["ptz", "حرارتی", "thermal", "x36c"],
+        "برای پوشش محوطه ثبت شده است"
+      ),
+      catalogRule(
+        "scene",
+        "point",
+        ["ماژول", "module", "x36c", "sgc-ex-sh"],
+        "برای پایش نقطه‌ای ثبت شده است"
+      ),
+      catalogRule(
+        "detail",
+        "high",
+        ["زوم", "zoom", "حرارتی", "thermal", "x36c"],
+        "جزئیات یا زوم پیشرفته در نام محصول ثبت شده است"
+      ),
     ]
   ),
   blackmagic: category(
@@ -171,12 +196,42 @@ export const advisorCategoryDefinitions: Record<string, AdvisorCategoryDefinitio
       ],
     ],
     [
-      catalogRule("workflow", "capture", ["camera", "ursa", "pyxis", "pocket"], "برای تصویربرداری ثبت شده است"),
-      catalogRule("workflow", "live", ["atem", "web presenter", "streaming", "ultimatte", "studio camera"], "برای تولید زنده ثبت شده است"),
-      catalogRule("workflow", "post", ["davinci", "decklink", "ultrastudio", "cintel"], "برای پس‌تولید ثبت شده است"),
-      catalogRule("resolution", "4k", ["4k", "12g", "ultra hd"], "پشتیبانی 4K یا Ultra HD در نام محصول ثبت شده است"),
-      catalogRule("resolution", "high", ["8k", "12k", "17k"], "رزولوشن بالاتر از 4K در نام محصول ثبت شده است"),
-      catalogRule("form-factor", "compact", ["micro", "mini", "pocket"], "فرم جمع‌وجور در نام محصول ثبت شده است"),
+      catalogRule(
+        "workflow",
+        "capture",
+        ["camera", "ursa", "pyxis", "pocket"],
+        "برای تصویربرداری ثبت شده است"
+      ),
+      catalogRule(
+        "workflow",
+        "live",
+        ["atem", "web presenter", "streaming", "ultimatte", "studio camera"],
+        "برای تولید زنده ثبت شده است"
+      ),
+      catalogRule(
+        "workflow",
+        "post",
+        ["davinci", "decklink", "ultrastudio", "cintel"],
+        "برای پس‌تولید ثبت شده است"
+      ),
+      catalogRule(
+        "resolution",
+        "4k",
+        ["4k", "12g", "ultra hd"],
+        "پشتیبانی 4K یا Ultra HD در نام محصول ثبت شده است"
+      ),
+      catalogRule(
+        "resolution",
+        "high",
+        ["8k", "12k", "17k"],
+        "رزولوشن بالاتر از 4K در نام محصول ثبت شده است"
+      ),
+      catalogRule(
+        "form-factor",
+        "compact",
+        ["micro", "mini", "pocket"],
+        "فرم جمع‌وجور در نام محصول ثبت شده است"
+      ),
       catalogRule("form-factor", "studio", ["studio", "ursa", "atem"], "برای استودیو ثبت شده است"),
     ]
   ),
@@ -212,11 +267,21 @@ export const advisorCategoryDefinitions: Record<string, AdvisorCategoryDefinitio
       ],
     ],
     [
-      catalogRule("object-size", "bag", ["چمدان", "6040", "fxr-1d"], "برای بازرسی کیف یا چمدان ثبت شده است"),
+      catalogRule(
+        "object-size",
+        "bag",
+        ["چمدان", "6040", "fxr-1d"],
+        "برای بازرسی کیف یا چمدان ثبت شده است"
+      ),
       catalogRule("object-size", "parcel", ["fxr-2d", "6550", "6040"], "برای مرسوله ثبت شده است"),
       catalogRule("object-size", "large", ["6550", "200 کیلو"], "برای اقلام بزرگ‌تر ثبت شده است"),
       catalogRule("traffic", "high", ["6040", "6550", "dv"], "برای حجم عبور بالاتر ثبت شده است"),
-      catalogRule("traffic", "standard", ["fxr-1d", "fxr-2d"], "برای حجم عبور استاندارد ثبت شده است"),
+      catalogRule(
+        "traffic",
+        "standard",
+        ["fxr-1d", "fxr-2d"],
+        "برای حجم عبور استاندارد ثبت شده است"
+      ),
       catalogRule("space", "limited", ["fxr-1d", "6040"], "برای فضای نصب محدود ثبت شده است"),
     ]
   ),
@@ -252,11 +317,26 @@ export const advisorCategoryDefinitions: Record<string, AdvisorCategoryDefinitio
       ],
     ],
     [
-      catalogRule("workload", "inference", ["dgx h100", "dgx h200"], "برای بار کاری هوش مصنوعی ثبت شده است"),
+      catalogRule(
+        "workload",
+        "inference",
+        ["dgx h100", "dgx h200"],
+        "برای بار کاری هوش مصنوعی ثبت شده است"
+      ),
       catalogRule("workload", "training", ["dgx h100", "dgx h200"], "برای آموزش مدل ثبت شده است"),
       catalogRule("workload", "research", ["dgx h100", "dgx h200"], "برای پژوهش ثبت شده است"),
-      catalogRule("priority", "compute", ["dgx h100"], "گزینه DGX H100 برای توان پردازش انتخاب شده است"),
-      catalogRule("priority", "memory", ["dgx h200"], "گزینه DGX H200 برای نیاز حافظه انتخاب شده است"),
+      catalogRule(
+        "priority",
+        "compute",
+        ["dgx h100"],
+        "گزینه DGX H100 برای توان پردازش انتخاب شده است"
+      ),
+      catalogRule(
+        "priority",
+        "memory",
+        ["dgx h200"],
+        "گزینه DGX H200 برای نیاز حافظه انتخاب شده است"
+      ),
       catalogRule("scale", "single", ["dgx h100", "dgx h200"], "برای استقرار تک‌سیستم ثبت شده است"),
     ]
   ),
@@ -315,8 +395,18 @@ export const advisorCategoryDefinitions: Record<string, AdvisorCategoryDefinitio
       ],
     ],
     [
-      catalogRule("application", "inspection", ["ماژول", "module"], "برای کاربرد بازرسی ثبت شده است"),
-      catalogRule("application", "documentation", ["hd-sdi", "فول اچ‌دی"], "برای مستندسازی تصویری ثبت شده است"),
+      catalogRule(
+        "application",
+        "inspection",
+        ["ماژول", "module"],
+        "برای کاربرد بازرسی ثبت شده است"
+      ),
+      catalogRule(
+        "application",
+        "documentation",
+        ["hd-sdi", "فول اچ‌دی"],
+        "برای مستندسازی تصویری ثبت شده است"
+      ),
     ]
   ),
   others: category(
@@ -344,9 +434,24 @@ export const advisorCategoryDefinitions: Record<string, AdvisorCategoryDefinitio
       ],
     ],
     [
-      catalogRule("application", "camera-power", ["solar", "power supply", "رئولینک"], "برای برق یا لوازم دوربین ثبت شده است"),
-      catalogRule("application", "inspection", ["xrf", "orion"], "برای بازرسی صنعتی یا امنیتی ثبت شده است"),
-      catalogRule("application", "storage", ["ironwolf", "nas"], "برای ذخیره‌سازی NAS یا سرور ثبت شده است"),
+      catalogRule(
+        "application",
+        "camera-power",
+        ["solar", "power supply", "رئولینک"],
+        "برای برق یا لوازم دوربین ثبت شده است"
+      ),
+      catalogRule(
+        "application",
+        "inspection",
+        ["xrf", "orion"],
+        "برای بازرسی صنعتی یا امنیتی ثبت شده است"
+      ),
+      catalogRule(
+        "application",
+        "storage",
+        ["ironwolf", "nas"],
+        "برای ذخیره‌سازی NAS یا سرور ثبت شده است"
+      ),
     ]
   ),
 };
