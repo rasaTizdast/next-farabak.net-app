@@ -7,7 +7,15 @@ import { TAGS } from "./tags";
 
 // /api/blogs/getCategories
 async function queryBlogCategories(): Promise<Categories[]> {
-  const categories = await prisma.categories.findMany();
+  const categories = await prisma.categories.findMany({
+    where: {
+      BlogCategories: {
+        some: {
+          Blogs: { status: "Published", QrCode_key: null },
+        },
+      },
+    },
+  });
 
   return categories;
 }
