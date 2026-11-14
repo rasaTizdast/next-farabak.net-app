@@ -22,6 +22,19 @@ beforeAll(async () => {
 });
 
 describe("canonical URL redirects", () => {
+  it("permanently redirects the retired industrial category to its confirmed replacement", async () => {
+    const response = await proxy(
+      new NextRequest(
+        "https://farabak.net/products/industrial-cctv-camera/explosion-proof-cctv-camera"
+      )
+    );
+
+    expect(response.status).toBe(308);
+    expect(response.headers.get("Location")).toBe(
+      "https://farabak.net/products/industrial-cctv-camera/black-wonder"
+    );
+  });
+
   it.each([
     [
       "https://www.farabak.net/products?sort=recent&page=2",
@@ -147,6 +160,18 @@ describe("product route 404 handling", () => {
       key: null,
     });
     expect(response.headers.get("x-middleware-next")).toBe("1");
+  });
+
+  it("keeps the retired EXB-2323-S436 product route at 404", async () => {
+    hasProductDetailPage.mockResolvedValue(false);
+    const request = new NextRequest(
+      "https://farabak.net/products/industrial-cctv-camera/explosion-proof-cctv-camera/EXB-2323-S436"
+    );
+    const response = await proxy(request);
+
+    expect(response.headers.get("x-middleware-rewrite")).toBe(
+      "https://farabak.net/_product-listing-not-found"
+    );
   });
 });
 
