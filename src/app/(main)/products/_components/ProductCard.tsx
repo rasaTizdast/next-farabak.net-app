@@ -61,7 +61,7 @@ function ProductCard({ product, usdRate, isValidRate }: ProductCardProps) {
             src={getProductImageSrc(product.img1)}
             alt={`تصویر ${title}`}
             sizes="(min-width: 1536px) 240px, (min-width: 1280px) 300px, (min-width: 1024px) 29vw, (min-width: 640px) 44vw, 92vw"
-            quality={75}
+            quality={100}
             className="size-full object-contain transition-transform duration-500 group-hover:scale-105"
           />
         </div>

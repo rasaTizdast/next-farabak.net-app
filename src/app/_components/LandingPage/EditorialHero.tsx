@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDownLeft, ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowUpLeft, Phone } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef } from "react";
 
@@ -8,150 +8,147 @@ import Link from "@/components/NoPrefetchLink";
 import { PublicShell } from "@/components/public/PublicShell";
 import { landingAssets } from "@/content/landing-assets";
 
+const focus =
+  "focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#a9dcff]";
+
 export default function EditorialHero() {
-  const root = useRef<HTMLElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
+
   useEffect(() => {
-    const section = root.current;
-    if (!section || typeof matchMedia !== "function" || typeof section.animate !== "function")
-      return;
-    const preference = matchMedia("(prefers-reduced-motion: reduce)");
-    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } })
-      .connection;
-    let animations: Animation[] = [];
-    let frame = 0;
-    const pictures = section.querySelectorAll<HTMLElement>("[data-hero-picture]");
-    const reset = () => {
-      animations.forEach((a) => a.cancel());
-      animations = [];
-      pictures.forEach((p) => p.style.removeProperty("transform"));
-    };
-    const scroll = () => {
-      if (preference.matches || connection?.saveData || document.hidden) return;
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const progress = Math.max(
-          0,
-          Math.min(1, -section.getBoundingClientRect().top / section.offsetHeight)
-        );
-        pictures.forEach((p, i) => {
-          p.style.transform = `translateY(${progress * (i ? -24 : 28)}px)`;
-        });
-      });
-    };
-    const start = () => {
-      reset();
-      if (preference.matches || connection?.saveData) return;
-      section.querySelectorAll<HTMLElement>("[data-hero-enter]").forEach((element, i) => {
-        animations.push(
-          element.animate(
-            [
-              { transform: `translateY(${i < 2 ? 38 : 22}px)`, opacity: 0.35 },
-              { transform: "translateY(0)", opacity: 1 },
-            ],
-            { duration: 850, delay: i * 75, easing: "cubic-bezier(.22,1,.36,1)", fill: "backwards" }
-          )
-        );
-      });
-    };
-    start();
-    preference.addEventListener("change", start);
-    window.addEventListener("scroll", scroll, { passive: true });
-    return () => {
-      reset();
-      cancelAnimationFrame(frame);
-      preference.removeEventListener("change", start);
-      window.removeEventListener("scroll", scroll);
-    };
+    const hero = heroRef.current;
+    if (!hero || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const animations = Array.from(hero.querySelectorAll<HTMLElement>("[data-hero-reveal]")).map(
+      (element, index) =>
+        element.animate(
+          [
+            { opacity: 0.5, transform: "translateY(18px)" },
+            { opacity: 1, transform: "translateY(0)" },
+          ],
+          { duration: 650, delay: index * 90, easing: "cubic-bezier(.22,1,.36,1)" }
+        )
+    );
+    return () => animations.forEach((animation) => animation.cancel());
   }, []);
+
   return (
     <section
-      ref={root}
+      ref={heroRef}
       aria-labelledby="home-heading"
-      className="overflow-hidden bg-[#061a30] pt-9 pb-10 text-white md:pt-14 md:pb-16"
+      className="relative isolate max-h-[100svh] overflow-hidden bg-[#061a30] text-white"
     >
-      <PublicShell>
-        <div className="grid items-end gap-6 lg:grid-cols-[1.3fr_1fr] lg:gap-12">
-          <h1
-            id="home-heading"
-            className="text-[clamp(2.35rem,5.7vw,5.6rem)] leading-[1.2] font-black tracking-tight"
-          >
-            <span className="block" data-hero-enter>
-              برای هر نگاه،
-            </span>
-            <span className="block" data-hero-enter>
-              انتخابی دقیق.
-            </span>
-          </h1>
-          <div className="pb-2">
-            <p data-hero-enter className="max-w-[38ch] text-base leading-8 md:text-lg md:leading-9">
-              تجهیزات بازرسی، نظارت و تولید تصویر؛ از شناخت نیاز پروژه تا انتخاب تخصصی، همراه شما
-              هستیم.
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_75%_90%_at_78%_47%,#174777_0%,#0a294b_45%,#061a30_100%)]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 [background-image:repeating-linear-gradient(0deg,transparent_0px,transparent_79px,rgba(144,204,238,.1)_80px)] [mask-image:linear-gradient(90deg,transparent,black_48%)] opacity-35"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 left-[65%] size-[min(76vw,920px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#8dd7ff]/15 shadow-[0_0_0_80px_rgba(135,211,255,.035),0_0_0_180px_rgba(135,211,255,.025)]"
+      />
+      <PublicShell className="relative py-5 max-md:px-5 md:py-8 lg:py-10">
+        <div className="grid items-center gap-5 md:grid-cols-[0.94fr_1.06fr] md:gap-8 lg:gap-14 xl:gap-20">
+          <div className="min-w-0">
+            <div
+              data-hero-reveal
+              className="mb-3 flex items-center gap-2 text-[11px] font-semibold text-[#9fc7df] md:mb-6 md:gap-3 md:text-xs"
+            >
+              <span className="h-px w-5 bg-[#66bce7] md:w-9" aria-hidden="true" />
+              <span>فرابک / تجهیزات و راهکارهای تخصصی</span>
+            </div>
+            <h1
+              id="home-heading"
+              data-hero-reveal
+              className="max-w-[15ch] text-[clamp(2rem,8.5vw,2.8rem)] leading-[1.21] font-black tracking-[-0.045em] text-balance md:max-w-[12ch] md:text-[clamp(2rem,5vw,5.8rem)] md:leading-[1.14]"
+            >
+              برای پروژه‌تان، <span className="text-[#8fd6ff]">تجهیزات درست</span> پیدا کنید.
+            </h1>
+            <p
+              data-hero-reveal
+              className="mt-3 max-w-[44ch] text-[13px] leading-6 text-[#d4e3ef] md:mt-6 md:text-base md:leading-8 lg:text-lg"
+            >
+              نوع فضا و نیازتان را با ما در میان بگذارید تا مسیر انتخاب تجهیزات بازرسی، نظارت یا
+              تولید تصویر روشن‌تر شود.
             </p>
-            <div data-hero-enter className="mt-5 flex flex-wrap items-center gap-5">
+            <div
+              data-hero-reveal
+              className="mt-5 flex flex-col items-stretch gap-1 md:mt-7 md:flex-row md:flex-wrap md:items-center md:gap-5"
+            >
+              <a
+                href="tel:02177500008"
+                className={`group inline-flex min-h-12 items-center justify-center gap-4 bg-[#1265e8] px-5 py-3 text-sm font-bold text-white transition-[background-color,transform] duration-300 hover:-translate-y-0.5 hover:bg-[#267bfa] motion-reduce:transform-none md:min-h-14 md:justify-between md:gap-8 md:px-6 md:py-3.5 md:text-base ${focus}`}
+              >
+                تماس با بخش فروش <Phone size={20} aria-hidden="true" />
+              </a>
               <Link
                 href="/products"
-                className="group inline-flex min-h-12 items-center gap-5 bg-[#1265e8] px-5 py-3 text-base font-bold text-white transition-transform hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:scale-95 motion-reduce:transform-none"
+                className={`inline-flex min-h-10 items-center justify-center gap-2 text-sm font-semibold text-white underline decoration-[#8fd6ff] underline-offset-6 hover:text-[#b6e5ff] md:min-h-12 md:justify-start md:text-base ${focus}`}
               >
-                بررسی تجهیزات <ArrowLeft size={20} aria-hidden="true" />
-              </Link>
-              <Link
-                href="/contact-us"
-                className="inline-flex min-h-12 items-center gap-2 text-base text-white underline underline-offset-8 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-              >
-                مشاوره پروژه <ArrowDownLeft size={19} aria-hidden="true" />
+                بررسی تجهیزات <ArrowLeft size={19} aria-hidden="true" />
               </Link>
             </div>
+            <div
+              data-hero-reveal
+              className="mt-8 hidden max-w-[500px] grid-cols-2 border-t border-white/20 pt-4 text-sm leading-6 text-[#b3cedf] md:grid"
+            >
+              <span>ثبت شرکت از ۱۳۸۱</span>
+              <span className="border-r border-white/20 pr-5">از انتخاب تا پشتیبانی</span>
+            </div>
           </div>
-        </div>
-        <div className="mt-8 grid grid-cols-[1fr_2fr] items-end gap-3 md:mt-12 md:gap-6" dir="ltr">
-          <figure data-hero-enter className="min-w-0">
-            <div className="overflow-hidden bg-[#163247]" data-hero-picture>
+          <div data-hero-reveal className="relative min-w-0 pb-0 md:pb-8 lg:pb-10" dir="ltr">
+            <div
+              className="absolute -top-5 -right-5 z-10 hidden h-24 w-24 border-t border-r border-[#8fd6ff]/65 md:block"
+              aria-hidden="true"
+            />
+            <div
+              className="absolute -bottom-1 -left-5 z-10 hidden h-24 w-24 border-b border-l border-[#8fd6ff]/65 md:block"
+              aria-hidden="true"
+            />
+            <figure className="relative overflow-hidden border border-[#b7e5ff]/30 bg-[#142f45] shadow-[0_40px_100px_rgba(0,0,0,.42)] [clip-path:polygon(0_0,calc(100%_-_18px)_0,100%_18px,100%_100%,18px_100%,0_calc(100%_-_18px))] md:ml-[8%] md:[clip-path:polygon(0_0,calc(100%_-_28px)_0,100%_28px,100%_100%,28px_100%,0_calc(100%_-_28px))]">
               <Image
                 src={landingAssets.xray.desktopSrc}
                 alt={landingAssets.xray.alt}
                 width={1536}
                 height={1024}
-                sizes="(max-width: 767px) 30vw, 28vw"
-                className="aspect-4/5 size-full object-cover md:aspect-square"
+                sizes="(max-width: 1023px) 88vw, 48vw"
+                priority
+                className="h-[clamp(145px,24svh,210px)] w-full object-cover object-[center_56%] transition-transform duration-1000 ease-[cubic-bezier(.22,1,.36,1)] hover:scale-[1.04] motion-reduce:transform-none md:h-[min(58svh,520px)] lg:h-[min(68svh,680px)]"
               />
-            </div>
-            <figcaption className="mt-3 text-right text-sm leading-6 md:text-base" dir="rtl">
-              بازرسی و امنیت
-            </figcaption>
-          </figure>
-          <figure data-hero-enter className="min-w-0">
-            <div className="overflow-hidden bg-[#163247]" data-hero-picture>
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,transparent_48%,rgba(3,19,34,.88)_100%)]" />
+              <figcaption
+                className="absolute right-4 bottom-3 left-4 flex items-end justify-between gap-4 text-white md:right-8 md:bottom-7 md:left-8"
+                dir="rtl"
+              >
+                <span className="text-xs font-bold md:text-base">
+                  بازرسی بار / ورودی‌های پرتردد
+                </span>
+              </figcaption>
+            </figure>
+            <figure className="absolute -bottom-1 left-0 hidden w-[42%] border-[5px] border-[#061a30] bg-[#173750] shadow-[0_20px_55px_rgba(0,0,0,.4)] md:bottom-0 md:block md:w-[39%] md:border-[8px]">
               <Image
                 src={landingAssets.blackmagic.desktopSrc}
                 alt={landingAssets.blackmagic.alt}
                 width={1536}
                 height={1024}
-                sizes="(max-width: 767px) 62vw, 58vw"
-                loading="eager"
-                fetchPriority="high"
-                className="aspect-4/3 size-full object-cover md:aspect-video"
+                sizes="(max-width: 1023px) 40vw, 20vw"
+                className="aspect-[4/5] w-full object-cover"
               />
-            </div>
-            <figcaption
-              className="mt-3 flex flex-wrap justify-between gap-1 text-sm leading-6 md:text-base"
-              dir="rtl"
+              <figcaption
+                className="absolute right-0 bottom-0 left-0 bg-[#061a30]/85 px-2 py-2 text-center text-[11px] font-semibold text-white md:px-3 md:py-3 md:text-sm"
+                dir="rtl"
+              >
+                تولید تصویر
+              </figcaption>
+            </figure>
+            <div
+              className="absolute top-4 left-0 hidden -translate-x-1/2 border border-[#9bdcff]/40 bg-[#09243b]/90 px-4 py-3 text-xs tracking-[0.17em] text-[#c5e9ff] uppercase backdrop-blur-sm md:block"
+              aria-hidden="true"
             >
-              <span>تولید و نمایش تصویر</span>
-              <span className="text-sm">تصویرسازی با هوش مصنوعی</span>
-            </figcaption>
-          </figure>
-        </div>
-        <div
-          data-hero-enter
-          className="mt-7 flex flex-wrap items-center justify-between gap-4 text-sm md:text-base"
-        >
-          <p>فرابک، ثبت‌شده از ۱۳۸۱</p>
-          <a
-            href="#product-stories"
-            className="inline-flex min-h-11 items-center gap-3 text-white underline underline-offset-8 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-          >
-            راهکار متناسب با پروژه شما <ArrowDownLeft size={20} aria-hidden="true" />
-          </a>
+              Farabak / Focus
+            </div>
+          </div>
         </div>
       </PublicShell>
     </section>
