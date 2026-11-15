@@ -34,7 +34,7 @@ export default function EditorialHero() {
     <section
       ref={heroRef}
       aria-labelledby="home-heading"
-      className="relative isolate max-h-[100svh] overflow-hidden bg-[#061a30] text-white"
+      className="relative isolate max-h-svh overflow-hidden bg-[#061a30] text-white"
     >
       <div
         aria-hidden="true"
@@ -42,11 +42,11 @@ export default function EditorialHero() {
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 [background-image:repeating-linear-gradient(0deg,transparent_0px,transparent_79px,rgba(144,204,238,.1)_80px)] [mask-image:linear-gradient(90deg,transparent,black_48%)] opacity-35"
+        className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent_0px,transparent_79px,rgba(144,204,238,.1)_80px)] mask-[linear-gradient(90deg,transparent,black_48%)] opacity-35"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 left-[65%] size-[min(76vw,920px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#8dd7ff]/15 shadow-[0_0_0_80px_rgba(135,211,255,.035),0_0_0_180px_rgba(135,211,255,.025)]"
+        className="pointer-events-none absolute top-1/2 left-[65%] size-[min(76vw,920px)] -translate-1/2 rounded-full border border-[#8dd7ff]/15 shadow-[0_0_0_80px_rgba(135,211,255,.035),0_0_0_180px_rgba(135,211,255,.025)]"
       />
       <PublicShell className="relative py-5 max-md:px-5 md:py-8 lg:py-10">
         <div className="grid items-center gap-5 md:grid-cols-[0.94fr_1.06fr] md:gap-8 lg:gap-14 xl:gap-20">
@@ -99,14 +99,14 @@ export default function EditorialHero() {
           </div>
           <div data-hero-reveal className="relative min-w-0 pb-0 md:pb-8 lg:pb-10" dir="ltr">
             <div
-              className="absolute -top-5 -right-5 z-10 hidden h-24 w-24 border-t border-r border-[#8fd6ff]/65 md:block"
+              className="absolute -top-5 -right-5 z-10 hidden size-24 border-t border-r border-[#8fd6ff]/65 md:block"
               aria-hidden="true"
             />
             <div
-              className="absolute -bottom-1 -left-5 z-10 hidden h-24 w-24 border-b border-l border-[#8fd6ff]/65 md:block"
+              className="absolute -bottom-1 -left-5 z-10 hidden size-24 border-b border-l border-[#8fd6ff]/65 md:block"
               aria-hidden="true"
             />
-            <figure className="relative overflow-hidden border border-[#b7e5ff]/30 bg-[#142f45] shadow-[0_40px_100px_rgba(0,0,0,.42)] [clip-path:polygon(0_0,calc(100%_-_18px)_0,100%_18px,100%_100%,18px_100%,0_calc(100%_-_18px))] md:ml-[8%] md:[clip-path:polygon(0_0,calc(100%_-_28px)_0,100%_28px,100%_100%,28px_100%,0_calc(100%_-_28px))]">
+            <figure className="relative overflow-hidden border border-[#b7e5ff]/30 bg-[#142f45] shadow-[0_40px_100px_rgba(0,0,0,.42)] [clip-path:polygon(0_0,calc(100%-18px)_0,100%_18px,100%_100%,18px_100%,0_calc(100%-18px))] md:ml-[8%] md:[clip-path:polygon(0_0,calc(100%-28px)_0,100%_28px,100%_100%,28px_100%,0_calc(100%-28px))]">
               <Image
                 src={landingAssets.xray.desktopSrc}
                 alt={landingAssets.xray.alt}
@@ -118,7 +118,7 @@ export default function EditorialHero() {
               />
               <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,transparent_48%,rgba(3,19,34,.88)_100%)]" />
               <figcaption
-                className="absolute right-4 bottom-3 left-4 flex items-end justify-between gap-4 text-white md:right-8 md:bottom-7 md:left-8"
+                className="absolute inset-x-4 bottom-3 flex items-end justify-between gap-4 text-white md:inset-x-8 md:bottom-7"
                 dir="rtl"
               >
                 <span className="text-xs font-bold md:text-base">
@@ -126,17 +126,17 @@ export default function EditorialHero() {
                 </span>
               </figcaption>
             </figure>
-            <figure className="absolute -bottom-1 left-0 hidden w-[42%] border-[5px] border-[#061a30] bg-[#173750] shadow-[0_20px_55px_rgba(0,0,0,.4)] md:bottom-0 md:block md:w-[39%] md:border-[8px]">
+            <figure className="absolute -bottom-1 left-0 hidden w-[42%] border-[5px] border-[#061a30] bg-[#173750] shadow-[0_20px_55px_rgba(0,0,0,.4)] md:bottom-0 md:block md:w-[39%] md:border-8">
               <Image
                 src={landingAssets.blackmagic.desktopSrc}
                 alt={landingAssets.blackmagic.alt}
                 width={1536}
                 height={1024}
                 sizes="(max-width: 1023px) 40vw, 20vw"
-                className="aspect-[4/5] w-full object-cover"
+                className="aspect-4/5 w-full object-cover"
               />
               <figcaption
-                className="absolute right-0 bottom-0 left-0 bg-[#061a30]/85 px-2 py-2 text-center text-[11px] font-semibold text-white md:px-3 md:py-3 md:text-sm"
+                className="absolute inset-x-0 bottom-0 bg-[#061a30]/85 p-2 text-center text-[11px] font-semibold text-white md:p-3 md:text-sm"
                 dir="rtl"
               >
                 تولید تصویر
