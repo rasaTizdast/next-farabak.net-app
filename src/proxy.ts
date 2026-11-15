@@ -174,7 +174,10 @@ export async function proxy(req: ExtendedNextRequest) {
   if (isDocumentMethod) {
     const segments = pathname.split("/").filter(Boolean);
 
-    if (
+    if (pathname === "/products/industrial-cctv-camera/explosion-proof-cctv-camera") {
+      canonicalUrl.pathname = "/products/industrial-cctv-camera/black-wonder";
+      shouldRedirect = true;
+    } else if (
       pathname === "/products" &&
       req.nextUrl.searchParams.getAll("page").length === 1 &&
       req.nextUrl.searchParams.get("page") === "1"

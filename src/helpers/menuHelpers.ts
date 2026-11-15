@@ -37,7 +37,7 @@ async function queryMenuCategories(): Promise<MenuCategory[]> {
   const categories = await prisma.category.findMany({
     orderBy: { CategoryID: "asc" },
     include: {
-      CategoryContent: true,
+      CategoryContent: { where: { Available: true } },
     },
   });
 
@@ -48,7 +48,7 @@ async function queryMenuCategories(): Promise<MenuCategory[]> {
       Available: category.Available ?? false,
       Slug: category.Slug ?? "",
       Link: `/products/${category.Slug ?? ""}`,
-      Subcategories: category.CategoryContent.map((sub) => ({
+      Subcategories: category.CategoryContent.filter((sub) => sub.Available).map((sub) => ({
         CategoryContentId: sub.CategoryContentId,
         Name: sub.Name ?? "",
         CategoryID: sub.CategoryID ?? 0,

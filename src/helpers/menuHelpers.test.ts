@@ -28,4 +28,45 @@ describe("fetchMenuCategories", () => {
     vi.mocked(prisma.category.findMany).mockRejectedValueOnce(new Error("invalid category query"));
     await expect(fetchMenuCategories()).rejects.toThrow("invalid category query");
   });
+
+  it("returns only available subcategories and filters them in the database query", async () => {
+    vi.mocked(prisma.category.findMany).mockResolvedValueOnce([
+      {
+        CategoryID: 5,
+        Name: "Industrial CCTV",
+        Available: true,
+        Slug: "industrial-cctv-camera",
+        CategoryContent: [
+          {
+            CategoryContentId: 23,
+            Name: "Black Wonder",
+            CategoryID: 5,
+            Slug: "black-wonder",
+            Available: true,
+          },
+          {
+            CategoryContentId: 24,
+            Name: "Explosion Proof",
+            CategoryID: 5,
+            Slug: "explosion-proof-cctv-camera",
+            Available: false,
+          },
+        ],
+      },
+    ] as never);
+
+    const categories = await fetchMenuCategories();
+
+    expect(prisma.category.findMany).toHaveBeenCalledWith({
+      orderBy: { CategoryID: "asc" },
+      include: { CategoryContent: { where: { Available: true } } },
+    });
+    expect(categories).toMatchObject([
+      {
+        Slug: "industrial-cctv-camera",
+        Subcategories: [{ Slug: "black-wonder", Available: true }],
+      },
+    ]);
+    expect(JSON.stringify(categories)).not.toContain("explosion-proof-cctv-camera");
+  });
 });
