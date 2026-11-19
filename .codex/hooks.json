@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.codex/hooks/seo.mjs\"",
+            "commandWindows": "powershell.exe -NoProfile -Command \"node ((git rev-parse --show-toplevel) + '/.codex/hooks/seo.mjs')\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "^apply_patch$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.codex/hooks/seo.mjs\"",
+            "commandWindows": "powershell.exe -NoProfile -Command \"node ((git rev-parse --show-toplevel) + '/.codex/hooks/seo.mjs')\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -62,6 +62,7 @@ Repository skills live in `.agents/skills/<name>/SKILL.md`. Codex discovers thes
 | Loading speed or animation budgets        | `nextjs-performance`, `core-web-vitals`                          |
 | Keyboard, responsive usability and motion | `accessibility`, `web-design-guidelines`                         |
 | Agent instructions or skill edits         | `writing-for-agents`                                             |
+| Search visibility, keywords, or rankings  | `farabak-seo`                                                    |
 
 For any public-page redesign, read `DESIGN.md` first, then inspect the route, its data sources, the shared header/footer, and the rendered page. The active homepage is `src/app/(main)/page.tsx` → `TrustLanding.tsx`; `src/content/landing-stories.ts` and `src/content/landing-assets.ts` carry its story and media facts. Use Tailwind CSS v4 utilities for new page styling and match the header's responsive gutters and inner width. Treat older landing components and `landing.module.css` as legacy code until a route actually imports them.
 
