@@ -12,3 +12,30 @@ allowBuilds:
   tree-sitter: true
   tree-sitter-json: true
   unrs-resolver: true
+permissions:
+  '@prisma/client':
+    build: true
+  '@prisma/engines':
+    build: true
+  '@scarf/scarf':
+    build: true
+  '@tree-sitter-grammars/tree-sitter-yaml':
+    build: true
+  aws-sdk:
+    build: true
+  core-js:
+    build: true
+  core-js-pure:
+    build: true
+  cypress:
+    build: true
+  prisma:
+    build: true
+  sharp:
+    build: true
+  tree-sitter:
+    build: true
+  tree-sitter-json:
+    build: true
+  unrs-resolver:
+    build: true
