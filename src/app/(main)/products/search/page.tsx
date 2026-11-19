@@ -1,9 +1,12 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
 
+import { searchProducts } from "@/lib/data/products";
+import { getUsdToRialRate } from "@/lib/data/usd2rial";
+
 import BreadcrumbWrapper from "../_components/BreadcrumbWrapper";
 import ProductGridWrapper from "../_components/ProductGridWrapper";
-import { BreadcrumbSkeleton, ProductGridSkeleton } from "../_components/ProductListSkeletons";
+import { BreadcrumbSkeleton } from "../_components/ProductListSkeletons";
 
 interface SearchPageProps {
   searchParams: Promise<{ q: string; page?: string }>;
@@ -30,20 +33,22 @@ export default async function SearchPage(props: SearchPageProps) {
   const currentPage = parseInt(searchParams.page || "1", 10);
 
   const limit = 0;
-  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/search?q=${encodeURIComponent(query)}&page=${currentPage}&limit=${limit}`;
+  const [feed, usdRateData] = await Promise.all([
+    searchProducts(query, { page: currentPage, limit }),
+    getUsdToRialRate(),
+  ]);
 
   return (
     <div dir="rtl">
       <Suspense fallback={<BreadcrumbSkeleton />}>
-        <BreadcrumbWrapper breadcrumbs={searchBreadcrumbs} />
+        <BreadcrumbWrapper breadcrumbs={searchBreadcrumbs} renderStructuredData />
       </Suspense>
-      <Suspense fallback={<ProductGridSkeleton />}>
-        <ProductGridWrapper
-          title={`نتایج جستجو برای: ${query}`}
-          apiUrl={apiUrl}
-          currentPage={currentPage}
-        />
-      </Suspense>
+      <ProductGridWrapper
+        title={`نتایج جستجو برای: ${query}`}
+        feed={feed}
+        usdRate={usdRateData.rate}
+        currentPage={currentPage}
+      />
     </div>
   );
 }

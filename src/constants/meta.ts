@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net";
+export const SITE_URL = "https://farabak.net";
 export const SITE_NAME = "فرابک";
 export const DEFAULT_TITLE = "خرید محصولات نظارتی و امنیتی با گارانتی معتبر | فرابک";
 export const DEFAULT_DESCRIPTION =

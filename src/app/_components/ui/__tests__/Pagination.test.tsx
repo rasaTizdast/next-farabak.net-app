@@ -4,15 +4,28 @@ import { describe, it, expect } from "vitest";
 import Pagination from "../Pagination";
 
 describe("Pagination (public)", () => {
-  it("renders page numbers in desktop section", () => {
+  it("renders page numbers as links in the desktop section", () => {
     const { container } = render(
       <Pagination currentPage={1} totalPages={3} basePath="/products" />
     );
     const desktop = container.querySelector(".hidden.sm\\:flex") as HTMLElement;
     expect(desktop).toBeDefined();
-    const buttons = within(desktop).getAllByRole("button");
-    const pageButtons = buttons.filter((b) => ["1", "2", "3"].includes(b.textContent || ""));
-    expect(pageButtons.length).toBe(3);
+    const pageLinks = within(desktop).getAllByRole("link");
+    const numberedLinks = pageLinks.filter((link) =>
+      ["1", "2", "3"].includes(link.textContent || "")
+    );
+    expect(numberedLinks.length).toBe(3);
+  });
+
+  it("uses anchor elements for page numbers without nesting interactive controls", () => {
+    const { container } = render(
+      <Pagination currentPage={1} totalPages={3} basePath="/products" />
+    );
+    const desktop = container.querySelector(".hidden.sm\\:flex") as HTMLElement;
+    const pageTwo = within(desktop).getByRole("link", { name: "2" });
+
+    expect(pageTwo).toHaveAttribute("href", "/products/page/2");
+    expect(pageTwo.querySelector("button")).toBeNull();
   });
 
   it("disables first/prev on first page in desktop", () => {

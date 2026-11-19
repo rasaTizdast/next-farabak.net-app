@@ -1,8 +1,10 @@
 // Components
 import { Metadata } from "next";
 import { io } from "next/cache";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { SITE_URL } from "@/constants/meta";
 import { formatTitle } from "@/helpers/formatTitle";
 import { getProductBySlug } from "@/lib/data/products";
 import { getProductImageUrl } from "@/lib/seo/product-image-url";
@@ -24,65 +26,29 @@ export async function generateMetadata(props: ProductPageProps): Promise<Metadat
 
   const data = (await getProductBySlug(productSlug)) as any;
 
-  if (!data) {
-    return {
-      title: "محصولی یافت نشد | فرابک",
-      description: "محصول مورد نظر یافت نشد.",
-      robots: {
-        index: false,
-        follow: true,
-      },
-    };
-  }
+  if (!data) notFound();
 
   // Check if the product is not available and does not have a QR code key
-  if (!data.Available && !data.QrCode_key) {
-    return {
-      title: "محصولی یافت نشد | فرابک",
-      description: "محصول مورد نظر یافت نشد.",
-      robots: {
-        index: false,
-        follow: true,
-      },
-    };
-  }
+  if (!data.Available && !data.QrCode_key) notFound();
 
   // Check QR code conditions
   if (data.QrCode_key) {
     const { key: urlKey } = searchParams;
 
     // If there's no key in the URL or the key in the URL doesn't match the product's QR code key
-    if (!urlKey || urlKey !== data.QrCode_key) {
-      return {
-        title: "محصولی یافت نشد | فرابک",
-        description: "محصول مورد نظر یافت نشد.",
-        robots: {
-          index: false,
-          follow: true,
-        },
-      };
-    }
+    if (!urlKey || urlKey !== data.QrCode_key) notFound();
 
     // Check if the QR code has expired
     await io();
     const expiryDate = new Date(data.QrCode_expiryDays);
-    if (new Date() > expiryDate) {
-      return {
-        title: "محصولی یافت نشد | فرابک",
-        description: "محصول مورد نظر یافت نشد.",
-        robots: {
-          index: false,
-          follow: true,
-        },
-      };
-    }
+    if (new Date() > expiryDate) notFound();
   }
 
   const title = formatTitle(data.SEO_Title || data.Type, 60);
   const description = data.SEO_Description || data.Name;
   const canonicalUrl = new URL(
     `/products/${data.categorySlug}/${data.subCategorySlug}/${data.productSlug}`,
-    process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net"
+    SITE_URL
   ).toString();
   const imageUrl = getProductImageUrl(data.img2, data.img1);
 

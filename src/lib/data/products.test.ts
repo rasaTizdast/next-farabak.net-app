@@ -9,7 +9,7 @@ vi.mock("next/cache", () => ({ cacheLife: vi.fn(), cacheTag: vi.fn() }));
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     product: { count: vi.fn(), findMany: vi.fn() },
-    category: { findMany: vi.fn() },
+    category: { findFirst: vi.fn(), findMany: vi.fn() },
     categoryContent: { findFirst: vi.fn(), findMany: vi.fn() },
   },
 }));
@@ -82,5 +82,16 @@ describe("subcategory product canonical links", () => {
       CategoryContentId: "2,1",
       link: "reolink-cctv-camera/night-vision/Argus-2",
     });
+  });
+
+  it("rejects a subcategory route when its parent category does not match", async () => {
+    vi.mocked(prisma.category.findFirst).mockResolvedValue({ CategoryID: 8 } as never);
+
+    const result = await import("./products").then(({ getProductsBySubcategory }) =>
+      getProductsBySubcategory("wifi", { page: 1, limit: 30 }, "x-ray")
+    );
+
+    expect(result).toBeNull();
+    expect(prisma.product.count).not.toHaveBeenCalled();
   });
 });

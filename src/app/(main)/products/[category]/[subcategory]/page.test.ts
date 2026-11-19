@@ -49,7 +49,11 @@ describe("subcategory metadata", () => {
       })
     ).rejects.toThrow("NEXT_HTTP_ERROR_FALLBACK;404");
 
-    expect(getProductsBySubcategory).toHaveBeenCalledWith("led-wall", { page: 1, limit: 30 });
+    expect(getProductsBySubcategory).toHaveBeenCalledWith(
+      "led-wall",
+      { page: 1, limit: 30 },
+      "conference-hall"
+    );
   });
 
   it("calls notFound before rendering when the subcategory feed is missing", async () => {

@@ -26,10 +26,20 @@ describe("TrustLanding", () => {
 
     expect(container.querySelectorAll('[class*="max-w-[1900px]"]').length).toBe(0);
     expect(container.querySelectorAll('[class*="max-w-[1580px]"]').length).toBeGreaterThan(5);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("برای هر نگاه،");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "برای پروژه‌تان، تجهیزات درست"
+    );
     expect(screen.getAllByRole("link", { name: /بررسی تجهیزات/ })[0]).toHaveAttribute(
       "href",
       "/products"
     );
+  });
+
+  it("marks the measured homepage LCP image as high fetch priority", () => {
+    const html = renderToString(<TrustLanding />);
+    const { container } = render(<div dangerouslySetInnerHTML={{ __html: html }} />);
+    const lcpImage = container.querySelector('img[src="/landing/xray-product.webp"]');
+
+    expect(lcpImage).toHaveAttribute("fetchpriority", "high");
   });
 });

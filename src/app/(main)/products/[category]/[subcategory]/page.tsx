@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { getProductsBySubcategory } from "@/lib/data/products";
+import { SITE_URL } from "@/constants/meta";
+import { getCategoryName, getProductsBySubcategory, getSubCategoryName } from "@/lib/data/products";
+import { getUsdToRialRate } from "@/lib/data/usd2rial";
 
 import BreadcrumbWrapper from "../../_components/BreadcrumbWrapper";
-import { BreadcrumbSkeleton, ProductListingSkeleton } from "../../_components/ProductListSkeletons";
+import { BreadcrumbSkeleton } from "../../_components/ProductListSkeletons";
 import SubcategoryPageWrapper from "../../_components/SubcategoryPageWrapper";
+
+export const instant = false;
 
 interface SubcategoryPageProps {
   params: Promise<{ category: string; subcategory: string }>;
@@ -15,16 +20,22 @@ interface SubcategoryPageProps {
 export const generateMetadata = async (props: SubcategoryPageProps): Promise<Metadata> => {
   const params = await props.params;
   const { category, subcategory } = params;
-  const data = await getProductsBySubcategory(subcategory, { page: 1, limit: 30 });
+  const data = await getProductsBySubcategory(subcategory, { page: 1, limit: 30 }, category);
 
   if (!data) notFound();
 
   const { seoDetails } = data;
+  const canonicalUrl = `${SITE_URL}/products/${category}/${subcategory}`;
   return {
     title: seoDetails?.SEO_Title || `محصولات دسته‌بندی ${subcategory} | فرابک`,
     description: seoDetails?.SEO_Description || `محصولات دسته‌بندی ${subcategory}`,
+    openGraph: {
+      title: seoDetails?.SEO_Title || `محصولات دسته‌بندی ${subcategory} | فرابک`,
+      description: seoDetails?.SEO_Description || `محصولات دسته‌بندی ${subcategory}`,
+      url: canonicalUrl,
+    },
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${category}/${subcategory}`,
+      canonical: canonicalUrl,
     },
     robots: {
       index: true,
@@ -34,17 +45,20 @@ export const generateMetadata = async (props: SubcategoryPageProps): Promise<Met
 };
 
 export default async function SubcategoryPage(props: SubcategoryPageProps) {
+  await connection();
   const params = await props.params;
   const { category, subcategory } = params;
   const currentPage = 1;
   const limit = 30;
-  const subcategoryData = await getProductsBySubcategory(subcategory, {
-    page: currentPage,
-    limit,
-  });
+  const [subcategoryData, categoryNameData, subcategoryNameData, usdRateData] = await Promise.all([
+    getProductsBySubcategory(subcategory, { page: currentPage, limit }, category),
+    getCategoryName(category).catch(() => null),
+    getSubCategoryName(subcategory).catch(() => null),
+    getUsdToRialRate(),
+  ]);
   if (!subcategoryData) notFound();
 
-  const canonicalUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/products/${category}/${subcategory}`;
+  const canonicalUrl = `${SITE_URL}/products/${category}/${subcategory}`;
   const breadcrumbs = [
     "/",
     "/products",
@@ -57,15 +71,16 @@ export default async function SubcategoryPage(props: SubcategoryPageProps) {
       <Suspense fallback={<BreadcrumbSkeleton />}>
         <BreadcrumbWrapper breadcrumbs={breadcrumbs} />
       </Suspense>
-      <Suspense fallback={<ProductListingSkeleton showSearch={false} />}>
-        <SubcategoryPageWrapper
-          categoryName={category}
-          subcategoryName={subcategory}
-          currentPage={currentPage}
-          limit={limit}
-          canonicalUrl={canonicalUrl}
-        />
-      </Suspense>
+      <SubcategoryPageWrapper
+        categoryName={category}
+        categoryTitle={categoryNameData?.categoryName ?? category}
+        subcategoryName={subcategory}
+        subcategoryTitle={subcategoryNameData?.subCategoryName ?? subcategory}
+        currentPage={currentPage}
+        canonicalUrl={canonicalUrl}
+        feed={subcategoryData}
+        usdRate={usdRateData.rate}
+      />
     </div>
   );
 }

@@ -1,74 +1,46 @@
-import { Suspense } from "react";
-
-import { getCategoryName, getProductsBySubcategory, getSubCategoryName } from "@/lib/data/products";
-
+import type { ProductFeed } from "./GridContentServer";
 import ProductGridWrapper from "./ProductGridWrapper";
-import { ProductGridSkeleton } from "./ProductListSkeletons";
 
 interface SubcategoryPageWrapperProps {
   categoryName: string;
+  categoryTitle: string;
   subcategoryName: string;
+  subcategoryTitle: string;
   currentPage: number;
-  limit: number;
   canonicalUrl: string;
+  feed: ProductFeed;
+  usdRate: number | null;
 }
 
-async function fetchSubcategoryData(subcategoryName: string) {
-  try {
-    const result = await getSubCategoryName(subcategoryName);
-    if (result === null) {
-      return subcategoryName;
-    }
-    return result.subCategoryName ?? subcategoryName;
-  } catch {
-    return subcategoryName;
-  }
-}
-
-async function fetchCategoryData(categoryName: string) {
-  try {
-    const result = await getCategoryName(categoryName);
-    return result?.categoryName ?? categoryName;
-  } catch {
-    return categoryName;
-  }
-}
-
-export default async function SubcategoryPageWrapper({
+export default function SubcategoryPageWrapper({
   categoryName,
+  categoryTitle,
   subcategoryName,
+  subcategoryTitle,
   currentPage,
-  limit,
   canonicalUrl,
+  feed,
+  usdRate,
 }: SubcategoryPageWrapperProps) {
-  const [subCategoryTitle, categoryTitle, subcategoryProducts] = await Promise.all([
-    fetchSubcategoryData(subcategoryName),
-    fetchCategoryData(categoryName),
-    getProductsBySubcategory(subcategoryName, { page: currentPage, limit }).catch(() => null),
-  ]);
-
-  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsBySubcategory/${subcategoryName}?page=${currentPage}&limit=${limit}`;
+  const collectionItems = feed.data
+    .filter((product) => product.Available)
+    .map((product) => ({
+      name: product.Type?.trim() || product.Name?.trim() || null,
+      path: product.link,
+    }));
 
   return (
-    <>
-      <Suspense fallback={<ProductGridSkeleton showSearch={false} />}>
-        <ProductGridWrapper
-          title={subCategoryTitle}
-          apiUrl={apiUrl}
-          currentPage={currentPage}
-          categorySlug={categoryName}
-          subcategorySlug={subcategoryName}
-          canonicalUrl={canonicalUrl}
-          collectionItems={(subcategoryProducts?.data ?? [])
-            .filter((product) => product.Available)
-            .map((product) => ({
-              name: product.Type?.trim() || product.Name?.trim() || null,
-              path: product.link,
-            }))}
-          breadcrumbCategoryTitle={categoryTitle}
-          breadcrumbSubcategoryTitle={subCategoryTitle}
-        />
-      </Suspense>
-    </>
+    <ProductGridWrapper
+      title={subcategoryTitle}
+      feed={feed}
+      usdRate={usdRate}
+      currentPage={currentPage}
+      categorySlug={categoryName}
+      subcategorySlug={subcategoryName}
+      canonicalUrl={canonicalUrl}
+      collectionItems={collectionItems}
+      breadcrumbCategoryTitle={categoryTitle}
+      breadcrumbSubcategoryTitle={subcategoryTitle}
+    />
   );
 }

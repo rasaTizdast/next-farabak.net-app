@@ -3,6 +3,7 @@ import React from "react";
 
 import SourcesList from "@/components/SourcesList";
 import { BRAND_SOURCES, buildSourcesFor, detectBrand } from "@/helpers/sources";
+import { normalizeEditorialHeadings } from "@/lib/seo/editorial-headings";
 
 function processContentWithImageAndVideoUrls(content: string) {
   const baseUrl = process.env.LIARA_BUCKET_URL || "";
@@ -54,12 +55,16 @@ function processContentWithImageAndVideoUrls(content: string) {
 
 type Props = {
   productBlog: string;
+  pageTitle: string;
 };
 
-const ProductBlog = ({ productBlog }: Props) => {
+const ProductBlog = ({ productBlog, pageTitle }: Props) => {
   if (!productBlog?.trim()) return null;
 
-  const articleHtml = processContentWithImageAndVideoUrls(productBlog);
+  const articleHtml = normalizeEditorialHeadings(
+    processContentWithImageAndVideoUrls(productBlog),
+    pageTitle
+  );
   const brandToken = detectBrand(productBlog);
   const brandOfficialUrls = brandToken ? BRAND_SOURCES[brandToken].map((source) => source.url) : [];
   const citationUrls = brandOfficialUrls.length > 0 ? brandOfficialUrls : null;

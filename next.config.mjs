@@ -21,6 +21,10 @@ const nextConfig = {
   },
   cacheComponents: true,
   partialPrefetching: true,
+  // Googlebot must receive catalog canonicals in the raw head. Preserve the
+  // framework's HTML-limited bot list while adding Google's web crawler.
+  htmlLimitedBots:
+    /[\w-]+-Google|Google-[\w-]+|Googlebot|Chrome-Lighthouse|Slurp|DuckDuckBot|baiduspider|yandex|sogou|bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|Yeti|googleweblight/i,
   // output: "standalone",
   // reactStrictMode: false, // Disable React Strict Mode
   images: {

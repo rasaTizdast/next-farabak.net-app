@@ -1,5 +1,6 @@
 import { serializeJsonLd } from "@/lib/seo/json-ld";
 
+import type { ProductFeed } from "./GridContentServer";
 import {
   buildProductCollectionSchema,
   type CollectionBreadcrumb,
@@ -9,7 +10,8 @@ import ProductGrid from "./ProductGrid";
 
 interface ProductGridWrapperProps {
   title: string;
-  apiUrl: string;
+  feed: ProductFeed;
+  usdRate: number | null;
   currentPage: number;
   categorySlug?: string;
   subcategorySlug?: string;
@@ -80,7 +82,8 @@ function ProductCollectionStructuredData({
 
 export default function ProductGridWrapper({
   title,
-  apiUrl,
+  feed,
+  usdRate,
   currentPage,
   categorySlug,
   subcategorySlug,
@@ -103,10 +106,11 @@ export default function ProductGridWrapper({
       />
       <ProductGrid
         title={title}
-        apiUrl={apiUrl}
+        feed={feed}
         currentPage={currentPage}
         categorySlug={categorySlug}
         subcategorySlug={subcategorySlug}
+        usdRate={usdRate}
       />
     </>
   );
