@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowUpLeft, Phone } from "lucide-react";
+import { ArrowLeft, Phone } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef } from "react";
 
@@ -113,7 +113,7 @@ export default function EditorialHero() {
                 width={1536}
                 height={1024}
                 sizes="(max-width: 1023px) 88vw, 48vw"
-                priority
+                fetchPriority="high"
                 className="h-[clamp(145px,24svh,210px)] w-full object-cover object-[center_56%] transition-transform duration-1000 ease-[cubic-bezier(.22,1,.36,1)] hover:scale-[1.04] motion-reduce:transform-none md:h-[min(58svh,520px)] lg:h-[min(68svh,680px)]"
               />
               <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,transparent_48%,rgba(3,19,34,.88)_100%)]" />

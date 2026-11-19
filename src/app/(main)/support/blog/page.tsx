@@ -11,6 +11,7 @@ import BlogCover from "@/components/public/BlogCover";
 import { PageIntro } from "@/components/public/PageIntro";
 import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
+import { SITE_URL } from "@/constants/meta";
 import { getBlogCategories } from "@/lib/data/blogCategories";
 import { getBlogs } from "@/lib/data/blogs";
 
@@ -232,7 +233,7 @@ async function BlogLandingData() {
 
   if (!blogData?.blogs?.length) notFound();
 
-  const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
+  const siteUrl = SITE_URL;
   const imageBaseUrl = process.env.LIARA_BUCKET_URL || "";
   const blogIndexUrl = `${siteUrl}/support/blog`;
 

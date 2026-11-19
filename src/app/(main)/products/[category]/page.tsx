@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { getProductsByCategory } from "@/lib/data/products";
+import { SITE_URL } from "@/constants/meta";
+import { getCategoryName, getProductsByCategory } from "@/lib/data/products";
+import { getUsdToRialRate } from "@/lib/data/usd2rial";
 
 import BreadcrumbWrapper from "../_components/BreadcrumbWrapper";
 import CategoryPageWrapper from "../_components/CategoryPageWrapper";
-import { BreadcrumbSkeleton, CategoryPageSkeleton } from "../_components/ProductListSkeletons";
+import { BreadcrumbSkeleton } from "../_components/ProductListSkeletons";
+
+export const instant = false;
 
 interface CategoryPageProps {
   params: Promise<{ category: string }>;
@@ -20,11 +25,17 @@ export const generateMetadata = async (props: CategoryPageProps): Promise<Metada
   if (!data) notFound();
 
   const { seoDetails } = data;
+  const canonicalUrl = `${SITE_URL}/products/${categoryName}`;
   return {
     title: seoDetails?.SEO_Title || `محصولات دسته‌بندی ${categoryName}`,
     description: seoDetails?.SEO_Description || `محصولات دسته‌بندی ${categoryName}`,
+    openGraph: {
+      title: seoDetails?.SEO_Title || `محصولات دسته‌بندی ${categoryName}`,
+      description: seoDetails?.SEO_Description || `محصولات دسته‌بندی ${categoryName}`,
+      url: canonicalUrl,
+    },
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/products/${categoryName}`,
+      canonical: canonicalUrl,
     },
     robots: {
       index: true,
@@ -34,14 +45,19 @@ export const generateMetadata = async (props: CategoryPageProps): Promise<Metada
 };
 
 export default async function CategoryPage(props: CategoryPageProps) {
+  await connection();
   const params = await props.params;
   const categoryName = params.category;
   const currentPage = 1;
   const limit = 30;
-  const categoryData = await getProductsByCategory(categoryName, { page: currentPage, limit });
+  const [categoryData, categoryNameData, usdRateData] = await Promise.all([
+    getProductsByCategory(categoryName, { page: currentPage, limit }),
+    getCategoryName(categoryName).catch(() => null),
+    getUsdToRialRate(),
+  ]);
   if (!categoryData) notFound();
 
-  const canonicalUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/products/${categoryName}`;
+  const canonicalUrl = `${SITE_URL}/products/${categoryName}`;
   const breadcrumbs = ["/", "/products", `/products/${categoryName}`];
 
   return (
@@ -49,14 +65,14 @@ export default async function CategoryPage(props: CategoryPageProps) {
       <Suspense fallback={<BreadcrumbSkeleton />}>
         <BreadcrumbWrapper breadcrumbs={breadcrumbs} />
       </Suspense>
-      <Suspense fallback={<CategoryPageSkeleton />}>
-        <CategoryPageWrapper
-          categoryName={categoryName}
-          currentPage={currentPage}
-          limit={limit}
-          canonicalUrl={canonicalUrl}
-        />
-      </Suspense>
+      <CategoryPageWrapper
+        categoryName={categoryName}
+        categoryTitle={categoryNameData?.categoryName ?? categoryName}
+        currentPage={currentPage}
+        canonicalUrl={canonicalUrl}
+        feed={categoryData}
+        usdRate={usdRateData.rate}
+      />
     </div>
   );
 }

@@ -10,7 +10,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Map all URLs to the sitemap format
     const sitemapEntries: MetadataRoute.Sitemap = urls.map((url: string) => ({
       url: url,
-      lastModified: new Date(),
       changeFrequency: url.includes("/support/blog/") ? "weekly" : "daily",
       priority: getPriority(url),
     }));
@@ -23,49 +22,41 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [
       {
         url: "https://farabak.net",
-        lastModified: new Date(),
         changeFrequency: "daily",
         priority: 1.0,
       },
       {
         url: "https://farabak.net/products",
-        lastModified: new Date(),
         changeFrequency: "daily",
         priority: 0.9,
       },
       {
         url: "https://farabak.net/support",
-        lastModified: new Date(),
         changeFrequency: "weekly",
         priority: 0.8,
       },
       {
         url: "https://farabak.net/support/tools",
-        lastModified: new Date(),
         changeFrequency: "weekly",
         priority: 0.7,
       },
       ...["cctv-storage", "xray-fit", "meeting-room"].map((tool) => ({
         url: `https://farabak.net/support/tools/${tool}`,
-        lastModified: new Date(),
         changeFrequency: "monthly" as const,
         priority: 0.6,
       })),
       {
         url: "https://farabak.net/about-us",
-        lastModified: new Date(),
         changeFrequency: "monthly",
         priority: 0.7,
       },
       {
         url: "https://farabak.net/contact-us",
-        lastModified: new Date(),
         changeFrequency: "monthly",
         priority: 0.7,
       },
       {
         url: "https://farabak.net/privacy",
-        lastModified: new Date(),
         changeFrequency: "yearly",
         priority: 0.3,
       },

@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import SourcesList from "@/components/SourcesList";
+import { SITE_URL } from "@/constants/meta";
 import { BRAND_LABELS, buildSourcesFor, detectBrand } from "@/helpers/sources";
 import { getProductBySlug } from "@/lib/data/products";
 import { getProductImageUrl } from "@/lib/seo/product-image-url";
@@ -100,7 +101,7 @@ export default async function ProductDataWrapper({
   const productDescription = productData.Name?.trim();
   const canonicalUrl = new URL(
     `/products/${productData.categorySlug}/${productData.subCategorySlug}/${productData.productSlug}`,
-    process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net"
+    SITE_URL
   ).toString();
   const imageUrl = getProductImageUrl(productData.img2, productData.img1);
 
@@ -224,7 +225,7 @@ export default async function ProductDataWrapper({
           توضیحات تکمیلی محصول
         </h2>
         <Suspense fallback={<SkeletonBlog />}>
-          <ProductBlog productBlog={productData.productBlog} />
+          <ProductBlog productBlog={productData.productBlog} pageTitle={productModel} />
         </Suspense>
       </section>
 

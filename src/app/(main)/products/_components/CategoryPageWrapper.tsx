@@ -1,73 +1,49 @@
 import { Suspense } from "react";
 
-import { getCategoryName, getProductsByCategory } from "@/lib/data/products";
-
 import CategorySliderWrapper from "./CategorySliderWrapper";
+import type { ProductFeed } from "./GridContentServer";
 import ProductGridWrapper from "./ProductGridWrapper";
-import { CategorySliderSkeleton, ProductGridSkeleton } from "./ProductListSkeletons";
+import { CategorySliderSkeleton } from "./ProductListSkeletons";
 
 interface CategoryPageWrapperProps {
   categoryName: string;
+  categoryTitle: string;
   currentPage: number;
-  limit: number;
   canonicalUrl: string;
+  feed: ProductFeed;
+  usdRate: number | null;
 }
 
-async function fetchCategoryData(categoryName: string) {
-  try {
-    const result = await getCategoryName(categoryName);
-    if (result === null) {
-      return categoryName;
-    }
-    return result.categoryName ?? categoryName;
-  } catch {
-    return categoryName;
-  }
-}
-
-async function fetchCategoryProducts(categoryName: string, currentPage: number, limit: number) {
-  try {
-    const result = await getProductsByCategory(categoryName, { page: currentPage, limit });
-    return result?.data ?? [];
-  } catch {
-    return [];
-  }
-}
-
-export default async function CategoryPageWrapper({
+export default function CategoryPageWrapper({
   categoryName,
+  categoryTitle,
   currentPage,
-  limit,
   canonicalUrl,
+  feed,
+  usdRate,
 }: CategoryPageWrapperProps) {
-  const [categoryTitle, categoryProducts] = await Promise.all([
-    fetchCategoryData(categoryName),
-    fetchCategoryProducts(categoryName, currentPage, limit),
-  ]);
-
-  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/getProductsByCategory/${categoryName}?page=${currentPage}&limit=${limit}`;
+  const collectionItems = feed.data
+    .filter((product) => product.Available)
+    .map((product) => ({
+      name: product.Type?.trim() || product.Name?.trim() || null,
+      path: product.link,
+    }));
 
   return (
     <>
       <Suspense fallback={<CategorySliderSkeleton subcategories />}>
         <CategorySliderWrapper type="subcategories" categorySlug={categoryName} />
       </Suspense>
-      <Suspense fallback={<ProductGridSkeleton />}>
-        <ProductGridWrapper
-          title={categoryTitle}
-          apiUrl={apiUrl}
-          currentPage={currentPage}
-          categorySlug={categoryName}
-          canonicalUrl={canonicalUrl}
-          collectionItems={categoryProducts
-            .filter((product) => product.Available)
-            .map((product) => ({
-              name: product.Type?.trim() || product.Name?.trim() || null,
-              path: product.link,
-            }))}
-          breadcrumbCategoryTitle={categoryTitle}
-        />
-      </Suspense>
+      <ProductGridWrapper
+        title={categoryTitle}
+        feed={feed}
+        usdRate={usdRate}
+        currentPage={currentPage}
+        categorySlug={categoryName}
+        canonicalUrl={canonicalUrl}
+        collectionItems={collectionItems}
+        breadcrumbCategoryTitle={categoryTitle}
+      />
     </>
   );
 }

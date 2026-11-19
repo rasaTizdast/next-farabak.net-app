@@ -3,7 +3,13 @@ import { NextResponse, NextRequest } from "next/server";
 
 import { verifyToken } from "@/lib/auth";
 import { negotiate } from "@/lib/contentNegotiation";
+import type { ProductDetailPageResolution } from "@/lib/data/product-page-validation";
 import { parsePositivePageNumber } from "@/lib/pagination";
+import { getLegacyImageRedirect } from "@/lib/seo/legacy-image-redirects";
+import {
+  getVerifiedListingQueryRedirect,
+  getVerifiedPageOnePathRedirect,
+} from "@/lib/seo/verified-pagination-redirects";
 
 // Define your JWT secrets (ensure they're stored securely)
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -30,7 +36,7 @@ function htmlResponse() {
 type ProductPageCheck =
   | { type: "all"; page: number }
   | { type: "category"; category: string; page: number }
-  | { type: "subcategory"; subcategory: string; page: number }
+  | { type: "subcategory"; category: string; subcategory: string; page: number }
   | {
       type: "product";
       category: string;
@@ -65,7 +71,12 @@ function getProductPageCheck(req: NextRequest): ProductPageCheck {
   }
 
   if (segments.length === 3 && segments[1] !== "page") {
-    return { type: "subcategory", subcategory: segments[2], page: 1 };
+    return {
+      type: "subcategory",
+      category: segments[1],
+      subcategory: segments[2],
+      page: 1,
+    };
   }
 
   if (segments.length === 4 && segments[2] !== "page") {
@@ -85,7 +96,13 @@ function getProductPageCheck(req: NextRequest): ProductPageCheck {
 
   if (segments.length === 5 && segments[3] === "page") {
     const page = parsePositivePageNumber(segments[4]);
-    return page === null ? "not-found" : { type: "subcategory", subcategory: segments[2], page };
+    if (page === null) return "not-found";
+    return {
+      type: "subcategory",
+      category: segments[1],
+      subcategory: segments[2],
+      page,
+    };
   }
 
   return null;
@@ -164,6 +181,7 @@ export async function proxy(req: ExtendedNextRequest) {
   const requestProtocol = forwardedProtocol || new URL(req.url).protocol.replace(/:$/, "");
   const canonicalUrl = new URL(req.url);
   let shouldRedirect = isWwwHost || (isFarabakHost && requestProtocol !== "https");
+  let productDetailResolution: ProductDetailPageResolution | null | undefined;
 
   if (isFarabakHost) {
     canonicalUrl.protocol = "https:";
@@ -171,46 +189,62 @@ export async function proxy(req: ExtendedNextRequest) {
     canonicalUrl.port = "";
   }
 
+  if (isFarabakHost && isDocumentMethod) {
+    const imageDestination = getLegacyImageRedirect(pathname);
+    if (imageDestination) return NextResponse.redirect(imageDestination, 308);
+  }
+
   if (isDocumentMethod) {
-    const segments = pathname.split("/").filter(Boolean);
+    const queryPageValues = req.nextUrl.searchParams.getAll("page");
+    const queryPageDestination =
+      isFarabakHost &&
+      queryPageValues.length === 1 &&
+      (queryPageValues[0] !== "2" || req.nextUrl.searchParams.size === 1)
+        ? getVerifiedListingQueryRedirect(pathname, queryPageValues[0])
+        : null;
+    const pageOnePathDestination = isFarabakHost ? getVerifiedPageOnePathRedirect(pathname) : null;
 
     if (pathname === "/products/industrial-cctv-camera/explosion-proof-cctv-camera") {
       canonicalUrl.pathname = "/products/industrial-cctv-camera/black-wonder";
       shouldRedirect = true;
-    } else if (
-      pathname === "/products" &&
-      req.nextUrl.searchParams.getAll("page").length === 1 &&
-      req.nextUrl.searchParams.get("page") === "1"
-    ) {
+    } else if (pageOnePathDestination) {
+      canonicalUrl.pathname = pageOnePathDestination;
+      shouldRedirect = true;
+    } else if (queryPageDestination) {
+      canonicalUrl.pathname = queryPageDestination;
       canonicalUrl.searchParams.delete("page");
-      shouldRedirect = true;
-    } else if (
-      segments.length === 3 &&
-      segments[0] === "products" &&
-      segments[1] === "page" &&
-      segments[2] === "1"
-    ) {
-      canonicalUrl.pathname = "/products";
-      shouldRedirect = true;
-    } else if (
-      segments[0] === "products" &&
-      segments.length === 4 &&
-      segments[2] === "page" &&
-      segments[3] === "1"
-    ) {
-      canonicalUrl.pathname = `/products/${segments[1]}`;
-      shouldRedirect = true;
-    } else if (
-      segments[0] === "products" &&
-      segments.length === 5 &&
-      segments[3] === "page" &&
-      segments[4] === "1"
-    ) {
-      canonicalUrl.pathname = `/products/${segments[1]}/${segments[2]}`;
       shouldRedirect = true;
     } else if (pathname === "/products/x-ray/airport-luggage/ctx-9800") {
       canonicalUrl.pathname = "/products/x-ray/airport-luggage/ctx-9800-dsi";
       shouldRedirect = true;
+    }
+  }
+
+  if (
+    isFarabakHost &&
+    isDocumentMethod &&
+    req.headers.get("RSC") !== "1" &&
+    canonicalUrl.pathname === pathname
+  ) {
+    const productPageCheck = getProductPageCheck(req);
+    if (
+      productPageCheck !== null &&
+      productPageCheck !== "not-found" &&
+      productPageCheck.type === "product"
+    ) {
+      try {
+        const { resolveProductDetailPage } = await import("@/lib/data/product-page-validation");
+        productDetailResolution = await resolveProductDetailPage(productPageCheck);
+        if (!productDetailResolution) return rewriteToNotFound(req);
+
+        if (productDetailResolution.shouldRedirect) {
+          canonicalUrl.pathname = productDetailResolution.canonicalPath;
+          canonicalUrl.searchParams.delete("key");
+          shouldRedirect = true;
+        }
+      } catch {
+        console.error("Product page validation failed before rendering.");
+      }
     }
   }
 
@@ -227,7 +261,15 @@ export async function proxy(req: ExtendedNextRequest) {
 
     if (productPageCheck) {
       try {
-        if (!(await hasProductPageData(productPageCheck))) return rewriteToNotFound(req);
+        if (productPageCheck.type === "product" && productDetailResolution) {
+          if (productDetailResolution.shouldRedirect) {
+            canonicalUrl.pathname = productDetailResolution.canonicalPath;
+            canonicalUrl.searchParams.delete("key");
+            return NextResponse.redirect(canonicalUrl, 308);
+          }
+        } else if (!(await hasProductPageData(productPageCheck))) {
+          return rewriteToNotFound(req);
+        }
       } catch {
         console.error("Product page validation failed before rendering.");
       }

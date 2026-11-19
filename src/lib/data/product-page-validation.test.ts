@@ -2,32 +2,43 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { prismaMock } = vi.hoisted(() => ({
   prismaMock: {
-    product: { count: vi.fn(), findFirst: vi.fn() },
+    product: { count: vi.fn(), findFirst: vi.fn(), findMany: vi.fn() },
     category: { findFirst: vi.fn() },
-    categoryContent: { findFirst: vi.fn() },
+    categoryContent: { findFirst: vi.fn(), findMany: vi.fn() },
   },
 }));
 
 vi.mock("@/lib/prisma", () => ({ prisma: prismaMock }));
 
-import { hasProductDetailPage, hasProductListingPage } from "./product-page-validation";
+import {
+  hasProductDetailPage,
+  hasProductListingPage,
+  resolveProductDetailPage,
+} from "./product-page-validation";
 
 describe("hasProductDetailPage", () => {
   beforeEach(() => {
-    prismaMock.product.findFirst.mockReset();
-    prismaMock.categoryContent.findFirst.mockReset();
+    prismaMock.product.findMany.mockReset();
+    prismaMock.categoryContent.findMany.mockReset();
   });
 
-  it("checks the product, category, and subcategory before rendering the streamed detail page", async () => {
-    prismaMock.product.findFirst.mockResolvedValue({
-      ProductId: 577,
-      CategoryContentId: "42,41",
-      Available: true,
-      QrCode_Key: null,
-      QrCode_expiryDays: null,
-      Category: { Slug: "x-ray" },
-    });
-    prismaMock.categoryContent.findFirst.mockResolvedValue({ CategoryContentId: 42 });
+  it("accepts a valid exact product route with an assigned category and subcategory", async () => {
+    prismaMock.product.findMany.mockResolvedValue([
+      {
+        ProductId: 577,
+        Slug: "CTX-9800-DSI",
+        CategoryContentId: "42,41",
+        CategoryId: 10,
+        Available: true,
+        QrCode_Key: null,
+        QrCode_expiryDays: null,
+        Category: { Slug: "x-ray" },
+      },
+    ] as never);
+    prismaMock.categoryContent.findMany.mockResolvedValue([
+      { CategoryContentId: 42, Slug: "airport-luggage", CategoryID: 10 },
+      { CategoryContentId: 41, Slug: "smiths-detection", CategoryID: 10 },
+    ] as never);
 
     await expect(
       hasProductDetailPage({
@@ -38,26 +49,10 @@ describe("hasProductDetailPage", () => {
         key: null,
       })
     ).resolves.toBe(true);
-    expect(prismaMock.product.findFirst).toHaveBeenCalledWith({
-      where: { Slug: { equals: "ctx-9800-dsi", mode: "insensitive" } },
-      select: {
-        ProductId: true,
-        CategoryContentId: true,
-        Available: true,
-        QrCode_Key: true,
-        QrCode_expiryDays: true,
-        Category: { select: { Slug: true } },
-      },
-    });
-    expect(prismaMock.categoryContent.findFirst).toHaveBeenCalledWith({
-      where: { Slug: "airport-luggage" },
-      select: { CategoryContentId: true },
-    });
   });
 
-  it("rejects an unknown product slug", async () => {
-    prismaMock.product.findFirst.mockResolvedValue(null);
-    prismaMock.categoryContent.findFirst.mockResolvedValue(null);
+  it("rejects a missing product before exposing its page", async () => {
+    prismaMock.product.findMany.mockResolvedValue([] as never);
 
     await expect(
       hasProductDetailPage({
@@ -69,82 +64,6 @@ describe("hasProductDetailPage", () => {
       })
     ).resolves.toBe(false);
   });
-
-  it("allows a product through each stored subcategory membership", async () => {
-    prismaMock.product.findFirst.mockResolvedValue({
-      ProductId: 42,
-      CategoryContentId: "42,41",
-      Available: true,
-      QrCode_Key: null,
-      QrCode_expiryDays: null,
-      Category: { Slug: "reolink-cctv-camera" },
-    });
-    prismaMock.categoryContent.findFirst.mockResolvedValue({ CategoryContentId: 41 });
-
-    await expect(
-      hasProductDetailPage({
-        type: "product",
-        category: "reolink-cctv-camera",
-        subcategory: "wifi",
-        product: "Argus-2",
-        key: null,
-      })
-    ).resolves.toBe(true);
-  });
-
-  it("rejects a product slug under an unrelated category or subcategory", async () => {
-    prismaMock.product.findFirst.mockResolvedValue({
-      ProductId: 42,
-      CategoryContentId: "42,41",
-      Available: true,
-      QrCode_Key: null,
-      QrCode_expiryDays: null,
-      Category: { Slug: "reolink-cctv-camera" },
-    });
-    prismaMock.categoryContent.findFirst.mockResolvedValue({ CategoryContentId: 99 });
-
-    await expect(
-      hasProductDetailPage({
-        type: "product",
-        category: "x-ray",
-        subcategory: "unknown-category-membership",
-        product: "Argus-2",
-        key: null,
-      })
-    ).resolves.toBe(false);
-  });
-
-  it("validates QR availability and expiry before a streamed response starts", async () => {
-    prismaMock.product.findFirst.mockResolvedValue({
-      ProductId: 43,
-      CategoryContentId: "41",
-      Available: false,
-      QrCode_Key: "valid-key",
-      QrCode_expiryDays: "2099-01-01",
-      Category: { Slug: "reolink-cctv-camera" },
-    });
-    prismaMock.categoryContent.findFirst.mockResolvedValue({ CategoryContentId: 41 });
-
-    await expect(
-      hasProductDetailPage({
-        type: "product",
-        category: "reolink-cctv-camera",
-        subcategory: "wifi",
-        product: "Argus-2",
-        key: "valid-key",
-      })
-    ).resolves.toBe(true);
-
-    await expect(
-      hasProductDetailPage({
-        type: "product",
-        category: "reolink-cctv-camera",
-        subcategory: "wifi",
-        product: "Argus-2",
-        key: "wrong-key",
-      })
-    ).resolves.toBe(false);
-  });
 });
 
 describe("hasProductListingPage", () => {
@@ -152,6 +71,7 @@ describe("hasProductListingPage", () => {
     prismaMock.product.count.mockReset();
     prismaMock.category.findFirst.mockReset();
     prismaMock.categoryContent.findFirst.mockReset();
+    prismaMock.category.findFirst.mockReset();
   });
 
   it("uses categorized product count to confirm a global page", async () => {
@@ -179,16 +99,25 @@ describe("hasProductListingPage", () => {
     expect(prismaMock.product.count).toHaveBeenCalledWith({ where: { CategoryId: 8 } });
   });
 
-  it("counts only categorized products in the requested subcategory", async () => {
-    prismaMock.categoryContent.findFirst.mockResolvedValue({ CategoryContentId: 42 });
+  it("counts only categorized product rows assigned to a subcategory", async () => {
+    prismaMock.category.findFirst.mockResolvedValue({ CategoryID: 8 });
+    prismaMock.categoryContent.findFirst.mockResolvedValue({
+      CategoryContentId: 42,
+      CategoryID: 8,
+    });
     prismaMock.product.count.mockResolvedValue(30);
 
     await expect(
-      hasProductListingPage({ type: "subcategory", subcategory: "vehicle-truck", page: 1 })
+      hasProductListingPage({
+        type: "subcategory",
+        category: "x-ray",
+        subcategory: "vehicle-truck",
+        page: 1,
+      })
     ).resolves.toBe(true);
     expect(prismaMock.product.count).toHaveBeenCalledWith({
       where: {
-        CategoryId: { not: null },
+        CategoryId: 8,
         OR: [
           { CategoryContentId: { equals: "42" } },
           { CategoryContentId: { startsWith: "42," } },
@@ -197,5 +126,143 @@ describe("hasProductListingPage", () => {
         ],
       },
     });
+  });
+
+  it("rejects a subcategory under a different category", async () => {
+    prismaMock.category.findFirst.mockResolvedValue({ CategoryID: 8 });
+    prismaMock.categoryContent.findFirst.mockResolvedValue({
+      CategoryContentId: 42,
+      CategoryID: 9,
+    });
+
+    await expect(
+      hasProductListingPage({
+        type: "subcategory",
+        category: "x-ray",
+        subcategory: "vehicle-truck",
+        page: 1,
+      })
+    ).resolves.toBe(false);
+    expect(prismaMock.product.count).not.toHaveBeenCalled();
+  });
+});
+
+describe("resolveProductDetailPage", () => {
+  beforeEach(() => {
+    prismaMock.product.findMany.mockReset();
+    prismaMock.categoryContent.findMany.mockReset();
+  });
+
+  const matchingPublicProduct = {
+    ProductId: 42,
+    Slug: "Argus-2",
+    CategoryContentId: "41,42",
+    Available: true,
+    QrCode_Key: null,
+    QrCode_expiryDays: null,
+    CategoryId: 7,
+    Category: { Slug: "reolink-cctv-camera" },
+  };
+  const matchingMemberships = [
+    { CategoryContentId: 41, Slug: "night-vision", CategoryID: 7 },
+    { CategoryContentId: 42, Slug: "wifi", CategoryID: 7 },
+  ];
+
+  beforeEach(() => {
+    prismaMock.product.findMany.mockResolvedValue([matchingPublicProduct] as never);
+    prismaMock.categoryContent.findMany.mockResolvedValue(matchingMemberships as never);
+  });
+
+  it("resolves a unique case-insensitive slug and redirects a valid secondary membership", async () => {
+    await expect(
+      resolveProductDetailPage({
+        type: "product",
+        category: "reolink-cctv-camera",
+        subcategory: "wifi",
+        product: "argus-2",
+        key: null,
+      })
+    ).resolves.toEqual({
+      canonicalPath: "/products/reolink-cctv-camera/night-vision/Argus-2",
+      shouldRedirect: true,
+    });
+  });
+
+  it("prefers an exact slug match when case-insensitive records collide", async () => {
+    prismaMock.product.findMany.mockResolvedValue([
+      matchingPublicProduct,
+      {
+        ...matchingPublicProduct,
+        ProductId: 43,
+        Slug: "ARGUS-2",
+        CategoryContentId: "99",
+      },
+    ] as never);
+
+    await expect(
+      resolveProductDetailPage({
+        type: "product",
+        category: "reolink-cctv-camera",
+        subcategory: "wifi",
+        product: "Argus-2",
+        key: null,
+      })
+    ).resolves.toEqual({
+      canonicalPath: "/products/reolink-cctv-camera/night-vision/Argus-2",
+      shouldRedirect: true,
+    });
+  });
+
+  it("rejects a product slug under a subcategory that is not assigned to its product", async () => {
+    await expect(
+      resolveProductDetailPage({
+        type: "product",
+        category: "reolink-cctv-camera",
+        subcategory: "ip",
+        product: "Argus-2",
+        key: null,
+      })
+    ).resolves.toBeNull();
+  });
+
+  it("does not redirect a valid QR access route or include its key in the canonical path", async () => {
+    prismaMock.product.findMany.mockResolvedValue([
+      {
+        ...matchingPublicProduct,
+        Available: false,
+        QrCode_Key: "valid-key",
+        QrCode_expiryDays: "2099-01-01",
+      },
+    ] as never);
+
+    await expect(
+      resolveProductDetailPage({
+        type: "product",
+        category: "reolink-cctv-camera",
+        subcategory: "wifi",
+        product: "Argus-2",
+        key: "valid-key",
+      })
+    ).resolves.toEqual({
+      canonicalPath: "/products/reolink-cctv-camera/night-vision/Argus-2",
+      shouldRedirect: false,
+    });
+  });
+
+  it("rejects ambiguous case-insensitive slugs when no exact spelling matches", async () => {
+    prismaMock.product.findMany.mockResolvedValue([
+      matchingPublicProduct,
+      { ...matchingPublicProduct, ProductId: 43, Slug: "ARGUS-2" },
+    ] as never);
+
+    await expect(
+      resolveProductDetailPage({
+        type: "product",
+        category: "reolink-cctv-camera",
+        subcategory: "wifi",
+        product: "argus-2",
+        key: null,
+      })
+    ).resolves.toBeNull();
   });
 });

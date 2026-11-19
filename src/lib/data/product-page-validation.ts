@@ -1,11 +1,13 @@
 import { prisma } from "@/lib/prisma";
 
+import { selectCanonicalProductSlug } from "./product-slug";
+
 const PRODUCTS_PER_PAGE = 30;
 
 export type ProductListingPageCheck =
   | { type: "all"; page: number }
   | { type: "category"; category: string; page: number }
-  | { type: "subcategory"; subcategory: string; page: number };
+  | { type: "subcategory"; category: string; subcategory: string; page: number };
 
 export interface ProductDetailPageCheck {
   type: "product";
@@ -15,52 +17,91 @@ export interface ProductDetailPageCheck {
   key: string | null;
 }
 
-export async function hasProductDetailPage(check: ProductDetailPageCheck): Promise<boolean> {
-  if (!check.category || !check.subcategory || !check.product) return false;
+export interface ProductDetailPageResolution {
+  canonicalPath: string;
+  shouldRedirect: boolean;
+}
 
-  const [product, subcategory] = await Promise.all([
-    prisma.product.findFirst({
-      where: {
-        Slug: {
-          equals: check.product.toLowerCase(),
-          mode: "insensitive",
-        },
+export async function resolveProductDetailPage(
+  check: ProductDetailPageCheck
+): Promise<ProductDetailPageResolution | null> {
+  if (!check.category || !check.subcategory || !check.product) return null;
+
+  const products = await prisma.product.findMany({
+    where: {
+      Slug: {
+        equals: check.product,
+        mode: "insensitive",
       },
-      select: {
-        ProductId: true,
-        CategoryContentId: true,
-        Available: true,
-        QrCode_Key: true,
-        QrCode_expiryDays: true,
-        Category: { select: { Slug: true } },
-      },
-    }),
-    prisma.categoryContent.findFirst({
-      where: { Slug: check.subcategory },
-      select: { CategoryContentId: true },
-    }),
-  ]);
+    },
+    select: {
+      ProductId: true,
+      Slug: true,
+      CategoryContentId: true,
+      Available: true,
+      QrCode_Key: true,
+      QrCode_expiryDays: true,
+      CategoryId: true,
+      Category: { select: { Slug: true } },
+    },
+  });
+  const product = selectCanonicalProductSlug(products, check.product);
 
   if (
     !product ||
-    !subcategory ||
+    !product.Slug ||
     product.Category?.Slug !== check.category ||
-    !product.CategoryContentId ||
-    (!product.Available && !product.QrCode_Key)
+    !product.CategoryContentId
   ) {
-    return false;
+    return null;
   }
+
+  const categoryContentIds = product.CategoryContentId.split(",")
+    .map((id) => Number.parseInt(id.trim(), 10))
+    .filter((id) => Number.isSafeInteger(id) && id > 0);
+  const primaryCategoryContentId = categoryContentIds[0];
+  if (!primaryCategoryContentId || !product.CategoryId) return null;
+
+  const subcategories = await prisma.categoryContent.findMany({
+    where: { CategoryContentId: { in: categoryContentIds } },
+    select: { CategoryContentId: true, Slug: true, CategoryID: true },
+  });
+  const requestedSubcategory = subcategories.find(
+    (subcategory) =>
+      subcategory.Slug === check.subcategory && subcategory.CategoryID === product.CategoryId
+  );
+  const primarySubcategory = subcategories.find(
+    (subcategory) =>
+      subcategory.CategoryContentId === primaryCategoryContentId &&
+      subcategory.CategoryID === product.CategoryId &&
+      subcategory.Slug
+  );
+  if (!requestedSubcategory || !primarySubcategory?.Slug) return null;
+
+  if (!product.Available && !product.QrCode_Key) return null;
 
   if (product.QrCode_Key) {
-    if (!check.key || check.key !== product.QrCode_Key) return false;
+    if (!check.key || check.key !== product.QrCode_Key) return null;
 
     const expiryDate = new Date(product.QrCode_expiryDays as string);
-    if (new Date() > expiryDate) return false;
+    if (Number.isNaN(expiryDate.getTime()) || new Date() > expiryDate) return null;
   }
 
-  return product.CategoryContentId.split(",").some(
-    (id) => id.trim() === String(subcategory.CategoryContentId)
-  );
+  const canonicalPath = `/products/${encodeURIComponent(check.category)}/${encodeURIComponent(
+    primarySubcategory.Slug
+  )}/${encodeURIComponent(product.Slug || "")}`;
+  const requestedPath = `/products/${encodeURIComponent(check.category)}/${encodeURIComponent(
+    check.subcategory
+  )}/${encodeURIComponent(check.product)}`;
+
+  return {
+    canonicalPath,
+    shouldRedirect: !product.QrCode_Key && canonicalPath !== requestedPath,
+  };
+}
+
+export async function hasProductDetailPage(check: ProductDetailPageCheck): Promise<boolean> {
+  return (await resolveProductDetailPage(check)) !== null;
 }
 
 export async function hasProductListingPage(check: ProductListingPageCheck): Promise<boolean> {
@@ -79,16 +120,22 @@ export async function hasProductListingPage(check: ProductListingPageCheck): Pro
 
     totalCount = await prisma.product.count({ where: { CategoryId: category.CategoryID } });
   } else {
+    const category = await prisma.category.findFirst({
+      where: { Slug: check.category },
+      select: { CategoryID: true },
+    });
+    if (!category) return false;
+
     const subcategory = await prisma.categoryContent.findFirst({
       where: { Slug: check.subcategory },
-      select: { CategoryContentId: true },
+      select: { CategoryContentId: true, CategoryID: true },
     });
-    if (!subcategory) return false;
+    if (!subcategory || subcategory.CategoryID !== category.CategoryID) return false;
 
     const subcategoryId = String(subcategory.CategoryContentId);
     totalCount = await prisma.product.count({
       where: {
-        CategoryId: { not: null },
+        CategoryId: category.CategoryID,
         OR: [
           { CategoryContentId: { equals: subcategoryId } },
           { CategoryContentId: { startsWith: `${subcategoryId},` } },

@@ -11,6 +11,8 @@ import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 import { SITE_URL } from "@/constants/meta";
 import { getBlogBySlug, type BlogDetailData } from "@/lib/data/blogs";
+import { normalizeEditorialHeadings } from "@/lib/seo/editorial-headings";
+import { notFoundSeoMetadata } from "@/lib/seo/not-found-metadata";
 
 import ArticleTableOfContents from "../../_components/ArticleTableOfContents";
 import {
@@ -198,10 +200,7 @@ export async function generateMetadata(props: {
     return {
       title: "مقاله‌ای یافت نشد",
       description: "با این اطلاعات، مقاله یافت نشد!",
-      robots: {
-        index: false,
-        follow: true,
-      },
+      ...notFoundSeoMetadata,
     };
   }
 
@@ -235,10 +234,11 @@ export default async function BlogPage(props: {
 
   const { blog, faqs } = blogResponse;
 
-  const readingTime = calculateReadingTime(blog.content);
-  const wordCount = countWords(blog.content);
+  const editorialContent = normalizeEditorialHeadings(blog.content, blog.title);
+  const readingTime = calculateReadingTime(editorialContent);
+  const wordCount = countWords(editorialContent);
 
-  const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
+  const siteUrl = SITE_URL;
   const bucketUrl = process.env.LIARA_BUCKET_URL || "";
   const blogCategories = blogResponse.categories || [];
   const categorySlug = blogCategories[0]?.slug;
@@ -296,8 +296,8 @@ export default async function BlogPage(props: {
         })
       : null;
 
-  const articleHeadings = extractArticleHeadings(blog.content);
-  const articleMarkup = addArticleHeadingAnchors(processContentWithImageUrls(blog.content));
+  const articleHeadings = extractArticleHeadings(editorialContent);
+  const articleMarkup = addArticleHeadingAnchors(processContentWithImageUrls(editorialContent));
   const imageSrc = blog.image_URL ? `${bucketUrl}/${blog.image_URL}` : null;
 
   return (

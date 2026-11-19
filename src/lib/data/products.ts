@@ -3,6 +3,7 @@ import { cacheLife, cacheTag } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 
+import { selectCanonicalProductSlug } from "./product-slug";
 import { TAGS } from "./tags";
 
 // ---------------------------------------------------------------------------
@@ -413,26 +414,41 @@ function buildSubcategoryWhere(subCategoryId: string): Prisma.ProductWhereInput 
 
 async function queryProductsBySubcategory(
   subCategoryName: string,
-  params: ProductsQueryParams
+  params: ProductsQueryParams,
+  categoryName?: string
 ): Promise<CategoryProductsResult | null> {
   const { page, limit } = params;
   if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1) {
     return null;
   }
 
+  const category = categoryName
+    ? await prisma.category.findFirst({
+        where: { Slug: categoryName },
+        select: { CategoryID: true },
+      })
+    : null;
+  if (categoryName && !category) return null;
+
   const subCategory = await prisma.categoryContent.findFirst({
-    where: { Slug: subCategoryName },
+    where: {
+      Slug: subCategoryName,
+      ...(category ? { CategoryID: category.CategoryID } : {}),
+    },
     include: {
       SEO_CategoryContent: true,
     },
   });
 
-  if (!subCategory) {
+  if (!subCategory || (category && subCategory.CategoryID !== category.CategoryID)) {
     return null;
   }
 
   const subCategoryId = subCategory.CategoryContentId.toString();
-  const where = buildSubcategoryWhere(subCategoryId);
+  const where: Prisma.ProductWhereInput = {
+    ...buildSubcategoryWhere(subCategoryId),
+    ...(category ? { CategoryId: category.CategoryID } : {}),
+  };
 
   const totalCount = await prisma.product.count({ where });
 
@@ -517,14 +533,15 @@ async function queryProductsBySubcategory(
 
 export async function getProductsBySubcategory(
   subCategoryName: string,
-  params: ProductsQueryParams
+  params: ProductsQueryParams,
+  categoryName?: string
 ): Promise<CategoryProductsResult | null> {
   "use cache";
   cacheTag(TAGS.products);
   cacheTag(TAGS.categories);
   cacheLife("minutes");
 
-  return queryProductsBySubcategory(subCategoryName, params);
+  return queryProductsBySubcategory(subCategoryName, params, categoryName);
 }
 
 // ---------------------------------------------------------------------------
@@ -831,11 +848,10 @@ const PRODUCT_DETAIL_INCLUDE = {
   Category: {
     select: {
       Slug: true,
+      CategoryID: true,
     },
   },
 } as const;
-
-type ProductDetailRow = Prisma.ProductGetPayload<{ include: typeof PRODUCT_DETAIL_INCLUDE }>;
 
 export interface ProductBySlugData {
   ProductId: number;
@@ -862,17 +878,16 @@ export interface ProductBySlugData {
 }
 
 async function queryProductBySlug(productSlug: string): Promise<ProductBySlugData | null> {
-  const lowerCaseProductSlug = productSlug.toLowerCase();
-
-  const product: ProductDetailRow | null = await prisma.product.findFirst({
+  const products = await prisma.product.findMany({
     where: {
       Slug: {
-        equals: lowerCaseProductSlug,
+        equals: productSlug,
         mode: "insensitive",
       },
     },
     include: PRODUCT_DETAIL_INCLUDE,
   });
+  const product = selectCanonicalProductSlug(products, productSlug);
 
   if (!product) {
     return null;
@@ -884,7 +899,10 @@ async function queryProductBySlug(productSlug: string): Promise<ProductBySlugDat
   const subCategorySlug = firstCategoryContentId
     ? (
         await prisma.categoryContent.findFirst({
-          where: { CategoryContentId: Number(firstCategoryContentId) },
+          where: {
+            CategoryContentId: Number(firstCategoryContentId),
+            CategoryID: product.CategoryId,
+          },
           select: { Slug: true },
         })
       )?.Slug

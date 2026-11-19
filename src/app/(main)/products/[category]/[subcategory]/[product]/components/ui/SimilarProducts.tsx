@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/constants/meta";
 import { getProductsByCategory, getProductsBySubcategory } from "@/lib/data/products";
 import { getUsdToRialRate } from "@/lib/data/usd2rial";
 
@@ -43,7 +44,7 @@ export default async function SimilarProducts({
   const desiredCount = Math.max(1, Math.min(12, limit));
 
   const subData = await fetchFeed(() =>
-    getProductsBySubcategory(subCategorySlug, { page: 1, limit: desiredCount })
+    getProductsBySubcategory(subCategorySlug, { page: 1, limit: desiredCount }, categorySlug)
   );
   let products: ApiProduct[] = subData;
 
@@ -85,7 +86,7 @@ export default async function SimilarProducts({
           itemListElement: products.map((p, idx) => {
             const canonicalUrl = new URL(
               `/products/${p.link.replace(/^\/+/, "")}`,
-              process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net"
+              SITE_URL
             ).toString();
 
             return {

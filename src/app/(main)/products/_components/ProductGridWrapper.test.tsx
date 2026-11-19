@@ -5,6 +5,17 @@ import ProductGridWrapper from "./ProductGridWrapper";
 
 vi.mock("./ProductGrid", () => ({ default: () => null }));
 
+const feed = {
+  data: [],
+  pagination: {
+    totalCount: 0,
+    currentPage: 1,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPrevPage: false,
+  },
+};
+
 const pageVariants = [
   {
     name: "category root",
@@ -117,11 +128,7 @@ const pageVariants = [
 describe("ProductGridWrapper JSON-LD HTML", () => {
   it("does not invent collection items when page data was not provided", () => {
     const html = renderToStaticMarkup(
-      <ProductGridWrapper
-        title="نتایج جستجو"
-        apiUrl="https://farabak.net/api/products/search?q=test&page=1&limit=30"
-        currentPage={1}
-      />
+      <ProductGridWrapper title="نتایج جستجو" feed={feed} usdRate={null} currentPage={1} />
     );
 
     expect(html).not.toContain('type="application/ld+json"');
@@ -134,7 +141,8 @@ describe("ProductGridWrapper JSON-LD HTML", () => {
       const html = renderToStaticMarkup(
         <ProductGridWrapper
           title="محصولات ایکس‌ری"
-          apiUrl="https://farabak.net/api/products/getProductsByCategory/x-ray?page=1&limit=30"
+          feed={feed}
+          usdRate={null}
           currentPage={1}
           collectionItems={[{ name: "Smiths Detection HI-SCAN", path: "x-ray/airport/hi-scan" }]}
           {...props}

@@ -51,6 +51,21 @@ describe("product page metadata", () => {
     );
   });
 
+  it("returns a 404 for a missing product instead of metadata for a normal page", async () => {
+    getProductBySlugMock.mockResolvedValue(null);
+
+    await expect(
+      generateMetadata({
+        params: Promise.resolve({
+          category: "reolink-cctv-camera",
+          subcategory: "wifi",
+          product: "missing-model",
+        }),
+        searchParams: Promise.resolve({ key: "" }),
+      })
+    ).rejects.toThrow("NEXT_HTTP_ERROR_FALLBACK;404");
+  });
+
   it("uses the absolute product bucket URL for Open Graph and Twitter images", async () => {
     const metadata = await generateMetadata({
       params: Promise.resolve({

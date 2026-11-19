@@ -123,17 +123,17 @@ const Pagination: React.FC<PaginationProps> = ({
         <div className="flex items-center gap-2">
           {getMobilePageNumbers().map((page, index) =>
             typeof page === "number" ? (
-              <Link key={`page-${page}`} href={getPageHref(page)}>
-                <button
-                  type="button"
-                  className={`min-w-[36px] rounded-lg px-3 py-2 text-sm font-medium transition duration-200 ${
-                    page === currentPage
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300 active:bg-gray-400"
-                  }`}
-                >
-                  {page}
-                </button>
+              <Link
+                key={`page-${page}`}
+                href={getPageHref(page)}
+                aria-current={page === currentPage ? "page" : undefined}
+                className={`min-w-[36px] rounded-lg px-3 py-2 text-sm font-medium transition duration-200 ${
+                  page === currentPage
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300 active:bg-gray-400"
+                }`}
+              >
+                {page}
               </Link>
             ) : (
               <span key={`ellipsis-mobile-${index}`} className="px-1 text-gray-400">
@@ -213,17 +213,17 @@ const Pagination: React.FC<PaginationProps> = ({
         {/* Page Numbers */}
         {getPageNumbers().map((page, index) =>
           typeof page === "number" ? (
-            <Link key={`page-${page}`} href={getPageHref(page)}>
-              <button
-                type="button"
-                className={`min-w-[40px] rounded-lg px-3 py-2 text-base font-medium transition duration-200 ${
-                  page === currentPage
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                }`}
-              >
-                {page}
-              </button>
+            <Link
+              key={`page-${page}`}
+              href={getPageHref(page)}
+              aria-current={page === currentPage ? "page" : undefined}
+              className={`min-w-[40px] rounded-lg px-3 py-2 text-base font-medium transition duration-200 ${
+                page === currentPage
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+              }`}
+            >
+              {page}
             </Link>
           ) : (
             <span key={`ellipsis-desktop-${index}`} className="px-3 py-2 text-base text-gray-500">

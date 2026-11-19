@@ -2,12 +2,10 @@ import { Metadata } from "next";
 
 import { PublicShell } from "@/components/public/PublicShell";
 import { ErrorPage } from "@/components/ui/ErrorPage";
+import { notFoundSeoMetadata } from "@/lib/seo/not-found-metadata";
 
 export const metadata: Metadata = {
-  robots: {
-    index: false,
-    follow: true,
-  },
+  ...notFoundSeoMetadata,
 };
 
 const NotFound = () => {

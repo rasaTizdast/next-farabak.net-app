@@ -8,16 +8,16 @@ import { getProductsBlogContent } from "@/lib/data/products";
 
 import BannerImage from "./BannerImage";
 import BlogContent from "./BlogContent";
-import { GridContentServer } from "./GridContentServer";
-import { ProductGridSkeleton } from "./ProductListSkeletons";
+import { GridContentServer, type ProductFeed } from "./GridContentServer";
 import XRayModelComparison from "./XRayModelComparison";
 
 interface ProductGridProps {
   title: string;
-  apiUrl: string;
+  feed: ProductFeed;
   currentPage: number;
   categorySlug?: string;
   subcategorySlug?: string;
+  usdRate: number | null;
 }
 
 const BannerSkeleton = () => (
@@ -81,10 +81,11 @@ const ProductIntroFallback = ({ title, showSearch }: { title: string; showSearch
 
 const ProductGrid: React.FC<ProductGridProps> = ({
   title,
-  apiUrl,
+  feed,
   currentPage,
   categorySlug,
   subcategorySlug,
+  usdRate,
 }) => {
   async function fetchBlogs() {
     try {
@@ -130,17 +131,16 @@ const ProductGrid: React.FC<ProductGridProps> = ({
         })()}
       </Suspense>
 
-      <Suspense fallback={<ProductGridSkeleton showSearch={!categorySlug} />}>
-        <Reveal>
-          <GridContentServer
-            apiUrl={apiUrl}
-            currentPage={currentPage}
-            categorySlug={categorySlug}
-            subcategorySlug={subcategorySlug}
-            showSearch={!categorySlug}
-          />
-        </Reveal>
-      </Suspense>
+      <Reveal>
+        <GridContentServer
+          feed={feed}
+          currentPage={currentPage}
+          categorySlug={categorySlug}
+          subcategorySlug={subcategorySlug}
+          showSearch={!categorySlug}
+          usdRate={usdRate}
+        />
+      </Reveal>
 
       {categorySlug === "x-ray" && !subcategorySlug && currentPage === 1 ? (
         <XRayModelComparison />

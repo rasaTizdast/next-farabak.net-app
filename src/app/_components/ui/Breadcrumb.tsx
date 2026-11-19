@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { IoIosArrowBack } from "react-icons/io";
 
+import { SITE_URL } from "@/constants/meta";
 import { getBreadcrumbNames } from "@/lib/data/breadcrumbs";
 import { serializeJsonLd } from "@/lib/seo/json-ld";
 
@@ -9,19 +10,23 @@ type BreadcrumbItem = string;
 interface BreadcrumbProps {
   breadcrumbs: BreadcrumbItem[];
   labels?: Record<string, string>;
+  renderStructuredData?: boolean;
 }
 
-const Breadcrumb: React.FC<BreadcrumbProps> = async ({ breadcrumbs, labels }) => {
+const Breadcrumb: React.FC<BreadcrumbProps> = async ({
+  breadcrumbs,
+  labels,
+  renderStructuredData = true,
+}) => {
   // getBreadcrumbNames throws on DB error — keep the prior throw-on-error behavior.
   const names = { ...(await getBreadcrumbNames(breadcrumbs)), ...labels };
 
   // Prepare structured data for Schema.org
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net";
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: breadcrumbs.map((crumb, idx) => {
-      const url = new URL(crumb, baseUrl).toString();
+      const url = new URL(crumb, SITE_URL).toString();
       return {
         "@type": "ListItem",
         position: idx + 1,
@@ -38,7 +43,9 @@ const Breadcrumb: React.FC<BreadcrumbProps> = async ({ breadcrumbs, labels }) =>
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
+      {renderStructuredData && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
+      )}
       <nav className="scrollbar-hide mb-5 w-full scrollbar-none overflow-x-auto rounded-lg bg-linear-to-l from-[#003262] via-[#0e6aff] to-[#1e90ff] p-4 text-sm text-white shadow-lg [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         <div className="flex min-w-max items-center space-x-2">
           {breadcrumbs.map((crumb, idx) => (

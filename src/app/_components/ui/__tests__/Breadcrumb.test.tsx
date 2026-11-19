@@ -22,7 +22,10 @@ vi.mock("@/lib/data/breadcrumbs", () => ({
 process.env.NEXT_PUBLIC_BASE_URL = "https://farabak.net";
 
 describe("Breadcrumb", () => {
-  afterEach(() => cleanup());
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllEnvs();
+  });
 
   beforeEach(() => vi.clearAllMocks());
 
@@ -64,6 +67,27 @@ describe("Breadcrumb", () => {
     expect(data["@type"]).toBe("BreadcrumbList");
     expect(data.itemListElement).toHaveLength(1);
     expect(data.itemListElement[0].item.name).toBe("صفحه اصلی");
+  });
+
+  it("uses the canonical HTTPS origin for breadcrumb destinations on a local server", async () => {
+    vi.stubEnv("NEXT_PUBLIC_BASE_URL", "http://127.0.0.1:3000");
+    mockGetBreadcrumbNames.mockResolvedValue({ "/": "صفحه اصلی" });
+
+    const { container } = render(await Breadcrumb({ breadcrumbs: ["/"] }));
+    const script = container.querySelector('script[type="application/ld+json"]');
+    const data = JSON.parse(script!.innerHTML);
+
+    expect(data.itemListElement[0].item.url).toBe("https://farabak.net/");
+  });
+
+  it("keeps the visible navigation when the page collection supplies the breadcrumb schema", async () => {
+    mockGetBreadcrumbNames.mockResolvedValue({ "/": "صفحه اصلی", "/products": "محصولات" });
+    const { container } = render(
+      await Breadcrumb({ breadcrumbs: ["/", "/products"], renderStructuredData: false })
+    );
+
+    expect(screen.getByRole("link", { name: "Navigate to محصولات" })).toBeDefined();
+    expect(container.querySelector('script[type="application/ld+json"]')).toBeNull();
   });
 
   it("renders fallback name for unknown crumbs", async () => {

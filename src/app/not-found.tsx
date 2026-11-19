@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ErrorPage } from "@/components/ui/ErrorPage";
+import { notFoundSeoMetadata } from "@/lib/seo/not-found-metadata";
+
+export const metadata: Metadata = {
+  ...notFoundSeoMetadata,
+};
 
 const helpfulLinks = [
   { href: "/", label: "صفحه اصلی" },
