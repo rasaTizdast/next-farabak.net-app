@@ -152,6 +152,7 @@ def main():
         check("category Markdown " + accept, category, accept=accept, agent="ChatGPT-User", indexable=True, tokens=("Reolink",), canonical="https://farabak.net" + category, vary=True)
         check("B400 Markdown " + accept, product, accept=accept, agent="ChatGPT-User", indexable=True, tokens=("B400", "Reolink", "2560x1440"), canonical="https://farabak.net" + product, vary=True)
     check("homepage Markdown indexability", "/", accept="text/markdown", indexable=True, tokens=("فرابک",), canonical="https://farabak.net/", vary=True)
+    check("contact initial HTML", "/contact-us", html=True, indexable=True, canonical="https://farabak.net/contact-us", visible_h1=True, tokens=("برای پروژه‌تان",), vary=True)
     check("robots", "/robots.txt", accept="*/*", tokens=("Sitemap: https://farabak.net/sitemap.xml",))
     check("sitemap", "/sitemap.xml", accept="*/*", xml=True)
     check("B400 alias", category + "/ip/B400", status=308, redirect="https://farabak.net" + product)

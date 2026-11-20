@@ -8,8 +8,6 @@ import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 import { getContactInfo } from "@/lib/data/contactUs";
 
-import ContactUsLoading from "./ContactUsLoading";
-
 export const metadata: Metadata = {
   alternates: { canonical: "/contact-us" },
   title: "تماس با فرابک | آدرس و پشتیبانی",
@@ -29,26 +27,16 @@ const ContactUsContent = async () => {
 
   if (!address && emails.length === 0 && phoneNumbers.length === 0) {
     return (
-      <PublicShell as="main" className="pt-6 pb-12 sm:pt-8 sm:pb-14">
-        <PublicBreadcrumbs
-          breadcrumbs={["/", "/contact-us"]}
-          labels={{ "/contact-us": "تماس با ما" }}
-        />
-        <PageIntro
-          eyebrow="ارتباط با فرابک"
-          title="اطلاعات تماس موقتاً در دسترس نیست"
-          description="اطلاعات تماس از منبع اصلی دریافت نشد. لطفاً کمی بعد دوباره تلاش کنید یا از مرکز پشتیبانی مسیر مناسب را پیدا کنید."
-          actions={
-            <ActionLink href="/support" variant="primary">
-              رفتن به مرکز پشتیبانی
-            </ActionLink>
-          }
-        />
+      <PublicShell as="section" className="pb-12 sm:pb-14">
         <div
           role="status"
           className="rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center leading-8 text-(--farabak-ink-muted)"
         >
-          هیچ شماره، ایمیل یا نشانی قابل اتکایی برای نمایش دریافت نشد.
+          اطلاعات تماس موقتاً در دسترس نیست. لطفاً کمی بعد دوباره تلاش کنید یا از
+          <ActionLink href="/support" variant="quiet">
+            مرکز پشتیبانی
+          </ActionLink>
+          کمک بگیرید.
         </div>
       </PublicShell>
     );
@@ -88,22 +76,7 @@ const ContactUsContent = async () => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <PublicShell as="main" className="pt-6 pb-12 sm:pt-8 sm:pb-14">
-        <PublicBreadcrumbs
-          breadcrumbs={["/", "/contact-us"]}
-          labels={{ "/contact-us": "تماس با ما" }}
-        />
-        <PageIntro
-          eyebrow="تماس و شروع گفت‌وگو"
-          title="برای پروژه‌تان از یک گفت‌وگوی دقیق شروع کنید"
-          description="اگر هنوز مدل یا مشخصات فنی را نمی‌دانید، مسئله، محل استفاده و محدودیت‌های پروژه را بنویسید. پیام شما در برنامه ایمیل‌تان آماده می‌شود تا آن را بررسی و ارسال کنید."
-          actions={
-            <ActionLink href="/privacy" variant="quiet">
-              مطالعه سیاست حریم خصوصی
-            </ActionLink>
-          }
-        />
-
+      <PublicShell as="section" className="pb-12 sm:pb-14">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(20rem,1.15fr)] lg:items-start">
           <section
             aria-labelledby="contact-address-title"
@@ -200,8 +173,26 @@ const ContactUsContent = async () => {
 
 export default function ContactUsPage() {
   return (
-    <Suspense fallback={<ContactUsLoading />}>
-      <ContactUsContent />
-    </Suspense>
+    <main>
+      <PublicShell className="pt-6 sm:pt-8">
+        <PublicBreadcrumbs
+          breadcrumbs={["/", "/contact-us"]}
+          labels={{ "/contact-us": "تماس با ما" }}
+        />
+        <PageIntro
+          eyebrow="تماس و شروع گفت‌وگو"
+          title="برای پروژه‌تان از یک گفت‌وگوی دقیق شروع کنید"
+          description="اگر هنوز مدل یا مشخصات فنی را نمی‌دانید، مسئله، محل استفاده و محدودیت‌های پروژه را بنویسید. پیام شما در برنامه ایمیل‌تان آماده می‌شود تا آن را بررسی و ارسال کنید."
+          actions={
+            <ActionLink href="/privacy" variant="quiet">
+              مطالعه سیاست حریم خصوصی
+            </ActionLink>
+          }
+        />
+      </PublicShell>
+      <Suspense fallback={<PublicShell role="status">در حال بارگذاری اطلاعات تماس…</PublicShell>}>
+        <ContactUsContent />
+      </Suspense>
+    </main>
   );
 }
