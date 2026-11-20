@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { SITE_URL } from "@/constants/meta";
+import { getCatalogStaticParams } from "@/lib/data/catalog-static-params";
 import { getCategoryName, getProductsBySubcategory, getSubCategoryName } from "@/lib/data/products";
 import { getUsdToRialRate } from "@/lib/data/usd2rial";
 
@@ -12,6 +12,12 @@ import { BreadcrumbSkeleton } from "../../_components/ProductListSkeletons";
 import SubcategoryPageWrapper from "../../_components/SubcategoryPageWrapper";
 
 export const instant = false;
+
+export async function generateStaticParams({ params }: { params: { category?: string } }) {
+  return (await getCatalogStaticParams()).subcategories.filter(
+    (subcategory) => !params.category || subcategory.category === params.category
+  );
+}
 
 interface SubcategoryPageProps {
   params: Promise<{ category: string; subcategory: string }>;
@@ -45,7 +51,6 @@ export const generateMetadata = async (props: SubcategoryPageProps): Promise<Met
 };
 
 export default async function SubcategoryPage(props: SubcategoryPageProps) {
-  await connection();
   const params = await props.params;
   const { category, subcategory } = params;
   const currentPage = 1;

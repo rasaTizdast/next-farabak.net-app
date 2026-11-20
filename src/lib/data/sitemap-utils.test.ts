@@ -3,13 +3,13 @@ import { describe, expect, it } from "vitest";
 import { buildProductSitemapUrls } from "./sitemap-utils";
 
 describe("buildProductSitemapUrls", () => {
-  it("emits only complete product paths using the first valid assigned subcategory", () => {
+  it("requires an available primary subcategory that belongs to the product category", () => {
     const urls = buildProductSitemapUrls(
       [
         {
           Slug: "camera-1",
-          CategoryContentId: "99, 11, 12",
-          Category: { CategoryID: 1, Slug: "camera-category" },
+          CategoryContentId: "invalid,0,9007199254740992, 11, 12",
+          Category: { CategoryID: 1 },
         },
         {
           Slug: "missing-category",
@@ -19,32 +19,32 @@ describe("buildProductSitemapUrls", () => {
         {
           Slug: "",
           CategoryContentId: "11",
-          Category: { CategoryID: 1, Slug: "camera-category" },
+          Category: { CategoryID: 1 },
         },
         {
           Slug: "missing-subcategory",
-          CategoryContentId: "99",
-          Category: { CategoryID: 1, Slug: "camera-category" },
+          CategoryContentId: "99,11",
+          Category: { CategoryID: 1 },
         },
         {
           Slug: "wrong-parent",
-          CategoryContentId: "13",
-          Category: { CategoryID: 1, Slug: "camera-category" },
+          CategoryContentId: "13,11",
+          Category: { CategoryID: 1 },
         },
         {
           Slug: "empty-subcategory-slug",
           CategoryContentId: "14",
-          Category: { CategoryID: 1, Slug: "camera-category" },
+          Category: { CategoryID: 1 },
         },
         {
           Slug: "unavailable-category",
           CategoryContentId: "11",
-          Category: { CategoryID: 2, Slug: "unavailable-category" },
+          Category: { CategoryID: 2 },
         },
         {
           Slug: "null-category-slug",
           CategoryContentId: "11",
-          Category: { CategoryID: 3, Slug: null },
+          Category: { CategoryID: 3 },
         },
       ],
       [

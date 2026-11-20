@@ -21,6 +21,9 @@ vi.mock("@/lib/data/product-page-validation", () => ({
   resolveProductDetailPage,
 }));
 
+const findBlogPage = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/prisma", () => ({ prisma: { blogs: { findUnique: findBlogPage } } }));
+
 let proxy: typeof import("./proxy").proxy;
 
 beforeAll(async () => {
@@ -30,6 +33,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+  findBlogPage.mockReset();
   hasProductDetailPage.mockReset().mockResolvedValue(true);
   hasProductListingPage.mockReset().mockResolvedValue(true);
   resolveProductDetailPage.mockReset().mockResolvedValue({
@@ -318,6 +322,112 @@ describe("blog category 404 handling", () => {
     const response = await proxy(request);
 
     expect(hasBlogCategoryPage).toHaveBeenCalledWith("x-ray");
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+  });
+});
+
+describe("public representation negotiation", () => {
+  it("falls back to HTML for a public page without a Markdown version", async () => {
+    const request = new NextRequest("https://farabak.net/support/faq", {
+      headers: { Accept: "text/markdown, text/html;q=0.5" },
+    });
+    const response = await proxy(request);
+
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+    expect(response.headers.get("Vary")).toContain("Accept");
+  });
+
+  it("uses 406 when a real page has no acceptable representation", async () => {
+    const response = await proxy(
+      new NextRequest("https://farabak.net/support/faq", { headers: { Accept: "text/markdown" } })
+    );
+
+    expect(response.status).toBe(406);
+  });
+
+  it("leaves an unknown URL to the native 404 even when HTML was excluded", async () => {
+    const response = await proxy(
+      new NextRequest("https://farabak.net/a-missing-page", {
+        headers: { Accept: "application/json" },
+      })
+    );
+
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+  });
+
+  it("uses 406 for an existing HTML-only article and 404 for a missing article", async () => {
+    const headers = { Accept: "text/markdown" };
+    findBlogPage
+      .mockResolvedValueOnce({ QrCode_key: null, QrCode_expiryDays: null })
+      .mockResolvedValueOnce(null);
+    const article = await proxy(
+      new NextRequest("https://farabak.net/support/blog/x-ray/what-is-x-ray-inspection", {
+        headers,
+      })
+    );
+    const missing = await proxy(
+      new NextRequest("https://farabak.net/support/blog/x-ray/missing-article", { headers })
+    );
+
+    expect(article.status).toBe(406);
+    expect(missing.headers.get("x-middleware-rewrite")).toBe(
+      "https://farabak.net/_product-listing-not-found"
+    );
+  });
+
+  it("marks standalone Markdown responses noindex at their public entry point", async () => {
+    const response = await proxy(new NextRequest("https://farabak.net/markdown/about-us"));
+
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+    expect(response.headers.get("X-Robots-Tag")).toBe("noindex");
+  });
+
+  it("preserves the catalog query page in the Markdown rewrite", async () => {
+    const response = await proxy(
+      new NextRequest("https://farabak.net/products?page=3&campaign=test", {
+        headers: { Accept: "text/markdown" },
+      })
+    );
+
+    expect(response.headers.get("x-middleware-rewrite")).toBe(
+      "https://farabak.net/markdown/products?page=3"
+    );
+    expect(response.headers.get("X-Robots-Tag")).toBeNull();
+  });
+
+  it("preserves authorized key-based product navigation when HTML is acceptable", async () => {
+    hasProductDetailPage.mockResolvedValue(false);
+    const response = await proxy(
+      new NextRequest(
+        "https://farabak.net/products/x-ray/airport-luggage/ctx-5800?key=access-key",
+        {
+          headers: { Accept: "text/markdown, text/html;q=0.5" },
+        }
+      )
+    );
+
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+  });
+
+  it("drops an irrelevant key when negotiating an anonymously available product", async () => {
+    const response = await proxy(
+      new NextRequest("https://farabak.net/products/x-ray/airport-luggage/ctx-5800?key=unneeded", {
+        headers: { Accept: "text/markdown, text/html;q=0.5" },
+      })
+    );
+
+    expect(response.headers.get("x-middleware-rewrite")).toBe(
+      "https://farabak.net/markdown/products/x-ray/airport-luggage/ctx-5800"
+    );
+  });
+
+  it("keeps framework client navigations out of document negotiation", async () => {
+    const response = await proxy(
+      new NextRequest("https://farabak.net/products", {
+        headers: { Accept: "text/x-component", RSC: "1" },
+      })
+    );
+
     expect(response.headers.get("x-middleware-next")).toBe("1");
   });
 });

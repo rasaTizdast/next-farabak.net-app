@@ -6,7 +6,8 @@ const BRS_API_URL = "https://api.brsapi.ir/Market/Gold_Currency.php";
 const PRICE_TO_DAY_API_URL = "https://api.priceto.day/v1/latest/irr/usd";
 const JAHANKHAHAN_API_URL = "https://nerkh.jahankhahan.shop/data/live.json";
 
-const FETCH_TIMEOUT_MS = 15_000;
+const LOOKUP_TIMEOUT_MS = 5_000;
+const PROVIDER_TIMEOUT_MS = 2_000;
 
 // Cloudflare-fronted providers (e.g. priceto.day) return 403 for requests
 // without a browser-like User-Agent, which is what Next.js server fetch sends.
@@ -23,14 +24,15 @@ function isValidRate(rate: number | null): rate is number {
   return rate !== null && Number.isFinite(rate) && rate > 0;
 }
 
-async function fetchJson<T>(url: string): Promise<T> {
+async function fetchJson<T>(url: string, signal: AbortSignal): Promise<T> {
   const response = await fetch(url, {
     headers: REQUEST_HEADERS,
-    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    signal,
   });
+  signal.throwIfAborted();
 
   if (!response.ok) {
-    throw new Error(`خطا در دریافت اطلاعات: ${response.status} ${response.statusText}`);
+    throw new Error(`HTTP ${response.status}`);
   }
 
   return (await response.json()) as T;
@@ -42,10 +44,10 @@ async function fetchJson<T>(url: string): Promise<T> {
  * the free tier occasionally returns `price: 0` for every symbol, so zero is
  * treated as "no data" and the next provider is tried.
  */
-async function fetchFromBrs(): Promise<number | null> {
+async function fetchFromBrs(signal: AbortSignal): Promise<number | null> {
   const data = await fetchJson<{
     currency: { symbol: string; price: string | number }[];
-  }>(`${BRS_API_URL}?key=${process.env.CURRENCY_API_KEY}`);
+  }>(`${BRS_API_URL}?key=${process.env.CURRENCY_API_KEY}`, signal);
 
   const usdRate = Math.floor(Number(data.currency?.find((item) => item.symbol === "USD")?.price));
   return isValidRate(usdRate) ? usdRate : null;
@@ -56,9 +58,10 @@ async function fetchFromBrs(): Promise<number | null> {
  * divided by 10 to produce تومان. Data is sourced from tgju.org and
  * cross-checked against Bitpin USDT.
  */
-async function fetchFromPriceToDay(): Promise<number | null> {
+async function fetchFromPriceToDay(signal: AbortSignal): Promise<number | null> {
   const data = await fetchJson<{ success?: boolean; price?: string | number }>(
-    PRICE_TO_DAY_API_URL
+    PRICE_TO_DAY_API_URL,
+    signal
   );
 
   if (!data.success) {
@@ -70,8 +73,11 @@ async function fetchFromPriceToDay(): Promise<number | null> {
 }
 
 /** jahankhahan live board (keyless). `rates.dollar` is already in تومان. */
-async function fetchFromJahankhahan(): Promise<number | null> {
-  const data = await fetchJson<{ rates?: { dollar?: string | number } }>(JAHANKHAHAN_API_URL);
+async function fetchFromJahankhahan(signal: AbortSignal): Promise<number | null> {
+  const data = await fetchJson<{ rates?: { dollar?: string | number } }>(
+    JAHANKHAHAN_API_URL,
+    signal
+  );
 
   const rate = Math.floor(Number(data.rates?.dollar));
   return isValidRate(rate) ? rate : null;
@@ -80,14 +86,34 @@ async function fetchFromJahankhahan(): Promise<number | null> {
 const RATE_PROVIDERS = [fetchFromBrs, fetchFromPriceToDay, fetchFromJahankhahan];
 
 async function fetchUsdRateFromProviders(): Promise<UsdRateResult> {
+  const deadline = performance.now() + LOOKUP_TIMEOUT_MS;
+
   for (const provider of RATE_PROVIDERS) {
+    const remaining = deadline - performance.now();
+    if (remaining <= 0) break;
+
+    const controller = new AbortController();
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    const timeoutResult = new Promise<never>((_resolve, reject) => {
+      timeout = setTimeout(
+        () => {
+          controller.abort();
+          reject(controller.signal.reason);
+        },
+        Math.min(PROVIDER_TIMEOUT_MS, remaining)
+      );
+    });
+
     try {
-      const rate = await provider();
-      if (isValidRate(rate)) {
+      const rate = await Promise.race([provider(controller.signal), timeoutResult]);
+      if (performance.now() <= deadline && isValidRate(rate)) {
         return { rate };
       }
-    } catch (error) {
-      console.error("منبع نرخ ارز در دسترس نیست:", error);
+    } catch {
+      controller.abort();
+      console.error("منبع نرخ ارز در دسترس نیست:", provider.name);
+    } finally {
+      clearTimeout(timeout);
     }
   }
 
@@ -97,7 +123,7 @@ async function fetchUsdRateFromProviders(): Promise<UsdRateResult> {
 /**
  * Server-side USD → Toman exchange rate.
  * Tries each provider in order (BRS → priceto.day → jahankhahan) and returns
- * the first valid rate; `{ rate: null }` only when every provider fails.
+ * the first valid rate within five seconds, or `{ rate: null }`.
  * Cached ~1h (`expire: 3600`, tag `TAGS.exchangeRate`). Callers of
  * `fetchUsdToRialRate`/`calculateProductPricing` already tolerate `null`.
  */

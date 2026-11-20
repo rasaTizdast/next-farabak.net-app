@@ -29,8 +29,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    revalidateTag(TAGS.products, "max");
-    revalidateTag(TAGS.categories, "max");
+    revalidateTag(TAGS.products, { expire: 0 });
+    revalidateTag(TAGS.categories, { expire: 0 });
+    revalidateTag(TAGS.sitemap, { expire: 0 });
     return NextResponse.json(
       {
         message: "QR Code details updated successfully",
@@ -67,8 +68,9 @@ export async function DELETE(req: NextRequest) {
       },
     });
 
-    revalidateTag(TAGS.products, "max");
-    revalidateTag(TAGS.categories, "max");
+    revalidateTag(TAGS.products, { expire: 0 });
+    revalidateTag(TAGS.categories, { expire: 0 });
+    revalidateTag(TAGS.sitemap, { expire: 0 });
     return NextResponse.json(
       {
         message: "QR Code details removed successfully",

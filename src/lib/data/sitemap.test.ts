@@ -34,8 +34,8 @@ describe("getSitemapUrls product categories", () => {
     vi.mocked(prisma.product.findMany).mockResolvedValue([
       {
         Slug: "camera-1",
-        CategoryContentId: "11, 12",
-        Category: { CategoryID: 1, Slug: "camera-category" },
+        CategoryContentId: "11,12, 15",
+        Category: { CategoryID: 1 },
       },
     ] as never);
     vi.mocked(prisma.category.findMany).mockResolvedValue([
@@ -62,6 +62,12 @@ describe("getSitemapUrls product categories", () => {
         Category: { Slug: "camera-category" },
       },
       {
+        CategoryContentId: 15,
+        CategoryID: 1,
+        Slug: "whitespace-assignment",
+        Category: { Slug: "camera-category" },
+      },
+      {
         CategoryContentId: 14,
         CategoryID: 2,
         Slug: "subcategory-under-empty-category",
@@ -77,6 +83,9 @@ describe("getSitemapUrls product categories", () => {
     expect(urls).toContain("https://farabak.net/products/camera-category");
     expect(urls).toContain("https://farabak.net/products/camera-category/populated-subcategory");
     expect(urls).toContain("https://farabak.net/products/camera-category/also-populated");
+    expect(urls).not.toContain(
+      "https://farabak.net/products/camera-category/whitespace-assignment"
+    );
     expect(urls).not.toContain("https://farabak.net/products/empty-category");
     expect(urls).not.toContain("https://farabak.net/products/camera-category/empty-subcategory");
     expect(urls).not.toContain(
@@ -85,8 +94,15 @@ describe("getSitemapUrls product categories", () => {
     expect(urls).toContain(
       "https://farabak.net/products/camera-category/populated-subcategory/camera-1"
     );
+  });
+
+  it("queries only available products that can be opened without a QR key", async () => {
+    await getSitemapUrls();
+
     expect(prisma.product.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { Available: true } })
+      expect.objectContaining({
+        where: { Available: true, OR: [{ QrCode_Key: null }, { QrCode_Key: "" }] },
+      })
     );
   });
 

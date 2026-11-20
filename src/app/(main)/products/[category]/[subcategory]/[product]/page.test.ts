@@ -36,6 +36,47 @@ describe("product page metadata", () => {
     vi.clearAllMocks();
   });
 
+  it("prerenders public metadata without reading request-only search parameters", async () => {
+    const searchParams = {
+      then() {
+        throw new Error("request-only query was accessed");
+      },
+    } as unknown as Promise<{ key: string }>;
+
+    const metadata = await generateMetadata({
+      params: Promise.resolve({
+        category: "reolink-cctv-camera",
+        subcategory: "night-vision",
+        product: "Argus-2",
+      }),
+      searchParams,
+    });
+
+    expect(metadata.alternates?.canonical).toBe(
+      "https://farabak.net/products/reolink-cctv-camera/night-vision/Argus-2"
+    );
+    expect(metadata.robots).toMatchObject({ index: true });
+  });
+
+  it("still rejects a QR-only product when its request key is missing", async () => {
+    getProductBySlugMock.mockResolvedValue({
+      ...product,
+      Available: false,
+      QrCode_key: "private-test-key",
+    });
+
+    await expect(
+      generateMetadata({
+        params: Promise.resolve({
+          category: "reolink-cctv-camera",
+          subcategory: "night-vision",
+          product: "Argus-2",
+        }),
+        searchParams: Promise.resolve({ key: "" }),
+      })
+    ).rejects.toThrow("NEXT_HTTP_ERROR_FALLBACK;404");
+  });
+
   it("uses the stored primary product slug in its canonical URL", async () => {
     const metadata = await generateMetadata({
       params: Promise.resolve({

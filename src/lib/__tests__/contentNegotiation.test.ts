@@ -45,6 +45,21 @@ describe("negotiate", () => {
     expect(negotiate("text/markdown;q=0.5, */*;q=0.5")).toBe("text/markdown");
   });
 
+  it.each([
+    ["text/markdown;q=0, */*", "text/html"],
+    ["text/html;q=0, text/*", "text/markdown"],
+    ["text/*;q=0, */*", null],
+    ["text/markdown;q=0.2, text/*;q=0.8", "text/html"],
+    ["text/html;q=0, text/markdown;q=0, */*", null],
+  ])("uses the most specific quality for %s", (accept, expected) => {
+    expect(negotiate(accept)).toBe(expected);
+  });
+
+  it("defaults to the first representation available for this resource", () => {
+    expect(negotiate(undefined, ["text/markdown"])).toBe("text/markdown");
+    expect(negotiate(undefined, [])).toBeNull();
+  });
+
   it("returns null (406) when only unproducible types are acceptable", () => {
     expect(negotiate("image/png")).toBeNull();
     expect(negotiate("audio/*, video/*")).toBeNull();
@@ -54,6 +69,12 @@ describe("negotiate", () => {
   it("does not substring-match on markdown", () => {
     // text/plain is NOT a request for markdown
     expect(prefersMarkdown("text/plain")).toBe(false);
+  });
+
+  it("matches representation parameters without treating unsupported variants as available", () => {
+    expect(negotiate("text/markdown;variant=nonexistent,text/html;q=0.8")).toBe("text/html");
+    expect(negotiate("text/markdown;charset=utf-8,text/html;q=0.8")).toBe("text/markdown");
+    expect(negotiate("text/html;profile=foo;q=0,*/*")).toBe("text/html");
   });
 });
 

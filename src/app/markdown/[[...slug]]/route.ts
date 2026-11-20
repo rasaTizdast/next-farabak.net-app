@@ -1,25 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { buildNotFoundMarkdown, markdownPages } from "@/lib/markdownContent";
+import { SITE_URL } from "@/constants/meta";
+import { getCatalogMarkdown } from "@/lib/catalogMarkdown";
+import {
+  buildNotFoundMarkdown,
+  getCatalogPageCheck,
+  getStaticMarkdownPage,
+} from "@/lib/markdownContent";
 
 const MARKDOWN_CONTENT_TYPE = "text/markdown; charset=utf-8";
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ slug?: string[] }> }
 ) {
   const { slug = [] } = await params;
   const key = slug.join("/");
 
-  const page = markdownPages[key];
+  const catalogPage = getCatalogPageCheck(slug, request.nextUrl.searchParams);
+  const page =
+    catalogPage && catalogPage !== "not-found"
+      ? await getCatalogMarkdown(catalogPage)
+      : getStaticMarkdownPage(key);
 
   if (!page) {
-    const pathname = "/" + key;
+    const pathname = "/" + slug.map(encodeURIComponent).join("/");
     return new NextResponse(buildNotFoundMarkdown(pathname), {
       status: 404,
       headers: {
         "Content-Type": MARKDOWN_CONTENT_TYPE,
         Vary: "Accept, Accept-Encoding",
+        "X-Robots-Tag": "noindex",
       },
     });
   }
@@ -29,7 +40,7 @@ export async function GET(
     headers: {
       "Content-Type": MARKDOWN_CONTENT_TYPE,
       Vary: "Accept, Accept-Encoding",
-      "X-Robots-Tag": "noindex",
+      Link: `<${new URL(page.path, SITE_URL)}>; rel="canonical"`,
     },
   });
 }

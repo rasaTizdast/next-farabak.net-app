@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { SITE_URL } from "@/constants/meta";
+import { getCatalogStaticParams } from "@/lib/data/catalog-static-params";
 import { getCategoryName, getProductsByCategory } from "@/lib/data/products";
 import { getUsdToRialRate } from "@/lib/data/usd2rial";
 
@@ -12,6 +12,10 @@ import CategoryPageWrapper from "../_components/CategoryPageWrapper";
 import { BreadcrumbSkeleton } from "../_components/ProductListSkeletons";
 
 export const instant = false;
+
+export async function generateStaticParams() {
+  return (await getCatalogStaticParams()).categories;
+}
 
 interface CategoryPageProps {
   params: Promise<{ category: string }>;
@@ -45,7 +49,6 @@ export const generateMetadata = async (props: CategoryPageProps): Promise<Metada
 };
 
 export default async function CategoryPage(props: CategoryPageProps) {
-  await connection();
   const params = await props.params;
   const categoryName = params.category;
   const currentPage = 1;
