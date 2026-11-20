@@ -2,6 +2,36 @@
   "name": "next-farabak.net-app",
   "version": "0.1.0",
   "private": true,
+  "devEngines": {
+    "packageManager": [
+      {
+        "name": "pnpm",
+        "version": "10.34.9",
+        "onFail": "download"
+      },
+      {
+        "name": "npm",
+        "onFail": "ignore"
+      }
+    ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "@scarf/scarf",
+      "@tree-sitter-grammars/tree-sitter-yaml",
+      "aws-sdk",
+      "core-js",
+      "core-js-pure",
+      "cypress",
+      "prisma",
+      "sharp",
+      "tree-sitter",
+      "tree-sitter-json",
+      "unrs-resolver"
+    ]
+  },
   "scripts": {
     "dev": "prisma generate && next dev --turbopack",
     "build": "prisma generate && next build --turbopack",
