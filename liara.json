@@ -2,7 +2,10 @@
   "app": "farabak-next",
   "port": 3000,
   "build": {
-    "location": "iran"
+    "location": "germany"
+  },
+  "next": {
+    "mirror": false
   },
   "disks": [
     {
