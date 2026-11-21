@@ -5,9 +5,15 @@ import { PageIntro } from "@/components/public/PageIntro";
 import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 import aboutUsData from "@/constants/aboutUs.json";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/about-us" },
+  ...createRouteMetadata({
+    title: "درباره ما | تاریخچه و فعالیت‌های فرابک",
+    description:
+      "با فرابک آشنا شوید: شرکتی متخصص در واردات و توزیع تجهیزات امنیتی مانند دوربین‌های ریولینک، دستگاه‌های ایکس‌ری و محصولات بلک مجیک با گارانتی معتبر. بیش از ربع قرن تجربه در پروژه‌های نظارتی. برای همکاری تماس بگیرید.",
+    path: "/about-us",
+  }),
   title: "درباره ما | تاریخچه و فعالیت‌های فرابک",
   description:
     "با فرابک آشنا شوید: شرکتی متخصص در واردات و توزیع تجهیزات امنیتی مانند دوربین‌های ریولینک، دستگاه‌های ایکس‌ری و محصولات بلک مجیک با گارانتی معتبر. بیش از ربع قرن تجربه در پروژه‌های نظارتی. برای همکاری تماس بگیرید.",
@@ -31,11 +37,6 @@ const structuredData = {
     "@type": "Organization",
     name: "فرابک",
     url: process.env.NEXT_PUBLIC_BASE_URL,
-    sameAs: [
-      `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/projects`,
-      `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/members`,
-      `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/activity`,
-    ],
   },
 };
 
@@ -46,7 +47,7 @@ const AboutUs = () => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <PublicShell as="main" className="pt-6 pb-12 sm:pt-8 sm:pb-14">
+      <PublicShell className="pt-6 pb-12 sm:pt-8 sm:pb-14">
         <PublicBreadcrumbs breadcrumbs={["/", "/about-us"]} />
         <PageIntro
           eyebrow="آرشیو شرکت"

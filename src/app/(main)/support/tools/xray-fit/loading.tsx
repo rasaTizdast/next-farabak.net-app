@@ -27,12 +27,27 @@ export default function XrayFitLoading() {
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
             <LoadingBlock className="h-5 w-28" />
-            <LoadingBlock className="h-12 w-32" />
+            <div className="flex gap-2">
+              <LoadingBlock className="h-10 w-20" />
+              <LoadingBlock className="h-10 w-20" />
+            </div>
+          </div>
+          <div className="border-t-2 border-slate-200 pt-4">
+            <LoadingBlock className="h-7 w-40" />
+            <LoadingBlock className="mt-3 h-5 w-full max-w-lg" />
           </div>
           <LoadingBlock className="h-7 w-40" />
           <div className="grid gap-4 sm:grid-cols-2">
-            <LoadingBlock className="h-12 w-full" />
-            <LoadingBlock className="h-12 w-full" />
+            {Array.from({ length: 4 }, (_, index) => (
+              <LoadingBlock key={index} className="h-12 w-full" />
+            ))}
+          </div>
+          <div className="flex flex-wrap justify-between gap-3 border-t border-slate-200 pt-4">
+            <LoadingBlock className="h-12 w-28" />
+            <div className="flex gap-3">
+              <LoadingBlock className="h-12 w-36" />
+              <LoadingBlock className="h-12 w-28" />
+            </div>
           </div>
         </div>
 

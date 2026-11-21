@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
-export const notFoundSeoMetadata: Pick<Metadata, "alternates" | "robots"> = {
+export const notFoundSeoMetadata: Pick<Metadata, "alternates" | "robots" | "title"> = {
+  title: "صفحه مورد نظر یافت نشد | فرابک",
   alternates: {
     canonical: null,
   },

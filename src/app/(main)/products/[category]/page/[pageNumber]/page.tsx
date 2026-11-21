@@ -3,10 +3,11 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { SITE_URL } from "@/constants/meta";
+import { OG_IMAGE_PATH, SITE_URL } from "@/constants/meta";
 import { getCategoryName, getProductsByCategory } from "@/lib/data/products";
 import { getUsdToRialRate } from "@/lib/data/usd2rial";
 import { parsePositivePageNumber } from "@/lib/pagination";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 import BreadcrumbWrapper from "../../../_components/BreadcrumbWrapper";
 import CategoryPageWrapper from "../../../_components/CategoryPageWrapper";
@@ -32,14 +33,18 @@ export const generateMetadata = async (props: CategoryPageProps): Promise<Metada
     pageNumber === 1
       ? `${SITE_URL}/products/${params.category}`
       : `${SITE_URL}/products/${params.category}/page/${pageNumber}`;
+  const title = seoDetails?.SEO_Title || `محصولات دسته‌بندی ${categoryName}`;
+  const description = seoDetails?.SEO_Description || `محصولات دسته‌بندی ${categoryName}`;
 
   return {
-    title: seoDetails?.SEO_Title || `محصولات دسته‌بندی ${categoryName}`,
-    description: seoDetails?.SEO_Description || `محصولات دسته‌بندی ${categoryName}`,
+    ...createRouteMetadata({ title, description, path: canonicalUrl, image: OG_IMAGE_PATH }),
+    title,
+    description,
     openGraph: {
-      title: seoDetails?.SEO_Title || `محصولات دسته‌بندی ${categoryName}`,
-      description: seoDetails?.SEO_Description || `محصولات دسته‌بندی ${categoryName}`,
+      title,
+      description,
       url: canonicalUrl,
+      images: [OG_IMAGE_PATH],
     },
     alternates: {
       canonical: canonicalUrl,

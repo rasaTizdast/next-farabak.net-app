@@ -93,7 +93,7 @@ async function queryProjectData(slug: string): Promise<ProjectDetailData | null>
         acc.push({
           id: media.MediaID,
           img: media.MediaURL,
-          alt: `Project image ${media.MediaID}`,
+          alt: `نمای پروژه ${project.Title}، تصویر ${acc.length + 1}`,
         });
       }
       return acc;

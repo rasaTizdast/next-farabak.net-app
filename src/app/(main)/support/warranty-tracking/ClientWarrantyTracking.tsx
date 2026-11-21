@@ -25,7 +25,6 @@ type WarrantyResult = {
     startDate: string;
     expiryDate: string;
     status: "Active" | "Expired" | "Requested";
-    customerPhone?: string;
   };
   error?: string;
 };
@@ -45,7 +44,7 @@ const secondaryButtonClass = cn(
 );
 
 const primaryButtonClass = cn(
-  "inline-flex min-h-11 min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-(--farabak-action-blue) px-6 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-(--farabak-action-blue)/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+  "inline-flex min-h-11 min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-(--farabak-action-blue) px-6 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-(--farabak-action-blue)/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none"
 );
 
 const StepIndicator = ({
@@ -63,7 +62,7 @@ const StepIndicator = ({
             <div className={`h-0.5 flex-1 ${index <= current ? "bg-[#00bfff]" : "bg-gray-200"}`} />
           )}
           <div
-            className={`mx-1 flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors ${
+            className={`mx-1 flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors motion-reduce:transition-none ${
               index < current
                 ? "bg-[#00bfff] text-white"
                 : index === current
@@ -211,15 +210,23 @@ const WarrantyTrackingPage = () => {
               <div className="mx-auto mb-10 h-4 w-4/5 animate-pulse rounded-md bg-gray-100"></div>
 
               <div className="mb-8 flex justify-between">
-                <div className={cn("h-16 w-1/3 animate-pulse rounded-full bg-blue-100")}></div>
-                <div className={cn("h-16 w-1/3 animate-pulse rounded-full bg-gray-100")}></div>
-                <div className={cn("h-16 w-1/3 animate-pulse rounded-full bg-gray-100")}></div>
+                <div
+                  className={cn("h-16 w-1/3 rounded-full bg-blue-100 motion-safe:animate-pulse")}
+                ></div>
+                <div
+                  className={cn("h-16 w-1/3 rounded-full bg-gray-100 motion-safe:animate-pulse")}
+                ></div>
+                <div
+                  className={cn("h-16 w-1/3 rounded-full bg-gray-100 motion-safe:animate-pulse")}
+                ></div>
               </div>
             </div>
           </div>
 
           <div
-            className={cn("animate-pulse overflow-hidden rounded-lg border-0 bg-white shadow-lg")}
+            className={cn(
+              "overflow-hidden rounded-lg border-0 bg-white shadow-lg motion-safe:animate-pulse"
+            )}
           >
             <div className={cn("p-8")}>
               <div className={cn("mb-4 h-6 w-1/3 rounded-md bg-gray-200")}></div>
@@ -327,6 +334,15 @@ const WarrantyTrackingPage = () => {
                   لطفا اطلاعات گارانتی خود را بررسی کرده و در صورت صحت، درخواست بررسی را تایید کنید
                 </p>
 
+                {error && (
+                  <div
+                    role="alert"
+                    className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-900"
+                  >
+                    {error}
+                  </div>
+                )}
+
                 {result.data && (
                   <div className="mb-6 rounded-lg border-t border-gray-200 p-4 pt-6">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -404,7 +420,10 @@ const WarrantyTrackingPage = () => {
                     className={cn(primaryButtonClass, "min-w-[180px]")}
                   >
                     {confirmLoading ? (
-                      <Loader2 className="size-5 animate-spin" />
+                      <>
+                        <Loader2 className="size-5 motion-safe:animate-spin" />
+                        <span className="sr-only">در حال ثبت درخواست</span>
+                      </>
                     ) : (
                       <ArrowLeft className="size-4" />
                     )}
@@ -424,8 +443,8 @@ const WarrantyTrackingPage = () => {
                     </h3>
                     <div className="mt-4">
                       <p className="text-lg text-gray-500">
-                        اطلاعات گارانتی شما ثبت شده و کارشناسان ما در اسرع وقت با شماره{" "}
-                        {result.data?.customerPhone || "شما"} تماس خواهند گرفت.
+                        اطلاعات گارانتی شما ثبت شده و کارشناسان ما در اسرع وقت با شماره تماس ثبت‌شده
+                        برای این گارانتی تماس خواهند گرفت.
                       </p>
 
                       <div className="mt-8 flex flex-col items-center justify-center gap-2 rounded-lg bg-blue-100 p-4 md:flex-row md:gap-8">

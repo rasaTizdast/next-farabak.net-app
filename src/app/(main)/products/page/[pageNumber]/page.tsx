@@ -7,6 +7,7 @@ import { OG_IMAGE_PATH, SITE_URL } from "@/constants/meta";
 import { getAllProducts } from "@/lib/data/products";
 import { getUsdToRialRate } from "@/lib/data/usd2rial";
 import { parsePositivePageNumber } from "@/lib/pagination";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 import BreadcrumbWrapper from "../../_components/BreadcrumbWrapper";
 import CategorySliderWrapper from "../../_components/CategorySliderWrapper";
@@ -37,6 +38,12 @@ export const generateMetadata = async (props: ProductsPageProps): Promise<Metada
     currentPage === 1 ? `${SITE_URL}/products` : `${SITE_URL}/products/page/${currentPage}`;
 
   return {
+    ...createRouteMetadata({
+      title: `تمامی محصولات - صفحه ${currentPage} | فرابک`,
+      description: `با مرور در صفحه ${currentPage} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
+      path: canonicalUrl,
+      image: OG_IMAGE_PATH,
+    }),
     title: `تمامی محصولات - صفحه ${currentPage} | فرابک`,
     description: `با مرور در صفحه ${currentPage} از محصولات ما، تنوع گسترده‌ای از محصولات فرابک را کشف کنید و انتخاب کنید.`,
     openGraph: {

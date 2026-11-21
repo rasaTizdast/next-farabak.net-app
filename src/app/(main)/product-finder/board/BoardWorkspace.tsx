@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import { shouldShowAdvisorModel } from "@/features/product-advisor/display";
 
+import { FinderStoredStateSkeleton } from "../_components/FinderSkeletons";
+
 type Candidate = {
   product: { productId: number; name: string; model: string | null };
   matched: string[];
@@ -22,6 +24,7 @@ const rows = [
 
 export default function BoardWorkspace() {
   const [report, setReport] = useState<SavedReport | null>(null);
+  const [storageReady, setStorageReady] = useState(false);
   const [differencesOnly, setDifferencesOnly] = useState(true);
 
   useEffect(() => {
@@ -30,6 +33,8 @@ export default function BoardWorkspace() {
       if (value) setReport(JSON.parse(value));
     } catch {
       setReport(null);
+    } finally {
+      setStorageReady(true);
     }
   }, []);
 
@@ -43,6 +48,15 @@ export default function BoardWorkspace() {
       );
     });
   }, [differencesOnly, report]);
+
+  if (!storageReady) {
+    return (
+      <FinderStoredStateSkeleton
+        label="در حال خواندن اطلاعات میز تصمیم"
+        title="میز تصمیم محصولات"
+      />
+    );
+  }
 
   if (!report) {
     return (

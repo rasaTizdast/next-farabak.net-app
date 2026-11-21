@@ -2,11 +2,17 @@ import type { Metadata } from "next";
 
 import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 import CctvStorageTool from "./CctvStorageTool";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/support/tools/cctv-storage" },
+  ...createRouteMetadata({
+    title: "برآورد فضای ذخیره‌سازی دوربین مداربسته | فرابک",
+    description:
+      "حجم ذخیره‌سازی، پهنای باند و فضای پیشنهادی دوربین‌های مداربسته را بر اساس نرخ بیت، زمان ضبط و مدت نگهداری برآورد کنید.",
+    path: "/support/tools/cctv-storage",
+  }),
   title: "برآورد فضای ذخیره‌سازی دوربین مداربسته | فرابک",
   description:
     "حجم ذخیره‌سازی، پهنای باند و فضای پیشنهادی دوربین‌های مداربسته را بر اساس نرخ بیت، زمان ضبط و مدت نگهداری برآورد کنید.",

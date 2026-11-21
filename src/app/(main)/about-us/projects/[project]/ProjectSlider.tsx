@@ -122,24 +122,26 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
           />
         ))}
       </div>
-      {/* Left Arrow */}
-      <button
-        type="button"
-        onClick={prevSlide}
-        className="absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-black/60 p-2 text-2xl text-white transition-colors hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none sm:left-6"
-        aria-label="اسلاید قبلی"
-      >
-        <BsChevronCompactLeft size={30} />
-      </button>
-      {/* Right Arrow */}
-      <button
-        type="button"
-        onClick={nextSlide}
-        className="absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-black/60 p-2 text-2xl text-white transition-colors hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none sm:right-6"
-        aria-label="اسلاید بعدی"
-      >
-        <BsChevronCompactRight size={30} />
-      </button>
+      {slides.length > 1 ? (
+        <button
+          type="button"
+          onClick={prevSlide}
+          className="absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-black/60 p-2 text-2xl text-white transition-colors hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none sm:left-6"
+          aria-label="اسلاید قبلی"
+        >
+          <BsChevronCompactLeft size={30} />
+        </button>
+      ) : null}
+      {slides.length > 1 ? (
+        <button
+          type="button"
+          onClick={nextSlide}
+          className="absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-black/60 p-2 text-2xl text-white transition-colors hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none sm:right-6"
+          aria-label="اسلاید بعدی"
+        >
+          <BsChevronCompactRight size={30} />
+        </button>
+      ) : null}
 
       <div className="absolute inset-x-4 bottom-4 flex items-center justify-between gap-3 sm:inset-x-6">
         {slides.length > 1 ? (
@@ -156,28 +158,34 @@ const ProjectSlider = ({ slides, interval }: ImageSliderProps) => {
           <span aria-hidden="true" />
         )}
 
-        <div className="flex justify-center gap-1 rounded-full bg-black/60 px-2 py-1">
-          <span className="sr-only" aria-live="polite">
-            اسلاید {currentIndex + 1} از {slides.length}
+        {slides.length > 1 ? (
+          <div className="flex justify-center gap-1 rounded-full bg-black/60 px-2 py-1">
+            <span className="sr-only" aria-live="polite">
+              اسلاید {currentIndex + 1} از {slides.length}
+            </span>
+            {slides.map((slide, slideIndex) => (
+              <button
+                type="button"
+                className="rounded-full text-2xl leading-none focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+                key={slideIndex}
+                onClick={() => setCurrentIndex(slideIndex)}
+                aria-label={`رفتن به اسلاید ${slideIndex + 1}`}
+                aria-current={slideIndex === currentIndex ? "true" : undefined}
+              >
+                <RxDotFilled
+                  size={33}
+                  className={`transition-colors ${
+                    slideIndex === currentIndex ? "text-white" : "text-slate-400"
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
+        ) : (
+          <span className="rounded-full bg-black/60 px-3 py-2 text-xs text-white">
+            تصویر ۱ از ۱
           </span>
-          {slides.map((slide, slideIndex) => (
-            <button
-              type="button"
-              className="rounded-full text-2xl leading-none focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
-              key={slideIndex}
-              onClick={() => setCurrentIndex(slideIndex)}
-              aria-label={`رفتن به اسلاید ${slideIndex + 1}`}
-              aria-current={slideIndex === currentIndex ? "true" : undefined}
-            >
-              <RxDotFilled
-                size={33}
-                className={`transition-colors ${
-                  slideIndex === currentIndex ? "text-white" : "text-slate-400"
-                }`}
-              />
-            </button>
-          ))}
-        </div>
+        )}
       </div>
     </div>
   );

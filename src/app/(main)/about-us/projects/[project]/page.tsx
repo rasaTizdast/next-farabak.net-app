@@ -7,6 +7,7 @@ import { PageIntro } from "@/components/public/PageIntro";
 import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 import { getProjectData as getProjectDataFromDataLayer } from "@/lib/data/projects";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 import ProjectSlider from "./ProjectSlider";
 
@@ -51,12 +52,16 @@ export const generateMetadata = async (props: ParamsType): Promise<Metadata> => 
     };
   }
 
+  const title = `${projectData.title} | فرابک`;
+  const description = `مشاهده پروژه ${projectData.title} | فرابک`;
   return {
-    title: `${projectData.title} | فرابک`,
-    description: `مشاهده پروژه ${projectData.title} | فرابک`,
-    alternates: {
-      canonical: getProjectPageUrl(params.project),
-    },
+    ...createRouteMetadata({
+      title,
+      description,
+      path: getProjectPageUrl(params.project),
+    }),
+    title,
+    description,
   };
 };
 
@@ -135,7 +140,7 @@ const ProjectPage = async (props: ParamsType) => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <PublicShell as="main" className="pt-6 pb-12 sm:pt-8 sm:pb-14">
+      <PublicShell className="pt-6 pb-12 sm:pt-8 sm:pb-14">
         <PublicBreadcrumbs
           breadcrumbs={[
             "/",

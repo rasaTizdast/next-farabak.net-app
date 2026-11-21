@@ -18,6 +18,18 @@ export default function DashboardLoading() {
         </div>
         <div className="h-11 w-36 rounded-xl bg-slate-200 motion-safe:animate-pulse motion-reduce:animate-none" />
       </div>
+      <section aria-hidden="true" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="min-h-52 rounded-2xl border border-slate-200 bg-white p-5">
+            <div className="h-5 w-32 rounded bg-slate-200 motion-safe:animate-pulse motion-reduce:animate-none" />
+            <div className="mt-4 space-y-2 motion-safe:animate-pulse motion-reduce:animate-none">
+              <div className="h-4 w-full rounded bg-slate-100" />
+              <div className="h-4 w-4/5 rounded bg-slate-100" />
+            </div>
+            <div className="mt-8 h-11 rounded-xl bg-slate-200 motion-safe:animate-pulse motion-reduce:animate-none" />
+          </div>
+        ))}
+      </section>
     </div>
   );
 }

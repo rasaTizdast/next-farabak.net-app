@@ -14,6 +14,8 @@ describe("FaqAccordion", () => {
     );
 
     const question = screen.getByRole("button", { name: "چطور سفارش را پیگیری کنم؟" });
+    const heading = screen.getByRole("heading", { level: 3, name: "چطور سفارش را پیگیری کنم؟" });
+    expect(heading).toContainElement(question);
     expect(question).toHaveAttribute("aria-expanded", "false");
     expect(question).toHaveAttribute("aria-controls", "faq-answer-12");
 

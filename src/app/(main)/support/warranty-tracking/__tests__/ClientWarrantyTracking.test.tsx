@@ -31,7 +31,6 @@ const activeWarranty = {
     startDate: "2025-01-01",
     expiryDate: "2027-01-01",
     status: "Active",
-    customerPhone: "09120000000",
   },
 };
 
@@ -42,7 +41,6 @@ const confirmSuccess = {
     startDate: "2025-01-01",
     expiryDate: "2027-01-01",
     status: "Requested",
-    customerPhone: "09120000000",
   },
 };
 
@@ -143,6 +141,29 @@ describe("ClientWarrantyTracking", () => {
     });
 
     expect(screen.getByText("تایید و ثبت درخواست")).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("خطا در ثبت درخواست گارانتی");
     expect(screen.queryByText("درخواست بررسی گارانتی با موفقیت ثبت شد")).toBeNull();
+  });
+
+  it("announces the pending confirmation state", async () => {
+    let resolveConfirm: ((value: unknown) => void) | undefined;
+    fetchMock.mockResolvedValueOnce(okJson(activeWarranty)).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveConfirm = resolve;
+        })
+    );
+
+    render(<WarrantyTrackingPage />);
+    fireEvent.change(screen.getByPlaceholderText("کد گارانتی را وارد کنید"), {
+      target: { value: "W-001" },
+    });
+    fireEvent.click(screen.getByText("بررسی"));
+    fireEvent.click(await screen.findByText("تایید و ثبت درخواست"));
+
+    expect(await screen.findByText("در حال ثبت درخواست")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /در حال ثبت درخواست/ })).toBeDisabled();
+
+    resolveConfirm?.(okJson(confirmSuccess));
   });
 });

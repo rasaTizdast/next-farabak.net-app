@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 const NotFound = () => {
   return (
-    <PublicShell as="main" className="py-16">
+    <PublicShell className="py-16">
       <ErrorPage
         statusCode={404}
         title="مقاله‌ای یافت نشد"

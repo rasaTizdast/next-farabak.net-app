@@ -16,7 +16,7 @@ vi.mock("@/lib/data/catalog-static-params", () => ({
 vi.mock("@/lib/data/products", () => ({
   getProductsBySubcategory,
   getCategoryName: vi.fn(),
-  getSubCategoryName: vi.fn(),
+  getSubCategoryName: vi.fn(async () => null),
 }));
 
 import SubcategoryPage, { generateMetadata, generateStaticParams } from "./page";
@@ -51,7 +51,7 @@ describe("subcategory metadata", () => {
     });
 
     expect(metadata.robots).toMatchObject({ index: true, follow: true });
-    expect(metadata.title).toBe("محصولات دسته‌بندی vehicle-truck | فرابک");
+    expect(metadata.title).toBe("محصولات vehicle-truck | فرابک");
     expect(metadata.alternates?.canonical).toBe("https://farabak.net/products/x-ray/vehicle-truck");
   });
 

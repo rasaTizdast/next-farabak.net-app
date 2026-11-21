@@ -4,13 +4,20 @@ import { Suspense } from "react";
 import { PublicShell } from "@/components/public/PublicShell";
 import { advisorIntentOptions } from "@/features/product-advisor/category-definitions";
 import { getAdvisorCategory } from "@/lib/data/productAdvisor";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 import { FinderIntentSkeleton, FinderQuestionnaireSkeleton } from "./_components/FinderSkeletons";
 import FinderWorkspace from "./FinderWorkspace";
 
 export const metadata: Metadata = {
+  ...createRouteMetadata({
+    title: "راهنمای انتخاب محصول | فرابک",
+    description: "نیاز خود را توضیح دهید تا محصولات مناسب را با مشخصات ثبت‌شده پیدا کنید.",
+    path: "/product-finder",
+  }),
   title: "راهنمای انتخاب محصول | فرابک",
   description: "نیاز خود را توضیح دهید تا محصولات مناسب را با مشخصات ثبت‌شده پیدا کنید.",
+  robots: { index: true, follow: true },
 };
 
 function FinderIntent() {

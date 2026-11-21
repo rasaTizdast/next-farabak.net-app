@@ -6,9 +6,14 @@ import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicImage } from "@/components/public/PublicImage";
 import { PublicShell } from "@/components/public/PublicShell";
 import { getProjects as getProjectsFromData, type ProjectListItem } from "@/lib/data/projects";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/about-us/projects" },
+  ...createRouteMetadata({
+    title: "گالری تصاویر پروژه ها | فرابک",
+    description: "شما در این صفحه میتوانید اطلاعاتی درباره پروژه های شرکت فرابک مشاهده کنید.",
+    path: "/about-us/projects",
+  }),
   title: "گالری تصاویر پروژه ها | فرابک",
   description: "شما در این صفحه میتوانید اطلاعاتی درباره پروژه های شرکت فرابک مشاهده کنید.",
   robots: {
@@ -72,7 +77,7 @@ const ProjectsPage = async () => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <PublicShell as="main" className="pt-6 pb-12 sm:pt-8 sm:pb-14">
+      <PublicShell className="pt-6 pb-12 sm:pt-8 sm:pb-14">
         <PublicBreadcrumbs
           breadcrumbs={["/", "/about-us", "/about-us/projects"]}
           labels={{ "/about-us/projects": "پروژه‌ها" }}

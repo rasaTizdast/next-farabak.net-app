@@ -6,9 +6,14 @@ import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicImage } from "@/components/public/PublicImage";
 import { PublicShell } from "@/components/public/PublicShell";
 import { getActivities } from "@/lib/data/activities";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/about-us/activity" },
+  ...createRouteMetadata({
+    title: "فعالیت های شرکت فرابک | فرابک",
+    description: "شما در این صفحه میتوانید اطلاعاتی درباره فعالیت های شرکت فرابک مشاهده کنید.",
+    path: "/about-us/activity",
+  }),
   title: "فعالیت های شرکت فرابک | فرابک",
   description: "شما در این صفحه میتوانید اطلاعاتی درباره فعالیت های شرکت فرابک مشاهده کنید.",
   robots: {
@@ -33,7 +38,7 @@ const ActivityPage = async () => {
   const activities: MasterActivity[] = await getActivities();
   const structuredData = {
     "@context": "https://schema.org",
-    "@type": ["AboutPage", "ItemList"],
+    "@type": "AboutPage",
     name: "فعالیت های شرکت فرابک",
     description: "اطلاعات درباره فعالیت ها، خدمات و تخصص های شرکت فرابک",
     url: `${process.env.NEXT_PUBLIC_BASE_URL}/about-us/activity`,
@@ -42,14 +47,13 @@ const ActivityPage = async () => {
       url: process.env.NEXT_PUBLIC_BASE_URL,
     },
     mainEntity: {
-      "@type": "Organization",
-      name: "فرابک",
-      url: process.env.NEXT_PUBLIC_BASE_URL,
-      department: activities.map((activity) => ({
-        "@type": "OrganizationRole",
+      "@type": "ItemList",
+      numberOfItems: activities.length,
+      itemListElement: activities.map((activity, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
         name: activity.title,
         description: activity.Details_activity.map((detail) => detail.description).join(" | "),
-        roleName: "Service Provider",
       })),
     },
   };
@@ -60,7 +64,7 @@ const ActivityPage = async () => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <PublicShell as="main" className="pt-6 pb-12 sm:pt-8 sm:pb-14">
+      <PublicShell className="pt-6 pb-12 sm:pt-8 sm:pb-14">
         <PublicBreadcrumbs
           breadcrumbs={["/", "/about-us", "/about-us/activity"]}
           labels={{ "/about-us/activity": "فعالیت‌های شرکت" }}

@@ -3,10 +3,11 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { SITE_URL } from "@/constants/meta";
+import { OG_IMAGE_PATH, SITE_URL } from "@/constants/meta";
 import { getCategoryName, getProductsBySubcategory, getSubCategoryName } from "@/lib/data/products";
 import { getUsdToRialRate } from "@/lib/data/usd2rial";
 import { parsePositivePageNumber } from "@/lib/pagination";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 import BreadcrumbWrapper from "../../../../_components/BreadcrumbWrapper";
 import { BreadcrumbSkeleton } from "../../../../_components/ProductListSkeletons";
@@ -32,6 +33,7 @@ export const generateMetadata = async (props: SubcategoryPageProps): Promise<Met
     { page: pageNumber, limit: 30 },
     category
   );
+  const subcategoryNameData = await getSubCategoryName(subcategory).catch(() => null);
 
   if (!data) notFound();
 
@@ -40,14 +42,19 @@ export const generateMetadata = async (props: SubcategoryPageProps): Promise<Met
     pageNumber === 1
       ? `${SITE_URL}/products/${params.category}/${params.subcategory}`
       : `${SITE_URL}/products/${params.category}/${params.subcategory}/page/${pageNumber}`;
+  const displayName = subcategoryNameData?.subCategoryName ?? subcategory;
+  const title = seoDetails?.SEO_Title || `محصولات ${displayName} | فرابک`;
+  const description = seoDetails?.SEO_Description || `محصولات دسته‌بندی ${displayName}`;
 
   return {
-    title: seoDetails?.SEO_Title || `محصولات دسته‌بندی ${subcategory} | فرابک`,
-    description: seoDetails?.SEO_Description || `محصولات دسته‌بندی ${subcategory}`,
+    ...createRouteMetadata({ title, description, path: canonicalUrl, image: OG_IMAGE_PATH }),
+    title,
+    description,
     openGraph: {
-      title: seoDetails?.SEO_Title || `محصولات دسته‌بندی ${subcategory} | فرابک`,
-      description: seoDetails?.SEO_Description || `محصولات دسته‌بندی ${subcategory}`,
+      title,
+      description,
       url: canonicalUrl,
+      images: [OG_IMAGE_PATH],
     },
     alternates: {
       canonical: canonicalUrl,

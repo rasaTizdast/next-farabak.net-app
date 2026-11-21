@@ -18,6 +18,7 @@ import {
 import { getBlogBySlug, type BlogDetailData } from "@/lib/data/blogs";
 import { normalizeEditorialHeadings } from "@/lib/seo/editorial-headings";
 import { notFoundSeoMetadata } from "@/lib/seo/not-found-metadata";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 import ArticleTableOfContents from "../../_components/ArticleTableOfContents";
 import {
@@ -157,6 +158,7 @@ function mapBlogResponse(data: BlogDetailData): BlogResponse {
 
 const getBlog = async (
   slug: string,
+  blogCategory: string,
   searchParams: { key?: string },
   isAdmin: boolean = false
 ): Promise<BlogResponse | null> => {
@@ -172,6 +174,10 @@ const getBlog = async (
   const { blog } = blogResponse;
 
   if (!blog) {
+    notFound();
+  }
+
+  if (!blogResponse.categories.some((category) => category.slug === blogCategory)) {
     notFound();
   }
 
@@ -199,7 +205,7 @@ export async function generateMetadata(props: {
 }) {
   const searchParams = await props.searchParams;
   const params = await props.params;
-  const content = await getBlog(params.blog, searchParams);
+  const content = await getBlog(params.blog, params.blogCategory, searchParams);
 
   if (!content) {
     return {
@@ -209,15 +215,23 @@ export async function generateMetadata(props: {
     };
   }
 
+  const articlePath = `/support/blog/${encodeURIComponent(params.blogCategory)}/${encodeURIComponent(params.blog)}`;
+  const blogImage = content.blog.image_URL
+    ? content.blog.image_URL.startsWith("http")
+      ? content.blog.image_URL
+      : `${process.env.LIARA_BUCKET_URL || ""}/${content.blog.image_URL}`
+    : undefined;
+
   return {
+    ...createRouteMetadata({
+      title: content.blog.SEO_Title,
+      description: content.blog.SEO_description,
+      path: new URL(articlePath, SITE_URL).toString(),
+      image: blogImage,
+      imageAlt: content.blog.image_alt || content.blog.title,
+    }),
     title: content.blog.SEO_Title,
     description: content.blog.SEO_description,
-    alternates: {
-      canonical: new URL(
-        `/support/blog/${encodeURIComponent(params.blogCategory)}/${encodeURIComponent(params.blog)}`,
-        SITE_URL
-      ).toString(),
-    },
     robots: {
       index: true,
       follow: true,
@@ -231,7 +245,7 @@ export default async function BlogPage(props: {
 }) {
   const searchParams = await props.searchParams;
   const params = await props.params;
-  const blogResponse = await getBlog(params.blog, searchParams);
+  const blogResponse = await getBlog(params.blog, params.blogCategory, searchParams);
 
   if (!blogResponse) {
     notFound();
@@ -251,7 +265,7 @@ export default async function BlogPage(props: {
   const siteUrl = SITE_URL;
   const bucketUrl = process.env.LIARA_BUCKET_URL || "";
   const blogCategories = blogResponse.categories || [];
-  const categorySlug = blogCategories[0]?.slug;
+  const categorySlug = params.blogCategory;
   const postUrl = categorySlug ? `${siteUrl}/support/blog/${categorySlug}/${params.blog}` : "";
 
   const blogJsonLd = serializeJsonLd({
@@ -263,7 +277,6 @@ export default async function BlogPage(props: {
     description: blog.description,
     inLanguage: "fa-IR",
     datePublished: blog.created_at,
-    dateModified: blog.created_at,
     wordCount,
     author: { "@type": "Person", name: blog.author },
     image: blog.image_URL ? `${bucketUrl}/${blog.image_URL}` : undefined,

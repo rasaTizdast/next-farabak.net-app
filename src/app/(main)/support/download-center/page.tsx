@@ -12,9 +12,15 @@ import { Metadata } from "next";
 import { ActionLink } from "@/components/public/ActionLink";
 import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/support/download-center" },
+  ...createRouteMetadata({
+    title: "مرکز دانلود اپلیکیشن و منابع رسمی | فرابک",
+    description:
+      "دانلود رایگان نرم‌افزار، راهنماها و بروزرسانی‌های محصولات ریولینک، بلک مجیک و دستگاه‌های ایکس‌ری از فرابک. دسترسی آسان برای کاربران خرید دوربین مداربسته و سیستم‌های امنیتی.",
+    path: "/support/download-center",
+  }),
   title: "مرکز دانلود اپلیکیشن و منابع رسمی | فرابک",
   description:
     "دانلود رایگان نرم‌افزار، راهنماها و بروزرسانی‌های محصولات ریولینک، بلک مجیک و دستگاه‌های ایکس‌ری از فرابک. دسترسی آسان برای کاربران خرید دوربین مداربسته و سیستم‌های امنیتی.",

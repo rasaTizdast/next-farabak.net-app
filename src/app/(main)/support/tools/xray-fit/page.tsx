@@ -2,11 +2,17 @@ import type { Metadata } from "next";
 
 import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 import XraySiteFitTool from "./XraySiteFitTool";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/support/tools/xray-fit" },
+  ...createRouteMetadata({
+    title: "پیش‌بررسی ابعاد و محل نصب ایکس‌ری | فرابک",
+    description:
+      "ابعاد اقلام، مسیر تحویل و فضای نصب دستگاه ایکس‌ری را ثبت و با مشخصات منتشرشدهٔ مدل‌ها مقایسه کنید؛ خلاصه‌ای برای بازبینی کارشناس آماده کنید.",
+    path: "/support/tools/xray-fit",
+  }),
   title: "پیش‌بررسی ابعاد و محل نصب ایکس‌ری | فرابک",
   description:
     "ابعاد اقلام، مسیر تحویل و فضای نصب دستگاه ایکس‌ری را ثبت و با مشخصات منتشرشدهٔ مدل‌ها مقایسه کنید؛ خلاصه‌ای برای بازبینی کارشناس آماده کنید.",

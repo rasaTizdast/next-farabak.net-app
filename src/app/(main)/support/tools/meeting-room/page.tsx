@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
 
 import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 import MeetingRoomPlanner from "./MeetingRoomPlanner";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/support/tools/meeting-room" },
+  ...createRouteMetadata({
+    title: "برنامه‌ریز اولیه نمایشگر اتاق جلسه | فرابک",
+    description:
+      "اندازهٔ پیشنهادی نمایشگر یا پردهٔ اتاق جلسه را بر اساس فاصلهٔ صندلی‌ها برآورد کنید و برای ویدئوپروژکتور فاصلهٔ تقریبی نصب لنز را ببینید.",
+    path: "/support/tools/meeting-room",
+  }),
   title: "برنامه‌ریز اولیه نمایشگر اتاق جلسه | فرابک",
   description:
     "اندازهٔ پیشنهادی نمایشگر یا پردهٔ اتاق جلسه را بر اساس فاصلهٔ صندلی‌ها برآورد کنید و برای ویدئوپروژکتور فاصلهٔ تقریبی نصب لنز را ببینید.",

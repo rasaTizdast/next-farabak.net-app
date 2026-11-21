@@ -84,9 +84,9 @@ const FaqAccordion = ({ faqs, className = "" }: FaqAccordionProps) => {
             id: String(faq.FaqDetailsid),
             data: faq,
             renderHeader: (item) => (
-              <h2 className="pr-1 text-right text-sm font-medium text-gray-900 md:pr-2 md:text-base">
+              <span className="pr-1 text-right text-sm font-medium text-gray-900 md:pr-2 md:text-base">
                 {item.Q || "سوال بدون عنوان"}
-              </h2>
+              </span>
             ),
             renderContent: (item) => (
               <p className="text-xs leading-relaxed text-gray-700 md:text-sm">

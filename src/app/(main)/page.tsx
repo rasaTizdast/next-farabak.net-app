@@ -3,10 +3,17 @@ import type { Metadata } from "next";
 import TrustLanding from "@/app/_components/LandingPage/TrustLanding";
 import Schema from "@/components/Schema";
 import { OG_IMAGE_PATH } from "@/constants/meta";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net";
 
 export const metadata: Metadata = {
+  ...createRouteMetadata({
+    title: "فرابک | تجهیزات امنیتی، نظارت تصویری و پشتیبانی",
+    description:
+      "فرابک، ثبت‌شده در سال ۱۳۸۱؛ بررسی تجهیزات نظارت تصویری و بازرسی امنیتی، پروژه‌های اجراشده و پیگیری گارانتی. برای خانه، کسب‌وکار و سازمان.",
+    path: "/",
+  }),
   title: "فرابک | تجهیزات امنیتی، نظارت تصویری و پشتیبانی",
   description:
     "فرابک، ثبت‌شده در سال ۱۳۸۱؛ بررسی تجهیزات نظارت تصویری و بازرسی امنیتی، پروژه‌های اجراشده و پیگیری گارانتی. برای خانه، کسب‌وکار و سازمان.",
@@ -19,6 +26,13 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "فرابک",
     locale: "fa_IR",
+    images: [OG_IMAGE_PATH],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "فرابک | تجهیزات امنیتی، نظارت تصویری و پشتیبانی",
+    description:
+      "فرابک، ثبت‌شده در سال ۱۳۸۱؛ بررسی تجهیزات نظارت تصویری و بازرسی امنیتی، پروژه‌های اجراشده و پیگیری گارانتی. برای خانه، کسب‌وکار و سازمان.",
     images: [OG_IMAGE_PATH],
   },
 };

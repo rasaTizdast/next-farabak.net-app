@@ -26,6 +26,18 @@ export default function CctvStorageLoading() {
                 <LoadingBlock className="h-12 w-full" />
               </div>
             ))}
+            <div className="space-y-2">
+              <LoadingBlock className="h-5 w-28" />
+              <LoadingBlock className="h-12 w-full" />
+            </div>
+            <div className="space-y-2">
+              <LoadingBlock className="h-5 w-24" />
+              <LoadingBlock className="h-12 w-full" />
+            </div>
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3 border-t border-slate-200 pt-5">
+            <LoadingBlock className="h-11 w-32" />
+            <LoadingBlock className="h-11 w-36" />
           </div>
         </div>
 
@@ -35,6 +47,10 @@ export default function CctvStorageLoading() {
             <LoadingBlock className="h-8 w-28" />
           </div>
           <LoadingBlock className="mt-6 h-24 w-full bg-slate-100" />
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <LoadingBlock className="h-20 w-full bg-slate-50" />
+            <LoadingBlock className="h-20 w-full bg-slate-50" />
+          </div>
         </div>
       </div>
     </SupportLoadingShell>

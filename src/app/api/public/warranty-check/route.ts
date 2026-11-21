@@ -6,8 +6,6 @@ type warranty = {
   expirydate: Date;
   startdate: Date;
   status: string;
-  customer_name: string;
-  customer_phone: string;
   warrantyid: number;
 };
 
@@ -27,10 +25,8 @@ export async function POST(request: Request) {
 
     // Check if warranty exists and get its details
     const warranty = await prisma.$queryRaw<Record<string, unknown>[]>`
-      SELECT w.*, i."Fullname" as customer_name, i."Phonenumber" as customer_phone 
+      SELECT w."expirydate", w."startdate", w."status", w."warrantyid"
       FROM "info"."warranty" w
-      LEFT JOIN "info"."Invoice_Details" id ON w."invoicedetailid" = id."Invoice_Details"
-      LEFT JOIN "info"."Invoice" i ON id."Invoiceid" = i."Invoiceid"
       WHERE w."warrantycode" = ${warrantycode}
       LIMIT 1
     `;
@@ -57,8 +53,6 @@ export async function POST(request: Request) {
             expiryDate: warrantyData.expirydate,
             startDate: warrantyData.startdate,
             status: warrantyData.status,
-            customerName: warrantyData.customer_name,
-            customerPhone: warrantyData.customer_phone,
           },
         });
       } else if (warrantyData.status === "Requested") {
@@ -70,8 +64,6 @@ export async function POST(request: Request) {
             expiryDate: warrantyData.expirydate,
             startDate: warrantyData.startdate,
             status: warrantyData.status,
-            customerName: warrantyData.customer_name,
-            customerPhone: warrantyData.customer_phone,
           },
         });
       } else {
@@ -83,8 +75,6 @@ export async function POST(request: Request) {
             expiryDate: warrantyData.expirydate,
             startDate: warrantyData.startdate,
             status: warrantyData.status,
-            customerName: warrantyData.customer_name,
-            customerPhone: warrantyData.customer_phone,
           },
         });
       }
@@ -108,8 +98,6 @@ export async function POST(request: Request) {
             expiryDate: warrantyData.expirydate,
             startDate: warrantyData.startdate,
             status: "Requested",
-            customerName: warrantyData.customer_name,
-            customerPhone: warrantyData.customer_phone,
           },
         });
       } else if (isExpired) {
@@ -121,8 +109,6 @@ export async function POST(request: Request) {
             expiryDate: warrantyData.expirydate,
             startDate: warrantyData.startdate,
             status: warrantyData.status,
-            customerName: warrantyData.customer_name,
-            customerPhone: warrantyData.customer_phone,
           },
         });
       } else {
@@ -134,8 +120,6 @@ export async function POST(request: Request) {
             expiryDate: warrantyData.expirydate,
             startDate: warrantyData.startdate,
             status: warrantyData.status,
-            customerName: warrantyData.customer_name,
-            customerPhone: warrantyData.customer_phone,
           },
         });
       }
@@ -157,8 +141,6 @@ export async function POST(request: Request) {
           expiryDate: warrantyData.expirydate,
           startDate: warrantyData.startdate,
           status: "Requested",
-          customerName: warrantyData.customer_name,
-          customerPhone: warrantyData.customer_phone,
         },
       });
     } else if (isExpired) {
@@ -170,8 +152,6 @@ export async function POST(request: Request) {
           expiryDate: warrantyData.expirydate,
           startDate: warrantyData.startdate,
           status: warrantyData.status,
-          customerName: warrantyData.customer_name,
-          customerPhone: warrantyData.customer_phone,
         },
       });
     } else {
@@ -183,8 +163,6 @@ export async function POST(request: Request) {
           expiryDate: warrantyData.expirydate,
           startDate: warrantyData.startdate,
           status: warrantyData.status,
-          customerName: warrantyData.customer_name,
-          customerPhone: warrantyData.customer_phone,
         },
       });
     }

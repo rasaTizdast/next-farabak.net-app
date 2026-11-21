@@ -7,9 +7,15 @@ import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicImage } from "@/components/public/PublicImage";
 import { PublicShell } from "@/components/public/PublicShell";
 import { getMembers } from "@/lib/data/members";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/about-us/members" },
+  ...createRouteMetadata({
+    title: "اعضای هیئت مدیره | فرابک",
+    description:
+      "مشاهده اعضای هیئت مدیره به‌همراه تجربیات و نقش های کلیدی هر یک از اعضای هیئت مدیره",
+    path: "/about-us/members",
+  }),
   title: "اعضای هیئت مدیره | فرابک",
   description: "مشاهده اعضای هیئت مدیره به‌همراه تجربیات و نقش های کلیدی هر یک از اعضای هیئت مدیره",
   robots: {
@@ -68,7 +74,7 @@ const MembersPage = async () => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <PublicShell as="main" className="pt-6 pb-12 sm:pt-8 sm:pb-14">
+      <PublicShell className="pt-6 pb-12 sm:pt-8 sm:pb-14">
         <PublicBreadcrumbs
           breadcrumbs={["/", "/about-us", "/about-us/members"]}
           labels={{ "/about-us/members": "اعضای هیئت‌مدیره" }}

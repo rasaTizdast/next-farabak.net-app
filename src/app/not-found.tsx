@@ -18,7 +18,7 @@ const helpfulLinks = [
 
 export default function NotFound() {
   return (
-    <ErrorPage statusCode={404} title="صفحه یافت نشد" message="صفحه مورد نظر شما وجود ندارد">
+    <ErrorPage asMain statusCode={404} title="صفحه یافت نشد" message="صفحه مورد نظر شما وجود ندارد">
       <nav aria-label="لینک‌های مفید" className="flex flex-wrap justify-center gap-3">
         {helpfulLinks.map((link) => (
           <Link

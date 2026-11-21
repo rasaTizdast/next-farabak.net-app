@@ -3,7 +3,6 @@ import { PublicShell } from "@/components/public/PublicShell";
 export default function PrivacyLoading() {
   return (
     <PublicShell
-      as="main"
       className="py-10 sm:py-14 lg:py-16"
       role="status"
       aria-label="در حال بارگذاری سیاست حریم خصوصی"

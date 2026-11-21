@@ -45,4 +45,13 @@ describe("ProjectSlider", () => {
     rerender(<ProjectSlider slides={[]} />);
     expect(screen.getByRole("img", { name: "تصویر پروژه موجود نیست" })).toBeVisible();
   });
+
+  it("hides navigation controls when there is only one project image", () => {
+    render(<ProjectSlider slides={[slides[0]]} />);
+
+    expect(screen.queryByRole("button", { name: "اسلاید قبلی" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "اسلاید بعدی" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "توقف پخش خودکار" })).toBeNull();
+    expect(screen.getByText("تصویر ۱ از ۱")).toBeVisible();
+  });
 });

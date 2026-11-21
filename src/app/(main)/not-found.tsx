@@ -19,6 +19,7 @@ const helpfulLinks = [
 const NotFound = () => {
   return (
     <ErrorPage
+      asMain
       statusCode={404}
       title="صفحه مورد نظر یافت نشد"
       message="صفحه‌ای که به دنبال آن هستید وجود ندارد."

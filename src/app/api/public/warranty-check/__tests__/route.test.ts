@@ -86,7 +86,8 @@ describe("POST /api/public/warranty-check", () => {
 
       expect(json.status).toBe("active");
       expect(json.data.isValid).toBe(true);
-      expect(json.data.customerName).toBe("Ali");
+      expect(json.data).not.toHaveProperty("customerName");
+      expect(json.data).not.toHaveProperty("customerPhone");
     });
 
     it("returns expired status for expired warranty", async () => {

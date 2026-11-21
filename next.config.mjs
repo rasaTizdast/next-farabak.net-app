@@ -1,8 +1,17 @@
 /** @type {import('next').NextConfig} */
 
+const bucketHostname = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_LIARA_BUCKET_URL).hostname;
+  } catch {
+    return undefined;
+  }
+})();
+
 const allowedHostnames = [
   process.env.NODE_ENV === "development" && "localhost",
   "s3.farabak.net",
+  bucketHostname,
   // Add other production domains here
 ].filter(Boolean);
 

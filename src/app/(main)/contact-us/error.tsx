@@ -5,7 +5,7 @@ import { ErrorPage } from "@/components/ui/ErrorPage";
 
 export default function ContactUsError({ reset }: { error: Error; reset: () => void }) {
   return (
-    <PublicShell as="main" className="py-16">
+    <PublicShell className="py-16">
       <ErrorPage
         statusCode={500}
         title="خطا در بارگذاری صفحه"

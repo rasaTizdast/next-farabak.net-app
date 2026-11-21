@@ -291,7 +291,7 @@ export default function MeetingRoomPlanner() {
     "min-h-12 w-full rounded-md border border-slate-300 bg-white px-3 text-base text-(--farabak-ink-deep) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue)";
 
   return (
-    <main dir="rtl" className="min-h-screen bg-slate-50 text-(--farabak-ink-deep)">
+    <div dir="rtl" className="min-h-screen bg-slate-50 text-(--farabak-ink-deep)">
       <div className="mx-auto w-full max-w-[1580px] px-5 py-8 min-[992px]:px-16 min-[1200px]:px-24 sm:px-8 md:px-12 2xl:px-40 print:max-w-none print:px-0">
         <header className="mb-8 max-w-4xl">
           <Badge
@@ -590,6 +590,6 @@ export default function MeetingRoomPlanner() {
           }
         }
       `}</style>
-    </main>
+    </div>
   );
 }

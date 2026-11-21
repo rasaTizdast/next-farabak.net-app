@@ -13,6 +13,7 @@ import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 import { SITE_URL } from "@/constants/meta";
 import { getBlogsByCategory } from "@/lib/data/blogs";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 import { BlogListingSkeleton } from "../_components/BlogListingSkeleton";
 
@@ -25,12 +26,16 @@ export async function generateMetadata(props: BlogCategoryPageProps): Promise<Me
 
   if (!data || data.blogs.length === 0) notFound();
 
+  const title = `مقالات ${getCategoryName(data.blogs, params.blogCategory)} | فرابک`;
+  const description = `مقالات آموزشی فرابک درباره ${getCategoryName(data.blogs, params.blogCategory)}.`;
   return {
-    title: `مقالات ${getCategoryName(data.blogs, params.blogCategory)} | فرابک`,
-    description: `مقالات آموزشی فرابک درباره ${getCategoryName(data.blogs, params.blogCategory)}.`,
-    alternates: {
-      canonical: `/support/blog/${encodeURIComponent(params.blogCategory)}`,
-    },
+    ...createRouteMetadata({
+      title,
+      description,
+      path: `/support/blog/${encodeURIComponent(params.blogCategory)}`,
+    }),
+    title,
+    description,
   };
 }
 

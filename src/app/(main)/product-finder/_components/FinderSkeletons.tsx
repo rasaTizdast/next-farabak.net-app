@@ -51,3 +51,19 @@ export function FinderQuestionnaireSkeleton({ slug }: { slug: string }) {
     </div>
   );
 }
+
+export function FinderStoredStateSkeleton({ label, title }: { label: string; title: string }) {
+  return (
+    <div role="status" aria-label={label} className="rounded-3xl bg-white p-8 shadow-sm sm:p-12">
+      <h1 className="text-3xl font-black text-slate-950">{title}</h1>
+      <div aria-hidden="true">
+        <Skeleton className="mt-4 h-5 w-full max-w-2xl" />
+        <div className="mt-8 rounded-2xl border border-slate-200 p-5">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="mt-5 h-32 w-full" />
+        </div>
+        <Skeleton className="mt-7 h-11 w-44 rounded-xl" />
+      </div>
+    </div>
+  );
+}

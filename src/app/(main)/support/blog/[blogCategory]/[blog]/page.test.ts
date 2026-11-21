@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { getBlogBySlugMock, ioMock } = vi.hoisted(() => ({
@@ -56,5 +57,35 @@ describe("blog article metadata", () => {
     expect(ioMock.mock.invocationCallOrder[0]).toBeLessThan(
       getBlogBySlugMock.mock.invocationCallOrder[0]
     );
+  });
+
+  it("rejects a category slug that does not belong to the article", async () => {
+    await expect(
+      generateMetadata({
+        params: Promise.resolve({
+          blogCategory: "wrong-category",
+          blog: "x-ray-luggage-scanner-selection-guide",
+        }),
+        searchParams: Promise.resolve({}),
+      })
+    ).rejects.toThrow("NEXT_HTTP_ERROR_FALLBACK;404");
+  });
+
+  it("uses route-specific Open Graph and Twitter metadata", async () => {
+    const metadata = await generateMetadata({
+      params: Promise.resolve({
+        blogCategory: "x-ray",
+        blog: "x-ray-luggage-scanner-selection-guide",
+      }),
+      searchParams: Promise.resolve({}),
+    });
+
+    expect((metadata as Metadata).openGraph).toMatchObject({
+      title: "راهنمای انتخاب دستگاه ایکس ری",
+      url: "https://farabak.net/support/blog/x-ray/x-ray-luggage-scanner-selection-guide",
+    });
+    expect((metadata as Metadata).twitter).toMatchObject({
+      title: "راهنمای انتخاب دستگاه ایکس ری",
+    });
   });
 });

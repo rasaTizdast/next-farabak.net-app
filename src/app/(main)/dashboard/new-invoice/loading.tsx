@@ -10,6 +10,14 @@ export default function NewInvoiceLoading() {
         <div className="mt-3 h-8 w-52 rounded bg-slate-200" />
         <div className="mt-5 h-14 w-full rounded-xl bg-slate-100" />
       </div>
+      <ol aria-hidden="true" className="grid grid-cols-3 gap-2">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <li
+            key={index}
+            className="h-16 rounded-xl border border-slate-200 bg-slate-50 motion-safe:animate-pulse motion-reduce:animate-none"
+          />
+        ))}
+      </ol>
       <div className="hidden overflow-hidden rounded-2xl border border-slate-200 motion-safe:animate-pulse motion-reduce:animate-none md:block">
         <div className="h-12 bg-slate-100" />
         {Array.from({ length: 4 }).map((_, rowIndex) => (

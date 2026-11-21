@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { summarizeAdvisorAnswers } from "@/features/product-advisor/answer-summary";
 import { shouldShowAdvisorModel } from "@/features/product-advisor/display";
 
+import { FinderStoredStateSkeleton } from "../_components/FinderSkeletons";
+
 type Report = {
   category: { name: string; slug: string };
   answers: { questionId: string; value: string }[];
@@ -20,14 +22,22 @@ type Report = {
 
 export default function ReportWorkspace() {
   const [report, setReport] = useState<Report | null>(null);
+  const [storageReady, setStorageReady] = useState(false);
   useEffect(() => {
     try {
       const value = localStorage.getItem("farabak-product-advisor:report:v1");
       if (value) setReport(JSON.parse(value));
     } catch {
       setReport(null);
+    } finally {
+      setStorageReady(true);
     }
   }, []);
+  if (!storageReady) {
+    return (
+      <FinderStoredStateSkeleton label="در حال خواندن گزارش انتخاب" title="گزارش انتخاب فرابک" />
+    );
+  }
   if (!report)
     return (
       <section className="rounded-3xl bg-white p-8">

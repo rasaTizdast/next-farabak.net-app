@@ -38,22 +38,24 @@ export function Accordion<T>({ items, allowMultiple = false }: AccordionProps<T>
         const panelId = `faq-answer-${item.id}`;
         return (
           <div key={item.id} className="bg-white">
-            <button
-              id={buttonId}
-              type="button"
-              aria-controls={panelId}
-              aria-expanded={isOpen}
-              onClick={() => toggle(item.id)}
-              className="flex min-h-14 w-full items-center justify-between gap-4 px-4 py-3 text-right transition-colors hover:bg-slate-50 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:outline-none focus-visible:ring-inset"
-            >
-              {item.renderHeader(item.data)}
-              <span
-                aria-hidden="true"
-                className={`shrink-0 text-(--farabak-action-blue) transition-transform ${isOpen ? "rotate-180" : ""}`}
+            <h3 className="m-0 text-inherit">
+              <button
+                id={buttonId}
+                type="button"
+                aria-controls={panelId}
+                aria-expanded={isOpen}
+                onClick={() => toggle(item.id)}
+                className="flex min-h-14 w-full items-center justify-between gap-4 px-4 py-3 text-right transition-colors hover:bg-slate-50 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-(--farabak-action-blue) focus-visible:outline-none focus-visible:ring-inset"
               >
-                ↓
-              </span>
-            </button>
+                {item.renderHeader(item.data)}
+                <span
+                  aria-hidden="true"
+                  className={`shrink-0 text-(--farabak-action-blue) transition-transform ${isOpen ? "rotate-180" : ""}`}
+                >
+                  ↓
+                </span>
+              </button>
+            </h3>
             <div
               id={panelId}
               role="region"

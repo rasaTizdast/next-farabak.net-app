@@ -2,11 +2,17 @@ import { Metadata } from "next";
 
 import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 import WarrantyTrackingPage from "./ClientWarrantyTracking";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/support/warranty-tracking" },
+  ...createRouteMetadata({
+    title: "پیگیری گارانتی محصولات فرابک",
+    description:
+      "وضعیت گارانتی محصولات خود را با وارد کردن کد گارانتی پیگیری کنید. گارانتی معتبر برای تجهیزات امنیتی ریولینک و بلک مجیک. برای اطلاعات بیشتر تماس بگیرید: 021-77500008.",
+    path: "/support/warranty-tracking",
+  }),
   title: "پیگیری گارانتی محصولات فرابک",
   description:
     "وضعیت گارانتی محصولات خود را با وارد کردن کد گارانتی پیگیری کنید. گارانتی معتبر برای تجهیزات امنیتی ریولینک و بلک مجیک. برای اطلاعات بیشتر تماس بگیرید: 021-77500008.",

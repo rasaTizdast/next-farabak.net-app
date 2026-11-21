@@ -4,7 +4,6 @@ import { PublicShell } from "@/components/public/PublicShell";
 export default function MemberDetailLoading() {
   return (
     <PublicShell
-      as="main"
       className="pt-6 pb-12 sm:pt-8 sm:pb-14"
       role="status"
       aria-label="در حال بارگذاری معرفی عضو"

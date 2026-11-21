@@ -6,6 +6,7 @@ interface ErrorPageProps {
   statusCode?: number;
   onRetry?: () => void;
   children?: React.ReactNode;
+  asMain?: boolean;
 }
 
 export function ErrorPage({
@@ -14,9 +15,12 @@ export function ErrorPage({
   statusCode,
   onRetry,
   children,
+  asMain = false,
 }: ErrorPageProps) {
+  const Container = asMain ? "main" : "div";
+
   return (
-    <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-5 py-12 text-center">
+    <Container className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-5 py-12 text-center">
       {statusCode === 404 ? (
         <Image
           src="/404.png"
@@ -45,6 +49,6 @@ export function ErrorPage({
           تلاش مجدد
         </button>
       )}
-    </div>
+    </Container>
   );
 }

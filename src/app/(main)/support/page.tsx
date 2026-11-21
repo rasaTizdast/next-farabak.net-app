@@ -1,4 +1,4 @@
-import { ArrowLeft, BookOpenText, CircleHelp, Download, ShieldCheck } from "lucide-react";
+import { ArrowLeft, BookOpenText, CircleHelp, Download, ScanLine, ShieldCheck } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
 
@@ -6,9 +6,15 @@ import { ActionLink } from "@/components/public/ActionLink";
 import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 import supportData from "@/constants/supportData.json";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/support" },
+  ...createRouteMetadata({
+    title: "پشتیبانی مشتریان فرابک | گارانتی و سوالات متداول",
+    description:
+      "در بخش پشتیبانی فرابک، به دانلود نرم‌افزارها، پیگیری گارانتی، سوالات متداول و مقالات آموزشی دسترسی پیدا کنید. پشتیبانی حرفه‌ای برای محصولات امنیتی مانند ریولینک و بلک مجیک",
+    path: "/support",
+  }),
   title: "پشتیبانی مشتریان فرابک | گارانتی و سوالات متداول",
   description:
     "در بخش پشتیبانی فرابک، به دانلود نرم‌افزارها، پیگیری گارانتی، سوالات متداول و مقالات آموزشی دسترسی پیدا کنید. پشتیبانی حرفه‌ای برای محصولات امنیتی مانند ریولینک و بلک مجیک",
@@ -23,6 +29,7 @@ const supportIcons = {
   "warranty-tracking": ShieldCheck,
   "download-center": Download,
   faq: CircleHelp,
+  "product-finder": ScanLine,
 } as const;
 
 const SupportPage = () => {
@@ -116,7 +123,7 @@ const SupportPage = () => {
 
             return (
               <Link
-                href={`/support/${item.link}`}
+                href={item.link === "product-finder" ? "/product-finder" : `/support/${item.link}`}
                 key={item.id}
                 className="group flex min-h-56 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:border-(--farabak-action-blue)/40 hover:shadow-[0_22px_60px_rgba(15,23,42,0.1)]"
               >

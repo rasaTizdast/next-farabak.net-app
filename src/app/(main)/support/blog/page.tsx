@@ -14,16 +14,20 @@ import { PublicShell } from "@/components/public/PublicShell";
 import { SITE_URL } from "@/constants/meta";
 import { getBlogCategories } from "@/lib/data/blogCategories";
 import { getBlogs } from "@/lib/data/blogs";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 import { BlogListingSkeleton } from "./_components/BlogListingSkeleton";
 
 export const metadata: Metadata = {
+  ...createRouteMetadata({
+    title: "بلاگ آموزشی فرابک | مقالات امنیتی",
+    description:
+      "مقالات تخصصی درباره خرید دوربین مداربسته، نصب محصولات بلک مجیک و نکات نگهداری سیستم‌های امنیتی. محتوای مفید و به‌روز از کارشناسان فرابک.",
+    path: "/support/blog",
+  }),
   title: "بلاگ آموزشی فرابک | مقالات امنیتی",
   description:
     "مقالات تخصصی درباره خرید دوربین مداربسته، نصب محصولات بلک مجیک و نکات نگهداری سیستم‌های امنیتی. محتوای مفید و به‌روز از کارشناسان فرابک.",
-  alternates: {
-    canonical: "/support/blog",
-  },
   robots: {
     index: true,
     follow: true,

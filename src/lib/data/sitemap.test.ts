@@ -8,6 +8,7 @@ const { mockPrisma } = vi.hoisted(() => ({
     blogs: { findMany: vi.fn() },
     categories: { findMany: vi.fn() },
     projects: { findMany: vi.fn() },
+    members: { findMany: vi.fn() },
   },
 }));
 
@@ -28,6 +29,7 @@ describe("getSitemapUrls product categories", () => {
     vi.mocked(prisma.blogs.findMany).mockResolvedValue([] as never);
     vi.mocked(prisma.categories.findMany).mockResolvedValue([] as never);
     vi.mocked(prisma.projects.findMany).mockResolvedValue([] as never);
+    vi.mocked(prisma.members.findMany).mockResolvedValue([] as never);
   });
 
   it("includes populated categories and subcategories, omitting empty ones", async () => {
@@ -161,5 +163,19 @@ describe("getSitemapUrls product categories", () => {
 
     expect(urls).toContain("https://farabak.net");
     expect(urls).not.toContain("https://farabak.net/");
+  });
+
+  it("includes intended public policy, finder, and member profile URLs", async () => {
+    vi.mocked(prisma.members.findMany).mockResolvedValue([
+      { Slug: "member-one" },
+      { Slug: "   " },
+    ] as never);
+
+    const { urls } = await getSitemapUrls();
+
+    expect(urls).toContain("https://farabak.net/privacy");
+    expect(urls).toContain("https://farabak.net/product-finder");
+    expect(urls).toContain("https://farabak.net/about-us/members/member-one");
+    expect(urls).not.toContain("https://farabak.net/about-us/members/   ");
   });
 });

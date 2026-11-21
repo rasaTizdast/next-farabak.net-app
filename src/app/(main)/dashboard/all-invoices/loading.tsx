@@ -12,7 +12,7 @@ export default function AllInvoicesLoading() {
       </div>
       <div className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white md:block">
         <div className="grid grid-cols-5 gap-4 bg-slate-50 p-4 motion-safe:animate-pulse motion-reduce:animate-none">
-          {Array.from({ length: 5 }).map((_, index) => (
+          {Array.from({ length: 4 }).map((_, index) => (
             <div key={index} className="h-4 rounded bg-slate-200" />
           ))}
         </div>

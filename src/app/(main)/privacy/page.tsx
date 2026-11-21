@@ -3,14 +3,18 @@ import type { Metadata } from "next";
 import { ActionLink } from "@/components/public/ActionLink";
 import { PageIntro } from "@/components/public/PageIntro";
 import { PublicShell } from "@/components/public/PublicShell";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 export const metadata: Metadata = {
+  ...createRouteMetadata({
+    title: "حریم خصوصی | فرابک",
+    description:
+      "سیاست حفظ حریم خصوصی فرابک: توضیح داده‌هایی که جمع‌آوری می‌کنیم، نحوه استفاده و محافظت از آن‌ها و حقوق کاربران.",
+    path: "/privacy",
+  }),
   title: "حریم خصوصی | فرابک",
   description:
     "سیاست حفظ حریم خصوصی فرابک: توضیح داده‌هایی که جمع‌آوری می‌کنیم، نحوه استفاده و محافظت از آن‌ها و حقوق کاربران.",
-  alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/privacy`,
-  },
   robots: {
     index: true,
     follow: true,
@@ -68,7 +72,7 @@ const PrivacyPage = () => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <PublicShell as="main" className="py-10 sm:py-14 lg:py-16">
+      <PublicShell className="py-10 sm:py-14 lg:py-16">
         <PageIntro
           eyebrow="سیاست سایت"
           title="حریم خصوصی، با زبان روشن"

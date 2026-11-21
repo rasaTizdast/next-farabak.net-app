@@ -17,11 +17,13 @@ const staticUrls = [
   "https://farabak.net/support/tools/cctv-storage",
   "https://farabak.net/support/tools/xray-fit",
   "https://farabak.net/support/tools/meeting-room",
+  "https://farabak.net/product-finder",
   "https://farabak.net/about-us",
   "https://farabak.net/about-us/projects",
   "https://farabak.net/about-us/members",
   "https://farabak.net/about-us/activity",
   "https://farabak.net/contact-us",
+  "https://farabak.net/privacy",
 ];
 
 export interface SitemapResult {
@@ -29,7 +31,7 @@ export interface SitemapResult {
 }
 
 async function querySitemapUrls(): Promise<SitemapResult> {
-  const [products, categories, categoryContents, blogs, projects] = await Promise.all([
+  const [products, categories, categoryContents, blogs, projects, members] = await Promise.all([
     prisma.product.findMany({
       where: { Available: true, OR: [{ QrCode_Key: null }, { QrCode_Key: "" }] },
       select: {
@@ -80,6 +82,10 @@ async function querySitemapUrls(): Promise<SitemapResult> {
 
     prisma.projects.findMany({
       where: { IsActive: true },
+      select: { Slug: true },
+    }),
+
+    prisma.members.findMany({
       select: { Slug: true },
     }),
   ]);
@@ -145,6 +151,10 @@ async function querySitemapUrls(): Promise<SitemapResult> {
   const projectUrls = projects.map(
     (project) => `https://farabak.net/about-us/projects/${project.Slug}`
   );
+  const memberUrls = members.flatMap((member) => {
+    const slug = member.Slug?.trim();
+    return slug ? [`https://farabak.net/about-us/members/${slug}`] : [];
+  });
 
   return {
     urls: [
@@ -155,6 +165,7 @@ async function querySitemapUrls(): Promise<SitemapResult> {
       ...blogUrls,
       ...blogCategoryUrls,
       ...projectUrls,
+      ...memberUrls,
     ],
   };
 }

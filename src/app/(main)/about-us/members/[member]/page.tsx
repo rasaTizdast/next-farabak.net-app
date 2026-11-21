@@ -8,6 +8,7 @@ import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicImage } from "@/components/public/PublicImage";
 import { PublicShell } from "@/components/public/PublicShell";
 import { getMemberPage } from "@/lib/data/members";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 type Props = {
   params: Promise<{
@@ -26,9 +27,16 @@ export const generateMetadata = async (props: Props): Promise<Metadata> => {
     };
   }
 
+  const title = `معرفی ${memberData.Name} | فرابک`;
+  const description = `مشاهده صفحه معرفی ${memberData.Name} که عضوی از هیئت مدیره شرکت فرابک هستند و سمت ${memberData.Role} را دارند.`;
   return {
-    title: `معرفی ${memberData.Name} | فرابک`,
-    description: `مشاهده صفحه معرفی ${memberData.Name} که عضوی از هیئت مدیره شرکت فرابک هستند و سمت ${memberData.Role} را دارند.`,
+    ...createRouteMetadata({
+      title,
+      description,
+      path: `/about-us/members/${encodeURIComponent(params.member)}`,
+    }),
+    title,
+    description,
     robots: {
       index: true,
       follow: true,
@@ -90,7 +98,7 @@ const MemberPage = async (props: Props) => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <PublicShell as="main" className="pt-6 pb-12 sm:pt-8 sm:pb-14">
+      <PublicShell className="pt-6 pb-12 sm:pt-8 sm:pb-14">
         <PublicBreadcrumbs
           breadcrumbs={[
             "/",
