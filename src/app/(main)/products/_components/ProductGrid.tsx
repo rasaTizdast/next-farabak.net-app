@@ -9,7 +9,6 @@ import { getProductsBlogContent } from "@/lib/data/products";
 import BannerImage from "./BannerImage";
 import BlogContent from "./BlogContent";
 import { GridContentServer, type ProductFeed } from "./GridContentServer";
-import XRayModelComparison from "./XRayModelComparison";
 
 interface ProductGridProps {
   title: string;
@@ -116,10 +115,6 @@ const ProductGrid: React.FC<ProductGridProps> = ({
           usdRate={usdRate}
         />
       </Reveal>
-
-      {categorySlug === "x-ray" && !subcategorySlug && currentPage === 1 ? (
-        <XRayModelComparison />
-      ) : null}
 
       <Suspense fallback={<BlogSkeleton />}>
         {(async () => {
