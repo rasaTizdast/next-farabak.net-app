@@ -54,4 +54,20 @@ describe("ProductGrid initial HTML", () => {
     expect(html).toContain('data-product-grid="server-rendered"');
     expect(isGridUnderSuspense(grid)).toBe(false);
   });
+
+  it("places category navigation after the compact page intro and before the guide", async () => {
+    const grid = await ProductGrid({
+      title: "دوربین مداربسته رئولینک Reolink",
+      feed,
+      currentPage: 1,
+      categorySlug: "reolink-cctv-camera",
+      usdRate: null,
+      introAddon: <nav data-testid="category-selector">زیر دسته‌ها</nav>,
+    });
+    const html = renderToStaticMarkup(grid);
+
+    expect(html.indexOf("<h1")).toBeLessThan(html.indexOf('data-testid="category-selector"'));
+    expect(html).toContain("gap-3 py-4");
+    expect(html).toContain('data-testid="category-selector"');
+  });
 });

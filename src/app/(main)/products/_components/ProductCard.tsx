@@ -17,6 +17,7 @@ interface ProductCardProps {
   product: ProductCardData;
   usdRate: number | null;
   isValidRate: boolean;
+  priority?: boolean;
 }
 
 function getDiscountPercentage(price: string, discount: string): number {
@@ -32,7 +33,7 @@ function getProductImageSrc(image: string | null | undefined): string {
   return bucketUrl ? `${bucketUrl}/productImages/${image}` : "/Farabak_Logo.webp";
 }
 
-function ProductCard({ product, usdRate, isValidRate }: ProductCardProps) {
+function ProductCard({ product, usdRate, isValidRate, priority = false }: ProductCardProps) {
   const title = product.Type?.trim() || product.Name?.trim() || "محصول فرابک";
   const hasPrice = Boolean(product.Price && Number(product.Price) > 0);
   const hasDiscount = Boolean(product.Discount && Number(product.Discount) > 0);
@@ -60,6 +61,7 @@ function ProductCard({ product, usdRate, isValidRate }: ProductCardProps) {
             fill
             src={getProductImageSrc(product.img1)}
             alt={`تصویر ${title}`}
+            priority={priority}
             sizes="(min-width: 1536px) 240px, (min-width: 1280px) 300px, (min-width: 1024px) 29vw, (min-width: 640px) 44vw, 92vw"
             quality={100}
             className="size-full object-contain transition-transform duration-500 group-hover:scale-105"

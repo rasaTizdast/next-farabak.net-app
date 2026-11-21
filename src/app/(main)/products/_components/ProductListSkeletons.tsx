@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const BreadcrumbSkeleton = () => (
@@ -86,20 +88,38 @@ export const ProductListingSkeleton = ({
   showSearch = true,
   announce = true,
   title,
+  introAddon,
+  compactIntro = false,
 }: {
   showSearch?: boolean;
   announce?: boolean;
   title?: string;
+  introAddon?: ReactNode;
+  compactIntro?: boolean;
 }) => (
   <div className="w-full">
-    <header aria-hidden="true" className="flex flex-col gap-5 py-8 md:gap-6 md:py-12">
+    <header
+      className={
+        compactIntro
+          ? "flex flex-col gap-3 py-4 md:gap-4 md:py-6"
+          : "flex flex-col gap-5 py-8 md:gap-6 md:py-12"
+      }
+    >
       <p className="text-sm font-semibold tracking-[0.12em] text-(--farabak-action-blue)">
         کاتالوگ تجهیزات فرابک
       </p>
       <div className="flex flex-col gap-4 md:max-w-3xl">
-        <div className="text-3xl leading-tight font-bold tracking-tight text-(--farabak-ink-deep) md:text-5xl">
-          {title ?? <span className="skeleton-shimmer block h-[1.25em] w-3/5 rounded-md" />}
-        </div>
+        <h1 className="text-3xl leading-tight font-bold tracking-tight text-(--farabak-ink-deep) md:text-5xl">
+          {title ?? (
+            <>
+              <span className="sr-only">در حال بارگذاری محصولات</span>
+              <span
+                aria-hidden="true"
+                className="skeleton-shimmer block h-[1.25em] w-3/5 rounded-md"
+              />
+            </>
+          )}
+        </h1>
         <p className="text-base leading-8 text-(--farabak-ink-muted)">
           <span className="flex min-h-8 flex-col justify-center gap-3">
             <span className="skeleton-shimmer block h-4 w-full max-w-2xl rounded-md" />
@@ -112,15 +132,28 @@ export const ProductListingSkeleton = ({
         <Skeleton className="h-11 w-30" />
       </div>
     </header>
+    {introAddon}
     <ProductGridSkeleton showSearch={showSearch} announce={announce} />
   </div>
 );
 
 export const CategoryPageSkeleton = () => (
-  <>
-    <CategorySliderSkeleton subcategories />
-    <ProductListingSkeleton showSearch={false} />
-  </>
+  <div dir="rtl" role="status" aria-label="در حال بارگذاری دسته‌بندی محصولات">
+    <BreadcrumbSkeleton />
+    <ProductListingSkeleton
+      showSearch={false}
+      announce={false}
+      compactIntro
+      introAddon={<CategorySliderSkeleton subcategories />}
+    />
+  </div>
+);
+
+export const SubcategoryPageSkeleton = () => (
+  <div dir="rtl" role="status" aria-label="در حال بارگذاری محصولات زیر دسته‌بندی">
+    <BreadcrumbSkeleton />
+    <ProductListingSkeleton showSearch={false} announce={false} />
+  </div>
 );
 
 export const ProductsPageSkeleton = () => (

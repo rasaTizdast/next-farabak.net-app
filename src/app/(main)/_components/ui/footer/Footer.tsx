@@ -25,7 +25,7 @@ const Footer = async () => {
             aria-label="صفحات اصلی"
             className="flex flex-col items-center text-center lg:items-start lg:text-start"
           >
-            <h4 className="mb-3 text-base font-bold text-white">صفحات اصلی</h4>
+            <h2 className="mb-3 text-base font-bold text-white">صفحات اصلی</h2>
             <ul className="flex w-full flex-col gap-2">
               <li>
                 <Link
@@ -58,14 +58,14 @@ const Footer = async () => {
             aria-label="پشتیبانی"
             className="flex flex-col items-center text-center lg:items-start lg:text-start"
           >
-            <h4 className="mb-3 text-base font-bold text-white">
+            <h2 className="mb-3 text-base font-bold text-white">
               <Link
                 href="/support"
                 className="text-white transition-colors hover:text-[#00bfff] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#00bfff]"
               >
                 پشتیبانی
               </Link>
-            </h4>
+            </h2>
             <ul className="flex w-full flex-col gap-2">
               <li>
                 <Link
@@ -97,14 +97,14 @@ const Footer = async () => {
             aria-label="شرکت فرابک"
             className="flex flex-col items-center text-center lg:items-start lg:text-start"
           >
-            <h4 className="mb-3 text-base font-bold text-white">
+            <h2 className="mb-3 text-base font-bold text-white">
               <Link
                 href="/about-us"
                 className="text-white transition-colors hover:text-[#00bfff] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#00bfff]"
               >
                 شرکت فرابک
               </Link>
-            </h4>
+            </h2>
             <ul className="flex w-full flex-col gap-2">
               <li>
                 <Link
@@ -136,7 +136,7 @@ const Footer = async () => {
             aria-label="شبکه‌های مجازی"
             className="flex flex-col items-center text-center lg:items-start lg:text-start"
           >
-            <h4 className="mb-3 text-base font-bold text-white">شبکه‌های مجازی</h4>
+            <h2 className="mb-3 text-base font-bold text-white">شبکه‌های مجازی</h2>
             <ul className="flex w-full flex-col gap-2">
               <li>
                 <Link
@@ -164,7 +164,7 @@ const Footer = async () => {
 
         <div className="grid w-full items-start gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
           <address className="text-center not-italic lg:text-start" aria-label="آدرس دفتر مرکزی">
-            <h5 className="mb-4 text-base font-bold text-white">آدرس دفتر مرکزی</h5>
+            <h3 className="mb-4 text-base font-bold text-white">آدرس دفتر مرکزی</h3>
             {address && (
               <>
                 <div className="flex flex-col gap-4 text-[0.85rem] leading-[1.8] font-light text-[#c7c7c7]">

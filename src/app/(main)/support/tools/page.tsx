@@ -4,9 +4,15 @@ import Link from "next/link";
 
 import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
+import { createRouteMetadata } from "@/lib/seo/route-metadata";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/support/tools" },
+  ...createRouteMetadata({
+    title: "ابزارهای برآورد تجهیزات و فضای نصب | فرابک",
+    description:
+      "ابزارهای تعاملی فرابک برای برآورد ظرفیت ذخیره‌سازی دوربین، بررسی اولیه تناسب دستگاه ایکس‌ری و برنامه‌ریزی تصویر اتاق جلسه.",
+    path: "/support/tools",
+  }),
   title: "ابزارهای برآورد تجهیزات و فضای نصب | فرابک",
   description:
     "ابزارهای تعاملی فرابک برای برآورد ظرفیت ذخیره‌سازی دوربین، بررسی اولیه تناسب دستگاه ایکس‌ری و برنامه‌ریزی تصویر اتاق جلسه.",
@@ -129,7 +135,7 @@ export default function ToolsPage() {
                   <span className={`grid size-12 place-items-center rounded-xl ${tool.iconTone}`}>
                     <Icon aria-hidden="true" className="size-5" strokeWidth={1.8} />
                   </span>
-                  <span dir="ltr" className="font-mono text-sm font-semibold text-slate-400">
+                  <span dir="ltr" className="font-mono text-sm font-semibold text-slate-600">
                     {tool.number}
                   </span>
                 </div>

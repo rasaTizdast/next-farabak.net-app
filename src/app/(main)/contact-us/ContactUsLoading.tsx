@@ -1,10 +1,65 @@
 import { BreadcrumbSkeleton } from "@/app/_components/ui/PageSkeletons";
 import { PublicShell } from "@/components/public/PublicShell";
 
+export function ContactUsContentSkeleton() {
+  return (
+    <PublicShell
+      as="section"
+      className="pb-12 sm:pb-14"
+      role="status"
+      aria-label="در حال بارگذاری اطلاعات تماس"
+    >
+      <div
+        aria-hidden="true"
+        className="grid gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(20rem,1.15fr)] lg:items-start"
+      >
+        <div className="space-y-8">
+          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_16px_36px_rgba(6,26,48,0.06)] sm:p-8">
+            <div className="skeleton-shimmer h-4 w-32 rounded-full" />
+            <div className="skeleton-shimmer mt-3 h-7 w-2/3 rounded-xl" />
+            <div className="mt-6 space-y-5">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="skeleton-shimmer h-4 w-28 rounded-full" />
+                  <div className="skeleton-shimmer h-11 w-full rounded-xl" />
+                </div>
+              ))}
+              <div className="skeleton-shimmer h-28 w-full rounded-xl" />
+              <div className="skeleton-shimmer h-11 w-40 rounded-xl" />
+            </div>
+          </section>
+          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_16px_36px_rgba(6,26,48,0.06)] sm:p-8">
+            <div className="skeleton-shimmer h-4 w-32 rounded-full" />
+            <div className="skeleton-shimmer mt-3 h-7 w-2/3 rounded-xl" />
+            <div className="mt-6 space-y-5">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="skeleton-shimmer h-4 w-28 rounded-full" />
+                  <div className="skeleton-shimmer h-5 w-full rounded-full" />
+                  {i === 0 ? <div className="skeleton-shimmer h-4 w-2/3 rounded-full" /> : null}
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+        <aside>
+          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_16px_36px_rgba(6,26,48,0.06)]">
+            <div className="skeleton-shimmer h-72 w-full sm:h-96" />
+            <div className="space-y-3 p-6 sm:p-7">
+              <div className="skeleton-shimmer h-6 w-2/3 rounded-xl" />
+              <div className="skeleton-shimmer h-4 w-full rounded-full" />
+              <div className="skeleton-shimmer h-4 w-4/5 rounded-full" />
+            </div>
+          </section>
+        </aside>
+      </div>
+    </PublicShell>
+  );
+}
+
 export default function ContactUsLoading() {
   return (
     <PublicShell
-      as="main"
       className="pt-6 pb-12 sm:pt-8 sm:pb-14"
       role="status"
       aria-label="در حال بارگذاری تماس با فرابک"
@@ -21,32 +76,7 @@ export default function ContactUsLoading() {
           <div className="skeleton-shimmer h-11 w-48 rounded-xl" />
         </header>
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(20rem,1.15fr)] lg:items-start">
-          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_16px_36px_rgba(6,26,48,0.06)] sm:p-8">
-            <div className="skeleton-shimmer h-4 w-32 rounded-full" />
-            <div className="skeleton-shimmer mt-3 h-7 w-2/3 rounded-xl" />
-            <div className="mt-6 space-y-6">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="space-y-2">
-                  <div className="skeleton-shimmer h-4 w-28 rounded-full" />
-                  <div className="skeleton-shimmer h-5 w-full rounded-full" />
-                  {i === 0 ? <div className="skeleton-shimmer h-4 w-2/3 rounded-full" /> : null}
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <aside>
-            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_16px_36px_rgba(6,26,48,0.06)]">
-              <div className="skeleton-shimmer h-72 w-full sm:h-96" />
-              <div className="space-y-3 p-6 sm:p-7">
-                <div className="skeleton-shimmer h-6 w-2/3 rounded-xl" />
-                <div className="skeleton-shimmer h-4 w-full rounded-full" />
-                <div className="skeleton-shimmer h-4 w-4/5 rounded-full" />
-              </div>
-            </section>
-          </aside>
-        </div>
+        <ContactUsContentSkeleton />
       </div>
     </PublicShell>
   );

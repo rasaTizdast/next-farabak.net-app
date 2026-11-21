@@ -277,7 +277,7 @@ function BlackwonderRange() {
       <PublicShell>
         <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
           <div className="min-w-0">
-            <p className="text-sm font-bold tracking-[0.18em] text-[#1265e8] uppercase">
+            <p className="text-sm font-bold tracking-[0.18em] text-[#0b55c3] uppercase">
               BlackWonder · نظارت صنعتی
             </p>
             <h2

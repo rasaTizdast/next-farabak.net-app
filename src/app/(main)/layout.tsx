@@ -60,9 +60,9 @@ const Layout = ({
             <footer className="bg-linear-to-b from-(--farabak-mega-menu-bg) to-(--farabak-footer-bg) py-8 text-center text-sm text-[#cecece]">
               <PublicShell>
                 <span>فرابک</span>
-                <a className="mr-4 underline" href="/contact-us">
+                <Link className="mr-4 underline" href="/contact-us">
                   ارتباط با ما
-                </a>
+                </Link>
               </PublicShell>
             </footer>
           }

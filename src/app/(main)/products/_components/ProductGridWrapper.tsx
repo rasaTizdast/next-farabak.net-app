@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { serializeJsonLd } from "@/lib/seo/json-ld";
 
 import type { ProductFeed } from "./GridContentServer";
@@ -19,6 +21,7 @@ interface ProductGridWrapperProps {
   collectionItems?: CollectionProduct[];
   breadcrumbCategoryTitle?: string;
   breadcrumbSubcategoryTitle?: string;
+  introAddon?: ReactNode;
 }
 
 function ProductCollectionStructuredData({
@@ -40,6 +43,7 @@ function ProductCollectionStructuredData({
   | "collectionItems"
   | "breadcrumbCategoryTitle"
   | "breadcrumbSubcategoryTitle"
+  | "introAddon"
 >) {
   if (!collectionItems) return null;
 
@@ -91,6 +95,7 @@ export default function ProductGridWrapper({
   collectionItems,
   breadcrumbCategoryTitle,
   breadcrumbSubcategoryTitle,
+  introAddon,
 }: ProductGridWrapperProps) {
   return (
     <>
@@ -111,6 +116,7 @@ export default function ProductGridWrapper({
         categorySlug={categorySlug}
         subcategorySlug={subcategorySlug}
         usdRate={usdRate}
+        introAddon={introAddon}
       />
     </>
   );

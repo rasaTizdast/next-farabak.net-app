@@ -22,4 +22,13 @@ describe("Footer", () => {
       "2xl:px-40"
     );
   });
+
+  it("keeps footer section headings in the page heading hierarchy", async () => {
+    render(await Footer());
+
+    for (const name of ["صفحات اصلی", "پشتیبانی", "شرکت فرابک", "شبکه‌های مجازی"]) {
+      expect(screen.getByRole("navigation", { name }).querySelector("h2")).not.toBeNull();
+    }
+    expect(document.querySelector("footer address h3")).not.toBeNull();
+  });
 });

@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 
 import { Reveal } from "@/components/motion/Reveal";
 import { ActionLink } from "@/components/public/ActionLink";
@@ -8,6 +8,7 @@ import { getProductsBlogContent } from "@/lib/data/products";
 
 import BannerImage from "./BannerImage";
 import BlogContent from "./BlogContent";
+import CatalogGuide from "./CatalogGuide";
 import { GridContentServer, type ProductFeed } from "./GridContentServer";
 
 interface ProductGridProps {
@@ -17,6 +18,7 @@ interface ProductGridProps {
   categorySlug?: string;
   subcategorySlug?: string;
   usdRate: number | null;
+  introAddon?: ReactNode;
 }
 
 const BannerSkeleton = () => (
@@ -53,7 +55,7 @@ const ProductIntro = ({ title, showSearch }: { title: string; showSearch: boolea
         </ActionLink>
       </>
     }
-    className="py-8 md:py-12"
+    className="gap-3 py-4 md:gap-4 md:py-6 [&_h1]:text-3xl [&_h1]:md:text-4xl [&_p]:leading-7 [&>div]:gap-2"
   />
 );
 
@@ -64,6 +66,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   categorySlug,
   subcategorySlug,
   usdRate,
+  introAddon,
 }) => {
   async function fetchBlogs() {
     try {
@@ -86,11 +89,16 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   return (
     <div className="w-full">
       <ProductIntro title={title} showSearch={!categorySlug} />
+      {introAddon}
       <Suspense fallback={null}>
         {(async () => {
           const { topBlog } = await blogsPromise;
           if (topBlog) {
-            return <BlogContent text={topBlog} />;
+            return (
+              <CatalogGuide title={title}>
+                <BlogContent text={topBlog} />
+              </CatalogGuide>
+            );
           }
           return null;
         })()}

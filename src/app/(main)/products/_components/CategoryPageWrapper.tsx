@@ -31,9 +31,6 @@ export default function CategoryPageWrapper({
 
   return (
     <>
-      <Suspense fallback={<CategorySliderSkeleton subcategories />}>
-        <CategorySliderWrapper type="subcategories" categorySlug={categoryName} />
-      </Suspense>
       <ProductGridWrapper
         title={categoryTitle}
         feed={feed}
@@ -43,6 +40,11 @@ export default function CategoryPageWrapper({
         canonicalUrl={canonicalUrl}
         collectionItems={collectionItems}
         breadcrumbCategoryTitle={categoryTitle}
+        introAddon={
+          <Suspense fallback={<CategorySliderSkeleton subcategories />}>
+            <CategorySliderWrapper type="subcategories" categorySlug={categoryName} />
+          </Suspense>
+        }
       />
     </>
   );

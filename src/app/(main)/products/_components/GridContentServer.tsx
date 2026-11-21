@@ -49,12 +49,13 @@ export const GridContentServer: React.FC<GridContentServerProps> = ({
 
       {availableProducts.length > 0 ? (
         <div className="grid w-full grid-cols-1 items-stretch gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-          {availableProducts.map((product) => (
+          {availableProducts.map((product, index) => (
             <ProductCard
               key={product.ProductId}
               product={product}
               usdRate={usdRate}
               isValidRate={isValidRate}
+              priority={index === 0}
             />
           ))}
         </div>

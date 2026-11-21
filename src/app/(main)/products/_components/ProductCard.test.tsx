@@ -4,6 +4,28 @@ import { describe, expect, it } from "vitest";
 import ProductCard from "./ProductCard";
 
 describe("ProductCard", () => {
+  it("preloads the first above-the-fold product image when marked as priority", () => {
+    render(
+      <ProductCard
+        product={{
+          ProductId: 41,
+          Type: "دوربین شبکه‌ای",
+          Available: true,
+          img1: "camera.webp",
+          link: "cctv/network-camera/alpha",
+        }}
+        usdRate={null}
+        isValidRate={false}
+        priority
+      />
+    );
+
+    expect(screen.getByRole("img", { name: "تصویر دوربین شبکه‌ای" })).not.toHaveAttribute(
+      "loading",
+      "lazy"
+    );
+  });
+
   it("keeps the product destination, readable name, and FAR code visible", () => {
     render(
       <ProductCard

@@ -182,17 +182,17 @@ const ProductsMegaMenuContent = ({
               {/* Detail: subcategories of the active category */}
               <div className="flex flex-1 flex-col overflow-hidden" key={activeEntry.id}>
                 <div className="border-b border-white/10 px-6 py-4">
-                  <h3 className="m-0 truncate text-base font-bold text-white">
+                  <h3 className="m-0 text-base leading-6 font-bold wrap-break-word whitespace-normal text-white">
                     {activeEntry.name}
                   </h3>
                 </div>
-                <ul className="m-0 grid list-none grid-cols-2 content-start gap-x-4 gap-y-1 overflow-y-auto p-5 xl:grid-cols-3">
+                <ul className="m-0 grid min-w-0 list-none grid-cols-2 content-start gap-x-4 gap-y-1 overflow-y-auto p-5">
                   {activeEntry.items.map((item) => (
                     <li key={item.id}>
                       <Link
                         href={item.link}
                         onClick={() => setOpen(false)}
-                        className="hover:text-primary block truncate rounded-lg px-3 py-2.5 text-[0.9rem] font-medium text-[#f5f7fa] transition-colors duration-150 hover:bg-white/5"
+                        className="hover:text-primary block min-h-11 rounded-lg px-3 py-2.5 text-start text-[0.9rem] leading-6 font-medium wrap-break-word whitespace-normal text-[#f5f7fa] transition-colors duration-150 hover:bg-white/5"
                       >
                         {item.name}
                       </Link>
