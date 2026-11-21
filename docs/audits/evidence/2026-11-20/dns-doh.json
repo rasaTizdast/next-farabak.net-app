@@ -1,0 +1,248 @@
+{
+  "observed_at_utc": "2026-11-20T09:27:54.434656+00:00",
+  "results": [
+    {
+      "resolver": "https://dns.google/resolve",
+      "name": "farabak.net",
+      "type": "A",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://dns.google/resolve",
+      "name": "farabak.net",
+      "type": "AAAA",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://dns.google/resolve",
+      "name": "farabak.net",
+      "type": "NS",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://dns.google/resolve",
+      "name": "farabak.net",
+      "type": "DS",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://dns.google/resolve",
+      "name": "farabak.net",
+      "type": "SOA",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://dns.google/resolve",
+      "name": "farabak.net",
+      "type": "DNSKEY",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://dns.google/resolve",
+      "name": "www.farabak.net",
+      "type": "A",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://dns.google/resolve",
+      "name": "www.farabak.net",
+      "type": "AAAA",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://dns.google/resolve",
+      "name": "www.farabak.net",
+      "type": "CNAME",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://cloudflare-dns.com/dns-query",
+      "name": "farabak.net",
+      "type": "A",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://cloudflare-dns.com/dns-query",
+      "name": "farabak.net",
+      "type": "AAAA",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://cloudflare-dns.com/dns-query",
+      "name": "farabak.net",
+      "type": "NS",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://cloudflare-dns.com/dns-query",
+      "name": "farabak.net",
+      "type": "DS",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://cloudflare-dns.com/dns-query",
+      "name": "farabak.net",
+      "type": "SOA",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://cloudflare-dns.com/dns-query",
+      "name": "farabak.net",
+      "type": "DNSKEY",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://cloudflare-dns.com/dns-query",
+      "name": "www.farabak.net",
+      "type": "A",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://cloudflare-dns.com/dns-query",
+      "name": "www.farabak.net",
+      "type": "AAAA",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://cloudflare-dns.com/dns-query",
+      "name": "www.farabak.net",
+      "type": "CNAME",
+      "result": {
+        "error": "curl: (35) Recv failure: Connection was reset",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://dns.quad9.net:5053/dns-query",
+      "name": "farabak.net",
+      "type": "A",
+      "result": {
+        "error": "curl: (28) Connection timed out after 5011 milliseconds",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://dns.quad9.net:5053/dns-query",
+      "name": "farabak.net",
+      "type": "AAAA",
+      "result": {
+        "error": "curl: (28) Connection timed out after 5011 milliseconds",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://dns.quad9.net:5053/dns-query",
+      "name": "farabak.net",
+      "type": "NS",
+      "result": {
+        "error": "curl: (28) Connection timed out after 5012 milliseconds",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://dns.quad9.net:5053/dns-query",
+      "name": "farabak.net",
+      "type": "DS",
+      "result": {
+        "error": "curl: (28) Connection timed out after 5005 milliseconds",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://dns.quad9.net:5053/dns-query",
+      "name": "farabak.net",
+      "type": "SOA",
+      "result": {
+        "error": "curl: (28) Connection timed out after 5016 milliseconds",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://dns.quad9.net:5053/dns-query",
+      "name": "farabak.net",
+      "type": "DNSKEY",
+      "result": {
+        "error": "curl: (28) Connection timed out after 5009 milliseconds",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://dns.quad9.net:5053/dns-query",
+      "name": "www.farabak.net",
+      "type": "A",
+      "result": {
+        "error": "curl: (28) Connection timed out after 5007 milliseconds",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://dns.quad9.net:5053/dns-query",
+      "name": "www.farabak.net",
+      "type": "AAAA",
+      "result": {
+        "error": "curl: (28) Connection timed out after 5007 milliseconds",
+        "body": ""
+      }
+    },
+    {
+      "resolver": "https://dns.quad9.net:5053/dns-query",
+      "name": "www.farabak.net",
+      "type": "CNAME",
+      "result": {
+        "error": "curl: (28) Connection timed out after 5010 milliseconds",
+        "body": ""
+      }
+    }
+  ]
+}

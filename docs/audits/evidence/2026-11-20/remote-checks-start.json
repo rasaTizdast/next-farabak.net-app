@@ -1,0 +1,74 @@
+{
+  "observed_at_utc": "2026-11-20T09:31:31.602050+00:00",
+  "checks": [
+    {
+      "path": "/",
+      "request": {
+        "nodes": {
+          "ca1.node.check-host.net": ["ca", "Canada", "Vancouver", "198.135.169.20", "AS396993"],
+          "de1.node.check-host.net": ["de", "Germany", "Nuremberg", "142.132.174.167", "AS24940"],
+          "ir1.node.check-host.net": ["ir", "Iran", "Tehran", "185.105.238.209", "AS47430"],
+          "nl1.node.check-host.net": [
+            "nl",
+            "Netherlands",
+            "Amsterdam",
+            "185.209.161.145",
+            "AS14576"
+          ],
+          "tr1.node.check-host.net": ["tr", "Turkey", "Istanbul", "185.23.17.21", "AS211557"],
+          "uk1.node.check-host.net": ["gb", "UK", "London", "107.181.134.162", "AS213535"],
+          "us1.node.check-host.net": ["us", "USA", "Los Angeles", "38.145.202.12", "AS18978"]
+        },
+        "ok": 1,
+        "permanent_link": "https://check-host.net/check-report/593d1960k12d",
+        "request_id": "593d1960k12d"
+      }
+    },
+    {
+      "path": "/robots.txt",
+      "request": {
+        "nodes": {
+          "ca1.node.check-host.net": ["ca", "Canada", "Vancouver", "198.135.169.20", "AS396993"],
+          "de1.node.check-host.net": ["de", "Germany", "Nuremberg", "142.132.174.167", "AS24940"],
+          "ir1.node.check-host.net": ["ir", "Iran", "Tehran", "185.105.238.209", "AS47430"],
+          "nl1.node.check-host.net": [
+            "nl",
+            "Netherlands",
+            "Amsterdam",
+            "185.209.161.145",
+            "AS14576"
+          ],
+          "tr1.node.check-host.net": ["tr", "Turkey", "Istanbul", "185.23.17.21", "AS211557"],
+          "uk1.node.check-host.net": ["gb", "UK", "London", "107.181.134.162", "AS213535"],
+          "us1.node.check-host.net": ["us", "USA", "Los Angeles", "38.145.202.12", "AS18978"]
+        },
+        "ok": 1,
+        "permanent_link": "https://check-host.net/check-report/593d1987ka7e",
+        "request_id": "593d1987ka7e"
+      }
+    },
+    {
+      "path": "/products/reolink-cctv-camera",
+      "request": {
+        "nodes": {
+          "ca1.node.check-host.net": ["ca", "Canada", "Vancouver", "198.135.169.20", "AS396993"],
+          "de1.node.check-host.net": ["de", "Germany", "Nuremberg", "142.132.174.167", "AS24940"],
+          "ir1.node.check-host.net": ["ir", "Iran", "Tehran", "185.105.238.209", "AS47430"],
+          "nl1.node.check-host.net": [
+            "nl",
+            "Netherlands",
+            "Amsterdam",
+            "185.209.161.145",
+            "AS14576"
+          ],
+          "tr1.node.check-host.net": ["tr", "Turkey", "Istanbul", "185.23.17.21", "AS211557"],
+          "uk1.node.check-host.net": ["gb", "UK", "London", "107.181.134.162", "AS213535"],
+          "us1.node.check-host.net": ["us", "USA", "Los Angeles", "38.145.202.12", "AS18978"]
+        },
+        "ok": 1,
+        "permanent_link": "https://check-host.net/check-report/593d199fk31",
+        "request_id": "593d199fk31"
+      }
+    }
+  ]
+}

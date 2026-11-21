@@ -1,0 +1,193 @@
+{
+  "ok": true,
+  "siteUrl": "https://farabak.net/",
+  "results": [
+    {
+      "url": "https://farabak.net/",
+      "result": {
+        "inspectionResultLink": "https://search.google.com/search-console/inspect?resource_id=https://farabak.net/&id=zNvSb6kxKHsgx_EVDSpyuA&utm_medium=link&utm_source=api",
+        "indexStatusResult": {
+          "verdict": "PASS",
+          "coverageState": "Submitted and indexed",
+          "robotsTxtState": "ALLOWED",
+          "indexingState": "INDEXING_ALLOWED",
+          "lastCrawlTime": "2026-11-15T12:38:41Z",
+          "pageFetchState": "SUCCESSFUL",
+          "googleCanonical": "https://farabak.net/",
+          "userCanonical": "https://farabak.net/",
+          "referringUrls": [
+            "https://farabak.net/support/blog/programming/javascript-fetch-api-error-handling",
+            "https://farabak.net/support/blog",
+            "http://www.farabak.com/userfiles/",
+            "https://www.farabak.com/home/error/lang/Fa.aspx",
+            "http://farabak.net/"
+          ],
+          "crawledAs": "MOBILE"
+        },
+        "mobileUsabilityResult": {
+          "verdict": "VERDICT_UNSPECIFIED"
+        }
+      }
+    },
+    {
+      "url": "https://farabak.net/products",
+      "result": {
+        "inspectionResultLink": "https://search.google.com/search-console/inspect?resource_id=https://farabak.net/&id=EctNFjwkbpU6jQAM8woLoQ&utm_medium=link&utm_source=api",
+        "indexStatusResult": {
+          "verdict": "PASS",
+          "coverageState": "Submitted and indexed",
+          "robotsTxtState": "ALLOWED",
+          "indexingState": "INDEXING_ALLOWED",
+          "lastCrawlTime": "2026-11-10T12:53:32Z",
+          "pageFetchState": "SUCCESSFUL",
+          "googleCanonical": "https://farabak.net/products",
+          "referringUrls": [
+            "http://www.farabak.com/userfiles/",
+            "http://farabak.com/userimages/showSlides/slide-Fa2",
+            "https://farabak.net/"
+          ],
+          "crawledAs": "MOBILE"
+        },
+        "mobileUsabilityResult": {
+          "verdict": "VERDICT_UNSPECIFIED"
+        },
+        "richResultsResult": {
+          "verdict": "PASS",
+          "detectedItems": [
+            {
+              "richResultType": "Breadcrumbs",
+              "items": [
+                {
+                  "name": "Unnamed item"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "url": "https://farabak.net/products/reolink-cctv-camera",
+      "result": {
+        "inspectionResultLink": "https://search.google.com/search-console/inspect?resource_id=https://farabak.net/&id=WnSL5gMhw3-bVieOOPDzkg&utm_medium=link&utm_source=api",
+        "indexStatusResult": {
+          "verdict": "PASS",
+          "coverageState": "Submitted and indexed",
+          "robotsTxtState": "ALLOWED",
+          "indexingState": "INDEXING_ALLOWED",
+          "lastCrawlTime": "2026-11-18T21:31:55Z",
+          "pageFetchState": "SUCCESSFUL",
+          "googleCanonical": "https://farabak.net/products/reolink-cctv-camera",
+          "userCanonical": "https://farabak.net/products/reolink-cctv-camera",
+          "referringUrls": [
+            "https://farabak.net/about-us",
+            "https://farabak.net/products/reolink-cctv-camera/bullet/410W-PACKAGE",
+            "https://farabak.net/"
+          ],
+          "crawledAs": "MOBILE"
+        },
+        "mobileUsabilityResult": {
+          "verdict": "VERDICT_UNSPECIFIED"
+        },
+        "richResultsResult": {
+          "verdict": "PASS",
+          "detectedItems": [
+            {
+              "richResultType": "Breadcrumbs",
+              "items": [
+                {
+                  "name": "Unnamed item"
+                },
+                {
+                  "name": "Unnamed item"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "url": "https://farabak.net/products/reolink-cctv-camera/bullet/B400",
+      "result": {
+        "inspectionResultLink": "https://search.google.com/search-console/inspect?resource_id=https://farabak.net/&id=hNbRUhJct1rqeGllNC3aOA&utm_medium=link&utm_source=api",
+        "indexStatusResult": {
+          "verdict": "NEUTRAL",
+          "coverageState": "URL is unknown to Google",
+          "robotsTxtState": "ROBOTS_TXT_STATE_UNSPECIFIED",
+          "indexingState": "INDEXING_STATE_UNSPECIFIED",
+          "pageFetchState": "PAGE_FETCH_STATE_UNSPECIFIED"
+        },
+        "mobileUsabilityResult": {
+          "verdict": "VERDICT_UNSPECIFIED"
+        }
+      }
+    },
+    {
+      "url": "https://farabak.net/contact-us",
+      "result": {
+        "inspectionResultLink": "https://search.google.com/search-console/inspect?resource_id=https://farabak.net/&id=f1FaGTgd1nYhfYWlIr5skw&utm_medium=link&utm_source=api",
+        "indexStatusResult": {
+          "verdict": "NEUTRAL",
+          "coverageState": "Discovered - currently not indexed",
+          "robotsTxtState": "ROBOTS_TXT_STATE_UNSPECIFIED",
+          "indexingState": "INDEXING_STATE_UNSPECIFIED",
+          "pageFetchState": "PAGE_FETCH_STATE_UNSPECIFIED",
+          "sitemap": ["https://farabak.net/sitemap.xml"],
+          "referringUrls": [
+            "https://farabak.net/products/industrial-cctv-camera",
+            "https://farabak.net/"
+          ],
+          "crawledAs": "MOBILE"
+        },
+        "mobileUsabilityResult": {
+          "verdict": "VERDICT_UNSPECIFIED"
+        }
+      }
+    },
+    {
+      "url": "https://farabak.net/about-us",
+      "result": null,
+      "error": "Search Console didn't respond in time. Retry shortly."
+    },
+    {
+      "url": "https://farabak.net/support/blog",
+      "result": {
+        "inspectionResultLink": "https://search.google.com/search-console/inspect?resource_id=https://farabak.net/&id=fRN3mRvzQAcUtly4vBhnlA&utm_medium=link&utm_source=api",
+        "indexStatusResult": {
+          "verdict": "PASS",
+          "coverageState": "Submitted and indexed",
+          "robotsTxtState": "ALLOWED",
+          "indexingState": "INDEXING_ALLOWED",
+          "lastCrawlTime": "2026-10-29T14:33:19Z",
+          "pageFetchState": "SUCCESSFUL",
+          "googleCanonical": "https://farabak.net/support/blog",
+          "userCanonical": "https://farabak.net/",
+          "sitemap": ["https://farabak.net/sitemap.xml"],
+          "referringUrls": ["https://farabak.net/support/tools/xray-fit", "https://farabak.net/"],
+          "crawledAs": "MOBILE"
+        },
+        "mobileUsabilityResult": {
+          "verdict": "VERDICT_UNSPECIFIED"
+        },
+        "richResultsResult": {
+          "verdict": "PASS",
+          "detectedItems": [
+            {
+              "richResultType": "Breadcrumbs",
+              "items": [
+                {
+                  "name": "Unnamed item"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "meta": {
+    "projectId": "c44589f0-b38e-4433-88a4-c6a3ce3d49a5",
+    "url": "https://app.openseo.so/p/c44589f0-b38e-4433-88a4-c6a3ce3d49a5/settings/integrations"
+  }
+}

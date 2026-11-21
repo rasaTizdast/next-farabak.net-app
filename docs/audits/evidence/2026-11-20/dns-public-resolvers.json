@@ -1,0 +1,146 @@
+[
+  {
+    "server": "1.1.1.1",
+    "name": "farabak.net",
+    "type": "A",
+    "answer": ["185.208.181.159"]
+  },
+  {
+    "server": "1.1.1.1",
+    "name": "farabak.net",
+    "type": "AAAA",
+    "error": "ENODATA"
+  },
+  {
+    "server": "1.1.1.1",
+    "name": "farabak.net",
+    "type": "CNAME",
+    "error": "ENODATA"
+  },
+  {
+    "server": "1.1.1.1",
+    "name": "farabak.net",
+    "type": "NS",
+    "answer": ["ns2.liara.zone", "ns1.liara.zone"]
+  },
+  {
+    "server": "1.1.1.1",
+    "name": "www.farabak.net",
+    "type": "A",
+    "answer": ["185.208.181.159"]
+  },
+  {
+    "server": "1.1.1.1",
+    "name": "www.farabak.net",
+    "type": "AAAA",
+    "error": "ENODATA"
+  },
+  {
+    "server": "1.1.1.1",
+    "name": "www.farabak.net",
+    "type": "CNAME",
+    "error": "ENODATA"
+  },
+  {
+    "server": "1.1.1.1",
+    "name": "www.farabak.net",
+    "type": "NS",
+    "error": "ENODATA"
+  },
+  {
+    "server": "8.8.8.8",
+    "name": "farabak.net",
+    "type": "A",
+    "answer": ["185.208.181.159"]
+  },
+  {
+    "server": "8.8.8.8",
+    "name": "farabak.net",
+    "type": "AAAA",
+    "error": "ENODATA"
+  },
+  {
+    "server": "8.8.8.8",
+    "name": "farabak.net",
+    "type": "CNAME",
+    "error": "ENODATA"
+  },
+  {
+    "server": "8.8.8.8",
+    "name": "farabak.net",
+    "type": "NS",
+    "answer": ["ns2.liara.zone", "ns1.liara.zone"]
+  },
+  {
+    "server": "8.8.8.8",
+    "name": "www.farabak.net",
+    "type": "A",
+    "answer": ["185.208.181.159"]
+  },
+  {
+    "server": "8.8.8.8",
+    "name": "www.farabak.net",
+    "type": "AAAA",
+    "error": "ENODATA"
+  },
+  {
+    "server": "8.8.8.8",
+    "name": "www.farabak.net",
+    "type": "CNAME",
+    "error": "ENODATA"
+  },
+  {
+    "server": "8.8.8.8",
+    "name": "www.farabak.net",
+    "type": "NS",
+    "error": "ENODATA"
+  },
+  {
+    "server": "9.9.9.9",
+    "name": "farabak.net",
+    "type": "A",
+    "answer": ["185.208.181.159"]
+  },
+  {
+    "server": "9.9.9.9",
+    "name": "farabak.net",
+    "type": "AAAA",
+    "error": "ENODATA"
+  },
+  {
+    "server": "9.9.9.9",
+    "name": "farabak.net",
+    "type": "CNAME",
+    "error": "ENODATA"
+  },
+  {
+    "server": "9.9.9.9",
+    "name": "farabak.net",
+    "type": "NS",
+    "answer": ["ns1.liara.zone", "ns2.liara.zone"]
+  },
+  {
+    "server": "9.9.9.9",
+    "name": "www.farabak.net",
+    "type": "A",
+    "answer": ["185.208.181.159"]
+  },
+  {
+    "server": "9.9.9.9",
+    "name": "www.farabak.net",
+    "type": "AAAA",
+    "error": "ENODATA"
+  },
+  {
+    "server": "9.9.9.9",
+    "name": "www.farabak.net",
+    "type": "CNAME",
+    "error": "ENODATA"
+  },
+  {
+    "server": "9.9.9.9",
+    "name": "www.farabak.net",
+    "type": "NS",
+    "error": "ENODATA"
+  }
+]

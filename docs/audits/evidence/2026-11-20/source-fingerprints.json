@@ -1,0 +1,97 @@
+{
+  "baseline_commit": "a32f9d03",
+  "files": [
+    {
+      "path": "package.json",
+      "sha256": "877fd6b06c131a55e7c99f9257498acbd57ab65164cb1637855c431ce51a464a"
+    },
+    {
+      "path": "next.config.mjs",
+      "sha256": "4330ed37e2b24da123a0965e198bb52f332013d54a820f0a3c9a3ced4f0320e8"
+    },
+    {
+      "path": "liara.json",
+      "sha256": "3d19daf2d86db861968d9d1eaa9266b98bee361d9348f89bc6bc3ce560d8cc0d"
+    },
+    {
+      "path": ".liaraignore",
+      "sha256": "dcdbe5da48f1de739af80eadeaaa453640dc31c2c4ccd5e4d0df3fff7504d815"
+    },
+    {
+      "path": "src/proxy.ts",
+      "sha256": "97accc8a0ea2a93b0528604c00d69b1ca4f69df5a42ce295f284a96dc4734755"
+    },
+    {
+      "path": "src/app/robots.ts",
+      "sha256": "5f08e800bd5eb0177d4908bd4a26c479fd8d25332e3cb13d52a96b1a1b3605d9"
+    },
+    {
+      "path": "src/app/sitemap.ts",
+      "sha256": "313d11f1bc0e685146d80666df38912a144f98b7c70364bdfff04f1d57ae85b1"
+    },
+    {
+      "path": "src/lib/data/sitemap.ts",
+      "sha256": "6b15fd8a3bc9be95cd4b4c49712804e34cd379173cba6bf3bcd46feaa44c5208"
+    },
+    {
+      "path": "src/lib/data/sitemap-utils.ts",
+      "sha256": "6f873ee4dd9a92780604c509c4906a5dfd73437f2c2bde0df90a5740ffef24b0"
+    },
+    {
+      "path": "src/lib/data/product-page-validation.ts",
+      "sha256": "80cd51b8c7efd9377fe8f598532016268052c2a9a6f7424fa5cb48a9eea889b7"
+    },
+    {
+      "path": "src/lib/contentNegotiation.ts",
+      "sha256": "c44d9f67b52c0b89fd5f9902fb9037c4b3ce9d0326bab34723d0cce1716cc04e"
+    },
+    {
+      "path": "src/lib/markdownContent.ts",
+      "sha256": "fd81fb63357044b5ebd6b40b64933f5b79c2e663e6da2703db9a17baf1c2e4e7"
+    },
+    {
+      "path": "src/app/markdown/[[...slug]]/route.ts",
+      "sha256": "81dd5d1dfaab74783508cacebf0165c066cef95971456daa3a468788ac3ae69e"
+    },
+    {
+      "path": "src/constants/meta.ts",
+      "sha256": "ac5566f53b8a575bf61a0d0a8bfb8e1c5a272640e163fe0c8e67807defa0bc45"
+    },
+    {
+      "path": "src/app/layout.tsx",
+      "sha256": "9bb2545d49cdc39a02b030a5b1de997a4dea8f87407b5ff07ed6f65097878005"
+    },
+    {
+      "path": "src/app/(main)/layout.tsx",
+      "sha256": "ce74d052ddd92bcc426af5b2cb4fe7842e98f4dfb0034535423722df758cce9f"
+    },
+    {
+      "path": "src/app/(main)/page.tsx",
+      "sha256": "f163895b477343ddd3817bd66d5ed5cf31b023372072d29dac57c029e893a736"
+    },
+    {
+      "path": "src/app/(main)/products/[category]/page.tsx",
+      "sha256": "780cccd04cc1f6b8313c8ecf1124c0c3f9ac6aa77813b868ab6f7b957b685c7b"
+    },
+    {
+      "path": "src/app/(main)/products/[category]/[subcategory]/page.tsx",
+      "sha256": "16d02fdb0c292f48f590fd49118eaf69dc990cde0498372fbc40a6f6ef549230"
+    },
+    {
+      "path": "src/app/(main)/products/[category]/[subcategory]/[product]/page.tsx",
+      "sha256": "4d30a66a42cf5afb462f61d290a2b666646354dd192c7063611fe17d7386b4b3"
+    },
+    {
+      "path": "src/app/(main)/products/[category]/[subcategory]/[product]/components/ProductDataWrapper.tsx",
+      "sha256": "d21e821fb8ded38cdef8d9e6fa0190cac6be7a1e8c2bb79e59d127b7517f92ae"
+    },
+    {
+      "path": "src/lib/data/usd2rial.ts",
+      "sha256": "af4c063ee6c5d57390a32a81cf48f361612e8851383753419611fb05bb22cccf"
+    },
+    {
+      "path": "src/helpers/sources.ts",
+      "sha256": "186156654981a3879842228fe60f8bafcdae628232b381d7f0ab7c2fb52c8b83"
+    }
+  ]
+}

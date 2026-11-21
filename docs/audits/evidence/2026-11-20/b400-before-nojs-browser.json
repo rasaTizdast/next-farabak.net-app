@@ -1,0 +1,32 @@
+{
+  "success": true,
+  "data": {
+    "lifecycle": {
+      "effectiveLaunch": {
+        "browserLaunched": true,
+        "engine": "chrome",
+        "launchHash": 1563740675064891168
+      },
+      "launched": false,
+      "relaunchedBrowser": false,
+      "restartedBackground": false,
+      "restoreStatus": "not_configured",
+      "reused": true,
+      "saveStatus": "not_attempted"
+    },
+    "origin": "https://farabak.net/products/reolink-cctv-camera/bullet/B400",
+    "refs": {
+      "e1": { "name": "پرش به محتوای اصلی", "role": "link" },
+      "e2": { "name": "بازگشت به بالا", "role": "button" },
+      "e3": { "name": "ارسال پیام به پشتیبانی در واتساپ", "role": "button" },
+      "e4": { "name": "فرابک", "role": "link" },
+      "e5": { "name": "صفحات اصلی", "role": "navigation" },
+      "e6": { "name": "محصولات", "role": "link" },
+      "e7": { "name": "ارتباط با ما", "role": "link" },
+      "e8": { "name": "ارتباط با ما", "role": "link" }
+    },
+    "removedRefs": [],
+    "snapshot": "- main\n  - main\n    - status \"در حال بارگذاری محصول\""
+  },
+  "error": null
+}

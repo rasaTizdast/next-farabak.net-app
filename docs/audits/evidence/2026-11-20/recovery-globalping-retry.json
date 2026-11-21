@@ -1,0 +1,8 @@
+{
+  "path": "/products/reolink-cctv-camera",
+  "country": "NL",
+  "measurement_id": "2QmtGQvscR6K1ltOZ00021XYy",
+  "status": "finished",
+  "http": 200,
+  "note": "retry after one TCP connection timeout"
+}

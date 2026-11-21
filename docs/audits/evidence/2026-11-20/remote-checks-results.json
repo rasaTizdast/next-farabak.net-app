@@ -1,0 +1,80 @@
+[
+  {
+    "path": "/",
+    "request": {
+      "nodes": {
+        "ca1.node.check-host.net": ["ca", "Canada", "Vancouver", "198.135.169.20", "AS396993"],
+        "de1.node.check-host.net": ["de", "Germany", "Nuremberg", "142.132.174.167", "AS24940"],
+        "ir1.node.check-host.net": ["ir", "Iran", "Tehran", "185.105.238.209", "AS47430"],
+        "nl1.node.check-host.net": ["nl", "Netherlands", "Amsterdam", "185.209.161.145", "AS14576"],
+        "tr1.node.check-host.net": ["tr", "Turkey", "Istanbul", "185.23.17.21", "AS211557"],
+        "uk1.node.check-host.net": ["gb", "UK", "London", "107.181.134.162", "AS213535"],
+        "us1.node.check-host.net": ["us", "USA", "Los Angeles", "38.145.202.12", "AS18978"]
+      },
+      "ok": 1,
+      "permanent_link": "https://check-host.net/check-report/593d1960k12d",
+      "request_id": "593d1960k12d"
+    },
+    "results": {
+      "ca1.node.check-host.net": [[1, 3.2739851474762, "OK", "200", "185.208.181.159"]],
+      "de1.node.check-host.net": [[1, 2.95220494270325, "OK", 200, "185.208.181.159"]],
+      "ir1.node.check-host.net": [[1, 2.60408210754395, "OK", "200", "185.208.181.159"]],
+      "nl1.node.check-host.net": [[1, 2.68595695495605, "OK", "200", "185.208.181.159"]],
+      "tr1.node.check-host.net": [[1, 2.92247295379639, "OK", "200", "185.208.181.159"]],
+      "uk1.node.check-host.net": [[1, 2.48280811309814, "OK", "200", "185.208.181.159"]],
+      "us1.node.check-host.net": [[1, 3.48026704788208, "OK", "200", "185.208.181.159"]]
+    }
+  },
+  {
+    "path": "/robots.txt",
+    "request": {
+      "nodes": {
+        "ca1.node.check-host.net": ["ca", "Canada", "Vancouver", "198.135.169.20", "AS396993"],
+        "de1.node.check-host.net": ["de", "Germany", "Nuremberg", "142.132.174.167", "AS24940"],
+        "ir1.node.check-host.net": ["ir", "Iran", "Tehran", "185.105.238.209", "AS47430"],
+        "nl1.node.check-host.net": ["nl", "Netherlands", "Amsterdam", "185.209.161.145", "AS14576"],
+        "tr1.node.check-host.net": ["tr", "Turkey", "Istanbul", "185.23.17.21", "AS211557"],
+        "uk1.node.check-host.net": ["gb", "UK", "London", "107.181.134.162", "AS213535"],
+        "us1.node.check-host.net": ["us", "USA", "Los Angeles", "38.145.202.12", "AS18978"]
+      },
+      "ok": 1,
+      "permanent_link": "https://check-host.net/check-report/593d1987ka7e",
+      "request_id": "593d1987ka7e"
+    },
+    "results": {
+      "ca1.node.check-host.net": [[1, 1.88537192344666, "OK", "200", "185.208.181.159"]],
+      "de1.node.check-host.net": [[1, 1.32938098907471, "OK", 200, "185.208.181.159"]],
+      "ir1.node.check-host.net": [[1, 1.18137311935425, "OK", "200", "185.208.181.159"]],
+      "nl1.node.check-host.net": [[1, 1.22939801216125, "OK", "200", "185.208.181.159"]],
+      "tr1.node.check-host.net": [[1, 1.3821439743042, "OK", "200", "185.208.181.159"]],
+      "uk1.node.check-host.net": [[1, 1.43606996536255, "OK", "200", "185.208.181.159"]],
+      "us1.node.check-host.net": [[1, 2.0216338634491, "OK", "200", "185.208.181.159"]]
+    }
+  },
+  {
+    "path": "/products/reolink-cctv-camera",
+    "request": {
+      "nodes": {
+        "ca1.node.check-host.net": ["ca", "Canada", "Vancouver", "198.135.169.20", "AS396993"],
+        "de1.node.check-host.net": ["de", "Germany", "Nuremberg", "142.132.174.167", "AS24940"],
+        "ir1.node.check-host.net": ["ir", "Iran", "Tehran", "185.105.238.209", "AS47430"],
+        "nl1.node.check-host.net": ["nl", "Netherlands", "Amsterdam", "185.209.161.145", "AS14576"],
+        "tr1.node.check-host.net": ["tr", "Turkey", "Istanbul", "185.23.17.21", "AS211557"],
+        "uk1.node.check-host.net": ["gb", "UK", "London", "107.181.134.162", "AS213535"],
+        "us1.node.check-host.net": ["us", "USA", "Los Angeles", "38.145.202.12", "AS18978"]
+      },
+      "ok": 1,
+      "permanent_link": "https://check-host.net/check-report/593d199fk31",
+      "request_id": "593d199fk31"
+    },
+    "results": {
+      "ca1.node.check-host.net": [[1, 4.36773800849915, "OK", "200", "185.208.181.159"]],
+      "de1.node.check-host.net": [[1, 4.36611914634705, "OK", 200, "185.208.181.159"]],
+      "ir1.node.check-host.net": [[1, 4.10153794288635, "OK", "200", "185.208.181.159"]],
+      "nl1.node.check-host.net": [[1, 4.38124704360962, "OK", "200", "185.208.181.159"]],
+      "tr1.node.check-host.net": [[1, 4.26527500152588, "OK", "200", "185.208.181.159"]],
+      "uk1.node.check-host.net": [[1, 4.3922860622406, "OK", "200", "185.208.181.159"]],
+      "us1.node.check-host.net": [[1, 4.2444109916687, "OK", "200", "185.208.181.159"]]
+    }
+  }
+]

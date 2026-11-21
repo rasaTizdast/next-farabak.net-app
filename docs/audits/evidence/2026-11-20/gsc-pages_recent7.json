@@ -1,0 +1,639 @@
+{
+  "ok": true,
+  "siteUrl": "https://farabak.net/",
+  "startDate": "2026-11-11",
+  "endDate": "2026-11-17",
+  "dimensions": ["page"],
+  "rowCount": 83,
+  "rows": [
+    {
+      "keys": ["https://farabak.net/support/blog/reolink/reolink-applications"],
+      "clicks": 7,
+      "impressions": 76,
+      "ctr": 0.0921,
+      "position": 5.6
+    },
+    {
+      "keys": ["https://farabak.net/"],
+      "clicks": 6,
+      "impressions": 20,
+      "ctr": 0.3,
+      "position": 1.8
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/disk-recorder/hyperdeck-shuttle-4k-pro-2tb"
+      ],
+      "clicks": 2,
+      "impressions": 2,
+      "ctr": 1,
+      "position": 1.5
+    },
+    {
+      "keys": ["https://farabak.net/products/reolink-cctv-camera/dome/RLC-520A"],
+      "clicks": 2,
+      "impressions": 4,
+      "ctr": 0.5,
+      "position": 6.5
+    },
+    {
+      "keys": ["https://farabak.net/products/x-ray/vehicle-truck/hcvg"],
+      "clicks": 2,
+      "impressions": 5,
+      "ctr": 0.4,
+      "position": 4.2
+    },
+    {
+      "keys": ["https://farabak.net/support/blog/reolink/fastmile-gateway-32"],
+      "clicks": 2,
+      "impressions": 11,
+      "ctr": 0.1818,
+      "position": 5
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/broadcast-convertor/micro-converter-hdmi-to-sdi-12g-wpsu"
+      ],
+      "clicks": 1,
+      "impressions": 2,
+      "ctr": 0.5,
+      "position": 5.5
+    },
+    {
+      "keys": ["https://farabak.net/products/blackmagic/professional-camera"],
+      "clicks": 1,
+      "impressions": 1,
+      "ctr": 1,
+      "position": 9
+    },
+    {
+      "keys": ["https://farabak.net/products/imaging-cameras-equipment"],
+      "clicks": 1,
+      "impressions": 10,
+      "ctr": 0.1,
+      "position": 4.1
+    },
+    {
+      "keys": ["https://farabak.net/products/reolink-cctv-camera/dome/RLC-820A"],
+      "clicks": 1,
+      "impressions": 1,
+      "ctr": 1,
+      "position": 3
+    },
+    {
+      "keys": ["https://farabak.net/products/reolink-cctv-camera/ip"],
+      "clicks": 1,
+      "impressions": 11,
+      "ctr": 0.0909,
+      "position": 8
+    },
+    {
+      "keys": ["https://farabak.net/products/x-ray/airport-luggage/hi-scan-100100v"],
+      "clicks": 1,
+      "impressions": 1,
+      "ctr": 1,
+      "position": 3
+    },
+    {
+      "keys": ["https://farabak.net/support/tools/meeting-room"],
+      "clicks": 1,
+      "impressions": 1,
+      "ctr": 1,
+      "position": 2
+    },
+    {
+      "keys": ["https://farabak.net/about-us/activity"],
+      "clicks": 0,
+      "impressions": 11,
+      "ctr": 0,
+      "position": 2.6
+    },
+    {
+      "keys": ["https://farabak.net/products"],
+      "clicks": 0,
+      "impressions": 8,
+      "ctr": 0,
+      "position": 4.4
+    },
+    {
+      "keys": ["https://farabak.net/products/ai-supercomputers-hpc/page/0"],
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 8
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/atem-production-switcher/atem-2-me-advanced-panel-40"
+      ],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 3
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/atem-production-switcher/atem-constellation-8k"
+      ],
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 7
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/atem-production-switcher/atem-micro-camera-panel"
+      ],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 7
+    },
+    {
+      "keys": ["https://farabak.net/products/blackmagic/atem-production-switcher/atem-micro-panel"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 7
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/atem-production-switcher/atem-sdi-extreme-iso"
+      ],
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 9.3
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/atem-production-switcher/atem-television-studio-4k8"
+      ],
+      "clicks": 0,
+      "impressions": 9,
+      "ctr": 0,
+      "position": 8.2
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/atem-production-switcher/atem-television-studio-hd8-iso"
+      ],
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 10
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/broadcast-convertor/micro-converter-sdi-to-hdmi-12g"
+      ],
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 6.7
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/broadcast-convertor/mini-converter-optical-fiber-12g"
+      ],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 7
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/broadcast-convertor/teranex-mini-ip-video-12g"
+      ],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 9
+    },
+    {
+      "keys": ["https://farabak.net/products/blackmagic/capture-playback/decklink-duo-2"],
+      "clicks": 0,
+      "impressions": 6,
+      "ctr": 0,
+      "position": 9
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/disk-recorder/davinci-resolve-replay-editor"
+      ],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 7
+    },
+    {
+      "keys": ["https://farabak.net/products/blackmagic/disk-recorder/hyperdeck-studio-hd-mini"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 6
+    },
+    {
+      "keys": ["https://farabak.net/products/blackmagic/monitoring/smartscope-duo-4k"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 7
+    },
+    {
+      "keys": ["https://farabak.net/products/blackmagic/monitoring/smartview-4k-g3"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 6
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/professional-camera/blackmagic-pyxis-6k-pl"
+      ],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 6
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/professional-camera/blackmagic-studio-fiber-converter"
+      ],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 7
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/professional-camera/blackmagic-ursa-cine-12k-lf-evf"
+      ],
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 6.5
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/professional-camera/blackmagic-ursa-cine-17k-65-evf"
+      ],
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 6.7
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/professional-camera/blackmagic-ursa-mini-pro-12k-olpf"
+      ],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 4
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/blackmagic/professional-camera/blackmagic-ursa-viewfinder"
+      ],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 9
+    },
+    {
+      "keys": ["https://farabak.net/products/blackmagic/standard-conversion/teranex-express"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 10
+    },
+    {
+      "keys": ["https://farabak.net/products/blackmagic/ultimate"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 1
+    },
+    {
+      "keys": ["https://farabak.net/products/blackmagic/ultimate/ultimatte-12-hd-mini"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 95
+    },
+    {
+      "keys": ["https://farabak.net/products/industrial-cctv-camera/black-wonder"],
+      "clicks": 0,
+      "impressions": 5,
+      "ctr": 0,
+      "position": 14
+    },
+    {
+      "keys": ["https://farabak.net/products/industrial-cctv-camera/black-wonder/flexibility-pipe"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 1
+    },
+    {
+      "keys": ["https://farabak.net/products/industrial-cctv-camera/black-wonder/srg-x36c-hdmi"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 32
+    },
+    {
+      "keys": ["https://farabak.net/products/industrial-cctv-camera/black-wonder/srg-x36c-sdi"],
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 5
+    },
+    {
+      "keys": ["https://farabak.net/products/page/1"],
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 4.3
+    },
+    {
+      "keys": ["https://farabak.net/products/page/10"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 9
+    },
+    {
+      "keys": ["https://farabak.net/products/page/11"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 5
+    },
+    {
+      "keys": ["https://farabak.net/products/reolink-cctv-camera"],
+      "clicks": 0,
+      "impressions": 13,
+      "ctr": 0,
+      "position": 6.4
+    },
+    {
+      "keys": ["https://farabak.net/products/reolink-cctv-camera/4g"],
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 5.3
+    },
+    {
+      "keys": ["https://farabak.net/products/reolink-cctv-camera/4g/Go"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 1
+    },
+    {
+      "keys": ["https://farabak.net/products/reolink-cctv-camera/4g/Go-Plus"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 9
+    },
+    {
+      "keys": [
+        "https://farabak.net/products/reolink-cctv-camera/battery/Argus-PT-Solar-Panel-Package"
+      ],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 10
+    },
+    {
+      "keys": ["https://farabak.net/products/reolink-cctv-camera/bullet/page/2"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 6
+    },
+    {
+      "keys": ["https://farabak.net/products/reolink-cctv-camera/dome/D500"],
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 11
+    },
+    {
+      "keys": ["https://farabak.net/products/reolink-cctv-camera/ip/410W-PACKAGE"],
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 2
+    },
+    {
+      "keys": ["https://farabak.net/products/x-ray"],
+      "clicks": 0,
+      "impressions": 101,
+      "ctr": 0,
+      "position": 66.9
+    },
+    {
+      "keys": ["https://farabak.net/products/x-ray/airport-luggage"],
+      "clicks": 0,
+      "impressions": 28,
+      "ctr": 0,
+      "position": 48.2
+    },
+    {
+      "keys": ["https://farabak.net/products/x-ray/airport-luggage/FXR-1D"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 5
+    },
+    {
+      "keys": ["https://farabak.net/products/x-ray/airport-luggage/HI-SCAN-6040-DV"],
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 14
+    },
+    {
+      "keys": ["https://farabak.net/products/x-ray/airport-luggage/ctx-5800"],
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 14
+    },
+    {
+      "keys": ["https://farabak.net/products/x-ray/airport-luggage/hi-scan-100100v-2is"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 38
+    },
+    {
+      "keys": ["https://farabak.net/products/x-ray/airport-luggage/hi-scan-5030c"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 36
+    },
+    {
+      "keys": ["https://farabak.net/products/x-ray/airport-luggage/hi-scan-6040c"],
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 13.7
+    },
+    {
+      "keys": ["https://farabak.net/products/x-ray/airport-luggage/hi-scan-7555si"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 31
+    },
+    {
+      "keys": ["https://farabak.net/products/x-ray/airport-luggage/speedstile2-epw"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 35
+    },
+    {
+      "keys": ["https://farabak.net/products/x-ray/vehicle-truck/hcvp"],
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 17
+    },
+    {
+      "keys": ["https://farabak.net/products/x-ray/vehicle-truck/hcvs"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 37
+    },
+    {
+      "keys": ["https://farabak.net/support/blog"],
+      "clicks": 0,
+      "impressions": 8,
+      "ctr": 0,
+      "position": 8.4
+    },
+    {
+      "keys": [
+        "https://farabak.net/support/blog/black-magic-design/blackmagic-cinema-camera-buying-guide"
+      ],
+      "clicks": 0,
+      "impressions": 13,
+      "ctr": 0,
+      "position": 8
+    },
+    {
+      "keys": [
+        "https://farabak.net/support/blog/black-magic-design/decklink-vs-ultrastudio-capture-guide"
+      ],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 6
+    },
+    {
+      "keys": ["https://farabak.net/support/blog/cybersecurity/api-authorization-owasp-guide"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 6
+    },
+    {
+      "keys": ["https://farabak.net/support/blog/explosion-proof-cctv"],
+      "clicks": 0,
+      "impressions": 4,
+      "ctr": 0,
+      "position": 90
+    },
+    {
+      "keys": ["https://farabak.net/support/blog/explosion-proof-cctv/explosion-proof-cctv-guide"],
+      "clicks": 0,
+      "impressions": 17,
+      "ctr": 0,
+      "position": 32.8
+    },
+    {
+      "keys": ["https://farabak.net/support/blog/reolink/reolink-4g-sim-camera-buying-guide"],
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 4.5
+    },
+    {
+      "keys": ["https://farabak.net/support/blog/reolink/reolink-nvr-storage-guide"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 5
+    },
+    {
+      "keys": ["https://farabak.net/support/blog/reolink/reolink-poe-camera-network-guide"],
+      "clicks": 0,
+      "impressions": 2,
+      "ctr": 0,
+      "position": 8
+    },
+    {
+      "keys": ["https://farabak.net/support/blog/reolink/reolink-products"],
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 6.3
+    },
+    {
+      "keys": ["https://farabak.net/support/blog/x-ray/event-baggage-x-ray-rental-checklist"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 10
+    },
+    {
+      "keys": ["https://farabak.net/support/blog/x-ray/vari-mat-hi-mat"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 9
+    },
+    {
+      "keys": ["https://farabak.net/support/blog/x-ray/what-is-x-ray-inspection"],
+      "clicks": 0,
+      "impressions": 3,
+      "ctr": 0,
+      "position": 15.3
+    },
+    {
+      "keys": ["https://farabak.net/support/blog/x-ray/x-ray-luggage-scanner-selection-guide"],
+      "clicks": 0,
+      "impressions": 22,
+      "ctr": 0,
+      "position": 43
+    },
+    {
+      "keys": ["https://farabak.net/support/blog/x-ray/x-ray-power-outage-ups-planning"],
+      "clicks": 0,
+      "impressions": 1,
+      "ctr": 0,
+      "position": 2
+    },
+    {
+      "keys": ["https://farabak.net/support/tools"],
+      "clicks": 0,
+      "impressions": 8,
+      "ctr": 0,
+      "position": 1.9
+    }
+  ],
+  "hasMore": false,
+  "meta": {
+    "projectId": "c44589f0-b38e-4433-88a4-c6a3ce3d49a5",
+    "url": "https://app.openseo.so/p/c44589f0-b38e-4433-88a4-c6a3ce3d49a5/search-performance"
+  },
+  "resultId": "8f1b6ee1-d2ea-44e3-8038-e6d96cd145df"
+}
