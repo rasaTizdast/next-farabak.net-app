@@ -4,10 +4,16 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
+import { BlogHtmlEditor } from "@/components/blog/BlogHtmlEditor";
 import { TipTapEditor } from "@/components/editor/TipTapEditor";
 import FaqManager from "@/components/FaqManager";
 import { useApiFetch } from "@/hooks/useApiFetch";
 import { useApiMutation } from "@/hooks/useApiMutation";
+import {
+  getBlogEditorMode,
+  markBlogContentAsHtml,
+  stripBlogEditorModeMarker,
+} from "@/lib/blog-content";
 import { generateSlug } from "@/utils/generateSlug";
 
 import BlogCategoryManager from "./BlogCategoryManager";
@@ -88,6 +94,8 @@ export function BlogForm({ mode, id = null, onClose }: BlogFormProps) {
   const [formErrors, setFormErrors] = useState<string[]>([]);
   const [showFaqManager, setShowFaqManager] = useState(false);
   const [editorContent, setEditorContent] = useState("");
+  const [editorMode, setEditorMode] = useState<"visual" | "html">("visual");
+  const [showVisualConversionWarning, setShowVisualConversionWarning] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -159,7 +167,9 @@ export function BlogForm({ mode, id = null, onClose }: BlogFormProps) {
       }
       setPreviewImage(previewSrc ?? null);
 
-      setEditorContent(blogData.blog.content ?? "");
+      const savedContent = blogData.blog.content ?? "";
+      setEditorMode(getBlogEditorMode(savedContent));
+      setEditorContent(stripBlogEditorModeMarker(savedContent));
     }
   }, [blogData]);
 
@@ -304,8 +314,9 @@ export function BlogForm({ mode, id = null, onClose }: BlogFormProps) {
     submittingRef.current = true;
     setIsSubmitting(true);
     try {
+      const content = editorMode === "html" ? markBlogContentAsHtml(editorContent) : editorContent;
       const res = await updateBlogMutate(`/api/blogs/update/${id ?? blogId}`, {
-        content: editorContent,
+        content,
         status: publish ? "Published" : "Draft",
       });
 
@@ -565,6 +576,41 @@ export function BlogForm({ mode, id = null, onClose }: BlogFormProps) {
                 >
                   بازگشت به مشخصات
                 </button>
+                <div role="group" aria-label="حالت ویرایش محتوا" className="flex gap-1">
+                  <button
+                    type="button"
+                    aria-pressed={editorMode === "visual"}
+                    onClick={() => {
+                      if (editorMode === "html") {
+                        setShowVisualConversionWarning(true);
+                      }
+                    }}
+                    disabled={isSubmitting}
+                    className={`rounded-lg px-3 py-2 transition-colors disabled:opacity-50 ${
+                      editorMode === "visual"
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-700 text-gray-200 hover:bg-gray-600"
+                    }`}
+                  >
+                    ویرایشگر دیداری
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={editorMode === "html"}
+                    onClick={() => {
+                      setShowVisualConversionWarning(false);
+                      setEditorMode("html");
+                    }}
+                    disabled={isSubmitting}
+                    className={`rounded-lg px-3 py-2 transition-colors disabled:opacity-50 ${
+                      editorMode === "html"
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-700 text-gray-200 hover:bg-gray-600"
+                    }`}
+                  >
+                    ویرایش HTML
+                  </button>
+                </div>
                 {(mode === "edit" || blogId) && (
                   <>
                     <button
@@ -604,6 +650,37 @@ export function BlogForm({ mode, id = null, onClose }: BlogFormProps) {
                 </button>
               </div>
             </div>
+            {showVisualConversionWarning ? (
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/40 bg-amber-950/40 p-4 text-amber-100"
+              >
+                <p>
+                  تبدیل به ویرایشگر دیداری ممکن است ساختار یا استایل‌های HTML پشتیبانی‌نشده را تغییر
+                  دهد.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditorMode("visual");
+                      setShowVisualConversionWarning(false);
+                    }}
+                    className="rounded-lg bg-amber-500 px-3 py-2 text-gray-950 hover:bg-amber-400"
+                  >
+                    تبدیل به ویرایشگر دیداری
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowVisualConversionWarning(false)}
+                    className="rounded-lg bg-gray-700 px-3 py-2 text-gray-100 hover:bg-gray-600"
+                  >
+                    ادامه با کد HTML
+                  </button>
+                </div>
+              </div>
+            ) : null}
             {contentError && (
               <p
                 role="alert"
@@ -613,12 +690,16 @@ export function BlogForm({ mode, id = null, onClose }: BlogFormProps) {
               </p>
             )}
             <div className="flex-1">
-              <TipTapEditor
-                content={editorContent}
-                onChange={setEditorContent}
-                placeholder="محتوا را وارد کنید..."
-                editable={!isSubmitting}
-              />
+              {editorMode === "html" ? (
+                <BlogHtmlEditor value={editorContent} onChange={setEditorContent} />
+              ) : (
+                <TipTapEditor
+                  content={editorContent}
+                  onChange={setEditorContent}
+                  placeholder="محتوا را وارد کنید..."
+                  editable={!isSubmitting}
+                />
+              )}
             </div>
           </div>
         )}

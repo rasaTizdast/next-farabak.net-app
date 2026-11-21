@@ -2,6 +2,8 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import axios from "axios";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { BLOG_HTML_MODE_MARKER } from "@/lib/blog-content";
+
 import { BlogForm } from "../BlogForm";
 
 vi.mock("axios", () => ({
@@ -113,6 +115,81 @@ describe("BlogForm", () => {
       resolveSave({ status: 200, data: { id: 9 } });
     });
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("saves HTML mode content without changing the rich editor's stored HTML", async () => {
+    const htmlContent =
+      '<style>.notice { color: #123456; }</style><section class="notice"><h2>Custom article</h2></section>';
+    render(<BlogForm mode="edit" id={9} onClose={vi.fn()} />);
+
+    await screen.findByDisplayValue("Existing blog");
+    fireEvent.click(screen.getByRole("button", { name: "ادامه" }));
+    fireEvent.click(await screen.findByRole("button", { name: "ویرایش HTML" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "کد HTML وبلاگ" }), {
+      target: { value: htmlContent },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "ذخیره پیش‌نویس" }));
+
+    await waitFor(() =>
+      expect(axios.put).toHaveBeenCalledWith(
+        "/api/blogs/update/9",
+        expect.objectContaining({
+          content: `${BLOG_HTML_MODE_MARKER}${htmlContent}`,
+          status: "Draft",
+        })
+      )
+    );
+  });
+
+  it("reopens posts saved in HTML mode in the source editor", async () => {
+    const htmlContent = '<section class="custom"><h2>Remembered mode</h2></section>';
+    vi.mocked(axios.get).mockImplementation(async (url) => ({
+      status: 200,
+      data: String(url).includes("getBlogData")
+        ? {
+            ...existingBlog,
+            blog: {
+              ...existingBlog.blog,
+              content: `${BLOG_HTML_MODE_MARKER}${htmlContent}`,
+            },
+          }
+        : existingBlog.categories,
+    }));
+    render(<BlogForm mode="edit" id={9} onClose={vi.fn()} />);
+
+    await screen.findByDisplayValue("Existing blog");
+    fireEvent.click(screen.getByRole("button", { name: "ادامه" }));
+
+    expect(await screen.findByRole("button", { name: "ویرایش HTML" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    expect(screen.getByRole("textbox", { name: "کد HTML وبلاگ" })).toHaveValue(htmlContent);
+  });
+
+  it("asks before converting custom HTML back into the visual editor", async () => {
+    render(<BlogForm mode="edit" id={9} onClose={vi.fn()} />);
+
+    await screen.findByDisplayValue("Existing blog");
+    fireEvent.click(screen.getByRole("button", { name: "ادامه" }));
+    fireEvent.click(await screen.findByRole("button", { name: "ویرایش HTML" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "کد HTML وبلاگ" }), {
+      target: { value: "<div class='custom'>Styled</div>" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "ویرایشگر دیداری" }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/ممکن است/);
+    fireEvent.click(screen.getByRole("button", { name: "ادامه با کد HTML" }));
+    expect(screen.getByRole("textbox", { name: "کد HTML وبلاگ" })).toHaveValue(
+      "<div class='custom'>Styled</div>"
+    );
+    expect(screen.queryByLabelText("محتوای وبلاگ")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "ویرایشگر دیداری" }));
+    fireEvent.click(screen.getByRole("button", { name: "تبدیل به ویرایشگر دیداری" }));
+    expect(await screen.findByLabelText("محتوای وبلاگ")).toHaveValue(
+      "<div class='custom'>Styled</div>"
+    );
   });
 
   it("shows the metadata API error and allows retry without leaving the form", async () => {

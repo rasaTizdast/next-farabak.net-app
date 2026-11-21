@@ -1,15 +1,20 @@
-import DOMPurify from "isomorphic-dompurify";
 import { ArrowLeft } from "lucide-react";
 import { io } from "next/cache";
 import { notFound } from "next/navigation";
 
 import BlogFaqAccordion from "@/components/BlogFaqAccordion";
 import { ActionLink } from "@/components/public/ActionLink";
+import { BlogArticleContent } from "@/components/public/BlogArticleContent";
 import BlogCover from "@/components/public/BlogCover";
 import { PageIntro } from "@/components/public/PageIntro";
 import { PublicBreadcrumbs } from "@/components/public/PublicBreadcrumbs";
 import { PublicShell } from "@/components/public/PublicShell";
 import { SITE_URL } from "@/constants/meta";
+import {
+  createBlogContentScopeId,
+  extractScopedBlogStyles,
+  stripBlogEditorModeMarker,
+} from "@/lib/blog-content";
 import { getBlogBySlug, type BlogDetailData } from "@/lib/data/blogs";
 import { normalizeEditorialHeadings } from "@/lib/seo/editorial-headings";
 import { notFoundSeoMetadata } from "@/lib/seo/not-found-metadata";
@@ -234,7 +239,12 @@ export default async function BlogPage(props: {
 
   const { blog, faqs } = blogResponse;
 
-  const editorialContent = normalizeEditorialHeadings(blog.content, blog.title);
+  const contentScopeId = createBlogContentScopeId(params.blog);
+  const { content: contentWithoutStyles, css: articleCss } = extractScopedBlogStyles(
+    stripBlogEditorModeMarker(blog.content),
+    contentScopeId
+  );
+  const editorialContent = normalizeEditorialHeadings(contentWithoutStyles, blog.title);
   const readingTime = calculateReadingTime(editorialContent);
   const wordCount = countWords(editorialContent);
 
@@ -363,14 +373,11 @@ export default async function BlogPage(props: {
             />
           ) : null}
 
-          <div
+          <BlogArticleContent
+            html={articleMarkup}
+            css={articleCss}
+            scopeId={contentScopeId}
             className="prose-view [&_.w-1\/2]:w-1\/2 [&_.w-1\/3]:w-1\/3 mx-auto max-w-3xl [&_.w-1\/2]:mx-auto [&_.w-1\/3]:mx-auto [&_.w-full]:w-full [&_h2]:scroll-mt-28 [&_h3]:scroll-mt-28 [&_img]:h-auto [&_img]:max-w-full"
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(articleMarkup, {
-                ADD_TAGS: ["Image", "video", "source"],
-                ADD_ATTR: ["controls", "class", "id"],
-              }),
-            }}
           />
         </article>
 
