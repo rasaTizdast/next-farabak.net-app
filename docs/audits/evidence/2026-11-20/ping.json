@@ -1,0 +1,6 @@
+{
+  "observed_at_utc": "2026-11-20T09:37:47.239222+00:00",
+  "exit_code": 1,
+  "output": "\nPinging farabak.net [185.208.181.159] with 32 bytes of data:\nRequest timed out.\nRequest timed out.\n\nPing statistics for 185.208.181.159:\n    Packets: Sent = 2, Received = 0, Lost = 2 (100% loss),\n",
+  "error": ""
+}

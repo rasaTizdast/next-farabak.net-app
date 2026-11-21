@@ -50,7 +50,7 @@ describe("ProductGrid initial HTML", () => {
     });
     const html = renderToStaticMarkup(grid);
 
-    expect(html).not.toMatch(/<h1\b/i);
+    expect(html).toMatch(/<h1\b/i);
     expect(html).toContain('data-product-grid="server-rendered"');
     expect(isGridUnderSuspense(grid)).toBe(false);
   });

@@ -75,6 +75,17 @@ describe("main product structured data", () => {
     expect(schema["@graph"][0].description).toBe("محصول با مشخصات قابل بررسی");
   });
 
+  it.each([
+    ["reolink-cctv-camera", "B400", "Reolink"],
+    ["blackmagic", "ATEM Mini", "Blackmagic Design"],
+  ])("retains the verified %s brand for model-only titles", async (categorySlug, Type, brand) => {
+    getProductBySlugMock.mockResolvedValue({ ...validProduct, categorySlug, Type });
+
+    const { schema } = await getRenderedProductSchema();
+
+    expect(schema["@graph"][0].brand).toEqual({ "@type": "Brand", name: brand });
+  });
+
   it("omits database-only descriptions when the visible product subtitle duplicates the title", async () => {
     getProductBySlugMock.mockResolvedValue({ ...validProduct, Name: "مدل ناشناخته" });
 

@@ -1,0 +1,44 @@
+[
+  {
+    "host": "farabak.net",
+    "tls": "TLSv1.3",
+    "cipher": ["TLS_AES_256_GCM_SHA384", "TLSv1.3", 256],
+    "certificate": {
+      "subject": [[["commonName", "farabak.net"]]],
+      "issuer": [
+        [["countryName", "US"]],
+        [["organizationName", "Let's Encrypt"]],
+        [["commonName", "YR2"]]
+      ],
+      "version": 3,
+      "serialNumber": "05A38F2AA7F74C802BE3EA8F95B59CB6DE64",
+      "notBefore": "Nov  1 22:47:21 2026 GMT",
+      "notAfter": "Jan 30 22:47:20 2027 GMT",
+      "subjectAltName": [["DNS", "farabak.net"]],
+      "caIssuers": ["http://yr2.i.lencr.org/"],
+      "crlDistributionPoints": ["http://yr2.c.lencr.org/101.crl"]
+    },
+    "verified": true
+  },
+  {
+    "host": "www.farabak.net",
+    "tls": "TLSv1.3",
+    "cipher": ["TLS_AES_256_GCM_SHA384", "TLSv1.3", 256],
+    "certificate": {
+      "subject": [[["commonName", "www.farabak.net"]]],
+      "issuer": [
+        [["countryName", "US"]],
+        [["organizationName", "Let's Encrypt"]],
+        [["commonName", "YR1"]]
+      ],
+      "version": 3,
+      "serialNumber": "055FDBCA6291E0CDE96994C6FC5EAF6BB71B",
+      "notBefore": "Nov  1 22:47:31 2026 GMT",
+      "notAfter": "Jan 30 22:47:30 2027 GMT",
+      "subjectAltName": [["DNS", "www.farabak.net"]],
+      "caIssuers": ["http://yr1.i.lencr.org/"],
+      "crlDistributionPoints": ["http://yr1.c.lencr.org/28.crl"]
+    },
+    "verified": true
+  }
+]

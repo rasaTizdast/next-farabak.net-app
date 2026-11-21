@@ -1,4 +1,9 @@
-const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://farabak.net";
+import { SITE_URL } from "@/constants/meta";
+import type {
+  ProductDetailPageCheck,
+  ProductListingPageCheck,
+} from "@/lib/data/product-page-validation";
+import { parsePositivePageNumber } from "@/lib/pagination";
 
 export interface MarkdownPage {
   path: string;
@@ -8,7 +13,7 @@ export interface MarkdownPage {
 
 const homeMarkdown = `# فرابک | فروشگاه تخصصی محصولات نظارتی و امنیتی
 
-فرابک واردکننده اصلی محصولات **ریولینک (Reolink)**، **Smiths Detection** و **Ceia** در ایران است و انواع محصولات نظارتی و امنیتی شامل دوربین مداربسته، سیستم‌های تشخیص و بازرسی را با گارانتی معتبر، تضمین اصالت کالا و خدمات پس از فروش حرفه‌ای عرضه می‌کند.
+فرابک در زمینه تجهیزات نظارت تصویری، کنترل تردد و بازرسی امنیتی فعالیت می‌کند. فهرست محصولات شامل دوربین مداربسته، دستگاه‌های ایکس‌ری و تجهیزات تشخیص فلز است.
 
 ## بخش‌های اصلی سایت
 
@@ -18,29 +23,7 @@ const homeMarkdown = `# فرابک | فروشگاه تخصصی محصولات ن
 - [حریم خصوصی](/privacy): سیاست حفظ حریم خصوصی کاربران
 - [مرکز پشتیبانی](/support): سوالات متداول، وبلاگ و پیگیری گارانتی
 
-## چرا فرابک
-
-- واردکننده رسمی محصولات ریولینک، Smiths Detection و Ceia در ایران
-- گارانتی معتبر و تضمین اصالت کالا
-- خدمات پس از فروش حرفه‌ای
-- مشاوره تخصصی برای انتخاب سیستم نظارت تصویری مناسب منزل، محل کار و پروژه‌های صنعتی
-
 برای مشاهده فهرست کامل صفحات، [نقشه سایت](/sitemap.xml) را ببینید.
-`;
-
-const productsMarkdown = `# محصولات نظارتی و امنیتی فرابک
-
-فروشگاه فرابک دسته‌بندی کاملی از دوربین‌های مداربسته ریولینک و تجهیزات امنیتی را ارائه می‌دهد:
-
-- دوربین‌های مداربسته داخلی (Indoor)
-- دوربین‌های مداربسته خارجی (Outdoor)
-- دوربین‌های تحت شبکه (IP)
-- تجهیزات تشخیص و بازرسی Smiths Detection و Ceia
-- لوازم جانبی نظارت تصویری
-
-همه محصولات با گارانتی معتبر و تضمین اصالت کالا عرضه می‌شوند.
-
-فهرست کامل دسته‌بندی‌ها و محصولات: ${SITE_URL}/products
 `;
 
 const supportMarkdown = `# مرکز پشتیبانی فرابک
@@ -57,7 +40,7 @@ const supportMarkdown = `# مرکز پشتیبانی فرابک
 
 const aboutMarkdown = `# درباره فرابک
 
-فرابک واردکننده اصلی محصولات ریولینک (Reolink)، Smiths Detection و Ceia در ایران است و سال‌هاست در حوزه تأمین محصولات نظارتی و امنیتی فعالیت می‌کند.
+شرکت فرابک از سال ۱۳۸۱ ثبت شده است و در زمینه تجهیزات نظارت تصویری، کنترل تردد و بازرسی امنیتی فعالیت می‌کند.
 
 صفحات مرتبط:
 
@@ -90,7 +73,6 @@ export const markdownPages: Record<string, MarkdownPage> = {
     title: "فرابک | فروشگاه تخصصی محصولات نظارتی و امنیتی",
     markdown: homeMarkdown,
   },
-  products: { path: "/products", title: "محصولات", markdown: productsMarkdown },
   support: { path: "/support", title: "پشتیبانی", markdown: supportMarkdown },
   "about-us": { path: "/about-us", title: "درباره ما", markdown: aboutMarkdown },
   "contact-us": { path: "/contact-us", title: "تماس با ما", markdown: contactMarkdown },
@@ -100,6 +82,64 @@ export const markdownPages: Record<string, MarkdownPage> = {
 /** Normalize a request pathname ("/", "/about-us/", "/about-us") to a lookup key. */
 export function markdownKeyFromPath(pathname: string): string {
   return pathname.replace(/^\/+|\/+$/g, "");
+}
+
+export function getStaticMarkdownPage(key: string): MarkdownPage | undefined {
+  return Object.hasOwn(markdownPages, key) ? markdownPages[key] : undefined;
+}
+
+export type CatalogPageCheck =
+  ProductListingPageCheck | ProductDetailPageCheck | "not-found" | null;
+
+/** Parse the catalog's public URL shapes after decoding individual path segments. */
+export function getCatalogPageCheck(
+  segments: readonly string[],
+  searchParams: URLSearchParams
+): CatalogPageCheck {
+  if (segments[0] !== "products") return null;
+  if (
+    segments.some(
+      (segment) => !segment || segment === "." || segment === ".." || /[/\\]/.test(segment)
+    )
+  ) {
+    return "not-found";
+  }
+
+  const [, category, subcategory, product, pageNumber] = segments;
+  switch (segments.length) {
+    case 1: {
+      const pageValues = searchParams.getAll("page");
+      if (pageValues.length > 1) return "not-found";
+      const page = parsePositivePageNumber(pageValues[0] ?? "1");
+      return page === null ? "not-found" : { type: "all", page };
+    }
+    case 2:
+      if (category === "search") return null;
+      return category === "page" ? "not-found" : { type: "category", category, page: 1 };
+    case 3: {
+      if (subcategory === "page" && category === "page") return "not-found";
+      if (category !== "page") return { type: "subcategory", category, subcategory, page: 1 };
+      const page = parsePositivePageNumber(subcategory);
+      return page === null ? "not-found" : { type: "all", page };
+    }
+    case 4: {
+      if (category === "page") return "not-found";
+      if (subcategory !== "page") {
+        return { type: "product", category, subcategory, product, key: searchParams.get("key") };
+      }
+      const page = parsePositivePageNumber(product);
+      return page === null ? "not-found" : { type: "category", category, page };
+    }
+    case 5: {
+      if (product !== "page" || category === "page" || subcategory === "page") {
+        return "not-found";
+      }
+      const page = parsePositivePageNumber(pageNumber);
+      return page === null ? "not-found" : { type: "subcategory", category, subcategory, page };
+    }
+    default:
+      return "not-found";
+  }
 }
 
 /**

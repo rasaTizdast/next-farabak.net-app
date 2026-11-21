@@ -3,6 +3,7 @@ export interface AcceptEntry {
   subtype: string;
   q: number;
   specificity: number;
+  parameters: Record<string, string>;
 }
 
 // Ordered by default preference: wildcard-only requests resolve to HTML.
@@ -19,36 +20,42 @@ export function parseAccept(header: string | null | undefined): AcceptEntry[] {
       const [typeRange, ...params] = part.split(";");
       const [type, subtype] = typeRange.trim().toLowerCase().split("/");
       let q = 1;
+      const parameters: Record<string, string> = {};
+      let beforeQuality = true;
 
       for (const param of params) {
         const [key, value] = param.split("=").map((s) => s.trim());
-        if (key === "q") {
+        if (key.toLowerCase() === "q") {
+          beforeQuality = false;
           const parsed = Number.parseFloat(value);
           if (!Number.isNaN(parsed)) q = Math.max(0, Math.min(1, parsed));
+        } else if (beforeQuality && key) {
+          parameters[key.toLowerCase()] = value?.replace(/^"|"$/g, "").toLowerCase() ?? "";
         }
       }
 
       const isWildcardType = type === "*";
       const specificity = (isWildcardType ? 0 : 2) + (!isWildcardType && subtype === "*" ? -1 : 0);
 
-      return { type, subtype, q, specificity };
+      return { type, subtype, q, specificity, parameters };
     });
 }
 
-function matchScore(entry: AcceptEntry, producible: string): number {
+function matches(entry: AcceptEntry, producible: string): boolean {
   const [pType, pSubtype] = producible.split("/");
-  if (entry.type !== "*" && entry.type !== pType) return -1;
-  if (entry.subtype !== "*" && entry.subtype !== pSubtype) return -1;
-  // More specific entries match more strongly; prefer exact > subtype wildcard > full wildcard
-  if (entry.type === pType && entry.subtype === pSubtype) return 3;
-  if (entry.type === "*" && entry.subtype === "*") return 1;
-  return 2;
+  if (
+    Object.entries(entry.parameters).some(([key, value]) => key !== "charset" || value !== "utf-8")
+  ) {
+    return false;
+  }
+  if (entry.type === "*") return entry.subtype === "*";
+  return entry.type === pType && (entry.subtype === "*" || entry.subtype === pSubtype);
 }
 
 /**
  * Decide which representation to serve based on an Accept header,
  * following RFC 9110 server-driven negotiation:
- * rank by q-value, break ties by specificity.
+ * Each available type inherits the quality of its most specific matching range.
  * Returns the producible media type to serve, or null when nothing matches
  * (caller should respond 406 Not Acceptable).
  */
@@ -56,29 +63,20 @@ export function negotiate(
   header: string | null | undefined,
   producibleTypes: readonly string[] = TYPES_WE_CAN_PRODUCE
 ): string | null {
-  const entries = parseAccept(header).filter((e) => e.q > 0);
-  if (!header || !header.trim() || parseAccept(header).length === 0) {
-    // No usable Accept info: default representation
-    return "text/html";
-  }
-  if (entries.length === 0) {
-    // Client explicitly rejected everything we can produce
-    return null;
-  }
+  const entries = parseAccept(header);
+  if (entries.length === 0) return producibleTypes[0] ?? null;
 
-  let best: { type: string; q: number; score: number } | null = null;
+  const matchingRanges = entries
+    .map((entry, index) => ({ ...entry, index }))
+    .sort((a, b) => b.specificity - a.specificity || b.q - a.q || a.index - b.index);
 
-  for (const entry of entries) {
-    for (const producible of producibleTypes) {
-      const score = matchScore(entry, producible);
-      if (score < 0) continue;
-      if (!best || entry.q > best.q || (entry.q === best.q && score > best.score)) {
-        best = { type: producible, q: entry.q, score };
-      }
-    }
-  }
+  const choices = producibleTypes.flatMap((type) => {
+    const range = matchingRanges.find((entry) => matches(entry, type));
+    return range && range.q > 0 ? [{ ...range, type }] : [];
+  });
+  choices.sort((a, b) => b.q - a.q || b.specificity - a.specificity || a.index - b.index);
 
-  return best ? best.type : null;
+  return choices[0]?.type ?? null;
 }
 
 /** True when the client explicitly prefers markdown over HTML. */

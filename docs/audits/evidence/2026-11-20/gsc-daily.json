@@ -1,0 +1,667 @@
+{
+  "ok": true,
+  "siteUrl": "https://farabak.net/",
+  "startDate": "2026-08-17",
+  "endDate": "2026-11-17",
+  "dimensions": ["date"],
+  "rowCount": 93,
+  "rows": [
+    {
+      "keys": ["2026-08-17"],
+      "clicks": 1,
+      "impressions": 79,
+      "ctr": 0.0127,
+      "position": 12.3
+    },
+    {
+      "keys": ["2026-08-18"],
+      "clicks": 11,
+      "impressions": 117,
+      "ctr": 0.094,
+      "position": 10.1
+    },
+    {
+      "keys": ["2026-08-19"],
+      "clicks": 6,
+      "impressions": 117,
+      "ctr": 0.0513,
+      "position": 18.9
+    },
+    {
+      "keys": ["2026-08-20"],
+      "clicks": 3,
+      "impressions": 120,
+      "ctr": 0.025,
+      "position": 10.9
+    },
+    {
+      "keys": ["2026-08-21"],
+      "clicks": 6,
+      "impressions": 93,
+      "ctr": 0.0645,
+      "position": 10.7
+    },
+    {
+      "keys": ["2026-08-22"],
+      "clicks": 6,
+      "impressions": 106,
+      "ctr": 0.0566,
+      "position": 9.6
+    },
+    {
+      "keys": ["2026-08-23"],
+      "clicks": 9,
+      "impressions": 118,
+      "ctr": 0.0763,
+      "position": 10.2
+    },
+    {
+      "keys": ["2026-08-24"],
+      "clicks": 11,
+      "impressions": 119,
+      "ctr": 0.0924,
+      "position": 9.8
+    },
+    {
+      "keys": ["2026-08-25"],
+      "clicks": 15,
+      "impressions": 109,
+      "ctr": 0.1376,
+      "position": 10.4
+    },
+    {
+      "keys": ["2026-08-26"],
+      "clicks": 7,
+      "impressions": 98,
+      "ctr": 0.0714,
+      "position": 8.9
+    },
+    {
+      "keys": ["2026-08-27"],
+      "clicks": 7,
+      "impressions": 60,
+      "ctr": 0.1167,
+      "position": 14.5
+    },
+    {
+      "keys": ["2026-08-28"],
+      "clicks": 6,
+      "impressions": 103,
+      "ctr": 0.0583,
+      "position": 9.8
+    },
+    {
+      "keys": ["2026-08-29"],
+      "clicks": 7,
+      "impressions": 101,
+      "ctr": 0.0693,
+      "position": 11
+    },
+    {
+      "keys": ["2026-08-30"],
+      "clicks": 4,
+      "impressions": 72,
+      "ctr": 0.0556,
+      "position": 11.2
+    },
+    {
+      "keys": ["2026-08-31"],
+      "clicks": 9,
+      "impressions": 107,
+      "ctr": 0.0841,
+      "position": 10.4
+    },
+    {
+      "keys": ["2026-09-01"],
+      "clicks": 8,
+      "impressions": 116,
+      "ctr": 0.069,
+      "position": 10.9
+    },
+    {
+      "keys": ["2026-09-02"],
+      "clicks": 8,
+      "impressions": 125,
+      "ctr": 0.064,
+      "position": 10.5
+    },
+    {
+      "keys": ["2026-09-03"],
+      "clicks": 7,
+      "impressions": 100,
+      "ctr": 0.07,
+      "position": 10.7
+    },
+    {
+      "keys": ["2026-09-04"],
+      "clicks": 5,
+      "impressions": 90,
+      "ctr": 0.0556,
+      "position": 11.8
+    },
+    {
+      "keys": ["2026-09-05"],
+      "clicks": 11,
+      "impressions": 114,
+      "ctr": 0.0965,
+      "position": 10.5
+    },
+    {
+      "keys": ["2026-09-06"],
+      "clicks": 7,
+      "impressions": 88,
+      "ctr": 0.0795,
+      "position": 11.9
+    },
+    {
+      "keys": ["2026-09-07"],
+      "clicks": 8,
+      "impressions": 91,
+      "ctr": 0.0879,
+      "position": 11.9
+    },
+    {
+      "keys": ["2026-09-08"],
+      "clicks": 4,
+      "impressions": 71,
+      "ctr": 0.0563,
+      "position": 15
+    },
+    {
+      "keys": ["2026-09-09"],
+      "clicks": 11,
+      "impressions": 106,
+      "ctr": 0.1038,
+      "position": 12.5
+    },
+    {
+      "keys": ["2026-09-10"],
+      "clicks": 7,
+      "impressions": 82,
+      "ctr": 0.0854,
+      "position": 12.1
+    },
+    {
+      "keys": ["2026-09-11"],
+      "clicks": 6,
+      "impressions": 86,
+      "ctr": 0.0698,
+      "position": 10.4
+    },
+    {
+      "keys": ["2026-09-12"],
+      "clicks": 4,
+      "impressions": 91,
+      "ctr": 0.044,
+      "position": 10.4
+    },
+    {
+      "keys": ["2026-09-13"],
+      "clicks": 8,
+      "impressions": 88,
+      "ctr": 0.0909,
+      "position": 5.6
+    },
+    {
+      "keys": ["2026-09-14"],
+      "clicks": 5,
+      "impressions": 100,
+      "ctr": 0.05,
+      "position": 8.4
+    },
+    {
+      "keys": ["2026-09-15"],
+      "clicks": 8,
+      "impressions": 81,
+      "ctr": 0.0988,
+      "position": 8.2
+    },
+    {
+      "keys": ["2026-09-16"],
+      "clicks": 9,
+      "impressions": 77,
+      "ctr": 0.1169,
+      "position": 14
+    },
+    {
+      "keys": ["2026-09-17"],
+      "clicks": 10,
+      "impressions": 53,
+      "ctr": 0.1887,
+      "position": 8.2
+    },
+    {
+      "keys": ["2026-09-18"],
+      "clicks": 6,
+      "impressions": 56,
+      "ctr": 0.1071,
+      "position": 12.7
+    },
+    {
+      "keys": ["2026-09-19"],
+      "clicks": 4,
+      "impressions": 75,
+      "ctr": 0.0533,
+      "position": 11.3
+    },
+    {
+      "keys": ["2026-09-20"],
+      "clicks": 6,
+      "impressions": 61,
+      "ctr": 0.0984,
+      "position": 9.3
+    },
+    {
+      "keys": ["2026-09-21"],
+      "clicks": 9,
+      "impressions": 63,
+      "ctr": 0.1429,
+      "position": 11.8
+    },
+    {
+      "keys": ["2026-09-22"],
+      "clicks": 5,
+      "impressions": 75,
+      "ctr": 0.0667,
+      "position": 8.6
+    },
+    {
+      "keys": ["2026-09-23"],
+      "clicks": 7,
+      "impressions": 69,
+      "ctr": 0.1014,
+      "position": 9.8
+    },
+    {
+      "keys": ["2026-09-24"],
+      "clicks": 3,
+      "impressions": 67,
+      "ctr": 0.0448,
+      "position": 11.4
+    },
+    {
+      "keys": ["2026-09-25"],
+      "clicks": 5,
+      "impressions": 81,
+      "ctr": 0.0617,
+      "position": 11.7
+    },
+    {
+      "keys": ["2026-09-26"],
+      "clicks": 6,
+      "impressions": 65,
+      "ctr": 0.0923,
+      "position": 13.5
+    },
+    {
+      "keys": ["2026-09-27"],
+      "clicks": 15,
+      "impressions": 89,
+      "ctr": 0.1685,
+      "position": 9.1
+    },
+    {
+      "keys": ["2026-09-28"],
+      "clicks": 5,
+      "impressions": 55,
+      "ctr": 0.0909,
+      "position": 14.1
+    },
+    {
+      "keys": ["2026-09-29"],
+      "clicks": 3,
+      "impressions": 85,
+      "ctr": 0.0353,
+      "position": 11.9
+    },
+    {
+      "keys": ["2026-09-30"],
+      "clicks": 7,
+      "impressions": 81,
+      "ctr": 0.0864,
+      "position": 10.1
+    },
+    {
+      "keys": ["2026-10-01"],
+      "clicks": 4,
+      "impressions": 39,
+      "ctr": 0.1026,
+      "position": 14.7
+    },
+    {
+      "keys": ["2026-10-02"],
+      "clicks": 5,
+      "impressions": 54,
+      "ctr": 0.0926,
+      "position": 12.1
+    },
+    {
+      "keys": ["2026-10-03"],
+      "clicks": 10,
+      "impressions": 57,
+      "ctr": 0.1754,
+      "position": 10.8
+    },
+    {
+      "keys": ["2026-10-04"],
+      "clicks": 10,
+      "impressions": 82,
+      "ctr": 0.122,
+      "position": 11
+    },
+    {
+      "keys": ["2026-10-05"],
+      "clicks": 12,
+      "impressions": 77,
+      "ctr": 0.1558,
+      "position": 10.6
+    },
+    {
+      "keys": ["2026-10-06"],
+      "clicks": 14,
+      "impressions": 106,
+      "ctr": 0.1321,
+      "position": 8.6
+    },
+    {
+      "keys": ["2026-10-07"],
+      "clicks": 6,
+      "impressions": 74,
+      "ctr": 0.0811,
+      "position": 11.1
+    },
+    {
+      "keys": ["2026-10-08"],
+      "clicks": 8,
+      "impressions": 50,
+      "ctr": 0.16,
+      "position": 11.7
+    },
+    {
+      "keys": ["2026-10-09"],
+      "clicks": 6,
+      "impressions": 45,
+      "ctr": 0.1333,
+      "position": 8.6
+    },
+    {
+      "keys": ["2026-10-10"],
+      "clicks": 13,
+      "impressions": 103,
+      "ctr": 0.1262,
+      "position": 7.3
+    },
+    {
+      "keys": ["2026-10-11"],
+      "clicks": 4,
+      "impressions": 47,
+      "ctr": 0.0851,
+      "position": 8.7
+    },
+    {
+      "keys": ["2026-10-12"],
+      "clicks": 7,
+      "impressions": 65,
+      "ctr": 0.1077,
+      "position": 9.8
+    },
+    {
+      "keys": ["2026-10-13"],
+      "clicks": 7,
+      "impressions": 69,
+      "ctr": 0.1014,
+      "position": 8.1
+    },
+    {
+      "keys": ["2026-10-14"],
+      "clicks": 5,
+      "impressions": 79,
+      "ctr": 0.0633,
+      "position": 8.9
+    },
+    {
+      "keys": ["2026-10-15"],
+      "clicks": 4,
+      "impressions": 70,
+      "ctr": 0.0571,
+      "position": 10.3
+    },
+    {
+      "keys": ["2026-10-16"],
+      "clicks": 2,
+      "impressions": 58,
+      "ctr": 0.0345,
+      "position": 8.6
+    },
+    {
+      "keys": ["2026-10-17"],
+      "clicks": 7,
+      "impressions": 82,
+      "ctr": 0.0854,
+      "position": 10
+    },
+    {
+      "keys": ["2026-10-18"],
+      "clicks": 9,
+      "impressions": 78,
+      "ctr": 0.1154,
+      "position": 9.3
+    },
+    {
+      "keys": ["2026-10-19"],
+      "clicks": 7,
+      "impressions": 64,
+      "ctr": 0.1094,
+      "position": 8.7
+    },
+    {
+      "keys": ["2026-10-20"],
+      "clicks": 3,
+      "impressions": 66,
+      "ctr": 0.0455,
+      "position": 9.5
+    },
+    {
+      "keys": ["2026-10-21"],
+      "clicks": 4,
+      "impressions": 43,
+      "ctr": 0.093,
+      "position": 8
+    },
+    {
+      "keys": ["2026-10-22"],
+      "clicks": 3,
+      "impressions": 52,
+      "ctr": 0.0577,
+      "position": 14.7
+    },
+    {
+      "keys": ["2026-10-23"],
+      "clicks": 3,
+      "impressions": 63,
+      "ctr": 0.0476,
+      "position": 12.9
+    },
+    {
+      "keys": ["2026-10-24"],
+      "clicks": 3,
+      "impressions": 74,
+      "ctr": 0.0405,
+      "position": 11.9
+    },
+    {
+      "keys": ["2026-10-25"],
+      "clicks": 2,
+      "impressions": 51,
+      "ctr": 0.0392,
+      "position": 12
+    },
+    {
+      "keys": ["2026-10-26"],
+      "clicks": 5,
+      "impressions": 58,
+      "ctr": 0.0862,
+      "position": 15.3
+    },
+    {
+      "keys": ["2026-10-27"],
+      "clicks": 4,
+      "impressions": 43,
+      "ctr": 0.093,
+      "position": 11.8
+    },
+    {
+      "keys": ["2026-10-28"],
+      "clicks": 3,
+      "impressions": 57,
+      "ctr": 0.0526,
+      "position": 10
+    },
+    {
+      "keys": ["2026-10-29"],
+      "clicks": 7,
+      "impressions": 74,
+      "ctr": 0.0946,
+      "position": 8.8
+    },
+    {
+      "keys": ["2026-10-30"],
+      "clicks": 7,
+      "impressions": 59,
+      "ctr": 0.1186,
+      "position": 11.7
+    },
+    {
+      "keys": ["2026-10-31"],
+      "clicks": 1,
+      "impressions": 56,
+      "ctr": 0.0179,
+      "position": 10.9
+    },
+    {
+      "keys": ["2026-11-01"],
+      "clicks": 3,
+      "impressions": 49,
+      "ctr": 0.0612,
+      "position": 12.1
+    },
+    {
+      "keys": ["2026-11-02"],
+      "clicks": 10,
+      "impressions": 70,
+      "ctr": 0.1429,
+      "position": 8.8
+    },
+    {
+      "keys": ["2026-11-03"],
+      "clicks": 13,
+      "impressions": 53,
+      "ctr": 0.2453,
+      "position": 8
+    },
+    {
+      "keys": ["2026-11-04"],
+      "clicks": 7,
+      "impressions": 64,
+      "ctr": 0.1094,
+      "position": 5.9
+    },
+    {
+      "keys": ["2026-11-05"],
+      "clicks": 4,
+      "impressions": 48,
+      "ctr": 0.0833,
+      "position": 4.6
+    },
+    {
+      "keys": ["2026-11-06"],
+      "clicks": 2,
+      "impressions": 55,
+      "ctr": 0.0364,
+      "position": 16.3
+    },
+    {
+      "keys": ["2026-11-07"],
+      "clicks": 4,
+      "impressions": 50,
+      "ctr": 0.08,
+      "position": 14.4
+    },
+    {
+      "keys": ["2026-11-08"],
+      "clicks": 6,
+      "impressions": 56,
+      "ctr": 0.1071,
+      "position": 10.9
+    },
+    {
+      "keys": ["2026-11-09"],
+      "clicks": 3,
+      "impressions": 67,
+      "ctr": 0.0448,
+      "position": 11
+    },
+    {
+      "keys": ["2026-11-10"],
+      "clicks": 4,
+      "impressions": 50,
+      "ctr": 0.08,
+      "position": 13.8
+    },
+    {
+      "keys": ["2026-11-11"],
+      "clicks": 4,
+      "impressions": 60,
+      "ctr": 0.0667,
+      "position": 21.6
+    },
+    {
+      "keys": ["2026-11-12"],
+      "clicks": 7,
+      "impressions": 68,
+      "ctr": 0.1029,
+      "position": 28.7
+    },
+    {
+      "keys": ["2026-11-13"],
+      "clicks": 5,
+      "impressions": 61,
+      "ctr": 0.082,
+      "position": 23.3
+    },
+    {
+      "keys": ["2026-11-14"],
+      "clicks": 3,
+      "impressions": 55,
+      "ctr": 0.0545,
+      "position": 23.2
+    },
+    {
+      "keys": ["2026-11-15"],
+      "clicks": 3,
+      "impressions": 45,
+      "ctr": 0.0667,
+      "position": 29.4
+    },
+    {
+      "keys": ["2026-11-16"],
+      "clicks": 1,
+      "impressions": 36,
+      "ctr": 0.0278,
+      "position": 36.6
+    },
+    {
+      "keys": ["2026-11-17"],
+      "clicks": 4,
+      "impressions": 59,
+      "ctr": 0.0678,
+      "position": 27.1
+    }
+  ],
+  "hasMore": false,
+  "meta": {
+    "projectId": "c44589f0-b38e-4433-88a4-c6a3ce3d49a5",
+    "url": "https://app.openseo.so/p/c44589f0-b38e-4433-88a4-c6a3ce3d49a5/search-performance"
+  },
+  "resultId": "57aa3596-ee2c-4f57-919f-ef4550af236a"
+}

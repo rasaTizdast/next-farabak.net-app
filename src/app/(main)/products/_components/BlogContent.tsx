@@ -1,6 +1,7 @@
 // Server component to render blog TEXT with Tailwind prose styles and schema.org
 // Supports: headings (#, ##, ###), paragraphs, unordered/ordered lists, and links [text](url)
 import DOMPurify from "isomorphic-dompurify";
+import { cacheLife } from "next/cache";
 import Link from "next/link";
 import React from "react";
 
@@ -114,46 +115,57 @@ function _parseTextToElements(_text: string): React.ReactNode[] {
 }
 
 // Wrapper component to handle table scrolling
-const TableScrollWrapper = ({ htmlContent }: { htmlContent: string }) => {
-  // Check if content contains tables
-  const hasTables = /<table/i.test(htmlContent);
+async function sanitizeBlogHtml(html: string) {
+  "use cache";
+  cacheLife("days");
+  return DOMPurify.sanitize(html);
+}
 
+const TableScrollWrapper = ({
+  htmlContent,
+  hasTables,
+}: {
+  htmlContent: string;
+  hasTables: boolean;
+}) => {
   if (!hasTables) {
-    return (
-      <div
-        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(demoteBlogHeadings(htmlContent)) }}
-      />
-    );
+    return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
   }
-
-  // Wrap tables in scrollable divs with Tailwind classes
-  const wrappedContent = demoteBlogHeadings(htmlContent)
-    .replace(
-      /<table([^>]*)>/gi,
-      '<div class="my-6 overflow-x-auto -webkit-overflow-scrolling-touch rounded-lg border border-neutral-800"><table$1 class="w-full border-collapse">'
-    )
-    .replace(/<\/table>/gi, "</table></div>");
 
   return (
     <div
       className="[&_table]:m-0 [&_table_p]:m-0 [&_td]:border [&_td]:border-neutral-800 [&_td]:bg-blue-900/30 [&_td]:px-0! [&_td]:py-3 [&_td]:text-right [&_td]:whitespace-nowrap [&_td]:text-neutral-300 [&_td_p]:px-2 [&_th]:border [&_th]:border-neutral-800 [&_th]:bg-blue-900/60 [&_th]:px-2 [&_th]:py-3 [&_th]:text-right [&_th]:font-semibold [&_th]:whitespace-nowrap [&_th]:text-neutral-100"
-      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(wrappedContent) }}
+      dangerouslySetInnerHTML={{ __html: htmlContent }}
     />
   );
 };
 
+async function renderBlogHtml(source: string) {
+  const hasTables = /<table/i.test(source);
+  const demoted = demoteBlogHeadings(source);
+  const wrapped = hasTables
+    ? demoted
+        .replace(
+          /<table([^>]*)>/gi,
+          '<div class="my-6 overflow-x-auto -webkit-overflow-scrolling-touch rounded-lg border border-neutral-800"><table$1 class="w-full border-collapse">'
+        )
+        .replace(/<\/table>/gi, "</table></div>")
+    : demoted;
+  return <TableScrollWrapper htmlContent={await sanitizeBlogHtml(wrapped)} hasTables={hasTables} />;
+}
+
 const BlogContent = async ({ html, text }: BlogContentProps) => {
   if (!html && !text) return null;
 
-  const content = (() => {
+  const content = await (async () => {
     if (typeof text === "string") {
       const looksLikeHtml = /<\w+[^>]*>/.test(text);
       if (looksLikeHtml) {
-        return <TableScrollWrapper htmlContent={text} />;
+        return renderBlogHtml(text);
       }
       return <div>{parseBlogTextToElements(text)}</div>;
     }
-    return <TableScrollWrapper htmlContent={html as string} />;
+    return renderBlogHtml(html as string);
   })();
 
   return (

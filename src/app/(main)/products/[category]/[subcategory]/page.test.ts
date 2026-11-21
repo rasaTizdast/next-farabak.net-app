@@ -4,15 +4,30 @@ const { getProductsBySubcategory } = vi.hoisted(() => ({
   getProductsBySubcategory: vi.fn(),
 }));
 
+vi.mock("@/lib/data/catalog-static-params", () => ({
+  getCatalogStaticParams: async () => ({
+    subcategories: [
+      { category: "reolink-cctv-camera", subcategory: "bullet" },
+      { category: "blackmagic", subcategory: "disk-recorder" },
+    ],
+  }),
+}));
+
 vi.mock("@/lib/data/products", () => ({
   getProductsBySubcategory,
   getCategoryName: vi.fn(),
   getSubCategoryName: vi.fn(),
 }));
 
-import SubcategoryPage, { generateMetadata } from "./page";
+import SubcategoryPage, { generateMetadata, generateStaticParams } from "./page";
 
 describe("subcategory metadata", () => {
+  it("prerenders subcategories without assuming sibling pages supply parent params", async () => {
+    await expect(generateStaticParams({ params: {} } as never)).resolves.toEqual([
+      { category: "reolink-cctv-camera", subcategory: "bullet" },
+      { category: "blackmagic", subcategory: "disk-recorder" },
+    ]);
+  });
   beforeEach(() => {
     vi.stubEnv("NEXT_PUBLIC_BASE_URL", "https://farabak.net");
     getProductsBySubcategory.mockReset();

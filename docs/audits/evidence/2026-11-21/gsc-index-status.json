@@ -1,0 +1,30 @@
+{
+  "observed_at_utc": "2026-11-21T09:26:15Z",
+  "property": "https://farabak.net/",
+  "source": "Google Search Console stored URL Inspection data via connected OpenSEO property; not a live test",
+  "results": [
+    {
+      "url": "https://farabak.net/products/reolink-cctv-camera/bullet/B400",
+      "verdict": "NEUTRAL",
+      "coverage_state": "Discovered - currently not indexed",
+      "sitemap": ["https://farabak.net/sitemap.xml"],
+      "referring_urls": ["https://farabak.net/products/reolink-cctv-camera/night-vision"],
+      "crawled_as": "CRAWLING_USER_AGENT_UNSPECIFIED",
+      "robots_txt_state": "ROBOTS_TXT_STATE_UNSPECIFIED",
+      "page_fetch_state": "PAGE_FETCH_STATE_UNSPECIFIED"
+    },
+    {
+      "url": "https://farabak.net/contact-us",
+      "verdict": "NEUTRAL",
+      "coverage_state": "Discovered - currently not indexed",
+      "sitemap": ["https://farabak.net/sitemap.xml"],
+      "referring_urls": [
+        "https://farabak.net/products/industrial-cctv-camera",
+        "https://farabak.net/"
+      ],
+      "crawled_as": "MOBILE",
+      "robots_txt_state": "ROBOTS_TXT_STATE_UNSPECIFIED",
+      "page_fetch_state": "PAGE_FETCH_STATE_UNSPECIFIED"
+    }
+  ]
+}

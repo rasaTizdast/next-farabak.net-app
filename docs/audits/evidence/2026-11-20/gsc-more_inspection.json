@@ -1,0 +1,481 @@
+{
+  "ok": true,
+  "siteUrl": "https://farabak.net/",
+  "results": [
+    {
+      "url": "https://farabak.net/about-us",
+      "result": null,
+      "error": "Search Console didn't respond in time. Retry shortly."
+    },
+    {
+      "url": "https://farabak.net/products/reolink-cctv-camera/ip/B400",
+      "result": {
+        "inspectionResultLink": "https://search.google.com/search-console/inspect?resource_id=https://farabak.net/&id=QQYESEqjZ6pGKP2f49NcIA&utm_medium=link&utm_source=api",
+        "indexStatusResult": {
+          "verdict": "PASS",
+          "coverageState": "Submitted and indexed",
+          "robotsTxtState": "ALLOWED",
+          "indexingState": "INDEXING_ALLOWED",
+          "lastCrawlTime": "2026-09-01T00:36:06Z",
+          "pageFetchState": "SUCCESSFUL",
+          "googleCanonical": "https://farabak.net/products/reolink-cctv-camera/ip/B400",
+          "userCanonical": "https://farabak.net/products/reolink-cctv-camera/bullet/B400",
+          "referringUrls": ["https://farabak.net/products/reolink-cctv-camera/ip"],
+          "crawledAs": "MOBILE"
+        },
+        "mobileUsabilityResult": {
+          "verdict": "VERDICT_UNSPECIFIED"
+        },
+        "richResultsResult": {
+          "verdict": "PASS",
+          "detectedItems": [
+            {
+              "richResultType": "Product snippets",
+              "items": [
+                {
+                  "name": "B400",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"aggregateRating\"",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "Missing field \"review\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                },
+                {
+                  "name": "RLC-810A",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"review\"",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "Missing field \"aggregateRating\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                },
+                {
+                  "name": "RLC-811A",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"review\"",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "Missing field \"aggregateRating\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                },
+                {
+                  "name": "RLC-811WA",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"review\"",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "Missing field \"aggregateRating\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                },
+                {
+                  "name": "RLC-812A",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"review\"",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "Missing field \"aggregateRating\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                },
+                {
+                  "name": "RLC-410",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"review\"",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "Missing field \"aggregateRating\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                },
+                {
+                  "name": "RLC-510WA",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"review\"",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "Missing field \"aggregateRating\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                },
+                {
+                  "name": "410W-PACKAGE",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"review\"",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "Missing field \"aggregateRating\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                },
+                {
+                  "name": "RLK210-4WB4",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"review\"",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "Missing field \"aggregateRating\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "richResultType": "Merchant listings",
+              "items": [
+                {
+                  "name": "B400",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"validFrom\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                },
+                {
+                  "name": "RLC-810A",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"description\"",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "No global identifier provided (e.g., gtin, brand)",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "Missing field \"validFrom\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                },
+                {
+                  "name": "RLC-811A",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"description\"",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "No global identifier provided (e.g., gtin, brand)",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "Missing field \"validFrom\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                },
+                {
+                  "name": "RLC-811WA",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"description\"",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "No global identifier provided (e.g., gtin, brand)",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "Missing field \"validFrom\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                },
+                {
+                  "name": "RLC-812A",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"description\"",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "No global identifier provided (e.g., gtin, brand)",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "Missing field \"validFrom\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                },
+                {
+                  "name": "RLC-410",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"description\"",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "No global identifier provided (e.g., gtin, brand)",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "Missing field \"validFrom\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                },
+                {
+                  "name": "RLC-510WA",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"description\"",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "No global identifier provided (e.g., gtin, brand)",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "Missing field \"validFrom\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                },
+                {
+                  "name": "410W-PACKAGE",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"description\"",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "No global identifier provided (e.g., gtin, brand)",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "Missing field \"validFrom\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                },
+                {
+                  "name": "RLK210-4WB4",
+                  "issues": [
+                    {
+                      "issueMessage": "Missing field \"description\"",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "No global identifier provided (e.g., gtin, brand)",
+                      "severity": "WARNING"
+                    },
+                    {
+                      "issueMessage": "Missing field \"validFrom\"",
+                      "severity": "WARNING"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "richResultType": "Breadcrumbs",
+              "items": [
+                {
+                  "name": "Unnamed item"
+                },
+                {
+                  "name": "Unnamed item"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "url": "https://farabak.net/products/reolink-cctv-camera/bullet",
+      "result": {
+        "inspectionResultLink": "https://search.google.com/search-console/inspect?resource_id=https://farabak.net/&id=rjwUP8VxGot0_Xp6BbZIJg&utm_medium=link&utm_source=api",
+        "indexStatusResult": {
+          "verdict": "NEUTRAL",
+          "coverageState": "Discovered - currently not indexed",
+          "robotsTxtState": "ROBOTS_TXT_STATE_UNSPECIFIED",
+          "indexingState": "INDEXING_STATE_UNSPECIFIED",
+          "pageFetchState": "PAGE_FETCH_STATE_UNSPECIFIED",
+          "sitemap": ["https://farabak.net/sitemap.xml"],
+          "referringUrls": [
+            "https://farabak.net/products/reolink-cctv-camera/bullet/page/1",
+            "https://farabak.net/products/x-ray/vehicle-truck",
+            "https://farabak.net/"
+          ],
+          "crawledAs": "MOBILE"
+        },
+        "mobileUsabilityResult": {
+          "verdict": "VERDICT_UNSPECIFIED"
+        }
+      }
+    },
+    {
+      "url": "https://farabak.net/products/reolink-cctv-camera/ip",
+      "result": {
+        "inspectionResultLink": "https://search.google.com/search-console/inspect?resource_id=https://farabak.net/&id=c87Ul_LgTz2rNWnJGRwOjw&utm_medium=link&utm_source=api",
+        "indexStatusResult": {
+          "verdict": "PASS",
+          "coverageState": "Submitted and indexed",
+          "robotsTxtState": "ALLOWED",
+          "indexingState": "INDEXING_ALLOWED",
+          "lastCrawlTime": "2026-11-14T15:17:16Z",
+          "pageFetchState": "SUCCESSFUL",
+          "googleCanonical": "https://farabak.net/products/reolink-cctv-camera/ip",
+          "sitemap": ["https://farabak.net/sitemap.xml"],
+          "referringUrls": [
+            "https://farabak.net/products/reolink-cctv-camera/bullet/page/1",
+            "https://farabak.net/products/reolink-cctv-camera/bullet/410W-PACKAGE",
+            "https://farabak.net/products/conference-hall/led-wall"
+          ],
+          "crawledAs": "MOBILE"
+        },
+        "mobileUsabilityResult": {
+          "verdict": "VERDICT_UNSPECIFIED"
+        },
+        "richResultsResult": {
+          "verdict": "PASS",
+          "detectedItems": [
+            {
+              "richResultType": "Breadcrumbs",
+              "items": [
+                {
+                  "name": "Unnamed item"
+                },
+                {
+                  "name": "Unnamed item"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "url": "https://farabak.net/support/blog/reolink/reolink-products",
+      "result": {
+        "inspectionResultLink": "https://search.google.com/search-console/inspect?resource_id=https://farabak.net/&id=JSI_C2dexVBjmdZweDrDNg&utm_medium=link&utm_source=api",
+        "indexStatusResult": {
+          "verdict": "PASS",
+          "coverageState": "Submitted and indexed",
+          "robotsTxtState": "ALLOWED",
+          "indexingState": "INDEXING_ALLOWED",
+          "lastCrawlTime": "2026-11-16T09:57:26Z",
+          "pageFetchState": "SUCCESSFUL",
+          "googleCanonical": "https://farabak.net/support/blog/reolink/reolink-products",
+          "userCanonical": "https://farabak.net/support/blog/reolink/reolink-products",
+          "referringUrls": ["https://farabak.net/support/blog"],
+          "crawledAs": "MOBILE"
+        },
+        "mobileUsabilityResult": {
+          "verdict": "VERDICT_UNSPECIFIED"
+        },
+        "richResultsResult": {
+          "verdict": "PASS",
+          "detectedItems": [
+            {
+              "richResultType": "Breadcrumbs",
+              "items": [
+                {
+                  "name": "Unnamed item"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "url": "https://farabak.net/products/blackmagic",
+      "result": {
+        "inspectionResultLink": "https://search.google.com/search-console/inspect?resource_id=https://farabak.net/&id=ncomNIZwIEY4Kehqf4w4Hg&utm_medium=link&utm_source=api",
+        "indexStatusResult": {
+          "verdict": "PASS",
+          "coverageState": "Submitted and indexed",
+          "robotsTxtState": "ALLOWED",
+          "indexingState": "INDEXING_ALLOWED",
+          "lastCrawlTime": "2026-11-14T09:18:45Z",
+          "pageFetchState": "SUCCESSFUL",
+          "googleCanonical": "https://farabak.net/products/blackmagic",
+          "sitemap": ["https://farabak.net/sitemap.xml"],
+          "referringUrls": ["https://farabak.net/"],
+          "crawledAs": "MOBILE"
+        },
+        "mobileUsabilityResult": {
+          "verdict": "VERDICT_UNSPECIFIED"
+        },
+        "richResultsResult": {
+          "verdict": "PASS",
+          "detectedItems": [
+            {
+              "richResultType": "Breadcrumbs",
+              "items": [
+                {
+                  "name": "Unnamed item"
+                },
+                {
+                  "name": "Unnamed item"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "url": "https://farabak.net/products/reolink-cctv-camera/ip/RLC-811A",
+      "result": {
+        "inspectionResultLink": "https://search.google.com/search-console/inspect?resource_id=https://farabak.net/&id=zHMiRWj4p1d2Zmki55YE6g&utm_medium=link&utm_source=api",
+        "indexStatusResult": {
+          "verdict": "NEUTRAL",
+          "coverageState": "Discovered - currently not indexed",
+          "robotsTxtState": "ROBOTS_TXT_STATE_UNSPECIFIED",
+          "indexingState": "INDEXING_STATE_UNSPECIFIED",
+          "pageFetchState": "PAGE_FETCH_STATE_UNSPECIFIED",
+          "sitemap": ["https://farabak.net/sitemap.xml"],
+          "referringUrls": [
+            "https://farabak.net/products/reolink-cctv-camera",
+            "https://farabak.net/products/reolink-cctv-camera/page/1"
+          ],
+          "crawledAs": "CRAWLING_USER_AGENT_UNSPECIFIED"
+        },
+        "mobileUsabilityResult": {
+          "verdict": "VERDICT_UNSPECIFIED"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "projectId": "c44589f0-b38e-4433-88a4-c6a3ce3d49a5",
+    "url": "https://app.openseo.so/p/c44589f0-b38e-4433-88a4-c6a3ce3d49a5/settings/integrations"
+  }
+}

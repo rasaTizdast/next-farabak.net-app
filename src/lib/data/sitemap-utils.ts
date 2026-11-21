@@ -1,7 +1,7 @@
 export interface SitemapProductPath {
   Slug: string | null;
   CategoryContentId: string | null;
-  Category: { CategoryID: number; Slug: string | null } | null;
+  Category: { CategoryID: number } | null;
 }
 
 export interface SitemapCategoryPath {
@@ -40,10 +40,7 @@ export function buildProductSitemapUrls(
       }
 
       return [
-        [
-          subcategory.CategoryContentId,
-          { categoryId: subcategory.CategoryID, categorySlug, slug },
-        ] as const,
+        [subcategory.CategoryContentId, { categoryId: subcategory.CategoryID, slug }] as const,
       ];
     })
   );
@@ -56,16 +53,12 @@ export function buildProductSitemapUrls(
       return [];
     }
 
-    for (const rawId of product.CategoryContentId.split(",")) {
-      const categoryContentId = Number.parseInt(rawId.trim(), 10);
-      if (!Number.isInteger(categoryContentId) || categoryContentId <= 0) continue;
+    const primaryId = product.CategoryContentId.split(",")
+      .map((id) => Number.parseInt(id.trim(), 10))
+      .find((id) => Number.isSafeInteger(id) && id > 0);
+    const subcategory = primaryId === undefined ? undefined : subcategoryPaths.get(primaryId);
+    if (subcategory?.categoryId !== categoryId) return [];
 
-      const subcategory = subcategoryPaths.get(categoryContentId);
-      if (subcategory?.categoryId === categoryId && subcategory.categorySlug === categorySlug) {
-        return [`https://farabak.net/products/${categorySlug}/${subcategory.slug}/${productSlug}`];
-      }
-    }
-
-    return [];
+    return [`https://farabak.net/products/${categorySlug}/${subcategory.slug}/${productSlug}`];
   });
 }

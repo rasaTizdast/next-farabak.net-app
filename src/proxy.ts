@@ -4,7 +4,12 @@ import { NextResponse, NextRequest } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { negotiate } from "@/lib/contentNegotiation";
 import type { ProductDetailPageResolution } from "@/lib/data/product-page-validation";
-import { parsePositivePageNumber } from "@/lib/pagination";
+import {
+  type CatalogPageCheck,
+  getCatalogPageCheck,
+  getStaticMarkdownPage,
+  markdownKeyFromPath,
+} from "@/lib/markdownContent";
 import { getLegacyImageRedirect } from "@/lib/seo/legacy-image-redirects";
 import {
   getVerifiedListingQueryRedirect,
@@ -27,88 +32,49 @@ const ACCESS_TOKEN_EXPIRATION = 15 * 60; // 15 minutes
 
 // Pass-through response for HTML requests; declares Accept so caches
 // never serve a cached HTML variant to an agent asking for markdown.
-function htmlResponse() {
+function htmlResponse(standaloneMarkdown = false) {
   const response = NextResponse.next();
   response.headers.append("Vary", "Accept");
+  if (standaloneMarkdown) response.headers.set("X-Robots-Tag", "noindex");
   return response;
 }
 
-type ProductPageCheck =
-  | { type: "all"; page: number }
-  | { type: "category"; category: string; page: number }
-  | { type: "subcategory"; category: string; subcategory: string; page: number }
-  | {
-      type: "product";
-      category: string;
-      subcategory: string;
-      product: string;
-      key: string | null;
-    }
-  | "not-found"
-  | null;
+const HTML_ONLY_PAGE_KEYS = new Set([
+  "about-us/activity",
+  "about-us/members",
+  "about-us/projects",
+  "auth/login",
+  "auth/signup",
+  "product-finder",
+  "product-finder/board",
+  "product-finder/report",
+  "products/search",
+  "support/blog",
+  "support/download-center",
+  "support/faq",
+  "support/tools",
+  "support/tools/cctv-storage",
+  "support/tools/meeting-room",
+  "support/tools/xray-fit",
+  "support/warranty-tracking",
+  "swagger",
+]);
 
-function getProductPageCheck(req: NextRequest): ProductPageCheck {
-  const pathname = req.nextUrl.pathname;
-  const segments = pathname.split("/").filter(Boolean);
+function getProductPageCheck(req: NextRequest): CatalogPageCheck {
+  const pathKey = markdownKeyFromPath(req.nextUrl.pathname);
+  if (pathKey !== "products" && !pathKey.startsWith("products/")) return null;
 
-  if (pathname === "/products") {
-    const pageValues = req.nextUrl.searchParams.getAll("page");
-    if (pageValues.length === 0) return null;
-    if (pageValues.length !== 1) return "not-found";
-    const page = parsePositivePageNumber(pageValues[0]);
-    return page === null ? "not-found" : { type: "all", page };
+  try {
+    return getCatalogPageCheck(
+      pathKey.split("/").map(decodeURIComponent),
+      req.nextUrl.searchParams
+    );
+  } catch {
+    return "not-found";
   }
-
-  if (segments[0] !== "products") return null;
-
-  if (segments.length === 3 && segments[1] === "page") {
-    const page = parsePositivePageNumber(segments[2]);
-    return page === null ? "not-found" : { type: "all", page };
-  }
-
-  if (segments.length === 2 && segments[1] !== "search") {
-    return { type: "category", category: segments[1], page: 1 };
-  }
-
-  if (segments.length === 3 && segments[1] !== "page") {
-    return {
-      type: "subcategory",
-      category: segments[1],
-      subcategory: segments[2],
-      page: 1,
-    };
-  }
-
-  if (segments.length === 4 && segments[2] !== "page") {
-    return {
-      type: "product",
-      category: segments[1],
-      subcategory: segments[2],
-      product: segments[3],
-      key: req.nextUrl.searchParams.get("key"),
-    };
-  }
-
-  if (segments.length === 4 && segments[2] === "page") {
-    const page = parsePositivePageNumber(segments[3]);
-    return page === null ? "not-found" : { type: "category", category: segments[1], page };
-  }
-
-  if (segments.length === 5 && segments[3] === "page") {
-    const page = parsePositivePageNumber(segments[4]);
-    if (page === null) return "not-found";
-    return {
-      type: "subcategory",
-      category: segments[1],
-      subcategory: segments[2],
-      page,
-    };
-  }
-
-  return null;
 }
 
-async function hasProductPageData(check: Exclude<ProductPageCheck, "not-found" | null>) {
+async function hasProductPageData(check: Exclude<CatalogPageCheck, "not-found" | null>) {
   const { hasProductDetailPage, hasProductListingPage } =
     await import("@/lib/data/product-page-validation");
   return check.type === "product" ? hasProductDetailPage(check) : hasProductListingPage(check);
@@ -117,6 +83,42 @@ async function hasProductPageData(check: Exclude<ProductPageCheck, "not-found" |
 async function hasBlogCategoryData(categorySlug: string) {
   const { hasBlogCategoryPage } = await import("@/lib/data/blog-page-validation");
   return hasBlogCategoryPage(categorySlug);
+}
+
+async function hasHtmlOnlyDetailPage(pathKey: string, key: string | null): Promise<boolean | null> {
+  const article = /^support\/blog\/[^/]+\/([^/]+)$/.exec(pathKey);
+  const about = /^about-us\/(members|projects)\/([^/]+)$/.exec(pathKey);
+  const slugParam = article?.[1] ?? about?.[2];
+  if (!slugParam) return null;
+
+  let slug: string;
+  try {
+    slug = decodeURIComponent(slugParam);
+  } catch {
+    return false;
+  }
+  const { prisma } = await import("@/lib/prisma");
+  if (article) {
+    const post = await prisma.blogs.findUnique({
+      where: { slug, status: "Published" },
+      select: { QrCode_key: true, QrCode_expiryDays: true },
+    });
+    if (!post) return false;
+    if (!post.QrCode_key) return true;
+    return (
+      post.QrCode_key === key &&
+      (!post.QrCode_expiryDays || new Date(post.QrCode_expiryDays) >= new Date())
+    );
+  }
+
+  if (about?.[1] === "members") {
+    return Boolean(
+      await prisma.members.findUnique({ where: { Slug: slug }, select: { Membersid: true } })
+    );
+  }
+  return Boolean(
+    await prisma.projects.findFirst({ where: { Slug: slug }, select: { ProjectID: true } })
+  );
 }
 
 function rewriteToNotFound(req: NextRequest) {
@@ -167,6 +169,8 @@ export async function proxy(req: ExtendedNextRequest) {
   const pathname = req.nextUrl.pathname;
 
   const isDocumentMethod = req.method === "GET" || req.method === "HEAD";
+  const isDocumentRequest = isDocumentMethod && req.headers.get("RSC") !== "1";
+  const productPageCheck = isDocumentRequest ? getProductPageCheck(req) : null;
   const forwardedHost = req.headers.get("x-forwarded-host")?.split(",", 1)[0]?.trim();
   const requestHost = forwardedHost || req.headers.get("host") || req.nextUrl.hostname;
   const requestHostname = requestHost.replace(/:\d+$/, "").toLowerCase();
@@ -220,13 +224,7 @@ export async function proxy(req: ExtendedNextRequest) {
     }
   }
 
-  if (
-    isFarabakHost &&
-    isDocumentMethod &&
-    req.headers.get("RSC") !== "1" &&
-    canonicalUrl.pathname === pathname
-  ) {
-    const productPageCheck = getProductPageCheck(req);
+  if (isFarabakHost && isDocumentRequest && canonicalUrl.pathname === pathname) {
     if (
       productPageCheck !== null &&
       productPageCheck !== "not-found" &&
@@ -254,9 +252,8 @@ export async function proxy(req: ExtendedNextRequest) {
 
   const isProtectedRoute = pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
 
-  const isDocumentRequest = req.headers.get("RSC") !== "1";
-  if (isDocumentRequest && (req.method === "GET" || req.method === "HEAD")) {
-    const productPageCheck = getProductPageCheck(req);
+  let isValidatedBlogCategory = false;
+  if (isDocumentRequest) {
     if (productPageCheck === "not-found") return rewriteToNotFound(req);
 
     if (productPageCheck) {
@@ -282,7 +279,8 @@ export async function proxy(req: ExtendedNextRequest) {
       blogCategorySegments[1] === "blog"
     ) {
       try {
-        if (!(await hasBlogCategoryData(blogCategorySegments[2]))) {
+        isValidatedBlogCategory = await hasBlogCategoryData(blogCategorySegments[2]);
+        if (!isValidatedBlogCategory) {
           return rewriteToNotFound(req);
         }
       } catch {
@@ -291,28 +289,55 @@ export async function proxy(req: ExtendedNextRequest) {
     }
   }
 
-  // Content negotiation for AI agents (acceptmarkdown.com):
-  // serve text/markdown when the client prefers it, and always declare
-  // Vary: Accept so caches never mix HTML and markdown variants.
-  const isPageRequest =
-    !pathname.startsWith("/api") &&
-    !pathname.startsWith("/_next") &&
-    !pathname.startsWith("/markdown") &&
-    !pathname.includes(".");
+  const pathKey = markdownKeyFromPath(pathname);
+  const standaloneMarkdown = pathKey === "markdown" || pathKey.startsWith("markdown/");
 
-  if (isPageRequest && !isProtectedRoute) {
-    const negotiated = negotiate(req.headers.get("accept"));
+  if (isDocumentRequest && !isProtectedRoute && !standaloneMarkdown) {
+    const catalogPage = productPageCheck === "not-found" ? null : productPageCheck;
+    const hasMarkdown = Boolean(catalogPage || getStaticMarkdownPage(pathKey));
+    const accept = req.headers.get("accept");
+    let negotiated = hasMarkdown ? negotiate(accept) : negotiate(accept, ["text/html"]);
+
+    if (
+      negotiated === "text/markdown" &&
+      catalogPage?.type === "product" &&
+      catalogPage.key !== null &&
+      negotiate(accept, ["text/html"]) !== null
+    ) {
+      try {
+        if (!(await hasProductPageData({ ...catalogPage, key: null }))) negotiated = "text/html";
+      } catch {
+        negotiated = "text/html";
+      }
+    }
 
     if (negotiated === null) {
-      // Accept header lists only types we cannot produce -> 406 per RFC 9110
-      return new NextResponse("Not Acceptable", {
-        status: 406,
-        headers: { "Content-Type": "text/plain; charset=utf-8", Vary: "Accept, Accept-Encoding" },
-      });
+      let hasPage = hasMarkdown || isValidatedBlogCategory || HTML_ONLY_PAGE_KEYS.has(pathKey);
+      if (!hasPage) {
+        try {
+          const hasDetail = await hasHtmlOnlyDetailPage(
+            pathKey,
+            req.nextUrl.searchParams.get("key")
+          );
+          if (hasDetail === false) return rewriteToNotFound(req);
+          hasPage = hasDetail === true;
+        } catch {
+          console.error("HTML representation validation failed before rendering.");
+        }
+      }
+      if (hasPage) {
+        return new NextResponse(req.method === "HEAD" ? null : "Not Acceptable", {
+          status: 406,
+          headers: { "Content-Type": "text/plain; charset=utf-8", Vary: "Accept, Accept-Encoding" },
+        });
+      }
     }
 
     if (negotiated === "text/markdown") {
       const markdownUrl = new URL(pathname === "/" ? "/markdown" : `/markdown${pathname}`, req.url);
+      if (pathKey === "products" && catalogPage?.type === "all" && catalogPage.page > 1) {
+        markdownUrl.searchParams.set("page", String(catalogPage.page));
+      }
       const response = NextResponse.rewrite(markdownUrl);
       response.headers.set("Vary", "Accept, Accept-Encoding");
       return response;
@@ -334,7 +359,7 @@ export async function proxy(req: ExtendedNextRequest) {
       const newAccessToken = await refreshAccessToken(refreshToken);
 
       // Add the new access token to the cookies
-      const response = htmlResponse();
+      const response = htmlResponse(standaloneMarkdown);
       response.cookies.set("accessToken", newAccessToken, {
         httpOnly: true,
         path: "/",
@@ -394,7 +419,7 @@ export async function proxy(req: ExtendedNextRequest) {
             req.nextUrl.pathname === "/admin/branches/my/partner-prices" ||
             req.nextUrl.pathname.startsWith("/admin/branches/my/partner-prices/")
           ) {
-            return htmlResponse();
+            return htmlResponse(standaloneMarkdown);
           } else if (req.nextUrl.pathname === "/admin" || req.nextUrl.pathname === "/admin/") {
             // Redirect to their branch page if they try to access the admin home
             return NextResponse.redirect(new URL("/admin/branches/my", req.url));
@@ -425,7 +450,7 @@ export async function proxy(req: ExtendedNextRequest) {
         return NextResponse.redirect(new URL("/dashboard", req.url));
       }
 
-      return htmlResponse(); // Proceed to the requested route if all checks pass
+      return htmlResponse(standaloneMarkdown); // Proceed to the requested route if all checks pass
     } catch (error) {
       console.error("Access token verification error:", error);
 
@@ -435,7 +460,7 @@ export async function proxy(req: ExtendedNextRequest) {
           const newAccessToken = await refreshAccessToken(refreshToken);
 
           // Create a new response with the refreshed token
-          const response = htmlResponse();
+          const response = htmlResponse(standaloneMarkdown);
           response.cookies.set("accessToken", newAccessToken, {
             httpOnly: true,
             path: "/",
@@ -470,7 +495,7 @@ export async function proxy(req: ExtendedNextRequest) {
   }
 
   // Proceed if no token is needed and no refresh process is triggered
-  return htmlResponse();
+  return htmlResponse(standaloneMarkdown);
 }
 
 // Specify the routes where this middleware should be applied

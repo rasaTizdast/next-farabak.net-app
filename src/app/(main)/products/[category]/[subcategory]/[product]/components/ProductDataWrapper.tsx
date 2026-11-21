@@ -5,8 +5,9 @@ import { Suspense } from "react";
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
 import SourcesList from "@/components/SourcesList";
 import { SITE_URL } from "@/constants/meta";
-import { BRAND_LABELS, buildSourcesFor, detectBrand } from "@/helpers/sources";
+import { buildSourcesFor } from "@/helpers/sources";
 import { getProductBySlug } from "@/lib/data/products";
+import { getProductBrand } from "@/lib/seo/product-brand";
 import { getProductImageUrl } from "@/lib/seo/product-image-url";
 
 import ClientInvoiceSection from "./ui/ClientInvoiceSection";
@@ -62,10 +63,9 @@ export default async function ProductDataWrapper({
   searchParams,
 }: {
   params: { category: string; product: string };
-  searchParams: { key: string };
+  searchParams: { key?: string } | Promise<{ key?: string }>;
 }) {
-  // QR expiry and price validity are request-time values, not static-shell data.
-  await io();
+  // Public catalog facts can be prerendered. Only key/expiry checks require request data.
   const productData = await getProduct(params.product);
 
   if (!productData) {
@@ -77,14 +77,15 @@ export default async function ProductDataWrapper({
   }
 
   if (productData.QrCode_key) {
-    const { key: urlKey } = searchParams;
+    const { key: urlKey } = await searchParams;
 
     if (!urlKey || urlKey !== productData.QrCode_key) {
       notFound();
     }
 
+    await io();
     const expiryDate = new Date(productData.QrCode_expiryDays);
-    if (new Date() > expiryDate) {
+    if (Number.isNaN(expiryDate.getTime()) || new Date() > expiryDate) {
       notFound();
     }
   }
@@ -96,7 +97,7 @@ export default async function ProductDataWrapper({
     `/products/${productData.categorySlug}/${productData.subCategorySlug}`,
   ];
 
-  const brandToken = detectBrand(productData.Type);
+  const brandName = getProductBrand(productData.categorySlug, productData.Type);
   const productModel = productData.Type || productData.Name || "محصول فرابک";
   const productDescription = productData.Name?.trim();
   const canonicalUrl = new URL(
@@ -120,11 +121,11 @@ export default async function ProductDataWrapper({
         category: `${productData.categorySlug}/${productData.subCategorySlug}`,
         model: productData.Type,
         sku: `FAR-${productData.ProductId}`,
-        ...(brandToken
+        ...(brandName
           ? {
               brand: {
                 "@type": "Brand",
-                name: BRAND_LABELS[brandToken],
+                name: brandName,
               },
             }
           : {}),
@@ -237,9 +238,13 @@ export default async function ProductDataWrapper({
         <h2 id="specs-heading" className="sr-only">
           مشخصات محصول
         </h2>
-        <Suspense fallback={<SkeletonSpecs />}>
+        {productData.QrCode_key ? (
+          <Suspense fallback={<SkeletonSpecs />}>
+            <ProductSpecs productId={productData.ProductId} />
+          </Suspense>
+        ) : (
           <ProductSpecs productId={productData.ProductId} />
-        </Suspense>
+        )}
       </section>
 
       <section

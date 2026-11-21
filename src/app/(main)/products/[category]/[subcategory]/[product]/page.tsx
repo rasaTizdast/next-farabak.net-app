@@ -6,6 +6,7 @@ import { Suspense } from "react";
 
 import { SITE_URL } from "@/constants/meta";
 import { formatTitle } from "@/helpers/formatTitle";
+import { getCatalogStaticParams } from "@/lib/data/catalog-static-params";
 import { getProductBySlug } from "@/lib/data/products";
 import { getProductImageUrl } from "@/lib/seo/product-image-url";
 
@@ -18,9 +19,21 @@ interface ProductPageProps {
   searchParams: Promise<{ key: string }>;
 }
 
+export async function generateStaticParams({
+  params,
+}: {
+  params: { category?: string; subcategory?: string };
+}) {
+  const { products } = await getCatalogStaticParams();
+  return products.filter(
+    (product) =>
+      (!params.category || product.category === params.category) &&
+      (!params.subcategory || product.subcategory === params.subcategory)
+  );
+}
+
 // Metadata generation
 export async function generateMetadata(props: ProductPageProps): Promise<Metadata> {
-  const searchParams = await props.searchParams;
   const params = await props.params;
   const productSlug = params.product;
 
@@ -33,7 +46,7 @@ export async function generateMetadata(props: ProductPageProps): Promise<Metadat
 
   // Check QR code conditions
   if (data.QrCode_key) {
-    const { key: urlKey } = searchParams;
+    const { key: urlKey } = await props.searchParams;
 
     // If there's no key in the URL or the key in the URL doesn't match the product's QR code key
     if (!urlKey || urlKey !== data.QrCode_key) notFound();
@@ -41,7 +54,7 @@ export async function generateMetadata(props: ProductPageProps): Promise<Metadat
     // Check if the QR code has expired
     await io();
     const expiryDate = new Date(data.QrCode_expiryDays);
-    if (new Date() > expiryDate) notFound();
+    if (Number.isNaN(expiryDate.getTime()) || new Date() > expiryDate) notFound();
   }
 
   const title = formatTitle(data.SEO_Title || data.Type, 60);
@@ -71,7 +84,7 @@ export async function generateMetadata(props: ProductPageProps): Promise<Metadat
       canonical: canonicalUrl,
     },
     robots: {
-      index: true,
+      index: !data.QrCode_key,
       follow: true,
     },
   };
@@ -79,13 +92,18 @@ export async function generateMetadata(props: ProductPageProps): Promise<Metadat
 
 export default async function ProductPage(props: ProductPageProps) {
   const params = await props.params;
-  const searchParams = await props.searchParams;
+  const product = await getProductBySlug(params.product);
+  if (!product) notFound();
 
   return (
     <div dir="rtl">
-      <Suspense fallback={<ProductMainSkeleton />}>
-        <ProductDataWrapper params={params} searchParams={searchParams} />
-      </Suspense>
+      {product.QrCode_key ? (
+        <Suspense fallback={<ProductMainSkeleton />}>
+          <ProductDataWrapper params={params} searchParams={props.searchParams} />
+        </Suspense>
+      ) : (
+        <ProductDataWrapper params={params} searchParams={props.searchParams} />
+      )}
     </div>
   );
 }

@@ -1,0 +1,32 @@
+# Liara uses this instead of .gitignore. Keep local/generated files out.
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+/coverage
+coverage-report.txt
+/.next
+/out
+/build
+.DS_Store
+*.pem
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env*
+cypress.env.json
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+.mimocode/
+.husky/_/
+
+# Development tooling and reports are not application build inputs.
+/.agents
+/docs
+/output
+/outputs
+/cypress
+/AGENTS.md
+/DESIGN.md
+/skills-lock.json

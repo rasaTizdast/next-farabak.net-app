@@ -31,12 +31,13 @@ export interface SitemapResult {
 async function querySitemapUrls(): Promise<SitemapResult> {
   const [products, categories, categoryContents, blogs, projects] = await Promise.all([
     prisma.product.findMany({
-      where: { Available: true },
-      include: {
+      where: { Available: true, OR: [{ QrCode_Key: null }, { QrCode_Key: "" }] },
+      select: {
+        Slug: true,
+        CategoryContentId: true,
         Category: {
           select: {
             CategoryID: true,
-            Slug: true,
           },
         },
       },
@@ -95,10 +96,7 @@ async function querySitemapUrls(): Promise<SitemapResult> {
 
     categoriesWithProducts.add(categoryId);
     for (const rawId of product.CategoryContentId?.split(",") ?? []) {
-      const categoryContentId = Number.parseInt(rawId.trim(), 10);
-      if (Number.isInteger(categoryContentId)) {
-        subcategoriesWithProducts.add(`${categoryId}:${categoryContentId}`);
-      }
+      subcategoriesWithProducts.add(`${categoryId}:${rawId}`);
     }
   }
 

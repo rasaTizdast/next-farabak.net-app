@@ -1,4 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { TAGS } from "@/lib/data/tags";
 
 const { mockPrisma } = vi.hoisted(() => ({
   mockPrisma: {
@@ -38,6 +41,9 @@ describe("POST /api/products/qrCode", () => {
       where: { ProductId: 1 },
       data: { QrCode_Key: "key123", QrCode_expiryDays: 30 },
     });
+    expect(revalidateTag).toHaveBeenCalledWith(TAGS.products, { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith(TAGS.categories, { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith(TAGS.sitemap, { expire: 0 });
   });
 
   it("should return 400 when required fields are missing", async () => {
@@ -97,6 +103,9 @@ describe("DELETE /api/products/qrCode", () => {
       where: { ProductId: 1 },
       data: { QrCode_Key: null, QrCode_expiryDays: null },
     });
+    expect(revalidateTag).toHaveBeenCalledWith(TAGS.products, { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith(TAGS.categories, { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith(TAGS.sitemap, { expire: 0 });
   });
 
   it("should return 400 when productId is missing", async () => {

@@ -4,6 +4,9 @@
   "build": {
     "location": "germany"
   },
+  "next": {
+    "mirror": false
+  },
   "disks": [
     {
       "name": "front-codes",

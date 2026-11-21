@@ -21,10 +21,10 @@ const nextConfig = {
   },
   cacheComponents: true,
   partialPrefetching: true,
-  // Googlebot must receive catalog canonicals in the raw head. Preserve the
-  // framework's HTML-limited bot list while adding Google's web crawler.
+  // Keep the default HTML-limited agents and explicit search/retrieval clients:
+  // consumers without a DOM must receive canonical metadata in the initial head.
   htmlLimitedBots:
-    /[\w-]+-Google|Google-[\w-]+|Googlebot|Chrome-Lighthouse|Slurp|DuckDuckBot|baiduspider|yandex|sogou|bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|Yeti|googleweblight/i,
+    /[\w-]+-Google|Google-[\w-]+|Googlebot|Chrome-Lighthouse|Slurp|DuckDuckBot|baiduspider|yandex|sogou|bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|Yeti|googleweblight|OAI-SearchBot|ChatGPT-User|GPTBot|PerplexityBot|Perplexity-User|ClaudeBot|Claude-SearchBot|Claude-User/i,
   // output: "standalone",
   // reactStrictMode: false, // Disable React Strict Mode
   images: {
@@ -47,6 +47,10 @@ const nextConfig = {
     // Loading every route module at boot consumes most of a small container's
     // memory before it has served a single request. Load routes on demand.
     preloadEntriesOnStart: false,
+    // Build workers share an eight-connection database pool. Limit parallel
+    // catalog prerenders so the sitemap and page queries do not exhaust it.
+    cpus: 2,
+    staticGenerationMaxConcurrency: 2,
   },
   // Turbopack configuration (now stable)
   turbopack: {

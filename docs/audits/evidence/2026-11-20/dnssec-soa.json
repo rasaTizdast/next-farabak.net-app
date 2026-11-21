@@ -1,0 +1,314 @@
+[
+  {
+    "server": "1.1.1.1",
+    "type": 43,
+    "rcode": 0,
+    "ad": false,
+    "tc": false,
+    "records": [
+      {
+        "section": "authority",
+        "name": "net",
+        "type": 6,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "authority",
+        "name": "net",
+        "type": 46,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "authority",
+        "name": "AOISDDBRBL3MEJP43FOQ7QTNP502S6ET.net",
+        "type": 50,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "authority",
+        "name": "AOISDDBRBL3MEJP43FOQ7QTNP502S6ET.net",
+        "type": 46,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "authority",
+        "name": "A1RT98BS5QGC9NFI51S9HCI47ULJG6JH.net",
+        "type": 50,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "authority",
+        "name": "A1RT98BS5QGC9NFI51S9HCI47ULJG6JH.net",
+        "type": 46,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "additional",
+        "name": "",
+        "type": 41,
+        "ttl": 32768,
+        "hex": null
+      }
+    ]
+  },
+  {
+    "server": "1.1.1.1",
+    "type": 48,
+    "rcode": 0,
+    "ad": false,
+    "tc": false,
+    "records": [
+      {
+        "section": "authority",
+        "name": "farabak.net",
+        "type": 6,
+        "ttl": 3600,
+        "hex": null
+      },
+      {
+        "section": "additional",
+        "name": "",
+        "type": 41,
+        "ttl": 32768,
+        "hex": null
+      }
+    ]
+  },
+  {
+    "server": "1.1.1.1",
+    "type": 6,
+    "rcode": 0,
+    "ad": false,
+    "tc": false,
+    "records": [
+      {
+        "section": "answer",
+        "name": "farabak.net",
+        "type": 6,
+        "ttl": 3600,
+        "hex": null
+      },
+      {
+        "section": "additional",
+        "name": "",
+        "type": 41,
+        "ttl": 32768,
+        "hex": null
+      }
+    ]
+  },
+  {
+    "server": "8.8.8.8",
+    "type": 43,
+    "rcode": 0,
+    "ad": false,
+    "tc": false,
+    "records": [
+      {
+        "section": "authority",
+        "name": "A1RT98BS5QGC9NFI51S9HCI47ULJG6JH.net",
+        "type": 50,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "authority",
+        "name": "A1RT98BS5QGC9NFI51S9HCI47ULJG6JH.net",
+        "type": 46,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "authority",
+        "name": "net",
+        "type": 6,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "authority",
+        "name": "net",
+        "type": 46,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "authority",
+        "name": "AOISDDBRBL3MEJP43FOQ7QTNP502S6ET.net",
+        "type": 50,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "authority",
+        "name": "AOISDDBRBL3MEJP43FOQ7QTNP502S6ET.net",
+        "type": 46,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "additional",
+        "name": "",
+        "type": 41,
+        "ttl": 32768,
+        "hex": null
+      }
+    ]
+  },
+  {
+    "server": "8.8.8.8",
+    "type": 48,
+    "rcode": 0,
+    "ad": false,
+    "tc": false,
+    "records": [
+      {
+        "section": "authority",
+        "name": "farabak.net",
+        "type": 6,
+        "ttl": 1800,
+        "hex": null
+      },
+      {
+        "section": "additional",
+        "name": "",
+        "type": 41,
+        "ttl": 32768,
+        "hex": null
+      }
+    ]
+  },
+  {
+    "server": "8.8.8.8",
+    "type": 6,
+    "rcode": 0,
+    "ad": false,
+    "tc": false,
+    "records": [
+      {
+        "section": "answer",
+        "name": "farabak.net",
+        "type": 6,
+        "ttl": 3600,
+        "hex": null
+      },
+      {
+        "section": "additional",
+        "name": "",
+        "type": 41,
+        "ttl": 32768,
+        "hex": null
+      }
+    ]
+  },
+  {
+    "server": "9.9.9.9",
+    "type": 43,
+    "rcode": 0,
+    "ad": false,
+    "tc": false,
+    "records": [
+      {
+        "section": "authority",
+        "name": "net",
+        "type": 6,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "authority",
+        "name": "A1RT98BS5QGC9NFI51S9HCI47ULJG6JH.net",
+        "type": 50,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "authority",
+        "name": "AOISDDBRBL3MEJP43FOQ7QTNP502S6ET.net",
+        "type": 50,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "authority",
+        "name": "net",
+        "type": 46,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "authority",
+        "name": "A1RT98BS5QGC9NFI51S9HCI47ULJG6JH.net",
+        "type": 46,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "authority",
+        "name": "AOISDDBRBL3MEJP43FOQ7QTNP502S6ET.net",
+        "type": 46,
+        "ttl": 900,
+        "hex": null
+      },
+      {
+        "section": "additional",
+        "name": "",
+        "type": 41,
+        "ttl": 32768,
+        "hex": null
+      }
+    ]
+  },
+  {
+    "server": "9.9.9.9",
+    "type": 48,
+    "rcode": 0,
+    "ad": false,
+    "tc": false,
+    "records": [
+      {
+        "section": "authority",
+        "name": "farabak.net",
+        "type": 6,
+        "ttl": 3600,
+        "hex": null
+      },
+      {
+        "section": "additional",
+        "name": "",
+        "type": 41,
+        "ttl": 32768,
+        "hex": null
+      }
+    ]
+  },
+  {
+    "server": "9.9.9.9",
+    "type": 6,
+    "rcode": 0,
+    "ad": false,
+    "tc": false,
+    "records": [
+      {
+        "section": "answer",
+        "name": "farabak.net",
+        "type": 6,
+        "ttl": 3351,
+        "hex": null
+      },
+      {
+        "section": "additional",
+        "name": "",
+        "type": 41,
+        "ttl": 32768,
+        "hex": null
+      }
+    ]
+  }
+]

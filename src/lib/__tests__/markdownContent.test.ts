@@ -1,11 +1,27 @@
 import { describe, expect, it } from "vitest";
 
-import { buildNotFoundMarkdown, markdownKeyFromPath, markdownPages } from "../markdownContent";
+import {
+  buildNotFoundMarkdown,
+  getCatalogPageCheck,
+  markdownKeyFromPath,
+  markdownPages,
+} from "../markdownContent";
+
+describe("catalog route shapes", () => {
+  it("allows dynamic slugs that collide with shorter static paths", () => {
+    expect(
+      getCatalogPageCheck(["products", "search", "bullet"], new URLSearchParams())
+    ).toMatchObject({ type: "subcategory", category: "search", subcategory: "bullet" });
+    expect(
+      getCatalogPageCheck(["products", "camera", "page"], new URLSearchParams())
+    ).toMatchObject({ type: "subcategory", category: "camera", subcategory: "page" });
+  });
+});
 
 describe("markdownPages", () => {
   it("covers the main public pages", () => {
     expect(Object.keys(markdownPages)).toEqual(
-      expect.arrayContaining(["", "products", "support", "about-us", "contact-us", "privacy"])
+      expect.arrayContaining(["", "support", "about-us", "contact-us", "privacy"])
     );
   });
 
@@ -21,6 +37,12 @@ describe("markdownPages", () => {
     const home = markdownPages[""];
     expect(home.markdown.length).toBeGreaterThan(500);
     expect(home.markdown).toContain("فرابک");
+  });
+
+  it("describes the company without unverified importer claims", () => {
+    for (const page of [markdownPages[""], markdownPages["about-us"]]) {
+      expect(page.markdown).not.toContain("واردکننده");
+    }
   });
 });
 

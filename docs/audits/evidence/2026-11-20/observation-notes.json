@@ -1,0 +1,84 @@
+{
+  "observation_date_local": "2026-11-20",
+  "timezone": "Asia/Tehran",
+  "user_reported_history": {
+    "gradual_visibility_loss": "Approximately five or six months, associated by the user with moving deployment to Iran; causality unverified",
+    "return_to_germany": "Yesterday relative to November 20, 2026; exact timestamp unavailable",
+    "registrar": "HostIran according to user; tested public NS are Liara",
+    "custom_firewall_cdn": "User reports no deliberate configuration; provider-managed behavior unverified"
+  },
+  "rendered_browser_checks": {
+    "method": "Read-only in-app browser navigation and DOM inspection, JavaScript enabled",
+    "product": {
+      "url": "https://farabak.net/products/reolink-cctv-camera/bullet/B400",
+      "title": "B400 product page",
+      "canonical": "https://farabak.net/products/reolink-cctv-camera/bullet/B400",
+      "h1": ["B400"],
+      "observed_visible_content": [
+        "model and Persian summary",
+        "PoE/IP66/features",
+        "technical specifications",
+        "invoice login link",
+        "contact/footer links"
+      ],
+      "rendered_jsonld_types": ["Product", "BreadcrumbList", "ItemList", "BlogPosting"],
+      "product_brand_present": false
+    },
+    "category": {
+      "url": "https://farabak.net/products/reolink-cctv-camera",
+      "canonical": "https://farabak.net/products/reolink-cctv-camera",
+      "observed_visible_content": [
+        "Persian Reolink heading",
+        "brand selection guidance",
+        "subcategory and model links",
+        "product listing"
+      ],
+      "rendered_jsonld_types": ["CollectionPage with ItemList and BreadcrumbList"]
+    },
+    "javascript_disabled_browser_test": "Not performed; hidden-container analysis is an HTML-parser measurement, not a JS-disabled visual test"
+  },
+  "web_retrieval_checks": [
+    {
+      "target": "https://farabak.net/",
+      "initial": "Tool reports URL not accessible, without HTTP status/network reason",
+      "later": "Tool returns cached page marked crawled last month; old homepage title/content differs from direct current HTTP"
+    },
+    {
+      "target": "https://farabak.net/robots.txt",
+      "result": "Tool reports URL not accessible; direct curl and international HTTP probes succeed"
+    },
+    {
+      "target": "https://farabak.net/sitemap.xml",
+      "result": "Initial tool inaccessible; direct curl valid XML HTTP 200"
+    },
+    {
+      "target": "https://farabak.net/products/reolink-cctv-camera",
+      "result": "Tool returns cached snapshot marked crawled yesterday; direct curl and rendered browser also succeed"
+    },
+    {
+      "target": "https://farabak.net/products/reolink-cctv-camera/bullet/B400",
+      "result": "Tool reports inaccessible; direct curl and rendered browser succeed"
+    },
+    {
+      "target": "https://fallahnet.com/",
+      "result": "Tool reports inaccessible; direct curl succeeds"
+    }
+  ],
+  "chrome_report_attempt": {
+    "requested_by_user": true,
+    "result": "Stopped by browser-control tool because current Chrome URL could not be reliably determined; no session interaction performed",
+    "reports_not_obtained": [
+      "Crawl stats and Host status",
+      "aggregate Page indexing counts",
+      "Sitemap processing status",
+      "Manual actions",
+      "Security issues"
+    ]
+  },
+  "limits": [
+    "Spoofed User-Agent tests do not originate from authentic provider IPs.",
+    "No Liara edge/access/application logs were available.",
+    "No DNS, CDN, WAF, or deployment mutations performed.",
+    "GSC inspections are stored-index reports, not live URL tests."
+  ]
+}
