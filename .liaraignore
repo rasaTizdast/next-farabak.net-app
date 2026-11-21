@@ -1,5 +1,6 @@
 # Liara uses this instead of .gitignore. Keep local/generated files out.
 /node_modules
+/pnpm-lock.yaml
 /.pnp
 .pnp.js
 .yarn/install-state.gz
