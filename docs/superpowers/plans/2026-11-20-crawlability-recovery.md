@@ -1,6 +1,6 @@
 # Crawlability Recovery Implementation Plan
 
-**Status as of 21 November 2026:** Tasks 1–4 and the local/production regression checks are complete. Germany is the requested application target. Liara account/release verification and the Google live URL tests remain external follow-ups; see the verification report.
+**Status as of 21 November 2026:** Tasks 1–4, the local/production regression checks, and the scoped documentation/lockfile commit and push are complete. Germany is the requested application target. Liara account/release verification and the Google live URL tests remain external follow-ups; see the verification report.
 
 **Goal:** implement the actionable audit repairs, commit and deploy them to Liara, then verify the real production responses.
 
@@ -61,7 +61,7 @@
 
 - [x] Run targeted tests, changed-file lint/format and production build; resolve failures, then review the whole diff for scope/security regressions.
 - [ ] Identify the correct existing Liara account/app without creating resources or displaying secrets; inspect sanitized relevant logs and runtime/deployment status where accessible.
-- [ ] Commit only scoped fixes/tests/docs and push the task branch if appropriate. Preserve unrelated deletions.
+- [x] Commit only scoped fixes/tests/docs and push the task branch if appropriate. Preserve unrelated deletions. Follow-up commit `a4cc0b88` contains the audit/evidence updates and malformed-lockfile repair; the unrelated deletions and `liara.json` working-copy change remain uncommitted.
 - [ ] Deploy the exact committed release to the existing Germany app using Liara's supported CLI/API; observe terminal deployment state rather than restarting on observation timeout.
 - [ ] Repeat production HTTP/body/robots/sitemap/redirect/metadata/Markdown checks and independent international probes; record the release ID and outcomes.
 - [x] Inspect priority Google stored status separately from live eligibility. Submit recrawl only through an authorized supported interface; if unavailable, document the exact remaining UI action without claiming submission. Stored status captured; the live test and request were unavailable in the signed-out UI, so the exact remaining action is recorded in the verification report.
