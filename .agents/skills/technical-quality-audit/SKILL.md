@@ -10,12 +10,20 @@ Review the requested scope and return evidence-backed findings. The default mode
 ## Audit procedure
 
 1. **Set scope.** Resolve the requested URL, route, component, or directory to its owning route and dependencies. Include relevant layouts, shared header/footer, data source, CSS, metadata, image assets, and route handlers. State what you inspected and what could not be inspected.
-2. **Load current guidance.** Read the applicable local Next.js guide from `node_modules/next/dist/docs/` for this project's installed version before judging or changing framework-specific code. Read applicable project skills: `next-best-practices`, `react-patterns`, `nextjs-performance`, `core-web-vitals`, `accessibility`, `web-design-guidelines`, and `farabak-seo`; use the relevant parts rather than importing unrelated workflows. Browse current primary documentation for claims that can change. Prefer official Next.js, React, Google Search Central, Chrome Lighthouse, PageSpeed Insights, web.dev, W3C/WAI, and Schema.org sources. Include access date and source links in the report. Treat third-party recommendations as hypotheses until confirmed by primary guidance.
+2. **Load current guidance.** Read the applicable local Next.js guide from `node_modules/next/dist/docs/` for this project's installed version before judging or changing framework-specific code. Read applicable project skills: `next-best-practices`, `react-patterns`, `nextjs-performance`, `core-web-vitals`, `accessibility`, `web-design-guidelines`, and `farabak-seo`; use the relevant parts rather than importing unrelated workflows. Apply the Modern Web Guidance lookup below to web-platform concerns in scope. Browse current primary documentation for claims that can change. Prefer official Next.js, React, Google Search Central, Chrome Lighthouse, PageSpeed Insights, web.dev, W3C/WAI, and Schema.org sources. Include access date and source links in the report. Treat third-party recommendations as hypotheses until confirmed by primary guidance.
 3. **Inspect implementation and output.** Trace source to rendered HTML where possible. Check both source and the actual rendered page, since metadata, server rendering, client components, streaming, proxy behavior, and structured data can differ at runtime. For a public URL, inspect mobile and desktop; use the browser if available. Do not claim a live behavior from source alone.
 4. **Measure page experience.** For a public URL, use PageSpeed Insights and/or Lighthouse when available. Report URL, date, device, Lighthouse version if shown, category scores, and field versus lab metrics separately. Use CrUX field data for real-user outcomes and Lighthouse lab data for diagnosis; note when CrUX has insufficient data. Use current Core Web Vitals thresholds from official guidance and identify the 75th-percentile field context. Never present a lab score as a field result or a single run as a stable site-wide result. For local/unavailable URLs, say measurement was unavailable and give a reproducible validation step instead.
 5. **Audit every applicable domain below.** Mark each as pass, issue, or not applicable, and support issues with file/line, rendered evidence, or a measurement. Do not pad the report with generic advice.
 6. **Prioritize.** Order findings by user impact and search/crawl impact, then implementation effort. Distinguish confirmed defects from risks or hypotheses. Give each finding severity (blocker/high/medium/low), confidence (high/medium/low), a concrete recommendation, and a verifiable acceptance check.
 7. **Report readiness.** Summarize the most important blockers, overall technical readiness (ready / needs work / blocked, with a brief reason), coverage limits, and the next validation steps. Keep editorial content gaps separate from technical findings; the purpose is technical readiness before a content program.
+
+## Modern Web Guidance lookup
+
+Use [Chrome's Modern Web Guidance](https://developer.chrome.com/docs/modern-web-guidance/) for applicable HTML, CSS, browser API, accessibility, performance, security, and browser compatibility questions. Search for the specific observed pattern or proposed improvement with `npx --yes modern-web-guidance@latest search "<English use case>"`, select relevant guide IDs, then read them with `npx --yes modern-web-guidance@latest retrieve "<guide-id>"`. If retrieval saves a large guide to a temporary file, read that file in full. Use the retrieved rules, caveats, and verification steps to assess the actual implementation; cite the guide ID and source link in any resulting finding. If the CLI is unavailable, use the corresponding guide in Chrome's [catalog](https://developer.chrome.com/docs/modern-web-guidance/guides) and record that limitation. A guide lookup is complete when each relevant recommendation has been checked against the inspected code and the page's actual behavior where observable.
+
+For an explicitly requested legacy-pattern or modernization audit, run `npx --yes modern-web-guidance@latest legacy-scan <scoped-path> --json`. Check each match against its `keepWhen` and `dropWhen` context before reporting it; scanner output alone is a candidate, not a confirmed defect. Keep the scan within the requested scope and preserve the agent's read-only audit mode.
+
+Determine browser support from the project's stated browser targets. If none are stated, use Modern Web Guidance's default **Baseline Widely available** as the recommendation target, label that assumption, and check support and fallbacks before recommending a newer feature. Prefer progressive enhancement for features outside the target; propose conditional polyfills only when necessary. Treat volatile features and origin trials as out of scope unless the user explicitly requests them. Reconcile Chrome guidance with the installed Next.js docs, WCAG, and Google Search Central where those authorities govern the finding. A newer platform feature is an option, not by itself evidence that working code is defective.
 
 ## Review domains
 
@@ -59,6 +67,7 @@ Review the requested scope and return evidence-backed findings. The default mode
 - Target:
 - Inspected:
 - Guidance checked (with access date):
+- Modern Web Guidance (guide IDs, browser target, or reason not applicable/unavailable):
 - Measurements (URL, device, date, field/lab):
 
 ### Findings
@@ -95,6 +104,7 @@ At each audit, verify the current versions and follow relevant linked guidance:
 - [PageSpeed Insights](https://pagespeed.web.dev/)
 - [PageSpeed Insights documentation](https://developers.google.com/speed/docs/insights/v5/about)
 - [Lighthouse documentation](https://developer.chrome.com/docs/lighthouse/)
+- [Chrome Modern Web Guidance](https://developer.chrome.com/docs/modern-web-guidance/)
 - [Web Vitals](https://web.dev/articles/vitals)
 - [WCAG 2.2](https://www.w3.org/TR/WCAG22/)
 - [Schema.org](https://schema.org/)
