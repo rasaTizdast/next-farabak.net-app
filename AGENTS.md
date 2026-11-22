@@ -54,15 +54,16 @@
 
 Repository skills live in `.agents/skills/<name>/SKILL.md`. Codex discovers these project skills; read the relevant skill and its linked references before applying it. Invoke a specific workflow explicitly with `$frontend-design`, `$nextjs-performance`, or another skill name. Keep this directory as the source of truth.
 
-| Task                                      | Project skills to consult                                        |
-| ----------------------------------------- | ---------------------------------------------------------------- |
-| New UI, redesign or buyer journey         | `brainstorming`, `frontend-design`, `cro`                        |
-| Multi-step implementation                 | `writing-plans`; make a plan for the current approved scope      |
-| App Router, React or caching              | `next-best-practices`, `react-patterns`, `next-cache-components` |
-| Loading speed or animation budgets        | `nextjs-performance`, `core-web-vitals`                          |
-| Keyboard, responsive usability and motion | `accessibility`, `web-design-guidelines`                         |
-| Agent instructions or skill edits         | `writing-for-agents`                                             |
-| Search visibility, keywords, or rankings  | `farabak-seo`                                                    |
+| Task                                                          | Project skills to consult                                                                          |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| New UI, redesign or buyer journey                             | `brainstorming`, `frontend-design`, `cro`                                                          |
+| Multi-step implementation                                     | `writing-plans`; make a plan for the current approved scope                                        |
+| App Router, React or caching                                  | `next-best-practices`, `react-patterns`, `next-cache-components`                                   |
+| Loading speed or animation budgets                            | `nextjs-performance`, `core-web-vitals`                                                            |
+| Keyboard, responsive usability and motion                     | `accessibility`, `web-design-guidelines`                                                           |
+| Agent instructions or skill edits                             | `writing-for-agents`                                                                               |
+| Search visibility, keywords, or rankings                      | `farabak-seo`                                                                                      |
+| Technical SEO/AEO/GEO, UX, accessibility, or PageSpeed review | `technical-quality-audit`; use `.codex/agents/technical-quality-auditor.toml` for read-only audits |
 
 For any public-page redesign, read `DESIGN.md` first, then inspect the route, its data sources, the shared header/footer, and the rendered page. The active homepage is `src/app/(main)/page.tsx` → `TrustLanding.tsx`; `src/content/landing-stories.ts` and `src/content/landing-assets.ts` carry its story and media facts. Use Tailwind CSS v4 utilities for new page styling and match the header's responsive gutters and inner width. Treat older landing components and `landing.module.css` as legacy code until a route actually imports them.
 
