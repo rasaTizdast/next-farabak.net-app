@@ -127,9 +127,9 @@ const nextCursor = rows.length > 25 ? items.at(-1)!.id : null;
 
 **Interfaces:** Fetches the Task 3 GET endpoint; shows each record's full plain-text message; a «نمایش بیشتر» button requests `nextCursor` until null.
 
-- [ ] **Step 1: Write failing UI tests.** Mock the GET endpoint. Assert initial loading, newest-first records with full name/phone/project/message/date, empty response copy, retry after fetch error, pagination that appends without duplicates, and no message markup interpreted as HTML. Assert the sidebar exposes the route only in the admin item set. Run focused tests and confirm failure.
-- [ ] **Step 2: Build the page.** Follow the existing admin styling and RTL layout. Use semantic headings and a list of cards suitable for mobile, `dir="ltr"` for phone numbers, accessible loading/error states, a retry control, and a load-more control. Display `createdAt` with `Intl.DateTimeFormat("fa-IR", {dateStyle:"medium", timeStyle:"short"})`; never use `dangerouslySetInnerHTML` for visitor content. Add the sidebar link with a mail icon.
-- [ ] **Step 3: Verify and commit.** Run focused UI tests, lint, and commit Task 4 files.
+- [x] **Step 1: Write failing UI tests.** Mock the GET endpoint. Assert initial loading, newest-first records with full name/phone/project/message/date, empty response copy, retry after fetch error, pagination that appends without duplicates, and no message markup interpreted as HTML. Assert the sidebar exposes the route only in the admin item set. Run focused tests and confirm failure.
+- [x] **Step 2: Build the page.** Follow the existing admin styling and RTL layout. Use semantic headings and a list of cards suitable for mobile, `dir="ltr"` for phone numbers, accessible loading/error states, a retry control, and a load-more control. Display `createdAt` with `Intl.DateTimeFormat("fa-IR", {dateStyle:"medium", timeStyle:"short"})`; never use `dangerouslySetInnerHTML` for visitor content. Add the sidebar link with a mail icon.
+- [x] **Step 3: Verify and commit.** Run focused UI tests, lint, and commit Task 4 files.
 
 ### Task 5: Release verification
 
