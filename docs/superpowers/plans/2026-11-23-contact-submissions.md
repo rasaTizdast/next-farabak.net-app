@@ -21,19 +21,19 @@
 
 ## File map
 
-| File | Responsibility |
-| --- | --- |
-| `prisma/schema.prisma` | `ContactSubmission` model and descending lookup index. |
-| `prisma/sql/2026-11-23-contact-submissions.sql` | Idempotent create-table/index script for the existing `contact_us` schema. |
-| `src/lib/contact-submissions.ts` | Shared Zod input validation, digit normalization, and response types. |
-| `src/app/api/contact-submissions/route.ts` | Anonymous validated write; small success response. |
-| `src/app/api/contact-submissions/route.test.ts` | Public API success, invalid, abuse, and failure cases. |
-| `src/app/(main)/contact-us/_components/ContactInquiryForm.tsx` | Send request, in-flight state, toast, reset/error behavior. |
-| `src/app/(main)/contact-us/_components/ContactInquiryForm.test.tsx` | Form behavior and accessibility checks. |
-| `src/app/(main)/contact-us/page.tsx` and `page.test.tsx` | Accurate copy; form independent of contact-info availability. |
-| `src/app/api/admin/contact-submissions/route.ts` and `route.test.ts` | Authorized cursor-paged list and access tests. |
-| `src/app/admin/contact-submissions/page.tsx` and `page.test.tsx` | Read-only inbox and its UI states. |
-| `src/app/admin/components/Sidebar.tsx` | Admin-only inbox link. |
+| File                                                                 | Responsibility                                                             |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `prisma/schema.prisma`                                               | `ContactSubmission` model and descending lookup index.                     |
+| `prisma/sql/2026-11-23-contact-submissions.sql`                      | Idempotent create-table/index script for the existing `contact_us` schema. |
+| `src/lib/contact-submissions.ts`                                     | Shared Zod input validation, digit normalization, and response types.      |
+| `src/app/api/contact-submissions/route.ts`                           | Anonymous validated write; small success response.                         |
+| `src/app/api/contact-submissions/route.test.ts`                      | Public API success, invalid, abuse, and failure cases.                     |
+| `src/app/(main)/contact-us/_components/ContactInquiryForm.tsx`       | Send request, in-flight state, toast, reset/error behavior.                |
+| `src/app/(main)/contact-us/_components/ContactInquiryForm.test.tsx`  | Form behavior and accessibility checks.                                    |
+| `src/app/(main)/contact-us/page.tsx` and `page.test.tsx`             | Accurate copy; form independent of contact-info availability.              |
+| `src/app/api/admin/contact-submissions/route.ts` and `route.test.ts` | Authorized cursor-paged list and access tests.                             |
+| `src/app/admin/contact-submissions/page.tsx` and `page.test.tsx`     | Read-only inbox and its UI states.                                         |
+| `src/app/admin/components/Sidebar.tsx`                               | Admin-only inbox link.                                                     |
 
 ### Task 1: Persist valid submissions
 
@@ -53,10 +53,10 @@ type ContactSubmissionInput = {
 };
 ```
 
-- [ ] **Step 1: Read the installed Next.js route-handler guide and inspect current API test mocking.** Install with `pnpm install --frozen-lockfile` if this worktree lacks `node_modules`. Check route conventions before code changes.
-- [ ] **Step 2: Write failing API tests.** Mock `prisma.contactSubmission.create`. Assert valid Persian-digit phone is normalized and persisted once, returns 201 and `{ok:true}`; invalid name/phone/message/project returns 400 without a write; malformed JSON returns 400; body over 24,576 bytes returns 413; filled `website` returns 201 without a write; rejected database write returns 500 without echoing the inquiry. Run `pnpm test -- src/app/api/contact-submissions/route.test.ts` and verify the new tests fail.
-- [ ] **Step 3: Add schema and SQL.** Use `ContactSubmission` with `id Int @id @default(autoincrement())`, `name String @db.VarChar(120)`, `phone String @db.VarChar(16)`, `project String? @db.VarChar(160)`, `message String @db.VarChar(5000)`, `createdAt DateTime @default(now()) @db.Timestamptz(6)`, `@@index([id(sort: Desc)])`, and `@@schema("contact_us")`. SQL must create the same table and index with matching quoted column names/types, with `CREATE TABLE IF NOT EXISTS` and `CREATE INDEX IF NOT EXISTS`. Confirm generated SQL with Prisma's diff tooling before release; review any mismatch.
-- [ ] **Step 4: Implement shared validation and POST.** Read the request stream with a cumulative 24,576-byte cap before JSON parsing; do not trust `Content-Length` alone. Trim text, map Persian/Arabic digits to ASCII before phone validation, reject unknown keys except `website`, and use `safeParse`. For a filled honeypot return `{ok:true}` without DB access. The successful write follows this shape:
+- [x] **Step 1: Read the installed Next.js route-handler guide and inspect current API test mocking.** Install with `pnpm install --frozen-lockfile` if this worktree lacks `node_modules`. Check route conventions before code changes.
+- [x] **Step 2: Write failing API tests.** Mock `prisma.contactSubmission.create`. Assert valid Persian-digit phone is normalized and persisted once, returns 201 and `{ok:true}`; invalid name/phone/message/project returns 400 without a write; malformed JSON returns 400; body over 24,576 bytes returns 413; filled `website` returns 201 without a write; rejected database write returns 500 without echoing the inquiry. Run `pnpm test -- src/app/api/contact-submissions/route.test.ts` and verify the new tests fail.
+- [x] **Step 3: Add schema and SQL.** Use `ContactSubmission` with `id Int @id @default(autoincrement())`, `name String @db.VarChar(120)`, `phone String @db.VarChar(16)`, `project String? @db.VarChar(160)`, `message String @db.VarChar(5000)`, `createdAt DateTime @default(now()) @db.Timestamptz(6)`, `@@index([id(sort: Desc)])`, and `@@schema("contact_us")`. SQL must create the same table and index with matching quoted column names/types, with `CREATE TABLE IF NOT EXISTS` and `CREATE INDEX IF NOT EXISTS`. Confirm generated SQL with Prisma's diff tooling before release; review any mismatch.
+- [x] **Step 4: Implement shared validation and POST.** Read the request stream with a cumulative 24,576-byte cap before JSON parsing; do not trust `Content-Length` alone. Trim text, map Persian/Arabic digits to ASCII before phone validation, reject unknown keys except `website`, and use `safeParse`. For a filled honeypot return `{ok:true}` without DB access. The successful write follows this shape:
 
 ```ts
 await prisma.contactSubmission.create({
@@ -71,7 +71,8 @@ return NextResponse.json({ ok: true }, { status: 201 });
 ```
 
 Use a generic Persian failure message for 500, and no-store headers on responses.
-- [ ] **Step 5: Verify and commit.** Run `pnpm prisma:generate`, `pnpm exec prisma validate`, and the focused test. Commit only Task 1 files. Record that deploying the SQL script requires checking the target database's existing migration practice and the deployment-level request limit.
+
+- [x] **Step 5: Verify and commit.** Run `pnpm prisma:generate`, `pnpm exec prisma validate`, and the focused test. Commit only Task 1 files. Record that deploying the SQL script requires checking the target database's existing migration practice and the deployment-level request limit.
 
 ### Task 2: Send from the public form
 
