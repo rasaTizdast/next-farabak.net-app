@@ -139,10 +139,10 @@
 
 **Interfaces:** Public blog detail and counts use only `PublicComment` rows with `APPROVED`; admin-only blog editing data needs explicit `Admin` authorization before returning private moderation details.
 
-- [ ] **Step 1: Write failing regression tests** that seed one approved, one pending, one rejected legacy/new comment. Assert public detail, category/list counts and `/api/blogs/[slug]` expose only the approved row and count `1`. Assert the management detail endpoint denies a member before including private data.
-- [ ] **Step 2: Run focused tests and confirm leak assertions fail.** `pnpm test src/lib/data/blogs.test.ts src/app/api/blogs` (add `blogs.test.ts` if absent).
-- [ ] **Step 3: Replace old `Comments: true` public includes** with approved-only counts/projections from the new table. Retire the public old-table mapping. Inspect every `rg -n 'Comments: true|blog\.Comments' src` match; for each public match either filter by approval or remove the field. Keep legacy rows quarantined.
-- [ ] **Step 4: Run all blog API and page tests; commit.** `git add src/lib/data/blogs.ts src/lib/data/blogs.test.ts src/app/api/blogs && git commit -m "fix: hide unapproved blog comments from public reads"`.
+- [x] **Step 1: Write failing regression tests** that seed one approved, one pending, one rejected legacy/new comment. Assert public detail, category/list counts and `/api/blogs/[slug]` expose only the approved row and count `1`. Assert the management detail endpoint denies a member before including private data.
+- [x] **Step 2: Run focused tests and confirm leak assertions fail.** `pnpm test src/lib/data/blogs.test.ts src/app/api/blogs` (add `blogs.test.ts` if absent).
+- [x] **Step 3: Replace old `Comments: true` public includes** with approved-only counts/projections from the new table. Retire the public old-table mapping. Inspect every `rg -n 'Comments: true|blog\.Comments' src` match; for each public match either filter by approval or remove the field. Keep legacy rows quarantined.
+- [x] **Step 4: Run all blog API and page tests; commit.** `git add src/lib/data/blogs.ts src/lib/data/blogs.test.ts src/app/api/blogs && git commit -m "fix: hide unapproved blog comments from public reads"`.
 
 ### Task 5: Public article and product UI
 
