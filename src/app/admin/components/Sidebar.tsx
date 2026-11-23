@@ -15,6 +15,7 @@ import {
   FiTag,
   FiMenu,
   FiX,
+  FiMail,
 } from "react-icons/fi";
 import { IoReturnDownForward } from "react-icons/io5";
 import { MdOutlineStorefront } from "react-icons/md";
@@ -47,6 +48,7 @@ const adminSidebarItems = [
     icon: <MdOutlineStorefront size={20} />,
   },
   { name: "فاکتورها", href: "/admin/invoices", icon: <FiFile size={20} /> },
+  { name: "پیام‌های تماس", href: "/admin/contact-submissions", icon: <FiMail size={20} /> },
   {
     name: "تنظیمات",
     href: "/admin/settings",
