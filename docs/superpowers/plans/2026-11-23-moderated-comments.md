@@ -124,13 +124,13 @@
 
 ### Task 3: Public and admin Route Handlers
 
-**Files:** Create `src/app/api/comments/route.ts`, `src/app/api/comments/[targetType]/[targetId]/route.ts`, `src/app/api/admin/comments/route.ts`, `src/app/api/admin/comments/[commentId]/route.ts` and route tests.
+**Files:** Create `src/lib/comments/admin-queries.ts` and tests; create `src/app/api/comments/route.ts`, `src/app/api/comments/[targetType]/[targetId]/route.ts`, `src/app/api/admin/comments/route.ts`, `src/app/api/admin/comments/[commentId]/route.ts` and route tests.
 
-**Interfaces:** `POST /api/comments` returns 202 `{id,status:"PENDING"}`; `GET /api/comments/:targetType/:targetId?cursor=` returns an approved-only page; `GET /api/admin/comments?status=&targetType=&cursor=` returns admin queue; `PATCH /api/admin/comments/:commentId` accepts `{decision,note}`.
+**Interfaces:** `POST /api/comments` returns 202 `{id,status:"PENDING"}`; `GET /api/comments/:targetType/:targetId?cursor=` returns an approved-only page; `GET /api/admin/comments?status=&targetType=&cursor=` returns admin queue; `PATCH /api/admin/comments/:commentId` accepts `{decision,note}`. The admin list query rechecks the current database role and returns only fields needed for review, including actor ID, parent context and a valid target link.
 
 - [ ] **Step 1: Write failing route tests** using `createApiTestContext`: anonymous 401, member alias/reply 403, malformed input 400, private target 404, rate cap 429, successful 202, non-admin queue/decision 403, admin queue safe pagination, and duplicate/conflicting decisions 409. Assert `Origin` matches site origin for writes and a database role check blocks a demoted admin despite an old Admin JWT.
 - [ ] **Step 2: Run the route tests and confirm failure.** `pnpm test src/app/api/comments src/app/api/admin/comments`.
-- [ ] **Step 3: Add thin handlers.** Use `requireAuth()` plus the service’s fresh-user check. Parse JSON with a strict schema; do not trust client role/name. Map domain errors to stable HTTP codes. Set `Cache-Control: no-store` for admin and submission responses. After a public state change call `revalidateTag(commentTag(target), { expire: 0 })` and revalidate the affected public path if its HTML cache still serves old comments. Keep the approved GET free of account-specific fields.
+- [ ] **Step 3: Add thin handlers and admin query.** Use `requireAuth()` plus database-backed role checks. Parse JSON with a strict schema; do not trust client role/name. Require write `Origin` to match the configured site origin (`BASE_URL`, `NEXT_PUBLIC_BASE_URL`, then `SITE_URL`), never the untrusted request host. Map domain errors to stable HTTP codes. Set `Cache-Control: no-store` for admin and submission responses. After a public state change call `revalidateTag(commentTag(target), { expire: 0 })` and revalidate the affected public path if its HTML cache still serves old comments. Keep the approved GET free of account-specific fields.
 - [ ] **Step 4: Run route and service tests; commit.** `git add src/app/api/comments src/app/api/admin/comments && git commit -m "feat: expose moderated comment endpoints"`.
 
 ### Task 4: Close existing public blog data leaks
