@@ -11,7 +11,11 @@ const BLOG_LIST_INCLUDE = {
       Categories: true,
     },
   },
-  Comments: true,
+  _count: {
+    select: {
+      publicComments: { where: { status: "APPROVED", parentId: null } },
+    },
+  },
   Likes: true,
 } as const;
 
@@ -62,7 +66,7 @@ function formatBlogListItem(blog: BlogWithRelations): BlogListItem {
       name: blogCategory.Categories.name,
       slug: blogCategory.Categories.slug,
     })),
-    comments: blog.Comments.length,
+    comments: blog._count.publicComments,
     likes: blog.Likes.length,
   };
 }
@@ -138,13 +142,23 @@ const BLOG_DETAIL_INCLUDE = {
       Categories: true,
     },
   },
-  Comments: true,
+  publicComments: {
+    where: { status: "APPROVED", parentId: null },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: 20,
+    select: { id: true, body: true, publishedAt: true },
+  },
+  _count: {
+    select: {
+      publicComments: { where: { status: "APPROVED", parentId: null } },
+    },
+  },
   Likes: true,
   BlogFAQs: {
     where: { available: true },
     orderBy: { order: "asc" },
   },
-} as const;
+} satisfies Prisma.BlogsInclude;
 
 type BlogDetailRow = Prisma.BlogsGetPayload<{ include: typeof BLOG_DETAIL_INCLUDE }>;
 
@@ -167,6 +181,7 @@ export interface BlogDetailData {
   };
   categories: { id: number; name: string | null; slug: string | null }[];
   comments: { id: number; content: string; created_at: string | null }[];
+  comments_count: number;
   likes: number;
   media: { id: number; media_type: string; media_URL: string; media_alt: string | null }[];
   faqs: { id: number; question: string; answer: string; order: number }[];
@@ -208,11 +223,14 @@ async function queryBlogBySlug(slug: string): Promise<BlogDetailData | null> {
       name: category.Categories.name,
       slug: category.Categories.slug,
     })),
-    comments: blog.Comments.map((comment) => ({
-      id: comment.id,
-      content: comment.content,
-      created_at: comment.created_at,
-    })),
+    comments: blog.QrCode_key
+      ? []
+      : blog.publicComments.map((comment) => ({
+          id: comment.id,
+          content: comment.body,
+          created_at: comment.publishedAt?.toISOString() ?? null,
+        })),
+    comments_count: blog.QrCode_key ? 0 : blog._count.publicComments,
     likes: blog.Likes.length,
     media: media.map((item) => ({
       id: item.id,

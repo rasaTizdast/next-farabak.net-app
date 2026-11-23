@@ -95,7 +95,11 @@ export async function GET() {
             Categories: true,
           },
         },
-        Comments: true,
+        _count: {
+          select: {
+            publicComments: { where: { status: "APPROVED", parentId: null } },
+          },
+        },
         Likes: true,
       },
       orderBy: {
@@ -120,7 +124,7 @@ export async function GET() {
         name: bc.Categories.name,
         slug: bc.Categories.slug,
       })),
-      comments: blog.Comments.length,
+      comments: blog._count.publicComments,
       likes: blog.Likes.length,
     }));
 

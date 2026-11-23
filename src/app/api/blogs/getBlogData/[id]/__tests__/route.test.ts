@@ -1,14 +1,26 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { mockPrisma } = vi.hoisted(() => ({
-  mockPrisma: {
+const ctx = await vi.hoisted(async () => {
+  const { createApiTestContext } = await import("@/test/api-test-utils");
+  process.env.JWT_SECRET = "test-secret";
+  return createApiTestContext({
+    client: { findUnique: vi.fn() },
     blogs: { findUnique: vi.fn() },
     media: { findMany: vi.fn() },
-  },
-}));
-vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
+  });
+});
+
+vi.mock("next/headers", () => ctx.mockNextHeaders());
+vi.mock("jose", () => ctx.mockJose());
+vi.mock("@/lib/prisma", () => ctx.mockPrismaModule());
 
 import { GET } from "../route";
+
+const findActor = (ctx.mockPrisma.client as { findUnique: ReturnType<typeof vi.fn> }).findUnique;
+const findBlog = (ctx.mockPrisma.blogs as { findUnique: ReturnType<typeof vi.fn> }).findUnique;
+const findMedia = (ctx.mockPrisma.media as { findMany: ReturnType<typeof vi.fn> }).findMany;
+const params = (id: string) => ({ params: Promise.resolve({ id }) });
+const request = () => new Request("http://localhost/api/blogs/getBlogData/1");
 
 const mockBlogData = {
   id: 1,
@@ -16,7 +28,7 @@ const mockBlogData = {
   SEO_Title: "SEO",
   slug: "test-blog",
   created_at: "2025-01-01",
-  status: "Published",
+  status: "Draft",
   views_count: 100,
   content: "content",
   author: "Author",
@@ -24,66 +36,80 @@ const mockBlogData = {
   image_URL: "img.jpg",
   image_alt: "alt",
   BlogCategories: [{ Categories: { id: 1, name: "Tech", slug: "tech" } }],
-  Comments: [{ id: 1, content: "Nice!", created_at: "2025-01-02" }],
+  Comments: [{ id: 1, content: "Legacy editor data", created_at: "2025-01-02" }],
   Likes: [{ id: 1 }],
 };
 
 describe("GET /api/blogs/getBlogData/[id]", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    ctx.resetAll();
+    findActor.mockReset();
+    findBlog.mockReset();
+    findMedia.mockReset();
   });
 
-  it("returns blog data with categories, comments, likes, and media", async () => {
-    mockPrisma.blogs.findUnique.mockResolvedValue(mockBlogData);
-    mockPrisma.media.findMany.mockResolvedValue([
+  it("rejects anonymous requests before loading editing data", async () => {
+    const response = await GET(request(), params("1"));
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(findActor).not.toHaveBeenCalled();
+    expect(findBlog).not.toHaveBeenCalled();
+  });
+
+  it("rechecks the database role and denies a demoted Admin JWT before loading data", async () => {
+    ctx.setupAuth("Admin", { userId: 18 });
+    findActor.mockResolvedValue({ Role: "Public" });
+
+    const response = await GET(request(), params("1"));
+
+    expect(response.status).toBe(403);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(findActor).toHaveBeenCalledWith({
+      where: { UserID: 18 },
+      select: { Role: true },
+    });
+    expect(findBlog).not.toHaveBeenCalled();
+  });
+
+  it("returns legacy edit data only after the current database role is Admin", async () => {
+    ctx.setupAuth("Admin", { userId: 18 });
+    findActor.mockResolvedValue({ Role: "Admin" });
+    findBlog.mockResolvedValue(mockBlogData);
+    findMedia.mockResolvedValue([
       { id: 1, media_type: "image", media_URL: "http://media/1.jpg", media_alt: "pic" },
     ]);
 
-    const res = await GET(new Request("http://localhost"), {
-      params: Promise.resolve({ id: "1" }),
-    });
-    expect(res.status).toBe(200);
+    const response = await GET(request(), params("1"));
 
-    const json = await res.json();
-    expect(json.blog.id).toBe(1);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    const json = await response.json();
     expect(json.blog.title).toBe("Test Blog");
-    expect(json.categories).toHaveLength(1);
-    expect(json.categories[0].name).toBe("Tech");
-    expect(json.comments).toHaveLength(1);
-    expect(json.comments[0].content).toBe("Nice!");
-    expect(json.likes).toBe(1);
-    expect(json.media).toHaveLength(1);
-    expect(json.media[0].media_type).toBe("image");
-  });
-
-  it("returns 404 when blog not found", async () => {
-    mockPrisma.blogs.findUnique.mockResolvedValue(null);
-
-    const res = await GET(new Request("http://localhost"), {
-      params: Promise.resolve({ id: "999" }),
-    });
-    expect(res.status).toBe(404);
-
-    const json = await res.json();
-    expect(json.message).toContain("یافت نشد");
-  });
-
-  it("queries blog by numeric id", async () => {
-    mockPrisma.blogs.findUnique.mockResolvedValue(null);
-
-    await GET(new Request("http://localhost"), { params: Promise.resolve({ id: "42" }) });
-
-    expect(mockPrisma.blogs.findUnique).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: 42 } })
+    expect(json.comments[0].content).toBe("Legacy editor data");
+    expect(findActor.mock.invocationCallOrder[0]).toBeLessThan(
+      findBlog.mock.invocationCallOrder[0]
     );
   });
 
-  it("returns 500 on prisma error", async () => {
-    mockPrisma.blogs.findUnique.mockRejectedValue(new Error("DB error"));
+  it("returns 404 for an unknown blog after authorization", async () => {
+    ctx.setupAuth("Admin", { userId: 18 });
+    findActor.mockResolvedValue({ Role: "Admin" });
+    findBlog.mockResolvedValue(null);
 
-    const res = await GET(new Request("http://localhost"), {
-      params: Promise.resolve({ id: "1" }),
-    });
-    expect(res.status).toBe(500);
+    const response = await GET(request(), params("999"));
+
+    expect(response.status).toBe(404);
+    expect(findBlog).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 999 } }));
+  });
+
+  it("returns 500 on a database error after authorization", async () => {
+    ctx.setupAuth("Admin", { userId: 18 });
+    findActor.mockResolvedValue({ Role: "Admin" });
+    findBlog.mockRejectedValue(new Error("DB error"));
+
+    const response = await GET(request(), params("1"));
+
+    expect(response.status).toBe(500);
   });
 });

@@ -105,7 +105,17 @@ export async function GET(req: Request, props: { params: Promise<{ slug: string 
             Categories: true, // Fetch categories related to the blog
           },
         },
-        Comments: true, // Fetch comments related to the blog
+        publicComments: {
+          where: { status: "APPROVED", parentId: null },
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          take: 20,
+          select: { id: true, body: true, publishedAt: true },
+        },
+        _count: {
+          select: {
+            publicComments: { where: { status: "APPROVED", parentId: null } },
+          },
+        },
         Likes: true, // Fetch likes related to the blog
         BlogFAQs: {
           where: { available: true },
@@ -146,11 +156,14 @@ export async function GET(req: Request, props: { params: Promise<{ slug: string 
         name: category.Categories.name,
         slug: category.Categories.slug,
       })),
-      comments: blog.Comments.map((comment) => ({
-        id: comment.id,
-        content: comment.content,
-        created_at: comment.created_at,
-      })),
+      comments: blog.QrCode_key
+        ? []
+        : blog.publicComments.map((comment) => ({
+            id: comment.id,
+            content: comment.body,
+            created_at: comment.publishedAt?.toISOString() ?? null,
+          })),
+      comments_count: blog.QrCode_key ? 0 : blog._count.publicComments,
       likes: blog.Likes.length,
       media: media.map((item) => ({
         id: item.id,

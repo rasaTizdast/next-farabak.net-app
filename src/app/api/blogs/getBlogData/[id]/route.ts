@@ -1,12 +1,54 @@
 import { NextResponse } from "next/server";
 
+import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+const noStoreHeaders = { "Cache-Control": "no-store" };
+
 export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) {
+    auth.headers.set("Cache-Control", "no-store");
+    return auth;
+  }
+  if (!/^\d+$/.test(auth.userId)) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401, headers: noStoreHeaders });
+  }
+  const actorId = Number(auth.userId);
+  if (!Number.isSafeInteger(actorId) || actorId < 1 || actorId > 2_147_483_647) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401, headers: noStoreHeaders });
+  }
+
   const params = await props.params;
-  const id = Number(params.id); // Convert to number
+  if (!/^\d+$/.test(params.id)) {
+    return NextResponse.json(
+      { message: "شناسه مقاله نامعتبر است" },
+      { status: 400, headers: noStoreHeaders }
+    );
+  }
+  const id = Number(params.id);
+  if (!Number.isSafeInteger(id) || id < 1 || id > 2_147_483_647) {
+    return NextResponse.json(
+      { message: "شناسه مقاله نامعتبر است" },
+      { status: 400, headers: noStoreHeaders }
+    );
+  }
 
   try {
+    const currentUser = await prisma.client.findUnique({
+      where: { UserID: actorId },
+      select: { Role: true },
+    });
+    if (!currentUser) {
+      return NextResponse.json(
+        { message: "Unauthorized" },
+        { status: 401, headers: noStoreHeaders }
+      );
+    }
+    if (currentUser.Role !== "Admin") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403, headers: noStoreHeaders });
+    }
+
     // Find the blog by slug
     const blog = await prisma.blogs.findUnique({
       where: { id },
@@ -22,7 +64,10 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
     });
 
     if (!blog) {
-      return NextResponse.json({ message: "مقاله مورد نظر یافت نشد" }, { status: 404 });
+      return NextResponse.json(
+        { message: "مقاله مورد نظر یافت نشد" },
+        { status: 404, headers: noStoreHeaders }
+      );
     }
 
     // Fetch related media using the blog ID
@@ -65,9 +110,12 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
       })),
     };
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, { headers: noStoreHeaders });
   } catch (error) {
     console.error("خطا در دریافت جزئیات مقاله:", error);
-    return NextResponse.json({ message: "خطای داخلی سرور" }, { status: 500 });
+    return NextResponse.json(
+      { message: "خطای داخلی سرور" },
+      { status: 500, headers: noStoreHeaders }
+    );
   }
 }

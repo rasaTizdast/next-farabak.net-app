@@ -30,7 +30,8 @@ describe("GET /api/blogs/category/[categorySlug]", () => {
         author: "Author",
         SEO_description: "desc",
         BlogCategories: [{ Categories: { name: "Tech", slug: "tech" } }],
-        Comments: [{ id: 1 }],
+        Comments: [{ id: 1 }, { id: 2 }],
+        _count: { publicComments: 1 },
         Likes: [{ id: 1 }, { id: 2 }],
       },
     ]);
@@ -81,6 +82,13 @@ describe("GET /api/blogs/category/[categorySlug]", () => {
           QrCode_key: null,
           BlogCategories: {
             some: { Categories: { slug: "programming" } },
+          },
+        }),
+        include: expect.objectContaining({
+          _count: {
+            select: {
+              publicComments: { where: { status: "APPROVED", parentId: null } },
+            },
           },
         }),
       })

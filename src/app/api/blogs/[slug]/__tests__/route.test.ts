@@ -30,7 +30,16 @@ const mockBlogData = {
   QrCode_key: null,
   QrCode_expiryDays: null,
   BlogCategories: [{ Categories: { id: 1, name: "Tech", slug: "tech" } }],
-  Comments: [{ id: 1, content: "Great!", created_at: "2025-01-02" }],
+  Comments: [{ id: 1, content: "Legacy comment must stay hidden", created_at: "2025-01-02" }],
+  _count: { publicComments: 2 },
+  publicComments: [
+    {
+      id: 7,
+      body: "Approved comment",
+      publishedAt: new Date("2025-01-03T12:00:00.000Z"),
+      parentId: null,
+    },
+  ],
   Likes: [{ id: 1 }, { id: 2 }],
   BlogFAQs: [{ id: 1, question: "Q1?", answer: "A1", order: 1 }],
 };
@@ -40,7 +49,7 @@ describe("GET /api/blogs/[slug]", () => {
     vi.clearAllMocks();
   });
 
-  it("returns blog by slug with all related data", async () => {
+  it("returns blog by slug with approved comments and related data", async () => {
     mockPrisma.blogs.findUnique.mockResolvedValue(mockBlogData);
     mockPrisma.media.findMany.mockResolvedValue([
       { id: 1, media_type: "video", media_URL: "http://v.test/1.mp4", media_alt: "vid" },
@@ -57,6 +66,9 @@ describe("GET /api/blogs/[slug]", () => {
     expect(json.blog.QrCode_key).toBeNull();
     expect(json.categories).toHaveLength(1);
     expect(json.comments).toHaveLength(1);
+    expect(json.comments[0].content).toBe("Approved comment");
+    expect(json.comments_count).toBe(2);
+    expect(JSON.stringify(json)).not.toContain("Legacy comment must stay hidden");
     expect(json.likes).toBe(2);
     expect(json.media).toHaveLength(1);
     expect(json.faqs).toHaveLength(1);
@@ -75,6 +87,20 @@ describe("GET /api/blogs/[slug]", () => {
     expect(json.message).toContain("یافت نشد");
   });
 
+  it("does not expose approved comments on a QR-only blog target", async () => {
+    mockPrisma.blogs.findUnique.mockResolvedValue({ ...mockBlogData, QrCode_key: "private-key" });
+    mockPrisma.media.findMany.mockResolvedValue([]);
+
+    const response = await GET(new Request("http://localhost"), {
+      params: Promise.resolve({ slug: "blog-by-slug" }),
+    });
+
+    expect(response.status).toBe(200);
+    const json = await response.json();
+    expect(json.comments).toEqual([]);
+    expect(json.comments_count).toBe(0);
+  });
+
   it("queries with correct slug and Published status", async () => {
     mockPrisma.blogs.findUnique.mockResolvedValue(null);
 
@@ -83,6 +109,16 @@ describe("GET /api/blogs/[slug]", () => {
     expect(mockPrisma.blogs.findUnique).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { slug: "my-slug", status: "Published" },
+        include: expect.objectContaining({
+          publicComments: expect.objectContaining({
+            where: { status: "APPROVED", parentId: null },
+          }),
+          _count: {
+            select: {
+              publicComments: { where: { status: "APPROVED", parentId: null } },
+            },
+          },
+        }),
       })
     );
   });

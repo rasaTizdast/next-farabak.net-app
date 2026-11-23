@@ -14,7 +14,7 @@ describe("GET /api/blogs", () => {
     vi.clearAllMocks();
   });
 
-  it("returns published blogs formatted with categories, comments count, and likes count", async () => {
+  it("returns published blogs with approved comment count and likes count", async () => {
     mockPrisma.blogs.findMany.mockResolvedValue([
       {
         id: 1,
@@ -34,6 +34,7 @@ describe("GET /api/blogs", () => {
           { Categories: { name: "News", slug: "news" } },
         ],
         Comments: [{ id: 1 }, { id: 2 }],
+        _count: { publicComments: 1 },
         Likes: [{ id: 1 }],
       },
     ]);
@@ -55,7 +56,7 @@ describe("GET /api/blogs", () => {
           { name: "Tech", slug: "tech" },
           { name: "News", slug: "news" },
         ],
-        comments: 2,
+        comments: 1,
         likes: 1,
       })
     );
@@ -82,6 +83,13 @@ describe("GET /api/blogs", () => {
           status: "Published",
           QrCode_key: null,
         },
+        include: expect.objectContaining({
+          _count: {
+            select: {
+              publicComments: { where: { status: "APPROVED", parentId: null } },
+            },
+          },
+        }),
       })
     );
   });
