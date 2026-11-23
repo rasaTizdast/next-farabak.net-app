@@ -50,6 +50,14 @@ describe("ContactInquiryForm", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("clips the bot honeypot without positioning it offscreen", () => {
+    const { container } = render(<ContactInquiryForm />);
+    const honeypot = container.querySelector("#contact-website");
+
+    expect(honeypot).not.toBeNull();
+    expect(honeypot?.parentElement).toHaveClass("sr-only");
+  });
+
   it("posts the form and clears it after the server accepts it", async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 201 });
     vi.stubGlobal("fetch", fetchMock);

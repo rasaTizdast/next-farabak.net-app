@@ -158,10 +158,7 @@ function ContactInquiryForm() {
           )}
         </div>
 
-        <div
-          aria-hidden="true"
-          className="absolute top-auto left-[-10000px] size-px overflow-hidden"
-        >
+        <div aria-hidden="true" className="sr-only">
           <label htmlFor="contact-website">Website</label>
           <input
             autoComplete="off"
