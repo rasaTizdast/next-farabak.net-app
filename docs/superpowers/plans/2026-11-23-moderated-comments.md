@@ -101,7 +101,7 @@
 
 **Interfaces:** `submitComment(input: CommentSubmission, actorId: number): Promise<{ id: number; status: "PENDING" }>`; `listApprovedComments(target: CommentTarget, cursor?: number): Promise<PublicCommentPage>`; `moderateComment(id: number, decision: "APPROVED" | "REJECTED", reviewerId: number, note?: string): Promise<void>`; `commentTag(target: CommentTarget): string`.
 
-- [ ] **Step 1: Write failing service tests** for identity and display name, missing first/last name, admin alias permission, editorial reply permission and same-target approved parent, unpublished/QR-only target rejection, trimmed plain text length, pending-by-default, rate limit, stale JWT role, approval/rejection idempotence, and approved-only projection. A representative test:
+- [x] **Step 1: Write failing service tests** for identity and display name, missing first/last name, admin alias permission, editorial reply permission and same-target approved parent, unpublished/QR-only target rejection, trimmed plain text length, pending-by-default, rate limit, stale JWT role, approval/rejection idempotence, and approved-only projection. A representative test:
 
   ```ts
   expect(
@@ -117,10 +117,10 @@
   );
   ```
 
-- [ ] **Step 2: Run `pnpm test src/lib/comments` and confirm red.** The service files are absent.
-- [ ] **Step 3: Implement the minimum service.** Define `CommentTarget = { type: "blog" | "product"; id: number }`. Reload `Client` for every write and check current `Role`. Resolve only published non-QR blogs and available non-QR products. In a transaction, check reply parent target/status and create the row. Limit to 5 submissions per account per 10 minutes using a serializable transaction and retry serialization conflicts; return 429 after the cap. Cap request body at 8 KiB. Reject `mode`/`alias`/`parentId` combinations outside the two allowed admin modes. Public projection selects only safe fields and approved top-level rows with approved editorial replies, newest 20, cursor sorted by `(createdAt,id)`.
-- [ ] **Step 4: Run tests and `pnpm prisma:generate`; fix only failing cases.** Add an isolated database concurrency test showing two simultaneous requests cannot exceed the cap and reply/parent state stays consistent.
-- [ ] **Step 5: Commit.** `git add src/lib/comments && git commit -m "feat: enforce comment moderation policy"`.
+- [x] **Step 2: Run `pnpm test src/lib/comments` and confirm red.** The service files are absent.
+- [x] **Step 3: Implement the minimum service.** Define `CommentTarget = { type: "blog" | "product"; id: number }`. Reload `Client` for every write and check current `Role`. Resolve only published non-QR blogs and available non-QR products. In a transaction, check reply parent target/status and create the row. Limit to 5 submissions per account per 10 minutes using a serializable transaction and retry serialization conflicts; return 429 after the cap. Cap request body at 8 KiB. Reject `mode`/`alias`/`parentId` combinations outside the two allowed admin modes. Public projection selects only safe fields and approved top-level rows with approved editorial replies, newest 20, cursor sorted by `(createdAt,id)`.
+- [x] **Step 4: Run tests and `pnpm prisma:generate`; fix only failing cases.** Add an isolated database concurrency test showing two simultaneous requests cannot exceed the cap and reply/parent state stays consistent.
+- [x] **Step 5: Commit.** `git add src/lib/comments && git commit -m "feat: enforce comment moderation policy"`.
 
 ### Task 3: Public and admin Route Handlers
 
