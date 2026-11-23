@@ -117,9 +117,9 @@ const items = rows.slice(0, 25);
 const nextCursor = rows.length > 25 ? items.at(-1)!.id : null;
 ```
 
-- [ ] **Step 1: Write failing route tests.** Mock `requireAuth` and `prisma.contactSubmission.findMany`. Assert 401 response passes through when unauthenticated, Branch receives 403 and does not query Prisma, Admin gets 25 selected fields in descending ID order, a 26th row supplies `nextCursor`, the next request uses `id < cursor`, invalid cursor returns 400, and DB failure returns a generic 500. Run the focused test and confirm failure.
-- [ ] **Step 2: Implement GET.** Call `requireAuth()` before parsing/querying; check `auth.role?.toLowerCase() === "admin"`. Validate one positive integer cursor. Use `take: 26`, `orderBy: {id: "desc"}`, `where: cursor ? {id: {lt: cursor}} : undefined`, and `select` for `id,name,phone,project,message,createdAt`. Return 25 rows plus the cursor of the last returned row only if more rows exist. Set no-store headers.
-- [ ] **Step 3: Verify and commit.** Run the focused route test and commit only Task 3 files.
+- [x] **Step 1: Write failing route tests.** Mock `requireAuth` and `prisma.contactSubmission.findMany`. Assert 401 response passes through when unauthenticated, Branch receives 403 and does not query Prisma, Admin gets 25 selected fields in descending ID order, a 26th row supplies `nextCursor`, the next request uses `id < cursor`, invalid cursor returns 400, and DB failure returns a generic 500. Run the focused test and confirm failure.
+- [x] **Step 2: Implement GET.** Call `requireAuth()` before parsing/querying; check `auth.role?.toLowerCase() === "admin"`. Validate one positive integer cursor. Use `take: 26`, `orderBy: {id: "desc"}`, `where: cursor ? {id: {lt: cursor}} : undefined`, and `select` for `id,name,phone,project,message,createdAt`. Return 25 rows plus the cursor of the last returned row only if more rows exist. Set no-store headers.
+- [x] **Step 3: Verify and commit.** Run the focused route test and commit only Task 3 files.
 
 ### Task 4: Admin read-only view
 
