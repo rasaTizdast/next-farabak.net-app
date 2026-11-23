@@ -42,9 +42,9 @@
 
 **Interfaces:** Produces Prisma `PublicComment`, `CommentStatus` and `CommentPresentation`; SQL creates check constraints and indexes Prisma cannot express.
 
-- [ ] **Step 1: Write a failing isolated PostgreSQL migration test.** Mark the file `// @vitest-environment node`. Assert exactly one target ID, an existing target/account FK, status default `PENDING`, unique legacy ID, and that two executions of the backfill create one row per legacy comment. Require `TEST_DATABASE_URL` distinct from `DATABASE_URL`.
-- [ ] **Step 2: Run the migration test and confirm failure.** `pnpm test src/lib/comments/schema.test.ts` should fail because the model/table does not exist.
-- [ ] **Step 3: Add the schema and reviewed SQL.** The core shape is:
+- [x] **Step 1: Write a failing isolated PostgreSQL migration test.** Mark the file `// @vitest-environment node`. Assert exactly one target ID, an existing target/account FK, status default `PENDING`, unique legacy ID, and that two executions of the backfill create one row per legacy comment. Require `TEST_DATABASE_URL` distinct from `DATABASE_URL`.
+- [x] **Step 2: Run the migration test and confirm failure.** `pnpm test src/lib/comments/schema.test.ts` should fail because the model/table does not exist.
+- [x] **Step 3: Add the schema and reviewed SQL.** The core shape is:
 
   ```prisma
   enum CommentStatus {
@@ -92,8 +92,8 @@
 
   Add inverse relations to `Blogs`, `Product`, and `Client`. SQL must enforce `(blogId IS NULL) <> (productId IS NULL)` and `parentId <> id`, and backfill legacy rows as `PENDING`/`LEGACY` with `displayName = 'کاربر پیشین'` and `legacyBlogCommentId`. Preserve the old table. The verification script prints source and imported counts and fails on mismatches.
 
-- [ ] **Step 4: Run `pnpm prisma:generate` and the disposable-database test.** Confirm Prisma relations compile and repeat backfill has no duplicates; record rollback rehearsal.
-- [ ] **Step 5: Commit this independently reviewable slice.** `git add prisma/schema.prisma prisma/sql/2026-11-23-public-comments.sql scripts/verify-public-comments-migration.mjs src/lib/comments/schema.test.ts && git commit -m "feat: add moderated comment storage"`.
+- [x] **Step 4: Run `pnpm prisma:generate` and the disposable-database test.** Confirm Prisma relations compile and repeat backfill has no duplicates; record rollback rehearsal.
+- [x] **Step 5: Commit this independently reviewable slice.** `git add prisma/schema.prisma prisma/sql/2026-11-23-public-comments.sql scripts/verify-public-comments-migration.mjs src/lib/comments/schema.test.ts && git commit -m "feat: add moderated comment storage"`.
 
 ### Task 2: Comment policy, submission service, and public projection
 
