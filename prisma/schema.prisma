@@ -46,6 +46,7 @@ model Blogs {
   Comments          Blog_Comments[]
   Likes             Likes[]
   BlogFAQs          BlogFAQs[]
+  publicComments    PublicComment[]
 
   @@schema("blog")
 }
@@ -80,19 +81,21 @@ model Likes {
 }
 
 model Client {
-  UserID            Int        @id(map: "PK__Client__1788CCAC14357FE4") @default(autoincrement())
-  Username          String?    @db.VarChar(30)
-  FirstName         String?    @db.VarChar(30)
-  LastName          String?    @db.VarChar(30)
-  PhoneNumber       String?    @db.VarChar(11)
-  Email             String?    @db.VarChar(50)
-  City              String?    @db.VarChar(20)
-  Job               String?    @db.VarChar(30)
-  Role              String?    @default("Public") @db.VarChar(50)
+  UserID            Int             @id(map: "PK__Client__1788CCAC14357FE4") @default(autoincrement())
+  Username          String?         @db.VarChar(30)
+  FirstName         String?         @db.VarChar(30)
+  LastName          String?         @db.VarChar(30)
+  PhoneNumber       String?         @db.VarChar(11)
+  Email             String?         @db.VarChar(50)
+  City              String?         @db.VarChar(20)
+  Job               String?         @db.VarChar(30)
+  Role              String?         @default("Public") @db.VarChar(50)
   ActivePhoneNumber Boolean?
   ActiveEmail       Boolean?
   Password          Password[]
   branch            branch[]
+  authoredComments  PublicComment[] @relation("commentActor")
+  reviewedComments  PublicComment[] @relation("commentReviewer")
 
   @@schema("info")
 }
@@ -301,7 +304,55 @@ model Product {
   warehouseproduct warehouseproduct[]
   warranty         warranty[]
   ProductGrade     ProductGrade[]
+  publicComments   PublicComment[]
 
+  @@schema("support")
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+
+  @@schema("support")
+}
+
+enum CommentPresentation {
+  MEMBER
+  ALIAS
+  EDITORIAL
+  LEGACY
+
+  @@schema("support")
+}
+
+model PublicComment {
+  id                  Int                 @id @default(autoincrement())
+  blogId              Int?
+  productId           Int?
+  parentId            Int?
+  actorId             Int?
+  displayName         String              @db.VarChar(80)
+  body                String              @db.VarChar(2000)
+  status              CommentStatus       @default(PENDING)
+  presentation        CommentPresentation
+  createdAt           DateTime            @default(now()) @db.Timestamptz(6)
+  publishedAt         DateTime?           @db.Timestamptz(6)
+  reviewedAt          DateTime?           @db.Timestamptz(6)
+  reviewerId          Int?
+  reviewNote          String?             @db.VarChar(1000)
+  legacyBlogCommentId Int?                @unique
+  blog                Blogs?              @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  product             Product?            @relation(fields: [productId], references: [ProductId], onDelete: Cascade)
+  actor               Client?             @relation("commentActor", fields: [actorId], references: [UserID])
+  reviewer            Client?             @relation("commentReviewer", fields: [reviewerId], references: [UserID])
+  parent              PublicComment?      @relation("commentReplies", fields: [parentId], references: [id])
+  replies             PublicComment[]     @relation("commentReplies")
+
+  @@index([blogId, status, createdAt])
+  @@index([productId, status, createdAt])
+  @@index([actorId, createdAt])
+  @@index([status, createdAt])
   @@schema("support")
 }
 
