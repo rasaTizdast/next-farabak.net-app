@@ -132,6 +132,9 @@ describe.skipIf(!testDatabaseUrl)("public comments migration on disposable Postg
           $sql$INSERT INTO support."PublicComment" (id, "parentId", "blogId", "displayName", body, presentation)
           VALUES (900, 900, 1, 'Member', 'Body', 'MEMBER')$sql$, '23514');
         PERFORM pg_temp.expect_sqlstate(
+          $sql$INSERT INTO support."PublicComment" (id, "parentId", "blogId", "displayName", body, presentation)
+          VALUES (900, 901, 1, 'Editorial', 'Body', 'EDITORIAL')$sql$, '23503');
+        PERFORM pg_temp.expect_sqlstate(
           $sql$INSERT INTO support."PublicComment" ("blogId", "displayName", body, presentation, "legacyBlogCommentId")
           VALUES (1, 'Legacy', 'Body', 'LEGACY', 10)$sql$, '23505');
       END;
