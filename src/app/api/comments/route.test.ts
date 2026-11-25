@@ -97,6 +97,23 @@ describe("POST /api/comments", () => {
     expect(context.service.submitComment).not.toHaveBeenCalled();
   });
 
+  it("returns field-specific validation errors for invalid comment text", async () => {
+    context.auth.setupAuth("Public", { userId: "18" });
+    const response = await POST(
+      makeApiRequest(
+        "POST",
+        "https://farabak.net/api/comments",
+        { ...validSubmission, body: "short" },
+        origin
+      )
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      error: { code: "INVALID_REQUEST", fields: { body: expect.any(String) } },
+    });
+  });
+
   it("submits a validated comment and returns a no-store pending acknowledgment", async () => {
     context.auth.setupAuth("Public", { userId: "18" });
     const response = await POST(

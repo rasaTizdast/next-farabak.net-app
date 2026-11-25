@@ -38,7 +38,11 @@ export async function assertPublicCommentTarget(
   const publicTarget =
     target.type === "blog"
       ? await db.blogs.findFirst({
-          where: { id: target.id, status: "Published", QrCode_key: null },
+          where: {
+            id: target.id,
+            status: "Published",
+            OR: [{ QrCode_key: null }, { QrCode_key: "" }],
+          },
           select: { id: true },
         })
       : await db.product.findFirst({

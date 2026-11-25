@@ -265,7 +265,7 @@ export default async function ProductDataWrapper({
         </Suspense>
       </section>
 
-      {productData.Available && productData.QrCode_key === null && (
+      {productData.Available && !productData.QrCode_key && (
         <Suspense fallback={<p>در حال بارگذاری دیدگاه‌ها...</p>}>
           <CommentSection target={{ type: "product", id: productData.ProductId }} />
         </Suspense>

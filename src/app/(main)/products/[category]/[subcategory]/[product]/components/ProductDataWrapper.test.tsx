@@ -1,4 +1,4 @@
-import { isValidElement, type ReactElement, type ReactNode } from "react";
+import { isValidElement, type ElementType, type ReactElement, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { getProductBySlugMock, ioMock } = vi.hoisted(() => ({
@@ -9,6 +9,8 @@ const { getProductBySlugMock, ioMock } = vi.hoisted(() => ({
 vi.mock("next/cache", () => ({ io: ioMock }));
 vi.mock("@/lib/data/products", () => ({ getProductBySlug: getProductBySlugMock }));
 vi.mock("@/utils/priceValidUntil", () => ({ getPriceValidUntil: () => "2099-01-01" }));
+
+import CommentSection from "@/components/comments/CommentSection";
 
 import ProductDataWrapper from "./ProductDataWrapper";
 
@@ -47,7 +49,14 @@ async function getRenderedProductSchema() {
   return {
     raw: script.props.dangerouslySetInnerHTML.__html,
     schema: JSON.parse(script.props.dangerouslySetInnerHTML.__html),
+    children,
   };
+}
+
+function containsElement(node: ReactNode, type: ElementType): boolean {
+  if (Array.isArray(node)) return node.some((child) => containsElement(child, type));
+  if (!isValidElement<{ children?: ReactNode }>(node)) return false;
+  return node.type === type || containsElement(node.props.children, type);
 }
 
 describe("main product structured data", () => {
@@ -56,6 +65,12 @@ describe("main product structured data", () => {
     vi.stubEnv("LIARA_BUCKET_URL", "https://farabaks3.storage.c2.liara.space");
     ioMock.mockResolvedValue(undefined);
     getProductBySlugMock.mockResolvedValue(validProduct);
+  });
+
+  it("shows comments on an available product whose QR key is empty", async () => {
+    const { children } = await getRenderedProductSchema();
+
+    expect(containsElement(children, CommentSection)).toBe(true);
   });
 
   it("keeps the primary Product without unsupported price, availability, return, or shipping claims", async () => {

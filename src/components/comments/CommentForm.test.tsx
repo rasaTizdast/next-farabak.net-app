@@ -35,4 +35,108 @@ describe("CommentForm", () => {
     });
     expect(await screen.findByRole("status")).toHaveTextContent(/بررسی/);
   });
+
+  it("associates a short-body error with its textarea and skips the request", async () => {
+    vi.mocked(useUser).mockReturnValue({
+      loading: false,
+      user: { firstName: "علی", lastName: "رضایی" },
+      isAdmin: false,
+    } as never);
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+    render(<CommentForm target={target} />);
+    const textarea = screen.getByLabelText(/متن دیدگاه/);
+    fireEvent.change(textarea, { target: { value: "🙂".repeat(9) } });
+    fireEvent.submit(textarea.closest("form")!);
+
+    const error = await screen.findByRole("alert");
+    expect(error).toHaveTextContent(/۱۰/);
+    expect(textarea).toHaveAttribute("aria-invalid", "true");
+    expect(textarea.getAttribute("aria-describedby")?.split(" ")).toContain(error.id);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("allows 2,000 Unicode code points in a comment body", async () => {
+    vi.mocked(useUser).mockReturnValue({
+      loading: false,
+      user: { firstName: "علی", lastName: "رضایی" },
+      isAdmin: false,
+    } as never);
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+    render(<CommentForm target={target} />);
+    const textarea = screen.getByLabelText(/متن دیدگاه/);
+    const body = "🙂".repeat(2000);
+    fireEvent.change(textarea, { target: { value: body } });
+
+    expect(textarea).toHaveProperty("maxLength", 4000);
+    fireEvent.submit(textarea.closest("form")!);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(JSON.parse(fetchMock.mock.calls[0][1]!.body as string).body).toBe(body);
+  });
+
+  it("caps comment input at 2,000 Unicode code points", () => {
+    vi.mocked(useUser).mockReturnValue({
+      loading: false,
+      user: { firstName: "علی", lastName: "رضایی" },
+      isAdmin: false,
+    } as never);
+    render(<CommentForm target={target} />);
+    const textarea = screen.getByLabelText(/متن دیدگاه/);
+    fireEvent.change(textarea, { target: { value: "آ".repeat(2001) } });
+
+    expect(textarea).toHaveValue("آ".repeat(2000));
+  });
+
+  it("associates a short-alias error with the alias input and skips the request", () => {
+    vi.mocked(useUser).mockReturnValue({
+      loading: false,
+      user: { firstName: "مدیر", lastName: "آزمایشی" },
+      isAdmin: true,
+    } as never);
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
+    render(<CommentForm target={target} />);
+    fireEvent.click(screen.getByLabelText(/ثبت با نام مستعار/));
+    const aliasInput = screen.getByRole("textbox", { name: /نام مستعار/ });
+    fireEvent.change(aliasInput, { target: { value: "🙂" } });
+    fireEvent.change(screen.getByLabelText(/متن دیدگاه/), {
+      target: { value: "متن دیدگاه آزمایشی" },
+    });
+    fireEvent.submit(aliasInput.closest("form")!);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/۲/);
+    expect(aliasInput).toHaveAttribute("aria-invalid", "true");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("caps an alias at 80 Unicode code points", () => {
+    vi.mocked(useUser).mockReturnValue({
+      loading: false,
+      user: { firstName: "مدیر", lastName: "آزمایشی" },
+      isAdmin: true,
+    } as never);
+    render(<CommentForm target={target} />);
+    fireEvent.click(screen.getByLabelText(/ثبت با نام مستعار/));
+    const aliasInput = screen.getByRole("textbox", { name: /نام مستعار/ });
+    fireEvent.change(aliasInput, { target: { value: "🙂".repeat(81) } });
+
+    expect(aliasInput).toHaveValue("🙂".repeat(80));
+  });
+
+  it("associates server field errors with the corresponding textarea", async () => {
+    vi.mocked(useUser).mockReturnValue({
+      loading: false,
+      user: { firstName: "علی", lastName: "رضایی" },
+      isAdmin: false,
+    } as never);
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: { fields: { body: "متن دیدگاه را بررسی کنید." } } }),
+    } as Response);
+    render(<CommentForm target={target} />);
+    const textarea = screen.getByLabelText(/متن دیدگاه/);
+    fireEvent.change(textarea, { target: { value: "متن دیدگاه آزمایشی" } });
+    fireEvent.submit(textarea.closest("form")!);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("متن دیدگاه را بررسی کنید.");
+    expect(textarea).toHaveAttribute("aria-invalid", "true");
+  });
 });

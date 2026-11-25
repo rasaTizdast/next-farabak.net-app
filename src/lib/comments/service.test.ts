@@ -151,10 +151,27 @@ describe("submitComment", () => {
     db.blogs.findFirst.mockResolvedValue(null);
     await expect(submitComment(submission, 18)).rejects.toMatchObject({ status: 404 });
     expect(db.blogs.findFirst).toHaveBeenCalledWith({
-      where: { id: 7, status: "Published", QrCode_key: null },
+      where: {
+        id: 7,
+        status: "Published",
+        OR: [{ QrCode_key: null }, { QrCode_key: "" }],
+      },
       select: { id: true },
     });
     expect(db.publicComment.create).not.toHaveBeenCalled();
+  });
+
+  it("allows published blog targets whose empty QR key means no QR restriction", async () => {
+    db.blogs.findFirst.mockResolvedValue({ id: 7 });
+    await expect(submitComment(submission, 18)).resolves.toEqual({ id: 25, status: "PENDING" });
+    expect(db.blogs.findFirst).toHaveBeenCalledWith({
+      where: {
+        id: 7,
+        status: "Published",
+        OR: [{ QrCode_key: null }, { QrCode_key: "" }],
+      },
+      select: { id: true },
+    });
   });
 
   it("selects only available, non-QR product targets", async () => {

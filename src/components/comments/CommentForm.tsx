@@ -6,6 +6,25 @@ import { useId, useState, type FormEvent } from "react";
 import { useUser } from "@/context/UserContext";
 import type { CommentTarget } from "@/lib/comments/types";
 
+type FieldErrors = { body?: string; alias?: string };
+
+function limitCodePoints(value: string, maximum: number) {
+  return Array.from(value).slice(0, maximum).join("");
+}
+
+function readFieldErrors(payload: unknown): FieldErrors {
+  if (!payload || typeof payload !== "object" || !("error" in payload)) return {};
+  const error = payload.error;
+  if (!error || typeof error !== "object" || !("fields" in error)) return {};
+  const fields = error.fields;
+  if (!fields || typeof fields !== "object") return {};
+
+  return {
+    body: "body" in fields && typeof fields.body === "string" ? fields.body : undefined,
+    alias: "alias" in fields && typeof fields.alias === "string" ? fields.alias : undefined,
+  };
+}
+
 export default function CommentForm({
   target,
   parentId,
@@ -15,9 +34,13 @@ export default function CommentForm({
 }) {
   const { user, isAdmin, loading } = useUser();
   const helpId = useId();
+  const bodyErrorId = `${helpId}-error`;
+  const aliasHelpId = `${helpId}-alias-help`;
+  const aliasErrorId = `${helpId}-alias-error`;
   const [body, setBody] = useState("");
   const [alias, setAlias] = useState("");
   const [useAlias, setUseAlias] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   if (loading) return <p>در حال بررسی حساب کاربری...</p>;
@@ -35,8 +58,20 @@ export default function CommentForm({
   const missingName = !user.firstName?.trim() || !user.lastName?.trim();
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitting(true);
     setMessage("");
+    const nextErrors: FieldErrors = {};
+    const bodyLength = Array.from(body.trim()).length;
+    if (bodyLength < 10) nextErrors.body = "متن دیدگاه باید دست‌کم ۱۰ نویسه داشته باشد.";
+    if (bodyLength > 2000) nextErrors.body = "متن دیدگاه نمی‌تواند بیشتر از ۲۰۰۰ نویسه باشد.";
+    const aliasLength = Array.from(alias.trim()).length;
+    if (useAlias && aliasLength < 2)
+      nextErrors.alias = "نام مستعار باید دست‌کم ۲ نویسه داشته باشد.";
+    if (useAlias && aliasLength > 80)
+      nextErrors.alias = "نام مستعار نمی‌تواند بیشتر از ۸۰ نویسه باشد.";
+    setFieldErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    setSubmitting(true);
     try {
       const payload = parentId
         ? { target, body, mode: "editorial", parentId }
@@ -48,9 +83,14 @@ export default function CommentForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!response.ok) throw new Error("submit failed");
+      if (!response.ok) {
+        const responseBody = await response.json().catch(() => null);
+        setFieldErrors(readFieldErrors(responseBody));
+        throw new Error("submit failed");
+      }
       setBody("");
       setAlias("");
+      setFieldErrors({});
       setMessage("دیدگاه شما ثبت شد و پس از بررسی نمایش داده می‌شود.");
     } catch {
       setMessage("ارسال دیدگاه انجام نشد. لطفاً دوباره تلاش کنید.");
@@ -59,13 +99,16 @@ export default function CommentForm({
     }
   }
   return (
-    <form onSubmit={submit} className="space-y-3 rounded-xl bg-slate-50 p-4">
+    <form onSubmit={submit} noValidate className="space-y-3 rounded-xl bg-slate-50 p-4">
       {isAdmin && !parentId && (
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
             checked={useAlias}
-            onChange={(e) => setUseAlias(e.target.checked)}
+            onChange={(e) => {
+              setUseAlias(e.target.checked);
+              setFieldErrors((current) => ({ ...current, alias: undefined }));
+            }}
           />{" "}
           ثبت با نام مستعار
         </label>
@@ -76,11 +119,23 @@ export default function CommentForm({
           <input
             className="mt-1 block w-full rounded border border-slate-300 p-2"
             value={alias}
-            onChange={(e) => setAlias(e.target.value)}
-            minLength={2}
-            maxLength={80}
-            required
+            onChange={(e) => {
+              setAlias(limitCodePoints(e.target.value, 80));
+              setFieldErrors((current) => ({ ...current, alias: undefined }));
+            }}
+            maxLength={160}
+            aria-invalid={Boolean(fieldErrors.alias)}
+            aria-required="true"
+            aria-describedby={fieldErrors.alias ? `${aliasHelpId} ${aliasErrorId}` : aliasHelpId}
           />
+          <p id={aliasHelpId} className="mt-1 text-sm text-slate-600">
+            ۲ تا ۸۰ نویسه؛ {Array.from(alias.trim()).length} نویسه
+          </p>
+          {fieldErrors.alias && (
+            <p id={aliasErrorId} role="alert" className="text-sm text-red-700">
+              {fieldErrors.alias}
+            </p>
+          )}
         </label>
       )}
       {!parentId && !useAlias && missingName && (
@@ -102,16 +157,24 @@ export default function CommentForm({
         <textarea
           className="mt-1 block w-full rounded border border-slate-300 p-2"
           value={body}
-          onChange={(e) => setBody(e.target.value)}
-          minLength={10}
-          maxLength={2000}
-          required
-          aria-describedby={helpId}
+          onChange={(e) => {
+            setBody(limitCodePoints(e.target.value, 2000));
+            setFieldErrors((current) => ({ ...current, body: undefined }));
+          }}
+          maxLength={4000}
+          aria-invalid={Boolean(fieldErrors.body)}
+          aria-required="true"
+          aria-describedby={fieldErrors.body ? `${helpId} ${bodyErrorId}` : helpId}
         />
       </label>
       <p id={helpId} className="text-sm text-slate-600">
-        ۱۰ تا ۲۰۰۰ نویسه؛ {Array.from(body).length} نویسه
+        ۱۰ تا ۲۰۰۰ نویسه؛ {Array.from(body.trim()).length} نویسه
       </p>
+      {fieldErrors.body && (
+        <p id={bodyErrorId} role="alert" className="text-sm text-red-700">
+          {fieldErrors.body}
+        </p>
+      )}
       <button
         type="submit"
         disabled={submitting || (!parentId && !useAlias && missingName)}

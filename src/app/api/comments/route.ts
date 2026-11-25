@@ -6,7 +6,6 @@ import {
   commentErrorResponse,
   forbiddenOriginResponse,
   hasAllowedOrigin,
-  invalidRequestResponse,
   noStoreHeaders,
   withNoStore,
 } from "@/lib/comments/http";
@@ -29,7 +28,24 @@ export async function POST(request: Request) {
 
   try {
     const input = commentSubmissionSchema.safeParse(await readCommentJson(request));
-    if (!input.success) return invalidRequestResponse("The comment fields are invalid.", true);
+    if (!input.success) {
+      const fields: { body?: string; alias?: string } = {};
+      for (const issue of input.error.issues) {
+        const field = issue.path[0];
+        if (field === "body") fields.body = "متن دیدگاه باید بین ۱۰ تا ۲۰۰۰ نویسه باشد.";
+        if (field === "alias") fields.alias = "نام مستعار باید بین ۲ تا ۸۰ نویسه باشد.";
+      }
+      return NextResponse.json(
+        {
+          error: {
+            code: "INVALID_REQUEST",
+            message: "The comment fields are invalid.",
+            ...(Object.keys(fields).length > 0 ? { fields } : {}),
+          },
+        },
+        { status: 400, headers: noStoreHeaders }
+      );
+    }
 
     const result = await submitComment(input.data, actorId);
     return NextResponse.json(result, { status: 202, headers: noStoreHeaders });

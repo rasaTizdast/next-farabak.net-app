@@ -107,6 +107,13 @@ describe("moderated comments", () => {
       cy.contains("label", "متن دیدگاه").find("textarea").focus().should("have.focus");
       cy.press(Cypress.Keyboard.Keys.TAB);
       cy.focused().should("have.text", "ارسال دیدگاه");
+      cy.contains("label", "متن دیدگاه").find("textarea").type("کوتاه");
+      cy.contains("button", "ارسال دیدگاه").click();
+      cy.contains('[role="alert"]', "۱۰ نویسه").should("be.visible");
+      cy.contains("label", "متن دیدگاه")
+        .find("textarea")
+        .should("have.attr", "aria-invalid", "true")
+        .clear();
       cy.contains("label", "متن دیدگاه")
         .find("textarea")
         .type(memberBody, { parseSpecialCharSequences: false });

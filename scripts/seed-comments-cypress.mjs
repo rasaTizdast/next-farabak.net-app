@@ -89,6 +89,7 @@ try {
         status: "Published",
         content: "مقاله محلی برای آزمون دیدگاه‌ها.",
         SEO_description: "داده آزمایشی محلی",
+        QrCode_key: "",
         BlogCategories: { create: { category_id: blogCategory.id } },
       },
       select: { id: true },
