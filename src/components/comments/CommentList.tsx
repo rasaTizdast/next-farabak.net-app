@@ -19,7 +19,7 @@ function Entry({ comment }: { comment: PublicCommentReply }) {
           </time>
         )}
       </div>
-      <p className="mt-2 whitespace-pre-wrap">{comment.body}</p>
+      <p className="mt-2 wrap-break-word whitespace-pre-wrap">{comment.body}</p>
     </div>
   );
 }

@@ -131,6 +131,7 @@ try {
         Description: "داده آزمایشی محلی",
         CategoryId: productCategory.CategoryID,
         Slug: productSlug,
+        QrCode_Key: "",
       },
       select: { ProductId: true },
     });

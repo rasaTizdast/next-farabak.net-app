@@ -63,7 +63,7 @@ describe("GET /api/blogs/[slug]", () => {
     const json = await res.json();
     expect(json.blog.title).toBe("Blog by Slug");
     expect(json.blog.slug).toBe("blog-by-slug");
-    expect(json.blog.QrCode_key).toBeNull();
+    expect(json.blog).not.toHaveProperty("QrCode_key");
     expect(json.categories).toHaveLength(1);
     expect(json.comments).toHaveLength(1);
     expect(json.comments[0].content).toBe("Approved comment");
@@ -87,18 +87,59 @@ describe("GET /api/blogs/[slug]", () => {
     expect(json.message).toContain("یافت نشد");
   });
 
-  it("does not expose approved comments on a QR-only blog target", async () => {
-    mockPrisma.blogs.findUnique.mockResolvedValue({ ...mockBlogData, QrCode_key: "private-key" });
+  it.each([
+    "http://localhost/api/blogs/blog-by-slug",
+    "http://localhost/api/blogs/blog-by-slug?key=wrong-key",
+  ])("keeps a QR-only blog private for an invalid key request (%s)", async (url) => {
+    mockPrisma.blogs.findUnique.mockResolvedValue({
+      ...mockBlogData,
+      content: "Private article body",
+      QrCode_key: "private-key",
+    });
+
+    const response = await GET(new Request(url), {
+      params: Promise.resolve({ slug: "blog-by-slug" }),
+    });
+
+    expect(response.status).toBe(404);
+    expect(await response.text()).not.toContain("Private article body");
+    expect(mockPrisma.media.findMany).not.toHaveBeenCalled();
+  });
+
+  it("returns QR-only blog data only for a matching unexpired key without echoing the key", async () => {
+    const key = "private-key";
+    mockPrisma.blogs.findUnique.mockResolvedValue({
+      ...mockBlogData,
+      content: "Private article body",
+      QrCode_key: key,
+      QrCode_expiryDays: new Date(Date.now() + 60_000).toISOString(),
+    });
     mockPrisma.media.findMany.mockResolvedValue([]);
 
-    const response = await GET(new Request("http://localhost"), {
+    const response = await GET(new Request(`http://localhost/api/blogs/blog-by-slug?key=${key}`), {
       params: Promise.resolve({ slug: "blog-by-slug" }),
     });
 
     expect(response.status).toBe(200);
-    const json = await response.json();
-    expect(json.comments).toEqual([]);
-    expect(json.comments_count).toBe(0);
+    const responseText = await response.text();
+    expect(responseText).toContain("Private article body");
+    expect(responseText).not.toContain(key);
+  });
+
+  it("rejects an expired QR key", async () => {
+    mockPrisma.blogs.findUnique.mockResolvedValue({
+      ...mockBlogData,
+      QrCode_key: "expired-key",
+      QrCode_expiryDays: new Date(Date.now() - 60_000).toISOString(),
+    });
+
+    const response = await GET(
+      new Request("http://localhost/api/blogs/blog-by-slug?key=expired-key"),
+      { params: Promise.resolve({ slug: "blog-by-slug" }) }
+    );
+
+    expect(response.status).toBe(404);
+    expect(mockPrisma.media.findMany).not.toHaveBeenCalled();
   });
 
   it("queries with correct slug and Published status", async () => {

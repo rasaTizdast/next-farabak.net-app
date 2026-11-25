@@ -128,6 +128,18 @@ export async function GET(req: Request, props: { params: Promise<{ slug: string 
       return NextResponse.json({ message: "بلاگ مورد نظر یافت نشد" }, { status: 404 });
     }
 
+    if (blog.QrCode_key) {
+      const url = new URL(req.url);
+      const suppliedKey = url.searchParams.get("key");
+      const expiry = blog.QrCode_expiryDays ? new Date(blog.QrCode_expiryDays) : null;
+      if (
+        suppliedKey !== blog.QrCode_key ||
+        (expiry && (Number.isNaN(expiry.getTime()) || Date.now() > expiry.getTime()))
+      ) {
+        return NextResponse.json({ message: "بلاگ مورد نظر یافت نشد" }, { status: 404 });
+      }
+    }
+
     // Fetch related media using the blog ID
     const media = await prisma.media.findMany({
       where: { blog_id: blog.id },
@@ -148,8 +160,6 @@ export async function GET(req: Request, props: { params: Promise<{ slug: string 
         SEO_description: blog.SEO_description,
         image_URL: blog.image_URL,
         image_alt: blog.image_alt,
-        QrCode_key: blog.QrCode_key,
-        QrCode_expiryDays: blog.QrCode_expiryDays,
       },
       categories: blog.BlogCategories.map((category) => ({
         id: category.Categories.id,

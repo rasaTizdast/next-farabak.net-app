@@ -42,7 +42,11 @@ export async function assertPublicCommentTarget(
           select: { id: true },
         })
       : await db.product.findFirst({
-          where: { ProductId: target.id, Available: true, QrCode_Key: null },
+          where: {
+            ProductId: target.id,
+            Available: true,
+            OR: [{ QrCode_Key: null }, { QrCode_Key: "" }],
+          },
           select: { ProductId: true },
         });
 

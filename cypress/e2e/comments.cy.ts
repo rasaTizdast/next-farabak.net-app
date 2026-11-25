@@ -14,7 +14,7 @@
 
 describe("moderated comments", () => {
   const unique = Date.now();
-  const memberBody = `پرسش آزمایشی ${unique} https://example.invalid/test <script>alert(1)</script>`;
+  const memberBody = `پرسش آزمایشی ${unique} https://example.invalid/test <script>alert(1)</script> ${"x".repeat(600)}`;
   const productBody = `پرسش محصول آزمایشی ${unique}`;
   const aliasBody = `دیدگاه مستعار آزمایشی ${unique}`;
   const replyBody = `پاسخ تیم آزمایشی ${unique}`;
@@ -190,6 +190,22 @@ describe("moderated comments", () => {
     assertPublicFields("blog", articleId);
     assertPublicFields("product", productId);
     cy.visit(articlePath);
+    cy.viewport(320, 900);
+    cy.get("#comments")
+      .contains("p", memberBody)
+      .should("be.visible")
+      .then(($body) => {
+        expect($body[0].scrollWidth, "long comment width at 320px").to.be.at.most(
+          $body[0].clientWidth + 1
+        );
+      });
+    cy.document().then((document) => {
+      expect(
+        document.documentElement.scrollWidth,
+        "approved comment page width at 320px"
+      ).to.be.at.most(document.documentElement.clientWidth + 1);
+    });
+    cy.viewport(1280, 900);
     cy.get("#comments")
       .contains("li", memberBody)
       .within(() => {

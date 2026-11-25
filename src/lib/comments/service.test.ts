@@ -165,7 +165,26 @@ describe("submitComment", () => {
       status: 404,
     });
     expect(db.product.findFirst).toHaveBeenCalledWith({
-      where: { ProductId: 7, Available: true, QrCode_Key: null },
+      where: {
+        ProductId: 7,
+        Available: true,
+        OR: [{ QrCode_Key: null }, { QrCode_Key: "" }],
+      },
+      select: { ProductId: true },
+    });
+  });
+
+  it("allows available product targets whose empty QR key means no QR restriction", async () => {
+    db.product.findFirst.mockResolvedValue({ ProductId: 7 });
+    await expect(
+      submitComment({ ...submission, target: { type: "product", id: 7 } }, 18)
+    ).resolves.toEqual({ id: 25, status: "PENDING" });
+    expect(db.product.findFirst).toHaveBeenCalledWith({
+      where: {
+        ProductId: 7,
+        Available: true,
+        OR: [{ QrCode_Key: null }, { QrCode_Key: "" }],
+      },
       select: { ProductId: true },
     });
   });
