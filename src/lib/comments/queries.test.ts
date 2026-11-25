@@ -84,25 +84,28 @@ describe("listApprovedComments", () => {
     expect(page.nextCursor).toBe(21);
   });
 
-  it("paginates from an approved comment on the supplied target", async () => {
-    db.publicComment.findFirst.mockResolvedValue({ id: 22 });
+  it("paginates even when the anchor was hidden after the previous page", async () => {
+    db.publicComment.findFirst.mockResolvedValue({ id: 22, createdAt: publishedAt });
     await listApprovedComments(blog, 22);
     expect(db.publicComment.findFirst).toHaveBeenCalledWith({
       where: {
         id: 22,
         blogId: 7,
         parentId: null,
-        status: "APPROVED",
         presentation: { not: "EDITORIAL" },
       },
-      select: { id: true },
+      select: { id: true, createdAt: true },
     });
     expect(db.publicComment.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ cursor: { id: 22 }, skip: 1 })
+      expect.objectContaining({
+        where: expect.objectContaining({
+          OR: [{ createdAt: { lt: publishedAt } }, { createdAt: publishedAt, id: { lt: 22 } }],
+        }),
+      })
     );
   });
 
-  it("rejects a cursor outside the approved top-level rows", async () => {
+  it("rejects a cursor outside the target top-level rows", async () => {
     db.publicComment.findFirst.mockResolvedValue(null);
     await expect(listApprovedComments(blog, 22)).rejects.toMatchObject({ status: 400 });
     expect(cacheTag).not.toHaveBeenCalled();

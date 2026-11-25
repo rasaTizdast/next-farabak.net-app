@@ -110,10 +110,14 @@ export async function listAdminComments(
         throw new CommentError(403, "ADMIN_REQUIRED", "This action requires an administrator.");
       }
 
+      let anchor: { id: number; createdAt: Date } | null = null;
       if (parsedFilters.data.cursor !== undefined) {
-        const anchor = await db.publicComment.findFirst({
-          where: { ...where, id: parsedFilters.data.cursor },
-          select: { id: true },
+        anchor = await db.publicComment.findFirst({
+          where: {
+            ...adminWhere({ targetType: parsedFilters.data.targetType }),
+            id: parsedFilters.data.cursor,
+          },
+          select: { id: true, createdAt: true },
         });
         if (!anchor) {
           throw new CommentError(400, "INVALID_CURSOR", "The comment page cursor is invalid.");
@@ -121,12 +125,19 @@ export async function listAdminComments(
       }
 
       const rows = await db.publicComment.findMany({
-        where,
+        where: {
+          ...where,
+          ...(anchor
+            ? {
+                OR: [
+                  { createdAt: { lt: anchor.createdAt } },
+                  { createdAt: anchor.createdAt, id: { lt: anchor.id } },
+                ],
+              }
+            : {}),
+        },
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         take: pageSize + 1,
-        ...(parsedFilters.data.cursor === undefined
-          ? {}
-          : { cursor: { id: parsedFilters.data.cursor }, skip: 1 }),
         select: {
           id: true,
           blogId: true,

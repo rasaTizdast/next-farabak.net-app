@@ -15,7 +15,10 @@ beforeEach(() => {
   vi.resetAllMocks();
   db.$transaction.mockImplementation(async (read) => read(db));
   db.client.findUnique.mockResolvedValue({ Role: "Admin" });
-  db.publicComment.findFirst.mockResolvedValue({ id: 30 });
+  db.publicComment.findFirst.mockResolvedValue({
+    id: 30,
+    createdAt: new Date("2026-11-23T10:00:00.000Z"),
+  });
   db.publicComment.findMany.mockResolvedValue([
     {
       id: 32,
@@ -89,6 +92,24 @@ describe("listAdminComments", () => {
     db.publicComment.findFirst.mockResolvedValue(null);
     await expect(listAdminComments(18, { cursor: 900 })).rejects.toMatchObject({ status: 400 });
     expect(db.publicComment.findMany).not.toHaveBeenCalled();
+  });
+
+  it("keeps paging when the anchor status changes", async () => {
+    await listAdminComments(18, { status: "PENDING", targetType: "blog", cursor: 30 });
+    expect(db.publicComment.findFirst).toHaveBeenCalledWith({
+      where: { id: 30, blogId: { not: null } },
+      select: { id: true, createdAt: true },
+    });
+    expect(db.publicComment.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          OR: [
+            { createdAt: { lt: new Date("2026-11-23T10:00:00.000Z") } },
+            { createdAt: new Date("2026-11-23T10:00:00.000Z"), id: { lt: 30 } },
+          ],
+        }),
+      })
+    );
   });
 
   it("uses a deterministic lookahead cursor on filtered admin results", async () => {

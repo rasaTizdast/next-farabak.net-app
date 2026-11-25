@@ -30,20 +30,35 @@ async function readApprovedPage(
 
   const rows = await prisma.$transaction(
     async (db) => {
+      let anchor: { id: number; createdAt: Date } | null = null;
       if (cursor !== undefined) {
-        const anchor = await db.publicComment.findFirst({
-          where: { ...topLevel, id: cursor },
-          select: { id: true },
+        anchor = await db.publicComment.findFirst({
+          where: {
+            ...targetFields,
+            parentId: null,
+            presentation: { not: "EDITORIAL" },
+            id: cursor,
+          },
+          select: { id: true, createdAt: true },
         });
         if (!anchor)
           throw new CommentError(400, "INVALID_CURSOR", "The comment page cursor is invalid.");
       }
 
       return db.publicComment.findMany({
-        where: topLevel,
+        where: {
+          ...topLevel,
+          ...(anchor
+            ? {
+                OR: [
+                  { createdAt: { lt: anchor.createdAt } },
+                  { createdAt: anchor.createdAt, id: { lt: anchor.id } },
+                ],
+              }
+            : {}),
+        },
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         take: pageSize + 1,
-        ...(cursor === undefined ? {} : { cursor: { id: cursor }, skip: 1 }),
         select: {
           ...publicFields,
           replies: {

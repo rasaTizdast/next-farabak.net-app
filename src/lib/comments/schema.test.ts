@@ -293,7 +293,7 @@ describe.skipIf(!testDatabaseUrl)("public comments on disposable PostgreSQL", ()
       })),
       select: { id: true },
     });
-    const pending = await db.publicComment.create({
+    await db.publicComment.create({
       data: {
         blogId: 9,
         displayName: "کاربر",
@@ -316,11 +316,15 @@ describe.skipIf(!testDatabaseUrl)("public comments on disposable PostgreSQL", ()
       replies: [],
     });
 
+    await db.publicComment.update({
+      where: { id: page.nextCursor! },
+      data: { status: "REJECTED" },
+    });
     const lastPage = await queries.listApprovedComments(paginationTarget, page.nextCursor!);
     expect(lastPage.comments.map((row) => row.id)).toEqual(sortedIds.slice(20));
     expect(lastPage.nextCursor).toBeNull();
 
-    await expect(queries.listApprovedComments(paginationTarget, pending.id)).rejects.toMatchObject({
+    await expect(queries.listApprovedComments(paginationTarget, 999999)).rejects.toMatchObject({
       status: 400,
     });
     await db.blogs.update({
