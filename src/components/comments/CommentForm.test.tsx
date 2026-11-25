@@ -52,6 +52,7 @@ describe("CommentForm", () => {
     expect(error).toHaveTextContent(/۱۰/);
     expect(textarea).toHaveAttribute("aria-invalid", "true");
     expect(textarea.getAttribute("aria-describedby")?.split(" ")).toContain(error.id);
+    expect(textarea).toHaveFocus();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -138,5 +139,6 @@ describe("CommentForm", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("متن دیدگاه را بررسی کنید.");
     expect(textarea).toHaveAttribute("aria-invalid", "true");
+    expect(textarea).toHaveFocus();
   });
 });

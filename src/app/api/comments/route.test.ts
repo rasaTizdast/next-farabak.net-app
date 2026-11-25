@@ -57,7 +57,7 @@ describe("POST /api/comments", () => {
     context.auth.setupAuth("Public", { userId: "18" });
     const request = new Request("https://farabak.net/api/comments", {
       method: "POST",
-      headers: { Origin: "https://farabak.net", "Content-Length": "9000" },
+      headers: { Origin: "https://farabak.net", "Content-Length": "16385" },
       body: "{}",
     });
     const response = await POST(request);

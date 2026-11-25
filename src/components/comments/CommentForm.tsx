@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useState, type FormEvent } from "react";
+import { useId, useRef, useState, type FormEvent } from "react";
 
 import { useUser } from "@/context/UserContext";
 import type { CommentTarget } from "@/lib/comments/types";
@@ -37,6 +37,8 @@ export default function CommentForm({
   const bodyErrorId = `${helpId}-error`;
   const aliasHelpId = `${helpId}-alias-help`;
   const aliasErrorId = `${helpId}-alias-error`;
+  const aliasInputRef = useRef<HTMLInputElement>(null);
+  const bodyInputRef = useRef<HTMLTextAreaElement>(null);
   const [body, setBody] = useState("");
   const [alias, setAlias] = useState("");
   const [useAlias, setUseAlias] = useState(false);
@@ -69,7 +71,11 @@ export default function CommentForm({
     if (useAlias && aliasLength > 80)
       nextErrors.alias = "نام مستعار نمی‌تواند بیشتر از ۸۰ نویسه باشد.";
     setFieldErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
+    if (Object.keys(nextErrors).length > 0) {
+      if (nextErrors.alias) aliasInputRef.current?.focus();
+      else bodyInputRef.current?.focus();
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -85,7 +91,10 @@ export default function CommentForm({
       });
       if (!response.ok) {
         const responseBody = await response.json().catch(() => null);
-        setFieldErrors(readFieldErrors(responseBody));
+        const errors = readFieldErrors(responseBody);
+        setFieldErrors(errors);
+        if (errors.alias) aliasInputRef.current?.focus();
+        else if (errors.body) bodyInputRef.current?.focus();
         throw new Error("submit failed");
       }
       setBody("");
@@ -117,6 +126,7 @@ export default function CommentForm({
         <label className="block">
           نام مستعار
           <input
+            ref={aliasInputRef}
             className="mt-1 block w-full rounded border border-slate-300 p-2"
             value={alias}
             onChange={(e) => {
@@ -155,6 +165,7 @@ export default function CommentForm({
       <label className="block">
         {parentId ? "متن پاسخ" : "متن دیدگاه"}
         <textarea
+          ref={bodyInputRef}
           className="mt-1 block w-full rounded border border-slate-300 p-2"
           value={body}
           onChange={(e) => {

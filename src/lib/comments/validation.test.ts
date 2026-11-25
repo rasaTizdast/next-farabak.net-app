@@ -35,20 +35,34 @@ describe("comment text validation", () => {
 });
 
 describe("readCommentJson", () => {
-  it("accepts a body of exactly 8 KiB", async () => {
-    const payload = "آ".repeat(4095);
+  it("accepts the maximum body and alias together when both use four-byte Unicode", async () => {
+    const payload = {
+      target: { type: "blog", id: 7 },
+      mode: "alias",
+      body: "🙂".repeat(2000),
+      alias: "🙂".repeat(80),
+    };
     const request = new Request("https://farabak.net/api/comments", {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    await expect(readCommentJson(request)).resolves.toBe(payload);
+    await expect(readCommentJson(request)).resolves.toEqual(payload);
+  });
+
+  it("accepts a JSON body of exactly 16 KiB", async () => {
+    const payload = `"${"a".repeat(16 * 1024 - 2)}"`;
+    const request = new Request("https://farabak.net/api/comments", {
+      method: "POST",
+      body: payload,
+    });
+    await expect(readCommentJson(request)).resolves.toBe("a".repeat(16 * 1024 - 2));
   });
 
   it("rejects an oversized declared body before consuming it", async () => {
     const request = new Request("https://farabak.net/api/comments", {
       method: "POST",
       body: "{}",
-      headers: { "content-length": "8193" },
+      headers: { "content-length": "16385" },
     });
     await expect(readCommentJson(request)).rejects.toMatchObject({ status: 413 });
     expect(request.bodyUsed).toBe(false);
@@ -57,7 +71,7 @@ describe("readCommentJson", () => {
   it("rejects the actual UTF-8 byte count when the header understates it", async () => {
     const request = new Request("https://farabak.net/api/comments", {
       method: "POST",
-      body: JSON.stringify("آ".repeat(4096)),
+      body: `"${"a".repeat(16 * 1024 - 1)}"`,
       headers: { "content-length": "100" },
     });
     await expect(readCommentJson(request)).rejects.toMatchObject({ status: 413 });

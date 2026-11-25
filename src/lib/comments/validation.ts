@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { CommentError } from "./types";
 
-const maxJsonBytes = 8 * 1024;
+const maxJsonBytes = 16 * 1024;
 
 function plainText(min: number, max: number) {
   return z
@@ -37,7 +37,7 @@ export async function readCommentJson(request: Request): Promise<unknown> {
   const tooLarge = new CommentError(
     413,
     "BODY_TOO_LARGE",
-    "Comment requests are limited to 8 KiB."
+    "Comment requests are limited to 16 KiB."
   );
   if (Number(request.headers.get("content-length")) > maxJsonBytes) throw tooLarge;
 
