@@ -13,6 +13,7 @@ import {
   FiFile,
   FiBarChart2,
   FiTag,
+  FiMessageSquare,
   FiMenu,
   FiX,
 } from "react-icons/fi";
@@ -31,6 +32,7 @@ const adminSidebarItems = [
     icon: <BiCategory />,
   },
   { name: "صفحات", href: "/admin/pages", icon: <FiFileText size={20} /> },
+  { name: "دیدگاه‌ها", href: "/admin/comments", icon: <FiMessageSquare size={20} /> },
   {
     name: "گزارش‌ها",
     href: "/admin/analytics",
@@ -71,7 +73,11 @@ const Sidebar = () => {
   const { logout, user } = useUser();
 
   const isBranch = user?.role?.toLowerCase() === "branch";
-  const sidebarItems = isBranch ? branchSidebarItems : adminSidebarItems;
+  const sidebarItems = isBranch
+    ? branchSidebarItems
+    : adminSidebarItems.filter(
+        (item) => item.href !== "/admin/comments" || user?.role?.toLowerCase() === "admin"
+      );
 
   const isExpanded = isOpen || isDesktopHovered;
 

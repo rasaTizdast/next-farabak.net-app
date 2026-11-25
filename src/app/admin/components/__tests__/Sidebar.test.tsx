@@ -57,6 +57,7 @@ describe("Sidebar - Admin role", () => {
     expect(screen.getByText("قیمت‌های همکار")).toBeDefined();
     expect(screen.getByText("دسته‌بندی‌ها")).toBeDefined();
     expect(screen.getByText("صفحات")).toBeDefined();
+    expect(screen.getByText("دیدگاه‌ها").closest("a")).toHaveAttribute("href", "/admin/comments");
     expect(screen.getByText("گزارش‌ها")).toBeDefined();
     expect(screen.getByText("شعبه‌ها")).toBeDefined();
     expect(screen.getByText("انبارها")).toBeDefined();
@@ -116,6 +117,7 @@ describe("Sidebar - Branch role", () => {
     expect(screen.queryByText("محصولات")).toBeNull();
     expect(screen.queryByText("دسته‌بندی‌ها")).toBeNull();
     expect(screen.queryByText("صفحات")).toBeNull();
+    expect(screen.queryByText("دیدگاه‌ها")).toBeNull();
     expect(screen.queryByText("گزارش‌ها")).toBeNull();
     expect(screen.queryByText("انبارها")).toBeNull();
     expect(screen.queryByText("فاکتورها")).toBeNull();
