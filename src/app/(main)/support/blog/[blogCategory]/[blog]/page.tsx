@@ -418,7 +418,7 @@ export default async function BlogPage(props: {
             scopeId={contentScopeId}
             className="prose-view [&_.w-1\/2]:w-1\/2 [&_.w-1\/3]:w-1\/3 mx-auto max-w-3xl [&_.w-1\/2]:mx-auto [&_.w-1\/3]:mx-auto [&_.w-full]:w-full [&_h2]:scroll-mt-28 [&_h3]:scroll-mt-28 [&_img]:h-auto [&_img]:max-w-full"
           />
-          {!blog.QrCode_key && (
+          {blog.QrCode_key === undefined && (
             <Suspense fallback={<p>در حال بارگذاری دیدگاه‌ها...</p>}>
               <CommentSection target={{ type: "blog", id: blog.id }} />
             </Suspense>

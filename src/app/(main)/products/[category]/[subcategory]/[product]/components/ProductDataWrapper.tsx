@@ -43,7 +43,7 @@ interface ProductData {
   productSlug: string;
   SEO_Title: string;
   SEO_Description: string;
-  QrCode_key: string;
+  QrCode_key: string | null;
   QrCode_expiryDays: string;
   productBlog: string;
   Minimum_Amount?: number;
@@ -261,7 +261,7 @@ export default async function ProductDataWrapper({
         </Suspense>
       </section>
 
-      {productData.Available && !productData.QrCode_key && (
+      {productData.Available && productData.QrCode_key === null && (
         <Suspense fallback={<p>در حال بارگذاری دیدگاه‌ها...</p>}>
           <CommentSection target={{ type: "product", id: productData.ProductId }} />
         </Suspense>
