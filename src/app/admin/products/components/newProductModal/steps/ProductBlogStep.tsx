@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { TipTapEditor } from "@/components/editor/TipTapEditor";
+import { ProductBlogEditor } from "@/app/admin/products/components/ProductBlogEditor";
 
 import { CollapsibleSection } from "../components/CollapsibleSection";
 import { useNewProductBlog } from "../hooks/useNewProductBlog";
@@ -29,7 +29,7 @@ export function ProductBlogStep() {
             <p className="my-3 text-center font-extrabold text-red-300">
               محتوای مقاله به صورت خودکار ذخیره خواهد شد
             </p>
-            <TipTapEditor content={productBlog} onChange={handleContentChange} />
+            <ProductBlogEditor value={productBlog} onChange={handleContentChange} />
           </>
         )}
       </div>
