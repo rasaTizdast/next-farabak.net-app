@@ -22,7 +22,7 @@ describe("CommentList", () => {
             {
               id: 3,
               displayName: "علی",
-              body: "<script>سلام</script>",
+              body: "https://example.com <script>سلام</script>",
               presentation: "MEMBER",
               publishedAt: null,
               replies: [
@@ -40,7 +40,10 @@ describe("CommentList", () => {
         }}
       />
     );
-    expect(screen.getByText("<script>سلام</script>")).toBeInTheDocument();
+    const commentText = screen.getByText("https://example.com <script>سلام</script>");
+    expect(commentText).toBeInTheDocument();
+    expect(commentText.closest("a")).toBeNull();
+    expect(document.querySelector('a[href="https://example.com"]')).toBeNull();
     expect(document.querySelector("script")).toBeNull();
     expect(screen.getByText("پاسخ تیم فرابک")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "دیدگاه‌های بیشتر" }));

@@ -15,7 +15,7 @@ On 2026-11-23, the live [CEIA article](https://farabak.net/support/blog/metal-de
 - Admins may reply once or more to an approved top-level comment. Public replies display an explicit “پاسخ تیم فرابک” editorial label. Visitors cannot reply in the first release. No arbitrary-depth threading.
 - Every new submission, including admin submissions and editorial replies, starts `PENDING`. Only an admin moderation action can publish it. Pending/rejected entries are visible only to admins; a submitter receives a private pending acknowledgment, not a public preview.
 - Admin queue supports filtering by status and target type, viewing the parent and target link, approving, rejecting/hiding, and an internal moderation note. State changes record reviewer ID and time. Hiding an approved parent also hides its replies in public queries.
-- No ratings, likes, attachments, HTML, or outbound links in comment bodies. Unicode plain text, 10–2,000 characters after trimming; alias 2–80 characters. Render via React text nodes, preserve line breaks with CSS, and treat URLs as text.
+- No ratings, likes, attachments, or HTML in comment bodies. Unicode plain text, 10–2,000 characters after trimming; alias 2–80 characters. URLs may appear only as literal text: render via React text nodes, never create anchors from comment content, and preserve line breaks with CSS.
 - Rate limit creation per account and cap body size before parsing. A valid cookie alone is insufficient: each write reloads the current account and role from the database.
 
 ## Architecture

@@ -15,7 +15,7 @@
 - Work only in the attached comments worktree; preserve the staged blog edit in the original checkout.
 - Each new comment and editorial reply starts `PENDING`, including admin-authored entries.
 - Member display names come from current `info.Client.FirstName` and `LastName`; custom aliases and editorial replies require current database role `Admin`.
-- Plain text only: 10–2,000 trimmed characters; alias 2–80 characters. No HTML, active links, stars, ratings, attachments, or user supplied outbound links.
+- Plain text only: 10–2,000 trimmed characters; alias 2–80 characters. URLs may be included and must appear as literal, inert text; never convert comment content to active links. No HTML, stars, ratings, or attachments.
 - Public queries, APIs, feeds, counts, and structured data must never expose pending/rejected entries, reviewer notes, account IDs, or contact fields.
 - An approved parent is required for an editorial reply; hiding a parent hides its replies.
 - Use the `DESIGN.md` public shell, RTL/IRANYekan and current admin shell. Check 320, 390, 768, 1024, and 1440px, keyboard, and reduced motion.
@@ -150,11 +150,11 @@
 
 **Interfaces:** `<CommentSection target={target} variant="article" | "product" />`; `<CommentForm target={target} />` uses `UserContext` for affordances only and posts to `/api/comments`.
 
-- [ ] **Step 1: Write failing component/page tests.** Assert guest login CTA, member name with no alias field, admin alias and editorial reply controls, pending acknowledgment, submit error/focus state, approved-only list, editorial badge, and product `#comments` navigation. Assert the article section follows the body and the product section follows the FAQ.
-- [ ] **Step 2: Run `pnpm test src/components/comments 'src/app/(main)/support/blog/[blogCategory]/[blog]' 'src/app/(main)/products/[category]/[subcategory]/[product]'` and confirm red.**
-- [ ] **Step 3: Build the UI** with Tailwind v4 utilities and `PublicShell` alignment. Use a semantic `section` with `h2`, `<time>`, list items, `white-space: pre-wrap`, visible labels, `aria-describedby` validation, and an `aria-live="polite"` status. If profile names are missing, link to `/dashboard/edit-user`. Keep the server list independent from the auth-aware form; place the latter behind Suspense/request-time auth so the approved HTML can be cached safely.
-- [ ] **Step 4: Run component/page tests and visually check 320/390/768/1024/1440px, keyboard and reduced motion.** Verify no comment leaks into metadata or Product/BlogPosting JSON-LD and no `Review`/`AggregateRating` markup appears.
-- [ ] **Step 5: Commit.** `git add src/components/comments 'src/app/(main)/support/blog/[blogCategory]/[blog]/page.tsx' 'src/app/(main)/products/[category]/[subcategory]/[product]' && git commit -m "feat: add public comment sections"`.
+- [x] **Step 1: Write failing component/page tests.** Tests cover guest login CTA, member name with no alias field, admin alias and editorial reply controls, pending acknowledgment, submit error/focus state, approved-only list, editorial badge, and product `#comments` navigation. Article and product page tests cover section placement.
+- [x] **Step 2: Run `pnpm test src/components/comments 'src/app/(main)/support/blog/[blogCategory]/[blog]' 'src/app/(main)/products/[category]/[subcategory]/[product]'` and confirm red.** Focused component and page suites pass after implementation.
+- [x] **Step 3: Build the UI** with Tailwind v4 utilities and `PublicShell` alignment. Use a semantic `section` with `h2`, `<time>`, list items, `white-space: pre-wrap`, visible labels, `aria-describedby` validation, and an `aria-live="polite"` status. If profile names are missing, link to `/dashboard/edit-user`. Keep the server list independent from the auth-aware form; place the latter behind Suspense/request-time auth so the approved HTML can be cached safely.
+- [ ] **Step 4: Run component/page tests and visually check 320/390/768/1024/1440px, keyboard and reduced motion.** Component/page tests pass; browser-based responsive and keyboard checks remain open because launching the isolated app server was rejected by automatic policy review. SEO markup was checked in source and focused tests; verify rendered HTML when browser testing is available. No `Review`/`AggregateRating` markup was added.
+- [x] **Step 5: Commit.** Public UI and tests are committed on the comments branch.
 
 ### Task 6: Admin review page
 
@@ -162,19 +162,19 @@
 
 **Interfaces:** `/admin/comments` shows a paginated queue with status and target filters, target link, author mode, parent context, approve/reject/hide actions, and note input.
 
-- [ ] **Step 1: Write failing UI tests** for a pending queue row, an alias comment’s real admin actor in admin-only context, editorial reply context, filter and pagination, approval and hide confirmations, loading/error/empty states, and admin-only sidebar navigation.
-- [ ] **Step 2: Run `pnpm test src/app/admin/comments src/app/admin/components/__tests__/Sidebar.test.tsx` and confirm red.**
-- [ ] **Step 3: Implement the page** using current admin theme and Ant Design table/form conventions. The page fetches only the admin API, keeps filters in URL query parameters, updates queue state after decisions, and shows a decision error without pretending publication succeeded. Hide decisions require an internal note; retain who reviewed and when.
-- [ ] **Step 4: Run admin tests and keyboard/RTL checks; commit.** `git add src/app/admin/comments src/app/admin/components/Sidebar.tsx src/app/admin/components/__tests__/Sidebar.test.tsx && git commit -m "feat: add comment moderation queue"`.
+- [x] **Step 1: Write failing UI tests** for a pending queue row, an alias comment’s real admin actor in admin-only context, editorial reply context, filter and pagination, approval and hide confirmations, loading/error/empty states, and admin-only sidebar navigation.
+- [x] **Step 2: Run `pnpm test src/app/admin/comments src/app/admin/components/__tests__/Sidebar.test.tsx` and confirm red.** The focused admin UI tests pass after implementation.
+- [x] **Step 3: Implement the page** using current admin theme and Ant Design table/form conventions. The page fetches only the admin API, keeps filters in URL query parameters, updates queue state after decisions, and shows a decision error without pretending publication succeeded. Hide decisions require an internal note; retain who reviewed and when.
+- [ ] **Step 4: Run admin tests and keyboard/RTL checks; commit.** Admin UI tests pass and the implementation is committed. Keyboard and RTL browser checks remain open because launching the isolated app server was rejected by automatic policy review.
 
 ### Task 7: End-to-end verification and release gate
 
 **Files:** Create `cypress/e2e/comments.cy.ts`; update focused test fixtures and `docs/seo-audits/` with a dated release verification note when a real release occurs.
 
-- [ ] **Step 1: Write browser tests first** with disposable users and database: guest sees login prompt; member submits and sees pending; public HTML/API stays unchanged; admin approves; a fresh anonymous GET sees body/name; admin alias stays audit-linked; editorial reply has label; admin hides parent and both parent/replies disappear immediately. Exercise a private/QR-only target and script-like text.
-- [ ] **Step 2: Run Cypress against an isolated test app/database and confirm each scenario.** Use the project's existing Cypress config and seed/cleanup helpers; do not point it at production.
-- [ ] **Step 3: Run final gates:** `pnpm prisma:generate`, `pnpm test`, `pnpm lint:ci`, `pnpm format:check`, `pnpm build`, and the isolated Cypress suite. Check generated Prisma types and inspect actual initial HTML for one article and product after approval/hiding.
-- [ ] **Step 4: Rehearse deployment** on a database clone: backup, apply SQL, run the migration verifier twice, compare legacy/source counts, deploy code, then public GET smoke tests. Roll back the application version and database migration on the clone to establish a recovery path.
+- [ ] **Step 1: Write browser tests first** with disposable users and database: guest sees login prompt; member submits and sees pending; public HTML/API stays unchanged; admin approves; a fresh anonymous GET sees body/name; admin alias stays audit-linked; editorial reply has label; admin hides parent and both parent/replies disappear immediately. Exercise a private/QR-only target and script-like text. Not written yet; no isolated browser runtime was available.
+- [ ] **Step 2: Run Cypress against an isolated test app/database and confirm each scenario.** Not run. Automatic approval review rejected both attempts to launch the isolated server, with the reason `blocked by policy`.
+- [ ] **Step 3: Run final gates:** `pnpm prisma:generate`, `pnpm test`, `pnpm lint:ci`, `pnpm format:check`, `pnpm build`, and the isolated Cypress suite. Prisma generation, full CI lint, production build, 64 focused tests, and changed-file formatting passed. Full tests were interrupted after unrelated multipart/Undici upload failures; repository-wide formatting reported 238 pre-existing issues. Cypress and rendered-HTML checks are blocked by the server launch rejection.
+- [ ] **Step 4: Rehearse deployment** on a database clone: backup, apply SQL, run the migration verifier twice, compare legacy/source counts, deploy code, then public GET smoke tests. A synthetic disposable database backup, repeated migration/verifier, and database restore passed. Production-data-clone deployment, public GET smoke tests, and application rollback remain open.
 - [ ] **Step 5: After an authorized production release,** record timestamp, canonical/status and approved/pending HTML results on `https://farabak.net`, then schedule Search Console URL Inspection and same-filter query/page performance checks. Do not claim indexing or ranking movement before those dated measurements.
 - [ ] **Step 6: Commit test and release documentation** separately from code changes.
 
