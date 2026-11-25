@@ -494,6 +494,18 @@ model phone_numbers {
   @@schema("contact_us")
 }
 
+model ContactSubmission {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(120)
+  phone     String   @db.VarChar(16)
+  project   String?  @db.VarChar(160)
+  message   String   @db.VarChar(5000)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([id(sort: Desc)], map: "ContactSubmission_id_desc_idx")
+  @@schema("contact_us")
+}
+
 model showcase_products {
   id          Int    @id @default(autoincrement())
   title       String @db.VarChar(90)

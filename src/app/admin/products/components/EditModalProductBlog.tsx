@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 
-import { TipTapEditor } from "@/components/editor/TipTapEditor";
+import { ProductBlogEditor } from "@/app/admin/products/components/ProductBlogEditor";
 
 type Props = {
   blog: string;
@@ -41,8 +41,8 @@ const EditModalProductBlog = ({ blog, onSave, slug }: Props) => {
           <p className="my-3 text-center font-extrabold text-red-300">
             محتوای مقاله به صورت خودکار ذخیره خواهد شد
           </p>
-          <TipTapEditor
-            content={blog}
+          <ProductBlogEditor
+            value={blog}
             onChange={(content) => {
               blogContentRef.current = content;
               onSave(content);

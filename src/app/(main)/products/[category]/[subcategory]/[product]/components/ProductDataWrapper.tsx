@@ -227,7 +227,11 @@ export default async function ProductDataWrapper({
           توضیحات تکمیلی محصول
         </h2>
         <Suspense fallback={<SkeletonBlog />}>
-          <ProductBlog productBlog={productData.productBlog} pageTitle={productModel} />
+          <ProductBlog
+            productBlog={productData.productBlog}
+            pageTitle={productModel}
+            productSlug={productData.productSlug}
+          />
         </Suspense>
       </section>
 

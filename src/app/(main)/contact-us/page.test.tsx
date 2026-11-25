@@ -1,6 +1,8 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { getContactInfo } from "@/lib/data/contactUs";
+
 vi.mock("next/cache", () => ({ io: vi.fn() }));
 vi.mock("@/lib/data/contactUs", () => ({
   getContactInfo: vi.fn(async () => ({
@@ -38,12 +40,26 @@ describe("contact page initial HTML", () => {
     expect(container.querySelector(".skeleton-shimmer.h-72"))?.not.toBeNull();
   });
 
-  it("renders the promised accessible inquiry form with the configured recipient", async () => {
+  it("renders the accessible inquiry form", async () => {
     const page = await ContactUsContent();
     const { getByRole, getByLabelText } = render(page);
 
     expect(getByRole("form", { name: "فرم درخواست مشاوره" })).toBeInTheDocument();
     expect(getByLabelText("نام و نام خانوادگی")).toBeInTheDocument();
     expect(getByLabelText("شرح نیاز یا پروژه")).toBeInTheDocument();
+  });
+
+  it("keeps the inquiry form available when contact details are missing", async () => {
+    vi.mocked(getContactInfo).mockResolvedValueOnce({
+      address: null,
+      emails: [],
+      phone_numbers: [],
+    });
+
+    const page = await ContactUsContent();
+    const { getByRole, getByLabelText } = render(page);
+
+    expect(getByRole("form", { name: "فرم درخواست مشاوره" })).toBeInTheDocument();
+    expect(getByLabelText("نام و نام خانوادگی")).toBeInTheDocument();
   });
 });

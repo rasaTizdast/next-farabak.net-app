@@ -371,8 +371,8 @@ export default async function BlogPage(props: {
               sizes="(min-width: 1024px) 65vw, calc(100vw - 88px)"
               priority
             />
-            <div className="flex flex-col gap-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-700 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 sm:gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
                 {blog.author ? <span>{blog.author}</span> : null}
                 {blog.author && blog.created_at ? <span aria-hidden="true">•</span> : null}
                 {blog.created_at ? (
@@ -383,23 +383,19 @@ export default async function BlogPage(props: {
                 <span aria-hidden="true">•</span>
                 <span>{readingTime} دقیقه مطالعه</span>
               </div>
-              <div className="flex min-w-0 flex-col items-start gap-2 sm:items-end">
-                <span className="text-xs font-medium text-slate-600">
-                  مقالات فرابک را در گوگل دنبال کنید
-                </span>
+              <div className="flex min-w-0 items-center">
                 <div
+                  className="hidden min-h-10 max-w-full sm:block"
                   google-add-preferred-source-btn=""
                   data-theme="light"
-                  aria-label="افزودن فرابک به منابع ترجیحی گوگل"
-                  className="min-h-10 max-w-full"
                 />
                 <a
-                  className="text-xs text-blue-700 underline decoration-blue-300 underline-offset-4 hover:text-blue-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                  className="inline-flex min-h-10 items-center justify-center rounded-full border border-blue-200 bg-white px-4 font-medium text-blue-800 shadow-sm transition-colors hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 sm:hidden"
                   href={`https://www.google.com/preferences/source?q=${encodeURIComponent(SITE_URL)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  افزودن منبع در گوگل
+                  افزودن فرابک به منابع ترجیحی
                 </a>
               </div>
             </div>

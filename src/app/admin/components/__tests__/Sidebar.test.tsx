@@ -61,6 +61,7 @@ describe("Sidebar - Admin role", () => {
     expect(screen.getByText("گزارش‌ها")).toBeDefined();
     expect(screen.getByText("شعبه‌ها")).toBeDefined();
     expect(screen.getByText("انبارها")).toBeDefined();
+    expect(screen.getByText("پیام‌های تماس")).toBeDefined();
     expect(screen.getByText("فاکتورها")).toBeDefined();
     expect(screen.getByText("تنظیمات")).toBeDefined();
   });
@@ -86,6 +87,9 @@ describe("Sidebar - Admin role", () => {
 
     const branchesLink = screen.getByText("شعبه‌ها").closest("a");
     expect(branchesLink?.getAttribute("href")).toBe("/admin/branches");
+
+    const contactSubmissionsLink = screen.getByText("پیام‌های تماس").closest("a");
+    expect(contactSubmissionsLink?.getAttribute("href")).toBe("/admin/contact-submissions");
   });
 });
 
@@ -121,6 +125,7 @@ describe("Sidebar - Branch role", () => {
     expect(screen.queryByText("گزارش‌ها")).toBeNull();
     expect(screen.queryByText("انبارها")).toBeNull();
     expect(screen.queryByText("فاکتورها")).toBeNull();
+    expect(screen.queryByText("پیام‌های تماس")).toBeNull();
     expect(screen.queryByText("تنظیمات")).toBeNull();
   });
 
