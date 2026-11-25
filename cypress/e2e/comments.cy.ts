@@ -29,6 +29,17 @@ describe("moderated comments", () => {
     return cy.request(`/api/comments/${type}/${id}`);
   }
 
+  function assertPublicFields(type: "blog" | "product", id: number) {
+    publicComments(type, id).then(({ body }) => {
+      expect(body.comments).to.be.an("array");
+      for (const comment of body.comments) {
+        for (const entry of [comment, ...comment.replies]) {
+          expect(entry).not.to.have.any.keys("actorId", "reviewerId", "reviewNote");
+        }
+      }
+    });
+  }
+
   function moderate(body: string, decision: "approve" | "hide") {
     const status = decision === "approve" ? "PENDING" : "APPROVED";
     cy.visit(`/admin/comments?status=${status}`);
@@ -75,10 +86,27 @@ describe("moderated comments", () => {
     cy.clearCookies();
     cy.visit(articlePath);
     cy.get("#comments").contains("a", "ورود به حساب کاربری").should("be.visible");
+    for (const width of [320, 390, 768, 1024, 1440]) {
+      cy.viewport(width, 900);
+      for (const path of [articlePath, productPath]) {
+        cy.visit(path);
+        cy.get("#comments").should("be.visible");
+        cy.document().then((document) => {
+          expect(
+            document.documentElement.scrollWidth,
+            `horizontal overflow at ${width}px on ${path}`
+          ).to.be.at.most(document.documentElement.clientWidth + 1);
+        });
+      }
+    }
+    cy.viewport(1280, 900);
 
     cy.login("user");
     cy.visit(articlePath);
     cy.get("#comments").within(() => {
+      cy.contains("label", "متن دیدگاه").find("textarea").focus().should("have.focus");
+      cy.press(Cypress.Keyboard.Keys.TAB);
+      cy.focused().should("have.text", "ارسال دیدگاه");
       cy.contains("label", "متن دیدگاه")
         .find("textarea")
         .type(memberBody, { parseSpecialCharSequences: false });
@@ -141,9 +169,26 @@ describe("moderated comments", () => {
         cy.contains('[role="status"]', "پس از بررسی").should("be.visible");
       });
     });
+    cy.request("/api/auth/profile").then(({ body }) => {
+      expect(body.user.role).to.eq("Admin");
+      const adminId = body.user.userId;
+      cy.request("/api/admin/comments?status=PENDING&targetType=blog").then((response) => {
+        const submitted = response.body.comments.find(
+          (item: { body: string }) => item.body === aliasBody
+        );
+        expect(submitted, "pending alias in admin queue").to.exist;
+        expect(submitted.author).to.include({
+          actorId: adminId,
+          presentation: "ALIAS",
+          displayName: alias,
+        });
+      });
+    });
     moderate(aliasBody, "approve");
     moderate(replyBody, "approve");
     cy.clearCookies();
+    assertPublicFields("blog", articleId);
+    assertPublicFields("product", productId);
     cy.visit(articlePath);
     cy.get("#comments")
       .contains("li", memberBody)
