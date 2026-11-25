@@ -2,8 +2,10 @@ import { ArrowLeft } from "lucide-react";
 import { io } from "next/cache";
 import { notFound } from "next/navigation";
 import Script from "next/script";
+import { Suspense } from "react";
 
 import BlogFaqAccordion from "@/components/BlogFaqAccordion";
+import CommentSection from "@/components/comments/CommentSection";
 import { ActionLink } from "@/components/public/ActionLink";
 import { BlogArticleContent } from "@/components/public/BlogArticleContent";
 import BlogCover from "@/components/public/BlogCover";
@@ -105,6 +107,7 @@ function processContentWithImageUrls(content: string) {
 
 interface BlogResponse {
   blog: {
+    id: number;
     title: string;
     content: string;
     author: string | null;
@@ -127,6 +130,7 @@ interface BlogResponse {
 function mapBlogResponse(data: BlogDetailData): BlogResponse {
   return {
     blog: {
+      id: data.blog.id,
       title: data.blog.title,
       content: data.blog.content,
       author: data.blog.author,
@@ -414,6 +418,11 @@ export default async function BlogPage(props: {
             scopeId={contentScopeId}
             className="prose-view [&_.w-1\/2]:w-1\/2 [&_.w-1\/3]:w-1\/3 mx-auto max-w-3xl [&_.w-1\/2]:mx-auto [&_.w-1\/3]:mx-auto [&_.w-full]:w-full [&_h2]:scroll-mt-28 [&_h3]:scroll-mt-28 [&_img]:h-auto [&_img]:max-w-full"
           />
+          {!blog.QrCode_key && (
+            <Suspense fallback={<p>در حال بارگذاری دیدگاه‌ها...</p>}>
+              <CommentSection target={{ type: "blog", id: blog.id }} />
+            </Suspense>
+          )}
         </article>
 
         <aside className="sticky top-28 hidden space-y-4 lg:block">

@@ -241,6 +241,7 @@ describe("moderateComment", () => {
       },
     });
     expect(revalidateTag).toHaveBeenCalledWith("comments:blog:7", { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith("blogs", { expire: 0 });
   });
 
   it.each(["APPROVED", "REJECTED"] as const)(

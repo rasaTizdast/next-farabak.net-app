@@ -9,6 +9,7 @@ const tabs = [
   { id: "blog", label: "توضیحات تکمیلی" },
   { id: "specs", label: "مشخصات" },
   { id: "faq", label: "سوالات" },
+  { id: "comments", label: "دیدگاه‌ها" },
 ] as const;
 type ProductTab = (typeof tabs)[number];
 

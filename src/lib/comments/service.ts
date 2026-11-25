@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 
+import { TAGS } from "@/lib/data/tags";
 import { prisma } from "@/lib/prisma";
 
 import { commentTag } from "./cache";
@@ -237,5 +238,8 @@ export async function moderateComment(
       throw error;
     });
 
-  if (targetToExpire) revalidateTag(commentTag(targetToExpire), { expire: 0 });
+  if (targetToExpire) {
+    revalidateTag(commentTag(targetToExpire), { expire: 0 });
+    if (targetToExpire.type === "blog") revalidateTag(TAGS.blogs, { expire: 0 });
+  }
 }

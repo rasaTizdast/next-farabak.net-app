@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import Breadcrumb from "@/app/_components/ui/Breadcrumb";
+import CommentSection from "@/components/comments/CommentSection";
 import SourcesList from "@/components/SourcesList";
 import { SITE_URL } from "@/constants/meta";
 import { buildSourcesFor } from "@/helpers/sources";
@@ -259,6 +260,12 @@ export default async function ProductDataWrapper({
           <ProductFaq productId={productData.ProductId} />
         </Suspense>
       </section>
+
+      {productData.Available && !productData.QrCode_key && (
+        <Suspense fallback={<p>در حال بارگذاری دیدگاه‌ها...</p>}>
+          <CommentSection target={{ type: "product", id: productData.ProductId }} />
+        </Suspense>
+      )}
 
       <section className="mt-8 flex w-full flex-col items-center">
         <SourcesList sources={buildSourcesFor(productData.Type)} />
