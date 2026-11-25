@@ -92,6 +92,7 @@ describe("listApprovedComments", () => {
         id: 22,
         blogId: 7,
         parentId: null,
+        publishedAt: { not: null },
         presentation: { not: "EDITORIAL" },
       },
       select: { id: true, createdAt: true },

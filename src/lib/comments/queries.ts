@@ -36,6 +36,7 @@ async function readApprovedPage(
           where: {
             ...targetFields,
             parentId: null,
+            publishedAt: { not: null },
             presentation: { not: "EDITORIAL" },
             id: cursor,
           },
