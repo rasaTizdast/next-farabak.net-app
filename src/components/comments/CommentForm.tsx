@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 
 import { useUser } from "@/context/UserContext";
 import type { CommentTarget } from "@/lib/comments/types";
@@ -33,6 +33,7 @@ export default function CommentForm({
   parentId?: number;
 }) {
   const { user, isAdmin, loading } = useUser();
+  const [hasHydrated, setHasHydrated] = useState(false);
   const helpId = useId();
   const bodyErrorId = `${helpId}-error`;
   const aliasHelpId = `${helpId}-alias-help`;
@@ -45,7 +46,9 @@ export default function CommentForm({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  if (loading) return <p>در حال بررسی حساب کاربری...</p>;
+  useEffect(() => setHasHydrated(true), []);
+
+  if (!hasHydrated || loading) return <p>در حال بررسی حساب کاربری...</p>;
   if (!user)
     return parentId ? null : (
       <p>

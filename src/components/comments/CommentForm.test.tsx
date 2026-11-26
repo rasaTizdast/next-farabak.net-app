@@ -1,4 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act } from "react";
+import { hydrateRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useUser } from "@/context/UserContext";
@@ -10,6 +13,24 @@ const target = { type: "blog" as const, id: 1 };
 
 describe("CommentForm", () => {
   beforeEach(() => vi.restoreAllMocks());
+  it("hydrates safely when the guest account lookup resolves before the form hydrates", async () => {
+    vi.mocked(useUser).mockReturnValue({ loading: true, user: null, isAdmin: false } as never);
+    const container = document.createElement("div");
+    container.innerHTML = renderToString(<CommentForm target={target} />);
+
+    vi.mocked(useUser).mockReturnValue({ loading: false, user: null, isAdmin: false } as never);
+    const recoverableErrors: unknown[] = [];
+    const root = hydrateRoot(container, <CommentForm target={target} />, {
+      onRecoverableError: (error) => recoverableErrors.push(error),
+    });
+
+    await act(async () => {});
+
+    expect(recoverableErrors).toEqual([]);
+    expect(container.querySelector("a")?.textContent).toContain("ورود به حساب کاربری");
+    await act(async () => root.unmount());
+  });
+
   it("prompts guests to sign in", () => {
     vi.mocked(useUser).mockReturnValue({ loading: false, user: null, isAdmin: false } as never);
     render(<CommentForm target={target} />);

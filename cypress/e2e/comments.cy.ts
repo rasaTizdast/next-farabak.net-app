@@ -43,9 +43,11 @@ describe("moderated comments", () => {
   function moderate(body: string, decision: "approve" | "hide") {
     const status = decision === "approve" ? "PENDING" : "APPROVED";
     cy.visit(`/admin/comments?status=${status}`);
-    cy.contains("li", body, { timeout: 30000 }).within(() => {
-      cy.contains("button", decision === "approve" ? "تأیید" : "پنهان کردن").click();
-    });
+    cy.contains("li > p.mt-2", body, { timeout: 30000 })
+      .closest("li")
+      .within(() => {
+        cy.contains("button", decision === "approve" ? "تأیید" : "پنهان کردن").click();
+      });
     cy.get('[role="dialog"]').within(() => {
       if (decision === "hide") cy.get("textarea").type("پایان آزمون دیدگاه");
       cy.contains("button", decision === "approve" ? "تأیید انتشار" : "ثبت تصمیم").click();
@@ -84,6 +86,7 @@ describe("moderated comments", () => {
 
   it("publishes only approved member, alias and editorial comments, then hides the parent and reply", () => {
     cy.clearCookies();
+    cy.intercept("GET", "/api/exchangeRate", { statusCode: 200, body: { rate: 1 } });
     cy.visit(articlePath);
     cy.get("#comments").contains("a", "ورود به حساب کاربری").should("be.visible");
     for (const width of [320, 390, 768, 1024, 1440]) {
@@ -163,9 +166,7 @@ describe("moderated comments", () => {
     cy.visit(articlePath);
     cy.get("#comments").within(() => {
       cy.contains("label", "ثبت با نام مستعار").find("input").check();
-      cy.contains("label", /^نام مستعار$/)
-        .find("input")
-        .type(alias);
+      cy.get('input[maxlength="160"]').type(alias);
       cy.contains("label", "متن دیدگاه").find("textarea").type(aliasBody);
       cy.contains("button", "ارسال دیدگاه").click();
       cy.contains('[role="status"]', "پس از بررسی").should("be.visible");
