@@ -74,6 +74,32 @@ describe("moderation queue", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("ثبت تصمیم انجام نشد");
     expect(screen.getByText("متن دیدگاه آزمایشی")).toBeInTheDocument();
   });
+  it("keeps Shift+Tab inside the decision dialog when focus starts on its panel", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => json({ comments: [row], nextCursor: null }))
+    );
+    render(<CommentsManager />);
+    fireEvent.click(await screen.findByRole("button", { name: "تأیید" }));
+
+    const dialog = screen.getByRole("dialog");
+    const cancel = screen.getByRole("button", { name: "انصراف" });
+    for (const element of dialog.querySelectorAll("textarea, button")) {
+      Object.defineProperty(element, "offsetParent", { configurable: true, value: document.body });
+    }
+
+    expect(dialog).toHaveFocus();
+    const event = new KeyboardEvent("keydown", {
+      bubbles: true,
+      cancelable: true,
+      key: "Tab",
+      shiftKey: true,
+    });
+    document.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(cancel).toHaveFocus();
+  });
   it("refreshes the queue after an approved decision", async () => {
     const fetchMock = vi
       .fn()

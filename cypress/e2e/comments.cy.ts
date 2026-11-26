@@ -48,9 +48,40 @@ describe("moderated comments", () => {
       .within(() => {
         cy.contains("button", decision === "approve" ? "تأیید" : "پنهان کردن").click();
       });
+    cy.get('[role="dialog"]')
+      .should("be.visible")
+      .and("be.focused")
+      .then(($dialog) => {
+        expect(window.getComputedStyle($dialog[0]).outlineStyle).not.to.equal("none");
+      });
+    cy.document().then((document) => {
+      const event = new KeyboardEvent("keydown", {
+        bubbles: true,
+        cancelable: true,
+        key: "Tab",
+        shiftKey: true,
+      });
+      document.dispatchEvent(event);
+      expect(event.defaultPrevented).to.equal(true);
+    });
+    cy.get('[role="dialog"]').contains("button", "انصراف").should("have.focus");
+    cy.press(Cypress.Keyboard.Keys.TAB);
+    cy.get('[role="dialog"] textarea').should("have.focus");
+    cy.press(Cypress.Keyboard.Keys.ESC);
+    cy.get('[role="dialog"]').should("not.exist");
+    cy.contains("li > p.mt-2", body)
+      .closest("li")
+      .within(() => {
+        cy.contains("button", decision === "approve" ? "تأیید" : "پنهان کردن")
+          .should("have.focus")
+          .click();
+      });
     cy.get('[role="dialog"]').within(() => {
       if (decision === "hide") cy.get("textarea").type("پایان آزمون دیدگاه");
-      cy.contains("button", decision === "approve" ? "تأیید انتشار" : "ثبت تصمیم").click();
+      cy.contains("button", decision === "approve" ? "تأیید انتشار" : "ثبت تصمیم")
+        .focus()
+        .should("have.focus")
+        .click();
     });
     cy.get('[role="dialog"]').should("not.exist");
     cy.contains("li", body).should("not.exist");
@@ -161,6 +192,28 @@ describe("moderated comments", () => {
     );
 
     cy.login("admin");
+    cy.intercept("GET", "/api/admin/comments?status=PENDING").as("pendingQueue");
+    cy.visit(`/admin/comments?status=PENDING`);
+    cy.get("h1").should("contain.text", "مدیریت دیدگاه‌ها");
+    cy.wait("@pendingQueue").its("response.statusCode").should("eq", 200);
+    cy.get("select").eq(0).focus().should("have.focus");
+    cy.press(Cypress.Keyboard.Keys.TAB);
+    cy.get("select").eq(1).should("have.focus");
+    for (const width of [320, 390, 768, 1024, 1440]) {
+      cy.viewport(width, 900);
+      cy.document().then((document) => {
+        const main = document.querySelector("main");
+        expect(main, "admin main landmark").not.to.be.null;
+        expect(
+          document.documentElement.scrollWidth,
+          `admin queue horizontal overflow at ${width}px`
+        ).to.be.at.most(document.documentElement.clientWidth + 1);
+        expect(main!.scrollWidth, `admin main overflow at ${width}px`).to.be.at.most(
+          main!.clientWidth + 1
+        );
+      });
+    }
+    cy.viewport(1280, 900);
     moderate(memberBody, "approve");
     moderate(productBody, "approve");
     cy.visit(articlePath);

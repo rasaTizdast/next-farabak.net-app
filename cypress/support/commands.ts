@@ -28,10 +28,34 @@ Cypress.Commands.add("login", (role: "admin" | "user" = "admin") => {
     );
   }
 
+  cy.intercept("POST", "/api/auth/login").as("loginRequest");
   cy.visit("/auth/login");
-  cy.get('[data-testid="username-input"]').type(username);
-  cy.get('[data-testid="password-input"]').type(password);
+  cy.get('[data-testid="username-input"]')
+    .focus()
+    .type(username)
+    .then(($input) => {
+      if ($input.val() !== username) {
+        return cy.get('[data-testid="username-input"]').clear().type(username);
+      }
+      return cy.wrap($input);
+    })
+    .should("have.value", username);
+  cy.get('[data-testid="password-input"]')
+    .focus()
+    .type(password)
+    .then(($input) => {
+      if (String($input.val()).length !== password.length) {
+        return cy.get('[data-testid="password-input"]').clear().type(password);
+      }
+      return cy.wrap($input);
+    })
+    .should(($input) => expect(String($input.val())).to.have.length(password.length));
   cy.get('[data-testid="submit-button"]').click();
+  cy.wait("@loginRequest").then(({ request, response }) => {
+    expect(request.body.username).to.equal(username);
+    expect(request.body.password).to.have.length(password.length);
+    expect(response?.statusCode, `login status for ${username}`).to.equal(200);
+  });
   cy.url({ timeout: 60000 }).should("include", expectedRedirect);
 });
 
