@@ -19,6 +19,7 @@ type FAQApiResponse = {
 type Props = {
   productId: number;
   setFaqs: (faqs: FAQItem[]) => void;
+  onLoadedChange: (loaded: boolean) => void;
 };
 
 function validateField(field: string, value: string) {
@@ -33,16 +34,23 @@ function validateField(field: string, value: string) {
   return error;
 }
 
-const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
+const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs, onLoadedChange }) => {
   const [localFaqs, setLocalFaqs] = useState<FAQItem[]>([]);
   const hasFetched = useRef(false);
-  const { data: faqsResponse, loading: isLoading } = useApiFetch<FAQApiResponse[]>(
-    productId ? `/api/faqs/product/${productId}` : null
-  );
+  const {
+    data: faqsResponse,
+    loading: isLoading,
+    error,
+    refetch,
+  } = useApiFetch<FAQApiResponse[]>(productId ? `/api/faqs/product/${productId}` : null);
   const [localErrors, setLocalErrors] = useState<{ [key: string]: string }>({});
   const [touchedFields, setTouchedFields] = useState<{
     [key: string]: boolean;
   }>({});
+
+  useEffect(() => {
+    onLoadedChange(Array.isArray(faqsResponse) && !isLoading && !error);
+  }, [error, faqsResponse, isLoading, onLoadedChange]);
 
   useEffect(() => {
     if (faqsResponse && !hasFetched.current) {
@@ -164,10 +172,24 @@ const EditModalFAQ: React.FC<Props> = ({ productId, setFaqs }) => {
         <h3 className="text-lg font-semibold">سوالات متداول</h3>
       </div>
 
-      {isLoading ? (
+      {isLoading || (!faqsResponse && !error) ? (
         <div className="py-8 text-center">
           <div className="inline-block size-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-blue-500 motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
           <p className="mt-2">در حال بارگذاری سوالات متداول...</p>
+        </div>
+      ) : error ? (
+        <div
+          className="flex flex-wrap items-center justify-center gap-3 py-8 text-sm text-red-300"
+          role="alert"
+        >
+          <span>دریافت سوالات متداول ناموفق بود.</span>
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="underline underline-offset-2"
+          >
+            تلاش دوباره
+          </button>
         </div>
       ) : (
         <>

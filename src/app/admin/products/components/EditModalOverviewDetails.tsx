@@ -11,57 +11,74 @@ import DeleteOverviewDetailButton from "./DeleteOverviewDetailButton";
 type Props = {
   productId: number;
   setProductOverviewDetails: (arg0: OverviewDetail[]) => void;
+  onLoadedChange: (loaded: boolean) => void;
 };
 
-const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Props) => {
+const EditModalOverviewDetails = ({
+  productId,
+  setProductOverviewDetails,
+  onLoadedChange,
+}: Props) => {
   const [allOverviewDetails, setAllOverviewDetails] = useState<OverviewDetail[]>([]);
   const [selectedDetail, setSelectedDetail] = useState<OverviewDetail | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   // Number of items to show when collapsed
   const COLLAPSED_ITEM_COUNT = 3;
 
-  const fetchData = useCallback(() => {
-    const fetchAllDetailsPromise = axios
-      .get("/api/productOverviewDetails/getAll")
-      .catch((error) => {
-        console.error(error);
-        return { data: [] }; // Return an empty array to avoid breaking the mapping logic
-      });
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    setLoadError(false);
+    onLoadedChange(false);
 
-    const fetchProductDetailsPromise = axios
-      .get(`/api/productOverviewDetails/getProductOverviewDetails/${productId}`)
-      .catch((error) => {
-        console.error(error);
-        return { data: [] }; // Return an empty array if it fails
-      });
+    try {
+      const productDetailsRequest = axios
+        .get<OverviewDetail[]>(`/api/productOverviewDetails/getProductOverviewDetails/${productId}`)
+        .catch((error: unknown) => {
+          // No associations are a valid empty state for a product.
+          if (axios.isAxiosError(error) && error.response?.status === 404) {
+            return { data: [] as OverviewDetail[] };
+          }
+          throw error;
+        });
+      const [allDetailsRes, productDetailsRes] = await Promise.all([
+        axios.get<OverviewDetail[]>("/api/productOverviewDetails/getAll"),
+        productDetailsRequest,
+      ]);
+      const allDetails = allDetailsRes.data;
+      const productDetails = productDetailsRes.data;
 
-    Promise.all([fetchAllDetailsPromise, fetchProductDetailsPromise])
-      .then(([allDetailsRes, productDetailsRes]) => {
-        const productDetails = productDetailsRes.data;
-        const allDetails = allDetailsRes.data;
+      if (!Array.isArray(allDetails) || !Array.isArray(productDetails)) {
+        throw new Error("Invalid overview details response");
+      }
 
-        // Mark selected items
-        const updatedDetails = allDetails.map((detail: OverviewDetail) => ({
-          ...detail,
-          selected: productDetails.some(
-            (pd: OverviewDetail) => pd.ProductOverviewDetailsId === detail.ProductOverviewDetailsId
-          ),
-        }));
+      const updatedDetails = allDetails.map((detail) => ({
+        ...detail,
+        selected: productDetails.some(
+          (productDetail) =>
+            productDetail.ProductOverviewDetailsId === detail.ProductOverviewDetailsId
+        ),
+      }));
 
-        setAllOverviewDetails(updatedDetails);
-        setProductOverviewDetails(productDetails); // Ensure parent state is updated
-      })
-      .catch((error) => {
-        console.error(error);
-        toast.error("در دریافت اطلاعات بررسی محصول مشکلی وجود دارد");
-      });
-  }, [productId, setProductOverviewDetails]);
+      setAllOverviewDetails(updatedDetails);
+      setProductOverviewDetails(productDetails);
+      onLoadedChange(true);
+    } catch (error) {
+      console.error(error);
+      setLoadError(true);
+      onLoadedChange(false);
+      toast.error("در دریافت اطلاعات بررسی محصول مشکلی وجود دارد");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [onLoadedChange, productId, setProductOverviewDetails]);
 
   useEffect(() => {
-    fetchData();
+    void fetchData();
     document.addEventListener("refreshOverviewDetails", fetchData);
 
     return () => {
@@ -126,44 +143,69 @@ const EditModalOverviewDetails = ({ productId, setProductOverviewDetails }: Prop
       </div>
 
       {/* Overview Details List */}
-      <div className="grid grid-cols-1 gap-4">
-        {displayedDetails.map((detail) => (
-          <div
-            key={detail.ProductOverviewDetailsId}
-            className="flex flex-col gap-2 rounded-lg bg-gray-900 p-4 shadow-md"
+      {isLoading ? (
+        <div className="rounded-lg bg-gray-900 p-5 text-center text-sm text-gray-300" role="status">
+          در حال بارگذاری توضیحات محصول...
+        </div>
+      ) : loadError ? (
+        <div
+          className="flex flex-wrap items-center justify-center gap-3 rounded-lg bg-gray-900 p-5 text-sm text-red-300"
+          role="alert"
+        >
+          <span>دریافت توضیحات محصول ناموفق بود.</span>
+          <button
+            type="button"
+            onClick={() => void fetchData()}
+            className="underline underline-offset-2"
           >
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium">{detail.Title}</h4>
-              <div className="flex gap-2">
-                <DeleteOverviewDetailButton
-                  detailId={detail.ProductOverviewDetailsId}
-                  detailTitle={detail.Title}
-                  onSuccess={fetchData}
-                />
-                <button
-                  type="button"
-                  onClick={() => toggleSelection(detail.ProductOverviewDetailsId)}
-                  className={`rounded-md px-3 py-1 ${
-                    detail.selected ? "bg-green-500 text-white" : "bg-gray-200 text-gray-700"
-                  }`}
-                >
-                  {detail.selected ? "انتخاب شده" : "انتخاب"}
-                </button>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => openDetailModal(detail)}
-              className="mt-2 text-end text-sm hover:underline"
+            تلاش دوباره
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4">
+          {displayedDetails.map((detail) => (
+            <div
+              key={detail.ProductOverviewDetailsId}
+              className="flex flex-col gap-2 rounded-lg bg-gray-900 p-4 shadow-md"
             >
-              مشاهده جزئیات
-            </button>
-          </div>
-        ))}
-      </div>
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">{detail.Title}</h4>
+                <div className="flex gap-2">
+                  <DeleteOverviewDetailButton
+                    detailId={detail.ProductOverviewDetailsId}
+                    detailTitle={detail.Title}
+                    onSuccess={fetchData}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => toggleSelection(detail.ProductOverviewDetailsId)}
+                    className={`rounded-md px-3 py-1 ${
+                      detail.selected ? "bg-green-500 text-white" : "bg-gray-200 text-gray-700"
+                    }`}
+                  >
+                    {detail.selected ? "انتخاب شده" : "انتخاب"}
+                  </button>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => openDetailModal(detail)}
+                className="mt-2 text-end text-sm hover:underline"
+              >
+                مشاهده جزئیات
+              </button>
+            </div>
+          ))}
+          {displayedDetails.length === 0 && (
+            <p className="rounded-lg bg-gray-900 p-4 text-center text-sm text-gray-400">
+              توضیحی برای این محصول ثبت نشده است.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Show more/less button at the bottom for better UX */}
-      {hasMoreItems && (
+      {!isLoading && !loadError && hasMoreItems && (
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}

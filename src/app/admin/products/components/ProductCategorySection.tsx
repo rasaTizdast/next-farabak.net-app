@@ -15,6 +15,9 @@ export type Category = {
 type ProductCategorySectionProps = {
   formState: Product;
   categories: Category[];
+  isLoading: boolean;
+  error: string | null;
+  onRetry: () => void;
   selectedCategory: Category | undefined;
   setFormState: React.Dispatch<React.SetStateAction<Product | null>>;
 };
@@ -22,6 +25,9 @@ type ProductCategorySectionProps = {
 const ProductCategorySection: React.FC<ProductCategorySectionProps> = ({
   formState,
   categories,
+  isLoading,
+  error,
+  onRetry,
   selectedCategory,
   setFormState,
 }) => {
@@ -81,16 +87,29 @@ const ProductCategorySection: React.FC<ProductCategorySectionProps> = ({
   return (
     <>
       <div className="col-span-1 mt-4 block border-t-4 pt-6 sm:col-span-2">
-        <SelectField
-          label="دسته‌بندی"
-          name="categoryName"
-          value={formState.CategoryId?.toString() || ""}
-          onChange={handleCategoryChange}
-          options={categories.map((category) => ({
-            value: category.CategoryID.toString(),
-            label: category.Name,
-          }))}
-        />
+        {isLoading ? (
+          <p className="py-3 text-sm text-gray-300" role="status">
+            در حال بارگذاری دسته‌بندی‌ها...
+          </p>
+        ) : error ? (
+          <div className="flex flex-wrap items-center gap-3 py-3 text-sm text-red-300" role="alert">
+            <span>دریافت دسته‌بندی‌ها ناموفق بود.</span>
+            <button type="button" onClick={onRetry} className="underline underline-offset-2">
+              تلاش دوباره
+            </button>
+          </div>
+        ) : (
+          <SelectField
+            label="دسته‌بندی"
+            name="categoryName"
+            value={formState.CategoryId?.toString() || ""}
+            onChange={handleCategoryChange}
+            options={categories.map((category) => ({
+              value: category.CategoryID.toString(),
+              label: category.Name,
+            }))}
+          />
+        )}
       </div>
       <div className="col-span-1 mb-4 block border-b-4 pb-6 sm:col-span-2">
         <div className="rounded border border-gray-700 p-4 shadow-lg">
@@ -105,7 +124,15 @@ const ProductCategorySection: React.FC<ProductCategorySectionProps> = ({
             </div>
           </h3>
 
-          {formState.CategoryId ? (
+          {isLoading ? (
+            <p className="rounded bg-gray-700 p-3 text-sm text-gray-300" role="status">
+              در حال آماده‌سازی زیر دسته‌بندی‌ها...
+            </p>
+          ) : error ? (
+            <p className="rounded bg-gray-700 p-3 text-sm text-gray-300">
+              پس از بارگذاری دسته‌بندی‌ها، زیر دسته‌بندی‌ها نمایش داده می‌شوند.
+            </p>
+          ) : formState.CategoryId ? (
             <div className="rounded bg-gray-700 p-2 text-white">
               <div
                 className="grid gap-2"

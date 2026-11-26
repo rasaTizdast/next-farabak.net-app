@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 import { useApiFetch } from "@/hooks/useApiFetch";
@@ -33,6 +33,16 @@ type ProductFormProps = {
   setIsEditModalOpen: (arg0: boolean) => void;
 };
 
+type ProductFormResource = "categories" | "overview" | "overviewDetails" | "specs" | "faqs";
+
+const initialResourceReadiness: Record<ProductFormResource, boolean> = {
+  categories: false,
+  overview: false,
+  overviewDetails: false,
+  specs: false,
+  faqs: false,
+};
+
 const ProductForm: React.FC<ProductFormProps> = ({
   product,
   onClose,
@@ -49,20 +59,56 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const [overviewDetails, setOverviewDetails] = useState<OverviewDetail[] | null>(null);
   const [specs, setSpecs] = useState<Specs | null>(null);
   const [faqs, setFaqs] = useState<FAQItem[] | null>(null);
+  const [loadedResources, setLoadedResources] = useState(initialResourceReadiness);
 
   const requestClose = () => {
     if (!isLoading) onClose();
   };
   const panelRef = useModalA11y<HTMLDivElement>({ onClose: requestClose });
 
-  const { data: categoriesData, error: categoriesError } =
-    useApiFetch<Category[]>("/api/categories/getAll");
+  const {
+    data: categoriesData,
+    loading: categoriesLoading,
+    error: categoriesError,
+    refetch: refetchCategories,
+  } = useApiFetch<Category[]>("/api/categories/getAll");
   const patchProduct = useApiMutation("patch");
   const postMutation = useApiMutation<Record<string, unknown>, unknown>("post");
   const putMutation = useApiMutation("put");
   const deleteMutation = useApiMutation<S3DeleteBody, unknown>("delete");
 
   const categories = categoriesData || [];
+
+  const setResourceLoaded = useCallback((resource: ProductFormResource, loaded: boolean) => {
+    setLoadedResources((current) =>
+      current[resource] === loaded ? current : { ...current, [resource]: loaded }
+    );
+  }, []);
+  const setOverviewLoaded = useCallback(
+    (loaded: boolean) => setResourceLoaded("overview", loaded),
+    [setResourceLoaded]
+  );
+  const setOverviewDetailsLoaded = useCallback(
+    (loaded: boolean) => setResourceLoaded("overviewDetails", loaded),
+    [setResourceLoaded]
+  );
+  const setSpecsLoaded = useCallback(
+    (loaded: boolean) => setResourceLoaded("specs", loaded),
+    [setResourceLoaded]
+  );
+  const setFaqsLoaded = useCallback(
+    (loaded: boolean) => setResourceLoaded("faqs", loaded),
+    [setResourceLoaded]
+  );
+
+  useEffect(() => {
+    setResourceLoaded(
+      "categories",
+      Boolean(categoriesData) && !categoriesLoading && !categoriesError
+    );
+  }, [categoriesData, categoriesError, categoriesLoading, setResourceLoaded]);
+
+  const isContentReady = Object.values(loadedResources).every(Boolean);
   useEffect(() => {
     if (categoriesError) {
       toast.error("در دریافت دسته بندی ها مشکلی به وجود آمده است، دوباره تلاش کنید");
@@ -95,7 +141,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formState || isLoading) return;
+    if (!formState || isLoading || !isContentReady) return;
 
     const formError = validateProductForm(formState);
     if (formError) {
@@ -256,6 +302,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
             <ProductCategorySection
               formState={formState}
               categories={categories}
+              isLoading={categoriesLoading || (!categoriesData && !categoriesError)}
+              error={categoriesError}
+              onRetry={() => void refetchCategories()}
               selectedCategory={selectedCategory}
               setFormState={setFormState}
             />
@@ -269,6 +318,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
               overviews={overviews}
               setOverviews={setOverviews}
               setOverviewDetails={setOverviewDetails}
+              onOverviewLoadChange={setOverviewLoaded}
+              onDetailsLoadChange={setOverviewDetailsLoaded}
               setShowNewOverviewDetailsModal={setShowNewOverviewDetailsModal}
               onBlogSave={handleBlogSave}
             />
@@ -284,12 +335,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
               specs={specs}
               setSpecs={setSpecs}
               setFaqs={setFaqs}
+              onSpecsLoadChange={setSpecsLoaded}
+              onFaqsLoadChange={setFaqsLoaded}
               faqErrors={faqErrors}
             />
             <ProductFormActions
               onClose={requestClose}
               hasFaqErrors={hasFaqErrors}
               isLoading={isLoading}
+              isContentReady={isContentReady}
             />
           </form>
         </div>

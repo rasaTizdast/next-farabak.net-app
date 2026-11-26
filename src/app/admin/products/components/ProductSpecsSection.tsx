@@ -11,6 +11,8 @@ type ProductSpecsSectionProps = {
   specs: Specs | null;
   setSpecs: React.Dispatch<React.SetStateAction<Specs | null>>;
   setFaqs: (faqs: FAQItem[]) => void;
+  onSpecsLoadChange: (loaded: boolean) => void;
+  onFaqsLoadChange: (loaded: boolean) => void;
   faqErrors: { [key: string]: string };
 };
 
@@ -19,6 +21,8 @@ const ProductSpecsSection: React.FC<ProductSpecsSectionProps> = ({
   specs,
   setSpecs,
   setFaqs,
+  onSpecsLoadChange,
+  onFaqsLoadChange,
   faqErrors,
 }) => {
   return (
@@ -28,9 +32,14 @@ const ProductSpecsSection: React.FC<ProductSpecsSectionProps> = ({
         productName={formState.Name}
         specs={specs}
         setSpecs={setSpecs}
+        onLoadedChange={onSpecsLoadChange}
       />
 
-      <EditModalFAQ productId={formState.ProductId} setFaqs={setFaqs} />
+      <EditModalFAQ
+        productId={formState.ProductId}
+        setFaqs={setFaqs}
+        onLoadedChange={onFaqsLoadChange}
+      />
 
       <ProductFAQSection faqErrors={faqErrors} />
     </>

@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Overview } from "../types";
 
@@ -7,17 +7,51 @@ type Props = {
   ProductId: number;
   overviews: Overview | null;
   SetOverviews: (arg0: Overview) => void;
+  onLoadedChange: (loaded: boolean) => void;
 };
 
-const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
+const EditModalOverview = ({ ProductId, SetOverviews, overviews, onLoadedChange }: Props) => {
   const [existingOverviews, setExistingOverviews] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
-  // Fetch overview data on mount
+  const fetchOverview = useCallback(async () => {
+    setIsLoading(true);
+    setLoadError(false);
+    onLoadedChange(false);
+
+    try {
+      const { data } = await axios.get<Overview>(
+        `/api/productOverview/getProductOverview/${ProductId}`
+      );
+      SetOverviews(data);
+      onLoadedChange(true);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        SetOverviews({
+          ProductOverviewId: 0,
+          ProductName: "",
+          ProductId,
+          Property1: "",
+          Property2: "",
+          Property3: "",
+          Property4: "",
+          isChanged: false,
+        });
+        onLoadedChange(true);
+      } else {
+        console.error(error);
+        setLoadError(true);
+        onLoadedChange(false);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [ProductId, SetOverviews, onLoadedChange]);
+
   useEffect(() => {
-    axios.get(`/api/productOverview/getProductOverview/${+ProductId}`).then((data) => {
-      SetOverviews(data.data);
-    });
-  }, [ProductId, SetOverviews]);
+    void fetchOverview();
+  }, [fetchOverview]);
 
   const overviewsInitGuard = useRef(false);
   // Initialize existingOverviews from overviews prop (one-time)
@@ -97,40 +131,59 @@ const EditModalOverview = ({ ProductId, SetOverviews, overviews }: Props) => {
     <div className="col-span-1 my-5 flex flex-col gap-5 border-y-4 border-y-gray-200 py-5 sm:col-span-2">
       <h3 className="mb-2 font-bold">ویژگی‌های محصول</h3>
 
-      {existingOverviews.map((overview, index) => (
-        <div key={overview} className="flex items-center gap-2">
-          <label htmlFor={`property-${index + 1}`} className="block flex-1">
-            <input
-              id={`property-${index + 1}`}
-              type="text"
-              name={`Property${index + 1}`}
-              aria-label={`ویژگی ${index + 1}`}
-              value={(overviews?.[`Property${index + 1}`] as string) || ""}
-              onChange={inputHandler}
-              className="mt-2 w-full rounded border border-gray-800 bg-gray-700 p-2"
-              placeholder={`ویژگی ${index + 1} محصول را وارد کنید`}
-            />
-          </label>
-          {existingOverviews.length > 1 && (
+      {isLoading ? (
+        <p className="py-4 text-sm text-gray-300" role="status">
+          در حال بارگذاری ویژگی‌های محصول...
+        </p>
+      ) : loadError ? (
+        <div className="flex flex-wrap items-center gap-3 py-4 text-sm text-red-300" role="alert">
+          <span>دریافت ویژگی‌های محصول ناموفق بود.</span>
+          <button
+            type="button"
+            onClick={() => void fetchOverview()}
+            className="underline underline-offset-2"
+          >
+            تلاش دوباره
+          </button>
+        </div>
+      ) : (
+        <>
+          {existingOverviews.map((overview, index) => (
+            <div key={`${overview}-${index}`} className="flex items-center gap-2">
+              <label htmlFor={`property-${index + 1}`} className="block flex-1">
+                <input
+                  id={`property-${index + 1}`}
+                  type="text"
+                  name={`Property${index + 1}`}
+                  aria-label={`ویژگی ${index + 1}`}
+                  value={(overviews?.[`Property${index + 1}`] as string) || ""}
+                  onChange={inputHandler}
+                  className="mt-2 w-full rounded border border-gray-800 bg-gray-700 p-2"
+                  placeholder={`ویژگی ${index + 1} محصول را وارد کنید`}
+                />
+              </label>
+              {existingOverviews.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeOverview(index)}
+                  className="mt-2 rounded bg-red-600 px-3 py-2 text-white hover:bg-red-700"
+                >
+                  حذف
+                </button>
+              )}
+            </div>
+          ))}
+
+          {existingOverviews.length < 4 && (
             <button
               type="button"
-              onClick={() => removeOverview(index)}
-              className="mt-2 rounded bg-red-600 px-3 py-2 text-white hover:bg-red-700"
+              onClick={addNewOverview}
+              className="mt-2 w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
             >
-              حذف
+              افزودن ویژگی جدید
             </button>
           )}
-        </div>
-      ))}
-
-      {existingOverviews.length < 4 && (
-        <button
-          type="button"
-          onClick={addNewOverview}
-          className="mt-2 w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-        >
-          افزودن ویژگی جدید
-        </button>
+        </>
       )}
     </div>
   );

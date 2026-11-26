@@ -32,6 +32,7 @@ type EditModalSpecsProps = {
   productName: string;
   specs: Specs | null;
   setSpecs: React.Dispatch<React.SetStateAction<Specs | null>>;
+  onLoadedChange: (loaded: boolean) => void;
 };
 
 const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
@@ -39,13 +40,21 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
   productName,
   specs,
   setSpecs,
+  onLoadedChange,
 }) => {
   const [showTemplateManager, setShowTemplateManager] = useState(false);
   const [internalSpecs, setInternalSpecs] = useState<SpecsInternal | null>(null);
 
-  const { data: fetchedSpecs, loading: isLoading } = useApiFetch<SpecApiResponse[]>(
-    productId ? `/api/specs/${productId}` : null
-  );
+  const {
+    data: fetchedSpecs,
+    loading: isLoading,
+    error,
+    refetch,
+  } = useApiFetch<SpecApiResponse[]>(productId ? `/api/specs/${productId}` : null);
+
+  useEffect(() => {
+    onLoadedChange(Array.isArray(fetchedSpecs) && !isLoading && !error);
+  }, [error, fetchedSpecs, isLoading, onLoadedChange]);
 
   // Initialize internalSpecs from fetched specs or parent specs (one-time)
   const specsInitGuard = useRef(false);
@@ -157,8 +166,30 @@ const EditModalSpecs: React.FC<EditModalSpecsProps> = ({
     syncToParent(updated);
   };
 
-  if (isLoading) {
-    return <div className="p-4 text-center">در حال بارگیری مشخصات...</div>;
+  if (isLoading || (!fetchedSpecs && !error)) {
+    return (
+      <div className="p-4 text-center text-gray-300" role="status">
+        در حال بارگیری مشخصات...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className="flex flex-wrap items-center justify-center gap-3 p-4 text-sm text-red-300"
+        role="alert"
+      >
+        <span>دریافت مشخصات محصول ناموفق بود.</span>
+        <button
+          type="button"
+          onClick={() => void refetch()}
+          className="underline underline-offset-2"
+        >
+          تلاش دوباره
+        </button>
+      </div>
+    );
   }
 
   return (

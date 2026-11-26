@@ -26,9 +26,12 @@ type FilterData = {
 };
 
 const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
-  const { data: filterData, loading: isLoading } = useApiFetch<FilterData>(
-    "/api/admin/products/filterData"
-  );
+  const {
+    data: filterData,
+    loading: isLoading,
+    error,
+    refetch,
+  } = useApiFetch<FilterData>("/api/admin/products/filterData");
 
   const categories = filterData?.categories ?? [];
 
@@ -78,7 +81,7 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
           ✕
         </button>
 
-        {isLoading ? (
+        {isLoading || (!filterData && !error) ? (
           <div className="animate-pulse space-y-6" role="status" aria-label="در حال بارگذاری">
             <div className="mx-auto h-8 w-32 rounded-lg bg-gray-600"></div>
             <div className="space-y-4">
@@ -90,6 +93,20 @@ const FilterModal = ({ filters, applyFilters, setShowFilterModal }: Props) => {
               <div className="mt-6 h-12 w-24 rounded-lg bg-gray-600"></div>
               <div className="mt-6 h-12 w-24 rounded-lg bg-gray-600"></div>
             </div>
+          </div>
+        ) : error ? (
+          <div
+            className="flex flex-col items-center gap-3 py-8 text-center text-sm text-red-300"
+            role="alert"
+          >
+            <p>دریافت گزینه‌های فیلتر ناموفق بود.</p>
+            <button
+              type="button"
+              onClick={() => void refetch()}
+              className="rounded-lg bg-gray-700 px-4 py-2 text-white underline underline-offset-2"
+            >
+              تلاش دوباره
+            </button>
           </div>
         ) : (
           <>

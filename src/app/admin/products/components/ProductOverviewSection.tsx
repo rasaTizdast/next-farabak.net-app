@@ -10,6 +10,8 @@ type ProductOverviewSectionProps = {
   overviews: Overview | null;
   setOverviews: React.Dispatch<React.SetStateAction<Overview | null>>;
   setOverviewDetails: React.Dispatch<React.SetStateAction<OverviewDetail[] | null>>;
+  onOverviewLoadChange: (loaded: boolean) => void;
+  onDetailsLoadChange: (loaded: boolean) => void;
   setShowNewOverviewDetailsModal: React.Dispatch<React.SetStateAction<boolean>>;
   onBlogSave: (blog: string) => void;
 };
@@ -19,6 +21,8 @@ const ProductOverviewSection: React.FC<ProductOverviewSectionProps> = ({
   overviews,
   setOverviews,
   setOverviewDetails,
+  onOverviewLoadChange,
+  onDetailsLoadChange,
   setShowNewOverviewDetailsModal,
   onBlogSave,
 }) => {
@@ -28,6 +32,7 @@ const ProductOverviewSection: React.FC<ProductOverviewSectionProps> = ({
         ProductId={formState.ProductId}
         overviews={overviews}
         SetOverviews={setOverviews}
+        onLoadedChange={onOverviewLoadChange}
       />
       <div className="col-span-1 sm:col-span-2">
         <EditModalProductBlog
@@ -40,6 +45,7 @@ const ProductOverviewSection: React.FC<ProductOverviewSectionProps> = ({
       <EditModalOverviewDetails
         productId={formState.ProductId}
         setProductOverviewDetails={setOverviewDetails}
+        onLoadedChange={onDetailsLoadChange}
       />
       <div className="col-span-1 border-b-4 border-b-gray-200 pb-2 sm:col-span-2">
         <button
