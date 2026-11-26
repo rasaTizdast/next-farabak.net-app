@@ -35,7 +35,12 @@ function BranchesPageContent() {
   const refreshTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     const productId = crud.searchParams.get("productId");
-    if (productId && !crud.initialLoading && !searchProductIdSyncedRef.current) {
+    if (
+      productId &&
+      !crud.initialLoading &&
+      !assignment.allProductsLoading &&
+      !searchProductIdSyncedRef.current
+    ) {
       searchProductIdSyncedRef.current = true;
       const parsedId = parseInt(productId);
       crud.setSearchProductId(parsedId);
@@ -59,9 +64,13 @@ function BranchesPageContent() {
   ]);
 
   useEffect(() => {
-    Promise.all([crud.fetchBranches(), assignment.fetchAllProducts()])
-      .catch((error) => console.error("Error loading initial data:", error))
+    void crud
+      .fetchBranches()
+      .catch((error) => console.error("Error loading branches:", error))
       .finally(() => crud.setInitialLoading(false));
+    void assignment
+      .fetchAllProducts()
+      .catch((error) => console.error("Error loading products:", error));
 
     const intervalId = setInterval(() => {
       crud.setRefreshing(true);
@@ -116,6 +125,7 @@ function BranchesPageContent() {
         searchValue={crud.searchValue}
         searchProductId={crud.searchProductId}
         allProducts={assignment.allProducts}
+        allProductsLoading={assignment.allProductsLoading}
         onSearchValueChange={crud.setSearchValue}
         onSearch={handleSearch}
         onClearSearch={crud.clearSearch}

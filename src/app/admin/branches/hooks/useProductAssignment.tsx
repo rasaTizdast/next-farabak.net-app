@@ -8,11 +8,11 @@ import { useApiMutation } from "@/hooks/useApiMutation";
 import { Branch, Product } from "../components/types";
 
 async function fetchAllProductsHelper(
-  setProductsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setAllProductsLoading: React.Dispatch<React.SetStateAction<boolean>>,
   setAllProducts: React.Dispatch<React.SetStateAction<Product[]>>
 ) {
   try {
-    setProductsLoading(true);
+    setAllProductsLoading(true);
 
     try {
       const response = await fetch("/api/admin/products/all", {
@@ -63,7 +63,7 @@ async function fetchAllProductsHelper(
     console.error("Error fetching products:", error);
     message.error("خطا در بارگذاری محصولات");
   } finally {
-    setProductsLoading(false);
+    setAllProductsLoading(false);
   }
 }
 
@@ -113,6 +113,7 @@ export function useProductAssignment({
   const [products, setProducts] = useState<Product[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
+  const [allProductsLoading, setAllProductsLoading] = useState(false);
   const [productDrawerVisible, setProductDrawerVisible] = useState(false);
   const [invoiceModalVisible, setInvoiceModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
@@ -126,7 +127,7 @@ export function useProductAssignment({
   const { mutate: removeProductMutate } = useApiMutation("delete");
 
   const fetchAllProducts = useCallback(async () => {
-    await fetchAllProductsHelper(setProductsLoading, setAllProducts);
+    await fetchAllProductsHelper(setAllProductsLoading, setAllProducts);
   }, []);
 
   const fetchBranchProducts = async (branchId: number) => {
@@ -236,6 +237,7 @@ export function useProductAssignment({
 
   return {
     allProducts,
+    allProductsLoading,
     products,
     productsLoading,
     productDrawerVisible,

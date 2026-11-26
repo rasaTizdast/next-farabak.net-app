@@ -16,6 +16,7 @@ interface BranchListProps {
   searchValue: string;
   searchProductId: number | null;
   allProducts: Product[];
+  allProductsLoading: boolean;
   onSearchValueChange: (value: string) => void;
   onSearch: (value: string) => void;
   onClearSearch: () => void;
@@ -71,6 +72,7 @@ const BranchList: React.FC<BranchListProps> = ({
   searchValue,
   searchProductId,
   allProducts,
+  allProductsLoading,
   onSearchValueChange,
   onSearch,
   onClearSearch,
@@ -93,7 +95,10 @@ const BranchList: React.FC<BranchListProps> = ({
         <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
           <div className="relative w-full sm:w-72">
             <AutoComplete
-              placeholder="جستجوی محصول در شعبه‌ها..."
+              placeholder={
+                allProductsLoading ? "در حال بارگذاری محصولات..." : "جستجوی محصول در شعبه‌ها..."
+              }
+              disabled={allProductsLoading}
               value={searchValue}
               onChange={(value) => {
                 onSearchValueChange(value);
@@ -135,6 +140,7 @@ const BranchList: React.FC<BranchListProps> = ({
                 type="primary"
                 icon={<SearchOutlined style={{ fontSize: "14px" }} />}
                 aria-label="جستجوی محصول در شعبه‌ها"
+                disabled={allProductsLoading}
                 onClick={() => {
                   if (searchValue.trim()) {
                     onSearch(searchValue);
