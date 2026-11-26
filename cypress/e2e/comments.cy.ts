@@ -120,6 +120,14 @@ describe("moderated comments", () => {
     cy.intercept("GET", "/api/exchangeRate", { statusCode: 200, body: { rate: 1 } });
     cy.visit(articlePath);
     cy.get("#comments").contains("a", "ورود به حساب کاربری").should("be.visible");
+    if ([true, "true"].includes(Cypress.env("commentsReducedMotion"))) {
+      cy.window().then((window) => {
+        expect(window.matchMedia("(prefers-reduced-motion: reduce)").matches).to.equal(true);
+        expect(window.getComputedStyle(window.document.documentElement).scrollBehavior).to.equal(
+          "auto"
+        );
+      });
+    }
     for (const width of [320, 390, 768, 1024, 1440]) {
       cy.viewport(width, 900);
       for (const path of [articlePath, productPath]) {
@@ -131,12 +139,25 @@ describe("moderated comments", () => {
             `horizontal overflow at ${width}px on ${path}`
           ).to.be.at.most(document.documentElement.clientWidth + 1);
         });
+        if ([true, "true"].includes(Cypress.env("commentsCaptureScreenshots"))) {
+          cy.screenshot(`${path.startsWith("/products/") ? "product" : "article"}-${width}`);
+        }
       }
     }
     cy.viewport(1280, 900);
 
     cy.login("user");
     cy.visit(articlePath);
+    cy.get("#comments button").first().should("exist");
+    if ([true, "true"].includes(Cypress.env("commentsReducedMotion"))) {
+      cy.window().then((window) => {
+        const submit = window.document.querySelector<HTMLButtonElement>("#comments button");
+        expect(submit, "comment form submit button").not.to.be.null;
+        expect(parseFloat(window.getComputedStyle(submit!).transitionDuration)).to.be.at.most(
+          0.00001
+        );
+      });
+    }
     cy.get("#comments").within(() => {
       cy.contains("label", "متن دیدگاه").find("textarea").focus().should("have.focus");
       cy.press(Cypress.Keyboard.Keys.TAB);
@@ -190,6 +211,7 @@ describe("moderated comments", () => {
     publicComments("product", productId).then(({ body }) =>
       expect(JSON.stringify(body)).not.to.include(productBody)
     );
+    cy.request(productPath).its("body").should("not.include", productBody);
 
     cy.login("admin");
     cy.intercept("GET", "/api/admin/comments?status=PENDING").as("pendingQueue");
@@ -212,6 +234,9 @@ describe("moderated comments", () => {
           main!.clientWidth + 1
         );
       });
+      if ([true, "true"].includes(Cypress.env("commentsCaptureScreenshots"))) {
+        cy.screenshot(`admin-${width}`);
+      }
     }
     cy.viewport(1280, 900);
     moderate(memberBody, "approve");
@@ -255,17 +280,17 @@ describe("moderated comments", () => {
     cy.get("#comments")
       .contains("p", memberBody)
       .should("be.visible")
-      .then(($body) => {
-        expect($body[0].scrollWidth, "long comment width at 320px").to.be.at.most(
-          $body[0].clientWidth + 1
+      .should(($body) => {
+        const paragraph = $body[0];
+        const document = paragraph.ownerDocument;
+        expect(paragraph.scrollWidth, "long comment width at 320px").to.be.at.most(
+          paragraph.clientWidth + 1
         );
+        expect(
+          document.documentElement.scrollWidth,
+          "approved comment page width at 320px"
+        ).to.be.at.most(document.documentElement.clientWidth + 1);
       });
-    cy.document().then((document) => {
-      expect(
-        document.documentElement.scrollWidth,
-        "approved comment page width at 320px"
-      ).to.be.at.most(document.documentElement.clientWidth + 1);
-    });
     cy.viewport(1280, 900);
     cy.get("#comments")
       .contains("li", memberBody)
@@ -276,6 +301,7 @@ describe("moderated comments", () => {
       });
     cy.get("#comments").contains("li", aliasBody).contains(alias).should("be.visible");
     cy.request(articlePath).its("body").should("include", `پرسش آزمایشی ${unique}`);
+    cy.request(productPath).its("body").should("include", productBody);
     cy.visit(productPath);
     cy.get("#comments").contains(productBody).should("be.visible");
 
