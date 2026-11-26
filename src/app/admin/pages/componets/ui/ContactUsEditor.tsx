@@ -56,15 +56,23 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
   });
   const [emails, setEmails] = useState<Array<{ id: number; title: string; address: string }>>([]);
   const [phoneNumbers, setPhoneNumbers] = useState<Array<{ id: number; number: string }>>([]);
-  const { data: contactData } = useApiFetch<{
+  const {
+    data: contactData,
+    loading: isLoading,
+    error: loadError,
+    refetch,
+  } = useApiFetch<{
     address: { id: number; address: string; postal_code: number; alt_text: string } | null;
     emails: Array<{ id: number; title: string; address: string }>;
     phone_numbers: Array<{ id: number; number: string }>;
   }>("/api/contact-us");
-  const { mutate: saveContact } = useApiMutation<Record<string, unknown>>("put");
+  const { mutate: saveContact, loading: isSaving } = useApiMutation<Record<string, unknown>>("put");
   const initializedRef = useRef(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  const loading = !contactData;
+  const isContentReady = Boolean(contactData) && !isLoading && !loadError && isInitialized;
+  const isShowingLoader =
+    isLoading || (!contactData && !loadError) || (!!contactData && !isInitialized);
 
   useEffect(() => {
     if (contactData && !initializedRef.current) {
@@ -72,12 +80,15 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
       const { address: a, emails: e, phone_numbers: p } = contactData;
 
       setAddress(a ?? { id: 0, address: "", postal_code: 0, alt_text: "" });
-      setEmails(e);
-      setPhoneNumbers(p);
+      setEmails(Array.isArray(e) ? e : []);
+      setPhoneNumbers(Array.isArray(p) ? p : []);
+      setIsInitialized(true);
     }
   }, [contactData]);
 
   const handleSave = async () => {
+    if (!isContentReady || isSaving) return;
+
     const res = await saveContact("/api/contact-us", {
       address,
       emails,
@@ -153,8 +164,22 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
           </button>
         </div>
 
-        {loading ? (
+        {isShowingLoader ? (
           <SkeletonLoader />
+        ) : loadError ? (
+          <div
+            className="rounded-lg border border-red-400/40 bg-red-950/30 p-5 text-sm text-red-100"
+            role="alert"
+          >
+            <p>دریافت اطلاعات تماس ناموفق بود.</p>
+            <button
+              type="button"
+              onClick={() => void refetch()}
+              className="mt-3 rounded border border-red-200/40 px-3 py-2 font-semibold hover:bg-red-900/50"
+            >
+              تلاش دوباره
+            </button>
+          </div>
         ) : (
           <>
             <div className="mb-6 rounded-lg bg-gray-600 p-3">
@@ -361,9 +386,11 @@ const ContactUsEditor: React.FC<ContactUsEditModalProps> = ({ onClose }) => {
           <button
             type="button"
             onClick={handleSave}
-            className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+            disabled={!isContentReady || isSaving}
+            aria-busy={isSaving}
+            className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            ذخیره
+            {isSaving ? "در حال ذخیره..." : "ذخیره"}
           </button>
         </div>
       </div>
